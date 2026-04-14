@@ -1,9 +1,9 @@
 import { AlertTriangle, Loader2, Package, RefreshCw } from 'lucide-react'
 import { useCallback, useEffect, useRef, useState } from 'react'
 
-import { useAuth } from '@/src/contexts/AuthContext'
-import { supabase } from '@/src/services/supabase/client'
-import { logger } from '@/src/utils/logger'
+import { useAuth } from '@/contexts/AuthContext'
+import { lessonService, type UpsertScormRuntimeParams } from '@/features/lessons/api/lessonService'
+import { logger } from '@/utils/logger'
 
 import {
   createScormBridge,
@@ -62,21 +62,18 @@ export function ScormPlayer({
       if (!user || !tenantId) return
 
       try {
-        const { error } = await supabase.rpc('upsert_scorm_runtime', {
-          p_user_id: user.id,
-          p_scorm_package_id: scormPackageId,
-          p_tenant_id: tenantId,
-          p_cmi_data: payload.cmiData,
-          p_score_raw: payload.scoreRaw,
-          p_score_max: payload.scoreMax,
-          p_lesson_status: payload.lessonStatus,
-          p_total_time: payload.totalTimeSeconds,
-          p_suspend_data: payload.suspendData,
-        })
-
-        if (error) {
-          logger.error('[ScormPlayer] upsert_scorm_runtime error:', error)
+        const params: UpsertScormRuntimeParams = {
+          userId: user.id,
+          scormPackageId,
+          tenantId,
+          cmiData: payload.cmiData,
+          scoreRaw: payload.scoreRaw,
+          scoreMax: payload.scoreMax,
+          lessonStatus: payload.lessonStatus,
+          totalTimeSeconds: payload.totalTimeSeconds,
+          suspendData: payload.suspendData,
         }
+        await lessonService.upsertScormRuntime(params)
       } catch (err) {
         logger.error('[ScormPlayer] persistState error:', err)
       }
@@ -147,14 +144,9 @@ export function ScormPlayer({
         setPlayerState('loading')
 
         // 1. Fetch SCORM package info
-        const { data: pkg, error: pkgError } = await supabase
-          .from('scorm_packages')
-          .select('id, tenant_id, lesson_id, title, scorm_version, storage_path, entry_point')
-          .eq('id', scormPackageId)
-          .eq('tenant_id', tenantId)
-          .single()
+        const pkg = await lessonService.getScormPackage(scormPackageId, tenantId!)
 
-        if (pkgError || !pkg) {
+        if (!pkg) {
           if (cancelled) return
           setPlayerState('error')
           setErrorMessage('Paket SCORM tidak ditemukan.')
@@ -165,12 +157,8 @@ export function ScormPlayer({
         setPackageInfo(pkg as ScormPackage)
 
         // 2. Fetch existing runtime data (for resume)
-        const { data: runtime } = await supabase
-          .from('scorm_runtime_data')
-          .select('cmi_data, score_raw, lesson_status, total_time, suspend_data')
-          .eq('user_id', user.id)
-          .eq('scorm_package_id', scormPackageId)
-          .single()
+        // FIXED: C2 — pass tenantId for tenant isolation
+        const runtime = await lessonService.getScormRuntimeData(user.id, scormPackageId, tenantId!)
 
         if (cancelled) return
 
@@ -185,7 +173,8 @@ export function ScormPlayer({
         // Set learner identity (always override with current user)
         if (pkg.scorm_version === '1.2') {
           initialData['cmi.core.student_id'] = user.id
-          initialData['cmi.core.student_name'] = user.user_metadata?.full_name || 'Student'
+          initialData['cmi.core.student_name'] =
+            (user.user_metadata?.full_name as string) || 'Student'
           if (runtime?.suspend_data) {
             initialData['cmi.suspend_data'] = runtime.suspend_data
           }
@@ -203,7 +192,7 @@ export function ScormPlayer({
         } else {
           // SCORM 2004
           initialData['cmi.learner_id'] = user.id
-          initialData['cmi.learner_name'] = user.user_metadata?.full_name || 'Student'
+          initialData['cmi.learner_name'] = (user.user_metadata?.full_name as string) || 'Student'
           if (runtime?.suspend_data) {
             initialData['cmi.suspend_data'] = runtime.suspend_data
           }
@@ -230,9 +219,9 @@ export function ScormPlayer({
         bridge.attach(window)
         bridgeRef.current = bridge
 
-        // 5. Build iframe URL from Supabase Storage
-        const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || ''
-        const contentUrl = `${supabaseUrl}/storage/v1/object/public/scorm-packages/${pkg.storage_path}/${pkg.entry_point}`
+        // 5. Build iframe URL from VIL Storage
+        const vilApiUrl = import.meta.env.VITE_API_URL || 'http://localhost:8080'
+        const contentUrl = `${vilApiUrl}/storage/scorm-packages/${pkg.storage_path}/${pkg.entry_point}`
         setIframeUrl(contentUrl)
 
         // Check if already completed
@@ -250,7 +239,7 @@ export function ScormPlayer({
       }
     }
 
-    init()
+    void init()
 
     return () => {
       cancelled = true
@@ -272,48 +261,25 @@ export function ScormPlayer({
   }, [scormPackageId, user?.id, tenantId, retryKey])
 
   // ── Beforeunload: flush state ────────────────────────────────
-  // Uses fetch with keepalive:true instead of sendBeacon because
-  // sendBeacon cannot send Authorization headers required by Supabase RPC.
-  // keepalive ensures the request completes even after page unload.
+  // Uses lessonService.sendBeaconUpsert() which internally uses fetch with
+  // keepalive:true instead of sendBeacon because sendBeacon cannot send
+  // Authorization headers required by Supabase RPC.
 
   useEffect(() => {
     const handleBeforeUnload = () => {
       if (bridgeRef.current?.isInitialized() && !bridgeRef.current.isTerminated()) {
         const payload = bridgeRef.current.getPayload()
-        const body = JSON.stringify({
-          p_user_id: user?.id,
-          p_scorm_package_id: scormPackageId,
-          p_tenant_id: tenantId,
-          p_cmi_data: payload.cmiData,
-          p_score_raw: payload.scoreRaw,
-          p_score_max: payload.scoreMax,
-          p_lesson_status: payload.lessonStatus,
-          p_total_time: payload.totalTimeSeconds,
-          p_suspend_data: payload.suspendData,
+        lessonService.sendBeaconUpsert({
+          userId: user?.id ?? '',
+          scormPackageId,
+          tenantId: tenantId ?? '',
+          cmiData: payload.cmiData,
+          scoreRaw: payload.scoreRaw,
+          scoreMax: payload.scoreMax,
+          lessonStatus: payload.lessonStatus,
+          totalTimeSeconds: payload.totalTimeSeconds,
+          suspendData: payload.suspendData,
         })
-        const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || ''
-        const anonKey = import.meta.env.VITE_SUPABASE_ANON_KEY || ''
-
-        // Retrieve the current session token for auth header
-        const sessionStr = localStorage.getItem(
-          'sb-' + new URL(supabaseUrl).hostname.split('.')[0] + '-auth-token'
-        )
-        const accessToken = sessionStr ? JSON.parse(sessionStr)?.access_token : anonKey
-
-        try {
-          fetch(`${supabaseUrl}/rest/v1/rpc/upsert_scorm_runtime`, {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-              apikey: anonKey,
-              Authorization: `Bearer ${accessToken || anonKey}`,
-            },
-            body,
-            keepalive: true, // Survives page unload
-          })
-        } catch {
-          // Best-effort — if this fails, the debounced commit already saved recent state
-        }
       }
     }
 

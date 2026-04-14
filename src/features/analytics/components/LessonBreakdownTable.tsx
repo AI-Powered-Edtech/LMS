@@ -1,6 +1,6 @@
-import { Badge, Card, Skeleton } from '@/src/components/ui'
-import { VirtualTable } from '@/src/components/ui/VirtualTable'
-import { cn } from '@/src/utils/cn'
+import { Badge, Card, Skeleton } from '@/components/ui'
+import { VirtualTable } from '@/components/ui/VirtualTable'
+import { cn } from '@/utils/cn'
 
 import type { LessonAnalytics } from '../types'
 import { formatPct, formatTime, pctBgColor, pctColor } from '../utils/formatters'

@@ -1,5 +1,7 @@
 import { Archive, Download, ExternalLink, File, FileText, Presentation, Sheet } from 'lucide-react'
 
+import { sanitizeUrl } from '@/utils/sanitize'
+
 interface FileBlockViewerProps {
   url: string
   title?: string | null
@@ -59,6 +61,26 @@ export function FileBlockViewer({ url, title }: FileBlockViewerProps) {
   const fileName = title || url.split('/').pop() || 'Download File'
   const fileTypeLabel = getFileTypeLabel(url)
   const isPdfFile = isPdf(url)
+  const safeUrl = sanitizeUrl(url)
+
+  const handleDownload = async (e: React.MouseEvent<HTMLAnchorElement>) => {
+    e.preventDefault()
+    try {
+      const response = await fetch(safeUrl)
+      const blob = await response.blob()
+      const blobUrl = URL.createObjectURL(blob)
+      const link = document.createElement('a')
+      link.href = blobUrl
+      link.download = fileName
+      document.body.appendChild(link)
+      link.click()
+      document.body.removeChild(link)
+      URL.revokeObjectURL(blobUrl)
+    } catch {
+      // Fallback: open in new tab
+      window.open(safeUrl, '_blank', 'noopener,noreferrer')
+    }
+  }
 
   return (
     <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 p-4 border border-slate-200 rounded-xl bg-slate-50 hover:bg-slate-100 transition-colors">
@@ -75,18 +97,19 @@ export function FileBlockViewer({ url, title }: FileBlockViewerProps) {
       <div className="flex gap-2 w-full sm:w-auto">
         {isPdfFile && (
           <a
-            href={url}
+            href={safeUrl}
             target="_blank"
             rel="noreferrer"
             className="flex-1 sm:flex-none flex items-center justify-center gap-2 px-4 py-2 text-sm font-medium text-blue-600 bg-blue-50 hover:bg-blue-100 rounded-lg transition-colors"
           >
             <ExternalLink className="w-4 h-4" />
             Buka
+            <span className="sr-only">(buka di tab baru)</span>
           </a>
         )}
         <a
-          href={url}
-          download={fileName}
+          href={safeUrl}
+          onClick={handleDownload}
           target="_blank"
           rel="noreferrer"
           className="flex-1 sm:flex-none flex items-center justify-center gap-2 px-4 py-2 text-sm font-medium text-emerald-600 bg-emerald-50 hover:bg-emerald-100 rounded-lg transition-colors"

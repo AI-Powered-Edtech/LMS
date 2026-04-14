@@ -1,135 +1,174 @@
-import { useEffect, useState } from 'react'
+import { useAuth } from '@/contexts/AuthContext'
 
-import { useAuth } from '@/src/contexts/AuthContext'
-import { assignmentService } from '@/src/features/assignments/api/assignmentService'
-import { logger } from '@/src/utils/logger'
-
-import { AssignmentUiState, StudentSubmission } from '../types'
+import { useAssignmentList } from '../queries/assignmentQueries'
+import { AssignmentAttemptUi, AssignmentUiState, Attachment, StudentSubmission } from '../types'
 
 // Raw database response type (snake_case from Supabase)
-interface AssignmentDbResponse {
+// Note: Type is used indirectly through SubmissionLike interface
+
+function normalizeSubmissionStatus(status: string | null | undefined) {
+  switch (status?.toUpperCase()) {
+    case 'SUBMITTED':
+      return 'submitted'
+    case 'LATE':
+      return 'late'
+    case 'GRADED':
+    case 'RETURNED':
+      return 'graded'
+    default:
+      return 'assigned'
+  }
+}
+
+interface SubmissionLike {
   id: string
-  title: string
-  instructions: string | null
-  due_date: string | null
-  max_points: number
-  assignment_submissions: {
-    id: string
-    status: string
-    score: number | null
-    submitted_at: string | null
-    file_url: string | null
-    user_profiles?: { full_name: string }
-  }[]
+  student_id: string
+  status: string
+  attempt_number: number
+  score: number | null
+  raw_score: number | null
+  submitted_at: string | null
+  submission_text: string | null
+  file_url: string | null
+  link_url: string | null
+  is_late: boolean
+  late_penalty_percent: number
+  feedback: string | null
+}
+
+function toAttemptUi(submission: SubmissionLike): AssignmentAttemptUi {
+  const fileName = submission.file_url ? submission.file_url.split('/').pop() || 'file' : null
+
+  return {
+    id: submission.id,
+    attemptNumber: submission.attempt_number ?? 1,
+    status:
+      submission.status?.toUpperCase() === 'GRADED'
+        ? 'graded'
+        : submission.status?.toUpperCase() === 'RETURNED'
+          ? 'returned'
+          : submission.status?.toUpperCase() === 'LATE'
+            ? 'late'
+            : submission.status?.toUpperCase() === 'SUBMITTED'
+              ? 'submitted'
+              : 'draft',
+    submittedAt: submission.submitted_at,
+    text: submission.submission_text ?? '',
+    fileUrl: submission.file_url ?? null,
+    fileName,
+    linkUrl: submission.link_url ?? null,
+    rawScore: submission.raw_score ?? null,
+    grade: submission.score ?? null,
+    feedback: submission.feedback ?? null,
+    isLate: Boolean(submission.is_late),
+    latePenaltyPercent: submission.late_penalty_percent ?? 0,
+  }
 }
 
 export function useAssignments() {
   const { tenantId, user, role } = useAuth()
   const userId = user?.id
-  const [assignments, setAssignments] = useState<AssignmentUiState[]>([])
-  const [loading, setLoading] = useState(true)
+  const { data, isLoading, error, refetch } = useAssignmentList(tenantId as string)
 
-  /* eslint-disable react-hooks/exhaustive-deps */
-  useEffect(() => {
-    if (tenantId && userId) {
-      loadAssignments()
-    } else {
-      setLoading(false)
-    }
-  }, [tenantId, userId, role])
-  /* eslint-enable react-hooks/exhaustive-deps */
+  // Map the query result to the UI state
+  const assignments =
+    data?.data?.map((a) => {
+      const allSubmissions = [...(a.assignment_submissions || [])]
+      const relevantSubmissions =
+        role === 'student'
+          ? allSubmissions.filter((submission) => submission.student_id === userId)
+          : allSubmissions
 
-  const loadAssignments = async () => {
-    try {
-      setLoading(true)
+      const submissions = relevantSubmissions.sort(
+        (left, right) => (right.attempt_number ?? 0) - (left.attempt_number ?? 0)
+      )
 
-      if (!tenantId) return
+      const dbSubmission = submissions.length > 0 ? submissions[0] : null
+      const attempts = submissions.map(toAttemptUi)
 
-      let response
-      if (role === 'teacher' || role === 'admin') {
-        response = await assignmentService.getTeacherAssignments(tenantId)
+      // Derived status logic
+      let status: AssignmentUiState['status'] = 'assigned'
+      const now = new Date()
+      const dueDate = a.due_date ? new Date(a.due_date) : null
+
+      if (role === 'student') {
+        if (dbSubmission?.score !== null && dbSubmission?.score !== undefined) {
+          status = 'graded'
+        } else if (dbSubmission?.status) {
+          status = normalizeSubmissionStatus(dbSubmission.status)
+        } else if (dueDate && dueDate < now) {
+          status = 'late'
+        } else {
+          status = 'assigned'
+        }
       } else {
-        response = await assignmentService.getStudentAssignments(tenantId)
+        // Teacher view
+        if (dueDate && dueDate < now) {
+          status = 'late'
+        }
       }
 
-      // Handle both paginated and non-paginated responses for backward compatibility
-      const data = Array.isArray(response) ? response : response?.data
+      const latestSubmission = dbSubmission ? toAttemptUi(dbSubmission) : null
 
-      if (data) {
-        // Map database response to UI state with proper typing
-        const mapped = data.map((a: AssignmentDbResponse) => {
-          const submissions = a.assignment_submissions || []
-
-          // For student, there should be at most 1 submission because RLS filters by their user_id
-          const dbSubmission = submissions.length > 0 ? submissions[0] : null
-
-          // Derived status logic for student
-          let status: AssignmentUiState['status'] = 'assigned'
-          const now = new Date()
-          const dueDate = a.due_date ? new Date(a.due_date) : null
-
-          if (role === 'student') {
-            if (dbSubmission?.score !== null && dbSubmission?.score !== undefined) {
-              status = 'graded'
-            } else if (dbSubmission?.submitted_at) {
-              status = 'submitted'
-            } else if (dueDate && dueDate < now) {
-              status = 'late'
-            } else {
-              status = 'assigned'
-            }
-          } else {
-            // Teacher view
-            if (dueDate && dueDate < now) {
-              status = 'late'
-            }
-          }
-
-          return {
-            id: a.id,
-            title: a.title,
-            description: a.instructions || '',
-            dueDate: a.due_date || new Date().toISOString(),
-            maxGrade: a.max_points || 100,
-            type: 'individual' as const,
-            status,
-            grade: dbSubmission?.score ?? null,
-            submittedAt: dbSubmission?.submitted_at ?? null,
-            attachments: [],
-            comments: [],
-            studentSubmissions: submissions.map(
-              (s): StudentSubmission => ({
-                id: s.id,
-                studentName:
-                  (s as unknown as { user_profiles?: { full_name: string } }).user_profiles
-                    ?.full_name ||
-                  user?.user_metadata?.full_name ||
-                  'Siswa',
-                status: s.status as StudentSubmission['status'],
-                submittedAt: s.submitted_at,
-                grade: s.score,
-                uploadedFiles: s.file_url
-                  ? [
-                      {
-                        id: s.id,
-                        name: s.file_url.split('/').pop() || 'file',
-                        type: 'file',
-                        url: s.file_url,
-                      },
-                    ]
-                  : [],
-              })
-            ),
-          }
-        })
-        setAssignments(mapped)
+      return {
+        id: a.id,
+        title: a.title,
+        description: a.description || '',
+        dueDate: a.due_date ?? new Date().toISOString(),
+        availableFrom: a.available_from,
+        maxGrade: a.max_points ?? 100,
+        maxAttempts: a.max_attempts ?? 1,
+        remainingAttempts: Math.max((a.max_attempts ?? 1) - submissions.length, 0),
+        type: 'individual' as AssignmentUiState['type'],
+        status,
+        grade: latestSubmission?.grade ?? null,
+        rawScore: latestSubmission?.rawScore ?? null,
+        submittedAt: latestSubmission?.submittedAt ?? null,
+        allowTextSubmission: a.allow_text_submission ?? true,
+        allowFileSubmission: a.allow_file_submission ?? true,
+        allowLinkSubmission: a.allow_link_submission ?? false,
+        reminderEnabled: a.reminder_enabled ?? true,
+        latePenaltyPercent: a.late_penalty_percent ?? 0,
+        canResubmit:
+          role === 'student' &&
+          Math.max((a.max_attempts ?? 1) - submissions.length, 0) > 0 &&
+          (!dueDate || dueDate >= now),
+        attachments: [] as Attachment[],
+        comments: [],
+        attempts,
+        studentSubmissions:
+          role === 'student'
+            ? []
+            : submissions.map(
+                (s): StudentSubmission => ({
+                  id: s.id,
+                  studentId: s.student_id,
+                  studentName:
+                    (s as unknown as { user_profiles?: { full_name: string } }).user_profiles
+                      ?.full_name ||
+                    (user?.user_metadata?.full_name as string) ||
+                    'Siswa',
+                  status: normalizeSubmissionStatus(s.status),
+                  submittedAt: s.submitted_at,
+                  grade: s.score,
+                  rawScore: s.raw_score ?? null,
+                  attemptNumber: s.attempt_number ?? 1,
+                  linkUrl: s.link_url ?? null,
+                  isLate: Boolean(s.is_late),
+                  uploadedFiles: s.file_url
+                    ? [
+                        {
+                          id: s.id,
+                          name: s.file_url.split('/').pop() || 'file',
+                          type: 'file',
+                          url: s.file_url,
+                        },
+                      ]
+                    : [],
+                })
+              ),
       }
-    } catch (error) {
-      if (import.meta.env.DEV) logger.error('Failed to load assignments', error)
-    } finally {
-      setLoading(false)
-    }
-  }
+    }) ?? []
 
-  return { assignments, loading, refetch: loadAssignments, setAssignments }
+  return { assignments, loading: isLoading, error: error?.message ?? null, refetch }
 }

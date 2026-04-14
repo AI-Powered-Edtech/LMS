@@ -1,6 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 
-import { GC, STALE } from '@/src/utils/queryConstants'
+import { GC, STALE } from '@/utils/queryConstants'
+import { captureError } from '@/utils/sentry'
 
 import { recommendationService } from '../api/recommendationService'
 
@@ -24,7 +25,10 @@ export function useRecordRecommendationAction() {
     mutationFn: ({ id, action }: { id: string; action: 'accepted' | 'dismissed' }) =>
       recommendationService.recordAction(id, action),
     onSuccess: () => {
-      qc.invalidateQueries({ queryKey: ['recommendations'] })
+      void qc.invalidateQueries({ queryKey: ['recommendations'] })
+    },
+    onError: (err) => {
+      captureError(err, { context: 'useRecordRecommendationAction' })
     },
   })
 }

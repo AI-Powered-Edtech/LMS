@@ -1,20 +1,82 @@
 import { ArrowLeft, BookOpen, ChevronDown, Download, Filter, Plus } from 'lucide-react'
-import { Link } from 'react-router-dom'
 
-import { EmptyState } from '@/src/components/ui'
-import type { Course } from '@/src/features/courses/types'
-import { AddAssignmentModal } from '@/src/features/gradebook/components/AddAssignmentModal'
-import { GradebookMainTable } from '@/src/features/gradebook/components/GradebookMainTable'
-import { GradebookStats } from '@/src/features/gradebook/components/GradebookStats'
-import { GradebookTable } from '@/src/features/gradebook/components/GradebookTable'
-import { useGradebookState } from '@/src/features/gradebook/hooks/useGradebookState'
-import { cn } from '@/src/utils/cn'
+import { Breadcrumb, EmptyState } from '@/components/ui'
+import { useAuth } from '@/contexts/AuthContext'
+import type { Course } from '@/features/courses/types'
+import { AddAssignmentModal } from '@/features/gradebook/components/AddAssignmentModal'
+import { GradebookMainTable } from '@/features/gradebook/components/GradebookMainTable'
+import { GradebookStats } from '@/features/gradebook/components/GradebookStats'
+import { GradebookTable } from '@/features/gradebook/components/GradebookTable'
+import { useGradebookState } from '@/features/gradebook/hooks/useGradebookState'
+import { exportGradebookToCSV } from '@/features/gradebook/utils/csvExport'
+import { useToast } from '@/hooks/useToast'
+import { cn } from '@/utils/cn'
 
 export function Gradebook() {
   const s = useGradebookState()
+  const addToast = useToast((s) => s.addToast)
+  const { role } = useAuth()
+  const dashboardHref = role === 'admin' ? '/app/admin/dashboard' : '/app/teacher/dashboard'
+
+  const handleExportCSV = () => {
+    if (!s.selectedCourseId) {
+      addToast({ type: 'warning', message: 'Pilih kursus terlebih dahulu untuk mengekspor.' })
+      return
+    }
+    const selectedCourse = s.courses.find((c) => c.id === s.selectedCourseId)
+
+    const entries = Object.entries(s.grades).flatMap(([studentId, studentGrades]) =>
+      Object.entries(studentGrades ?? {}).map(
+        ([assignmentId, entry]): {
+          id: string
+          student_id: string
+          assignment_id: string | null
+          quiz_id: string | null
+          score: number | null
+          max_score: number
+          percentage: number
+          grade_letter: string | null
+        } => ({
+          id: `${studentId}-${assignmentId}`,
+          student_id: studentId,
+          assignment_id: assignmentId.startsWith('quiz-') ? null : assignmentId,
+          quiz_id: assignmentId.startsWith('quiz-') ? assignmentId.replace('quiz-', '') : null,
+          score: entry?.score ?? null,
+          max_score: 100,
+          percentage: entry?.score ?? 0,
+          grade_letter: null,
+        })
+      )
+    )
+
+    const columns = s.assignments.map((a) => ({
+      id: a.id,
+      title: a.title,
+      type: (a.type === 'quiz' ? 'quiz' : 'assignment') as 'quiz' | 'assignment',
+      max_score: a.maxScore,
+    }))
+
+    const students = s.students.map((st) => ({
+      id: st.id,
+      name: st.name,
+      email: st.nis + '@edusync.sch.id',
+    }))
+
+    exportGradebookToCSV({
+      entries,
+      columns,
+      students,
+      className: selectedCourse?.title,
+    })
+    addToast({ type: 'success', message: 'Buku nilai berhasil diekspor ke CSV.' })
+  }
 
   return (
     <div className="max-w-7xl mx-auto space-y-6">
+      <Breadcrumb
+        items={[{ label: 'Dashboard', href: dashboardHref }, { label: 'Nilai' }]}
+        className="mb-2"
+      />
       {/* Gradebook per Kursus (data Supabase) */}
       <div className="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl shadow-sm p-4 sm:p-6 space-y-4">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
@@ -34,6 +96,7 @@ export function Gradebook() {
             <select
               value={s.selectedCourseId}
               onChange={(e) => s.setSelectedCourseId(e.target.value)}
+              data-testid="gradebook-course-selector"
               className={cn(
                 'appearance-none pl-3 pr-9 py-2 rounded-xl text-sm font-medium',
                 'border border-slate-200 dark:border-slate-600',
@@ -73,12 +136,12 @@ export function Gradebook() {
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <h1 className="text-2xl sm:text-3xl font-bold text-slate-900 dark:text-white tracking-tight flex items-center gap-3">
-            <Link
-              to="/teacher-dashboard"
+            <button
+              onClick={() => window.history.back()}
               className="p-2 -ml-2 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-xl transition-colors text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white"
             >
               <ArrowLeft className="w-5 h-5 sm:w-6 sm:h-6" />
-            </Link>
+            </button>
             Buku Nilai
           </h1>
           <p className="text-slate-500 dark:text-slate-400 mt-1 ml-2 sm:ml-11 text-sm sm:text-base">
@@ -89,6 +152,7 @@ export function Gradebook() {
         <div className="flex items-center gap-2 sm:gap-3">
           <button
             onClick={() => s.setIsAddModalOpen(true)}
+            data-testid="gradebook-add-column"
             aria-label="Tambah kolom nilai"
             className="px-3 sm:px-4 py-2 bg-blue-600 text-white rounded-xl font-medium hover:bg-blue-700 flex items-center gap-2 text-sm sm:text-base shadow-sm shadow-blue-200 transition-all active:scale-95"
           >
@@ -105,6 +169,8 @@ export function Gradebook() {
           </button>
           <button
             type="button"
+            onClick={handleExportCSV}
+            data-testid="gradebook-export-csv"
             aria-label="Ekspor CSV"
             className="px-3 sm:px-4 py-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 rounded-xl font-medium hover:bg-slate-50 dark:hover:bg-slate-700 flex items-center gap-2 text-sm sm:text-base shadow-sm transition-all"
           >

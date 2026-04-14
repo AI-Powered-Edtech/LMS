@@ -1,7 +1,7 @@
 import { Users } from 'lucide-react'
 import { useState } from 'react'
 
-import { Skeleton } from '@/src/components/ui'
+import { Skeleton } from '@/components/ui'
 
 import { useRetentionMatrix } from '../queries/analyticsQueries'
 import { RetentionHeatmap } from './RetentionHeatmap'

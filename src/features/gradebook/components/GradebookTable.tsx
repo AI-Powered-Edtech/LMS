@@ -1,8 +1,9 @@
+import { useVirtualizer } from '@tanstack/react-virtual'
 import { Download, RefreshCw, Search } from 'lucide-react'
-import { useCallback, useMemo, useState } from 'react'
+import { useCallback, useMemo, useRef, useState } from 'react'
 
-import { EmptyState, Skeleton } from '@/src/components/ui'
-import { cn } from '@/src/utils/cn'
+import { EmptyState, Skeleton } from '@/components/ui'
+import { cn } from '@/utils/cn'
 
 import { exportGradebookCSV } from '../api/gradebookApi'
 import {
@@ -89,14 +90,24 @@ function buildStudentRows(
     }
   }
 
-  return Array.from(studentMap.entries()).map(([id, s]) => {
-    const graded = columns.filter((c) => s.grades[c.id]?.score != null)
-    const avg =
-      graded.length > 0
-        ? graded.reduce((sum, c) => sum + (s.grades[c.id]?.percentage ?? 0), 0) / graded.length
-        : 0
-    return { id, name: s.name, email: s.email, grades: s.grades, average: avg }
-  })
+  const result: GradebookStudent[] = []
+
+  // ⚡ Perf: consolidate multiple chained passes (.filter then .reduce) into a single, standard for loop to minimize CPU overhead and O(N) operations in performance-critical code.
+  for (const [id, s] of studentMap.entries()) {
+    let sum = 0
+    let count = 0
+    for (let i = 0; i < columns.length; i++) {
+      const grade = s.grades[columns[i].id]
+      if (grade?.score != null) {
+        sum += grade.percentage ?? 0
+        count++
+      }
+    }
+    const avg = count > 0 ? sum / count : 0
+    result.push({ id, name: s.name, email: s.email, grades: s.grades, average: avg })
+  }
+
+  return result
 }
 
 function deriveLetter(avg: number): string {
@@ -167,6 +178,15 @@ export function GradebookTable({ courseId }: Props) {
     })
   }, [columns, students])
 
+  const tableBodyRef = useRef<HTMLDivElement>(null)
+
+  const virtualizer = useVirtualizer({
+    count: filteredStudents.length,
+    getScrollElement: () => tableBodyRef.current!,
+    estimateSize: () => 52, // Row height
+    overscan: 5,
+  })
+
   const handleCellClick = useCallback(
     (studentId: string, colId: string, currentScore: number | null) => {
       setEditingCell({ studentId, colId })
@@ -221,6 +241,7 @@ export function GradebookTable({ courseId }: Props) {
         <div className="relative w-full sm:w-72">
           <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
           <input
+            data-testid="gradebook-search-input"
             type="text"
             placeholder="Cari siswa..."
             value={search}
@@ -231,6 +252,7 @@ export function GradebookTable({ courseId }: Props) {
 
         <div className="flex items-center gap-2">
           <button
+            data-testid="gradebook-sync-button"
             onClick={handleSync}
             disabled={syncMutation.isPending}
             className={cn(
@@ -243,6 +265,7 @@ export function GradebookTable({ courseId }: Props) {
           </button>
 
           <button
+            data-testid="gradebook-export-button"
             onClick={handleExport}
             disabled={entries.length === 0}
             className={cn(
@@ -260,7 +283,11 @@ export function GradebookTable({ courseId }: Props) {
 
       {/* Table */}
       <div className="overflow-x-auto">
-        <table className="w-full text-left border-collapse min-w-[600px]">
+        <table
+          data-testid="gradebook-table"
+          className="w-full text-left border-collapse min-w-[600px]"
+          aria-label="Tabel nilai kelas"
+        >
           <thead>
             <tr className="bg-slate-50 dark:bg-slate-900 border-b border-slate-200 dark:border-slate-700">
               <th className="p-3 text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider sticky left-0 bg-slate-50 dark:bg-slate-900 z-10 min-w-[180px]">
@@ -310,84 +337,102 @@ export function GradebookTable({ courseId }: Props) {
                 </td>
               </tr>
             ) : (
-              filteredStudents.map((student) => {
-                const avgLetter = deriveLetter(student.average)
-                return (
-                  <tr
-                    key={student.id}
-                    className="group hover:bg-slate-50/70 dark:hover:bg-slate-700/30 transition-colors"
-                  >
-                    {/* Student name — sticky */}
-                    <td className="p-3 sticky left-0 bg-white dark:bg-slate-800 group-hover:bg-slate-50/70 dark:group-hover:bg-slate-700/30 z-10">
-                      <div>
-                        <p className="font-semibold text-sm text-slate-800 dark:text-slate-200">
-                          {student.name}
-                        </p>
-                        <p className="text-xs text-slate-400 dark:text-slate-500">
-                          {student.email}
-                        </p>
-                      </div>
-                    </td>
+              <div ref={tableBodyRef} style={{ height: '400px', overflow: 'auto' }}>
+                <div style={{ height: virtualizer.getTotalSize(), position: 'relative' }}>
+                  {virtualizer.getVirtualItems().map((virtualRow) => {
+                    const student = filteredStudents[virtualRow.index!]
+                    return (
+                      <div
+                        key={student.id}
+                        style={{
+                          position: 'absolute',
+                          top: virtualRow.start,
+                          height: virtualRow.size,
+                          width: '100%',
+                        }}
+                      >
+                        <tr
+                          key={student.id}
+                          className="group hover:bg-slate-50/70 dark:hover:bg-slate-700/30 transition-colors"
+                        >
+                          {/* Student name — sticky */}
+                          <td className="p-3 sticky left-0 bg-white dark:bg-slate-800 group-hover:bg-slate-50/70 dark:group-hover:bg-slate-700/30 z-10">
+                            <div>
+                              <p className="font-semibold text-sm text-slate-800 dark:text-slate-200">
+                                {student.name}
+                              </p>
+                              <p className="text-xs text-slate-400 dark:text-slate-500">
+                                {student.email}
+                              </p>
+                            </div>
+                          </td>
 
-                    {/* Grade cells */}
-                    {columns.map((col) => {
-                      const entry = student.grades[col.id]
-                      const isEditing =
-                        editingCell?.studentId === student.id && editingCell?.colId === col.id
-                      const letter = entry?.grade_letter ?? null
+                          {/* Grade cells */}
+                          {columns.map((col) => {
+                            const entry = student.grades[col.id]
+                            const isEditing =
+                              editingCell?.studentId === student.id && editingCell?.colId === col.id
+                            const letter = entry?.grade_letter ?? null
 
-                      return (
-                        <td key={col.id} className="p-2 text-center">
-                          {isEditing ? (
-                            <input
-                              type="number"
-                              autoFocus
-                              min={0}
-                              max={col.max_score}
-                              value={editValue}
-                              onChange={(e) => setEditValue(e.target.value)}
-                              onBlur={handleSaveCell}
-                              onKeyDown={handleKeyDown}
-                              className="w-16 text-center border-2 border-blue-500 rounded-lg py-1 text-sm focus:outline-none bg-white dark:bg-slate-900 text-slate-900 dark:text-white"
-                            />
-                          ) : (
-                            <button
-                              onClick={() =>
-                                handleCellClick(student.id, col.id, entry?.score ?? null)
-                              }
+                            return (
+                              <td key={col.id} className="p-2 text-center">
+                                {isEditing ? (
+                                  <input
+                                    type="number"
+                                    autoFocus
+                                    min={0}
+                                    max={col.max_score}
+                                    value={editValue}
+                                    onChange={(e) => setEditValue(e.target.value)}
+                                    onBlur={handleSaveCell}
+                                    onKeyDown={handleKeyDown}
+                                    className="w-16 text-center border-2 border-blue-500 rounded-lg py-1 text-sm focus:outline-none bg-white dark:bg-slate-900 text-slate-900 dark:text-white"
+                                  />
+                                ) : (
+                                  <button
+                                    onClick={() =>
+                                      handleCellClick(student.id, col.id, entry?.score ?? null)
+                                    }
+                                    className={cn(
+                                      'w-16 h-8 rounded-lg text-sm font-semibold transition-all',
+                                      'hover:ring-2 hover:ring-blue-400 hover:ring-offset-1',
+                                      letter
+                                        ? letterBg(letter)
+                                        : 'bg-slate-50 dark:bg-slate-700/50',
+                                      letter
+                                        ? letterColor(letter)
+                                        : 'text-slate-400 dark:text-slate-500'
+                                    )}
+                                  >
+                                    {entry?.score != null ? entry.score : '—'}
+                                  </button>
+                                )}
+                              </td>
+                            )
+                          })}
+
+                          {/* Average */}
+                          <td className="p-2 text-center">
+                            <span
                               className={cn(
-                                'w-16 h-8 rounded-lg text-sm font-semibold transition-all',
-                                'hover:ring-2 hover:ring-blue-400 hover:ring-offset-1',
-                                letter ? letterBg(letter) : 'bg-slate-50 dark:bg-slate-700/50',
-                                letter ? letterColor(letter) : 'text-slate-400 dark:text-slate-500'
+                                'inline-flex items-center justify-center w-16 h-8 rounded-lg text-sm font-bold',
+                                student.average > 0
+                                  ? letterBg(deriveLetter(student.average))
+                                  : 'bg-slate-50 dark:bg-slate-700/50',
+                                student.average > 0
+                                  ? letterColor(deriveLetter(student.average))
+                                  : 'text-slate-400 dark:text-slate-500'
                               )}
                             >
-                              {entry?.score != null ? entry.score : '—'}
-                            </button>
-                          )}
-                        </td>
-                      )
-                    })}
-
-                    {/* Average */}
-                    <td className="p-2 text-center">
-                      <span
-                        className={cn(
-                          'inline-flex items-center justify-center w-16 h-8 rounded-lg text-sm font-bold',
-                          student.average > 0
-                            ? letterBg(avgLetter)
-                            : 'bg-slate-50 dark:bg-slate-700/50',
-                          student.average > 0
-                            ? letterColor(avgLetter)
-                            : 'text-slate-400 dark:text-slate-500'
-                        )}
-                      >
-                        {student.average > 0 ? `${student.average.toFixed(0)}%` : '—'}
-                      </span>
-                    </td>
-                  </tr>
-                )
-              })
+                              {student.average > 0 ? `${student.average.toFixed(0)}%` : '—'}
+                            </span>
+                          </td>
+                        </tr>
+                      </div>
+                    )
+                  })}
+                </div>
+              </div>
             )}
           </tbody>
 

@@ -1,0 +1,49 @@
+{
+  "name": "vite-plugin-compression2",
+  "version": "2.5.3",
+  "requiresBuild": false,
+  "files": {
+    "LICENSE": {
+      "checkedAt": 1776145627669,
+      "integrity": "sha512-7EfOCusVBJl6OsTOChOtScpR9EnpjG8Ng1AFGNmuIJyaDNJosHIrZfVbJPSp4EbY8Y8qbE50LaYsb9uqK+9+Yw==",
+      "mode": 420,
+      "size": 1083
+    },
+    "dist/index.js": {
+      "checkedAt": 1776145627669,
+      "integrity": "sha512-6dajhqC1voG3erFnZxxhAOgPguIU2FvsxTPORICWBddGMhlRXJE1CGDq6sacX7oYvs2GuDDKwfmJv60apzsiHg==",
+      "mode": 420,
+      "size": 13106
+    },
+    "package.json": {
+      "checkedAt": 1776145627669,
+      "integrity": "sha512-7WgCEcxMBhmI+xcu2cvklT2zj2j4JpKraZYRof/HeVmWEzafe8c8M4DgScO+/g55nrZGCdbjvAdSDx2B+eHKng==",
+      "mode": 420,
+      "size": 1998
+    },
+    "README.md": {
+      "checkedAt": 1776145627670,
+      "integrity": "sha512-cOArngM56H93bh4fhIIn00ogHN+H2B1Yb75BJSH6PNzm7fEhx+XW0atQszgCYb/3tnnSehpUXCatSmlveoufrw==",
+      "mode": 420,
+      "size": 14009
+    },
+    "dist/index.mjs": {
+      "checkedAt": 1776145627670,
+      "integrity": "sha512-Q5AHJgDHjIzoXV04vNdwSgCGOufmCvhn9g9Ate2kzOLR/vxd6CFBINBsQOU3ummlInXvE67okH25unj9tNIYNw==",
+      "mode": 420,
+      "size": 13045
+    },
+    "dist/index.d.mts": {
+      "checkedAt": 1776145627670,
+      "integrity": "sha512-oPx8XPeP84sgzIs5sEvXFHI9msXkbrHiBMDhItSAT8tldg/6AYj0pS4QMbEZrU6EHSUh4iIokY3SNuIgDanKgQ==",
+      "mode": 420,
+      "size": 3944
+    },
+    "dist/index.d.ts": {
+      "checkedAt": 1776145627670,
+      "integrity": "sha512-oPx8XPeP84sgzIs5sEvXFHI9msXkbrHiBMDhItSAT8tldg/6AYj0pS4QMbEZrU6EHSUh4iIokY3SNuIgDanKgQ==",
+      "mode": 420,
+      "size": 3944
+    }
+  }
+}

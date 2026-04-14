@@ -1,11 +1,11 @@
-import { Pencil, Plus, Save, X } from 'lucide-react'
+import { AlertTriangle, Award, Pencil, Plus, Save, X } from 'lucide-react'
 import { AnimatePresence, motion } from 'motion/react'
 import { useState } from 'react'
 
-import { SkeletonCard } from '@/src/components/ui'
-import { useAuth } from '@/src/contexts/AuthContext'
-import { useToast } from '@/src/hooks/useToast'
-import { cn } from '@/src/utils/cn'
+import { EmptyState, SkeletonCard } from '@/components/ui'
+import { useAuth } from '@/contexts/AuthContext'
+import { useToast } from '@/hooks/useToast'
+import { cn } from '@/utils/cn'
 
 import { useBadgeDefinitions, useSaveBadgeDefinition } from '../queries/gamificationQueries'
 import type { BadgeRarity, BadgeType } from '../types'
@@ -77,7 +77,7 @@ const emptyForm: BadgeFormState = {
 export function BadgeManager() {
   const { tenantId } = useAuth()
   const { addToast } = useToast()
-  const { data: badges, isLoading } = useBadgeDefinitions()
+  const { data: badges, isLoading, isError } = useBadgeDefinitions()
   const saveMutation = useSaveBadgeDefinition()
   const [editing, setEditing] = useState<BadgeFormState | null>(null)
 
@@ -123,6 +123,20 @@ export function BadgeManager() {
   }
 
   if (isLoading) return <SkeletonCard lines={3} />
+
+  if (isError) {
+    return (
+      <div className="flex flex-col items-center justify-center py-12 text-center">
+        <AlertTriangle className="w-10 h-10 text-red-400 mb-3" />
+        <h3 className="text-base font-bold text-slate-800 dark:text-slate-200 mb-1">
+          Gagal Memuat Badge
+        </h3>
+        <p className="text-sm text-slate-500 dark:text-slate-400">
+          Terjadi kesalahan saat memuat daftar badge. Silakan coba lagi nanti.
+        </p>
+      </div>
+    )
+  }
 
   const tenantBadges = (badges ?? []).filter((b: BadgeDefinitionRow) => b.tenant_id === tenantId)
   const systemBadges = (badges ?? []).filter((b: BadgeDefinitionRow) => b.tenant_id === null)
@@ -304,6 +318,14 @@ export function BadgeManager() {
       </AnimatePresence>
 
       {/* Badge Lists */}
+      {tenantBadges.length === 0 && systemBadges.length === 0 && (
+        <EmptyState
+          icon={<Award className="w-8 h-8" />}
+          title="Belum ada badge"
+          description='Klik "Badge Baru" untuk membuat badge kustom pertama Anda.'
+        />
+      )}
+
       {tenantBadges.length > 0 && (
         <div className="space-y-2">
           <h4 className="text-xs font-bold text-slate-500 uppercase tracking-wider">

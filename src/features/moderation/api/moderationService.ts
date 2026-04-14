@@ -1,4 +1,4 @@
-import { supabase } from '@/src/services/supabase/client'
+import { db } from '@/services/db'
 
 export type ReportStatus = 'pending' | 'approved' | 'rejected'
 export type ReportReason = 'ai_generated' | 'inappropriate' | 'spam' | 'harassment' | 'other'
@@ -22,16 +22,17 @@ export const moderationService = {
   /**
    * Fetch all reports from content_reports table for the current tenant.
    */
-  async fetchReports(): Promise<Report[]> {
-    const { data, error } = await supabase
+  async fetchReports(tenantId: string): Promise<Report[]> {
+    const { data, error } = await db
       .from('content_reports')
       .select(
         'id, content_id, content_type, reporter_id, reporter_name, reason, description, status, content_snippet, content_author, created_at'
       )
+      .eq('tenant_id', tenantId)
       .order('created_at', { ascending: false })
       .limit(100)
     if (error) throw error
-    return (data || []).map((r) => ({
+    return (data || []).map((r: any) => ({
       id: r.id,
       contentId: r.content_id,
       contentType: r.content_type as ContentType,
@@ -56,17 +57,17 @@ export const moderationService = {
   ): Promise<Report> {
     const {
       data: { session },
-    } = await supabase.auth.getSession()
+    } = await db.auth.getSession()
     if (!session) throw new Error('Tidak terautentikasi')
 
-    const { data: roleData } = await supabase
+    const { data: roleData } = await db
       .from('user_roles')
       .select('tenant_id')
       .eq('user_id', userId)
       .single()
     if (!roleData) throw new Error('Tenant tidak ditemukan')
 
-    const { data, error } = await supabase
+    const { data, error } = await db
       .from('content_reports')
       .insert({
         tenant_id: roleData.tenant_id,
@@ -103,15 +104,20 @@ export const moderationService = {
   /**
    * Resolve a report (approve or reject) in content_reports table.
    */
-  async resolveReport(reportId: string, status: 'approved' | 'rejected'): Promise<void> {
+  async resolveReport(
+    reportId: string,
+    status: 'approved' | 'rejected',
+    tenantId: string
+  ): Promise<void> {
     const {
       data: { user },
-    } = await supabase.auth.getUser()
+    } = await db.auth.getUser()
     if (!user) throw new Error('Tidak terautentikasi')
-    const { error } = await supabase
+    const { error } = await db
       .from('content_reports')
       .update({ status, resolved_by: user.id, resolved_at: new Date().toISOString() })
       .eq('id', reportId)
+      .eq('tenant_id', tenantId)
     if (error) throw error
   },
 }

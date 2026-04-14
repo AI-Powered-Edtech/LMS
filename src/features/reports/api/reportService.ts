@@ -1,4 +1,4 @@
-import { supabase } from '@/src/services/supabase/client'
+import { db } from '@/services/db'
 
 import type { ExportFormat, ReportSchedule, ReportType, ScheduledReport } from '../types'
 
@@ -11,7 +11,7 @@ export const reportService = {
     exportFormat?: ExportFormat
     reportId?: string
   }): Promise<ScheduledReport> {
-    const { data, error } = await supabase.rpc('save_scheduled_report', {
+    const { data, error } = await db.rpc('save_scheduled_report', {
       p_name: params.name,
       p_report_type: params.reportType,
       p_config: params.config ?? {},
@@ -24,18 +24,18 @@ export const reportService = {
   },
 
   async getReports(): Promise<ScheduledReport[]> {
-    const { data, error } = await supabase.rpc('get_scheduled_reports')
+    const { data, error } = await db.rpc('get_scheduled_reports')
     if (error) throw error
     return (data as ScheduledReport[]) ?? []
   },
 
   async deleteReport(reportId: string): Promise<void> {
-    const { error } = await supabase.rpc('delete_scheduled_report', { p_report_id: reportId })
+    const { error } = await db.rpc('delete_scheduled_report', { p_report_id: reportId })
     if (error) throw error
   },
 
   async generateReportData(reportId: string): Promise<Record<string, unknown>[]> {
-    const { data, error } = await supabase.rpc('generate_report_data', { p_report_id: reportId })
+    const { data, error } = await db.rpc('generate_report_data', { p_report_id: reportId })
     if (error) throw error
     return (data as Record<string, unknown>[]) ?? []
   },

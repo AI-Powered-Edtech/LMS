@@ -1,4 +1,6 @@
-import { useQuery } from '@tanstack/react-query'
+import { useQuery, UseQueryResult } from '@tanstack/react-query'
+
+import { GC, STALE } from '@/utils/queryConstants'
 
 import { assignmentService } from '../api/assignmentService'
 
@@ -12,10 +14,14 @@ export const assignmentKeys = {
 /**
  * Query hook untuk daftar Tugas.
  */
-export function useAssignmentList(tenantId: string) {
+type AssignmentListResponse = Awaited<ReturnType<typeof assignmentService.getAssignments>>
+
+export function useAssignmentList(tenantId: string): UseQueryResult<AssignmentListResponse> {
   return useQuery({
     queryKey: assignmentKeys.all(tenantId),
     queryFn: () => assignmentService.getAssignments(tenantId),
     enabled: !!tenantId,
+    staleTime: STALE.DYNAMIC,
+    gcTime: GC.NORMAL,
   })
 }

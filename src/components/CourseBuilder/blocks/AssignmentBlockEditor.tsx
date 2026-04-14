@@ -1,13 +1,13 @@
 import { AlertTriangle, Calendar, CheckCircle, FileText, Loader2 } from 'lucide-react'
 import { useEffect, useState } from 'react'
 
-import { useAuth } from '@/src/contexts/AuthContext'
-import { useBuilder } from '@/src/contexts/BuilderContext'
+import { useAuth } from '@/contexts/AuthContext'
+import { useBuilder } from '@/contexts/BuilderContext'
 import {
   type AssignmentBlockData,
   builderAssignmentService,
-} from '@/src/features/courses/api/builder/assignmentBuilderService'
-import { cn } from '@/src/utils/cn'
+} from '@/features/courses/api/builder/assignmentBuilderService'
+import { cn } from '@/utils/cn'
 
 export function AssignmentBlockEditor({ blockId: _blockId }: { blockId: string }) {
   const { tenantId } = useAuth()
@@ -57,7 +57,7 @@ export function AssignmentBlockEditor({ blockId: _blockId }: { blockId: string }
         setIsLoading(false)
       }
     }
-    load()
+    void load()
   }, [activeLesson?.id])
   /* eslint-enable react-hooks/exhaustive-deps */
 
@@ -123,9 +123,9 @@ export function AssignmentBlockEditor({ blockId: _blockId }: { blockId: string }
         </div>
         <div className="flex items-center gap-3 shrink-0">
           <div className="flex items-center gap-3 mr-4 border-r border-slate-100 pr-4">
-            <label className="text-xs font-black text-slate-500 uppercase tracking-widest">
+            <span className="text-xs font-black text-slate-500 uppercase tracking-widest">
               STATUS:
-            </label>
+            </span>
             <button
               role="switch"
               aria-checked={assignmentData.is_published}

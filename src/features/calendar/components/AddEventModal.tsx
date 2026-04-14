@@ -2,8 +2,8 @@ import { X } from 'lucide-react'
 import { AnimatePresence, motion } from 'motion/react'
 import { useState } from 'react'
 
-import type { CalendarEvent } from '@/src/features/calendar/hooks/useCalendarQueries'
-import type { EventType, Priority } from '@/src/features/calendar/utils/calendarUtils'
+import type { CalendarEvent } from '@/features/calendar/hooks/useCalendarQueries'
+import type { EventType, Priority } from '@/features/calendar/utils/calendarUtils'
 
 interface AddEventModalProps {
   isOpen: boolean

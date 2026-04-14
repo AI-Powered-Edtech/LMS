@@ -6,10 +6,10 @@ import {
   CreateQuestionPayload,
   questionBankService,
   UpdateQuestionPayload,
-} from '@/src/features/question-bank/api/questionBankService'
-import { QuestionType } from '@/src/features/quizzes'
-import { useToast } from '@/src/hooks/useToast'
-import { logger } from '@/src/utils/logger'
+} from '@/features/question-bank/api/questionBankService'
+import { QuestionType } from '@/features/quizzes'
+import { useToast } from '@/hooks/useToast'
+import { logger } from '@/utils/logger'
 
 interface QuestionEditorProps {
   isOpen: boolean
@@ -48,7 +48,7 @@ export const QuestionEditor: React.FC<QuestionEditorProps> = ({
   useEffect(() => {
     if (isOpen) {
       if (questionId) {
-        loadQuestion(questionId)
+        void loadQuestion(questionId)
       } else {
         setFormData(emptyQuestion)
       }

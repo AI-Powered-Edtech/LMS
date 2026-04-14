@@ -1,32 +1,38 @@
 import {
+  ExternalLink,
   Maximize,
   MessageSquare,
   MessageSquarePlus,
   MousePointer2,
+  Paperclip,
   X,
   ZoomIn,
   ZoomOut,
 } from 'lucide-react'
 import type { RefObject } from 'react'
 
-import { cn } from '@/src/utils/cn'
+import { cn } from '@/utils/cn'
 
 import type { ActiveTool, Annotation } from './types'
 
 interface DocumentViewerProps {
   isLoading: boolean
   submissionText: string
+  fileUrl?: string | null
+  linkUrl?: string | null
   studentName: string
   zoom: number
   activeTool: ActiveTool
-  annotations: Annotation[]
+  annotations?: Annotation[]
   documentRef: RefObject<HTMLDivElement | null>
   onZoomChange: (zoom: number) => void
   onToolChange: (tool: ActiveTool) => void
-  onDocumentClick: (e: React.MouseEvent) => void
-  onAnnotationToggle: (id: string) => void
-  onAnnotationUpdate: (id: string, text: string) => void
-  onAnnotationDelete: (id: string) => void
+  onDocumentClick?: (e: React.MouseEvent) => void
+  onAnnotationToggle?: (id: string) => void
+  onAnnotationUpdate?: (id: string, text: string) => void
+  onAnnotationDelete?: (id: string) => void
+  /** Optional submission ID for external integrations */
+  submissionId?: string | null
 }
 
 function DocumentSkeleton() {
@@ -45,33 +51,6 @@ function DocumentSkeleton() {
   )
 }
 
-function FallbackEssay() {
-  return (
-    <>
-      <p>
-        Perkembangan Artificial Intelligence (AI) dalam dekade terakhir telah memicu perdebatan
-        sengit mengenai masa depan lapangan pekerjaan. Di satu sisi, banyak yang khawatir bahwa
-        mesin akan menggantikan peran manusia dalam berbagai sektor industri.
-      </p>
-      <p>
-        Namun, sejarah menunjukkan bahwa setiap revolusi industri selalu menciptakan jenis pekerjaan
-        baru yang sebelumnya tidak pernah terbayangkan. Misalnya, munculnya profesi seperti{' '}
-        <em>Prompt Engineer</em> atau <em>AI Ethics Officer</em>.
-      </p>
-      <p>
-        Pendidikan memainkan peran penting dalam mempersiapkan generasi mendatang untuk menghadapi
-        perubahan ini. Kurikulum harus beradaptasi untuk mengajarkan keterampilan yang tidak mudah
-        diotomatisasi, seperti pemikiran kritis, kreativitas, dan kecerdasan emosional.
-      </p>
-      <p>
-        Oleh karena itu, AI tidak akan menggantikan manusia, melainkan manusia yang menggunakan AI
-        akan menggantikan manusia yang tidak menggunakannya. Kolaborasi antara kecerdasan buatan dan
-        kecerdasan manusia adalah kunci untuk mencapai kemajuan yang berkelanjutan.
-      </p>
-    </>
-  )
-}
-
 function AnnotationPin({
   annotation,
   onToggle,
@@ -85,6 +64,7 @@ function AnnotationPin({
 }) {
   return (
     <div
+      role="presentation"
       className="absolute"
       style={{ left: `${annotation.x}%`, top: `${annotation.y}%` }}
       onClick={(e) => e.stopPropagation()}
@@ -137,6 +117,8 @@ function AnnotationPin({
 export function DocumentViewer({
   isLoading,
   submissionText,
+  fileUrl,
+  linkUrl,
   studentName,
   zoom,
   activeTool,
@@ -219,6 +201,7 @@ export function DocumentViewer({
         ) : (
           <div
             ref={documentRef}
+            role="presentation"
             onClick={onDocumentClick}
             className={cn(
               'bg-white dark:bg-slate-800 shadow-md border border-slate-200 dark:border-slate-700 p-12 relative origin-top transition-transform duration-200',
@@ -234,10 +217,37 @@ export function DocumentViewer({
           >
             <div className="border-b border-slate-200 dark:border-slate-700 pb-6 mb-6">
               <h2 className="text-2xl font-serif font-bold text-slate-900 dark:text-white">
-                Tugas Esai
+                Submission Viewer
               </h2>
               <p className="text-slate-500 dark:text-slate-400 mt-2">Oleh: {studentName}</p>
             </div>
+
+            {(fileUrl || linkUrl) && (
+              <div className="mb-6 flex flex-wrap gap-3">
+                {fileUrl && (
+                  <a
+                    href={fileUrl}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="inline-flex items-center gap-2 rounded-full border border-slate-200 dark:border-slate-700 px-4 py-2 text-sm font-medium text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-slate-700/60"
+                  >
+                    <Paperclip className="w-4 h-4" />
+                    Buka Lampiran
+                  </a>
+                )}
+                {linkUrl && (
+                  <a
+                    href={linkUrl}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="inline-flex items-center gap-2 rounded-full border border-slate-200 dark:border-slate-700 px-4 py-2 text-sm font-medium text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-slate-700/60"
+                  >
+                    <ExternalLink className="w-4 h-4" />
+                    Buka Link
+                  </a>
+                )}
+              </div>
+            )}
 
             <div className="prose prose-slate dark:prose-invert font-serif leading-loose text-slate-800 dark:text-slate-200 max-w-none">
               {submissionText ? (
@@ -245,17 +255,19 @@ export function DocumentViewer({
                   .split('\n')
                   .map((paragraph, idx) => (paragraph.trim() ? <p key={idx}>{paragraph}</p> : null))
               ) : (
-                <FallbackEssay />
+                <div className="not-prose rounded-2xl border border-dashed border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/50 p-6 text-sm text-slate-500 dark:text-slate-400">
+                  Tidak ada jawaban teks pada attempt ini.
+                </div>
               )}
             </div>
 
-            {annotations.map((ann) => (
+            {(annotations ?? []).map((ann) => (
               <AnnotationPin
                 key={ann.id}
                 annotation={ann}
-                onToggle={onAnnotationToggle}
-                onUpdate={onAnnotationUpdate}
-                onDelete={onAnnotationDelete}
+                onToggle={onAnnotationToggle ?? (() => {})}
+                onUpdate={onAnnotationUpdate ?? (() => {})}
+                onDelete={onAnnotationDelete ?? (() => {})}
               />
             ))}
           </div>

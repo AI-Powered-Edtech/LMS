@@ -1,23 +1,19 @@
-import { MessageSquare, Send } from 'lucide-react'
+import { MessageCircle, MessageSquare, Send } from 'lucide-react'
 
-import { cn } from '@/src/utils/cn'
+import { EmptyState } from '@/components/ui'
+import { cn } from '@/utils/cn'
 
-interface ChatMessage {
-  id: number
-  sender: string
-  text: string
-  time: string
-}
+import { GroupMessage } from '../../api/groupAssignmentService'
 
 interface Props {
-  chat: ChatMessage[]
-  myName: string
+  chat: GroupMessage[]
+  myUserId: string
   newMessage: string
   onMessageChange: (msg: string) => void
   onSend: () => void
 }
 
-export function GroupChatPanel({ chat, myName, newMessage, onMessageChange, onSend }: Props) {
+export function GroupChatPanel({ chat, myUserId, newMessage, onMessageChange, onSend }: Props) {
   return (
     <div className="bg-white dark:bg-slate-800 rounded-3xl border border-slate-200 dark:border-slate-700 shadow-sm flex flex-col h-[500px]">
       <div className="p-4 border-b border-slate-100 dark:border-slate-700 bg-slate-50 dark:bg-slate-900/50 rounded-t-3xl flex items-center gap-2">
@@ -27,32 +23,49 @@ export function GroupChatPanel({ chat, myName, newMessage, onMessageChange, onSe
 
       <div className="flex-1 p-4 overflow-y-auto space-y-4 bg-slate-50/30 dark:bg-slate-900/30 custom-scrollbar">
         {chat.length === 0 ? (
-          <div className="flex items-center justify-center h-full text-slate-400 dark:text-slate-500 text-sm">
-            Belum ada pesan. Mulai diskusi!
-          </div>
+          <EmptyState
+            icon={<MessageCircle className="w-8 h-8" />}
+            title="Belum ada pesan"
+            description="Mulai diskusi dengan anggota grup"
+          />
         ) : (
-          chat.map((msg) => (
-            <div
-              key={msg.id}
-              className={cn(
-                'flex flex-col max-w-[85%]',
-                msg.sender === myName ? 'ml-auto items-end' : 'items-start'
-              )}
-            >
-              <span className="text-[10px] text-slate-500 mb-1 font-medium ml-1">{msg.sender}</span>
+          chat.map((msg) => {
+            const isMe = msg.user_id === myUserId
+            const senderName = isMe
+              ? 'Anda'
+              : msg.profiles
+                ? `${msg.profiles.first_name} ${msg.profiles.last_name}`
+                : 'Unknown'
+            const time = new Date(msg.created_at).toLocaleTimeString([], {
+              hour: '2-digit',
+              minute: '2-digit',
+            })
+
+            return (
               <div
+                key={msg.id}
                 className={cn(
-                  'p-3 rounded-2xl text-sm shadow-sm',
-                  msg.sender === myName
-                    ? 'bg-indigo-600 text-white rounded-tr-none'
-                    : 'bg-white dark:bg-slate-800 border border-slate-100 dark:border-slate-700 text-slate-800 dark:text-slate-200 rounded-tl-none'
+                  'flex flex-col max-w-[85%]',
+                  isMe ? 'ml-auto items-end' : 'items-start'
                 )}
               >
-                {msg.text}
+                <span className="text-[10px] text-slate-500 mb-1 font-medium ml-1">
+                  {senderName}
+                </span>
+                <div
+                  className={cn(
+                    'p-3 rounded-2xl text-sm shadow-sm',
+                    isMe
+                      ? 'bg-indigo-600 text-white rounded-tr-none'
+                      : 'bg-white dark:bg-slate-800 border border-slate-100 dark:border-slate-700 text-slate-800 dark:text-slate-200 rounded-tl-none'
+                  )}
+                >
+                  {msg.content}
+                </div>
+                <span className="text-[10px] text-slate-400 mt-1 font-medium">{time}</span>
               </div>
-              <span className="text-[10px] text-slate-400 mt-1 font-medium">{msg.time}</span>
-            </div>
-          ))
+            )
+          })
         )}
       </div>
 

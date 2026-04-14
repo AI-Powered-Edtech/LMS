@@ -1,9 +1,9 @@
 import { ArrowLeft, LayoutDashboard } from 'lucide-react'
-import { useState } from 'react'
+import { useCallback, useState } from 'react'
 
-import type { DashboardConfig } from '@/src/features/dashboards'
-import { DashboardBuilder, DashboardList, DashboardViewer } from '@/src/features/dashboards'
-import { usePageTitle } from '@/src/hooks/usePageTitle'
+import type { DashboardConfig } from '@/features/dashboards'
+import { DashboardBuilder, DashboardList, DashboardViewer } from '@/features/dashboards'
+import { usePageTitle } from '@/hooks/usePageTitle'
 
 type View = 'list' | 'create' | 'edit' | 'view'
 
@@ -12,25 +12,28 @@ export function Dashboards() {
   const [view, setView] = useState<View>('list')
   const [selectedDashboard, setSelectedDashboard] = useState<DashboardConfig | null>(null)
 
-  const handleCreate = () => {
+  // ⚡ Perf: stabilize handler refs passed as props to DashboardList/DashboardBuilder
+  const handleCreate = useCallback(() => {
     setSelectedDashboard(null)
     setView('create')
-  }
+  }, [])
 
-  const handleEdit = (dashboard: DashboardConfig) => {
+  const handleEdit = useCallback((dashboard: DashboardConfig) => {
     setSelectedDashboard(dashboard)
     setView('edit')
-  }
+  }, [])
 
-  const handleView = (dashboard: DashboardConfig) => {
+  const handleView = useCallback((dashboard: DashboardConfig) => {
     setSelectedDashboard(dashboard)
     setView('view')
-  }
+  }, [])
 
-  const handleBack = () => {
+  const handleBack = useCallback(() => {
     setView('list')
     setSelectedDashboard(null)
-  }
+  }, [])
+
+  const handleSaved = useCallback(() => setView('list'), [])
 
   return (
     <div className="flex flex-col flex-1 w-full h-full overflow-y-auto custom-scrollbar scroll-smooth bg-slate-50/50 dark:bg-slate-950 p-4 md:p-8">
@@ -70,7 +73,7 @@ export function Dashboards() {
         {(view === 'create' || view === 'edit') && (
           <DashboardBuilder
             initialDashboard={view === 'edit' ? selectedDashboard : null}
-            onSaved={() => setView('list')}
+            onSaved={handleSaved}
           />
         )}
 

@@ -2,7 +2,7 @@ import { GripVertical, Loader2, Plus, Save, Trash2 } from 'lucide-react'
 import { motion } from 'motion/react'
 import { useCallback, useState } from 'react'
 
-import { cn } from '@/src/utils/cn'
+import { cn } from '@/utils/cn'
 
 import { useSaveDashboard } from '../queries/dashboardQueries'
 import type { DashboardConfig, LayoutItem, WidgetConfig, WidgetType } from '../types'
@@ -164,8 +164,13 @@ export function DashboardBuilder({ initialDashboard, courseId, onSaved }: Dashbo
 
         {widgets.length === 0 ? (
           <div
+            role="button"
+            tabIndex={0}
             className="flex flex-col items-center justify-center gap-3 rounded-2xl border-2 border-dashed border-slate-200 dark:border-slate-700 p-16 text-slate-400 cursor-pointer hover:border-indigo-300 hover:text-indigo-400 transition-colors"
             onClick={() => setShowPicker(true)}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter' || e.key === ' ') setShowPicker(true)
+            }}
           >
             <Plus className="h-10 w-10" />
             <p className="text-sm font-medium">Klik untuk menambahkan widget pertama</p>

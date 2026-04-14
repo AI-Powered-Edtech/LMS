@@ -8,11 +8,13 @@
  *
  * Kedua query di-cache selama 2 menit (BADGE staleTime).
  */
+
 import { useQuery } from '@tanstack/react-query'
 
-import { useAuth } from '@/src/contexts/AuthContext'
-import { supabase } from '@/src/services/supabase/client'
-import { logger } from '@/src/utils/logger'
+import { useAuth } from '@/contexts/AuthContext'
+import { assignmentService } from '@/features/assignments/api/assignmentService'
+import { db } from '@/services/db'
+import { logger } from '@/utils/logger'
 
 const BADGE_STALE = 2 * 60 * 1000 // 2 menit
 
@@ -46,29 +48,7 @@ export function useNavBadges(): NavBadges {
   // atau masih DRAFT.
   const { data: pendingAssignments = 0 } = useQuery({
     queryKey: navBadgeKeys.pendingAssignments(user?.id ?? '', tenantId ?? ''),
-    queryFn: async () => {
-      // Cari assignment yang published dan belum punya submission SUBMITTED
-      const { count, error } = await supabase
-        .from('assignments')
-        .select(
-          `id,
-           assignment_submissions!left(id, status)`,
-          { count: 'exact', head: false }
-        )
-        .eq('tenant_id', tenantId!)
-        .eq('is_published', true)
-        .or(
-          `assignment_submissions.student_id.is.null,assignment_submissions.status.neq.SUBMITTED`,
-          { foreignTable: 'assignment_submissions' }
-        )
-
-      if (error) {
-        if (import.meta.env.DEV) logger.error('[useNavBadges] pendingAssignments error:', error)
-        return 0
-      }
-
-      return count ?? 0
-    },
+    queryFn: () => assignmentService.getPendingAssignmentCount(tenantId!, user!.id),
     enabled: enabled && isStudent,
     staleTime: BADGE_STALE,
   })
@@ -77,7 +57,7 @@ export function useNavBadges(): NavBadges {
   const { data: unreadNotifications = 0 } = useQuery({
     queryKey: navBadgeKeys.unreadNotifications(user?.id ?? '', tenantId ?? ''),
     queryFn: async () => {
-      const { data, error } = await supabase.rpc('get_unread_notification_count', {
+      const { data, error } = await db.rpc('get_unread_notification_count', {
         p_user_id: user!.id,
       })
 

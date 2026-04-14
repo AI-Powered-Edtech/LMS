@@ -1,4 +1,4 @@
-import { logger } from '@/src/utils/logger'
+import { logger } from '@/utils/logger'
 export const PERF = {
   LOGIN_START: 'login_start',
   LOGIN_AUTH_COMPLETE: 'login_auth_complete',

@@ -1,202 +1,233 @@
-import { Bell, Mail, Smartphone } from 'lucide-react'
-import { useEffect, useState } from 'react'
+/**
+ * NotificationPreferencesPanel — Per-type × per-channel notification preferences.
+ *
+ * Layout: table where rows = notification type, columns = In-App / Email / Push.
+ * Preferences stored in localStorage via useNotificationPreferencesLocal.
+ *
+ * - Bahasa Indonesia labels
+ * - Full dark mode support
+ * - Accessible toggle switches
+ * - "Reset ke Default" with saved-state indicator
+ */
 
-import { cn } from '@/src/utils/cn'
+import { Bell, Check, Mail, RotateCcw, Smartphone } from 'lucide-react'
+import { useCallback, useState } from 'react'
 
-import { useNotificationPreferences } from '../hooks/useNotifications'
-import type { NotificationType } from '../types'
+import { cn } from '@/utils/cn'
 
-// ─── Type Labels ──────────────────────────────────────────────────────────────
+import {
+  type NotificationChannel,
+  type NotificationPrefType,
+  PREF_TYPE_LABELS,
+  useNotificationPreferencesLocal,
+} from '../hooks/useNotificationPreferences'
 
-const TYPE_LABELS: Record<NotificationType, string> = {
-  grade_posted: 'Nilai diposting',
-  assignment_due: 'Tugas mendekati batas waktu',
-  quiz_available: 'Kuis tersedia',
-  announcement: 'Pengumuman',
-  course_enrolled: 'Pendaftaran kursus',
-  badge_earned: 'Lencana diperoleh',
-  discussion_reply: 'Balasan diskusi',
-  system: 'Sistem',
-  grade: 'Nilai (warisan)',
-}
+// ─── Channel config ───────────────────────────────────────────────────────────
 
-const ALL_TOGGLE_TYPES: NotificationType[] = [
-  'grade_posted',
-  'assignment_due',
-  'quiz_available',
-  'announcement',
-  'course_enrolled',
-  'badge_earned',
-  'discussion_reply',
-  'system',
+const CHANNELS: { key: NotificationChannel; label: string; icon: React.ReactNode }[] = [
+  {
+    key: 'inApp',
+    label: 'In-App',
+    icon: <Bell className="w-3.5 h-3.5" />,
+  },
+  {
+    key: 'email',
+    label: 'Email',
+    icon: <Mail className="w-3.5 h-3.5" />,
+  },
+  {
+    key: 'push',
+    label: 'Push',
+    icon: <Smartphone className="w-3.5 h-3.5" />,
+  },
 ]
 
-// ─── Toggle ───────────────────────────────────────────────────────────────────
+const PREF_TYPES: NotificationPrefType[] = [
+  'assignment_due',
+  'quiz_result',
+  'grade_posted',
+  'message_received',
+  'announcement',
+  'system_alert',
+]
 
-interface ToggleProps {
+// ─── Cell Toggle ──────────────────────────────────────────────────────────────
+
+interface CellToggleProps {
   id: string
   checked: boolean
   onChange: (val: boolean) => void
   label: string
-  description?: string
-  icon?: React.ReactNode
 }
 
-function Toggle({ id, checked, onChange, label, description, icon }: ToggleProps) {
+function CellToggle({ id, checked, onChange, label }: CellToggleProps) {
   return (
-    <label
-      htmlFor={id}
-      className="flex items-start justify-between gap-4 py-3 cursor-pointer group"
+    <button
+      id={id}
+      type="button"
+      role="switch"
+      aria-checked={checked}
+      aria-label={label}
+      onClick={() => onChange(!checked)}
+      className={cn(
+        'relative inline-flex h-5 w-9 flex-shrink-0 rounded-full border-2 border-transparent',
+        'transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500',
+        'focus:ring-offset-2 dark:focus:ring-offset-slate-900',
+        checked ? 'bg-blue-600' : 'bg-slate-200 dark:bg-slate-600'
+      )}
     >
-      <div className="flex items-start gap-3">
-        {icon && <div className="mt-0.5 text-slate-400 dark:text-slate-500">{icon}</div>}
-        <div>
-          <p className="text-sm font-medium text-slate-800 dark:text-slate-200 group-hover:text-slate-900 dark:group-hover:text-slate-100 transition-colors">
-            {label}
-          </p>
-          {description && (
-            <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">{description}</p>
-          )}
-        </div>
-      </div>
-      <button
-        id={id}
-        type="button"
-        role="switch"
-        aria-checked={checked}
-        onClick={() => onChange(!checked)}
+      <span
+        aria-hidden="true"
         className={cn(
-          'relative inline-flex h-6 w-11 flex-shrink-0 rounded-full border-2 border-transparent transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 dark:focus:ring-offset-slate-900',
-          checked ? 'bg-blue-600' : 'bg-slate-200 dark:bg-slate-700'
+          'pointer-events-none inline-block h-4 w-4 rounded-full bg-white shadow',
+          'ring-0 transition-transform duration-200',
+          checked ? 'translate-x-4' : 'translate-x-0'
         )}
-      >
-        <span
-          aria-hidden="true"
-          className={cn(
-            'pointer-events-none inline-block h-5 w-5 rounded-full bg-white shadow-lg ring-0 transition-transform duration-200',
-            checked ? 'translate-x-5' : 'translate-x-0'
-          )}
-        />
-      </button>
-    </label>
+      />
+    </button>
   )
 }
 
 // ─── Panel ────────────────────────────────────────────────────────────────────
 
-export function NotificationPreferencesPanel() {
-  const { preferences, isLoading, save, isSaving } = useNotificationPreferences()
+interface NotificationPreferencesPanelProps {
+  /** If true, renders a compact version without card border (for embedding in Settings) */
+  embedded?: boolean
+}
 
-  const [emailEnabled, setEmailEnabled] = useState(true)
-  const [pushEnabled, setPushEnabled] = useState(true)
-  const [disabledTypes, setDisabledTypes] = useState<Set<NotificationType>>(new Set())
+export function NotificationPreferencesPanel({
+  embedded = false,
+}: NotificationPreferencesPanelProps) {
+  const { preferences, updatePreference, resetToDefaults } = useNotificationPreferencesLocal()
 
-  // Sync from loaded preferences
-  useEffect(() => {
-    if (!preferences) return
-    setEmailEnabled(preferences.email_enabled)
-    setPushEnabled(preferences.push_enabled)
-    setDisabledTypes(new Set(preferences.disabled_types ?? []))
-  }, [preferences])
+  const [savedIndicator, setSavedIndicator] = useState(false)
 
-  function toggleType(type: NotificationType) {
-    setDisabledTypes((prev) => {
-      const next = new Set(prev)
-      if (next.has(type)) {
-        next.delete(type)
-      } else {
-        next.add(type)
-      }
-      return next
-    })
-  }
+  const handleChange = useCallback(
+    (type: NotificationPrefType, channel: NotificationChannel, val: boolean) => {
+      updatePreference(type, channel, val)
+      // Flash saved indicator
+      setSavedIndicator(true)
+      setTimeout(() => setSavedIndicator(false), 2000)
+    },
+    [updatePreference]
+  )
 
-  function handleSave() {
-    save({
-      email_enabled: emailEnabled,
-      push_enabled: pushEnabled,
-      disabled_types: Array.from(disabledTypes),
-    })
-  }
+  const handleReset = useCallback(() => {
+    resetToDefaults()
+    setSavedIndicator(true)
+    setTimeout(() => setSavedIndicator(false), 2000)
+  }, [resetToDefaults])
 
-  if (isLoading) {
-    return (
-      <div className="p-8 flex justify-center">
-        <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-600" />
+  const content = (
+    <>
+      {/* Header */}
+      {!embedded && (
+        <div className="px-5 py-4 border-b border-slate-100 dark:border-slate-800">
+          <h2 className="text-base font-bold text-slate-900 dark:text-slate-100">
+            Pengaturan Notifikasi
+          </h2>
+          <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+            Pilih saluran pemberitahuan untuk setiap jenis notifikasi
+          </p>
+        </div>
+      )}
+
+      {/* Table */}
+      <div className="overflow-x-auto">
+        <table className="w-full text-sm" role="grid" aria-label="Pengaturan saluran notifikasi">
+          <thead>
+            <tr role="row" className="border-b border-slate-100 dark:border-slate-800">
+              <th
+                role="columnheader"
+                scope="col"
+                className="px-4 py-3 text-left text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider"
+              >
+                Jenis Notifikasi
+              </th>
+              {CHANNELS.map((ch) => (
+                <th
+                  key={ch.key}
+                  role="columnheader"
+                  scope="col"
+                  className="px-3 py-3 text-center text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider min-w-[72px]"
+                >
+                  <span className="flex items-center justify-center gap-1">
+                    <span aria-hidden="true">{ch.icon}</span>
+                    {ch.label}
+                  </span>
+                </th>
+              ))}
+            </tr>
+          </thead>
+          <tbody className="divide-y divide-slate-50 dark:divide-slate-800/60">
+            {PREF_TYPES.map((type) => (
+              <tr
+                key={type}
+                role="row"
+                className="hover:bg-slate-50 dark:hover:bg-slate-800/30 transition-colors"
+              >
+                <td role="gridcell" className="px-4 py-3">
+                  <span className="text-sm font-medium text-slate-800 dark:text-slate-200">
+                    {PREF_TYPE_LABELS[type]}
+                  </span>
+                </td>
+                {CHANNELS.map((ch) => (
+                  <td key={ch.key} role="gridcell" className="px-3 py-3 text-center">
+                    <div className="flex justify-center">
+                      <CellToggle
+                        id={`pref-${type}-${ch.key}`}
+                        checked={preferences[type][ch.key]}
+                        onChange={(val) => handleChange(type, ch.key, val)}
+                        label={`${PREF_TYPE_LABELS[type]} — ${ch.label}`}
+                      />
+                    </div>
+                  </td>
+                ))}
+              </tr>
+            ))}
+          </tbody>
+        </table>
       </div>
-    )
+
+      {/* Footer */}
+      <div className="px-4 py-3 border-t border-slate-100 dark:border-slate-800 bg-slate-50 dark:bg-slate-800/40 flex items-center justify-between gap-3">
+        <button
+          type="button"
+          onClick={handleReset}
+          className={cn(
+            'flex items-center gap-1.5 text-xs font-medium transition-colors',
+            'text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200',
+            'focus:outline-none focus:ring-2 focus:ring-slate-400 rounded'
+          )}
+        >
+          <RotateCcw className="w-3.5 h-3.5" />
+          Reset ke Default
+        </button>
+
+        {/* Saved indicator */}
+        <span
+          aria-live="polite"
+          className={cn(
+            'flex items-center gap-1 text-xs font-medium transition-opacity duration-300',
+            savedIndicator
+              ? 'opacity-100 text-green-600 dark:text-green-400'
+              : 'opacity-0 text-green-600 dark:text-green-400'
+          )}
+        >
+          <Check className="w-3.5 h-3.5" />
+          Tersimpan
+        </span>
+      </div>
+    </>
+  )
+
+  if (embedded) {
+    return <div>{content}</div>
   }
 
   return (
     <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-700 overflow-hidden">
-      {/* Header */}
-      <div className="px-5 py-4 border-b border-slate-100 dark:border-slate-800">
-        <h2 className="text-base font-bold text-slate-900 dark:text-slate-100">
-          Pengaturan Notifikasi
-        </h2>
-        <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
-          Kelola cara Anda menerima notifikasi
-        </p>
-      </div>
-
-      <div className="px-5 py-2">
-        {/* Channel toggles */}
-        <div className="border-b border-slate-100 dark:border-slate-800 pb-2 mb-2">
-          <p className="text-xs font-semibold text-slate-400 dark:text-slate-500 uppercase tracking-wider mt-3 mb-1">
-            Saluran
-          </p>
-          <Toggle
-            id="pref-email"
-            checked={emailEnabled}
-            onChange={setEmailEnabled}
-            label="Notifikasi Email"
-            description="Terima notifikasi melalui alamat email Anda"
-            icon={<Mail className="w-4 h-4" />}
-          />
-          <Toggle
-            id="pref-push"
-            checked={pushEnabled}
-            onChange={setPushEnabled}
-            label="Notifikasi Push"
-            description="Terima notifikasi langsung di browser"
-            icon={<Smartphone className="w-4 h-4" />}
-          />
-        </div>
-
-        {/* Per-type toggles */}
-        <div className="pb-2">
-          <p className="text-xs font-semibold text-slate-400 dark:text-slate-500 uppercase tracking-wider mt-3 mb-1">
-            Jenis Notifikasi
-          </p>
-          {ALL_TOGGLE_TYPES.map((type) => (
-            <Toggle
-              key={type}
-              id={`pref-type-${type}`}
-              checked={!disabledTypes.has(type)}
-              onChange={() => toggleType(type)}
-              label={TYPE_LABELS[type]}
-              icon={<Bell className="w-4 h-4" />}
-            />
-          ))}
-        </div>
-      </div>
-
-      {/* Footer */}
-      <div className="px-5 py-4 border-t border-slate-100 dark:border-slate-800 bg-slate-50 dark:bg-slate-800/50">
-        <button
-          type="button"
-          onClick={handleSave}
-          disabled={isSaving}
-          className={cn(
-            'w-full py-2 px-4 rounded-xl text-sm font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500',
-            isSaving
-              ? 'bg-blue-400 text-white cursor-not-allowed'
-              : 'bg-blue-600 text-white hover:bg-blue-700 dark:hover:bg-blue-500'
-          )}
-        >
-          {isSaving ? 'Menyimpan...' : 'Simpan Pengaturan'}
-        </button>
-      </div>
+      {content}
     </div>
   )
 }

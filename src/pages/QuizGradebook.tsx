@@ -9,12 +9,12 @@ import {
 } from 'lucide-react'
 import { Link } from 'react-router-dom'
 
-import { AttemptDetailModal } from '@/src/components/AttemptDetailModal'
-import { QuestionDifficultyPanel } from '@/src/features/quizzes/components/QuestionDifficultyPanel'
-import { QuizGradebookFilters } from '@/src/features/quizzes/components/QuizGradebookFilters'
-import { QuizGradebookTable } from '@/src/features/quizzes/components/QuizGradebookTable'
-import { useQuizGradebookState } from '@/src/features/quizzes/hooks/useQuizGradebookState'
-import { cn } from '@/src/utils/cn'
+import { AttemptDetailModal } from '@/components/AttemptDetailModal'
+import { QuestionDifficultyPanel } from '@/features/quizzes/components/QuestionDifficultyPanel'
+import { QuizGradebookFilters } from '@/features/quizzes/components/QuizGradebookFilters'
+import { QuizGradebookTable } from '@/features/quizzes/components/QuizGradebookTable'
+import { useQuizGradebookState } from '@/features/quizzes/hooks/useQuizGradebookState'
+import { cn } from '@/utils/cn'
 
 export function QuizGradebook() {
   const s = useQuizGradebookState()

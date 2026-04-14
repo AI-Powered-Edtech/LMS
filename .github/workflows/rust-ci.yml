@@ -1,0 +1,84 @@
+name: Rust CI
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'edusync-api/**'
+      - '.github/workflows/rust-ci.yml'
+  pull_request:
+    paths:
+      - 'edusync-api/**'
+
+env:
+  CARGO_TERM_COLOR: always
+  RUST_BACKTRACE: 1
+
+jobs:
+  check:
+    name: Check + Clippy + Test
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: edusync-api
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Rust toolchain
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          components: clippy
+
+      - name: Install native deps
+        run: sudo apt-get update && sudo apt-get install -y pkg-config libssl-dev
+
+      - name: Cache cargo
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+            edusync-api/target
+          key: ${{ runner.os }}-cargo-${{ hashFiles('edusync-api/Cargo.lock') }}
+          restore-keys: ${{ runner.os }}-cargo-
+
+      - name: cargo check
+        run: cargo check --all-targets
+
+      - name: cargo clippy
+        run: cargo clippy --all-targets -- -D warnings
+
+      - name: cargo test
+        run: cargo test --all
+
+  build-release:
+    name: Release Build
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main'
+    needs: check
+    defaults:
+      run:
+        working-directory: edusync-api
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Rust toolchain
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Install native deps
+        run: sudo apt-get update && sudo apt-get install -y pkg-config libssl-dev
+
+      - name: Cache cargo
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+            edusync-api/target
+          key: ${{ runner.os }}-release-${{ hashFiles('edusync-api/Cargo.lock') }}
+          restore-keys: ${{ runner.os }}-release-
+
+      - name: cargo build release
+        run: cargo build --release

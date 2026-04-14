@@ -1,4 +1,4 @@
-import type { QuestionType as BaseQuestionType } from '@/src/features/quizzes'
+import type { QuestionType as BaseQuestionType } from '@/features/quizzes'
 
 export type QuestionType = BaseQuestionType
 

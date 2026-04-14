@@ -1,4 +1,4 @@
-import { logger } from '@/src/utils/logger'
+import { logger } from '@/utils/logger'
 
 // ==========================================================================
 // SCORM API Bridge — scormApiBridge.ts

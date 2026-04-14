@@ -13,36 +13,36 @@ type Story = StoryObj<typeof Skeleton>
 
 export const Default: Story = {
   args: {
-    width: 200,
-    height: 20,
+    width: 'w-48',
+    height: 'h-5',
   },
 }
 
 export const Square: Story = {
   args: {
-    width: 80,
-    height: 80,
+    width: 'w-20',
+    height: 'h-20',
     className: 'rounded-xl',
   },
 }
 
 export const Circle: Story = {
   args: {
-    width: 48,
-    height: 48,
+    width: 'w-12',
+    height: 'h-12',
     className: 'rounded-full',
   },
 }
 
 export const FullWidth: Story = {
   args: {
-    width: '100%',
-    height: 16,
+    width: 'w-full',
+    height: 'h-4',
   },
   decorators: [
-    (Story) => (
+    (StoryComponent) => (
       <div style={{ width: 400 }}>
-        <Story />
+        <StoryComponent />
       </div>
     ),
   ],
@@ -51,9 +51,9 @@ export const FullWidth: Story = {
 export const TextLines: Story = {
   render: () => (
     <div style={{ width: 400 }} className="space-y-2">
-      <Skeleton width="100%" height={16} />
-      <Skeleton width="100%" height={16} />
-      <Skeleton width="60%" height={16} />
+      <Skeleton width="w-full" height="h-4" />
+      <Skeleton width="w-full" height="h-4" />
+      <Skeleton width="w-3/5" height="h-4" />
     </div>
   ),
 }

@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from 'react'
 
-import { getPendingCount } from '@/src/utils/offlineStorage'
+import { logger } from '@/utils/logger'
+import { getPendingCount } from '@/utils/offlineStorage'
 
 /**
  * Returns the number of items waiting in the offline sync queue.
@@ -17,16 +18,17 @@ export function useSyncQueueCount(): number {
     try {
       const total = await getPendingCount()
       setCount(total)
-    } catch {
+    } catch (err) {
       // IndexedDB unavailable — count stays 0
+      if (import.meta.env.DEV) logger.warn('[useSyncQueueCount] IndexedDB unavailable:', err)
     }
   }, [])
 
   useEffect(() => {
-    refresh()
+    void refresh()
 
     const handleChange = () => {
-      refresh()
+      void refresh()
     }
 
     window.addEventListener('online', handleChange)

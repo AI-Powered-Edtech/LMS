@@ -3,10 +3,10 @@ import { Camera, FileText, Upload } from 'lucide-react'
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
 
-import { useToast } from '@/src/components/ui'
-import { useAuth } from '@/src/contexts/AuthContext'
-import { usePageTitle } from '@/src/hooks/usePageTitle'
-import { supabase } from '@/src/services/supabase/client'
+import { useToast } from '@/components/ui'
+import { useAuth } from '@/contexts/AuthContext'
+import { classroomService } from '@/features/classroom/api/classroomService'
+import { usePageTitle } from '@/hooks/usePageTitle'
 
 /**
  * ScanAttendance — AI-powered attendance book scanning.
@@ -25,12 +25,8 @@ export function ScanAttendance() {
   const { data: classes = [] } = useQuery({
     queryKey: ['teacher-classes', tenantId],
     queryFn: async () => {
-      const { data } = await supabase
-        .from('classes')
-        .select('id, name')
-        .eq('tenant_id', tenantId!)
-        .eq('teacher_id', user!.id)
-      return data ?? []
+      const allClasses = await classroomService.fetchClassrooms(user!.id, 'teacher', tenantId!)
+      return allClasses.map((c) => ({ id: c.id, name: c.name }))
     },
     enabled: !!tenantId && !!user,
   })

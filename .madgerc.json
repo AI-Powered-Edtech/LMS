@@ -1,0 +1,7 @@
+{
+  "fileExtensions": ["ts", "tsx"],
+  "excludeRegExp": ["node_modules", "__tests__", "\\.test\\.", "\\.spec\\."],
+  "detectiveOptions": {
+    "ts": { "mixedImports": true }
+  }
+}

@@ -1,10 +1,12 @@
 // Quiz Analytics Panel Component
 // Container that composes quiz stats overview and question difficulty chart
 // Only visible for TEACHER role
+
 import { BarChart3, Loader2 } from 'lucide-react'
 import { useEffect, useState } from 'react'
 
-import { logger } from '@/src/utils/logger'
+import { EmptyState } from '@/components/ui'
+import { logger } from '@/utils/logger'
 
 import {
   getQuestionStats,
@@ -48,7 +50,7 @@ export function QuizAnalyticsPanel({ quizId, className }: QuizAnalyticsPanelProp
     }
 
     if (quizId) {
-      fetchStats()
+      void fetchStats()
     }
   }, [quizId])
 
@@ -97,13 +99,12 @@ export function QuizAnalyticsPanel({ quizId, className }: QuizAnalyticsPanelProp
 
         {/* Empty state if no data */}
         {!quizStats && questionStats.length === 0 && (
-          <div className="bg-slate-50 rounded-xl p-8 text-center">
-            <BarChart3 className="w-12 h-12 text-slate-300 mx-auto mb-3" />
-            <p className="text-slate-600 font-medium">Belum ada data analitik</p>
-            <p className="text-sm text-slate-500 mt-1">
-              Analitik akan tersedia setelah siswa mengerjakan kuis ini.
-            </p>
-          </div>
+          <EmptyState
+            icon={<BarChart3 className="w-8 h-8" />}
+            title="Belum ada data analitik"
+            description="Analitik akan tersedia setelah siswa mengerjakan kuis ini."
+            className="bg-slate-50 dark:bg-slate-800/50 rounded-xl"
+          />
         )}
       </div>
     </div>

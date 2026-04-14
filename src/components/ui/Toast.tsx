@@ -1,8 +1,8 @@
 import { AlertTriangle, CheckCircle, Info, X, XCircle } from 'lucide-react'
 import { useEffect, useRef } from 'react'
 
-import { type Toast as ToastType, useToast } from '@/src/hooks/useToast'
-import { cn } from '@/src/utils/cn'
+import { type Toast as ToastType, useToast } from '@/hooks/useToast'
+import { cn } from '@/utils/cn'
 
 /* ─── Icon Map ────────────────────────────────────────────────── */
 
@@ -79,6 +79,17 @@ function ToastItem({ toast, onDismiss }: ToastItemProps) {
       <div className="flex-1 min-w-0">
         <p className="text-sm font-semibold">{toast.message}</p>
         {toast.description && <p className="mt-1 text-sm opacity-80">{toast.description}</p>}
+        {toast.action && (
+          <button
+            onClick={() => {
+              toast.action!.onClick()
+              handleDismiss()
+            }}
+            className="mt-2 text-xs font-bold underline underline-offset-2 opacity-80 hover:opacity-100 transition-opacity outline-none focus-visible:ring-2 focus-visible:ring-current"
+          >
+            {toast.action.label}
+          </button>
+        )}
       </div>
       <button
         onClick={handleDismiss}
@@ -117,5 +128,5 @@ export function ToastContainer() {
 
 /* ─── Re-export for convenience ───────────────────────────────── */
 
-export type { Toast } from '@/src/hooks/useToast'
-export { useToast } from '@/src/hooks/useToast'
+export type { Toast } from '@/hooks/useToast'
+export { useToast } from '@/hooks/useToast'

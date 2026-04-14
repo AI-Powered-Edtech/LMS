@@ -1,6 +1,7 @@
 import { X } from 'lucide-react'
+import React from 'react'
 
-import { cn } from '@/src/utils/cn'
+import { cn } from '@/utils/cn'
 
 export interface BulkAction {
   label: string
@@ -14,7 +15,11 @@ export interface BulkActionBarProps {
   onClearSelection: () => void
 }
 
-export function BulkActionBar({ selectedCount, actions, onClearSelection }: BulkActionBarProps) {
+export function BulkActionBar({
+  selectedCount,
+  actions,
+  onClearSelection,
+}: BulkActionBarProps): React.JSX.Element | null {
   if (selectedCount === 0) return null
 
   return (

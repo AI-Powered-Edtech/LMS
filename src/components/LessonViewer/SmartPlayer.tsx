@@ -15,10 +15,10 @@ import { Bot, X } from 'lucide-react'
 import { AnimatePresence, motion } from 'motion/react'
 import { useCallback, useEffect, useRef, useState } from 'react'
 
-import { useAuth } from '@/src/contexts/AuthContext'
-import { AITutorPanel } from '@/src/features/ai-tutor/components/AITutorPanel'
-import type { Lesson, LessonProgress } from '@/src/features/lessons'
-import { cn } from '@/src/utils/cn'
+import { useAuth } from '@/contexts/AuthContext'
+import { AITutorPanel } from '@/features/ai-tutor/components/AITutorPanel'
+import type { Lesson, LessonProgress } from '@/features/lessons'
+import { cn } from '@/utils/cn'
 
 import { MultiBlockViewer } from './MultiBlockViewer'
 import { ProgressReporter } from './ProgressReporter'
@@ -85,10 +85,11 @@ export function SmartPlayer({
   const progressPctRef = useRef(progress?.progress_percentage ?? 0)
   const lastPositionRef = useRef(progress?.last_position ?? 0)
 
-  // Derive viewer status for ProgressReporter
+  // Derive viewer status for ProgressReporter from props (not refs) so it
+  // reflects the latest value on re-render (L-21 fix).
   const reporterStatus: 'started' | 'in_progress' | 'completed' = isCompleted
     ? 'completed'
-    : progressPctRef.current > 0
+    : progress && progress.progress_percentage > 0
       ? 'in_progress'
       : 'started'
 
@@ -207,7 +208,8 @@ export function SmartPlayer({
             onClick={toggleTutor}
             aria-label="Buka AI Tutor"
             className={cn(
-              'fixed bottom-6 right-6 z-50 w-14 h-14 rounded-full flex items-center justify-center',
+              'fixed bottom-24 right-4 z-50 w-12 h-12 rounded-full flex items-center justify-center',
+              'sm:bottom-6 sm:right-6 sm:w-14 sm:h-14',
               'bg-gradient-to-br from-violet-500 to-purple-600',
               'shadow-xl shadow-purple-500/30',
               'hover:shadow-2xl hover:shadow-purple-500/40',

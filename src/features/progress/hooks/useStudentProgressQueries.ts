@@ -1,13 +1,14 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 
-import { useAuth } from '@/src/contexts/AuthContext'
+import { useAuth } from '@/contexts/AuthContext'
 import {
   AchievementData,
   ModuleStatus,
   studentProgressService,
-} from '@/src/features/progress/api/studentProgressService'
-import { createQueryKeys } from '@/src/lib/queryKeys'
-import { logger } from '@/src/utils/logger'
+} from '@/features/progress/api/studentProgressService'
+import { createQueryKeys } from '@/shared/lib/queryKeys'
+import { logger } from '@/utils/logger'
+import { captureError } from '@/utils/sentry'
 
 type Achievement = AchievementData & { icon: 'crown' | 'zap' | 'target' | 'star' }
 
@@ -36,7 +37,7 @@ export function useStudentProgressData() {
   // Modules query
   const modules = useQuery({
     queryKey: progressKeys.modules(tenantId!),
-    queryFn: () => studentProgressService.fetchModules(tenantId!),
+    queryFn: () => studentProgressService.fetchModules(tenantId!, user?.id ?? undefined),
     enabled: !!tenantId,
   })
 
@@ -111,7 +112,8 @@ export function useAddXP() {
   return useMutation({
     mutationFn: async (amount: number) => {
       if (!userId) throw new Error('Missing user')
-      await studentProgressService.addXP(userId, amount)
+      if (!tenantId) throw new Error('Missing tenant')
+      await studentProgressService.addXP(userId, amount, tenantId)
       return amount
     },
     onMutate: async (amount) => {
@@ -126,7 +128,8 @@ export function useAddXP() {
         return { previousXp }
       }
     },
-    onError: (_err, _amount, context) => {
+    onError: (err, _amount, context) => {
+      captureError(err, { context: 'useAddXP' })
       // Rollback on error
       if (userId && tenantId && context?.previousXp !== undefined) {
         queryClient.setQueryData(progressKeys.xp(userId, tenantId), context.previousXp)
@@ -135,7 +138,7 @@ export function useAddXP() {
     onSettled: () => {
       // Re-sync with server after mutation settles
       if (userId && tenantId) {
-        queryClient.invalidateQueries({ queryKey: progressKeys.xp(userId, tenantId) })
+        void queryClient.invalidateQueries({ queryKey: progressKeys.xp(userId, tenantId) })
       }
     },
   })

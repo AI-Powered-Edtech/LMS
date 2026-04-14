@@ -5,8 +5,8 @@
 // Extracted from quizPlayer.service.ts for modularity.
 // ==========================================================================
 
-import { supabase } from '@/src/services/supabase/client'
-import { logDevError } from '@/src/utils/logDevError'
+import { db } from '@/services/db'
+import { logDevError } from '@/utils/logDevError'
 
 import type {
   QuizAttemptResult,
@@ -24,13 +24,13 @@ export async function startQuizAttempt(
 ): Promise<StartQuizAttemptResult> {
   const {
     data: { session },
-  } = await supabase.auth.getSession()
+  } = await db.auth.getSession()
   if (!session) throw new Error('Not authenticated')
 
   const quizId = typeof input === 'string' ? input : input.quizId
   const assignmentId = typeof input === 'string' ? null : (input.assignmentId ?? null)
 
-  const { data, error } = await supabase.rpc('v1_start_quiz_attempt', {
+  const { data, error } = await db.rpc('v1_start_quiz_attempt', {
     p_quiz_id: quizId,
     p_assignment_id: assignmentId,
   })
@@ -53,12 +53,30 @@ export async function submitQuizAttempt(
 ): Promise<QuizAttemptResult> {
   const {
     data: { session },
-  } = await supabase.auth.getSession()
+  } = await db.auth.getSession()
   if (!session) throw new Error('Not authenticated')
+
+  // SERVER-SIDE RATE LIMITING
+  // Protect against brute-force or spam submissions.
+  // Calls the server-side Edge Function to increment counter and check limits.
+  const { data: limitData } = await db.functions.invoke('check-rate-limit', {
+    body: {
+      action: 'quiz-submit',
+      key: session.user.id,
+      maxAttempts: 10,
+      windowMs: 60000, // 10 attempts per minute
+    },
+  })
+
+  if (limitData && !limitData.allowed) {
+    throw new Error(
+      `Terlalu banyak percobaan submit. Coba lagi dalam ${Math.ceil(limitData.retryAfterMs / 1000)} detik.`
+    )
+  }
 
   const normalizedAnswers = normalizeFinalAnswers(answers)
 
-  const { data, error } = await supabase.rpc('v1_submit_quiz_attempt', {
+  const { data, error } = await db.rpc('v1_submit_quiz_attempt', {
     p_attempt_id: attemptId,
     p_final_answers: normalizedAnswers,
     p_telemetry_data: version ? { client_version: version } : {},
@@ -91,10 +109,10 @@ export async function batchSaveAnswers(
 ): Promise<boolean> {
   const {
     data: { session },
-  } = await supabase.auth.getSession()
+  } = await db.auth.getSession()
   if (!session) throw new Error('Not authenticated')
 
-  const { error } = await supabase.rpc('batch_save_answers', {
+  const { error } = await db.rpc('batch_save_answers', {
     p_attempt_id: attemptId,
     p_answers: answers.map((a) => ({
       question_id: a.question_id,
@@ -114,7 +132,7 @@ export async function batchSaveAnswers(
 async function awardQuizXp(attemptId: string, userId: string, score: number): Promise<void> {
   try {
     // Get attempt info to find quiz_id and tenant_id
-    const { data: attempt, error: attemptError } = await supabase
+    const { data: attempt, error: attemptError } = await db
       .from('quiz_attempts_v2')
       .select('quiz_id, tenant_id, student_id')
       .eq('id', attemptId)
@@ -126,7 +144,7 @@ async function awardQuizXp(attemptId: string, userId: string, score: number): Pr
     }
 
     // Get quiz info to find passing_score and lesson_id
-    const { data: quiz, error: quizError } = await supabase
+    const { data: quiz, error: quizError } = await db
       .from('quizzes')
       .select('passing_score, lesson_id')
       .eq('id', attempt.quiz_id)
@@ -142,7 +160,7 @@ async function awardQuizXp(attemptId: string, userId: string, score: number): Pr
 
     // Only award XP if score meets passing threshold
     if (score >= passingScore && lessonId) {
-      await supabase.rpc('award_quiz_xp', {
+      await db.rpc('award_quiz_xp', {
         p_user_id: userId,
         p_lesson_id: lessonId,
         p_quiz_id: attempt.quiz_id,

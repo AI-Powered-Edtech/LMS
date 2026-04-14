@@ -1,7 +1,7 @@
 import { cloneElement, ReactElement, useId } from 'react'
 import { Control, FieldPath, FieldValues, useController } from 'react-hook-form'
 
-import { cn } from '@/src/utils/cn'
+import { cn } from '@/utils/cn'
 
 export interface FormFieldProps<
   TFieldValues extends FieldValues = FieldValues,

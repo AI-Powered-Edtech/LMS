@@ -1,9 +1,9 @@
 import { Megaphone } from 'lucide-react'
 import { Link, useNavigate } from 'react-router-dom'
 
-import { Badge, Card, SkeletonCard } from '@/src/components/ui'
-import type { Announcement } from '@/src/features/announcements'
-import { cn } from '@/src/utils/cn'
+import { Badge, Card, SkeletonCard } from '@/components/ui'
+import type { Announcement } from '@/features/announcements'
+import { cn } from '@/utils/cn'
 
 interface AnnouncementsPreviewProps {
   announcements: Announcement[]
@@ -52,7 +52,7 @@ export function AnnouncementsPreview({ announcements, loading }: AnnouncementsPr
               onKeyDown={(e) => {
                 if (e.key === 'Enter' || e.key === ' ') {
                   e.preventDefault()
-                  navigate('/announcements')
+                  void navigate('/announcements')
                 }
               }}
               aria-label={`Pengumuman: ${ann.title}`}

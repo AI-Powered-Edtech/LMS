@@ -2,10 +2,13 @@ import { useVirtualizer } from '@tanstack/react-virtual'
 import {
   ArrowRight,
   ChevronDown,
+  ClipboardList,
   Clock,
+  Download,
   FileText,
   Filter,
   KeyRound,
+  Loader2,
   Mail,
   RefreshCw,
   Shield,
@@ -14,25 +17,18 @@ import {
 } from 'lucide-react'
 import React, { useCallback, useEffect, useRef, useState } from 'react'
 
-import { AdministrationSkeleton } from '@/src/features/administration/components/AdministrationSkeleton'
-import { usePageTitle } from '@/src/hooks/usePageTitle'
-import { supabase } from '@/src/services/supabase/client'
-import { cn } from '@/src/utils/cn'
-import { logger } from '@/src/utils/logger'
-
-interface AuditLog {
-  log_id: string
-  actor_id: string
-  actor_name: string
-  actor_email: string
-  action: string
-  target_type: string
-  target_id: string | null
-  target_name: string
-  details: Record<string, unknown>
-  created_at: string
-  total_count: number
-}
+import { EmptyState } from '@/components/ui'
+import {
+  administrationService,
+  type AuditLog,
+} from '@/features/administration/api/administrationService'
+import { AdministrationSkeleton } from '@/features/administration/components/AdministrationSkeleton'
+import { exportAuditLogsToCSV } from '@/features/administration/utils/auditExport'
+import { usePageTitle } from '@/hooks/usePageTitle'
+import { useToast } from '@/hooks/useToast'
+import { cn } from '@/utils/cn'
+import { logger } from '@/utils/logger'
+import { captureError } from '@/utils/sentry'
 
 const ACTION_CONFIG: Record<
   string,
@@ -88,28 +84,39 @@ const ACTION_OPTIONS = [
 
 export function AuditDashboard() {
   usePageTitle('Dasbor Audit')
+  const addToast = useToast((s) => s.addToast)
   const [logs, setLogs] = useState<AuditLog[]>([])
   const [loading, setLoading] = useState(true)
   const [actionFilter, setActionFilter] = useState('')
   const [totalCount, setTotalCount] = useState(0)
   const [cursor, setCursor] = useState<string | null>(null)
   const [hasMore, setHasMore] = useState(false)
+  const [isExporting, setIsExporting] = useState(false)
 
   const PAGE_SIZE = 30
+
+  const handleExportCSV = useCallback(async () => {
+    setIsExporting(true)
+    try {
+      exportAuditLogsToCSV(logs)
+      addToast({ type: 'success', message: 'Log audit berhasil diekspor' })
+    } catch (err) {
+      captureError(err, { context: 'AuditDashboard.exportCSV' })
+      addToast({ type: 'error', message: 'Gagal mengekspor log audit. Coba lagi.' })
+    } finally {
+      setIsExporting(false)
+    }
+  }, [logs, addToast])
 
   const fetchLogs = useCallback(
     async (newCursor?: string) => {
       setLoading(true)
       try {
-        const { data, error } = await supabase.rpc('get_audit_logs', {
-          p_action: actionFilter || null,
-          p_cursor: newCursor || null,
-          p_limit: PAGE_SIZE,
+        const results = await administrationService.getAuditLogs({
+          action: actionFilter || null,
+          cursor: newCursor || null,
+          limit: PAGE_SIZE,
         })
-
-        if (error) throw error
-
-        const results = (data ?? []) as AuditLog[]
 
         if (newCursor) {
           setLogs((prev) => [...prev, ...results])
@@ -127,6 +134,7 @@ export function AuditDashboard() {
         }
       } catch (err) {
         if (import.meta.env.DEV) logger.error('Failed to fetch audit logs:', err)
+        captureError(err, { context: 'AuditDashboard.fetchAuditLogs' })
       } finally {
         setLoading(false)
       }
@@ -145,7 +153,7 @@ export function AuditDashboard() {
   /* eslint-disable react-hooks/exhaustive-deps */
   useEffect(() => {
     setCursor(null)
-    fetchLogs()
+    void fetchLogs()
   }, [actionFilter])
   /* eslint-enable react-hooks/exhaustive-deps */
 
@@ -232,9 +240,31 @@ export function AuditDashboard() {
             Riwayat semua aktivitas admin dalam sekolah Anda.
           </p>
         </div>
-        <div className="flex items-center gap-2 text-sm text-slate-500 dark:text-slate-400">
-          <Clock className="w-4 h-4" />
-          <span>{totalCount} total entri</span>
+        <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2 text-sm text-slate-500 dark:text-slate-400">
+            <Clock className="w-4 h-4" />
+            <span>{totalCount} total entri</span>
+          </div>
+          {/* Export CSV Button */}
+          <button
+            onClick={handleExportCSV}
+            disabled={isExporting || logs.length === 0}
+            className={cn(
+              'flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold transition-all',
+              'focus-visible:ring-2 focus-visible:ring-blue-500 outline-none',
+              logs.length > 0 && !isExporting
+                ? 'bg-blue-600 dark:bg-blue-500 text-white hover:bg-blue-700 dark:hover:bg-blue-600'
+                : 'bg-slate-100 dark:bg-slate-800 text-slate-400 dark:text-slate-600 cursor-not-allowed'
+            )}
+            title="Ekspor log audit ke CSV"
+          >
+            {isExporting ? (
+              <Loader2 className="w-4 h-4 animate-spin" />
+            ) : (
+              <Download className="w-4 h-4" />
+            )}
+            Ekspor CSV
+          </button>
         </div>
       </div>
 
@@ -259,7 +289,7 @@ export function AuditDashboard() {
           <button
             onClick={() => {
               setCursor(null)
-              fetchLogs()
+              void fetchLogs()
             }}
             className="p-2.5 border border-slate-200 dark:border-slate-700 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-700"
             title="Muat Ulang"
@@ -279,11 +309,11 @@ export function AuditDashboard() {
               Memuat audit log...
             </div>
           ) : logs.length === 0 ? (
-            <div className="px-6 py-16 text-center text-slate-400">
-              <FileText className="w-8 h-8 mx-auto mb-3 text-slate-300" />
-              <p className="font-medium text-slate-500 dark:text-slate-400">Belum ada aktivitas</p>
-              <p className="text-sm mt-1">Audit log akan muncul saat admin melakukan perubahan.</p>
-            </div>
+            <EmptyState
+              icon={<ClipboardList className="w-8 h-8" />}
+              title="Belum ada aktivitas"
+              description="Log aktivitas akan muncul di sini"
+            />
           ) : (
             <div
               style={{

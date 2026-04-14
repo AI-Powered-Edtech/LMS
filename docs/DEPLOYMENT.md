@@ -1,102 +1,221 @@
-# Panduan Deployment (EduSync LMS ke Puter.com)
+# EduSync — Deployment Guide
 
-Dokumen ini menjelaskan langkah-langkah untuk meluncurkan (deploy) aplikasi EduSync LMS ke lingkungan _production_ menggunakan **Puter.com** sebagai penyedia _hosting frontend statis_ dan **Supabase** sebagai _backend_.
+## Prerequisites
 
-## Prasyarat Sebelum Deployment
+| Tool           | Minimum Version | Notes                                            |
+| -------------- | --------------- | ------------------------------------------------ |
+| Docker         | 24+             | Required for PostgreSQL, pgBouncer, MinIO, nginx |
+| Docker Compose | v2              | `docker compose` (without hyphen)                |
+| Rust           | 1.78+           | Required to build `edusync-api`                  |
+| Node.js        | 20+             | Required for frontend                            |
+| pnpm           | 10+             | Frontend package manager                         |
 
-1. Pastikan Anda telah menjalankan uji coba secara lokal.
-2. Anda harus memiliki akun di [Puter.com](https://puter.com).
-3. Anda harus memiliki akses ke _dashboard_ proyek Supabase Anda.
+## Environment Variables
 
----
+Copy `edusync-api/.env.example` to `edusync-api/.env` and fill in all required values.
 
-## Langkah 1: Build Frontend
+### Required
 
-Semua variabel _environment_ untuk Supabase harus di-_bake_ (ditanamkan) ke dalam file statis selama proses _build_.
+| Variable             | Description                            | Example                                             |
+| -------------------- | -------------------------------------- | --------------------------------------------------- |
+| `DATABASE_URL`       | PostgreSQL connection string           | `postgresql://postgres:pass@pgbouncer:5432/edusync` |
+| `JWT_SECRET`         | HS256 access token secret (≥32 chars)  | `your-super-secret-jwt-key-min-32-chars`            |
+| `JWT_REFRESH_SECRET` | HS256 refresh token secret (≥32 chars) | `your-refresh-secret-key-min-32-chars`              |
 
-1. Pastikan file `.env` di folder _root_ proyek memiliki _values_ untuk proyek _production_:
-   ```env
-   VITE_SUPABASE_URL=https://[PROYEK-ID].supabase.co
-   VITE_SUPABASE_ANON_KEY=[ANON-KEY-ANDA]
-   ```
-2. Jalankan perintah _build_:
-   ```bash
-   npm run build
-   ```
-3. Folder `dist` akan dibuat. Folder ini berisi seluruh aplikasi yang siap diluncurkan.
+### Storage (S3 / R2 / MinIO)
 
----
+| Variable               | Description         | Dev Default                     |
+| ---------------------- | ------------------- | ------------------------------- |
+| `S3_ENDPOINT`          | S3 API endpoint     | `http://minio:9000`             |
+| `S3_REGION`            | S3 region           | `us-east-1`                     |
+| `S3_ACCESS_KEY_ID`     | S3 access key       | `minioadmin`                    |
+| `S3_SECRET_ACCESS_KEY` | S3 secret key       | `minioadmin123`                 |
+| `S3_BUCKET`            | Bucket name         | `edusync`                       |
+| `S3_PUBLIC_URL`        | Public CDN base URL | `http://localhost:9000/edusync` |
 
-## Langkah 2: Deployment ke Puter.com
+### Email (SMTP)
 
-Anda dapat meluncurkan folder `dist` tersebut menggunakan salah satu dari dua metode di bawah ini:
+| Variable          | Description          | Default               |
+| ----------------- | -------------------- | --------------------- |
+| `SMTP_HOST`       | SMTP server hostname | (none)                |
+| `SMTP_PORT`       | SMTP port            | `587`                 |
+| `SMTP_USERNAME`   | SMTP auth username   | (none)                |
+| `SMTP_PASSWORD`   | SMTP auth password   | (none)                |
+| `SMTP_FROM_EMAIL` | Sender address       | `noreply@edusync.dev` |
 
-### Metode A: Menggunakan CLI (Direkomendasikan)
+### AI (Groq)
 
-1. Jalankan perintah _deploy_ yang sudah disediakan di `package.json`:
-   ```bash
-   npm run deploy:puter
-   ```
-   *(Perintah ini akan secara otomatis mem-*build* aplikasi Anda dan menggunakan `npx @puter/cli` untuk men-deploy folder `./dist` dengan nama situs `edusync-lms`).*
-2. Ikuti instruksi login (jika diminta) di terminal Anda.
-3. Anda akan mendapatkan URL publik (misalnya: `https://edusync-lms.puter.site`).
+| Variable       | Description                                            |
+| -------------- | ------------------------------------------------------ |
+| `GROQ_API_KEY` | Groq LLM API key. If unset, AI endpoints return `503`. |
 
-### Metode B: Menggunakan Antarmuka Web (UI) Puter.com
+### Push Notifications (VAPID)
 
-1. Buka browser dan login ke OS [Puter.com](https://puter.com).
-2. Buka aplikasi **Drive**.
-3. Buat folder baru (misalnya `edusync-production`).
-4. **Drag & Drop** seluruh _isi_ dari folder `dist/` di komputer Anda ke dalam folder tersebut di Puter.
-5. Klik kanan pada folder tersebut di Puter, lalu pilih opsi **"Host website"**.
-6. Atur _subdomain_ Anda (misal `edusync-lms`), lalu aktifkan fitur _hosting_.
+| Variable            | Description                                                           |
+| ------------------- | --------------------------------------------------------------------- |
+| `VAPID_PRIVATE_KEY` | VAPID private key for Web Push                                        |
+| `VAPID_PUBLIC_KEY`  | VAPID public key (also needed by frontend as `VITE_VAPID_PUBLIC_KEY`) |
 
----
+### WhatsApp
 
-## Langkah 3: Konfigurasi CORS Supabase (Sangat Penting!)
+| Variable                   | Description                       |
+| -------------------------- | --------------------------------- |
+| `WHATSAPP_ACCESS_TOKEN`    | Meta Graph API token              |
+| `WHATSAPP_PHONE_NUMBER_ID` | WhatsApp Business phone number ID |
 
-Supabase memblokir akses _Authentication_ jika pengguna mencoba masuk dari URL yang tidak dikenal. Anda wajib menambahkan URL Puter.com Anda ke dalam daftar **Allowed Origins** Supabase.
+### LTI 1.3
 
-1. Buka [Supabase Dashboard](https://supabase.com/dashboard).
-2. Pilih proyek Anda.
-3. Buka menu **Authentication** -> **URL Configuration** (berada di bagian _Site URL_ dan _Redirect URLs_).
-4. Di bagian **Site URL**, masukkan URL utama (misal: `https://edusync-lms.puter.site`).
-5. Di bagian **Redirect URLs** (Add URL), tambahkan URL tambahan (termasuk protokolnya):
-   - `https://edusync-lms.puter.site/*`
-   - `https://edusync-lms.puter.site/#/*`
-6. Klik **Save**.
+| Variable              | Description                               |
+| --------------------- | ----------------------------------------- |
+| `LTI_RSA_PRIVATE_KEY` | RSA private key (PEM) for LTI JWT signing |
+| `LTI_RSA_PUBLIC_KEY`  | RSA public key (PEM) for JWKS endpoint    |
+| `LTI_LAUNCH_URL`      | Full URL of the LTI launch endpoint       |
+| `APP_URL`             | Base URL of the EduSync app               |
 
-_(Jika ini tidak dilakukan, Anda akan mendapatkan error "CORS policy" atau "URL not allowed" saat pengguna mencoba login/register)._
+### VIL Runtime
 
----
+| Variable      | Default | Description                                                            |
+| ------------- | ------- | ---------------------------------------------------------------------- |
+| `VIL_PROFILE` | `dev`   | VIL profile: `dev` / `staging` / `prod`                                |
+| `RUST_LOG`    | `info`  | Log level (`error`/`warn`/`info`/`debug`/`trace`) — use `warn` in prod |
 
-## Langkah 4: Deployment Edge Functions & Database (Supabase)
+> **Note:** The Observer dashboard (`/_vil/dashboard/`) is enabled in `dev` and `staging` profiles. In `prod` profile it is disabled by default unless explicitly re-enabled with `.observer(true)` in the `VilApp` builder.
 
-Aplikasi memiliki fitur AI, Scan Kehadiran, dan PDF yang memerlukan _backend logic_.
+### Server
 
-1. **Sinkronisasi Skema Database**: Pastikan tabel dan _policies_ di _production_ sejajar dengan lokal:
-   ```bash
-   supabase db push
-   ```
-2. **Deploy Edge Functions**:
+| Variable              | Default | Description                               |
+| --------------------- | ------- | ----------------------------------------- |
+| `PORT`                | `8080`  | API server port                           |
+| `SENTRY_DSN`          | (none)  | Sentry error tracking DSN                 |
+| `SHADOW_MODE_ENABLED` | `false` | Enable shadow mode for traffic comparison |
 
-   ```bash
-   supabase functions deploy generate-ai-content
-   supabase functions deploy scan-attendance
-   supabase functions deploy grade-quiz-attempt
-   ```
+## Docker Compose Deployment (Recommended)
 
-3. **Injeksi Secrets**: Jika fungsi Anda membutuhkan OpenAI atau API eksternal, atur _secrets_-nya di Supabase _production_:
-   ```bash
-   supabase secrets set OPENAI_API_KEY=sk-xxxx...
-   ```
+All services are defined in `edusync-api/docker-compose.yml`.
 
----
+### Services
 
-## Langkah 5: Pengujian Akhir (_Smoke Test_)
+| Service      | Image                     | Port           | Description                          |
+| ------------ | ------------------------- | -------------- | ------------------------------------ |
+| `postgres`   | `pgvector/pgvector:pg16`  | `5432`         | PostgreSQL 16 with pgvector          |
+| `pgbouncer`  | `edoburu/pgbouncer`       | `5433`         | Connection pooler (transaction mode) |
+| `minio`      | `minio/minio`             | `9000`, `9001` | S3-compatible object storage         |
+| `minio-init` | `minio/mc`                | —              | One-shot bucket initializer          |
+| `api`        | (built from `Dockerfile`) | `8080`         | VIL Rust API server                  |
+| `nginx`      | `nginx:alpine`            | `80`           | Reverse proxy                        |
 
-1. Buka URL Puter.com Anda.
-2. Cobalah untuk _Login_ menggunakan akun uji coba.
-3. Masuk ke halaman **Kuis** atau **Modul** dan pastikan aplikasi bisa mengambil data dengan lancar tanpa _loading_ berlebihan.
-4. Periksa apakah PWA (opsi "Install App" di _browser_) muncul dengan benar.
+### Start all services
 
-Selamat! EduSync LMS Anda telah hidup dan berjalan di _production_.
+```bash
+cd edusync-api
+
+# Start infrastructure only (for local Cargo development):
+docker compose up -d postgres pgbouncer minio minio-init
+
+# Start all services including the API:
+docker compose up -d
+
+# View logs:
+docker compose logs -f api
+docker compose logs -f postgres
+
+# Stop:
+docker compose down
+
+# Stop and remove volumes (DESTRUCTIVE):
+docker compose down -v
+```
+
+### Database Initialization
+
+On first `docker compose up`, PostgreSQL automatically runs:
+
+1. `schema/init-db.sql` — creates extensions and `auth` schema
+2. `schema/baseline.sql` — creates all tables, functions, and initial data
+
+Subsequent migrations are applied by the API server at startup via sqlx.
+
+## Building the Frontend
+
+```bash
+# Install dependencies:
+pnpm install
+
+# Build for production:
+pnpm build
+
+# Output is in dist/ — serve as static files via nginx or CDN
+```
+
+Frontend environment variables (prefix: `VITE_`):
+
+| Variable                | Description               | Example                              |
+| ----------------------- | ------------------------- | ------------------------------------ |
+| `VITE_API_URL`          | VIL API base URL          | `https://api.edusync.id`             |
+| `VITE_WS_URL`           | WebSocket URL             | `wss://api.edusync.id/ws`            |
+| `VITE_CDN_URL`          | CDN base URL              | `https://cdn.edusync.id`             |
+| `VITE_VAPID_PUBLIC_KEY` | VAPID public key for push | (same as backend `VAPID_PUBLIC_KEY`) |
+| `VITE_SENTRY_DSN`       | Frontend Sentry DSN       | (optional)                           |
+
+## Building the Backend (VIL)
+
+```bash
+cd edusync-api
+
+# Development build + run (dev profile):
+cargo run
+
+# Run with explicit VIL profile:
+VIL_PROFILE=prod cargo run
+
+# Production release build (standard Rust — no Axum-specific steps):
+cargo build --release
+# Binary: target/release/edusync-api-server
+```
+
+## Production Checklist
+
+- [ ] `JWT_SECRET` is at least 32 characters and unique per environment
+- [ ] `JWT_REFRESH_SECRET` is at least 32 characters and unique per environment
+- [ ] `DATABASE_URL` points to pgBouncer (not direct Postgres)
+- [ ] `S3_ENDPOINT`, `S3_ACCESS_KEY_ID`, `S3_SECRET_ACCESS_KEY` configured for R2 or production MinIO
+- [ ] `SMTP_HOST` configured for email delivery
+- [ ] `CORS_ORIGINS` set to production frontend domain
+- [ ] nginx configured with HTTPS (TLS/SSL certificates)
+- [ ] nginx security headers added (`HSTS`, `X-Frame-Options`, `CSP`)
+- [ ] Sentry DSN configured for error tracking
+- [ ] `VIL_PROFILE=prod` set in production environment
+- [ ] `RUST_LOG=warn` or `error` in production (not `debug`)
+- [ ] Secrets are stored in a secrets manager (not `.env` files committed to git)
+- [ ] Database has regular automated backups
+- [ ] MinIO or R2 bucket policies restrict public access to only public buckets
+
+## nginx Configuration
+
+The nginx config in `edusync-api/nginx.conf` covers:
+
+- All `/api/v1/` route proxying to the VIL API at port 8080
+- WebSocket upgrade for `/ws` with 1-hour keepalive
+- `client_max_body_size 550M` for large video uploads
+- 404 for unrecognized routes (no Supabase/PostgREST fallback)
+
+For production, add TLS termination:
+
+```nginx
+server {
+    listen 443 ssl;
+    ssl_certificate /path/to/cert.pem;
+    ssl_certificate_key /path/to/key.pem;
+    # ... rest of config
+}
+```
+
+## CORS Configuration
+
+Set `CORS_ORIGINS` on the VIL API server to your frontend domain:
+
+```bash
+CORS_ORIGINS=https://app.edusync.id
+```
+
+For multiple origins, use a comma-separated list.

@@ -1,13 +1,20 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 
-import { useAuth } from '@/src/contexts/AuthContext'
-import { useBuilder } from '@/src/contexts/BuilderContext'
+import { useAuth } from '@/contexts/AuthContext'
+import { useBuilder } from '@/contexts/BuilderContext'
 import {
   builderQuizService,
   type QuizBlockData,
-} from '@/src/features/courses/api/builder/quizBuilderService'
-import type { QuestionType } from '@/src/features/quizzes'
-import { QuizStatus } from '@/src/features/quizzes/types/quizzes.types'
+} from '@/features/courses/api/builder/quizBuilderService'
+import type { QuestionType } from '@/features/quizzes'
+import {
+  deletePoolConfig,
+  getPoolConfigs,
+  type PoolConfig,
+  type PoolConfigInput,
+  savePoolConfig,
+} from '@/features/quizzes/api/questionBankService'
+import { QuizStatus } from '@/features/quizzes/types/quizzes.types'
 
 export function useQuizEditorState(_blockId: string) {
   const { tenantId } = useAuth()
@@ -24,6 +31,11 @@ export function useQuizEditorState(_blockId: string) {
   const [quizStatus, setQuizStatus] = useState<QuizStatus>('draft')
   const [showQuestionModal, setShowQuestionModal] = useState(false)
   const [showAnalytics, setShowAnalytics] = useState(false)
+
+  // ── Phase 33A: Pool Config State ─────────────────────────────────────────
+  const [poolConfigs, setPoolConfigs] = useState<PoolConfig[]>([])
+  const [isLoadingPoolConfigs, setIsLoadingPoolConfigs] = useState(false)
+  const [poolConfigError, setPoolConfigError] = useState<string | null>(null)
 
   const [quizData, setQuizData] = useState<QuizBlockData>({
     title: 'Kuis Baru',
@@ -87,9 +99,24 @@ export function useQuizEditorState(_blockId: string) {
         setIsLoading(false)
       }
     }
-    load()
+    void load()
   }, [activeLesson?.id])
   /* eslint-enable react-hooks/exhaustive-deps */
+
+  // ── Phase 33A: Load pool configs when quizId becomes available ────────────
+  useEffect(() => {
+    if (!savedQuizId || !tenantId) return
+
+    setIsLoadingPoolConfigs(true)
+    setPoolConfigError(null)
+
+    getPoolConfigs(savedQuizId, tenantId)
+      .then((configs) => setPoolConfigs(configs))
+      .catch((err: unknown) =>
+        setPoolConfigError(err instanceof Error ? err.message : 'Gagal memuat konfigurasi pool')
+      )
+      .finally(() => setIsLoadingPoolConfigs(false))
+  }, [savedQuizId, tenantId])
 
   const handleSave = async (targetStatus: QuizStatus = quizStatus) => {
     if (!activeLesson) return
@@ -215,6 +242,36 @@ export function useQuizEditorState(_blockId: string) {
 
   const isPublished = quizStatus === 'published'
 
+  // ── Phase 33A: Pool mode is active when at least one pool config exists ───
+  const isPoolMode = useMemo(() => poolConfigs.length > 0, [poolConfigs])
+
+  /**
+   * Add or update a pool config for this quiz.
+   * Calls the service, then merges the result into local state.
+   */
+  const addPoolConfig = async (input: PoolConfigInput): Promise<void> => {
+    if (!savedQuizId || !tenantId) return
+    const saved = await savePoolConfig({ ...input, quizId: savedQuizId }, tenantId)
+    setPoolConfigs((prev) => {
+      const idx = prev.findIndex((c) => c.id === saved.id || c.bank_id === saved.bank_id)
+      if (idx >= 0) {
+        const next = [...prev]
+        next[idx] = saved
+        return next
+      }
+      return [...prev, saved]
+    })
+  }
+
+  /**
+   * Remove a pool config from this quiz by its config id.
+   */
+  const removePoolConfig = async (configId: string): Promise<void> => {
+    if (!tenantId) return
+    await deletePoolConfig(configId, tenantId)
+    setPoolConfigs((prev) => prev.filter((c) => c.id !== configId))
+  }
+
   return {
     // Data
     quizData,
@@ -248,6 +305,14 @@ export function useQuizEditorState(_blockId: string) {
     setCorrectOption,
     updateQuestionType,
     updateQuestionPoints,
+
+    // Phase 33A: Pool config
+    poolConfigs,
+    isPoolMode,
+    isLoadingPoolConfigs,
+    poolConfigError,
+    addPoolConfig,
+    removePoolConfig,
   }
 }
 

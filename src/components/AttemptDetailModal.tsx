@@ -10,13 +10,14 @@ import {
 } from 'lucide-react'
 import { useEffect, useState } from 'react'
 
-import { useAuth } from '@/src/contexts/AuthContext'
+import { useAuth } from '@/contexts/AuthContext'
 import {
   AttemptDetailAnswer,
   quizAnalyticsService,
-} from '@/src/features/quizzes/api/quizAnalyticsService'
-import { gradeAttemptQuestion } from '@/src/features/quizzes/api/quizManager.service'
-import { cn } from '@/src/utils/cn'
+} from '@/features/quizzes/api/quizAnalyticsService'
+import { gradeAttemptQuestion } from '@/features/quizzes/api/quizManager.service'
+import { cn } from '@/utils/cn'
+import { captureError } from '@/utils/sentry'
 
 interface AttemptDetailModalProps {
   attemptId: string
@@ -83,7 +84,7 @@ export function AttemptDetailModal({
         setIsLoading(false)
       }
     }
-    loadDetail()
+    void loadDetail()
   }, [attemptId])
 
   const correctCount = answers.filter((a) => a.is_correct).length
@@ -160,6 +161,7 @@ export function AttemptDetailModal({
         })
       }, 3000)
     } catch (err: unknown) {
+      captureError(err, { context: 'AttemptDetailModal.gradeAnswer' })
       setGradingToast((prev) => ({
         ...prev,
         [answer.question_id]: {
@@ -201,7 +203,11 @@ export function AttemptDetailModal({
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center">
       {/* Backdrop */}
-      <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" onClick={onClose} />
+      <div
+        className="absolute inset-0 bg-black/40 backdrop-blur-sm"
+        role="presentation"
+        onClick={onClose}
+      />
 
       {/* Modal */}
       <div className="relative w-full max-w-2xl max-h-[85vh] bg-white rounded-2xl shadow-2xl flex flex-col mx-4 animate-in fade-in zoom-in-95 duration-200">
@@ -364,11 +370,15 @@ export function AttemptDetailModal({
 
                       {/* Score input */}
                       <div className="flex items-center gap-3">
-                        <label className="text-xs font-medium text-slate-500 uppercase tracking-wide shrink-0">
+                        <label
+                          htmlFor={`score-input-${answer.question_id}`}
+                          className="text-xs font-medium text-slate-500 uppercase tracking-wide shrink-0"
+                        >
                           Nilai
                         </label>
                         <div className="flex items-center gap-2">
                           <input
+                            id={`score-input-${answer.question_id}`}
                             type="number"
                             min={0}
                             max={answer.max_points}
@@ -389,11 +399,15 @@ export function AttemptDetailModal({
 
                       {/* Feedback textarea */}
                       <div>
-                        <label className="flex items-center gap-1.5 text-xs font-medium text-slate-500 uppercase tracking-wide mb-1.5">
+                        <label
+                          htmlFor={`feedback-${answer.question_id}`}
+                          className="flex items-center gap-1.5 text-xs font-medium text-slate-500 uppercase tracking-wide mb-1.5"
+                        >
                           <MessageSquare className="w-3 h-3" />
                           Komentar
                         </label>
                         <textarea
+                          id={`feedback-${answer.question_id}`}
                           value={gradingComments[answer.question_id] ?? ''}
                           onChange={(e) =>
                             setGradingComments((prev) => ({

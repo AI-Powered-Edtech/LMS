@@ -1,7 +1,7 @@
 import { CheckCircle, Clock, XCircle } from 'lucide-react'
 
-import type { QuizAttempt } from '@/src/features/quizzes'
-import { cn } from '@/src/utils/cn'
+import type { QuizAttempt } from '@/features/quizzes'
+import { cn } from '@/utils/cn'
 
 export function QuizAttemptCard({
   attempt,
@@ -13,7 +13,7 @@ export function QuizAttemptCard({
   const quizTitle = attempt.quizzes?.title || 'Kuis Tidak Diketahui'
   const passed = attempt.passed
   return (
-    <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-5 flex flex-col md:flex-row md:items-center justify-between gap-4">
+    <div className="bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-sm p-5 flex flex-col md:flex-row md:items-center justify-between gap-4">
       <div className="flex items-center gap-4">
         <div
           className={cn(
@@ -34,15 +34,15 @@ export function QuizAttemptCard({
           )}
         </div>
         <div>
-          <h4 className="font-bold text-slate-900">{quizTitle}</h4>
-          <p className="text-sm text-slate-500">
+          <h4 className="font-bold text-slate-900 dark:text-white">{quizTitle}</h4>
+          <p className="text-sm text-slate-500 dark:text-slate-400">
             {attempt.submitted_at
               ? new Date(attempt.submitted_at).toLocaleDateString('id-ID')
               : 'Menunggu penilaian'}
           </p>
         </div>
       </div>
-      <div className="flex md:flex-col items-center md:items-end justify-between md:justify-center w-full md:w-auto mt-4 md:mt-0 pt-4 md:pt-0 border-t md:border-t-0 border-slate-100">
+      <div className="flex md:flex-col items-center md:items-end justify-between md:justify-center w-full md:w-auto mt-4 md:mt-0 pt-4 md:pt-0 border-t md:border-t-0 border-slate-100 dark:border-slate-700">
         <div className="text-left md:text-right">
           <p
             className={cn(
@@ -57,13 +57,13 @@ export function QuizAttemptCard({
             {attempt.score ?? '-'}
             {attempt.score !== null ? '%' : ''}
           </p>
-          <p className="text-xs font-bold text-slate-400 uppercase tracking-wider">
+          <p className="text-xs font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider">
             {passed === true ? 'Lulus' : passed === false ? 'Belum Lulus' : 'Menunggu'}
           </p>
         </div>
         <button
           onClick={onReview}
-          className="md:mt-3 px-4 py-2 bg-slate-50 hover:bg-slate-100 text-slate-700 text-sm font-bold rounded-xl transition-colors shrink-0 whitespace-nowrap"
+          className="md:mt-3 px-4 py-2 bg-slate-50 dark:bg-slate-700 hover:bg-slate-100 dark:hover:bg-slate-600 text-slate-700 dark:text-slate-300 text-sm font-bold rounded-xl transition-colors shrink-0 whitespace-nowrap"
         >
           Review Answers
         </button>

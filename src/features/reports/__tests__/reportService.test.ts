@@ -4,8 +4,8 @@ import { reportService } from '../api/reportService'
 
 const mockRpc = vi.fn()
 
-vi.mock('@/src/services/supabase/client', () => ({
-  supabase: {
+vi.mock('@/services/db', () => ({
+  db: {
     rpc: (...args: unknown[]) => mockRpc(...args),
   },
 }))

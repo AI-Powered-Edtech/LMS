@@ -1,3 +1,0 @@
--- Already applied to remote DB via Supabase dashboard on 2026-03-19.
--- Stub for migration history sync only.
--- Content: forum extend discussions schema changes.

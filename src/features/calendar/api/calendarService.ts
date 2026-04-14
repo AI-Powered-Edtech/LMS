@@ -1,4 +1,4 @@
-import { supabase } from '@/src/services/supabase/client'
+import { db } from '@/services/db'
 
 export interface CalendarEvent {
   id: string
@@ -24,16 +24,28 @@ export const calendarService = {
   async fetchEvents(tenantId: string): Promise<CalendarEvent[]> {
     const events: CalendarEvent[] = []
 
-    // 1. Assignment due dates
-    const { data: assignments } = await supabase
-      .from('assignments')
-      .select('id, title, due_date, description')
-      .eq('tenant_id', tenantId)
-      .not('due_date', 'is', null)
-      .order('due_date')
+    // Fetch all 3 sources in parallel (was sequential — caused ~5s LCP)
+    const [{ data: assignments }, { data: schedules }, { data: quizzes }] = await Promise.all([
+      db
+        .from('assignments')
+        .select('id, title, due_date, description')
+        .eq('tenant_id', tenantId)
+        .not('due_date', 'is', null)
+        .order('due_date'),
+      db
+        .from('class_schedules')
+        .select('id, day, start_time, end_time, tenant_id, classes(name)')
+        .eq('tenant_id', tenantId),
+      db
+        .from('quizzes')
+        .select('id, title, created_at')
+        .eq('tenant_id', tenantId)
+        .order('created_at', { ascending: false })
+        .limit(200),
+    ])
 
     if (assignments) {
-      assignments.forEach((a) => {
+      assignments.forEach((a: any) => {
         const dueDate = new Date(a.due_date!)
         events.push({
           id: `assignment-${a.id}`,
@@ -47,12 +59,6 @@ export const calendarService = {
         })
       })
     }
-
-    // 2. Class schedules (recurring)
-    const { data: schedules } = await supabase
-      .from('class_schedules')
-      .select('id, day, start_time, end_time, tenant_id, classes(name)')
-      .eq('tenant_id', tenantId)
 
     if (schedules) {
       const dayMap: Record<string, number> = {
@@ -72,7 +78,7 @@ export const calendarService = {
         Minggu: 0,
       }
 
-      schedules.forEach((s) => {
+      schedules.forEach((s: any) => {
         const targetDay = dayMap[s.day] ?? 1
         const now = new Date()
         const diff = (targetDay - now.getDay() + 7) % 7
@@ -92,16 +98,8 @@ export const calendarService = {
       })
     }
 
-    // 3. Quizzes
-    const { data: quizzes } = await supabase
-      .from('quizzes')
-      .select('id, title, created_at')
-      .eq('tenant_id', tenantId)
-      .order('created_at', { ascending: false })
-      .limit(200)
-
     if (quizzes) {
-      quizzes.forEach((q) => {
+      quizzes.forEach((q: any) => {
         events.push({
           id: `quiz-${q.id}`,
           title: q.title,

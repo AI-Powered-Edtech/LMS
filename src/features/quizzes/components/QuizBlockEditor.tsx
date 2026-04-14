@@ -1,14 +1,66 @@
-import { BarChart3, ChevronDown, ChevronUp, Loader2 } from 'lucide-react'
+import { BarChart3, ChevronDown, ChevronUp, Loader2, Sparkles } from 'lucide-react'
+import { AnimatePresence } from 'motion/react'
+import { useState } from 'react'
 
-import { QuestionSearchModal } from '@/src/features/question-bank/components/QuestionSearchModal'
-import type { QuestionType, QuizMode } from '@/src/features/quizzes'
-import { QuizAnalyticsPanel } from '@/src/features/quizzes/components/analytics'
-import { QuestionList } from '@/src/features/quizzes/components/QuestionList'
-import { QuizEditorToolbar } from '@/src/features/quizzes/components/QuizEditorToolbar'
-import { useQuizEditorState } from '@/src/features/quizzes/hooks/useQuizEditorState'
+import { AIQuizGeneratorPanel, type GeneratedQuestion } from '@/features/ai-quiz-gen'
+import { AIImportBanner } from '@/features/creator/components/AIImportBanner'
+import {
+  type PendingQuizData,
+  useCreatorBridgeStore,
+} from '@/features/creator/store/creatorBridge.store'
+import { QuestionSearchModal } from '@/features/question-bank/components/QuestionSearchModal'
+import type { QuestionType, QuizMode } from '@/features/quizzes'
+import { QuizAnalyticsPanel } from '@/features/quizzes/components/analytics'
+import { QuestionList } from '@/features/quizzes/components/QuestionList'
+import { QuizEditorToolbar } from '@/features/quizzes/components/QuizEditorToolbar'
+import { useQuizEditorState } from '@/features/quizzes/hooks/useQuizEditorState'
 
 export function QuizBlockEditor({ blockId: _blockId }: { blockId: string }) {
   const s = useQuizEditorState(_blockId)
+  const [showAIPanel, setShowAIPanel] = useState(false)
+  const clearPendingQuiz = useCreatorBridgeStore((s) => s.clearPendingQuiz)
+
+  const handleImportFromCreator = (pendingData: PendingQuizData) => {
+    s.setQuizData((prev) => ({
+      ...prev,
+      questions: [
+        ...prev.questions,
+        ...pendingData.questions.map((q, i) => ({
+          text: q.text,
+          order: prev.questions.length + i + 1,
+          question_type: 'MCQ' as const,
+          points: 10,
+          explanation: 'options' in q ? (q.explanation ?? '') : '',
+          options:
+            'options' in q && Array.isArray(q.options)
+              ? (q as { options: Array<{ text: string; is_correct: boolean }> }).options.map(
+                  (o) => ({ text: o.text, is_correct: o.is_correct })
+                )
+              : [],
+        })),
+      ],
+    }))
+    clearPendingQuiz()
+    setShowAIPanel(false)
+  }
+
+  const handleInsertAIQuestions = (questions: GeneratedQuestion[]) => {
+    s.setQuizData((prev) => ({
+      ...prev,
+      questions: [
+        ...prev.questions,
+        ...questions.map((q, i) => ({
+          text: q.text,
+          order: prev.questions.length + i + 1,
+          question_type: (q.question_type || 'MCQ') as QuestionType,
+          points: q.points || 10,
+          explanation: q.explanation || '',
+          options: q.options || [],
+        })),
+      ],
+    }))
+    setShowAIPanel(false)
+  }
 
   if (s.isLoading) {
     return (
@@ -21,6 +73,8 @@ export function QuizBlockEditor({ blockId: _blockId }: { blockId: string }) {
 
   return (
     <div className="w-full space-y-6">
+      <AIImportBanner onImport={handleImportFromCreator} />
+
       <QuizEditorToolbar
         isPublished={s.isPublished}
         isSaving={s.isSaving}
@@ -31,7 +85,7 @@ export function QuizBlockEditor({ blockId: _blockId }: { blockId: string }) {
       />
 
       {/* Quiz Settings */}
-      <div className="grid grid-cols-1 gap-6 p-8 bg-slate-50/50 rounded-[32px] border border-slate-200/50">
+      <div className="grid grid-cols-1 gap-6 p-8 bg-slate-50/50 dark:bg-slate-800/30 rounded-[32px] border border-slate-200/50 dark:border-slate-700/50">
         <div>
           <label className="block text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-2 px-1">
             Judul Kuis
@@ -41,7 +95,7 @@ export function QuizBlockEditor({ blockId: _blockId }: { blockId: string }) {
             value={s.quizData.title}
             onChange={(e) => s.setQuizData({ ...s.quizData, title: e.target.value })}
             disabled={s.isPublished}
-            className="w-full px-5 py-3 bg-white border border-slate-200 rounded-[18px] focus:ring-4 focus:ring-indigo-50 focus:border-indigo-300 outline-none transition-all disabled:opacity-60 font-bold text-slate-700 placeholder:text-slate-200 shadow-sm"
+            className="w-full px-5 py-3 bg-white dark:bg-slate-700 border border-slate-200 dark:border-slate-600 rounded-[18px] focus:ring-4 focus:ring-indigo-50 focus:border-indigo-300 outline-none transition-all disabled:opacity-60 font-bold text-slate-700 dark:text-slate-100 placeholder:text-slate-200 dark:placeholder:text-slate-500 shadow-sm"
             placeholder="Masukkan judul kuis..."
           />
         </div>
@@ -54,7 +108,7 @@ export function QuizBlockEditor({ blockId: _blockId }: { blockId: string }) {
             onChange={(e) => s.setQuizData({ ...s.quizData, instructions: e.target.value })}
             disabled={s.isPublished}
             rows={2}
-            className="w-full px-5 py-3 bg-white border border-slate-200 rounded-[18px] focus:ring-4 focus:ring-indigo-50 focus:border-indigo-300 outline-none transition-all resize-none disabled:opacity-60 font-medium text-slate-600 placeholder:text-slate-200 shadow-sm"
+            className="w-full px-5 py-3 bg-white dark:bg-slate-700 border border-slate-200 dark:border-slate-600 rounded-[18px] focus:ring-4 focus:ring-indigo-50 focus:border-indigo-300 outline-none transition-all resize-none disabled:opacity-60 font-medium text-slate-600 dark:text-slate-300 placeholder:text-slate-200 dark:placeholder:text-slate-500 shadow-sm"
             placeholder="Tuliskan panduan singkat untuk kuis ini..."
           />
         </div>
@@ -72,7 +126,7 @@ export function QuizBlockEditor({ blockId: _blockId }: { blockId: string }) {
                 s.setQuizData({ ...s.quizData, max_attempts: parseInt(e.target.value) })
               }
               disabled={s.isPublished}
-              className="w-full px-5 py-3 bg-white border border-slate-200 rounded-[18px] focus:ring-4 focus:ring-indigo-50 focus:border-indigo-300 outline-none transition-all disabled:opacity-60 font-black text-slate-700 shadow-sm"
+              className="w-full px-5 py-3 bg-white dark:bg-slate-700 border border-slate-200 dark:border-slate-600 rounded-[18px] focus:ring-4 focus:ring-indigo-50 focus:border-indigo-300 outline-none transition-all disabled:opacity-60 font-black text-slate-700 dark:text-slate-100 shadow-sm"
             />
           </div>
           <div>
@@ -88,7 +142,7 @@ export function QuizBlockEditor({ blockId: _blockId }: { blockId: string }) {
                 s.setQuizData({ ...s.quizData, passing_score: parseInt(e.target.value) })
               }
               disabled={s.isPublished}
-              className="w-full px-5 py-3 bg-white border border-slate-200 rounded-[18px] focus:ring-4 focus:ring-indigo-50 focus:border-indigo-300 outline-none transition-all disabled:opacity-60 font-black text-slate-700 shadow-sm"
+              className="w-full px-5 py-3 bg-white dark:bg-slate-700 border border-slate-200 dark:border-slate-600 rounded-[18px] focus:ring-4 focus:ring-indigo-50 focus:border-indigo-300 outline-none transition-all disabled:opacity-60 font-black text-slate-700 dark:text-slate-100 shadow-sm"
             />
           </div>
           <div className="flex flex-col justify-end gap-3 pb-1">
@@ -102,7 +156,7 @@ export function QuizBlockEditor({ blockId: _blockId }: { blockId: string }) {
                 disabled={s.isPublished}
                 className="w-5 h-5 rounded-lg border-slate-300 text-indigo-600 focus:ring-indigo-500 transition-all cursor-pointer"
               />
-              <span className="text-xs font-bold text-slate-600 group-hover:text-slate-900 transition-colors">
+              <span className="text-xs font-bold text-slate-600 dark:text-slate-300 group-hover:text-slate-900 dark:group-hover:text-white transition-colors">
                 Acak Pertanyaan
               </span>
             </label>
@@ -116,7 +170,7 @@ export function QuizBlockEditor({ blockId: _blockId }: { blockId: string }) {
                 disabled={s.isPublished}
                 className="w-5 h-5 rounded-lg border-slate-300 text-indigo-600 focus:ring-indigo-500 transition-all cursor-pointer"
               />
-              <span className="text-xs font-bold text-slate-600 group-hover:text-slate-900 transition-colors">
+              <span className="text-xs font-bold text-slate-600 dark:text-slate-300 group-hover:text-slate-900 dark:group-hover:text-white transition-colors">
                 Acak Opsi Pilihan
               </span>
             </label>
@@ -133,7 +187,7 @@ export function QuizBlockEditor({ blockId: _blockId }: { blockId: string }) {
               value={s.quizData.mode || 'graded'}
               onChange={(e) => s.setQuizData({ ...s.quizData, mode: e.target.value as QuizMode })}
               disabled={s.isPublished}
-              className="w-full px-4 py-2 bg-slate-50 border border-slate-200 rounded-xl outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-60 text-sm"
+              className="w-full px-4 py-2 bg-slate-50 dark:bg-slate-700 border border-slate-200 dark:border-slate-600 rounded-xl outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-60 text-sm dark:text-slate-100"
             >
               <option value="practice">Latihan (unlimited)</option>
               <option value="graded">Dinilai (max attempt)</option>
@@ -151,11 +205,27 @@ export function QuizBlockEditor({ blockId: _blockId }: { blockId: string }) {
                 disabled={s.isPublished}
                 className="w-4 h-4 rounded accent-blue-600"
               />
-              <span className="text-xs text-slate-600 font-medium">Tampilkan jawaban benar</span>
+              <span className="text-xs text-slate-600 dark:text-slate-300 font-medium">
+                Tampilkan jawaban benar
+              </span>
             </label>
           </div>
         </div>
       </div>
+
+      {/* AI Generate button — only when not published */}
+      {!s.isPublished && s.activeLesson && (
+        <div className="flex items-center justify-end">
+          <button
+            type="button"
+            onClick={() => setShowAIPanel(true)}
+            className="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-bold transition-colors bg-violet-50 text-violet-700 hover:bg-violet-100 dark:bg-violet-900/30 dark:text-violet-300 dark:hover:bg-violet-900/50 border border-violet-200 dark:border-violet-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-500"
+          >
+            <Sparkles className="w-4 h-4" />
+            🤖 Buat dari Materi
+          </button>
+        </div>
+      )}
 
       <QuestionList
         questions={s.quizData.questions}
@@ -171,6 +241,25 @@ export function QuizBlockEditor({ blockId: _blockId }: { blockId: string }) {
         onUpdateQuestionPoints={s.updateQuestionPoints}
         onOpenQuestionModal={() => s.setShowQuestionModal(true)}
       />
+
+      {/* AI Quiz Generator Panel */}
+      <AnimatePresence>
+        {showAIPanel && s.activeLesson && (
+          <>
+            {/* Backdrop */}
+            <div
+              className="fixed inset-0 bg-black/30 dark:bg-black/50 z-40"
+              onClick={() => setShowAIPanel(false)}
+              aria-hidden="true"
+            />
+            <AIQuizGeneratorPanel
+              lessonId={s.activeLesson.id}
+              onInsertQuestions={handleInsertAIQuestions}
+              onClose={() => setShowAIPanel(false)}
+            />
+          </>
+        )}
+      </AnimatePresence>
 
       {s.isPublished && (
         <p className="text-xs text-center text-slate-400 pb-2">

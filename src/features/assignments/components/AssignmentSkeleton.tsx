@@ -1,4 +1,4 @@
-import { Skeleton, SkeletonCard } from '@/src/components/ui/Skeleton'
+import { Skeleton, SkeletonCard } from '@/components/ui/Skeleton'
 
 /**
  * Skeleton loading untuk halaman Tugas.

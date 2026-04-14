@@ -2,8 +2,8 @@ import { ArrowRight } from 'lucide-react'
 import { motion } from 'motion/react'
 import { Link } from 'react-router-dom'
 
-import { NavItem } from '@/src/shared/config/navigation'
-import { cn } from '@/src/utils/cn'
+import { NavItem } from '@/shared/config/navigation'
+import { cn } from '@/utils/cn'
 
 interface HubViewProps {
   title: string

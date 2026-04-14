@@ -64,13 +64,13 @@ export function prefetchRoute(path: string): void {
 }
 
 /**
- * Attach mouseenter / focus listeners to all `<a>` elements whose href
- * starts with `/#/` so we prefetch the target route on hover/focus.
+ * Attach mouseenter / focus listeners to same-origin `<a>` elements so we
+ * prefetch the target route on hover/focus.
  *
  * Call once after initial render (e.g. in App.tsx useEffect).
  */
 export function setupPrefetchListeners(): () => void {
-  const handler = (event: Event) => {
+  const handler = (event: Event): void => {
     const target = event.target
     // event.target can be a Text node or other non-Element — guard before calling .closest()
     if (!(target instanceof Element)) return
@@ -78,10 +78,10 @@ export function setupPrefetchListeners(): () => void {
     if (!anchor) return
 
     const href = anchor.getAttribute('href')
-    if (!href || !href.startsWith('/#/')) return
+    if (!href || !href.startsWith('/')) return
+    if (href.startsWith('//')) return
 
-    // Strip the hash prefix to get the route path
-    const route = href.replace('/#', '')
+    const route = href
     prefetchRoute(route)
   }
 

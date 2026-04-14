@@ -3,10 +3,11 @@ import { id } from 'date-fns/locale'
 import { AlertCircle, Calendar, Loader2, Plus, Trash2 } from 'lucide-react'
 import { useEffect, useState } from 'react'
 
-import { useAuth } from '@/src/contexts/AuthContext'
-import { QuizAssignment, quizService } from '@/src/features/quizzes'
-import { useToast } from '@/src/hooks/useToast'
-import { logger } from '@/src/utils/logger'
+import { EmptyState } from '@/components/ui'
+import { useAuth } from '@/contexts/AuthContext'
+import { QuizAssignment, quizService } from '@/features/quizzes'
+import { useToast } from '@/hooks/useToast'
+import { logger } from '@/utils/logger'
 
 interface QuizAssignmentStatusProps {
   quizId: string
@@ -37,7 +38,7 @@ export function QuizAssignmentStatus({ quizId, onAssignClick }: QuizAssignmentSt
 
   /* eslint-disable react-hooks/exhaustive-deps */
   useEffect(() => {
-    loadAssignments()
+    void loadAssignments()
   }, [quizId, tenantId])
   /* eslint-enable react-hooks/exhaustive-deps */
 
@@ -74,7 +75,7 @@ export function QuizAssignmentStatus({ quizId, onAssignClick }: QuizAssignmentSt
 
   if (error) {
     return (
-      <div className="p-4 bg-red-50 text-red-600 rounded-xl text-sm flex items-center gap-2">
+      <div className="p-4 bg-red-50 dark:bg-red-900/30 text-red-600 dark:text-red-300 rounded-xl text-sm flex items-center gap-2">
         <AlertCircle className="w-4 h-4 shrink-0" />
         {error}
       </div>
@@ -89,7 +90,7 @@ export function QuizAssignmentStatus({ quizId, onAssignClick }: QuizAssignmentSt
         </h3>
         <button
           onClick={onAssignClick}
-          className="px-3 py-1.5 bg-blue-50 text-blue-600 hover:bg-blue-100 rounded-lg text-xs font-bold transition-colors flex items-center gap-1.5"
+          className="px-3 py-1.5 bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 hover:bg-blue-100 dark:hover:bg-blue-900/40 rounded-lg text-xs font-bold transition-colors flex items-center gap-1.5"
         >
           <Plus className="w-3.5 h-3.5" />
           Assign ke Kelas
@@ -97,12 +98,11 @@ export function QuizAssignmentStatus({ quizId, onAssignClick }: QuizAssignmentSt
       </div>
 
       {assignments.length === 0 ? (
-        <div className="text-center p-6 border-2 border-dashed border-slate-200 rounded-xl bg-slate-50">
-          <p className="text-sm text-slate-500 font-medium">Belum di-assign ke kelas manapun.</p>
-          <p className="text-xs text-slate-400 mt-1">
-            Klik tombol di atas untuk menyebarkan kuis ini.
-          </p>
-        </div>
+        <EmptyState
+          title="Belum di-assign ke kelas manapun."
+          description="Klik tombol di atas untuk menyebarkan kuis ini."
+          className="border-2 border-dashed border-slate-200 dark:border-slate-700 rounded-xl bg-slate-50 dark:bg-slate-800"
+        />
       ) : (
         <div className="space-y-3">
           {assignments.map((assignment) => {
@@ -133,10 +133,10 @@ export function QuizAssignmentStatus({ quizId, onAssignClick }: QuizAssignmentSt
             return (
               <div
                 key={assignment.id}
-                className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-4 border border-slate-200 rounded-xl bg-white shadow-sm"
+                className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-4 border border-slate-200 dark:border-slate-700 rounded-xl bg-white dark:bg-slate-800 shadow-sm"
               >
                 <div>
-                  <h4 className="font-bold text-slate-800 flex items-center gap-2">
+                  <h4 className="font-bold text-slate-800 dark:text-white flex items-center gap-2">
                     {(assignment as unknown as { classes?: { name: string } }).classes?.name ||
                       'Kelas Tidak Diketahui'}
                     <span
@@ -146,7 +146,7 @@ export function QuizAssignmentStatus({ quizId, onAssignClick }: QuizAssignmentSt
                     </span>
                   </h4>
 
-                  <div className="flex items-center gap-3 mt-1.5 text-xs text-slate-500">
+                  <div className="flex items-center gap-3 mt-1.5 text-xs text-slate-500 dark:text-slate-400">
                     <div className="flex items-center gap-1">
                       <Calendar className="w-3.5 h-3.5" />
                       {assignment.available_from
@@ -168,7 +168,7 @@ export function QuizAssignmentStatus({ quizId, onAssignClick }: QuizAssignmentSt
                 <div className="flex items-center gap-2 self-end sm:self-auto">
                   <button
                     onClick={() => handleRemoveAssignment(assignment.id)}
-                    className="p-2 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                    className="p-2 text-slate-400 dark:text-slate-500 hover:text-red-600 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors"
                     title="Hapus Penugasan"
                     aria-label="Hapus penugasan"
                   >

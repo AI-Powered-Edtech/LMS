@@ -1,224 +1,245 @@
-import React, { useState } from 'react'
+import { useEffect, useState } from 'react'
+import { Link, useNavigate, useSearchParams } from 'react-router-dom'
 
-import { usePageTitle } from '@/src/hooks/usePageTitle'
-import { supabase } from '@/src/services/supabase/client'
+import { authService } from '@/features/auth/api/authService'
+import { usePageTitle } from '@/hooks/usePageTitle'
+import { getAuthProvider } from '@/services/auth'
+import { addBreadcrumb, captureError } from '@/utils/sentry'
 
 import { useAuth } from '../contexts/AuthContext'
 
+type VerifyState =
+  | { status: 'idle' }
+  | { status: 'verifying' }
+  | { status: 'verified' }
+  | { status: 'error'; message: string }
+
+type ResendState =
+  | { status: 'idle' }
+  | { status: 'loading' }
+  | { status: 'success' }
+  | { status: 'error'; message: string }
+
 export function VerifyEmail() {
   usePageTitle('Verifikasi Email')
+  const navigate = useNavigate()
+  const [searchParams] = useSearchParams()
   const { user, signOut } = useAuth()
-  const [resending, setResending] = useState(false)
-  const [resent, setResent] = useState(false)
-  const [error, setError] = useState('')
+  const [verifyState, setVerifyState] = useState<VerifyState>({ status: 'idle' })
+  const [resendState, setResendState] = useState<ResendState>({ status: 'idle' })
+
+  useEffect(() => {
+    const code = searchParams.get('code')
+    const tokenHash = searchParams.get('token_hash')
+    const type = searchParams.get('type')
+
+    if (!code && !(tokenHash && type === 'signup')) {
+      return
+    }
+
+    let active = true
+    setVerifyState({ status: 'verifying' })
+
+    void (async () => {
+      try {
+        addBreadcrumb('Email verification started', 'auth')
+        if (code) {
+          const { error } = await getAuthProvider().exchangeCodeForSession(code)
+          if (error) throw error
+        } else if (tokenHash) {
+          const { error: verifyError } = await getAuthProvider().verifyOtp({
+            token_hash: tokenHash,
+            type: 'signup',
+          })
+          if (verifyError) throw verifyError
+        }
+
+        if (!active) return
+        setVerifyState({ status: 'verified' })
+        const bootstrap = await authService.getAuthBootstrap()
+        const destination = authService.resolvePostAuthDestination(bootstrap)
+        addBreadcrumb('Email verification redirect resolved', 'auth', { destination })
+        setTimeout(() => {
+          void navigate(destination, { replace: true })
+        }, 1500)
+      } catch (err) {
+        captureError(err, { context: 'VerifyEmail.confirmation' })
+        if (!active) return
+        setVerifyState({
+          status: 'error',
+          message:
+            err instanceof Error
+              ? err.message
+              : 'Link verifikasi tidak valid atau sudah kedaluwarsa.',
+        })
+      }
+    })()
+
+    return () => {
+      active = false
+    }
+  }, [navigate, searchParams])
 
   const handleResend = async () => {
-    setError('')
-    setResending(true)
+    if (!user?.email) {
+      setResendState({
+        status: 'error',
+        message:
+          'Sesi tidak valid. Silakan login terlebih dahulu untuk meminta email verifikasi ulang.',
+      })
+      return
+    }
+
+    setResendState({ status: 'loading' })
 
     try {
-      const { error: resendError } = await supabase.auth.resend({
+      const { error: resendError } = await getAuthProvider().resend({
         type: 'signup',
-        email: user?.email ?? '',
+        email: user.email,
       })
 
       if (resendError) {
-        setError(resendError.message)
+        setResendState({ status: 'error', message: resendError.message })
       } else {
-        setResent(true)
+        setResendState({ status: 'success' })
       }
     } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : 'Gagal mengirim ulang email verifikasi.')
-    } finally {
-      setResending(false)
+      setResendState({
+        status: 'error',
+        message: err instanceof Error ? err.message : 'Gagal mengirim ulang email verifikasi.',
+      })
     }
   }
 
+  const hasValidEmail = !!user?.email
+
+  const isVerifying = verifyState.status === 'verifying'
+  const isVerified = verifyState.status === 'verified'
+  const isError = verifyState.status === 'error'
+  const errorMessage = verifyState.status === 'error' ? verifyState.message : ''
+
   return (
-    <div style={styles.container}>
-      <div style={styles.card}>
-        <div style={styles.logo}>
-          <span style={styles.logoIcon}>📧</span>
-          <h1 style={styles.title}>Verifikasi Email</h1>
-          <p style={styles.subtitle}>Kami telah mengirim email verifikasi ke</p>
-          <p style={styles.email}>{user?.email ?? 'your@email.com'}</p>
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-50 via-slate-100 to-slate-50 dark:from-slate-900 dark:via-slate-800 dark:to-slate-900 p-4">
+      <div className="bg-white dark:bg-slate-800 rounded-2xl p-10 w-full max-w-[420px] shadow-2xl border border-slate-200 dark:border-slate-700/50">
+        <div className="text-center mb-8">
+          <span className="text-5xl inline-block mb-4">📧</span>
+          <h1 className="text-slate-900 dark:text-slate-100 text-2xl font-bold mt-2 mb-1">
+            {isVerified
+              ? 'Email Terverifikasi'
+              : isVerifying
+                ? 'Memverifikasi Email'
+                : isError
+                  ? 'Verifikasi Gagal'
+                  : 'Verifikasi Email'}
+          </h1>
+          <p className="text-slate-500 dark:text-slate-400 text-sm leading-relaxed m-0">
+            {isVerified
+              ? 'Email Anda sudah berhasil diverifikasi.'
+              : isVerifying
+                ? 'Sedang memproses link verifikasi Anda.'
+                : isError
+                  ? 'Link verifikasi tidak valid atau sudah kedaluwarsa.'
+                  : 'Kami telah mengirim email verifikasi ke'}
+          </p>
+          {!isVerified && !isVerifying && !isError && (
+            <p className="text-slate-900 dark:text-slate-100 font-bold text-lg mt-2 mb-6">
+              {user?.email ?? 'your@email.com'}
+            </p>
+          )}
         </div>
 
-        <div style={styles.instructions}>
-          <div style={styles.step}>
-            <span style={styles.stepNum}>1</span>
-            <p style={styles.stepText}>Buka inbox email kamu</p>
+        {!isVerified && !isVerifying && !isError && (
+          <div className="bg-slate-50 dark:bg-slate-900/50 border border-slate-200 dark:border-slate-700 rounded-xl p-4 mb-6 flex flex-col gap-3 text-left">
+            <div className="flex items-center gap-3">
+              <span className="bg-blue-100 dark:bg-blue-900/50 text-blue-700 dark:text-blue-400 w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold shrink-0">
+                1
+              </span>
+              <p className="text-slate-700 dark:text-slate-300 text-sm font-medium m-0">
+                Buka inbox email kamu
+              </p>
+            </div>
+            <div className="flex items-center gap-3">
+              <span className="bg-blue-100 dark:bg-blue-900/50 text-blue-700 dark:text-blue-400 w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold shrink-0">
+                2
+              </span>
+              <p className="text-slate-700 dark:text-slate-300 text-sm font-medium m-0">
+                Klik link "Confirm your mail"
+              </p>
+            </div>
+            <div className="flex items-center gap-3">
+              <span className="bg-blue-100 dark:bg-blue-900/50 text-blue-700 dark:text-blue-400 w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold shrink-0">
+                3
+              </span>
+              <p className="text-slate-700 dark:text-slate-300 text-sm font-medium m-0">
+                Kembali ke halaman ini dan refresh
+              </p>
+            </div>
           </div>
-          <div style={styles.step}>
-            <span style={styles.stepNum}>2</span>
-            <p style={styles.stepText}>Klik link "Confirm your mail"</p>
-          </div>
-          <div style={styles.step}>
-            <span style={styles.stepNum}>3</span>
-            <p style={styles.stepText}>Kembali ke halaman ini dan refresh</p>
-          </div>
-        </div>
-
-        {error && <div style={styles.error}>{error}</div>}
-
-        {resent ? (
-          <div style={styles.success}>✅ Email verifikasi telah dikirim ulang!</div>
-        ) : (
-          <button style={styles.resendBtn} onClick={handleResend} disabled={resending}>
-            {resending ? 'Mengirim...' : '📤 Kirim Ulang Email Verifikasi'}
-          </button>
         )}
 
-        <div style={styles.actions}>
-          <button style={styles.refreshBtn} onClick={() => window.location.reload()}>
-            🔄 Refresh Halaman
-          </button>
+        {isError && errorMessage && (
+          <div className="bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 p-3 rounded-lg text-sm font-medium text-center mb-4 border border-red-200 dark:border-red-800/50">
+            {errorMessage}
+          </div>
+        )}
 
-          <button style={styles.logoutBtn} onClick={signOut}>
-            Logout & Gunakan Email Lain
+        {isVerified ? (
+          <div className="bg-emerald-50 dark:bg-emerald-900/20 text-emerald-700 dark:text-emerald-400 p-3 rounded-lg text-sm font-bold text-center mb-4 border border-emerald-200 dark:border-emerald-800/50">
+            ✅ Verifikasi berhasil. Mengarahkan ke aplikasi...
+          </div>
+        ) : resendState.status === 'success' ? (
+          <div className="bg-emerald-50 dark:bg-emerald-900/20 text-emerald-700 dark:text-emerald-400 p-3 rounded-lg text-sm font-bold text-center mb-4 border border-emerald-200 dark:border-emerald-800/50">
+            ✅ Email verifikasi telah dikirim ulang!
+          </div>
+        ) : resendState.status === 'error' ? (
+          <div className="bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 p-3 rounded-lg text-sm font-medium text-center mb-4 border border-red-200 dark:border-red-800/50">
+            {resendState.message}
+          </div>
+        ) : hasValidEmail ? (
+          <button
+            className="bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 font-bold py-2 px-4 rounded-lg border border-slate-200 dark:border-slate-700 hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors w-full text-sm mb-6"
+            onClick={handleResend}
+            disabled={resendState.status === 'loading' || isVerifying}
+          >
+            {resendState.status === 'loading' ? 'Mengirim...' : '📤 Kirim Ulang Email Verifikasi'}
           </button>
-        </div>
+        ) : (
+          <div className="bg-slate-100 dark:bg-slate-800 rounded-lg p-4 text-center mb-4 border border-slate-200 dark:border-slate-700">
+            <p className="text-slate-600 dark:text-slate-400 text-sm mb-3">
+              Anda belum masuk ke akun. Silakan login untuk meminta email verifikasi ulang.
+            </p>
+            <Link
+              to="/login"
+              className="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-lg transition-colors text-sm"
+            >
+              🔑 Masuk ke Akun
+            </Link>
+          </div>
+        )}
 
-        <p style={styles.hint}>Cek folder spam jika tidak menemukan email.</p>
+        {!isVerified && (
+          <div className="flex flex-col gap-3">
+            {isError && (
+              <button
+                className="w-full p-3 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-lg transition-colors"
+                onClick={() => window.location.reload()}
+                disabled={isVerifying}
+              >
+                🔄 Refresh Halaman
+              </button>
+            )}
+
+            <button
+              className="w-full p-3 bg-transparent hover:bg-slate-50 dark:hover:bg-slate-800 text-slate-500 dark:text-slate-400 font-medium rounded-lg transition-colors border border-transparent hover:border-slate-200 dark:hover:border-slate-700"
+              onClick={signOut}
+            >
+              Logout & Gunakan Email Lain
+            </button>
+          </div>
+        )}
+
+        <p className="text-center mb-6">Cek folder spam jika tidak menemukan email.</p>
       </div>
     </div>
   )
-}
-
-const styles: Record<string, React.CSSProperties> = {
-  container: {
-    minHeight: '100vh',
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-    background: 'linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #0f172a 100%)',
-    padding: '1rem',
-  },
-  card: {
-    background: '#1e293b',
-    borderRadius: '1rem',
-    padding: '2.5rem',
-    width: '100%',
-    maxWidth: '440px',
-    boxShadow: '0 25px 50px rgba(0,0,0,0.5)',
-    border: '1px solid rgba(255,255,255,0.1)',
-  },
-  logo: {
-    textAlign: 'center' as const,
-    marginBottom: '2rem',
-  },
-  logoIcon: { fontSize: '3rem' },
-  title: {
-    color: '#f1f5f9',
-    fontSize: '1.5rem',
-    fontWeight: 700,
-    margin: '0.5rem 0 0.5rem',
-  },
-  subtitle: {
-    color: '#94a3b8',
-    fontSize: '0.875rem',
-    margin: 0,
-  },
-  email: {
-    color: '#60a5fa',
-    fontSize: '0.95rem',
-    fontWeight: 600,
-    margin: '0.25rem 0 0',
-  },
-  instructions: {
-    display: 'flex',
-    flexDirection: 'column' as const,
-    gap: '0.75rem',
-    marginBottom: '1.5rem',
-    padding: '1.25rem',
-    background: 'rgba(255,255,255,0.03)',
-    borderRadius: '0.75rem',
-    border: '1px solid rgba(255,255,255,0.06)',
-  },
-  step: {
-    display: 'flex',
-    alignItems: 'center',
-    gap: '0.75rem',
-  },
-  stepNum: {
-    width: '28px',
-    height: '28px',
-    borderRadius: '50%',
-    background: 'linear-gradient(135deg, #3b82f6, #8b5cf6)',
-    color: '#fff',
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-    fontSize: '0.75rem',
-    fontWeight: 700,
-    flexShrink: 0,
-  },
-  stepText: {
-    color: '#cbd5e1',
-    fontSize: '0.85rem',
-    margin: 0,
-  },
-  error: {
-    background: 'rgba(239,68,68,0.15)',
-    color: '#fca5a5',
-    padding: '0.75rem',
-    borderRadius: '0.5rem',
-    fontSize: '0.8rem',
-    border: '1px solid rgba(239,68,68,0.3)',
-    marginBottom: '1rem',
-    textAlign: 'center' as const,
-  },
-  success: {
-    background: 'rgba(34,197,94,0.1)',
-    color: '#86efac',
-    padding: '0.75rem',
-    borderRadius: '0.5rem',
-    fontSize: '0.85rem',
-    border: '1px solid rgba(34,197,94,0.25)',
-    marginBottom: '1rem',
-    textAlign: 'center' as const,
-  },
-  resendBtn: {
-    width: '100%',
-    padding: '0.75rem',
-    borderRadius: '0.5rem',
-    border: '1px solid rgba(255,255,255,0.15)',
-    background: 'rgba(255,255,255,0.05)',
-    color: '#e2e8f0',
-    fontSize: '0.9rem',
-    cursor: 'pointer',
-    marginBottom: '1rem',
-  },
-  actions: {
-    display: 'flex',
-    flexDirection: 'column' as const,
-    gap: '0.5rem',
-  },
-  refreshBtn: {
-    width: '100%',
-    padding: '0.875rem',
-    borderRadius: '0.5rem',
-    border: 'none',
-    background: 'linear-gradient(135deg, #3b82f6, #8b5cf6)',
-    color: '#fff',
-    fontWeight: 600,
-    fontSize: '0.95rem',
-    cursor: 'pointer',
-  },
-  logoutBtn: {
-    width: '100%',
-    padding: '0.75rem',
-    borderRadius: '0.5rem',
-    border: '1px solid rgba(239,68,68,0.3)',
-    background: 'transparent',
-    color: '#fca5a5',
-    fontSize: '0.8rem',
-    cursor: 'pointer',
-  },
-  hint: {
-    color: '#64748b',
-    fontSize: '0.7rem',
-    textAlign: 'center' as const,
-    marginTop: '1rem',
-  },
 }

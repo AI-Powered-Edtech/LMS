@@ -1,4 +1,4 @@
-import { logger } from '@/src/utils/logger'
+import { logger } from '@/utils/logger'
 /**
  * Log errors only in development mode.
  * Replaces 154+ instances of `if (import.meta.env.DEV) logger.error(...)`.

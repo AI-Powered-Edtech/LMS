@@ -2,8 +2,9 @@
  * Notification service with multi-tenant security
  * All functions accept tenantId for defense-in-depth tenant isolation
  */
-import { supabase } from '@/src/services/supabase/client'
-import { logger } from '@/src/utils/logger'
+
+import { db } from '@/services/db'
+import { logger } from '@/utils/logger'
 
 import type { Notification } from '../types'
 
@@ -14,7 +15,7 @@ export async function fetchNotifications(
   userId: string,
   tenantId: string
 ): Promise<Notification[]> {
-  const { data, error } = await supabase
+  const { data, error } = await db
     .from('notifications')
     .select(
       `
@@ -42,7 +43,7 @@ export async function fetchNotifications(
  * Mark a single notification as read with tenant verification
  */
 export async function markAsRead(id: string, tenantId: string): Promise<void> {
-  const { error } = await supabase
+  const { error } = await db
     .from('notifications')
     .update({ is_read: true })
     .eq('id', id)
@@ -58,7 +59,7 @@ export async function markAsRead(id: string, tenantId: string): Promise<void> {
  * Mark all notifications as read with tenant verification
  */
 export async function markAllAsRead(userId: string, tenantId: string): Promise<void> {
-  const { error } = await supabase
+  const { error } = await db
     .from('notifications')
     .update({ is_read: true })
     .eq('tenant_id', tenantId)
@@ -73,7 +74,9 @@ export async function markAllAsRead(userId: string, tenantId: string): Promise<v
 
 /**
  * Send a notification manually (System)
- * Uses passed tenantId for defense-in-depth
+ * Uses RPC `create_notification` (defined in migration 003_notifications.sql).
+ * The RPC is SECURITY DEFINER and respects notification_preferences (skips disabled types).
+ * Fails hard if the RPC is unavailable to avoid bypassing server-side checks.
  */
 export async function sendNotification(
   userId: string,
@@ -82,16 +85,27 @@ export async function sendNotification(
   type: string = 'system',
   tenantId: string
 ): Promise<void> {
-  const { error } = await supabase.from('notifications').insert({
-    tenant_id: tenantId,
-    user_id: userId,
-    title,
-    message,
-    type,
+  const { error } = await db.rpc('create_notification', {
+    p_user_id: userId,
+    p_tenant_id: tenantId,
+    p_title: title,
+    p_message: message,
+    p_type: type,
   })
 
   if (error) {
-    if (import.meta.env.DEV) logger.error('Error sending notification:', error)
+    if (error.code === 'PGRST202') {
+      if (import.meta.env.DEV)
+        logger.warn(
+          '[notificationService] create_notification RPC not found. Jalankan migrasi notification RPC sebelum mengirim notifikasi.',
+          error
+        )
+      throw new Error(
+        'Fungsi create_notification belum tersedia di database. Deploy migrasi yang relevan terlebih dahulu.'
+      )
+    }
+    if (import.meta.env.DEV)
+      logger.error('Error sending notification via RPC (create_notification):', error)
     throw error
   }
 }

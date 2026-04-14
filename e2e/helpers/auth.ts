@@ -2,10 +2,19 @@ import type { Page } from '@playwright/test'
 import { test } from '@playwright/test'
 
 const CREDENTIALS = {
-  student: { email: 'student@edusync.dev', password: 'password123' },
-  teacher: { email: 'teacher@edusync.dev', password: 'password123' },
-  admin:   { email: 'admin@edusync.dev',   password: 'password123' },
-} as const
+  student: {
+    email: process.env.E2E_STUDENT_EMAIL ?? 'student@edusync.dev',
+    password: process.env.E2E_STUDENT_PASSWORD ?? 'password123',
+  },
+  teacher: {
+    email: process.env.E2E_TEACHER_EMAIL ?? 'teacher@edusync.dev',
+    password: process.env.E2E_TEACHER_PASSWORD ?? 'password123',
+  },
+  admin: {
+    email: process.env.E2E_ADMIN_EMAIL ?? 'admin@edusync.dev',
+    password: process.env.E2E_ADMIN_PASSWORD ?? 'password123',
+  },
+}
 
 type Role = keyof typeof CREDENTIALS
 
@@ -56,10 +65,15 @@ export async function gotoAndWait(page: Page, path: string): Promise<void> {
   await page.goto(path)
   await page.waitForLoadState('networkidle')
   // Tunggu loading spinner hilang jika ada
-  await page.locator('[data-testid="loading"], .animate-spin').waitFor({
-    state: 'hidden',
-    timeout: 8000,
-  }).catch(() => {/* ok jika tidak ada spinner */})
+  await page
+    .locator('[data-testid="loading"], .animate-spin')
+    .waitFor({
+      state: 'hidden',
+      timeout: 8000,
+    })
+    .catch(() => {
+      /* ok jika tidak ada spinner */
+    })
 }
 
 /**
@@ -77,9 +91,7 @@ export async function dismissToast(page: Page): Promise<void> {
 }
 
 // Jika tidak ada Supabase credentials, skip authenticated tests gracefully
-const hasSupabaseConfig = !!(
-  process.env.VITE_SUPABASE_URL && process.env.VITE_SUPABASE_ANON_KEY
-)
+const hasSupabaseConfig = !!(process.env.VITE_SUPABASE_URL && process.env.VITE_SUPABASE_ANON_KEY)
 
 export function skipIfNoAuth(): void {
   if (!hasSupabaseConfig) {

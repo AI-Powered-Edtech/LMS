@@ -1,6 +1,6 @@
 import React, { useEffect, useRef } from 'react'
 
-import { useLearningSession } from '@/src/features/analytics'
+import { useLearningSession } from '@/features/analytics'
 
 // ============================================================
 // LessonEventTracker — emits LESSON_STARTED / LESSON_COMPLETED

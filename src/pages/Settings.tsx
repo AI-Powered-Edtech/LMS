@@ -1,15 +1,25 @@
-import { Bell, Globe, Lock, LogOut, Monitor, User } from 'lucide-react'
-import { useCallback, useState } from 'react'
+import { Accessibility, Bell, Globe, Lock, LogOut, Monitor, User } from 'lucide-react'
+import { useCallback, useEffect, useState } from 'react'
 
-import { useAuth } from '@/src/contexts/AuthContext'
-import { useTheme } from '@/src/contexts/ThemeContext'
-import { usePageTitle } from '@/src/hooks/usePageTitle'
-import { cn } from '@/src/utils/cn'
-import { logger } from '@/src/utils/logger'
+import { useAuth } from '@/contexts/AuthContext'
+import { type Theme, useTheme } from '@/contexts/ThemeContext'
+import { FontSizeControl, HighContrastToggle, KeyboardShortcutHelp } from '@/features/accessibility'
+import { NotificationPreferencesPanel } from '@/features/notifications'
+import { profilePreferences } from '@/features/profile/api/profilePreferences'
+import { usePageTitle } from '@/hooks/usePageTitle'
+import { cn } from '@/utils/cn'
+import { logger } from '@/utils/logger'
+import { captureError } from '@/utils/sentry'
 
-import { AccountTab, AppearanceTab, SecurityTab, ToggleRow } from './SettingsTabs'
+import { AccountTab, AppearanceTab, SecurityTab } from './SettingsTabs'
 
-type SettingsTab = 'account' | 'notifications' | 'security' | 'appearance' | 'language'
+type SettingsTab =
+  | 'account'
+  | 'notifications'
+  | 'security'
+  | 'appearance'
+  | 'language'
+  | 'accessibility'
 
 const TABS: { id: SettingsTab; label: string; icon: React.ElementType }[] = [
   { id: 'account', label: 'Akun & Profil', icon: User },
@@ -17,12 +27,16 @@ const TABS: { id: SettingsTab; label: string; icon: React.ElementType }[] = [
   { id: 'security', label: 'Keamanan', icon: Lock },
   { id: 'appearance', label: 'Tampilan', icon: Monitor },
   { id: 'language', label: 'Bahasa & Wilayah', icon: Globe },
+  { id: 'accessibility', label: 'Aksesibilitas', icon: Accessibility },
 ]
 
+// FIXED: Added missing role labels for parent and principal
 const ROLE_LABELS: Record<string, string> = {
   teacher: 'Guru',
   student: 'Siswa',
   admin: 'Administrator',
+  parent: 'Orang Tua', // FIXED: add parent
+  principal: 'Kepala Sekolah', // FIXED: add principal
 }
 
 export function Settings() {
@@ -32,26 +46,36 @@ export function Settings() {
 
   const [activeTab, setActiveTab] = useState<SettingsTab>('account')
 
-  // Notification preferences state
-  const [notifEmail, setNotifEmail] = useState(true)
-  const [notifPush, setNotifPush] = useState(true)
-  const [notifAssignment, setNotifAssignment] = useState(true)
-  const [notifGrade, setNotifGrade] = useState(true)
-  const [notifAnnouncement, setNotifAnnouncement] = useState(true)
+  const initLocale = user ? profilePreferences.getLocalePreferences(user.id) : null
+  const [language, setLanguage] = useState(initLocale?.language ?? 'id')
+  const [timezone, setTimezone] = useState(initLocale?.timezone ?? 'Asia/Jakarta')
+  // FIXED: Controlled date format state — persists on save instead of using uncontrolled defaultValue
+  const [dateFormat, setDateFormat] = useState(initLocale?.dateFormat ?? 'dd/mm/yyyy')
 
-  const displayName =
-    profile?.first_name && profile?.last_name
-      ? `${profile.first_name} ${profile.last_name}`
-      : (user?.user_metadata?.full_name ?? '')
-  const displayEmail = user?.email ?? ''
+  // FIXED: Include dateFormat in locale preferences persistence
+  useEffect(() => {
+    if (user) {
+      profilePreferences.updateLocalePreferences(user.id, { language, timezone, dateFormat })
+    }
+  }, [language, timezone, dateFormat, user])
+
+  // NOTE: Profile editing and password changing are handled inside AccountTab and
+  // SecurityTab components respectively — they own their own state. This page-level
+  // component only handles sign-out and notification preference toggles.
 
   const handleSignOut = useCallback(async () => {
     try {
       await signOut()
     } catch (e) {
       if (import.meta.env.DEV) logger.error('[Settings] signOut error:', e)
+      captureError(e, { context: 'Settings.handleSignOut' })
     }
   }, [signOut])
+
+  const displayName =
+    profile?.first_name && profile?.last_name
+      ? `${profile.first_name} ${profile.last_name}`
+      : ((user?.user_metadata?.full_name as string) ?? '')
 
   return (
     <div className="max-w-4xl mx-auto space-y-8 pb-12">
@@ -65,18 +89,19 @@ export function Settings() {
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-        {/* Sidebar */}
-        <div className="space-y-2">
+        {/* Sidebar nav */}
+        <div className="space-y-2" role="tablist" aria-orientation="vertical">
           {TABS.map((tab) => (
             <button
               type="button"
               key={tab.id}
+              role="tab"
+              aria-selected={activeTab === tab.id}
               onClick={(e) => {
                 e.preventDefault()
                 e.stopPropagation()
                 setActiveTab(tab.id)
               }}
-              aria-pressed={activeTab === tab.id}
               className={cn(
                 'w-full flex items-center gap-3 px-4 py-3 rounded-xl font-medium text-sm transition-colors',
                 activeTab === tab.id
@@ -90,81 +115,98 @@ export function Settings() {
           ))}
         </div>
 
-        {/* Main Content */}
+        {/* Content */}
         <div className="md:col-span-2 space-y-6">
-          {/* ─── Account Tab ─── */}
           {activeTab === 'account' && (
             <AccountTab
+              userId={user?.id ?? ''}
               avatarUrl={profile?.avatar_url}
-              displayEmail={displayEmail}
+              displayEmail={user?.email ?? ''}
               roleLabel={ROLE_LABELS[role] ?? role}
               displayName={displayName}
             />
           )}
 
-          {/* ─── Notifications Tab ─── */}
           {activeTab === 'notifications' && (
-            <div className="bg-white dark:bg-slate-800 rounded-3xl border border-slate-200 dark:border-slate-700 shadow-sm overflow-hidden">
-              <div className="p-6 border-b border-slate-100 dark:border-slate-700">
-                <h2 className="text-lg font-bold text-slate-900 dark:text-white">
-                  Preferensi Notifikasi
-                </h2>
-                <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">
-                  Atur jenis notifikasi yang ingin Anda terima.
-                </p>
-              </div>
-              <div className="p-6 space-y-5">
-                <h3 className="text-sm font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider">
-                  Saluran
-                </h3>
-                <ToggleRow
-                  label="Notifikasi Email"
-                  description="Terima pemberitahuan melalui email"
-                  checked={notifEmail}
-                  onChange={setNotifEmail}
-                />
-                <ToggleRow
-                  label="Notifikasi Push"
-                  description="Terima notifikasi push di browser"
-                  checked={notifPush}
-                  onChange={setNotifPush}
-                />
-                <div className="border-t border-slate-100 dark:border-slate-700 pt-5 mt-5">
-                  <h3 className="text-sm font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider mb-4">
-                    Kategori
-                  </h3>
-                  <div className="space-y-4">
-                    <ToggleRow
-                      label="Tugas & Kuis"
-                      description="Tugas baru, tenggat, dan hasil kuis"
-                      checked={notifAssignment}
-                      onChange={setNotifAssignment}
-                    />
-                    <ToggleRow
-                      label="Nilai & Umpan Balik"
-                      description="Penilaian baru dan komentar guru"
-                      checked={notifGrade}
-                      onChange={setNotifGrade}
-                    />
-                    <ToggleRow
-                      label="Pengumuman"
-                      description="Pengumuman kelas dan sekolah"
-                      checked={notifAnnouncement}
-                      onChange={setNotifAnnouncement}
-                    />
-                  </div>
+            <div className="space-y-4">
+              <div className="bg-white dark:bg-slate-800 rounded-3xl border border-slate-200 dark:border-slate-700 shadow-sm overflow-hidden">
+                <div className="p-6 border-b border-slate-100 dark:border-slate-700">
+                  <h2 className="text-lg font-bold text-slate-900 dark:text-white">
+                    Preferensi Notifikasi
+                  </h2>
+                  <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">
+                    Pilih saluran pemberitahuan untuk setiap jenis notifikasi. Perubahan tersimpan
+                    otomatis.
+                  </p>
                 </div>
+                {/* Enhanced per-type × per-channel matrix panel */}
+                <NotificationPreferencesPanel embedded />
               </div>
             </div>
           )}
 
-          {/* ─── Security Tab ─── */}
           {activeTab === 'security' && <SecurityTab />}
 
-          {/* ─── Appearance Tab ─── */}
-          {activeTab === 'appearance' && <AppearanceTab theme={theme} setTheme={setTheme} />}
+          {activeTab === 'appearance' && (
+            <AppearanceTab theme={theme as Theme} setTheme={setTheme} />
+          )}
 
-          {/* ─── Language Tab ─── */}
+          {activeTab === 'accessibility' && (
+            <div className="bg-white dark:bg-slate-800 rounded-3xl border border-slate-200 dark:border-slate-700 shadow-sm overflow-hidden">
+              <div className="p-6 border-b border-slate-100 dark:border-slate-700">
+                <h2 className="text-lg font-bold text-slate-900 dark:text-white">Aksesibilitas</h2>
+                <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">
+                  Sesuaikan tampilan dan kontrol untuk pengalaman yang lebih nyaman.
+                </p>
+              </div>
+              <div className="p-6">
+                <section aria-labelledby="a11y-heading">
+                  <h2
+                    id="a11y-heading"
+                    className="text-base font-semibold text-slate-900 dark:text-white mb-4 sr-only"
+                  >
+                    Aksesibilitas
+                  </h2>
+                  <div className="space-y-4">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <p className="text-sm font-medium text-slate-700 dark:text-slate-300">
+                          Mode Kontras Tinggi
+                        </p>
+                        <p className="text-xs text-slate-500 dark:text-slate-400">
+                          Tingkatkan kontras untuk keterbacaan lebih baik
+                        </p>
+                      </div>
+                      <HighContrastToggle />
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <p className="text-sm font-medium text-slate-700 dark:text-slate-300">
+                          Ukuran Teks
+                        </p>
+                        <p className="text-xs text-slate-500 dark:text-slate-400">
+                          Sesuaikan ukuran teks tampilan
+                        </p>
+                      </div>
+                      <FontSizeControl />
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <p className="text-sm font-medium text-slate-700 dark:text-slate-300">
+                          Pintasan Keyboard
+                        </p>
+                        <p className="text-xs text-slate-500 dark:text-slate-400">
+                          Tekan Shift+? untuk melihat semua pintasan
+                        </p>
+                      </div>
+                      <KeyboardShortcutHelp />
+                    </div>
+                  </div>
+                </section>
+              </div>
+            </div>
+          )}
+
           {activeTab === 'language' && (
             <div className="bg-white dark:bg-slate-800 rounded-3xl border border-slate-200 dark:border-slate-700 shadow-sm overflow-hidden">
               <div className="p-6 border-b border-slate-100 dark:border-slate-700">
@@ -181,7 +223,8 @@ export function Settings() {
                     Bahasa
                   </label>
                   <select
-                    defaultValue="id"
+                    value={language}
+                    onChange={(e) => setLanguage(e.target.value)}
                     className="w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-600 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all text-slate-900 dark:text-white"
                   >
                     <option value="id">Bahasa Indonesia</option>
@@ -192,7 +235,8 @@ export function Settings() {
                     Zona Waktu
                   </label>
                   <select
-                    defaultValue="Asia/Jakarta"
+                    value={timezone}
+                    onChange={(e) => setTimezone(e.target.value)}
                     className="w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-600 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all text-slate-900 dark:text-white"
                   >
                     <option value="Asia/Jakarta">WIB (UTC+7) — Jakarta</option>
@@ -204,8 +248,10 @@ export function Settings() {
                   <label className="text-sm font-bold text-slate-700 dark:text-slate-300">
                     Format Tanggal
                   </label>
+                  {/* FIXED: Controlled value+onChange replaces uncontrolled defaultValue */}
                   <select
-                    defaultValue="dd/mm/yyyy"
+                    value={dateFormat}
+                    onChange={(e) => setDateFormat(e.target.value)}
                     className="w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-600 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all text-slate-900 dark:text-white"
                   >
                     <option value="dd/mm/yyyy">DD/MM/YYYY (31/12/2026)</option>
@@ -216,7 +262,7 @@ export function Settings() {
             </div>
           )}
 
-          {/* ─── Danger Zone (always visible) ─── */}
+          {/* Danger Zone — always visible */}
           <div className="bg-white dark:bg-slate-800 rounded-3xl border border-red-200 dark:border-red-900/50 shadow-sm overflow-hidden">
             <div className="p-6">
               <h2 className="text-lg font-bold text-red-600 dark:text-red-400 mb-2">
@@ -225,16 +271,14 @@ export function Settings() {
               <p className="text-sm text-slate-600 dark:text-slate-400 mb-4">
                 Tindakan di bawah ini tidak dapat dibatalkan.
               </p>
-              <div className="flex flex-col sm:flex-row gap-4">
-                <button
-                  type="button"
-                  onClick={handleSignOut}
-                  className="flex-1 px-4 py-2.5 bg-red-50 dark:bg-red-900/20 hover:bg-red-100 dark:hover:bg-red-900/40 text-red-600 dark:text-red-400 font-bold rounded-xl transition-colors flex items-center justify-center gap-2"
-                >
-                  <LogOut className="w-4 h-4" />
-                  Keluar Akun
-                </button>
-              </div>
+              <button
+                type="button"
+                onClick={handleSignOut}
+                className="px-4 py-2.5 bg-red-50 dark:bg-red-900/20 hover:bg-red-100 dark:hover:bg-red-900/40 text-red-600 dark:text-red-400 font-bold rounded-xl transition-colors flex items-center gap-2"
+              >
+                <LogOut className="w-4 h-4" />
+                Keluar Akun
+              </button>
             </div>
           </div>
         </div>

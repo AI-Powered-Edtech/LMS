@@ -6,7 +6,7 @@ import {
   ContentType,
   ReportReason,
   useSubmitReport,
-} from '@/src/features/moderation/queries/moderationQueries'
+} from '@/features/moderation/queries/moderationQueries'
 
 interface ReportModalProps {
   isOpen: boolean
@@ -110,7 +110,8 @@ export function ReportModal({
                   </h3>
                   <button
                     onClick={onClose}
-                    className="p-1 hover:bg-slate-200 rounded-full transition-colors"
+                    className="p-1 hover:bg-slate-200 rounded-full transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-500"
+                    aria-label="Tutup"
                   >
                     <X className="w-5 h-5 text-slate-500" />
                   </button>
@@ -125,9 +126,7 @@ export function ReportModal({
                   </div>
 
                   <div className="space-y-3">
-                    <label className="block text-sm font-bold text-slate-700">
-                      Alasan Pelaporan
-                    </label>
+                    <p className="block text-sm font-bold text-slate-700">Alasan Pelaporan</p>
                     <div className="grid gap-2">
                       {reasons.map((r) => (
                         <label
@@ -158,10 +157,14 @@ export function ReportModal({
                   </div>
 
                   <div>
-                    <label className="block text-sm font-bold text-slate-700 mb-1">
+                    <label
+                      htmlFor="report-description"
+                      className="block text-sm font-bold text-slate-700 mb-1"
+                    >
                       Deskripsi Tambahan (Opsional)
                     </label>
                     <textarea
+                      id="report-description"
                       value={description}
                       onChange={(e) => setDescription(e.target.value)}
                       placeholder="Jelaskan lebih lanjut mengapa konten ini bermasalah..."

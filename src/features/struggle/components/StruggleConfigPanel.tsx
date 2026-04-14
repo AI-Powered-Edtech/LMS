@@ -1,8 +1,8 @@
 import { CheckCircle, Save } from 'lucide-react'
 import { useEffect, useState } from 'react'
 
-import { Card, Skeleton } from '@/src/components/ui'
-import { cn } from '@/src/utils/cn'
+import { Card, Skeleton } from '@/components/ui'
+import { cn } from '@/utils/cn'
 
 import { useStruggleConfig, useUpdateStruggleConfig } from '../queries/useStruggleQueries'
 import type { StruggleConfig } from '../types'
@@ -25,15 +25,15 @@ export function StruggleConfigPanel({ className }: Props) {
     cooldown_hours: 24,
   })
 
-  // Sync from server
+  // Sync from server — use ?? to guard against null/undefined DB values
   useEffect(() => {
     if (config) {
       setForm({
-        threshold_medium: config.threshold_medium,
-        threshold_high: config.threshold_high,
-        notification_enabled: config.notification_enabled,
-        student_prompt_enabled: config.student_prompt_enabled,
-        cooldown_hours: config.cooldown_hours,
+        threshold_medium: config.threshold_medium ?? 3,
+        threshold_high: config.threshold_high ?? 5,
+        notification_enabled: config.notification_enabled ?? true,
+        student_prompt_enabled: config.student_prompt_enabled ?? true,
+        cooldown_hours: config.cooldown_hours ?? 24,
       })
     }
   }, [config])

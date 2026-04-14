@@ -2,8 +2,8 @@ import { AlertTriangle, EyeOff, Send } from 'lucide-react'
 import { AnimatePresence, motion } from 'motion/react'
 import { useState } from 'react'
 
-import { OptimizedImage } from '@/src/components/ui'
-import { checkProfanity, FORUM_CATEGORIES } from '@/src/features/discussions/utils/forumUtils'
+import { OptimizedImage } from '@/components/ui'
+import { checkProfanity, FORUM_CATEGORIES } from '@/features/discussions/utils/forumUtils'
 
 interface CreatePostFormProps {
   onSubmit: (data: { title: string; content: string; category: string; isAnon: boolean }) => void

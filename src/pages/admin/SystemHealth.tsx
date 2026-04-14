@@ -1,9 +1,11 @@
 import { Activity, AlertTriangle, CheckCircle, RefreshCw, XCircle } from 'lucide-react'
 import { useEffect, useState } from 'react'
 
-import { Spinner } from '@/src/components/ui'
-import { usePageTitle } from '@/src/hooks/usePageTitle'
-import { supabase } from '@/src/services/supabase/client'
+import { Spinner } from '@/components/ui'
+import { administrationService } from '@/features/administration/api/administrationService'
+import { usePageTitle } from '@/hooks/usePageTitle'
+import { logger } from '@/utils/logger'
+import { captureError } from '@/utils/sentry'
 
 interface HealthCheck {
   status: 'healthy' | 'degraded' | 'down'
@@ -44,33 +46,16 @@ export function SystemHealth() {
   async function loadData() {
     setIsLoading(true)
     try {
-      // Check DB health via a simple query
       const start = performance.now()
-      const { error: dbError } = await supabase.from('tenants').select('id').limit(1)
+      const healthResult = await administrationService.healthCheck()
       const dbLatency = Math.round(performance.now() - start)
 
-      const dbOk = !dbError
+      setHealth(healthResult)
 
-      setHealth({
-        status: dbOk ? 'healthy' : 'degraded',
-        checks: {
-          db: dbOk ? 'ok' : 'error',
-          auth: 'ok',
-        },
-        timestamp: new Date().toISOString(),
-        version: '4.0.0',
-      })
-
-      // Recent metrics
-      const { data: recentMetrics } = await supabase
-        .from('app_metrics')
-        .select('metric_name, metric_value')
-        .order('recorded_at', { ascending: false })
-        .limit(50)
+      const recentMetrics = await administrationService.getAppMetrics()
 
       const summary: MetricSummary[] = []
 
-      // DB latency
       summary.push({
         name: 'Latensi DB',
         value: dbLatency,
@@ -110,7 +95,9 @@ export function SystemHealth() {
       }
 
       setMetrics(summary)
-    } catch {
+    } catch (err) {
+      captureError(err, { context: 'SystemHealth.fetch' })
+      logger.error('[SystemHealth] Health check failed:', err)
       setHealth({
         status: 'down',
         checks: { db: 'error', auth: 'error' },

@@ -1,7 +1,6 @@
-import React from 'react'
 import { describe, expect, it } from 'vitest'
 
-import { renderWithAllProviders } from '@/src/testing/test-utils'
+import { renderWithAllProviders } from '@/testing/test-utils'
 
 import { GroupAssignment } from '../GroupAssignment'
 

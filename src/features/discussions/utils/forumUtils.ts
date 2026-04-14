@@ -1,5 +1,5 @@
-import type { Discussion } from '@/src/features/discussions/api/discussionService'
-import type { ForumPost } from '@/src/features/discussions/types/forum'
+import type { Discussion } from '@/features/discussions/api/discussionService'
+import type { ForumPost } from '@/features/discussions/types/forum'
 
 export const FORUM_CATEGORIES = [
   'Semua',

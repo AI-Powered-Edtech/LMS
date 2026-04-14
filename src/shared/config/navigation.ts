@@ -1,30 +1,40 @@
 import {
+  Activity,
   Award,
   BarChart3,
+  BookOpen,
   BookOpenCheck,
   Building2,
   Calendar,
+  CalendarDays,
   CreditCard,
+  DollarSign,
   FileSignature,
   FileText,
   FolderKanban,
   Gamepad2,
   GraduationCap,
+  Grid3X3,
   HelpCircle,
   Home,
+  LayoutDashboard,
   LayoutGrid,
   type LucideIcon,
   Megaphone,
   MessageSquare,
   PenTool,
   PlayCircle,
+  Puzzle,
   ScanFace,
+  School,
   Settings,
+  Shield,
   Sparkles,
   Trophy,
   UserCircle,
   UserPlus,
   Users,
+  Users2,
   Wallet,
 } from 'lucide-react'
 
@@ -50,6 +60,62 @@ export interface NavItem {
   notification?: number
 }
 
+// ─── Admin Navigation Groups ──────────────────────────────────────────────────
+
+export interface AdminNavItem {
+  label: string
+  icon: LucideIcon
+  href: string
+  /** Optional badge text, e.g. "Segera" */
+  badge?: string
+}
+
+export interface AdminNavGroup {
+  group: string
+  items: AdminNavItem[]
+}
+
+/**
+ * Grouped admin sidebar navigation config.
+ * Groups are collapsible and support active-state highlighting.
+ */
+export const adminNavGroups: AdminNavGroup[] = [
+  {
+    group: 'Utama',
+    items: [
+      { label: 'Dasbor', icon: LayoutDashboard, href: '/app/admin/dashboard' },
+      { label: 'Admin Hub', icon: Grid3X3, href: '/app/admin/administration' },
+    ],
+  },
+  {
+    group: 'Pengguna & Kelas',
+    items: [
+      { label: 'Pengguna', icon: Users, href: '/app/admin/users' },
+      { label: 'Kelas', icon: School, href: '/app/admin/classes' },
+      { label: 'Kursus', icon: BookOpen, href: '/app/admin/courses' },
+    ],
+  },
+  {
+    group: 'Akademik',
+    items: [{ label: 'Manajemen Semester', icon: CalendarDays, href: '/app/admin/semester' }],
+  },
+  {
+    group: 'Keuangan',
+    items: [
+      { label: 'Tagihan', icon: CreditCard, href: '/app/admin/billing' },
+      { label: 'Keuangan', icon: DollarSign, href: '/app/admin/finance' },
+    ],
+  },
+  {
+    group: 'Sistem',
+    items: [
+      { label: 'Kesehatan Sistem', icon: Activity, href: '/app/admin/system-health' },
+      { label: 'Integrasi LTI', icon: Puzzle, href: '/admin/lti', badge: 'Segera' },
+      { label: 'Pengaturan', icon: Settings, href: '/settings' },
+    ],
+  },
+]
+
 export const navigationItems: NavItem[] = [
   // --- SIDEBAR ITEMS (HUBS) ---
 
@@ -57,7 +123,7 @@ export const navigationItems: NavItem[] = [
   {
     id: 'dashboard-teacher',
     name: 'Pusat Mengajar',
-    path: '/teacher-dashboard',
+    path: '/app/teacher/dashboard',
     icon: GraduationCap,
     roles: ['teacher'],
     location: 'sidebar',
@@ -67,7 +133,7 @@ export const navigationItems: NavItem[] = [
   {
     id: 'ruang-belajar',
     name: 'Ruang Belajar',
-    path: '/',
+    path: '/app/student/dashboard',
     icon: Home,
     roles: ['student'],
     location: 'sidebar',
@@ -87,7 +153,7 @@ export const navigationItems: NavItem[] = [
     name: 'Gamifikasi',
     path: '/gamification-hub',
     icon: Gamepad2,
-    roles: ['student'],
+    roles: ['student', 'teacher'],
     location: 'sidebar',
   },
   {
@@ -103,7 +169,7 @@ export const navigationItems: NavItem[] = [
   {
     id: 'admin-hub-link',
     name: 'Administrasi',
-    path: '/admin-hub',
+    path: '/app/admin/dashboard',
     icon: Building2,
     roles: ['admin'],
     location: 'sidebar',
@@ -111,7 +177,7 @@ export const navigationItems: NavItem[] = [
   {
     id: 'admin-users-sidebar',
     name: 'Manajemen Pengguna',
-    path: '/admin/users',
+    path: '/app/admin/users',
     icon: Users,
     roles: ['admin'],
     location: 'sidebar',
@@ -119,7 +185,7 @@ export const navigationItems: NavItem[] = [
   {
     id: 'admin-billing-sidebar',
     name: 'Tagihan',
-    path: '/billing',
+    path: '/app/admin/billing',
     icon: CreditCard,
     roles: ['admin'],
     location: 'sidebar',
@@ -151,7 +217,7 @@ export const navigationItems: NavItem[] = [
   {
     id: 'gradebook',
     name: 'Buku Nilai',
-    path: '/gradebook',
+    path: '/app/teacher/gradebook',
     icon: BookOpenCheck,
     roles: ['teacher'],
     moduleId: 'gradebook',
@@ -204,7 +270,7 @@ export const navigationItems: NavItem[] = [
   {
     id: 'ai-creator',
     name: 'Kreator AI',
-    path: '/creator',
+    path: '/app/teacher/creator',
     icon: Sparkles,
     roles: ['teacher'],
     moduleId: 'ai-creator',
@@ -217,7 +283,7 @@ export const navigationItems: NavItem[] = [
   {
     id: 'analytics',
     name: 'Dasbor Analitik',
-    path: '/analytics',
+    path: '/app/teacher/analytics',
     icon: BarChart3,
     roles: ['teacher'],
     moduleId: 'analytics',
@@ -228,9 +294,21 @@ export const navigationItems: NavItem[] = [
     border: 'border-indigo-200',
   },
   {
+    id: 'lesson-monitor',
+    name: 'Monitor Pelajaran',
+    path: '/app/teacher/lesson-monitor',
+    icon: Activity,
+    roles: ['teacher'],
+    location: 'teaching-hub',
+    description: 'Pantau progress siswa secara real-time.',
+    color: 'text-red-600',
+    bg: 'bg-red-100',
+    border: 'border-red-200',
+  },
+  {
     id: 'attendance',
     name: 'Scan Absensi',
-    path: '/scan-attendance',
+    path: '/app/teacher/scan-attendance',
     icon: ScanFace,
     roles: ['teacher'],
     moduleId: 'attendance',
@@ -243,7 +321,7 @@ export const navigationItems: NavItem[] = [
   {
     id: 'grader',
     name: 'SpeedGrader',
-    path: '/grader',
+    path: '/app/teacher/grader',
     icon: PenTool,
     roles: ['teacher'],
     moduleId: 'speed-grader',
@@ -269,7 +347,7 @@ export const navigationItems: NavItem[] = [
   {
     id: 'leaderboard-teacher',
     name: 'Papan Peringkat',
-    path: '/leaderboard',
+    path: '/app/teacher/leaderboard',
     icon: Trophy,
     roles: ['teacher'],
     location: 'teaching-hub',
@@ -370,6 +448,19 @@ export const navigationItems: NavItem[] = [
     bg: 'bg-rose-100',
     border: 'border-rose-200',
   },
+  {
+    id: 'peer-review',
+    name: 'Peer Review',
+    path: '/app/student/peer-reviews',
+    icon: Users2,
+    roles: ['student'],
+    moduleId: 'peer-review',
+    location: 'learning-hub',
+    description: 'Nilai dan berikan umpan balik tugas sesama siswa.',
+    color: 'text-violet-600',
+    bg: 'bg-violet-100',
+    border: 'border-violet-200',
+  },
 
   // Social Hub Items
   {
@@ -418,7 +509,7 @@ export const navigationItems: NavItem[] = [
     name: 'Papan Peringkat',
     path: '/leaderboard',
     icon: Trophy,
-    roles: ['student'],
+    roles: ['student', 'teacher'],
     location: 'gamification-hub',
     description: 'Peringkat siswa, XP, dan liga gamifikasi.',
     color: 'text-yellow-600',
@@ -453,9 +544,9 @@ export const navigationItems: NavItem[] = [
     border: 'border-orange-200',
   },
   {
-    id: 'analytics',
+    id: 'admin-analytics',
     name: 'Analitik',
-    path: '/admin/analytics',
+    path: '/app/admin/analytics',
     icon: BarChart3,
     roles: ['admin'],
     location: 'admin-hub',
@@ -467,7 +558,7 @@ export const navigationItems: NavItem[] = [
   {
     id: 'finance',
     name: 'Keuangan & SPP',
-    path: '/admin/finance',
+    path: '/app/admin/finance',
     icon: Wallet,
     roles: ['admin'],
     location: 'admin-hub',
@@ -479,7 +570,7 @@ export const navigationItems: NavItem[] = [
   {
     id: 'ppdb',
     name: 'PPDB Online',
-    path: '/admin/ppdb',
+    path: '/app/admin/ppdb',
     icon: UserPlus,
     roles: ['admin'],
     location: 'admin-hub',
@@ -491,7 +582,7 @@ export const navigationItems: NavItem[] = [
   {
     id: 'administration',
     name: 'Administrasi',
-    path: '/admin/administration',
+    path: '/app/admin/administration',
     icon: Building2,
     roles: ['admin'],
     location: 'admin-hub',
@@ -503,7 +594,7 @@ export const navigationItems: NavItem[] = [
   {
     id: 'billing',
     name: 'Tagihan Siswa',
-    path: '/billing',
+    path: '/app/admin/billing',
     icon: CreditCard,
     roles: ['admin'],
     location: 'admin-hub',
@@ -511,6 +602,18 @@ export const navigationItems: NavItem[] = [
     color: 'text-teal-600',
     bg: 'bg-teal-100',
     border: 'border-teal-200',
+  },
+  {
+    id: 'lti-management',
+    name: 'Integrasi LTI',
+    path: '/admin/lti',
+    icon: Shield,
+    roles: ['admin'],
+    location: 'admin-hub',
+    description: 'Kelola platform LTI 1.3 (Canvas, Moodle).',
+    color: 'text-indigo-600',
+    bg: 'bg-indigo-100',
+    border: 'border-indigo-200',
   },
 
   // Directory Only Items (Misc)
@@ -527,7 +630,7 @@ export const navigationItems: NavItem[] = [
     border: 'border-blue-200',
   },
   {
-    id: 'settings',
+    id: 'settings-dir',
     name: 'Pengaturan',
     path: '/settings',
     icon: Settings,
@@ -537,5 +640,17 @@ export const navigationItems: NavItem[] = [
     color: 'text-slate-600',
     bg: 'bg-slate-100',
     border: 'border-slate-200',
+  },
+  {
+    id: 'semester-management',
+    name: 'Manajemen Semester',
+    path: '/app/admin/semester',
+    icon: CalendarDays,
+    roles: ['admin'],
+    location: 'admin-hub',
+    description: 'Kelola semester akademik, clone kursus, dan kenaikan kelas.',
+    color: 'text-indigo-600',
+    bg: 'bg-indigo-100',
+    border: 'border-indigo-200',
   },
 ]

@@ -12,17 +12,17 @@ import {
 } from 'lucide-react'
 import { useState } from 'react'
 
-import { useAuth } from '@/src/contexts/AuthContext'
-import type { Notification, NotificationType } from '@/src/features/notifications'
+import { useAuth } from '@/contexts/AuthContext'
+import type { Notification, NotificationType } from '@/features/notifications'
 import {
   fetchNotifications,
   markAllNotificationsRead,
   markNotificationRead,
   notificationKeys,
   NotificationPreferencesPanel,
-} from '@/src/features/notifications'
-import { usePageTitle } from '@/src/hooks/usePageTitle'
-import { cn } from '@/src/utils/cn'
+} from '@/features/notifications'
+import { usePageTitle } from '@/hooks/usePageTitle'
+import { cn } from '@/utils/cn'
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -75,11 +75,19 @@ const TAB_LABELS: Record<FilterTab, string> = {
   grade: 'Nilai',
   assignment_due: 'Tugas',
   quiz_available: 'Kuis',
+  quiz_result: 'Hasil Kuis',
   announcement: 'Pengumuman',
   course_enrolled: 'Kursus',
   badge_earned: 'Lencana',
   discussion_reply: 'Diskusi',
+  message_received: 'Pesan',
   system: 'Sistem',
+  // Admin types
+  system_alert: 'Peringatan Sistem',
+  invitation_accepted: 'Undangan',
+  moderation_report: 'Moderasi',
+  sync_failure: 'Sinkronisasi',
+  user_joined: 'Pengguna Baru',
 }
 
 const FILTER_TABS: FilterTab[] = [
@@ -177,16 +185,17 @@ export function Notifications() {
   })
 
   const markReadMutation = useMutation({
-    mutationFn: (id: string) => markNotificationRead(id),
+    // FIXED: Pass userId + tenantId for row-level ownership check on UPDATE
+    mutationFn: (id: string) => markNotificationRead(id, user!.id, tenantId!),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: notificationKeys.all(tenantId!) })
+      void queryClient.invalidateQueries({ queryKey: notificationKeys.all(tenantId!) })
     },
   })
 
   const markAllMutation = useMutation({
     mutationFn: () => markAllNotificationsRead(user!.id, tenantId!),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: notificationKeys.all(tenantId!) })
+      void queryClient.invalidateQueries({ queryKey: notificationKeys.all(tenantId!) })
     },
   })
 
@@ -222,11 +231,13 @@ export function Notifications() {
       </div>
 
       {/* Filter Tabs */}
-      <div className="flex gap-1 overflow-x-auto pb-1 scrollbar-none">
+      <div className="flex gap-1 overflow-x-auto pb-1 scrollbar-none" role="tablist">
         {FILTER_TABS.map((tab) => (
           <button
             key={tab}
             type="button"
+            role="tab"
+            aria-selected={activeTab === tab}
             onClick={() => {
               setActiveTab(tab)
               setPage(0)

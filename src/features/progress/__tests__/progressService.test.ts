@@ -4,8 +4,8 @@ import { progressService } from '../api/progressService'
 
 const mockRpc = vi.fn()
 
-vi.mock('@/src/services/supabase/client', () => ({
-  supabase: {
+vi.mock('@/services/db', () => ({
+  db: {
     rpc: (...args: unknown[]) => mockRpc(...args),
   },
 }))
@@ -25,7 +25,7 @@ describe('progressService.getStudentProgressBundle', () => {
       },
       error: null,
     })
-    await progressService.getStudentProgressBundle('student-1')
+    await progressService.getStudentProgressBundle('student-1', 'tenant-1')
     expect(mockRpc).toHaveBeenCalledWith('get_student_progress_bundle', {
       p_student_id: 'student-1',
     })
@@ -43,7 +43,7 @@ describe('progressService.getStudentProgressBundle', () => {
       },
       error: null,
     })
-    const result = await progressService.getStudentProgressBundle('student-1')
+    const result = await progressService.getStudentProgressBundle('student-1', 'tenant-1')
     expect(result.totalXP).toBe(350)
   })
 
@@ -59,7 +59,7 @@ describe('progressService.getStudentProgressBundle', () => {
       },
       error: null,
     })
-    const result = await progressService.getStudentProgressBundle('student-1')
+    const result = await progressService.getStudentProgressBundle('student-1', 'tenant-1')
     expect(result.completedLessonsCount).toBe(12)
   })
 
@@ -75,7 +75,7 @@ describe('progressService.getStudentProgressBundle', () => {
       },
       error: null,
     })
-    const result = await progressService.getStudentProgressBundle('student-1')
+    const result = await progressService.getStudentProgressBundle('student-1', 'tenant-1')
     expect(result.achievements[0].badges?.name).toBe('First Quiz')
     expect(result.achievements[0].badges?.icon).toBe('zap')
   })
@@ -92,7 +92,7 @@ describe('progressService.getStudentProgressBundle', () => {
       },
       error: null,
     })
-    const result = await progressService.getStudentProgressBundle('student-1')
+    const result = await progressService.getStudentProgressBundle('student-1', 'tenant-1')
     expect(result.quizAttempts).toEqual([])
     expect(result.achievements).toEqual([])
     expect(result.courseProgress).toEqual([])
@@ -100,7 +100,9 @@ describe('progressService.getStudentProgressBundle', () => {
 
   it('throws on RPC error', async () => {
     mockRpc.mockResolvedValue({ data: null, error: { message: 'RPC failed' } })
-    await expect(progressService.getStudentProgressBundle('student-1')).rejects.toMatchObject({
+    await expect(
+      progressService.getStudentProgressBundle('student-1', 'tenant-1')
+    ).rejects.toMatchObject({
       message: 'RPC failed',
     })
   })

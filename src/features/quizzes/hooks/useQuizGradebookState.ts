@@ -1,14 +1,15 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
 
-import { useAuth } from '@/src/contexts/AuthContext'
-import { AssignmentResultRow, quizService } from '@/src/features/quizzes'
+import { useAuth } from '@/contexts/AuthContext'
+import { AssignmentResultRow, quizService } from '@/features/quizzes'
 import {
   QuestionDifficulty,
   quizAnalyticsService,
-} from '@/src/features/quizzes/api/quizAnalyticsService'
-import { usePageTitle } from '@/src/hooks/usePageTitle'
-import { supabase } from '@/src/services/supabase/client'
-import { logger } from '@/src/utils/logger'
+} from '@/features/quizzes/api/quizAnalyticsService'
+import { usePageTitle } from '@/hooks/usePageTitle'
+import { logger } from '@/utils/logger'
+import { captureError } from '@/utils/sentry'
+import { translateDbError } from '@/utils/statusTranslations'
 
 export interface AssignmentOption {
   id: string
@@ -43,27 +44,24 @@ export function useQuizGradebookState() {
   const [questionDifficulty, setQuestionDifficulty] = useState<QuestionDifficulty[]>([])
   const [isDifficultyLoading, setIsDifficultyLoading] = useState(false)
 
-  const { activeTenant } = useAuth()
+  const { activeTenant, user } = useAuth()
 
   useEffect(() => {
     async function loadClasses() {
-      const {
-        data: { user },
-      } = await supabase.auth.getUser()
       if (!user || !activeTenant) return
 
-      const { data, error } = await supabase
-        .from('classes')
-        .select('id, name')
-        .eq('teacher_id', user.id)
-        .eq('tenant_id', activeTenant.id)
-        .order('name', { ascending: true })
-
-      if (!error && data) setClasses(data)
+      try {
+        const data = await quizService.getTeacherClasses(user.id, activeTenant.id)
+        setClasses(data)
+      } catch (err) {
+        captureError(err, { context: 'useQuizGradebookState.loadClasses' })
+        setError('Gagal memuat daftar kelas.')
+        if (import.meta.env.DEV) logger.error('[useQuizGradebookState] Failed to load classes', err)
+      }
     }
 
-    loadClasses()
-  }, [activeTenant])
+    void loadClasses()
+  }, [activeTenant, user])
 
   /* eslint-disable react-hooks/exhaustive-deps */
   useEffect(() => {
@@ -76,42 +74,10 @@ export function useQuizGradebookState() {
     async function loadAssignments() {
       setIsAssignmentLoading(true)
       try {
-        const { data, error } = await supabase
-          .from('quiz_assignments')
-          .select(
-            `
-                        id,
-                        quiz_id,
-                        max_attempts,
-                        quizzes!inner (
-                            id,
-                            title,
-                            passing_score,
-                            max_attempts,
-                            status
-                        )
-                    `
-          )
-          .eq('class_id', selectedClass)
-          .eq('tenant_id', activeTenant!.id)
-          .eq('quizzes.status', 'published')
-          .order('created_at', { ascending: false })
-
-        if (error) throw error
-
-        const mappedAssignments = (data || []).map((assignment) => {
-          const quiz = Array.isArray(assignment.quizzes)
-            ? assignment.quizzes[0]
-            : assignment.quizzes
-          return {
-            id: assignment.id,
-            quiz_id: assignment.quiz_id,
-            title: quiz?.title || 'Kuis',
-            passing_score: quiz?.passing_score || 70,
-            max_attempts: assignment.max_attempts ?? quiz?.max_attempts ?? null,
-          }
-        })
-
+        const mappedAssignments = await quizService.getClassQuizAssignments(
+          selectedClass,
+          activeTenant!.id
+        )
         setAssignments(mappedAssignments)
         setSelectedAssignment('')
       } catch (err: unknown) {
@@ -121,7 +87,7 @@ export function useQuizGradebookState() {
       }
     }
 
-    loadAssignments()
+    void loadAssignments()
   }, [selectedClass])
   /* eslint-enable react-hooks/exhaustive-deps */
 
@@ -138,7 +104,7 @@ export function useQuizGradebookState() {
       const data = await quizService.getAssignmentResults(selectedAssignment, activeTenant!.id)
       setAttempts(data)
     } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : 'Gagal memuat hasil assignment')
+      setError(translateDbError(err instanceof Error ? err.message : ''))
     } finally {
       setIsLoading(false)
     }
@@ -146,7 +112,7 @@ export function useQuizGradebookState() {
   /* eslint-enable react-hooks/exhaustive-deps */
 
   useEffect(() => {
-    loadAttempts()
+    void loadAttempts()
   }, [loadAttempts])
 
   useEffect(() => {
@@ -160,14 +126,15 @@ export function useQuizGradebookState() {
       try {
         const data = await quizAnalyticsService.getQuestionDifficulty(selectedAssignment)
         setQuestionDifficulty(data)
-      } catch {
-        if (import.meta.env.DEV) logger.error('Failed to load question difficulty')
+      } catch (err) {
+        captureError(err, { context: 'useQuizGradebookState.loadDifficulty' })
+        if (import.meta.env.DEV) logger.error('Failed to load question difficulty', err)
       } finally {
         setIsDifficultyLoading(false)
       }
     }
 
-    loadDifficulty()
+    void loadDifficulty()
   }, [selectedAssignment, attempts])
 
   const handleOpenAttemptDetail = useCallback((attempt: AssignmentResultRow) => {
@@ -186,16 +153,26 @@ export function useQuizGradebookState() {
   )
 
   const { avgScore, passCount, failCount } = useMemo(() => {
-    const scoredAttempts = filteredAttempts.filter((attempt) => attempt.score !== null)
+    // ⚡ Perf: consolidate multiple array traversals into a single pass to reduce O(N) operations.
+    let totalScore = 0
+    let scoredCount = 0
+    let passCount = 0
+    let failCount = 0
+
+    for (let i = 0; i < filteredAttempts.length; i++) {
+      const attempt = filteredAttempts[i]
+      if (attempt.score !== null) {
+        totalScore += attempt.score
+        scoredCount++
+      }
+      if (attempt.passed === true) passCount++
+      else if (attempt.passed === false) failCount++
+    }
+
     return {
-      avgScore: scoredAttempts.length
-        ? Math.round(
-            scoredAttempts.reduce((sum, attempt) => sum + (attempt.score ?? 0), 0) /
-              scoredAttempts.length
-          )
-        : 0,
-      passCount: filteredAttempts.filter((attempt) => attempt.passed).length,
-      failCount: filteredAttempts.filter((attempt) => attempt.passed === false).length,
+      avgScore: scoredCount ? Math.round(totalScore / scoredCount) : 0,
+      passCount,
+      failCount,
     }
   }, [filteredAttempts])
 
@@ -221,7 +198,7 @@ export function useQuizGradebookState() {
 
   const handleCloseAttemptDetail = () => {
     setSelectedAttemptId(null)
-    loadAttempts()
+    void loadAttempts()
   }
 
   return {

@@ -5,24 +5,24 @@ import { AppLoading } from '../../components/layout/AppLoading'
 import { LazyLoadTimeout } from '../../components/ui/LazyLoadTimeout'
 
 /**
- * Wraps a component in Suspense + optional FeatureErrorBoundary.
+ * Wraps a component in Suspense + FeatureErrorBoundary.
+ * ROUTE-MED-01: FeatureErrorBoundary is always applied (not optional) so that
+ * lazy-load and render errors are caught on every route, not just named ones.
  * Shared across all route domain files.
  */
 export function S({ children, feature }: { children: React.ReactNode; feature?: string }) {
-  const inner = feature ? (
-    <FeatureErrorBoundary featureName={feature}>{children}</FeatureErrorBoundary>
-  ) : (
-    children
-  )
+  const boundary = feature ?? 'Halaman'
   return (
-    <Suspense
-      fallback={
-        <LazyLoadTimeout>
-          <AppLoading />
-        </LazyLoadTimeout>
-      }
-    >
-      {inner}
-    </Suspense>
+    <FeatureErrorBoundary featureName={boundary}>
+      <Suspense
+        fallback={
+          <LazyLoadTimeout>
+            <AppLoading />
+          </LazyLoadTimeout>
+        }
+      >
+        {children}
+      </Suspense>
+    </FeatureErrorBoundary>
   )
 }

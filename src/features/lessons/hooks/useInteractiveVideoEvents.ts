@@ -1,9 +1,9 @@
-import { useCallback, useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 
-import { useAuth } from '@/src/contexts/AuthContext'
-import type { InteractiveEvent, InteractiveVideoMetadata, Quiz } from '@/src/features/lessons/types'
-import { getQuizWithQuestions } from '@/src/features/quizzes/api/quizManager.service'
-import { logger } from '@/src/utils/logger'
+import { useAuth } from '@/contexts/AuthContext'
+import type { InteractiveEvent, InteractiveVideoMetadata, Quiz } from '@/features/lessons/types'
+import { getQuizWithQuestions } from '@/features/quizzes/api/quizManager.service'
+import { logger } from '@/utils/logger'
 
 // ==========================================================================
 // useInteractiveVideoEvents — Shared hook for interactive video pop-up quizzes
@@ -36,7 +36,10 @@ export function useInteractiveVideoEvents({
   const { tenantId } = useAuth()
 
   const interactiveData = metadata as InteractiveVideoMetadata | undefined
-  const events = interactiveData?.interactiveEvents || []
+  const events = useMemo(
+    () => interactiveData?.interactiveEvents ?? [],
+    [interactiveData?.interactiveEvents]
+  )
 
   const [activeEvent, setActiveEvent] = useState<InteractiveEvent | null>(null)
   const [completedEvents, setCompletedEvents] = useState<Set<number>>(new Set())
@@ -52,14 +55,27 @@ export function useInteractiveVideoEvents({
   const activeRef = useRef(activeEvent)
   activeRef.current = activeEvent
 
+  // Stable key derived from the identity of each event — detects additions, removals, and swaps
+  // even when the array length stays the same (e.g. one quiz replaced by another).
+  // Uses quizId+timeInSeconds as the unique event fingerprint.
+  const eventIdsKey = useMemo(
+    () => events.map((e) => `${e.quizId ?? ''}:${e.timeInSeconds}`).join(','),
+    [events]
+  )
+
   // Prefetch quizzes referenced by events
   useEffect(() => {
     if (!tenantId || events.length === 0) return
-    const quizIds = events.map((e) => e.quizId).filter(Boolean) as string[]
-    if (quizIds.length === 0) return
 
-    // Deduplicate
-    const uniqueIds = [...new Set(quizIds)]
+    // ⚡ Perf: consolidate multiple array traversals into a single pass to reduce O(N) operations.
+    const uniqueIds = new Set<string>()
+    for (let i = 0; i < events.length; i++) {
+      const qId = events[i].quizId
+      if (qId) uniqueIds.add(qId as string)
+    }
+
+    if (uniqueIds.size === 0) return
+
     uniqueIds.forEach((id) => {
       getQuizWithQuestions(id, tenantId)
         .then((quizData) => {
@@ -67,8 +83,7 @@ export function useInteractiveVideoEvents({
         })
         .catch((err) => logger.error('[useInteractiveVideoEvents] Failed to load quiz', err))
     })
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [tenantId, events.length])
+  }, [tenantId, events, eventIdsKey])
 
   // Check if the current playback time matches an interactive event
   const checkForEvent = useCallback(
@@ -98,7 +113,7 @@ export function useInteractiveVideoEvents({
       // Resume video slightly past the trigger point to avoid re-triggering
       if (videoRef.current) {
         videoRef.current.currentTime = current.timeInSeconds + 2
-        videoRef.current.play().catch(console.error)
+        videoRef.current.play().catch(logger.error)
       }
     }
   }, [videoRef])

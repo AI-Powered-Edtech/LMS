@@ -1,10 +1,15 @@
 import { motion } from 'motion/react'
-import { useCallback, useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 
-import { useOptionalLearningSession } from '@/src/features/analytics'
-import { BLOCK_REGISTRY, isValidBlockType } from '@/src/features/lessons/blockRegistry'
-import type { Lesson } from '@/src/features/lessons/types'
-import { cn } from '@/src/utils/cn'
+import { useOptionalLearningSession } from '@/features/analytics'
+import {
+  type VideoCaption,
+  videoCaptionService,
+} from '@/features/courses/services/videoCaptionService'
+import { BLOCK_REGISTRY, isValidBlockType } from '@/features/lessons/blockRegistry'
+import type { Lesson } from '@/features/lessons/types'
+import { cn } from '@/utils/cn'
+import { logger } from '@/utils/logger'
 
 import { BlockRenderer } from './BlockRenderer'
 import { BlockSkeleton } from './blocks/BlockSkeleton'
@@ -46,11 +51,18 @@ export function MultiBlockViewer({
   onStartViewing,
   onResumeAnchorUpdate,
 }: MultiBlockViewerProps) {
-  const blocks = [...(lesson.lesson_resources || [])]
-    .map((b) => ({ ...b, type: b.type?.toLowerCase() ?? b.type }))
-    .sort((a, b) => (a.order_index ?? 0) - (b.order_index ?? 0))
+  // Stabilize blocks array to prevent cascading re-renders & IntersectionObserver churn (PF-1)
+  const blocks = useMemo(
+    () =>
+      [...(lesson.lesson_resources || [])]
+        .map((b) => ({ ...b, type: b.type?.toLowerCase() ?? b.type }))
+        .sort((a, b) => (a.order_index ?? 0) - (b.order_index ?? 0)),
+    [lesson.lesson_resources]
+  )
 
-  const completedIds = useRef(new Set<string>())
+  // H-12: Use state-based Set so breadcrumb re-renders on completion
+  const [completedSet, setCompletedSet] = useState<Set<string>>(new Set())
+  const completedCount = completedSet.size
   const hasCalledCompletion = useRef(false)
   const hasStarted = useRef(false)
 
@@ -64,6 +76,24 @@ export function MultiBlockViewer({
     return initial
   })
 
+  const [captionsByBlock, setCaptionsByBlock] = useState<Record<string, VideoCaption[]>>({})
+
+  useEffect(() => {
+    if (!lesson.id) return
+    videoCaptionService
+      .getCaptions(lesson.id)
+      .then((data) => {
+        const grouped: Record<string, VideoCaption[]> = {}
+        for (const caption of data) {
+          const key = caption.block_id || 'global'
+          if (!grouped[key]) grouped[key] = []
+          grouped[key].push(caption)
+        }
+        setCaptionsByBlock(grouped)
+      })
+      .catch((err) => logger.error('Failed to load captions', err))
+  }, [lesson.id])
+
   const markBlockComplete = useCallback(
     (blockId: string) => {
       if (!hasStarted.current) {
@@ -71,18 +101,24 @@ export function MultiBlockViewer({
         onStartViewing()
       }
 
-      if (completedIds.current.has(blockId)) return
-      completedIds.current.add(blockId)
+      // Use functional update to avoid stale closures
+      setCompletedSet((prev) => {
+        if (prev.has(blockId)) return prev
+        const next = new Set(prev)
+        next.add(blockId)
 
-      const total = blocks.length
-      const done = completedIds.current.size
-      const pct = total > 0 ? Math.min(Math.round((done / total) * 100), 100) : 100
-      onProgressUpdate(pct)
+        const total = blocks.length
+        const done = next.size
+        const pct = total > 0 ? Math.min(Math.round((done / total) * 100), 100) : 100
+        onProgressUpdate(pct)
 
-      if (done >= total && !hasCalledCompletion.current) {
-        hasCalledCompletion.current = true
-        onCompletionMet()
-      }
+        if (done >= total && !hasCalledCompletion.current) {
+          hasCalledCompletion.current = true
+          onCompletionMet()
+        }
+
+        return next
+      })
     },
     [blocks.length, onProgressUpdate, onCompletionMet, onStartViewing]
   )
@@ -102,7 +138,7 @@ export function MultiBlockViewer({
           }
         })
       },
-      { threshold: 0.3 }
+      { threshold: 0.5 }
     )
 
     blocks.forEach((block) => {
@@ -167,7 +203,7 @@ export function MultiBlockViewer({
         const blockEl = document.getElementById(`block-${activeBlockRef.current.id}`)
         if (blockEl) {
           const rect = blockEl.getBoundingClientRect()
-          const offset = Math.round(window.scrollY - rect.top)
+          const offset = Math.round(rect.top + window.scrollY)
           onResumeAnchorUpdate({
             lastBlockId: activeBlockRef.current.id,
             lastBlockIndex: activeBlockRef.current.index,
@@ -228,11 +264,16 @@ export function MultiBlockViewer({
           if (!isValidBlockType(block.type)) return null
           const def = BLOCK_REGISTRY[block.type]
           const Icon = def.icon
-          const done = completedIds.current.has(block.id)
+          // H-12: Read from state-based completedSet so badge re-renders on completion
+          const done = completedSet.has(block.id)
           return (
             <div key={block.id} className="flex items-center gap-1 shrink-0">
-              <a
-                href={`#block-${block.id}`}
+              <button
+                type="button"
+                onClick={() => {
+                  const el = document.getElementById(`block-${block.id}`)
+                  el?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+                }}
                 className={cn(
                   'flex items-center gap-1 px-2 py-1 rounded-full text-xs font-semibold border transition-all duration-200',
                   done
@@ -244,7 +285,7 @@ export function MultiBlockViewer({
               >
                 <Icon className="w-3 h-3" />
                 <span>{def.label}</span>
-              </a>
+              </button>
               {idx < total - 1 && (
                 <span className="text-slate-300 dark:text-slate-700 text-xs select-none">/</span>
               )}
@@ -254,7 +295,7 @@ export function MultiBlockViewer({
 
         {/* Position counter */}
         <span className="ml-auto shrink-0 text-xs text-slate-400 dark:text-slate-500 font-medium whitespace-nowrap">
-          {completedIds.current.size} / {total} selesai
+          {completedCount} / {total} selesai
         </span>
       </div>
 
@@ -331,13 +372,18 @@ export function MultiBlockViewer({
                           }
                           const blockTotal = blocks.length
                           if (blockTotal === 0) return
-                          const basePct = (completedIds.current.size / blockTotal) * 100
+                          const basePct = (completedCount / blockTotal) * 100
                           const blockPct = (pct / 100) * (1 / blockTotal) * 100
-                          onProgressUpdate(Math.min(Math.round(basePct + blockPct), 99))
+                          onProgressUpdate(Math.min(Math.round(basePct + blockPct), 100))
                         }
                       : undefined
                   }
                   onStartViewing={onStartViewing}
+                  captions={
+                    block.type === 'video'
+                      ? (captionsByBlock[block.id] ?? captionsByBlock['global'])
+                      : undefined
+                  }
                 />
               ) : (
                 <BlockSkeleton type={block.type} />

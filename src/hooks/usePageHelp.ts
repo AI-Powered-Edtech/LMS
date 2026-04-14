@@ -5,7 +5,7 @@
 
 import { useLocation } from 'react-router-dom'
 
-import { helpContent, type HelpItem } from '@/src/data/helpContent'
+import { helpContent, type HelpItem } from '@/data/helpContent'
 
 export function usePageHelp(): HelpItem | null {
   const { pathname } = useLocation()

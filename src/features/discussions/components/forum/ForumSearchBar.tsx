@@ -1,7 +1,7 @@
 import { Search } from 'lucide-react'
 
-import { FORUM_CATEGORIES } from '@/src/features/discussions/utils/forumUtils'
-import { cn } from '@/src/utils/cn'
+import { FORUM_CATEGORIES } from '@/features/discussions/utils/forumUtils'
+import { cn } from '@/utils/cn'
 
 interface ForumSearchBarProps {
   searchQuery: string

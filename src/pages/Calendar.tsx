@@ -1,31 +1,62 @@
 import { Grid, List, Plus } from 'lucide-react'
-import { useState } from 'react'
+import { useMemo, useState } from 'react'
 
-import { useAuth } from '@/src/contexts/AuthContext'
-import { AddEventModal } from '@/src/features/calendar/components/AddEventModal'
-import { AgendaView } from '@/src/features/calendar/components/AgendaView'
-import { CalendarSidebar } from '@/src/features/calendar/components/CalendarSidebar'
-import { CalendarSkeleton } from '@/src/features/calendar/components/CalendarSkeleton'
-import { MonthView } from '@/src/features/calendar/components/MonthView'
+import { useAuth } from '@/contexts/AuthContext'
+import { AddEventModal } from '@/features/calendar/components/AddEventModal'
+import { AgendaView } from '@/features/calendar/components/AgendaView'
+import { CalendarSidebar } from '@/features/calendar/components/CalendarSidebar'
+import { CalendarSkeleton } from '@/features/calendar/components/CalendarSkeleton'
+import { MonthView } from '@/features/calendar/components/MonthView'
 import {
   type CalendarEvent,
   useCalendarEvents,
+  useCalendarStore,
+  usePersistCalendarEvent,
   useUpdateCalendarEvent,
-} from '@/src/features/calendar/hooks/useCalendarQueries'
-import { useCalendarStore } from '@/src/features/calendar/hooks/useCalendarQueries'
-import { useSendNotification } from '@/src/features/notifications'
-import { usePageTitle } from '@/src/hooks/usePageTitle'
-import { cn } from '@/src/utils/cn'
+  useUserCalendarEvents,
+} from '@/features/calendar/hooks/useCalendarQueries'
+import { useSendNotification } from '@/features/notifications'
+import { usePageTitle } from '@/hooks/usePageTitle'
+import { cn } from '@/utils/cn'
 
 export function Calendar() {
   usePageTitle('Kalender')
   const { user } = useAuth()
   const sendNotification = useSendNotification()
-  const { events, addEvent } = useCalendarStore()
+  // FIXED: Use Zustand selector to prevent creating new object reference on every render,
+  // which would defeat the useMemo memoization that depends on zustandEvents.
+  const zustandEvents = useCalendarStore((state) => state.events)
   const { data: fetchedEvents, isLoading } = useCalendarEvents()
+  // FIXED: Also fetch persisted user-created events from DB
+  const { data: userCreatedEvents } = useUserCalendarEvents()
   const { updateEvent: updateEventMutate } = useUpdateCalendarEvent()
+  // FIXED: Use persistence hook so events survive page refresh
+  const { mutate: persistEvent } = usePersistCalendarEvent()
 
-  const displayEvents = fetchedEvents || events
+  // FIXED: Merge server events + persisted user events into a unified list
+  const displayEvents = useMemo<CalendarEvent[]>(() => {
+    const serverEvents = fetchedEvents || zustandEvents
+
+    if (!userCreatedEvents || userCreatedEvents.length === 0) return serverEvents
+
+    // Convert persisted DB events to CalendarEvent shape
+    const dbEvents: CalendarEvent[] = userCreatedEvents.map((e) => ({
+      id: `user-${e.id}`,
+      title: e.title,
+      date: new Date(e.start_date),
+      time: '00:00',
+      type: 'event' as const,
+      location: '',
+      description: e.description || '',
+      priority: 'medium' as const,
+      completed: false,
+    }))
+
+    // Merge: server events + DB user events (deduplicate by id prefix)
+    const merged = [...serverEvents, ...dbEvents]
+    return merged.sort((a, b) => a.date.getTime() - b.date.getTime())
+  }, [fetchedEvents, zustandEvents, userCreatedEvents])
+
   const today = new Date()
 
   const [currentDate, setCurrentDate] = useState(new Date(today.getFullYear(), today.getMonth(), 1))
@@ -46,8 +77,10 @@ export function Calendar() {
     }
   }
 
+  // FIXED: handleAddEvent now persists to DB via usePersistCalendarEvent
+  // Optimistic update still happens immediately via Zustand store
   const handleAddEvent = (eventData: Omit<CalendarEvent, 'id'>) => {
-    addEvent(eventData)
+    persistEvent(eventData)
     if (eventData.type === 'exam') {
       sendNotification.mutate({
         userId: user!.id,
@@ -124,7 +157,12 @@ export function Calendar() {
               onSelectDate={setSelectedDate}
             />
           ) : (
-            <AgendaView events={events} today={today} onToggleCompletion={toggleCompletion} />
+            // FIXED: AgendaView now uses merged displayEvents (server + DB user events)
+            <AgendaView
+              events={displayEvents}
+              today={today}
+              onToggleCompletion={toggleCompletion}
+            />
           )}
         </div>
 

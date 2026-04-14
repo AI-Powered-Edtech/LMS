@@ -50,3 +50,68 @@ export function translateInvitationStatus(status: string): string {
   }
   return map[status.toLowerCase()] ?? status
 }
+
+export function translateQuizAttemptStatus(status: string): string {
+  const map: Record<string, string> = {
+    completed: 'Selesai',
+    in_progress: 'Berlangsung',
+    submitted: 'Dikumpulkan',
+    graded: 'Dinilai',
+    timed_out: 'Waktu Habis',
+  }
+  return map[status.toLowerCase()] ?? status
+}
+
+export function translateLessonType(type: string): string {
+  const map: Record<string, string> = {
+    article: 'Artikel',
+    video: 'Video',
+    quiz: 'Kuis',
+    scorm: 'SCORM',
+    assignment: 'Tugas',
+  }
+  return map[type.toLowerCase()] ?? type
+}
+
+export function translateContentType(type: string): string {
+  const map: Record<string, string> = {
+    post: 'Postingan',
+    comment: 'Komentar',
+    assignment: 'Tugas',
+    user: 'Pengguna',
+  }
+  return map[type.toLowerCase()] ?? type
+}
+
+export function translateEventType(type: string): string {
+  const map: Record<string, string> = {
+    class: 'Kelas',
+    exam: 'Ujian',
+    assignment: 'Tugas',
+    meeting: 'Rapat',
+    holiday: 'Libur',
+    event: 'Acara',
+    deadline: 'Tenggat',
+    quiz: 'Kuis',
+    lesson: 'Pelajaran',
+  }
+  return map[type.toLowerCase()] ?? type
+}
+
+/**
+ * Translate raw Supabase/Postgres error messages to user-friendly Bahasa Indonesia.
+ * Use this instead of displaying err.message directly.
+ */
+export function translateDbError(message: string): string {
+  if (!message) return 'Terjadi kesalahan. Silakan coba lagi.'
+  if (message.includes('app_role') || message.includes('invalid input value for enum'))
+    return 'Terjadi kesalahan konfigurasi. Hubungi administrator.'
+  if (message.includes('Unauthorized') || message.includes('P0002'))
+    return 'Anda tidak memiliki akses untuk tindakan ini.'
+  if (message.includes('not found') || message.includes('P0001')) return 'Data tidak ditemukan.'
+  if (message.includes('duplicate') || message.includes('23505'))
+    return 'Data sudah ada. Tidak bisa membuat duplikat.'
+  if (message.includes('network') || message.includes('fetch'))
+    return 'Gagal terhubung ke server. Periksa koneksi internet Anda.'
+  return 'Terjadi kesalahan. Silakan coba lagi.'
+}

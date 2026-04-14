@@ -1,7 +1,7 @@
 import { Award } from 'lucide-react'
 import { AnimatePresence, motion } from 'motion/react'
 
-import { ModuleCompletionModal } from '@/src/components/LessonViewer'
+import { ModuleCompletionModal } from '@/components/LessonViewer'
 
 import type { Lesson } from '../../index'
 

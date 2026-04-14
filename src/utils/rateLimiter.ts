@@ -93,3 +93,6 @@ export const aiTutorRateLimiter = createRateLimiter(10, 60_000)
 
 /** Password reset: 3 attempts per 10 minutes */
 export const passwordResetRateLimiter = createRateLimiter(3, 600_000)
+
+/** Message: max 10 messages per 60 seconds per user */
+export const messageRateLimiter = createRateLimiter(10, 60_000)

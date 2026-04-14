@@ -1,12 +1,12 @@
 import { Activity, Award, Clock, FileText, LayoutDashboard, Loader2, Radio, X } from 'lucide-react'
 import { AnimatePresence, motion } from 'motion/react'
-import { useState } from 'react'
+import { useCallback, useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
 
-import { BadgeManager } from '@/src/features/gamification/components/BadgeManager'
-import { ReportList } from '@/src/features/reports/components/ReportList'
-import { ReportScheduler } from '@/src/features/reports/components/ReportScheduler'
-import { cn } from '@/src/utils/cn'
+import { BadgeManager } from '@/features/gamification/components/BadgeManager'
+import { ReportList } from '@/features/reports/components/ReportList'
+import { ReportScheduler } from '@/features/reports/components/ReportScheduler'
+import { cn } from '@/utils/cn'
 
 import {
   useCourseDashboard,
@@ -49,13 +49,15 @@ export function TeacherAnalyticsDashboard({ courseId }: TeacherAnalyticsDashboar
     selectedLessonId ?? undefined
   )
 
-  const selectedLessonTitle = lessonData?.find(
-    (l) => l.lesson_id === selectedLessonId
-  )?.lesson_title
+  // ⚡ Perf: memoize .find() lookup — only recalc when lessonData or selection changes
+  const selectedLessonTitle = useMemo(() => {
+    return lessonData?.find((l) => l.lesson_id === selectedLessonId)?.lesson_title
+  }, [lessonData, selectedLessonId])
 
-  const handleLessonSelect = (lessonId: string) => {
+  // ⚡ Perf: stabilize callback ref passed to LessonBreakdownTable (large table)
+  const handleLessonSelect = useCallback((lessonId: string) => {
     setSelectedLessonId((prev) => (prev === lessonId ? null : lessonId))
-  }
+  }, [])
 
   const isAnyLoading = courseLoading || lessonLoading
 
@@ -98,10 +100,12 @@ export function TeacherAnalyticsDashboard({ courseId }: TeacherAnalyticsDashboar
       </div>
 
       {/* Tabs */}
-      <div className="flex gap-1 rounded-xl bg-slate-100 dark:bg-slate-800 p-1">
+      <div className="flex gap-1 rounded-xl bg-slate-100 dark:bg-slate-800 p-1" role="tablist">
         {tabs.map((tab) => (
           <button
             key={tab.id}
+            role="tab"
+            aria-selected={activeTab === tab.id}
             onClick={() => setActiveTab(tab.id)}
             className={cn(
               'flex items-center gap-2 flex-1 justify-center rounded-lg px-4 py-2 text-sm font-semibold transition-all',

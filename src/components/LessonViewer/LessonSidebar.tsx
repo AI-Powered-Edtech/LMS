@@ -11,17 +11,17 @@ import {
   X,
 } from 'lucide-react'
 import { AnimatePresence, motion } from 'motion/react'
-import { memo, useRef, useState } from 'react'
+import { memo, useEffect, useRef, useState } from 'react'
 
-import { SkeletonCard } from '@/src/components/ui'
-import type { Lesson, LessonProgress } from '@/src/features/lessons'
+import { SkeletonCard } from '@/components/ui'
+import type { Lesson, LessonProgress } from '@/features/lessons'
 import {
   formatDuration,
   getLessonDuration,
   getModuleDuration,
   isLessonLocked,
-} from '@/src/features/lessons'
-import { cn } from '@/src/utils/cn'
+} from '@/features/lessons'
+import { cn } from '@/utils/cn'
 
 interface LessonSidebarProps {
   moduleTitle?: string
@@ -60,6 +60,13 @@ export const LessonSidebar = memo(function LessonSidebar({
 }: LessonSidebarProps) {
   const completedCount = lessons.filter((l) => progress[l.id]?.status === 'completed').length
   const [toastMessage, setToastMessage] = useState<string | null>(null)
+  const toastTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+
+  useEffect(() => {
+    return () => {
+      if (toastTimerRef.current) clearTimeout(toastTimerRef.current)
+    }
+  }, [])
 
   const parentRef = useRef<HTMLDivElement>(null)
 
@@ -74,7 +81,7 @@ export const LessonSidebar = memo(function LessonSidebar({
   const sidebarContent = (
     <>
       {/* Header */}
-      <div className="p-5 bg-gradient-to-r from-white to-blue-50/30 border-b border-slate-100 z-10 shrink-0">
+      <div className="p-5 bg-gradient-to-r from-white dark:from-slate-800 to-blue-50/30 dark:to-slate-800/50 border-b border-slate-100 dark:border-slate-700 z-10 shrink-0">
         {onBack && (
           <button
             onClick={onBack}
@@ -126,22 +133,23 @@ export const LessonSidebar = memo(function LessonSidebar({
         )}
       </div>
 
+      {/* Toast for locked lessons — placed outside scroll container so it stays fixed */}
+      <AnimatePresence>
+        {toastMessage && (
+          <motion.div
+            initial={{ opacity: 0, y: -10 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -10 }}
+            transition={{ duration: 0.2 }}
+            className="mx-4 mt-2 z-30 bg-amber-50 dark:bg-amber-900/30 border border-amber-200 dark:border-amber-800 text-amber-700 dark:text-amber-400 text-sm px-4 py-3 rounded-lg shadow-lg"
+          >
+            {toastMessage}
+          </motion.div>
+        )}
+      </AnimatePresence>
+
       {/* Lesson List - Virtualized */}
       <div ref={parentRef} className="flex-1 overflow-y-auto relative custom-scrollbar">
-        {/* Toast for locked lessons */}
-        <AnimatePresence>
-          {toastMessage && (
-            <motion.div
-              initial={{ opacity: 0, y: -10 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -10 }}
-              transition={{ duration: 0.2 }}
-              className="absolute top-2 left-4 right-4 z-30 bg-amber-50 border border-amber-200 text-amber-700 text-sm px-4 py-3 rounded-lg shadow-lg"
-            >
-              {toastMessage}
-            </motion.div>
-          )}
-        </AnimatePresence>
         {lessons.length === 0 ? (
           <div className="p-4 space-y-3">
             <SkeletonCard lines={1} />
@@ -173,8 +181,12 @@ export const LessonSidebar = memo(function LessonSidebar({
                   <button
                     onClick={() => {
                       if (isLocked) {
+                        if (toastTimerRef.current) clearTimeout(toastTimerRef.current)
                         setToastMessage('Selesaikan pelajaran sebelumnya terlebih dahulu')
-                        setTimeout(() => setToastMessage(null), 3000)
+                        toastTimerRef.current = setTimeout(() => {
+                          setToastMessage(null)
+                          toastTimerRef.current = null
+                        }, 3000)
                         return
                       }
                       onSelectLesson(lesson.id)
@@ -251,8 +263,8 @@ export const LessonSidebar = memo(function LessonSidebar({
                             className={cn(
                               'text-[10px] font-bold px-2 py-0.5 rounded-md',
                               isActive
-                                ? 'bg-orange-100 text-orange-600'
-                                : 'bg-slate-100 text-slate-500'
+                                ? 'bg-orange-100 dark:bg-orange-900/30 text-orange-600 dark:text-orange-400'
+                                : 'bg-slate-100 dark:bg-slate-700 text-slate-500 dark:text-slate-400'
                             )}
                           >
                             Min. Skor: {lesson.passing_score}
@@ -277,7 +289,7 @@ export const LessonSidebar = memo(function LessonSidebar({
     </aside>
   )
 
-  // Mobile drawer layout - overlay
+  // Mobile bottom sheet drawer pattern
   const mobileDrawer = (
     <>
       {/* Backdrop */}
@@ -295,16 +307,20 @@ export const LessonSidebar = memo(function LessonSidebar({
         )}
       </AnimatePresence>
 
-      {/* Drawer panel */}
+      {/* Bottom Sheet panel */}
       <AnimatePresence>
         {isMobileOpen && (
           <motion.aside
-            initial={{ x: '-100%' }}
-            animate={{ x: 0 }}
-            exit={{ x: '-100%' }}
-            transition={{ type: 'spring', damping: 25, stiffness: 300 }}
-            className="fixed top-0 left-0 h-full w-80 max-w-[85vw] bg-white border-r border-slate-200/70 flex flex-col shadow-2xl shadow-slate-900/30 z-50 lg:hidden dark:bg-slate-900 dark:border-slate-700"
+            initial={{ y: '100%' }}
+            animate={{ y: 0 }}
+            exit={{ y: '100%' }}
+            transition={{ type: 'spring', damping: 28, stiffness: 350, mass: 0.9 }}
+            className="fixed bottom-0 left-0 right-0 max-h-[75vh] bg-white rounded-t-3xl border-t border-slate-200/70 flex flex-col shadow-2xl shadow-slate-900/30 z-50 lg:hidden dark:bg-slate-900 dark:border-slate-700"
           >
+            {/* Sheet grabber handle */}
+            <div className="flex justify-center pt-3 pb-1 lg:hidden">
+              <div className="w-12 h-1.5 bg-slate-300 dark:bg-slate-600 rounded-full" />
+            </div>
             {sidebarContent}
           </motion.aside>
         )}

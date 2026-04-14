@@ -1,21 +1,20 @@
-version: "3.9"
+version: '3.9'
 
 # ============================================================
 # EduSync LMS — docker-compose
 # ============================================================
 # Usage:
-#   Development (local Supabase):
+#   Development (local VIL backend):
 #     cp .env.example .env.local
-#     # fill in VITE_SUPABASE_URL + VITE_SUPABASE_ANON_KEY
+#     # fill in VITE_API_URL + VITE_WS_URL
 #     docker compose up --build
 #
 #   Production build test (simulate prod container locally):
-#     VITE_SUPABASE_URL=https://... VITE_SUPABASE_ANON_KEY=eyJ... \
+#     VITE_API_URL=https://... \
 #       docker compose -f docker-compose.yml up --build
 #
-# Note: EduSync has no traditional backend. The only service
-# here is the React SPA served by nginx. All data access goes
-# directly to Supabase (hosted PostgreSQL + Auth + Edge Functions).
+# Note: EduSync frontend is a React SPA served by nginx.
+# All data access goes through the VIL backend API.
 # ============================================================
 
 services:
@@ -25,33 +24,33 @@ services:
       context: .
       dockerfile: Dockerfile
       args:
-        VITE_SUPABASE_URL: ${VITE_SUPABASE_URL}
-        VITE_SUPABASE_ANON_KEY: ${VITE_SUPABASE_ANON_KEY}
+        VITE_API_URL: ${VITE_API_URL}
+        VITE_WS_URL: ${VITE_WS_URL}
     image: edusync-lms:local
     container_name: edusync-app
     ports:
-      - "3000:80"
+      - '3000:80'
     environment:
       # These are build-time only (baked into the JS bundle by Vite).
       # Setting them here has no effect at runtime — they must be
       # passed as build args above.
-      - VITE_SUPABASE_URL=${VITE_SUPABASE_URL}
-      - VITE_SUPABASE_ANON_KEY=${VITE_SUPABASE_ANON_KEY}
+      - VITE_API_URL=${VITE_API_URL}
+      - VITE_WS_URL=${VITE_WS_URL}
     restart: unless-stopped
     healthcheck:
-      test: ["CMD", "wget", "-qO-", "http://localhost:80/healthz"]
+      test: ['CMD', 'wget', '-qO-', 'http://localhost:80/healthz']
       interval: 30s
       timeout: 10s
       retries: 3
       start_period: 10s
     labels:
-      com.edusync.service: "frontend"
-      com.edusync.environment: "local"
+      com.edusync.service: 'frontend'
+      com.edusync.environment: 'local'
 
   # ── Playwright E2E (run tests against the app container) ───
   # Run with: docker compose --profile e2e up --build
   e2e:
-    profiles: ["e2e"]
+    profiles: ['e2e']
     build:
       context: .
       dockerfile: docker/Dockerfile.e2e
@@ -64,7 +63,7 @@ services:
     volumes:
       - ./playwright-report:/app/playwright-report
       - ./test-results:/app/test-results
-    command: ["pnpm", "test:e2e", "--reporter=html"]
+    command: ['pnpm', 'test:e2e', '--reporter=html']
 
 # ── Networks ────────────────────────────────────────────────
 networks:

@@ -6,14 +6,19 @@ import {
   Link as LinkIcon,
   Loader2,
   Pencil,
+  QrCode,
   Settings2,
   Trash2,
   UserPlus,
   Users,
   X,
 } from 'lucide-react'
+import { useState } from 'react'
 
-import type { EnrolledStudent } from '@/src/features/classroom/hooks/useClassManagementState'
+import { EmptyState } from '@/components/ui'
+import type { EnrolledStudent } from '@/features/classroom/api/classroomService'
+import { QRCodeGenerator } from '@/features/classroom/components/QRCodeGenerator'
+import { useRoleBasedPath } from '@/hooks/useRoleBasedPath'
 
 interface SelectedClass {
   id: string
@@ -33,7 +38,7 @@ interface ClassDetailPanelProps {
   onSetRenamingClassId: (id: string | null) => void
   onSetRenameValue: (value: string) => void
   onHandleRename: (classId: string) => void
-  onSetClassToDelete: (id: string) => void
+  onDeleteClass: (classId: string, className: string) => void
   onHandleCopy: (text: string, id: string) => void
   onSetActiveClassroomId: (id: string) => void
   onNavigate: (path: string) => void
@@ -51,12 +56,15 @@ export function ClassDetailPanel({
   onSetRenamingClassId,
   onSetRenameValue,
   onHandleRename,
-  onSetClassToDelete,
+  onDeleteClass,
   onHandleCopy,
   onSetActiveClassroomId,
   onNavigate,
   onRemoveStudent,
 }: ClassDetailPanelProps) {
+  const getPath = useRoleBasedPath()
+  const [showQR, setShowQR] = useState(false)
+
   if (!selectedClass) {
     return (
       <div className="flex-1 min-w-0">
@@ -135,7 +143,7 @@ export function ClassDetailPanel({
               </p>
             </div>
             <button
-              onClick={() => onSetClassToDelete(selectedClass.id)}
+              onClick={() => onDeleteClass(selectedClass.id, selectedClass.name)}
               className="p-2 text-slate-400 hover:text-red-600 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/30 rounded-xl transition-colors"
               title="Hapus kelas"
               aria-label="Hapus kelas"
@@ -162,11 +170,11 @@ export function ClassDetailPanel({
               <p className="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider mb-1">
                 Kode Gabung
               </p>
-              <div className="flex items-center gap-3">
+              <div className="flex items-center gap-3 flex-wrap">
                 <span className="text-2xl font-black text-slate-800 dark:text-slate-100 tracking-[0.2em]">
                   {selectedClass.join_code}
                 </span>
-                <div className="flex gap-1.5 ml-auto">
+                <div className="flex gap-1.5 ml-auto flex-wrap">
                   <button
                     onClick={() =>
                       onHandleCopy(selectedClass.join_code, 'code-' + selectedClass.id)
@@ -183,7 +191,7 @@ export function ClassDetailPanel({
                   <button
                     onClick={() =>
                       onHandleCopy(
-                        `${window.location.origin}/dashboard?join=${selectedClass.join_code}`,
+                        `${window.location.origin}/join?code=${selectedClass.join_code}`,
                         'link-' + selectedClass.id
                       )
                     }
@@ -196,17 +204,36 @@ export function ClassDetailPanel({
                     )}
                     {copiedId === 'link-' + selectedClass.id ? 'Tersalin!' : 'Salin Link'}
                   </button>
+                  <button
+                    onClick={() => setShowQR((v) => !v)}
+                    className="flex items-center gap-1.5 px-3 py-1.5 bg-indigo-50 dark:bg-indigo-900/30 border border-indigo-200 dark:border-indigo-700 text-indigo-600 dark:text-indigo-400 hover:bg-indigo-100 dark:hover:bg-indigo-900/50 font-medium text-xs rounded-lg transition-colors"
+                    title="Tampilkan QR Code"
+                    aria-label="Tampilkan QR Code"
+                  >
+                    <QrCode className="w-3.5 h-3.5" />
+                    QR Code
+                  </button>
                 </div>
               </div>
             </div>
           </div>
+
+          {/* QR Code panel (collapsible) */}
+          {showQR && (
+            <div className="mt-4">
+              <QRCodeGenerator
+                joinCode={selectedClass.join_code}
+                onClose={() => setShowQR(false)}
+              />
+            </div>
+          )}
 
           {/* Quick Actions */}
           <div className="flex flex-wrap gap-2 mt-4 pt-4 border-t border-slate-100 dark:border-slate-700">
             <button
               onClick={() => {
                 onSetActiveClassroomId(selectedClass.id)
-                onNavigate('/teaching/quiz-manager')
+                onNavigate(getPath('/app/teacher/quiz-manager', '/app/admin/quiz-manager'))
               }}
               className="flex items-center gap-1.5 px-3 py-2 bg-indigo-50 dark:bg-indigo-900/30 text-indigo-700 dark:text-indigo-300 font-bold text-xs rounded-lg hover:bg-indigo-100 dark:hover:bg-indigo-900/50 transition-colors"
             >
@@ -217,7 +244,7 @@ export function ClassDetailPanel({
             <button
               onClick={() => {
                 onSetActiveClassroomId(selectedClass.id)
-                onNavigate('/assignments')
+                onNavigate(getPath('/assignments', '/app/admin/assignments'))
               }}
               className="flex items-center gap-1.5 px-3 py-2 bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 font-bold text-xs rounded-lg hover:bg-blue-100 dark:hover:bg-blue-900/50 transition-colors"
             >
@@ -228,7 +255,7 @@ export function ClassDetailPanel({
             <button
               onClick={() => {
                 onSetActiveClassroomId(selectedClass.id)
-                onNavigate('/analytics')
+                onNavigate(getPath('/app/teacher/analytics', '/app/admin/analytics'))
               }}
               className="flex items-center gap-1.5 px-3 py-2 bg-emerald-50 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-300 font-bold text-xs rounded-lg hover:bg-emerald-100 dark:hover:bg-emerald-900/50 transition-colors"
             >
@@ -257,13 +284,11 @@ export function ClassDetailPanel({
               <span className="text-sm">Memuat siswa...</span>
             </div>
           ) : students.length === 0 ? (
-            <div className="flex flex-col items-center justify-center py-12 text-slate-400 dark:text-slate-500">
-              <Users className="w-10 h-10 mb-2 opacity-30" />
-              <p className="text-sm font-medium text-slate-500 dark:text-slate-400">
-                Belum ada siswa
-              </p>
-              <p className="text-xs mt-1">Bagikan kode gabung untuk mengundang siswa.</p>
-            </div>
+            <EmptyState
+              icon={<Users className="w-8 h-8" />}
+              title="Belum ada siswa"
+              description="Bagikan kode gabung untuk mengundang siswa"
+            />
           ) : (
             <div className="divide-y divide-slate-100 dark:divide-slate-700">
               {students.map((student) => (

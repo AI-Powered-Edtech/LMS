@@ -1,8 +1,9 @@
 import { AlertTriangle, ArrowRight } from 'lucide-react'
 import { Link, useNavigate } from 'react-router-dom'
 
-import { Badge, Card, EmptyState, SkeletonCard } from '@/src/components/ui'
-import { cn } from '@/src/utils/cn'
+import { Badge, Card, EmptyState, SkeletonCard } from '@/components/ui'
+import { cn } from '@/utils/cn'
+import { translateLessonType } from '@/utils/statusTranslations'
 
 interface Assignment {
   id: string
@@ -55,7 +56,7 @@ export function UpcomingAssignments({ assignments, loading }: UpcomingAssignment
               onKeyDown={(e) => {
                 if (e.key === 'Enter' || e.key === ' ') {
                   e.preventDefault()
-                  navigate('/assignments')
+                  void navigate('/assignments')
                 }
               }}
               aria-label={`Tugas: ${task.title}`}
@@ -72,7 +73,7 @@ export function UpcomingAssignments({ assignments, loading }: UpcomingAssignment
                 </h3>
                 <div className="flex items-center gap-2 mt-1">
                   <Badge variant="neutral" size="sm">
-                    {task.type}
+                    {translateLessonType(task.type)}
                   </Badge>
                   <span
                     className={cn(

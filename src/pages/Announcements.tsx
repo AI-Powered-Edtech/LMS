@@ -3,20 +3,21 @@ import { id as localeId } from 'date-fns/locale'
 import { Megaphone, Pin, Plus, Search } from 'lucide-react'
 import { useEffect, useMemo, useState } from 'react'
 
-import { useAuth } from '@/src/contexts/AuthContext'
-import type { Announcement as DBAnnouncement } from '@/src/features/announcements'
-import { useAnnouncements, useSaveAnnouncement, useSubmitRSVP } from '@/src/features/announcements'
+import { EmptyState } from '@/components/ui'
+import { useAuth } from '@/contexts/AuthContext'
+import type { Announcement as DBAnnouncement } from '@/features/announcements'
+import { useAnnouncements, useSaveAnnouncement, useSubmitRSVP } from '@/features/announcements'
 import {
   type AnnouncementCardData,
   AnnouncementFeedCard,
-} from '@/src/features/announcements/components/AnnouncementFeedCard'
-import { AnnouncementSkeleton } from '@/src/features/announcements/components/AnnouncementSkeleton'
-import { CreateAnnouncementModal } from '@/src/features/announcements/components/CreateAnnouncementModal'
-import { useDebounce } from '@/src/hooks/useDebounce'
-import { usePageTitle } from '@/src/hooks/usePageTitle'
-import { useToast } from '@/src/hooks/useToast'
-import { cn } from '@/src/utils/cn'
-import { logger } from '@/src/utils/logger'
+} from '@/features/announcements/components/AnnouncementFeedCard'
+import { AnnouncementSkeleton } from '@/features/announcements/components/AnnouncementSkeleton'
+import { CreateAnnouncementModal } from '@/features/announcements/components/CreateAnnouncementModal'
+import { useDebounce } from '@/hooks/useDebounce'
+import { usePageTitle } from '@/hooks/usePageTitle'
+import { useToast } from '@/hooks/useToast'
+import { cn } from '@/utils/cn'
+import { logger } from '@/utils/logger'
 
 const PAGE_SIZE = 10
 
@@ -82,7 +83,7 @@ export function Announcements() {
   /* eslint-disable react-hooks/exhaustive-deps */
   useEffect(() => {
     setPage(0)
-    refetch()
+    void refetch()
   }, [debouncedSearch])
   /* eslint-enable react-hooks/exhaustive-deps */
 
@@ -120,7 +121,7 @@ export function Announcements() {
         type: 'success',
       })
       setIsCreateModalOpen(false)
-      refetch()
+      void refetch()
     } catch (err) {
       if (import.meta.env.DEV) logger.error('Error creating announcement:', err)
       addToast({ message: 'Gagal menyimpan pengumuman.', type: 'error' })
@@ -131,7 +132,7 @@ export function Announcements() {
     try {
       await rsvpMutation.mutateAsync({ announcementId, response })
       addToast({ message: 'Berhasil mengirim RSVP', type: 'success' })
-      refetch()
+      void refetch()
     } catch {
       addToast({ message: 'Gagal mengirim RSVP', type: 'error' })
     }
@@ -283,17 +284,11 @@ export function Announcements() {
         )}
 
         {filteredAnnouncements.length === 0 && (
-          <div className="text-center py-20 bg-white dark:bg-slate-800 rounded-3xl border border-slate-200 dark:border-slate-700">
-            <div className="w-20 h-20 bg-slate-50 dark:bg-slate-700 rounded-full flex items-center justify-center mx-auto mb-4">
-              <Megaphone className="w-10 h-10 text-slate-300 dark:text-slate-500" />
-            </div>
-            <h3 className="text-xl font-bold text-slate-700 dark:text-slate-200 mb-2">
-              Tidak ada pengumuman
-            </h3>
-            <p className="text-slate-500 dark:text-slate-400 max-w-md mx-auto">
-              Belum ada pengumuman baru yang sesuai dengan filter atau pencarian Anda.
-            </p>
-          </div>
+          <EmptyState
+            icon={<Megaphone className="w-8 h-8" />}
+            title="Tidak ada pengumuman"
+            description="Belum ada pengumuman baru yang sesuai dengan filter atau pencarian Anda."
+          />
         )}
       </div>
 

@@ -2,11 +2,17 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
 const mockInsert = vi.fn()
 const mockFrom = vi.fn()
+const mockRpc = vi.fn()
 
-vi.mock('@/src/services/supabase/client', () => ({
-  supabase: {
+vi.mock('@/services/db', () => ({
+  db: {
     from: (...args: unknown[]) => mockFrom(...args),
+    rpc: (...args: unknown[]) => mockRpc(...args),
   },
+}))
+
+vi.mock('@/utils/sentry', () => ({
+  captureError: vi.fn(),
 }))
 
 import { startEventFlushing, stopEventFlushing, trackLearningEvent } from '../api/trackingService'
@@ -44,6 +50,7 @@ describe('startEventFlushing / stopEventFlushing', () => {
     vi.useFakeTimers()
     vi.clearAllMocks()
     mockFrom.mockReturnValue({ insert: vi.fn().mockResolvedValue({ error: null }) })
+    mockRpc.mockResolvedValue({ error: null })
   })
 
   afterEach(() => {

@@ -1,8 +1,6 @@
 {
   "compilerOptions": {
     "target": "ES2022",
-    "experimentalDecorators": true,
-    "useDefineForClassFields": false,
     "module": "ESNext",
     "lib": ["ES2022", "DOM", "DOM.Iterable"],
     "strict": true,
@@ -10,15 +8,18 @@
     "moduleResolution": "bundler",
     "isolatedModules": true,
     "moduleDetection": "force",
-    "allowJs": true,
+    "allowJs": false,
     "jsx": "react-jsx",
-    "types": ["vitest/globals"],
+    "types": ["vitest/globals", "vite-plugin-pwa/client"],
     "paths": {
-      "@/*": ["./*"]
+      "@/*": ["./src/*"]
     },
     "resolveJsonModule": true,
     "allowImportingTsExtensions": true,
-    "noEmit": true
+    "noEmit": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "noFallthroughCasesInSwitch": true
   },
   "include": ["src"]
 }

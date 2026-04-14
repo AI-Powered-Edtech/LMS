@@ -1,4 +1,5 @@
-import { supabase } from '@/src/services/supabase/client'
+import { db } from '@/services/db'
+import { getRealtimeProvider } from '@/services/realtime'
 
 export interface Classroom {
   id: string
@@ -12,6 +13,39 @@ export interface Classroom {
   student_count?: number
 }
 
+export interface EnrolledStudent {
+  id: string
+  student_id: string
+  full_name: string
+  email: string
+  enrolled_at: string
+  status: string
+}
+
+interface ClassroomRow {
+  id: string
+  name: string
+  course_id?: string
+  teacher_id: string
+  join_code: string
+  max_students?: number
+  created_at: string
+}
+
+interface EnrollmentRow {
+  id: string
+  class_id: string
+  student_id: string
+  status: string
+  joined_at: string
+}
+
+interface ProfileRow {
+  id: string
+  full_name: string | null
+  email: string | null
+}
+
 type UserRole = 'teacher' | 'student' | 'admin'
 
 export const classroomService = {
@@ -22,10 +56,12 @@ export const classroomService = {
    * - student: enrolled classes
    */
   async fetchClassrooms(userId: string, role: UserRole, tenantId: string): Promise<Classroom[]> {
+    const classroomColumns = 'id, name, course_id, teacher_id, join_code, max_students, created_at'
+
     if (role === 'teacher') {
-      const { data, error } = await supabase
+      const { data, error } = await db
         .from('classes')
-        .select('id, name, course_id, teacher_id, join_code, max_students, created_at')
+        .select(classroomColumns)
         .eq('teacher_id', userId)
         .eq('tenant_id', tenantId)
         .order('created_at', { ascending: false })
@@ -34,28 +70,37 @@ export const classroomService = {
     }
 
     if (role === 'admin') {
-      const { data, error } = await supabase
+      const { data, error } = await db
         .from('classes')
-        .select('id, name, course_id, teacher_id, join_code, max_students, created_at')
+        .select(classroomColumns)
         .eq('tenant_id', tenantId)
         .order('created_at', { ascending: false })
       if (error) throw error
       return data ?? []
     }
 
-    // Student: fetch via enrollments
-    const { data: enrollments, error } = await supabase
+    const { data: enrollments, error } = await db
       .from('enrollments')
-      .select(
-        'class_id, classes( id, name, course_id, teacher_id, join_code, max_students, created_at )'
-      )
+      .select('class_id')
       .eq('student_id', userId)
       .eq('tenant_id', tenantId)
       .eq('status', 'ACTIVE')
     if (error) throw error
-    return (enrollments
-      ?.map((e) => (e as unknown as { classes: Classroom }).classes)
-      .filter(Boolean) ?? []) as Classroom[]
+
+    const classIds = (enrollments ?? []).map((item: any) => item.class_id).filter(Boolean)
+    if (classIds.length === 0) return []
+
+    const { data: classrooms, error: classroomError } = await db
+      .from('classes')
+      .select(classroomColumns)
+      .eq('tenant_id', tenantId)
+      .in('id', classIds)
+      .order('created_at', { ascending: false })
+
+    if (classroomError) throw classroomError
+    return ((classrooms ?? []) as ClassroomRow[]).sort(
+      (left, right) => new Date(right.created_at).getTime() - new Date(left.created_at).getTime()
+    )
   },
 
   /**
@@ -75,7 +120,7 @@ export const classroomService = {
         }
       }
     }
-    const { error } = await supabase.from('classes').insert({
+    const { error } = await db.from('classes').insert({
       name,
       teacher_id: teacherId,
       join_code: joinCode,
@@ -87,8 +132,12 @@ export const classroomService = {
   /**
    * Update classroom name.
    */
-  async updateClassroom(id: string, name: string): Promise<void> {
-    const { error } = await supabase.from('classes').update({ name }).eq('id', id)
+  async updateClassroom(id: string, name: string, tenantId: string): Promise<void> {
+    const { error } = await db
+      .from('classes')
+      .update({ name })
+      .eq('id', id)
+      .eq('tenant_id', tenantId)
     if (error) throw error
   },
 
@@ -97,7 +146,7 @@ export const classroomService = {
    * Note: student_id and tenant_id are inferred by the RPC from auth context.
    */
   async joinClassroom(joinCode: string): Promise<void> {
-    const { error } = await supabase.rpc('enroll_student', {
+    const { error } = await db.rpc('enroll_student', {
       p_join_code: joinCode.toUpperCase(),
     })
 
@@ -131,7 +180,7 @@ export const classroomService = {
    * Assign a course to a class.
    */
   async assignCourseToClass(courseId: string, classId: string, tenantId: string): Promise<void> {
-    const { error } = await supabase.from('course_classes').insert({
+    const { error } = await db.from('course_classes').insert({
       course_id: courseId,
       class_id: classId,
       tenant_id: tenantId,
@@ -147,7 +196,7 @@ export const classroomService = {
     classId: string,
     tenantId: string
   ): Promise<void> {
-    const { error } = await supabase
+    const { error } = await db
       .from('course_classes')
       .delete()
       .eq('course_id', courseId)
@@ -160,36 +209,123 @@ export const classroomService = {
    * Fetch classes assigned to a specific course.
    */
   async fetchAssignedClassesForCourse(courseId: string): Promise<string[]> {
-    const { data, error } = await supabase
+    const { data, error } = await db
       .from('course_classes')
       .select('class_id')
       .eq('course_id', courseId)
 
     if (error) throw error
-    return data?.map((item) => item.class_id) || []
+    return data?.map((item: any) => item.class_id) || []
   },
   /**
    * Subscribe to realtime classroom changes.
    * Returns cleanup function.
    */
-  subscribeToChanges(onUpdate: () => void): () => void {
-    const channel = supabase
+  subscribeToChanges(tenantId: string, onUpdate: () => void): () => void {
+    const channel = getRealtimeProvider()
       .channel('classrooms-changes')
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'classes' }, onUpdate)
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'enrollments' }, onUpdate)
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'course_classes' }, onUpdate)
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'classes', filter: `tenant_id=eq.${tenantId}` },
+        onUpdate
+      )
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'enrollments', filter: `tenant_id=eq.${tenantId}` },
+        onUpdate
+      )
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'course_classes',
+          filter: `tenant_id=eq.${tenantId}`,
+        },
+        onUpdate
+      )
       .subscribe()
 
     return () => {
-      supabase.removeChannel(channel)
+      void getRealtimeProvider().removeChannel(channel)
     }
   },
 
   /**
    * Delete a classroom by ID.
    */
-  async deleteClassroom(classId: string): Promise<void> {
-    const { error } = await supabase.from('classes').delete().eq('id', classId)
+  async deleteClassroom(classId: string, tenantId: string): Promise<void> {
+    const { error } = await db.from('classes').delete().eq('id', classId).eq('tenant_id', tenantId)
+    if (error) throw error
+  },
+
+  /**
+   * Count active enrollments for a class.
+   */
+  async getActiveEnrollmentCount(classId: string, tenantId: string): Promise<number> {
+    const { count, error } = await db
+      .from('enrollments')
+      .select('id', { count: 'exact', head: true })
+      .eq('class_id', classId)
+      .eq('tenant_id', tenantId)
+      .eq('status', 'ACTIVE')
+
+    if (error) throw error
+    return count ?? 0
+  },
+
+  /**
+   * Fetch enrolled students with profile info for class management.
+   */
+  async getEnrolledStudents(classId: string, tenantId: string): Promise<EnrolledStudent[]> {
+    const { data, error } = await db
+      .from('enrollments')
+      .select('id, student_id, status, joined_at')
+      .eq('class_id', classId)
+      .eq('tenant_id', tenantId)
+      .eq('status', 'ACTIVE')
+    if (error) throw error
+
+    const enrollments = (data ?? []) as EnrollmentRow[]
+    if (enrollments.length === 0) return []
+
+    const studentIds = enrollments.map((row) => row.student_id).filter(Boolean)
+    const { data: profiles, error: profileError } = await db
+      .from('profiles')
+      .select('id, full_name, email')
+      .eq('tenant_id', tenantId)
+      .in('id', studentIds)
+
+    if (profileError) throw profileError
+
+    const profileMap = new Map(
+      ((profiles ?? []) as ProfileRow[]).map((profile) => [profile.id, profile])
+    )
+
+    return enrollments.map((row) => {
+      const profile = profileMap.get(row.student_id)
+      return {
+        id: row.id,
+        student_id: row.student_id,
+        full_name: profile?.full_name || 'Unnamed',
+        email: profile?.email || '-',
+        enrolled_at: row.joined_at,
+        status: row.status,
+      }
+    })
+  },
+
+  /**
+   * Remove a student from a class (soft delete).
+   */
+  async removeStudent(enrollmentId: string, removedBy: string, tenantId: string): Promise<void> {
+    void removedBy
+    const { error } = await db
+      .from('enrollments')
+      .update({ status: 'REMOVED' })
+      .eq('id', enrollmentId)
+      .eq('tenant_id', tenantId)
+
     if (error) throw error
   },
 }

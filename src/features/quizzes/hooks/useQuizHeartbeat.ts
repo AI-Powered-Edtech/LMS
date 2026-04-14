@@ -19,7 +19,7 @@ export function useQuizHeartbeat({ attemptId, intervalMs = 30000 }: UseQuizHeart
     if (!attemptId) return
 
     const interval = setInterval(() => {
-      quizPlayerService.recordHeartbeat(attemptId)
+      void quizPlayerService.recordHeartbeat(attemptId)
     }, intervalMs)
 
     return () => clearInterval(interval)

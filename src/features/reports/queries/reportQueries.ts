@@ -1,6 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 
-import { GC, STALE } from '@/src/utils/queryConstants'
+import { GC, STALE } from '@/utils/queryConstants'
+import { captureError } from '@/utils/sentry'
 
 import { reportService } from '../api/reportService'
 
@@ -22,6 +23,9 @@ export function useSaveReport() {
   return useMutation({
     mutationFn: reportService.saveReport,
     onSuccess: () => qc.invalidateQueries({ queryKey: REPORT_KEYS.all }),
+    onError: (err) => {
+      captureError(err, { context: 'useSaveReport' })
+    },
   })
 }
 
@@ -30,11 +34,17 @@ export function useDeleteReport() {
   return useMutation({
     mutationFn: reportService.deleteReport,
     onSuccess: () => qc.invalidateQueries({ queryKey: REPORT_KEYS.all }),
+    onError: (err) => {
+      captureError(err, { context: 'useDeleteReport' })
+    },
   })
 }
 
 export function useGenerateReportData() {
   return useMutation({
     mutationFn: reportService.generateReportData,
+    onError: (err) => {
+      captureError(err, { context: 'useGenerateReportData' })
+    },
   })
 }

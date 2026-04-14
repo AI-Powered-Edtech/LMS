@@ -2,7 +2,7 @@ import { Bell } from 'lucide-react'
 import { AnimatePresence, motion } from 'motion/react'
 import { useEffect, useRef, useState } from 'react'
 
-import { useAuth } from '@/src/contexts/AuthContext'
+import { useAuth } from '@/contexts/AuthContext'
 
 import { useUnreadAlertCount } from '../queries/useStruggleQueries'
 import { StruggleAlertPanel } from './StruggleAlertPanel'

@@ -47,10 +47,10 @@ describe('ErrorBoundary', () => {
     expect(screen.queryByText('Terjadi Kesalahan')).not.toBeInTheDocument()
   })
 
-  it('calls onReset when reset button is clicked', () => {
-    const onReset = vi.fn()
+  it('calls onRetry when reset button is clicked', () => {
+    const onRetry = vi.fn()
     render(
-      <ErrorBoundary onReset={onReset}>
+      <ErrorBoundary onRetry={onRetry}>
         <ThrowingChild shouldThrow />
       </ErrorBoundary>
     )
@@ -58,7 +58,7 @@ describe('ErrorBoundary', () => {
     const retryBtn = screen.getByText('Coba Lagi')
     expect(retryBtn).toBeInTheDocument()
     fireEvent.click(retryBtn)
-    expect(onReset).toHaveBeenCalledTimes(1)
+    expect(onRetry).toHaveBeenCalledTimes(1)
   })
 
   it('shows home link by default in fallback', () => {

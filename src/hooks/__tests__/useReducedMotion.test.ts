@@ -1,4 +1,4 @@
-import { renderHook, waitFor } from '@testing-library/react'
+import { act, renderHook, waitFor } from '@testing-library/react'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { useReducedMotion } from '../useReducedMotion'
@@ -131,14 +131,18 @@ describe('useReducedMotion', () => {
 
     expect(result.current).toBe(false)
 
-    // Simulate media query change — capture in const to avoid TS never-narrowing
-    const handler = changeHandler as ((e: MediaQueryListEvent) => void) | null
-    if (handler) {
+    // Simulate media query change
+    const handler = changeHandler as ((event: MediaQueryListEvent) => void) | null
+    if (!handler) {
+      throw new Error('Expected change handler to be registered')
+    }
+
+    act(() => {
       handler({
         matches: true,
         media: '(prefers-reduced-motion: reduce)',
-      } as unknown as MediaQueryListEvent)
-    }
+      } as MediaQueryListEvent)
+    })
 
     rerender()
 

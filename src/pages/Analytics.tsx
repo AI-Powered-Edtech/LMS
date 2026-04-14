@@ -14,19 +14,19 @@ import {
 } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
 
-import { AnalyticsCharts } from '@/src/features/analytics/components/AnalyticsCharts'
-import { AnalyticsStudentTable } from '@/src/features/analytics/components/AnalyticsStudentTable'
-import { useAnalyticsPageState } from '@/src/features/analytics/hooks/useAnalyticsPageState'
-import { StruggleConfigPanel } from '@/src/features/struggle'
-import { usePageTitle } from '@/src/hooks/usePageTitle'
-import { cn } from '@/src/utils/cn'
+import { AnalyticsCharts } from '@/features/analytics/components/AnalyticsCharts'
+import { AnalyticsStudentTable } from '@/features/analytics/components/AnalyticsStudentTable'
+import { useAnalyticsPageState } from '@/features/analytics/hooks/useAnalyticsPageState'
+import { StruggleConfigPanel } from '@/features/struggle'
+import { usePageTitle } from '@/hooks/usePageTitle'
+import { cn } from '@/utils/cn'
 
 export function Analytics() {
   usePageTitle('Analitik')
   const navigate = useNavigate()
   const {
     activeTenant,
-    role,
+    activeRole,
     courses,
     selectedCourseId,
     setSelectedCourseId,
@@ -63,7 +63,7 @@ export function Analytics() {
 
         <div className="flex items-center gap-3">
           <select
-            value={selectedCourseId}
+            value={selectedCourseId ?? ''}
             onChange={(e) => setSelectedCourseId(e.target.value)}
             className="bg-white border text-sm border-slate-200 text-slate-700 rounded-xl focus:ring-indigo-500 focus:border-indigo-500 p-2.5 shadow-sm"
           >
@@ -97,7 +97,7 @@ export function Analytics() {
           <button
             onClick={() => {
               if (selectedCourseId) {
-                navigate(`/app/teacher/course-analytics?courseId=${selectedCourseId}`)
+                void navigate(`/app/teacher/course-analytics?courseId=${selectedCourseId}`)
               }
             }}
             disabled={!selectedCourseId}
@@ -233,7 +233,7 @@ export function Analytics() {
         </>
       )}
 
-      {(role === 'teacher' || role === 'admin') && (
+      {(activeRole === 'teacher' || activeRole === 'admin') && (
         <div>
           <h2 className="text-xl font-bold text-slate-800 dark:text-slate-100 mb-4">
             Pengaturan Deteksi

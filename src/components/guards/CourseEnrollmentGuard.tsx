@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react'
-import { Navigate, useLocation, useParams } from 'react-router-dom'
+import { Navigate, useLocation, useNavigate, useParams } from 'react-router-dom'
 
-import { logger } from '@/src/utils/logger'
+import { logger } from '@/utils/logger'
 
 import { useAuth } from '../../contexts/AuthContext'
 import { courseService } from '../../features/courses'
@@ -12,26 +12,64 @@ interface CourseEnrollmentGuardProps {
 
 export const CourseEnrollmentGuard: React.FC<CourseEnrollmentGuardProps> = ({ children }) => {
   const { courseId } = useParams<{ courseId: string }>()
-  const { user, role, tenantId, loading: authLoading } = useAuth()
+  const { user, role, activeRole, tenantId, loading: authLoading } = useAuth()
   const [isEnrolled, setIsEnrolled] = useState<boolean | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [loading, setLoading] = useState(true)
+  const [retryCount, setRetryCount] = useState(0)
   const location = useLocation()
+  const navigate = useNavigate()
+
+  // Use activeRole (role for the current active tenant) if available,
+  // fall back to global role. This prevents a user who is 'teacher' in Tenant A
+  // from bypassing enrollment checks in Tenant B where they are only a 'student'.
+  const effectiveRole = activeRole ?? role
 
   useEffect(() => {
-    const verifyEnrollment = async () => {
-      if (authLoading || !user || !tenantId || !courseId) return
+    // Safety timeout: if auth takes too long, show error instead of hanging forever
+    const authTimeoutId = setTimeout(() => {
+      if (authLoading) {
+        setError('Verifikasi memakan terlalu lama. Silakan refresh halaman.')
+        setLoading(false)
+      }
+    }, 15000) // 15 second timeout
 
-      // Teachers and Admins bypass enrollment checks
-      if (role === 'teacher' || role === 'admin') {
+    const verifyEnrollment = async () => {
+      if (authLoading) return // still waiting — effect will re-run when authLoading changes
+
+      if (!user || !tenantId) {
+        // Auth finished but no user — don't hang forever
+        setLoading(false)
+        return
+      }
+
+      // No courseId means we're not on a specific course page — allow through
+      if (!courseId) {
         setIsEnrolled(true)
         setLoading(false)
         return
       }
 
+      // Teachers and Admins bypass enrollment checks (using tenant-scoped role)
+      if (effectiveRole === 'teacher' || effectiveRole === 'admin') {
+        setIsEnrolled(true)
+        setLoading(false)
+        return
+      }
+
+      setError(null)
+      setLoading(true)
+
       try {
-        const enrolled = await courseService.checkEnrollment(courseId, user.id, tenantId)
-        setIsEnrolled(enrolled)
+        const result = await courseService.checkEnrollment(courseId, user.id, tenantId)
+
+        if (result.errorType === 'access_error') {
+          // Distinguish a real access/network error from "not enrolled"
+          setError('Gagal memverifikasi status pendaftaran. Periksa koneksi internet Anda.')
+          setIsEnrolled(false)
+        } else {
+          setIsEnrolled(result.enrolled)
+        }
       } catch (err: unknown) {
         if (import.meta.env.DEV) logger.error('Enrollment verification failed:', err)
         const msg = err instanceof Error ? err.message : 'Gagal memverifikasi status pendaftaran'
@@ -42,8 +80,9 @@ export const CourseEnrollmentGuard: React.FC<CourseEnrollmentGuardProps> = ({ ch
       }
     }
 
-    verifyEnrollment()
-  }, [courseId, user, role, tenantId, authLoading])
+    void verifyEnrollment()
+    return () => clearTimeout(authTimeoutId)
+  }, [courseId, user, effectiveRole, tenantId, authLoading, retryCount])
 
   if (authLoading || loading) {
     return (
@@ -56,15 +95,23 @@ export const CourseEnrollmentGuard: React.FC<CourseEnrollmentGuardProps> = ({ ch
   if (error) {
     return (
       <div className="flex flex-col items-center justify-center min-h-screen p-4 text-center">
-        <div className="bg-red-50 text-red-600 p-4 rounded-xl max-w-md">
-          <h3 className="font-bold mb-2">Terjadi Kesalahan</h3>
-          <p>{error}</p>
-          <button
-            onClick={() => window.location.reload()}
-            className="mt-4 px-4 py-2 bg-red-600 text-white rounded-lg font-medium"
-          >
-            Coba Lagi
-          </button>
+        <div className="bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 p-6 rounded-xl max-w-md border border-red-200 dark:border-red-800">
+          <h3 className="font-bold mb-2 text-red-700 dark:text-red-300">Terjadi Kesalahan</h3>
+          <p className="text-sm mb-4">{error}</p>
+          <div className="flex flex-col sm:flex-row gap-3 justify-center">
+            <button
+              onClick={() => setRetryCount((c) => c + 1)}
+              className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg font-medium transition-colors"
+            >
+              Coba Lagi
+            </button>
+            <button
+              onClick={() => navigate(-1)}
+              className="px-4 py-2 border border-red-300 dark:border-red-700 text-red-600 dark:text-red-400 rounded-lg font-medium hover:bg-red-50 dark:hover:bg-red-900/30 transition-colors"
+            >
+              Kembali
+            </button>
+          </div>
         </div>
       </div>
     )
@@ -74,8 +121,8 @@ export const CourseEnrollmentGuard: React.FC<CourseEnrollmentGuardProps> = ({ ch
     // Redirect to courses list if not enrolled
     return (
       <Navigate
-        to="/courses"
-        state={{ from: location, error: 'You are not enrolled in this course.' }}
+        to="/app/student/courses"
+        state={{ from: location, error: 'Kamu belum terdaftar di kursus ini.' }}
         replace
       />
     )

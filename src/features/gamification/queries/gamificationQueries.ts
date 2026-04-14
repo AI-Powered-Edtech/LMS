@@ -7,10 +7,11 @@
 
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 
-import { useAuth } from '@/src/contexts/AuthContext'
-import { createQueryKeys } from '@/src/lib/queryKeys'
-import { cachedQuery, CacheKeys } from '@/src/utils/cache'
-import { GC, STALE } from '@/src/utils/queryConstants'
+import { useAuth } from '@/contexts/AuthContext'
+import { createQueryKeys } from '@/shared/lib/queryKeys'
+import { cachedQuery, CacheKeys } from '@/utils/cache'
+import { GC, STALE } from '@/utils/queryConstants'
+import { captureError } from '@/utils/sentry'
 
 import { gamificationService } from '../api/gamificationService'
 import type { LeaderboardPeriod, LeaderboardSortBy } from '../types'
@@ -49,7 +50,7 @@ export function useStudentBadges() {
         10
       ),
     enabled: !!tenantId && !!user,
-    staleTime: STALE.STATIC,
+    staleTime: STALE.MODERATE,
     gcTime: GC.LONG,
   })
 }
@@ -85,7 +86,10 @@ export function useSaveBadgeDefinition() {
     mutationFn: (badge: Parameters<typeof gamificationService.saveBadgeDefinition>[0]) =>
       gamificationService.saveBadgeDefinition(badge),
     onSuccess: () => {
-      qc.invalidateQueries({ queryKey: gamificationKeys.badgeDefinitions(tenantId!) })
+      void qc.invalidateQueries({ queryKey: gamificationKeys.badgeDefinitions(tenantId!) })
+    },
+    onError: (err) => {
+      captureError(err, { context: 'useSaveBadgeDefinition' })
     },
   })
 }
@@ -132,7 +136,7 @@ export function useLeaderboardV2(params?: {
         5
       ),
     enabled: !!tenantId,
-    staleTime: STALE.MODERATE,
+    staleTime: STALE.DYNAMIC,
   })
 }
 

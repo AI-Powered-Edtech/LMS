@@ -1,8 +1,8 @@
 import { Clock, Crown, Star, Target, Trophy, Zap } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
 
-import { Card, EmptyState } from '@/src/components/ui'
-import { cn } from '@/src/utils/cn'
+import { Card, EmptyState } from '@/components/ui'
+import { cn } from '@/utils/cn'
 
 interface Achievement {
   id: string
@@ -80,7 +80,14 @@ export function GamificationWidgets({ xp, dailyGoal, achievements }: Gamificatio
                 {xp % dailyGoal}/{dailyGoal} XP
               </span>
             </div>
-            <div className="w-full bg-slate-100 dark:bg-slate-700 rounded-full h-2">
+            <div
+              role="progressbar"
+              aria-valuenow={dailyProgress}
+              aria-valuemin={0}
+              aria-valuemax={100}
+              aria-label={`Target harian: ${xp % dailyGoal}/${dailyGoal} XP`}
+              className="w-full bg-slate-100 dark:bg-slate-700 rounded-full h-2"
+            >
               <div
                 className="bg-yellow-400 h-2 rounded-full transition-all duration-500"
                 style={{ width: `${dailyProgress}%` }}

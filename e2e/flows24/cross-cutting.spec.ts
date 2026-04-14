@@ -381,7 +381,7 @@ test.describe('CC-3: Console Error Sweep', () => {
     'Non-Error promise rejection',
     'AbortError',
     'VITE_',
-    'supabase',
+    'db',
     'GoTrueClient',
     'auth-token',
     'Failed to fetch',

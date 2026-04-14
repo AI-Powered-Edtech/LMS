@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from 'react'
 import { useSearchParams } from 'react-router-dom'
 
-import { useAuth } from '@/src/contexts/AuthContext'
+import { useAuth } from '@/contexts/AuthContext'
 import {
   type QuizAttempt,
   type QuizAttemptQuestion,
@@ -9,23 +9,25 @@ import {
   quizService,
   type StudentQuizAssignment,
   type SubmitAnswer,
-} from '@/src/features/quizzes'
+} from '@/features/quizzes'
 import {
   getAttemptQuestions,
   getCurrentQuestionIndex,
-} from '@/src/features/quizzes/api/quizPlayer.service'
+} from '@/features/quizzes/api/quizPlayer.service'
 import {
   useStartQuizAttempt,
   useSubmitQuizAttempt,
-} from '@/src/features/quizzes/queries/quizPlayer.mutations'
+} from '@/features/quizzes/queries/quizPlayer.mutations'
 import {
   useStudentQuizAssignments,
   useUserAttempts,
-} from '@/src/features/quizzes/queries/quizPlayer.queries'
-import { useDebounce } from '@/src/hooks/useDebounce'
-import { useToast } from '@/src/hooks/useToast'
-import { logger } from '@/src/utils/logger'
-import { quizSubmitRateLimiter } from '@/src/utils/rateLimiter'
+} from '@/features/quizzes/queries/quizPlayer.queries'
+import { useDebounce } from '@/hooks/useDebounce'
+import { useToast } from '@/hooks/useToast'
+import { logger } from '@/utils/logger'
+import { cacheQuiz } from '@/utils/offlineStorage'
+import { quizSubmitRateLimiter } from '@/utils/rateLimiter'
+import { captureError } from '@/utils/sentry'
 
 export function useQuizPageState() {
   const { tenantId } = useAuth()
@@ -133,6 +135,18 @@ export function useQuizPageState() {
   // Handle auto-open if quizId is in search params
   useEffect(() => {
     const targetQuizId = searchParams.get('quizId')
+    // Validate quizId format (UUID or alphanumeric)
+    if (targetQuizId && !/^[a-zA-Z0-9_-]+$/.test(targetQuizId)) {
+      addToast({ type: 'error', message: 'Tautan kuis tidak valid.' })
+      setSearchParams(
+        (prev) => {
+          prev.delete('quizId')
+          return prev
+        },
+        { replace: true }
+      )
+      return
+    }
     if (targetQuizId && quizzes.length > 0 && !isQuizActive && !showResults && !pendingQuiz) {
       const quiz = quizzes.find((q) => q.id === targetQuizId)
       if (quiz) {
@@ -147,9 +161,28 @@ export function useQuizPageState() {
           },
           { replace: true }
         )
+      } else {
+        // Quiz ID valid but not found in list
+        addToast({ type: 'warning', message: 'Kuis tidak ditemukan.' })
+        setSearchParams(
+          (prev) => {
+            prev.delete('quizId')
+            return prev
+          },
+          { replace: true }
+        )
       }
     }
-  }, [searchParams, quizzes, quizAttempts, isQuizActive, showResults, pendingQuiz, setSearchParams])
+  }, [
+    searchParams,
+    quizzes,
+    quizAttempts,
+    isQuizActive,
+    showResults,
+    pendingQuiz,
+    setSearchParams,
+    addToast,
+  ])
 
   const handleStartOrResume = async (
     quiz: StudentQuizAssignment & { isResume?: boolean; activeAttempt?: QuizAttempt }
@@ -204,6 +237,29 @@ export function useQuizPageState() {
         return
       }
 
+      try {
+        await cacheQuiz({
+          quizId: quiz.quiz_id,
+          questions: questions.map((q) => ({
+            ...q,
+            type:
+              q.question_type === 'MCQ'
+                ? 'multiple_choice'
+                : q.question_type === 'TRUE_FALSE'
+                  ? 'true_false'
+                  : 'essay',
+            order: q.order_index || 0,
+          })),
+          options: [],
+          cachedAt: Date.now(),
+          version: 1,
+        })
+      } catch (err) {
+        // IndexedDB caching failure is non-critical — continue
+        if (import.meta.env.DEV)
+          logger.warn('[useQuizPageState] IndexedDB quiz cache write failed:', err)
+      }
+
       setInitialAnswers(recoveredAnswers)
       setIsQuizActive(true)
       setShowResults(false)
@@ -255,6 +311,7 @@ export function useQuizPageState() {
       setShowAnswerReview(false)
     } catch (err: unknown) {
       if (import.meta.env.DEV) logger.error('Gagal mengirim kuis', err)
+      captureError(err, { context: 'useQuizPageState.handleSubmit', attemptId: currentAttemptId })
       const message = err instanceof Error ? err.message : ''
       if (message.includes('Time limit exceeded')) {
         addToast({
@@ -262,7 +319,7 @@ export function useQuizPageState() {
           message: 'Waktu habis! Kuis Anda telah ditandai sebagai kedaluwarsa.',
         })
         setIsQuizActive(false)
-        refreshQuizData()
+        void refreshQuizData()
       } else if (message.includes('ATTEMPT_VERSION_CONFLICT')) {
         addToast({
           type: 'warning',
@@ -270,7 +327,7 @@ export function useQuizPageState() {
             'Kuis ini baru saja disubmit dari tempat lain (tab/perangkat lain). Memuat ulang...',
         })
         setIsQuizActive(false)
-        refreshQuizData()
+        void refreshQuizData()
       } else {
         addToast({ type: 'error', message: 'Gagal mengirim kuis. Silakan coba lagi.' })
       }

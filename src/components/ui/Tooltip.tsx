@@ -1,6 +1,6 @@
 import { useCallback, useRef, useState } from 'react'
 
-import { cn } from '@/src/utils/cn'
+import { cn } from '@/utils/cn'
 
 /* ─── Types ───────────────────────────────────────────────────── */
 
@@ -49,6 +49,7 @@ export function Tooltip({ content, position = 'top', children }: TooltipProps) {
   return (
     <div
       className="relative inline-flex"
+      role="presentation"
       onMouseEnter={show}
       onMouseLeave={hide}
       onFocus={show}

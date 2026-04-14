@@ -5,9 +5,9 @@ import React, { useEffect, useState } from 'react'
 import {
   QuestionBankItem,
   questionBankService,
-} from '@/src/features/question-bank/api/questionBankService'
-import { useToast } from '@/src/hooks/useToast'
-import { logger } from '@/src/utils/logger'
+} from '@/features/question-bank/api/questionBankService'
+import { useToast } from '@/hooks/useToast'
+import { logger } from '@/utils/logger'
 
 import { QuestionCard } from './QuestionCard'
 
@@ -34,14 +34,14 @@ export const QuestionSearchModal: React.FC<QuestionSearchModalProps> = ({
   /* eslint-disable react-hooks/exhaustive-deps */
   useEffect(() => {
     if (isOpen) {
-      loadQuestions()
+      void loadQuestions()
     }
   }, [isOpen, typeFilter])
 
   useEffect(() => {
     if (!isOpen) return
     const timer = setTimeout(() => {
-      loadQuestions()
+      void loadQuestions()
     }, 500)
     return () => clearTimeout(timer)
   }, [searchQuery])
@@ -58,6 +58,7 @@ export const QuestionSearchModal: React.FC<QuestionSearchModalProps> = ({
       setQuestions(data)
     } catch (error) {
       if (import.meta.env.DEV) logger.error('Failed to load questions:', error)
+      addToast({ type: 'error', message: 'Gagal memuat soal. Coba lagi.' })
     } finally {
       setLoading(false)
     }

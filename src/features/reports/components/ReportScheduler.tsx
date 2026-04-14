@@ -1,7 +1,7 @@
 import { Loader2, Save } from 'lucide-react'
 import { useState } from 'react'
 
-import { cn } from '@/src/utils/cn'
+import { cn } from '@/utils/cn'
 
 import { useSaveReport } from '../queries/reportQueries'
 import type { ExportFormat, ReportSchedule, ReportType } from '../types'

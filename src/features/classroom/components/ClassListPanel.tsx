@@ -1,6 +1,7 @@
 import { BookOpen, Hash, Loader2, Search, Users } from 'lucide-react'
 
-import { cn } from '@/src/utils/cn'
+import { EmptyState } from '@/components/ui'
+import { cn } from '@/utils/cn'
 
 interface Classroom {
   id: string
@@ -47,11 +48,11 @@ export function ClassListPanel({
           <span className="text-sm">Memuat kelas...</span>
         </div>
       ) : filteredClassrooms.length === 0 ? (
-        <div className="flex flex-col items-center justify-center py-16 text-slate-400">
-          <BookOpen className="w-10 h-10 mb-2 opacity-30" />
-          <p className="text-sm font-medium text-slate-500">Belum ada kelas</p>
-          <p className="text-xs mt-1">Klik "Buat Kelas Baru" untuk memulai</p>
-        </div>
+        <EmptyState
+          icon={<BookOpen className="w-8 h-8" />}
+          title="Belum ada kelas"
+          description='Klik "Buat Kelas Baru" untuk memulai'
+        />
       ) : (
         <div className="space-y-2">
           {filteredClassrooms.map((cls) => (
@@ -61,8 +62,8 @@ export function ClassListPanel({
               className={cn(
                 'w-full text-left p-4 rounded-2xl border transition-all',
                 selectedClassId === cls.id
-                  ? 'bg-indigo-50 border-indigo-300 shadow-sm'
-                  : 'bg-white border-slate-200 hover:border-indigo-200 hover:bg-slate-50'
+                  ? 'bg-indigo-50 dark:bg-indigo-900/20 border-indigo-300 dark:border-indigo-700 shadow-sm'
+                  : 'bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 hover:border-indigo-200 dark:hover:border-indigo-700 hover:bg-slate-50 dark:hover:bg-slate-700'
               )}
             >
               <div className="flex items-center justify-between gap-2">

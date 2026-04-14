@@ -1,15 +1,16 @@
 import { Trophy } from 'lucide-react'
-import { useEffect, useState } from 'react'
+import { motion } from 'motion/react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
 
-import { HubView } from '@/src/components/HubView'
-import { Card } from '@/src/components/ui'
-import { useAuth } from '@/src/contexts/AuthContext'
-import type { Announcement } from '@/src/features/announcements'
-import { useAnnouncements } from '@/src/features/announcements'
-import { useAssignments } from '@/src/features/assignments/hooks/useAssignments'
-import { useClassroom } from '@/src/features/classroom/hooks/useClassroomQueries'
-import { useCourses } from '@/src/features/courses'
+import { HubView } from '@/components/HubView'
+import { Card } from '@/components/ui'
+import { useAuth } from '@/contexts/AuthContext'
+import type { Announcement } from '@/features/announcements'
+import { useAnnouncements } from '@/features/announcements'
+import { useAssignments } from '@/features/assignments/hooks/useAssignments'
+import { useClassroom } from '@/features/classroom/hooks/useClassroomQueries'
+import { useCourses } from '@/features/courses'
 import {
   AnnouncementsPreview,
   ContinueLearning,
@@ -18,20 +19,43 @@ import {
   MyClassesSection,
   UpcomingAssignments,
   WelcomeCard,
-} from '@/src/features/dashboards/components/sections'
-import type { LeaderboardEntry } from '@/src/features/gamification'
-import { useLeaderboard } from '@/src/features/gamification'
-import { BadgeShowcase } from '@/src/features/gamification/components/BadgeShowcase'
-import { BadgeUnlockToast } from '@/src/features/gamification/components/BadgeUnlockToast'
-import { LevelUpToast } from '@/src/features/gamification/components/LevelUpToast'
-import { useStudentProgressData } from '@/src/features/progress/hooks/useStudentProgressQueries'
-import { RecommendationFeed } from '@/src/features/recommendations'
-import { usePageTitle } from '@/src/hooks/usePageTitle'
-import { navigationItems } from '@/src/shared/config/navigation'
-import { cn } from '@/src/utils/cn'
+} from '@/features/dashboards/components/sections'
+import type { LeaderboardEntry } from '@/features/gamification'
+import { useLeaderboard } from '@/features/gamification'
+import { BadgeShowcase } from '@/features/gamification/components/BadgeShowcase'
+import { BadgeUnlockToast } from '@/features/gamification/components/BadgeUnlockToast'
+import { LevelUpToast } from '@/features/gamification/components/LevelUpToast'
+import { StudentWelcome } from '@/features/onboarding'
+import { useStudentProgressData } from '@/features/progress/hooks/useStudentProgressQueries'
+import { RecommendationFeed } from '@/features/recommendations'
+import { usePageTitle } from '@/hooks/usePageTitle'
+import { navigationItems } from '@/shared/config/navigation'
+import { cn } from '@/utils/cn'
 
 import { BadgeRewardModal } from './dashboard/BadgeRewardModal'
 import { JoinClassModal } from './dashboard/JoinClassModal'
+
+const containerVariants = {
+  hidden: { opacity: 0 },
+  visible: {
+    opacity: 1,
+    transition: {
+      staggerChildren: 0.1,
+    },
+  },
+}
+
+const itemVariants = {
+  hidden: { y: 20, opacity: 0 },
+  visible: {
+    y: 0,
+    opacity: 1,
+    transition: {
+      duration: 0.4,
+      ease: [0.16, 1, 0.3, 1] as any,
+    },
+  },
+}
 
 export function Dashboard() {
   usePageTitle('Dasbor')
@@ -72,68 +96,108 @@ export function Dashboard() {
     }
   }, [location, role])
 
-  // Derived data
-  const userName = impersonatedStudent
-    ? impersonatedStudent.name
-    : role === 'teacher'
-      ? profile?.first_name || 'Bapak/Ibu Guru'
-      : profile?.first_name || 'Siswa'
-  const activeCourses = Array.isArray(courses)
-    ? courses
-    : ((courses as unknown as { courses?: unknown[] })?.courses ?? [])
-  const announcementList: Announcement[] = Array.isArray(announcements) ? announcements : []
-  const leaderboardList: LeaderboardEntry[] = Array.isArray(leaderboard) ? leaderboard : []
+  // ⚡ Perf: memoize all derived data to prevent recalculation on every render
+  const userName = useMemo(() => {
+    return impersonatedStudent
+      ? impersonatedStudent.name
+      : role === 'teacher'
+        ? profile?.first_name || 'Bapak/Ibu Guru'
+        : profile?.first_name || 'Siswa'
+  }, [impersonatedStudent, role, profile?.first_name])
 
-  const hubItems = navigationItems.filter(
-    (item) => item.location === 'learning-hub' && item.roles.includes(role)
-  )
-  const openJoinModal = () => setShowJoinModal(true)
+  const activeCourses = useMemo(() => {
+    return Array.isArray(courses)
+      ? courses
+      : ((courses as unknown as { courses?: unknown[] })?.courses ?? [])
+  }, [courses])
+
+  const announcementList: Announcement[] = useMemo(() => {
+    return Array.isArray(announcements) ? announcements : []
+  }, [announcements])
+
+  const leaderboardList: LeaderboardEntry[] = useMemo(() => {
+    return Array.isArray(leaderboard) ? leaderboard : []
+  }, [leaderboard])
+
+  // ⚡ Perf: memoize hub items filter — navigationItems is static, only role changes
+  const hubItems = useMemo(() => {
+    return navigationItems.filter(
+      (item) => item.location === 'learning-hub' && item.roles.includes(role)
+    )
+  }, [role])
+
+  // ⚡ Perf: stabilize callback refs to prevent child re-renders
+  const openJoinModal = useCallback(() => setShowJoinModal(true), [])
+  const handleNavigateBack = useCallback(() => navigate(-1), [navigate])
+  const handleRetryLeaderboard = useCallback(() => refetchLeaderboard(), [refetchLeaderboard])
+  const handleCloseJoinModal = useCallback(() => setShowJoinModal(false), [])
+  const handleCloseBadgeModal = useCallback(() => setShowBadgeModal(false), [])
 
   return (
     <div
       data-testid="dashboard-main"
       className="flex flex-col flex-1 w-full h-full overflow-y-auto custom-scrollbar scroll-smooth bg-slate-50/50 dark:bg-slate-900/50 p-4 md:p-8"
     >
-      <div className="max-w-7xl mx-auto w-full space-y-6">
-        <WelcomeCard
-          userName={userName}
-          role={role}
-          impersonatedStudent={impersonatedStudent}
-          onNavigateBack={() => navigate(-1)}
-          xp={xp}
-        />
-
-        {role === 'student' && (
-          <MyClassesSection classrooms={classrooms} onJoinClass={openJoinModal} />
-        )}
-
-        <UpcomingAssignments assignments={assignments || []} loading={assignmentsLoading} />
-
-        {/* Pencapaian Terbaru (Student Only) */}
-        {role === 'student' && (
-          <Card>
-            <div className="flex items-center justify-between mb-4">
-              <h2 className="text-lg font-bold text-slate-900 dark:text-white flex items-center gap-2">
-                <Trophy className="w-5 h-5 text-amber-500" />
-                Pencapaian Terbaru
-              </h2>
-            </div>
-            <BadgeShowcase compact />
-          </Card>
-        )}
-
-        {role === 'student' && (
-          <ContinueLearning
-            courses={activeCourses as Parameters<typeof ContinueLearning>[0]['courses']}
-            loading={loadingCourses}
-            onJoinClass={openJoinModal}
+      <motion.div
+        variants={containerVariants}
+        initial="hidden"
+        animate="visible"
+        className="max-w-7xl mx-auto w-full space-y-6"
+      >
+        <motion.div variants={itemVariants}>
+          <WelcomeCard
+            userName={userName}
+            role={role}
+            impersonatedStudent={impersonatedStudent}
+            onNavigateBack={handleNavigateBack}
+            xp={xp}
           />
+        </motion.div>
+
+        {role === 'student' && (
+          <motion.div variants={itemVariants}>
+            <ContinueLearning
+              courses={activeCourses as Parameters<typeof ContinueLearning>[0]['courses']}
+              loading={loadingCourses}
+              onJoinClass={openJoinModal}
+            />
+          </motion.div>
         )}
 
-        {role === 'student' && user?.id && <RecommendationFeed userId={user.id} />}
+        <motion.div variants={itemVariants}>
+          <UpcomingAssignments assignments={assignments || []} loading={assignmentsLoading} />
+        </motion.div>
+
+        {role === 'student' && (
+          <motion.div variants={itemVariants}>
+            <MyClassesSection classrooms={classrooms} onJoinClass={openJoinModal} />
+          </motion.div>
+        )}
+
+        {/* Koleksi Lencana (Student Only) */}
+        {role === 'student' && (
+          <motion.div variants={itemVariants}>
+            <Card>
+              <div className="flex items-center justify-between mb-4">
+                <h2 className="text-lg font-bold text-slate-900 dark:text-white flex items-center gap-2">
+                  <Trophy className="w-5 h-5 text-amber-500" />
+                  Koleksi Lencana
+                </h2>
+              </div>
+              <BadgeShowcase compact />
+            </Card>
+          </motion.div>
+        )}
+
+        {role === 'student' && user?.id && (
+          <motion.div variants={itemVariants}>
+            <RecommendationFeed userId={user.id} />
+          </motion.div>
+        )}
 
         {/* Bottom Grid: Pengumuman & Leaderboard */}
-        <div
+        <motion.div
+          variants={itemVariants}
           className={cn(
             'grid gap-6',
             !loadingAnnouncements && announcementList.length === 0
@@ -144,35 +208,42 @@ export function Dashboard() {
           <AnnouncementsPreview announcements={announcementList} loading={loadingAnnouncements} />
           <LeaderboardPreview
             xp={xp}
+            role={role}
             leaderboardList={leaderboardList}
             loading={loadingLeaderboard}
             error={leaderboardError}
-            onRetry={() => refetchLeaderboard()}
+            onRetry={handleRetryLeaderboard}
           />
-        </div>
+        </motion.div>
 
         {/* Hub View */}
-        <div className="mt-8 pt-8 border-t border-slate-200 dark:border-slate-700">
+        <motion.div
+          variants={itemVariants}
+          className="mt-8 pt-8 border-t border-slate-200 dark:border-slate-700"
+        >
           <HubView
             title="Ruang Belajar (Hub)"
             description="Akses cepat ke semua fitur pembelajaran Anda."
             items={hubItems}
           />
-        </div>
+        </motion.div>
 
-        <GamificationWidgets xp={xp} dailyGoal={dailyGoal} achievements={achievements} />
-      </div>
+        <motion.div variants={itemVariants}>
+          <GamificationWidgets xp={xp} dailyGoal={dailyGoal} achievements={achievements} />
+        </motion.div>
+      </motion.div>
 
       {/* Modals */}
       <JoinClassModal
         open={showJoinModal}
-        onClose={() => setShowJoinModal(false)}
+        onClose={handleCloseJoinModal}
         initialCode={joinInitialCode}
         onJoin={joinClassroom}
       />
-      <BadgeRewardModal open={showBadgeModal} onClose={() => setShowBadgeModal(false)} />
+      <BadgeRewardModal open={showBadgeModal} onClose={handleCloseBadgeModal} />
       <BadgeUnlockToast />
       <LevelUpToast />
+      {role === 'student' && <StudentWelcome />}
     </div>
   )
 }

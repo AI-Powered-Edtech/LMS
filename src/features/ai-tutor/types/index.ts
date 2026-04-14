@@ -13,6 +13,7 @@ export interface AITutorMessage {
   role: 'user' | 'assistant'
   content: string
   timestamp: Date
+  isStreaming?: boolean // True when message is being streamed in real-time
 }
 
 export interface AITutorResponse {

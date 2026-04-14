@@ -1,20 +1,17 @@
-import { CheckCircle2, CheckSquare, Clock, Plus } from 'lucide-react'
+import { CheckCircle2, CheckSquare, Clock, Plus, Trash2 } from 'lucide-react'
 
-import { cn } from '@/src/utils/cn'
+import { EmptyState } from '@/components/ui'
+import { cn } from '@/utils/cn'
 
-interface Task {
-  id: number
-  title: string
-  assignee: string
-  status: string
-}
+import { GroupTask } from '../../api/groupAssignmentService'
 
 interface Props {
-  tasks: Task[]
+  tasks: GroupTask[]
   newTaskTitle: string
-  onToggleStatus: (id: number) => void
+  onToggleStatus: (id: string, currentStatus: string) => void
   onTaskTitleChange: (title: string) => void
   onAddTask: () => void
+  onDeleteTask?: (id: string, title: string) => void
 }
 
 export function GroupTasksTab({
@@ -23,8 +20,9 @@ export function GroupTasksTab({
   onToggleStatus,
   onTaskTitleChange,
   onAddTask,
+  onDeleteTask,
 }: Props) {
-  const completedCount = tasks.filter((t) => t.status === 'completed').length
+  const completedCount = tasks.filter((t) => t.status === 'done').length
 
   return (
     <div className="p-6 flex flex-col flex-1">
@@ -38,11 +36,11 @@ export function GroupTasksTab({
       </div>
       <div className="space-y-3 flex-1 overflow-y-auto pr-2 custom-scrollbar">
         {tasks.length === 0 ? (
-          <div className="text-center py-12 text-slate-500 dark:text-slate-400">
-            <CheckSquare className="w-10 h-10 mx-auto mb-3 text-slate-300 dark:text-slate-600" />
-            <p className="font-medium">Belum ada sub-tugas.</p>
-            <p className="text-sm mt-1">Tambahkan sub-tugas di bawah.</p>
-          </div>
+          <EmptyState
+            icon={<CheckSquare className="w-8 h-8" />}
+            title="Belum ada sub-tugas"
+            description="Tambahkan sub-tugas di bawah"
+          />
         ) : (
           tasks.map((task) => (
             <div
@@ -51,18 +49,18 @@ export function GroupTasksTab({
             >
               <div className="flex items-center gap-4">
                 <button
-                  onClick={() => onToggleStatus(task.id)}
+                  onClick={() => onToggleStatus(task.id, task.status)}
                   aria-label={`Ubah status: ${task.title}`}
                   className={cn(
                     'w-6 h-6 rounded flex items-center justify-center border transition-colors',
-                    task.status === 'completed'
+                    task.status === 'done'
                       ? 'bg-emerald-500 border-emerald-500 text-white'
                       : task.status === 'in_progress'
                         ? 'bg-amber-100 dark:bg-amber-900/30 border-amber-300 dark:border-amber-700 text-amber-600'
                         : 'bg-slate-50 dark:bg-slate-900 border-slate-300 dark:border-slate-600 text-transparent hover:border-indigo-400'
                   )}
                 >
-                  {task.status === 'completed' ? (
+                  {task.status === 'done' ? (
                     <CheckCircle2 className="w-4 h-4" />
                   ) : task.status === 'in_progress' ? (
                     <Clock className="w-4 h-4" />
@@ -74,7 +72,7 @@ export function GroupTasksTab({
                   <p
                     className={cn(
                       'font-bold text-sm transition-colors',
-                      task.status === 'completed'
+                      task.status === 'done'
                         ? 'text-slate-400 line-through'
                         : 'text-slate-800 dark:text-slate-200'
                     )}
@@ -82,11 +80,23 @@ export function GroupTasksTab({
                     {task.title}
                   </p>
                   <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
-                    Penanggung Jawab: {task.assignee}
+                    Penanggung Jawab:{' '}
+                    {task.profiles
+                      ? `${task.profiles.first_name} ${task.profiles.last_name}`
+                      : 'Belum ditugaskan'}
                   </p>
                 </div>
               </div>
-              {/* TODO: implementasi menu opsi sub-tugas */}
+              {onDeleteTask && (
+                <button
+                  type="button"
+                  aria-label={`Hapus tugas: ${task.title}`}
+                  onClick={() => onDeleteTask(task.id, task.title)}
+                  className="p-2 text-slate-400 hover:text-red-500 dark:hover:text-red-400 transition-colors opacity-0 group-hover:opacity-100"
+                >
+                  <Trash2 className="w-4 h-4" />
+                </button>
+              )}
             </div>
           ))
         )}

@@ -2,7 +2,7 @@ import { AlertCircle, Bell } from 'lucide-react'
 import { AnimatePresence, motion } from 'motion/react'
 import { useNavigate } from 'react-router-dom'
 
-import { EmptyState, Skeleton } from '@/src/components/ui'
+import { EmptyState, Skeleton } from '@/components/ui'
 
 import { useMarkAlertsRead, useStruggleAlerts } from '../queries/useStruggleQueries'
 import { relativeTime } from '../utils/struggleHelpers'
@@ -28,7 +28,7 @@ export function StruggleAlertPanel({ onClose }: Props) {
     if (!alerts.find((a) => a.alert_id === alertId)?.read_at) {
       markRead.mutate([alertId])
     }
-    navigate(`/app/teacher/course-analytics?courseId=${courseId}&lessonId=${lessonId}`)
+    void navigate(`/app/teacher/course-analytics?courseId=${courseId}&lessonId=${lessonId}`)
     onClose()
   }
 

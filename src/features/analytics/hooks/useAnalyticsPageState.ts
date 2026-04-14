@@ -1,18 +1,19 @@
 import { useEffect, useMemo, useState } from 'react'
 
-import { useToast } from '@/src/components/ui'
-import { useAuth } from '@/src/contexts/AuthContext'
-import { AnalyticsError } from '@/src/features/analytics'
+import { useToast } from '@/components/ui'
+import { useAuth } from '@/contexts/AuthContext'
+import { AnalyticsError } from '@/features/analytics'
 import {
   useRefreshCourseStats,
   useTeacherAnalytics,
-} from '@/src/features/analytics/queries/analyticsQueries'
-import { Course, courseService } from '@/src/features/courses'
-import { logger } from '@/src/utils/logger'
+} from '@/features/analytics/queries/analyticsQueries'
+import { Course, courseService } from '@/features/courses'
+import { logger } from '@/utils/logger'
+import { captureError } from '@/utils/sentry'
 
 export function useAnalyticsPageState() {
   const addToast = useToast((s) => s.addToast)
-  const { activeTenant, role } = useAuth()
+  const { activeTenant, role, activeRole } = useAuth()
   const [courses, setCourses] = useState<Course[]>([])
   const [selectedCourseId, setSelectedCourseId] = useState<string>('')
 
@@ -29,15 +30,22 @@ export function useAnalyticsPageState() {
       try {
         const result = await courseService.fetchCourses({ tenantId: activeTenant.id, limit: 50 })
         setCourses(result.courses)
-        if (result.courses.length > 0) {
-          setSelectedCourseId(result.courses[0].id)
+        if (result.courses.length > 0 && !selectedCourseId) {
+          // Only auto-select if there's exactly 1 course (no choice needed).
+          // With multiple courses, let the teacher choose explicitly to prevent
+          // unnecessary RPC calls on every page load.
+          if (result.courses.length === 1) {
+            setSelectedCourseId(result.courses[0].id)
+          }
+          // Otherwise, leave selectedCourseId empty and show placeholder
         }
       } catch (err) {
         if (import.meta.env.DEV) logger.error('Failed to load courses', err)
+        captureError(err, { context: 'useAnalyticsPageState.loadCourses' })
       }
     }
-    loadCourses()
-  }, [activeTenant?.id])
+    void loadCourses()
+  }, [activeTenant?.id, selectedCourseId])
 
   // Handle error state from query
   const [errorMessage, setErrorMessage] = useState<string | null>(null)
@@ -82,7 +90,7 @@ export function useAnalyticsPageState() {
     if (!selectedCourseId) return
     try {
       await refreshMutation.mutateAsync(selectedCourseId)
-      refetch()
+      void refetch()
     } catch (err: unknown) {
       if (import.meta.env.DEV) logger.error('Failed to refresh analytics', err)
 
@@ -125,7 +133,18 @@ export function useAnalyticsPageState() {
     [data?.module_completion]
   )
 
-  const studentsToShow = data?.students.top.concat(data?.students.at_risk || []) || []
+  // Deduplicate students: top and at_risk lists may contain the same student
+  // (e.g. a student with low progress who is also in top by some metric).
+  // Without deduplication, the same student appears twice in the table.
+  const studentsToShow = useMemo(() => {
+    const allStudents = [...(data?.students?.top ?? []), ...(data?.students?.at_risk ?? [])]
+    const seenIds = new Set<string>()
+    return allStudents.filter((s) => {
+      if (seenIds.has(s.student_id)) return false
+      seenIds.add(s.student_id)
+      return true
+    })
+  }, [data?.students?.top, data?.students?.at_risk])
 
   const getStatus = (progress: number, _lastActive: string | null) => {
     if (progress < 40) return 'Kritis'
@@ -156,6 +175,7 @@ export function useAnalyticsPageState() {
   return {
     activeTenant,
     role,
+    activeRole,
     courses,
     selectedCourseId,
     setSelectedCourseId,

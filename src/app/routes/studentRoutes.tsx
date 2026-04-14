@@ -1,4 +1,4 @@
-import { Outlet, Route } from 'react-router-dom'
+import { Navigate, Outlet, Route } from 'react-router-dom'
 
 import { CourseEnrollmentGuard } from '../../components/guards/CourseEnrollmentGuard'
 import { RoleGuard } from '../../components/guards/RoleGuard'
@@ -11,9 +11,11 @@ import {
   Leaderboard,
   LessonViewer,
   NotFound,
+  PeerReviews,
   QuizModule,
   StudentAttendance,
   StudentClassPage,
+  SurveyRespondPage,
 } from '../lazyPages'
 import { S } from './utils'
 
@@ -46,12 +48,16 @@ export function StudentRoutes() {
           </S>
         }
       />
+      <Route path="my-courses" element={<Navigate to="/app/student/courses" replace />} />
+      <Route path="classes" element={<Navigate to="/app/student/dashboard" replace />} />
       <Route
         path="courses"
         element={
-          <S feature="Lesson Viewer">
-            <LessonViewer />
-          </S>
+          <CourseEnrollmentGuard>
+            <S feature="Lesson Viewer">
+              <LessonViewer />
+            </S>
+          </CourseEnrollmentGuard>
         }
       />
       <Route
@@ -125,6 +131,22 @@ export function StudentRoutes() {
         element={
           <S feature="Leaderboard">
             <Leaderboard />
+          </S>
+        }
+      />
+      <Route
+        path="peer-reviews"
+        element={
+          <S feature="Peer Review">
+            <PeerReviews />
+          </S>
+        }
+      />
+      <Route
+        path="survey/:surveyId"
+        element={
+          <S feature="Isi Survei">
+            <SurveyRespondPage />
           </S>
         }
       />

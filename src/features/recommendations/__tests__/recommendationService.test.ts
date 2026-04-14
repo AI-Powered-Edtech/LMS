@@ -4,8 +4,8 @@ import { recommendationService } from '../api/recommendationService'
 
 const mockRpc = vi.fn()
 
-vi.mock('@/src/services/supabase/client', () => ({
-  supabase: {
+vi.mock('@/services/db', () => ({
+  db: {
     rpc: (...args: unknown[]) => mockRpc(...args),
   },
 }))
@@ -57,11 +57,10 @@ describe('recommendationService.getRecommendations', () => {
     expect(result).toEqual([])
   })
 
-  it('throws on RPC error', async () => {
+  it('returns empty array on RPC error (graceful degradation)', async () => {
     mockRpc.mockResolvedValue({ data: null, error: { message: 'RPC not found' } })
-    await expect(recommendationService.getRecommendations('user-1')).rejects.toMatchObject({
-      message: 'RPC not found',
-    })
+    const result = await recommendationService.getRecommendations('user-1')
+    expect(result).toEqual([])
   })
 })
 
@@ -88,10 +87,9 @@ describe('recommendationService.recordAction', () => {
     )
   })
 
-  it('throws on RPC error', async () => {
+  it('does not throw on RPC error (graceful degradation)', async () => {
     mockRpc.mockResolvedValue({ error: { message: 'Action failed' } })
-    await expect(recommendationService.recordAction('rec-1', 'accepted')).rejects.toMatchObject({
-      message: 'Action failed',
-    })
+    // recordAction uses graceful degradation — resolves silently instead of throwing
+    await expect(recommendationService.recordAction('rec-1', 'accepted')).resolves.toBeUndefined()
   })
 })

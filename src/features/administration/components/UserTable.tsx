@@ -5,12 +5,14 @@ import {
   MoreVertical,
   RefreshCw,
   Shield,
+  Users,
   XCircle,
 } from 'lucide-react'
 import React from 'react'
 
-import type { TenantUser } from '@/src/features/administration/api/adminUserService'
-import { cn } from '@/src/utils/cn'
+import { EmptyState } from '@/components/ui'
+import type { TenantUser } from '@/features/administration/api/adminUserService'
+import { cn } from '@/utils/cn'
 
 const ROLE_CONFIG: Record<
   string,
@@ -59,7 +61,7 @@ export function UserTable({
 }: UserTableProps) {
   return (
     <div className="overflow-x-auto">
-      <table className="w-full text-sm">
+      <table className="w-full text-sm" aria-label="Daftar pengguna">
         <thead className="bg-slate-50/80 dark:bg-slate-900/50 text-slate-500 dark:text-slate-400 text-xs uppercase tracking-wider">
           <tr>
             <th className="px-6 py-3 text-left">User</th>
@@ -80,8 +82,12 @@ export function UserTable({
             </tr>
           ) : users.length === 0 ? (
             <tr>
-              <td colSpan={6} className="px-6 py-12 text-center text-slate-400 dark:text-slate-500">
-                Tidak ada pengguna ditemukan.
+              <td colSpan={6}>
+                <EmptyState
+                  icon={<Users className="w-8 h-8" />}
+                  title="Tidak ada pengguna ditemukan"
+                  description="Coba ubah filter atau tambah pengguna baru"
+                />
               </td>
             </tr>
           ) : (

@@ -2,7 +2,7 @@ import { ArrowRight, BookOpen, Play } from 'lucide-react'
 import { motion } from 'motion/react'
 import { useNavigate } from 'react-router-dom'
 
-import { Badge, Card, EmptyState, SkeletonCard } from '@/src/components/ui'
+import { Badge, Card, EmptyState, SkeletonCard } from '@/components/ui'
 
 interface CourseItem {
   id: string
@@ -33,7 +33,14 @@ function CourseProgressBar({ course }: { course: CourseItem }) {
 
   return (
     <>
-      <div className="w-full bg-slate-100 dark:bg-slate-700 rounded-full h-1.5 overflow-hidden">
+      <div
+        role="progressbar"
+        aria-valuenow={Math.min(100, pct)}
+        aria-valuemin={0}
+        aria-valuemax={100}
+        aria-label={`Progres kursus: ${Math.min(100, pct)}%`}
+        className="w-full bg-slate-100 dark:bg-slate-700 rounded-full h-1.5 overflow-hidden"
+      >
         <div
           className="h-1.5 rounded-full bg-gradient-to-r from-green-400 to-emerald-500 transition-all duration-500"
           style={{ width: `${Math.min(100, pct)}%` }}

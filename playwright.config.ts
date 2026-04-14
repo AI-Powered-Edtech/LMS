@@ -11,10 +11,22 @@ export default defineConfig({
     baseURL: 'http://localhost:5173',
     trace: 'on-first-retry',
   },
+  expect: {
+    toHaveScreenshot: {
+      maxDiffPixelRatio: 0.01,
+      threshold: 0.2,
+      animations: 'disabled',
+    },
+  },
   projects: [
     {
       name: 'chromium',
       use: { ...devices['Desktop Chrome'] },
+    },
+    {
+      name: 'visual',
+      use: { ...devices['Desktop Chrome'] },
+      testMatch: /visual-regression/,
     },
   ],
   webServer: {

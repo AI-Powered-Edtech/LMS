@@ -1,23 +1,10 @@
 import { Activity, Pause, Play, Radio } from 'lucide-react'
 import { AnimatePresence, motion } from 'motion/react'
-import { useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 
-import { useAuth } from '@/src/contexts/AuthContext'
-import { supabase } from '@/src/services/supabase/client'
-import { logger } from '@/src/utils/logger'
-
-interface LiveEvent {
-  id: string
-  user_id: string
-  event_type: string
-  lesson_id?: string
-  course_id?: string
-  created_at: string
-  metadata?: Record<string, unknown>
-  // joined from profiles
-  student_name?: string
-  lesson_title?: string
-}
+import { useAuth } from '@/contexts/AuthContext'
+import { analyticsService, type LiveEvent } from '@/features/analytics/api/analyticsService'
+import { logger } from '@/utils/logger'
 
 const EVENT_LABELS: Record<string, string> = {
   LESSON_STARTED: 'mulai pelajaran',
@@ -56,19 +43,14 @@ export function LiveActivityFeed({
 
     let isMounted = true
 
-    const fetchLatestEvents = async () => {
+    const fetchEvents = async () => {
       if (isPaused) return
       try {
-        const { data } = await supabase
-          .from('learning_events')
-          .select('id, user_id, event_type, lesson_id, course_id, created_at, metadata')
-          .eq('tenant_id', activeTenant)
-          .order('created_at', { ascending: false })
-          .limit(10)
+        const data = await analyticsService.fetchLatestEvents(String(activeTenant), 10)
 
         if (isMounted && data) {
           setEvents((prev) => {
-            const newEvents = data.filter((d) => !prev.some((p) => p.id === d.id))
+            const newEvents = data.filter((d: LiveEvent) => !prev.some((p) => p.id === d.id))
             const merged = [...newEvents, ...prev]
             // sort by created_at desc so latest is first
             merged.sort(
@@ -85,10 +67,10 @@ export function LiveActivityFeed({
     }
 
     // Initial fetch
-    fetchLatestEvents()
+    void fetchEvents()
 
     // Poll every 15 seconds instead of keeping a WebSocket open
-    const pollInterval = setInterval(fetchLatestEvents, 15000)
+    const pollInterval = setInterval(fetchEvents, 15000)
 
     return () => {
       isMounted = false
@@ -99,11 +81,19 @@ export function LiveActivityFeed({
   // Update active users/lessons for parent components
   useEffect(() => {
     const fiveMinAgo = new Date(Date.now() - 5 * 60 * 1000).toISOString()
-    const recentEvents = events.filter((e) => e.created_at >= fiveMinAgo)
-    const activeUsers = new Set(recentEvents.map((e) => e.user_id))
-    const activeLessons = new Set(
-      recentEvents.filter((e) => e.lesson_id).map((e) => e.lesson_id as string)
-    )
+
+    // ⚡ Perf: consolidate multiple array traversals into a single pass to reduce O(N) operations.
+    const activeUsers = new Set<string>()
+    const activeLessons = new Set<string>()
+
+    for (let i = 0; i < events.length; i++) {
+      const e = events[i]
+      if (e.created_at >= fiveMinAgo) {
+        if (e.user_id) activeUsers.add(e.user_id)
+        if (e.lesson_id) activeLessons.add(e.lesson_id as string)
+      }
+    }
+
     onActiveUsersChange?.(activeUsers.size)
     onActiveLessonsChange?.(activeLessons)
   }, [events, onActiveUsersChange, onActiveLessonsChange])
@@ -115,10 +105,15 @@ export function LiveActivityFeed({
     }
   }, [events, isPaused])
 
-  const formatTime = (iso: string) => {
+  const formatTime = useCallback((iso: string) => {
     const d = new Date(iso)
     return d.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit', second: '2-digit' })
-  }
+  }, [])
+
+  const handleTogglePause = useCallback(() => setIsPaused((p) => !p), [])
+
+  // Hitung jumlah event aktif untuk info footer
+  const eventCount = useMemo(() => events.length, [events])
 
   return (
     <div className="rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 overflow-hidden">
@@ -135,7 +130,7 @@ export function LiveActivityFeed({
           )}
         </div>
         <button
-          onClick={() => setIsPaused((p) => !p)}
+          onClick={handleTogglePause}
           className="flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-semibold text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
         >
           {isPaused ? <Play className="h-3.5 w-3.5" /> : <Pause className="h-3.5 w-3.5" />}
@@ -185,10 +180,10 @@ export function LiveActivityFeed({
         <div ref={bottomRef} />
       </div>
 
-      {events.length > 0 && (
+      {eventCount > 0 && (
         <div className="px-4 py-2 border-t border-slate-100 dark:border-slate-800">
           <p className="text-xs text-slate-400">
-            Menampilkan {events.length} event terbaru
+            Menampilkan {eventCount} event terbaru
             {isPaused && <span className="ml-2 font-semibold text-amber-500">(dijeda)</span>}
           </p>
         </div>

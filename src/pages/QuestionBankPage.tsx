@@ -1,17 +1,18 @@
 import { useVirtualizer } from '@tanstack/react-virtual'
 import { BookOpen, Filter, Loader2, Plus, Search } from 'lucide-react'
-import React, { useEffect, useRef, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 
-import { useToast } from '@/src/components/ui'
+import { useToast } from '@/components/ui'
 import {
   QuestionBankItem,
   questionBankService,
-} from '@/src/features/question-bank/api/questionBankService'
-import { QuestionBankSkeleton } from '@/src/features/question-bank/components/QuestionBankSkeleton'
-import { QuestionCard } from '@/src/features/question-bank/components/QuestionCard'
-import { QuestionEditor } from '@/src/features/question-bank/components/QuestionEditor'
-import { usePageTitle } from '@/src/hooks/usePageTitle'
-import { logger } from '@/src/utils/logger'
+} from '@/features/question-bank/api/questionBankService'
+import { QuestionBankExportImport } from '@/features/question-bank/components/QuestionBankExportImport'
+import { QuestionBankSkeleton } from '@/features/question-bank/components/QuestionBankSkeleton'
+import { QuestionCard } from '@/features/question-bank/components/QuestionCard'
+import { QuestionEditor } from '@/features/question-bank/components/QuestionEditor'
+import { usePageTitle } from '@/hooks/usePageTitle'
+import { logger } from '@/utils/logger'
 
 export function QuestionBankPage() {
   const addToast = useToast((s) => s.addToast)
@@ -36,7 +37,7 @@ export function QuestionBankPage() {
 
   /* eslint-disable react-hooks/exhaustive-deps */
   useEffect(() => {
-    loadQuestions()
+    void loadQuestions()
   }, [debouncedSearchTerm, typeFilter])
   /* eslint-enable react-hooks/exhaustive-deps */
 
@@ -59,6 +60,7 @@ export function QuestionBankPage() {
       setQuestions(data)
     } catch (error) {
       if (import.meta.env.DEV) logger.error('Failed to load questions:', error)
+      addToast({ type: 'error', message: 'Gagal memuat bank soal. Coba lagi.' })
     } finally {
       setLoading(false)
     }
@@ -109,6 +111,10 @@ export function QuestionBankPage() {
           <Plus className="w-5 h-5" />
           <span>Buat Soal Baru</span>
         </button>
+      </div>
+
+      <div className="mb-6">
+        <QuestionBankExportImport />
       </div>
 
       <div className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm mb-6 p-4">

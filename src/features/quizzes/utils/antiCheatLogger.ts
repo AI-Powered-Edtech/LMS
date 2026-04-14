@@ -17,6 +17,8 @@ export type AntiCheatEventType =
   | 'COPY_PASTE'
   | 'RIGHT_CLICK'
   | 'DEVTOOLS_OPEN'
+  | 'KEYBOARD_SHORTCUT_BLOCKED'
+  | 'PRINT_ATTEMPT'
 
 export interface AntiCheatEvent {
   type: AntiCheatEventType
@@ -52,12 +54,18 @@ export interface AntiCheatLogger {
 
 // ─── Constants ───────────────────────────────────────────
 
-/** Tab switches threshold for severity levels */
-const SEVERITY_THRESHOLDS = {
-  low: 1,
-  medium: 3,
-  high: 5,
-} as const
+/** Weighted severity scores per event type */
+const SEVERITY_WEIGHTS: Record<AntiCheatEventType, number> = {
+  TAB_SWITCH: 2,
+  WINDOW_BLUR: 1,
+  TIME_ANOMALY: 2,
+  COPY_PASTE: 3,
+  RIGHT_CLICK: 1,
+  // Weight 2 (not 5) to account for false-positives from external monitors / browser extensions
+  DEVTOOLS_OPEN: 2,
+  KEYBOARD_SHORTCUT_BLOCKED: 3,
+  PRINT_ATTEMPT: 2,
+}
 
 // ─── Factory ─────────────────────────────────────────────
 
@@ -112,18 +120,24 @@ export function createAntiCheatLogger(
       'COPY_PASTE',
       'RIGHT_CLICK',
       'DEVTOOLS_OPEN',
+      'KEYBOARD_SHORTCUT_BLOCKED',
+      'PRINT_ATTEMPT',
     ]
 
     for (const t of allTypes) {
       eventsByType[t] = events.filter((e) => e.type === t).length
     }
 
-    const tabSwitches = eventsByType.TAB_SWITCH + eventsByType.WINDOW_BLUR
+    // Weighted score untuk severity yang lebih akurat
+    const weightedScore = allTypes.reduce((acc, t) => {
+      return acc + eventsByType[t] * (SEVERITY_WEIGHTS[t] ?? 1)
+    }, 0)
+
     let severityLevel: AntiCheatSummary['severityLevel'] = 'none'
 
-    if (tabSwitches >= SEVERITY_THRESHOLDS.high) severityLevel = 'high'
-    else if (tabSwitches >= SEVERITY_THRESHOLDS.medium) severityLevel = 'medium'
-    else if (tabSwitches >= SEVERITY_THRESHOLDS.low) severityLevel = 'low'
+    if (weightedScore >= 10) severityLevel = 'high'
+    else if (weightedScore >= 5) severityLevel = 'medium'
+    else if (weightedScore >= 1) severityLevel = 'low'
 
     return {
       attemptId,

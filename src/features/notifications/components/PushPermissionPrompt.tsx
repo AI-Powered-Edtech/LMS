@@ -11,7 +11,8 @@
 import { Bell, X } from 'lucide-react'
 import { useCallback, useEffect, useState } from 'react'
 
-import { cn } from '@/src/utils/cn'
+import { cn } from '@/utils/cn'
+import { logger } from '@/utils/logger'
 
 import { usePushSubscription } from '../hooks/usePushSubscription'
 
@@ -39,6 +40,7 @@ function persistDismiss(): void {
     localStorage.setItem(DISMISS_KEY, String(Date.now()))
   } catch {
     // localStorage may be unavailable
+    if (import.meta.env.DEV) logger.warn('[PushPermissionPrompt] localStorage write failed')
   }
 }
 

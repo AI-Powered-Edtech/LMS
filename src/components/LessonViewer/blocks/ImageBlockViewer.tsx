@@ -1,7 +1,7 @@
 import { RotateCcw, X } from 'lucide-react'
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 
-import { OptimizedImage } from '@/src/components/ui'
+import { OptimizedImage } from '@/components/ui'
 
 interface ImageBlockViewerProps {
   url: string
@@ -12,6 +12,10 @@ export function ImageBlockViewer({ url, alt }: ImageBlockViewerProps) {
   const [isLoading, setIsLoading] = useState(true)
   const [hasError, setHasError] = useState(false)
   const [isZoomed, setIsZoomed] = useState(false)
+  const [retryKey, setRetryKey] = useState(0)
+
+  // Ref for close button — used to focus-trap inside the lightbox (L-26)
+  const closeButtonRef = useRef<HTMLButtonElement>(null)
 
   const handleLoad = () => {
     setIsLoading(false)
@@ -26,27 +30,26 @@ export function ImageBlockViewer({ url, alt }: ImageBlockViewerProps) {
   const handleRetry = () => {
     setIsLoading(true)
     setHasError(false)
-    // Force reload by adding a cache-busting query param
-    const img = new Image()
-    img.src = `${url}${url.includes('?') ? '&' : '?'}_t=${Date.now()}`
+    setRetryKey((k) => k + 1) // This will cause the OptimizedImage to re-render with new src
   }
 
-  // Handle escape key for lightbox
-  useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'Escape' && isZoomed) {
-        setIsZoomed(false)
-      }
-    }
+  const safeUrl = `${url}${url.includes('?') ? '&' : '?'}_r=${retryKey}`
 
+  // Focus the close button as soon as the lightbox opens (L-26)
+  useEffect(() => {
+    if (isZoomed && closeButtonRef.current) {
+      closeButtonRef.current.focus()
+    }
+  }, [isZoomed])
+
+  // Handle escape key for lightbox (existing — kept inside the overlay onKeyDown
+  // for the focus-trap handler; body-level listener removed to avoid duplication)
+  useEffect(() => {
     if (isZoomed) {
-      document.addEventListener('keydown', handleKeyDown)
       // Prevent body scroll when zoomed
       document.body.style.overflow = 'hidden'
     }
-
     return () => {
-      document.removeEventListener('keydown', handleKeyDown)
       document.body.style.overflow = ''
     }
   }, [isZoomed])
@@ -72,7 +75,8 @@ export function ImageBlockViewer({ url, alt }: ImageBlockViewerProps) {
         {isLoading && <div className="animate-pulse bg-slate-200 rounded-xl w-full h-[300px]" />}
 
         <OptimizedImage
-          src={url}
+          key={retryKey}
+          src={safeUrl}
           alt={alt}
           loading="lazy"
           onLoad={handleLoad}
@@ -94,9 +98,25 @@ export function ImageBlockViewer({ url, alt }: ImageBlockViewerProps) {
       {isZoomed && (
         <div
           className="fixed inset-0 bg-black/80 z-50 flex items-center justify-center p-4"
+          role="dialog"
+          aria-modal="true"
+          aria-label="Tampilan gambar penuh"
           onClick={() => setIsZoomed(false)}
+          onKeyDown={(e) => {
+            if (e.key === 'Escape') {
+              setIsZoomed(false)
+            }
+            // Focus trap: only one focusable element (close button), so always
+            // redirect Tab/Shift+Tab back to it.
+            if (e.key === 'Tab') {
+              e.preventDefault()
+              closeButtonRef.current?.focus()
+            }
+          }}
         >
           <button
+            ref={closeButtonRef}
+            aria-label="Tutup tampilan gambar penuh"
             onClick={() => setIsZoomed(false)}
             className="absolute top-4 right-4 p-2 text-white hover:bg-white/20 rounded-full transition-colors"
           >

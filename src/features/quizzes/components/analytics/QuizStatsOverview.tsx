@@ -1,9 +1,10 @@
 // Quiz Stats Overview Component
 // Shows summary statistics cards for a quiz
 
-import { Clock, TrendingUp, Trophy, Users } from 'lucide-react'
+import { BarChart2, Clock, TrendingUp, Trophy, Users } from 'lucide-react'
 
-import { cn } from '@/src/utils/cn'
+import { EmptyState } from '@/components/ui'
+import { cn } from '@/utils/cn'
 
 // Format time helper
 function formatTime(seconds: number): string {
@@ -31,10 +32,13 @@ export function QuizStatsOverview({ stats, isLoading }: QuizStatsOverviewProps) 
     return (
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         {[...Array(4)].map((_, i) => (
-          <div key={i} className="bg-white rounded-2xl border border-slate-200 p-5 animate-pulse">
-            <div className="h-10 w-10 bg-slate-200 rounded-xl mb-3" />
-            <div className="h-8 bg-slate-200 rounded w-16 mb-2" />
-            <div className="h-4 bg-slate-200 rounded w-20" />
+          <div
+            key={i}
+            className="bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 p-5 animate-pulse"
+          >
+            <div className="h-10 w-10 bg-slate-200 dark:bg-slate-700 rounded-xl mb-3" />
+            <div className="h-8 bg-slate-200 dark:bg-slate-700 rounded w-16 mb-2" />
+            <div className="h-4 bg-slate-200 dark:bg-slate-700 rounded w-20" />
           </div>
         ))}
       </div>
@@ -43,11 +47,12 @@ export function QuizStatsOverview({ stats, isLoading }: QuizStatsOverviewProps) 
 
   if (!stats) {
     return (
-      <div className="bg-white rounded-2xl border border-slate-200 p-8 text-center">
-        <p className="text-slate-500">Belum ada data statistik untuk kuis ini.</p>
-        <p className="text-sm text-slate-400 mt-1">
-          Statistik akan muncul setelah siswa mengerjakan kuis.
-        </p>
+      <div className="bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700">
+        <EmptyState
+          icon={<BarChart2 className="w-8 h-8" />}
+          title="Belum ada data statistik untuk kuis ini."
+          description="Statistik akan muncul setelah siswa mengerjakan kuis."
+        />
       </div>
     )
   }
@@ -90,7 +95,7 @@ export function QuizStatsOverview({ stats, isLoading }: QuizStatsOverviewProps) 
         return (
           <div
             key={index}
-            className="bg-white rounded-2xl border border-slate-200 p-5 hover:shadow-md transition-shadow"
+            className="bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 p-5 hover:shadow-md dark:hover:shadow-slate-900/50 transition-shadow"
           >
             <div
               className={cn(
@@ -100,11 +105,11 @@ export function QuizStatsOverview({ stats, isLoading }: QuizStatsOverviewProps) 
             >
               <Icon className="w-5 h-5" />
             </div>
-            <p className="text-2xl font-black text-slate-800">{card.value}</p>
-            <p className="text-xs font-bold text-slate-500 uppercase tracking-wider mt-1">
+            <p className="text-2xl font-black text-slate-800 dark:text-white">{card.value}</p>
+            <p className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mt-1">
               {card.label}
             </p>
-            <p className="text-xs text-slate-400 mt-1">{card.subtitle}</p>
+            <p className="text-xs text-slate-400 dark:text-slate-500 mt-1">{card.subtitle}</p>
           </div>
         )
       })}

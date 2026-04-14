@@ -1,65 +1,68 @@
-// EduSync LMS — Background Sync
-// Processes the offline sync queue when connectivity is restored
+import { processSyncQueue, type SyncResult } from './offlineQueue'
 
-import { supabase } from '@/src/services/supabase/client'
-
-import { getPendingSubmissions, markSynced } from './offlineStorage'
-
-// Exponential back-off delays: 1 s → 5 s → 30 s → 5 min
 const DELAYS = [1000, 5000, 30000, 300000] as const
 
-interface QuizSubmissionPayload {
-  attemptId: string
-  answers: unknown[]
-  quizId: string
+export interface BackgroundSyncStatus {
+  isSyncing: boolean
+  lastSyncedAt: number | null
+  lastResult: SyncResult | null
 }
 
-export interface SyncResult {
-  synced: number
-  failed: number
+const listeners = new Set<(status: BackgroundSyncStatus) => void>()
+
+let status: BackgroundSyncStatus = {
+  isSyncing: false,
+  lastSyncedAt: null,
+  lastResult: null,
+}
+
+function publishStatus(next: BackgroundSyncStatus): void {
+  status = next
+  listeners.forEach((listener) => listener(status))
+}
+
+export function getBackgroundSyncStatus(): BackgroundSyncStatus {
+  return status
+}
+
+export function subscribeBackgroundSyncStatus(
+  listener: (status: BackgroundSyncStatus) => void
+): () => void {
+  listeners.add(listener)
+  listener(status)
+
+  return () => {
+    listeners.delete(listener)
+  }
 }
 
 export async function syncPendingSubmissions(): Promise<SyncResult> {
-  const pending = await getPendingSubmissions()
-  let synced = 0
-  let failed = 0
+  publishStatus({
+    ...status,
+    isSyncing: true,
+  })
 
-  for (const item of pending) {
-    try {
-      if (item.type === 'quiz-submission') {
-        const payload = item.payload as QuizSubmissionPayload
+  const result = await processSyncQueue()
 
-        const { error } = await supabase
-          .from('quiz_attempts')
-          .update({
-            answers: payload.answers,
-            completed_at: new Date().toISOString(),
-            submitted_late: true,
-          })
-          .eq('id', payload.attemptId)
+  publishStatus({
+    isSyncing: false,
+    lastSyncedAt: Date.now(),
+    lastResult: result,
+  })
 
-        if (!error) {
-          await markSynced(item.id)
-          synced++
-        } else {
-          failed++
-        }
-      }
-    } catch {
-      failed++
-    }
-  }
-
-  return { synced, failed }
+  return result
 }
 
 export function scheduleSync(attempt: number = 0): void {
   const delay = DELAYS[Math.min(attempt, DELAYS.length - 1)]
 
-  setTimeout(async () => {
-    const result = await syncPendingSubmissions()
-    if (result.failed > 0 && attempt < DELAYS.length - 1) {
-      scheduleSync(attempt + 1)
-    }
+  window.setTimeout(() => {
+    void (async (): Promise<void> => {
+      const result = await syncPendingSubmissions()
+
+      if (result.failed > 0 && attempt < DELAYS.length - 1) {
+        scheduleSync(attempt + 1)
+      }
+    })()
   }, delay)
 }

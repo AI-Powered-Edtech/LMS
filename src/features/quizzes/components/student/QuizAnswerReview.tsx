@@ -4,7 +4,7 @@
 
 import { ArrowLeft, CheckCircle, HelpCircle, XCircle } from 'lucide-react'
 
-import { cn } from '@/src/utils/cn'
+import { cn } from '@/utils/cn'
 
 import type { QuestionType, QuizAttemptQuestion } from '../../types/quizzes.types'
 
@@ -39,13 +39,13 @@ export function QuizAnswerReview({ questions, showCorrectAnswers, onBack }: Quiz
       <div className="flex items-center gap-4">
         <button
           onClick={onBack}
-          className="p-2 rounded-xl hover:bg-slate-100 text-slate-600 transition-colors"
+          className="p-2 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-400 transition-colors"
         >
           <ArrowLeft className="w-5 h-5" />
         </button>
         <div>
-          <h1 className="text-2xl font-bold text-slate-900">Review Jawaban</h1>
-          <p className="text-sm font-medium text-slate-500">
+          <h1 className="text-2xl font-bold text-slate-900 dark:text-white">Review Jawaban</h1>
+          <p className="text-sm font-medium text-slate-500 dark:text-slate-400">
             Berikut adalah jawaban Anda beserta penjelasan
           </p>
         </div>
@@ -73,12 +73,19 @@ export function QuizAnswerReview({ questions, showCorrectAnswers, onBack }: Quiz
             <div
               key={question.question_id}
               className={cn(
-                'bg-white rounded-3xl border-2 shadow-sm overflow-hidden',
-                isCorrect ? 'border-green-200' : 'border-red-200'
+                'bg-white dark:bg-slate-800 rounded-3xl border-2 shadow-sm overflow-hidden',
+                isCorrect
+                  ? 'border-green-200 dark:border-green-800'
+                  : 'border-red-200 dark:border-red-800'
               )}
             >
               {/* Question Header */}
-              <div className={cn('p-4 md:p-6 border-b', isCorrect ? 'bg-green-50' : 'bg-red-50')}>
+              <div
+                className={cn(
+                  'p-4 md:p-6 border-b',
+                  isCorrect ? 'bg-green-50 dark:bg-green-900/20' : 'bg-red-50 dark:bg-red-900/20'
+                )}
+              >
                 <div className="flex items-start gap-4">
                   {/* Status Icon */}
                   <div
@@ -96,25 +103,29 @@ export function QuizAnswerReview({ questions, showCorrectAnswers, onBack }: Quiz
 
                   <div className="flex-1">
                     <div className="flex items-center gap-2 mb-2">
-                      <span className="text-sm font-bold text-slate-500">
+                      <span className="text-sm font-bold text-slate-500 dark:text-slate-400">
                         Pertanyaan {index + 1}
                       </span>
                       <span
                         className={cn(
                           'px-2 py-0.5 rounded-lg text-xs font-bold',
-                          isCorrect ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'
+                          isCorrect
+                            ? 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300'
+                            : 'bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300'
                         )}
                       >
                         {isCorrect ? 'Benar' : 'Salah'}
                       </span>
                       {question.points_earned !== null && (
-                        <span className="text-xs font-bold text-slate-500">
+                        <span className="text-xs font-bold text-slate-500 dark:text-slate-400">
                           {question.points_earned}/{question.max_points} poin
                         </span>
                       )}
                     </div>
 
-                    <h3 className="text-lg font-medium text-slate-900">{question.text}</h3>
+                    <h3 className="text-lg font-medium text-slate-900 dark:text-white">
+                      {question.text}
+                    </h3>
 
                     <div className="mt-2 flex items-center gap-2">
                       <span
@@ -134,7 +145,7 @@ export function QuizAnswerReview({ questions, showCorrectAnswers, onBack }: Quiz
                         {getQuestionTypeLabel(qType)}
                       </span>
                       {question.max_points > 0 && (
-                        <span className="text-xs font-bold text-slate-400">
+                        <span className="text-xs font-bold text-slate-400 dark:text-slate-500">
                           {question.max_points} poin
                         </span>
                       )}
@@ -150,7 +161,9 @@ export function QuizAnswerReview({ questions, showCorrectAnswers, onBack }: Quiz
                   <div className="space-y-3">
                     {/* Student's Answer */}
                     <div>
-                      <p className="text-sm font-bold text-slate-700 mb-2">Jawaban Anda:</p>
+                      <p className="text-sm font-bold text-slate-700 dark:text-slate-300 mb-2">
+                        Jawaban Anda:
+                      </p>
                       <div className="space-y-2">
                         {question.quiz_options?.map((option) => {
                           const isSelected = studentOptionIds.includes(option.id)
@@ -164,10 +177,10 @@ export function QuizAnswerReview({ questions, showCorrectAnswers, onBack }: Quiz
                               className={cn(
                                 'p-3 rounded-xl border-2 flex items-center gap-3',
                                 isSelected && isOptionCorrectAnswer
-                                  ? 'border-green-500 bg-green-50'
+                                  ? 'border-green-500 dark:border-green-700 bg-green-50 dark:bg-green-900/20'
                                   : isSelected && !isOptionCorrectAnswer
-                                    ? 'border-red-500 bg-red-50'
-                                    : 'border-green-300 bg-green-50'
+                                    ? 'border-red-500 dark:border-red-700 bg-red-50 dark:bg-red-900/20'
+                                    : 'border-green-300 dark:border-green-800 bg-green-50 dark:bg-green-900/20'
                               )}
                             >
                               {isSelected && isOptionCorrectAnswer && (
@@ -182,16 +195,20 @@ export function QuizAnswerReview({ questions, showCorrectAnswers, onBack }: Quiz
                               <span
                                 className={cn(
                                   'font-medium',
-                                  isSelected ? 'text-slate-900' : 'text-green-700'
+                                  isSelected
+                                    ? 'text-slate-900 dark:text-white'
+                                    : 'text-green-700 dark:text-green-300'
                                 )}
                               >
                                 {option.text}
                               </span>
                               {isSelected && !isOptionCorrectAnswer && (
-                                <span className="text-xs text-red-600 ml-auto">Jawaban Anda</span>
+                                <span className="text-xs text-red-600 dark:text-red-400 ml-auto">
+                                  Jawaban Anda
+                                </span>
                               )}
                               {!isSelected && isOptionCorrectAnswer && (
-                                <span className="text-xs text-green-600 ml-auto">
+                                <span className="text-xs text-green-600 dark:text-green-400 ml-auto">
                                   Jawaban Benar
                                 </span>
                               )}
@@ -206,14 +223,17 @@ export function QuizAnswerReview({ questions, showCorrectAnswers, onBack }: Quiz
                       showCorrectAnswers &&
                       correctOptionIds.length > 0 &&
                       !studentOptionIds.includes(correctOptionIds[0]) && (
-                        <div className="mt-3 p-3 bg-green-50 rounded-xl border border-green-200">
-                          <p className="text-sm font-bold text-green-800 mb-1">
+                        <div className="mt-3 p-3 bg-green-50 dark:bg-green-900/20 rounded-xl border border-green-200 dark:border-green-800">
+                          <p className="text-sm font-bold text-green-800 dark:text-green-300 mb-1">
                             Jawaban yang benar:
                           </p>
                           {question.question_snapshot?.options
                             ?.filter((opt) => opt.is_correct)
                             ?.map((opt) => (
-                              <p key={opt.id} className="text-sm text-green-700">
+                              <p
+                                key={opt.id}
+                                className="text-sm text-green-700 dark:text-green-300"
+                              >
                                 {opt.text}
                               </p>
                             ))}
@@ -225,14 +245,18 @@ export function QuizAnswerReview({ questions, showCorrectAnswers, onBack }: Quiz
                 {/* For SHORT_ANSWER and ESSAY */}
                 {['SHORT_ANSWER', 'ESSAY'].includes(qType) && (
                   <div>
-                    <p className="text-sm font-bold text-slate-700 mb-2">Jawaban Anda:</p>
+                    <p className="text-sm font-bold text-slate-700 dark:text-slate-300 mb-2">
+                      Jawaban Anda:
+                    </p>
                     <div
                       className={cn(
                         'p-4 rounded-xl border-2',
-                        isCorrect ? 'border-green-300 bg-green-50' : 'border-amber-300 bg-amber-50'
+                        isCorrect
+                          ? 'border-green-300 dark:border-green-800 bg-green-50 dark:bg-green-900/20'
+                          : 'border-amber-300 dark:border-amber-800 bg-amber-50 dark:bg-amber-900/20'
                       )}
                     >
-                      <p className="text-sm text-slate-800 whitespace-pre-wrap">
+                      <p className="text-sm text-slate-800 dark:text-slate-200 whitespace-pre-wrap">
                         {studentTextAnswer || '(Tidak ada jawaban)'}
                       </p>
                     </div>

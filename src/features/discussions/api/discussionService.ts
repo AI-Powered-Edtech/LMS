@@ -1,5 +1,5 @@
-import { supabase } from '@/src/services/supabase/client'
-import { logger } from '@/src/utils/logger'
+import { db } from '@/services/db'
+import { logger } from '@/utils/logger'
 
 export interface Discussion {
   id: string
@@ -22,6 +22,9 @@ export interface Discussion {
   is_anonymous?: boolean | null
   upvotes?: number | null
   is_best_answer?: boolean | null
+  // Phase 36B: Forum Gamification columns
+  upvote_count?: number | null
+  is_accepted_answer?: boolean | null
   author?: {
     full_name: string
     avatar_url: string | null
@@ -31,11 +34,12 @@ export interface Discussion {
 }
 
 // Explicit columns for discussion queries (no SELECT *)
+// Phase 36B adds: upvote_count, is_accepted_answer
 const DISCUSSION_COLUMNS = `
   id, tenant_id, course_id, lesson_id, announcement_id,
   author_id, parent_id, content, is_pinned, is_edited, is_deleted,
   created_at, updated_at, title, category, tags, is_anonymous,
-  upvotes, is_best_answer,
+  upvotes, is_best_answer, upvote_count, is_accepted_answer,
   author:author_id (full_name, avatar_url)
 `
 
@@ -50,7 +54,7 @@ export const discussionService = {
     courseId?: string
     parentId?: string | null
   }) {
-    let query = supabase
+    let query = db
       .from('discussions')
       .select(DISCUSSION_COLUMNS)
       .order('is_pinned', { ascending: false })
@@ -92,7 +96,7 @@ export const discussionService = {
   async saveDiscussion(
     discussion: Partial<Discussion> & { tenant_id: string; author_id: string; content: string }
   ) {
-    const { data, error } = await supabase
+    const { data, error } = await db
       .from('discussions')
       .upsert(discussion)
       .select(DISCUSSION_COLUMNS)
@@ -110,7 +114,7 @@ export const discussionService = {
    * Soft delete a discussion entry (preserves thread integrity)
    */
   async deleteDiscussion(id: string, tenantId: string) {
-    const { error } = await supabase
+    const { error } = await db
       .from('discussions')
       .update({
         is_deleted: true,
@@ -129,7 +133,7 @@ export const discussionService = {
    * Toggle the pinned status of a discussion
    */
   async togglePin(id: string, is_pinned: boolean, tenantId: string) {
-    const { error } = await supabase
+    const { error } = await db
       .from('discussions')
       .update({ is_pinned })
       .eq('id', id)
@@ -143,42 +147,172 @@ export const discussionService = {
 
   /**
    * Fetch top-level forum posts (no lesson/course/announcement context)
+   * Supports pagination via page/pageSize parameters.
    */
-  async fetchForumPosts(tenantId: string): Promise<Discussion[]> {
-    const { data, error } = await supabase
+  async fetchForumPosts(
+    tenantId: string,
+    page: number = 0,
+    pageSize: number = 20,
+    courseId?: string
+  ): Promise<Discussion[]> {
+    let query = db
       .from('discussions')
       .select(DISCUSSION_COLUMNS)
       .eq('tenant_id', tenantId)
       .is('lesson_id', null)
-      .is('course_id', null)
       .is('announcement_id', null)
       .eq('is_deleted', false)
+
+    if (courseId) {
+      // Course-scoped forum posts
+      query = query.eq('course_id', courseId)
+    } else {
+      // Global forum posts (legacy behavior)
+      query = query.is('course_id', null)
+    }
+
+    const { data, error } = await query
       .order('created_at', { ascending: false })
+      .range(page * pageSize, (page + 1) * pageSize - 1)
 
     if (error) throw error
     return (data ?? []) as unknown as Discussion[]
   },
 
   /**
-   * Vote on a discussion post (fire-and-forget).
+   * Vote on a discussion post via secure RPC (deduplication + self-vote prevention).
+   * Returns false if vote was rejected (already voted or self-vote).
    */
-  async voteDiscussion(discussionId: string): Promise<void> {
-    await supabase.rpc('vote_discussion', { p_discussion_id: discussionId })
+  async voteDiscussion(discussionId: string): Promise<{ success: boolean; reason?: string }> {
+    const { data, error } = await db.rpc('vote_discussion_secure', {
+      p_discussion_id: discussionId,
+    })
+    if (error) {
+      // PGRST202 = RPC not deployed yet — degrade gracefully until migration runs.
+      if (error.code === 'PGRST202') {
+        if (import.meta.env.DEV)
+          logger.warn(
+            '[discussionService] vote_discussion_secure RPC not found — migration needed.'
+          )
+        return { success: false, reason: 'rpc_not_found' }
+      }
+      if (import.meta.env.DEV) logger.error('Error voting on discussion:', error)
+      throw error
+    }
+    const result = data as { success: boolean; reason?: string } | null
+    return result ?? { success: false, reason: 'unknown' }
+  },
+
+  // ────────────────────────────────────────────────────────────
+  // Phase 36B: Forum Gamification — Votes & Accepted Answers
+  // ────────────────────────────────────────────────────────────
+
+  /**
+   * Toggle an upvote/downvote on a discussion post via the toggle_post_vote RPC.
+   * Self-voting is prevented server-side. Returns the action performed.
+   */
+  async togglePostVote(
+    postId: string,
+    voteType: 'upvote' | 'downvote' = 'upvote'
+  ): Promise<{ action: 'added' | 'removed' | 'changed'; post_id: string }> {
+    const { data, error } = await db.rpc('toggle_post_vote', {
+      p_post_id: postId,
+      p_vote_type: voteType,
+    })
+    if (error) {
+      if (error.code === 'PGRST202' || error.code === '42883') {
+        if (import.meta.env.DEV)
+          logger.warn('[discussionService] toggle_post_vote RPC not found — migration needed.')
+        return { action: 'removed', post_id: postId }
+      }
+      throw error
+    }
+    return data as { action: 'added' | 'removed' | 'changed'; post_id: string }
+  },
+
+  /**
+   * Fetch the current user's vote on a specific post.
+   * Returns null if the user has not voted.
+   */
+  async getUserVote(
+    postId: string,
+    userId: string,
+    tenantId: string
+  ): Promise<{ vote_type: 'upvote' | 'downvote' } | null> {
+    const { data, error } = await db
+      .from('discussion_votes')
+      .select('vote_type')
+      .eq('post_id', postId)
+      .eq('user_id', userId)
+      .eq('tenant_id', tenantId)
+      .maybeSingle()
+
+    if (error) {
+      if (error.code === '42P01') return null // table not yet created
+      throw error
+    }
+    return data as { vote_type: 'upvote' | 'downvote' } | null
+  },
+
+  /**
+   * Accept a discussion reply as the best answer (teacher/admin only).
+   * Uses the accept_discussion_answer RPC which un-accepts all other answers
+   * in the thread atomically.
+   */
+  async acceptDiscussionAnswer(postId: string): Promise<void> {
+    const { error } = await db.rpc('accept_discussion_answer', {
+      p_post_id: postId,
+    })
+    if (error) {
+      if (error.code === 'PGRST202' || error.code === '42883') {
+        if (import.meta.env.DEV)
+          logger.warn(
+            '[discussionService] accept_discussion_answer RPC not found — migration needed.'
+          )
+        return
+      }
+      throw error
+    }
   },
 
   /**
    * Mark a comment as the best answer for a post.
+   * FIXED: Pre-verifies tenant ownership before calling RPC to prevent
+   * cross-tenant data modification if RLS is misconfigured.
+   * Uses set_best_answer RPC for atomic execution (prevents race condition).
    */
   async setBestAnswer(postId: string, commentId: string, tenantId: string): Promise<void> {
-    await supabase
+    // FIXED: Pre-verify tenant ownership before calling RPC.
+    // Ensures the discussion post belongs to this tenant — prevents cross-tenant writes.
+    const { data: post, error: postError } = await db
       .from('discussions')
-      .update({ is_best_answer: false })
-      .eq('parent_id', postId)
+      .select('id')
+      .eq('id', postId)
       .eq('tenant_id', tenantId)
-    await supabase
-      .from('discussions')
-      .update({ is_best_answer: true })
-      .eq('id', commentId)
-      .eq('tenant_id', tenantId)
+      .maybeSingle()
+
+    if (postError) {
+      if (import.meta.env.DEV)
+        logger.error('[discussionService] setBestAnswer pre-verify error:', postError)
+      throw postError
+    }
+    if (!post) {
+      throw new Error('Post tidak ditemukan atau tidak ada akses ke tenant ini.')
+    }
+
+    const { error } = await db.rpc('set_best_answer', {
+      p_discussion_id: postId,
+      p_answer_id: commentId,
+    })
+    if (error) {
+      // PGRST202 = RPC not deployed yet — degrade gracefully until migration runs.
+      if (error.code === 'PGRST202') {
+        if (import.meta.env.DEV)
+          logger.warn('[discussionService] set_best_answer RPC not found — migration needed.')
+        return
+      }
+      if (import.meta.env.DEV) logger.error('Error setting best answer:', error)
+      throw error
+    }
   },
 }

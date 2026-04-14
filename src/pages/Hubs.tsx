@@ -1,8 +1,8 @@
-import { HubView } from '@/src/components/HubView'
-import { useAuth } from '@/src/contexts/AuthContext'
-import { useStudentXPProfile } from '@/src/features/gamification/queries/gamificationQueries'
-import { usePageTitle } from '@/src/hooks/usePageTitle'
-import { navigationItems } from '@/src/shared/config/navigation'
+import { HubView } from '@/components/HubView'
+import { useAuth } from '@/contexts/AuthContext'
+import { useStudentXPProfile } from '@/features/gamification/queries/gamificationQueries'
+import { usePageTitle } from '@/hooks/usePageTitle'
+import { navigationItems } from '@/shared/config/navigation'
 
 export function TeachingHub() {
   usePageTitle('Pusat Mengajar')

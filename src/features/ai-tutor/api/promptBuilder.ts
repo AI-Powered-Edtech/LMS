@@ -61,6 +61,13 @@ export function validateQuestion(question: string): { valid: boolean; error?: st
     /kunci\s+jawaban/i,
     /quiz\s*answer/i,
     /beri\s*saya\s*jawaban/i,
+    /solusi\s*soal/i,
+    /kunci\s*soal/i,
+    /bocoran/i,
+    /bantu\s*menjawab\s*kuis/i,
+    /apa\s*jawaban\s*dari/i,
+    /jawab\s*untuk\s*saya/i,
+    /berikan\s*jawaban/i,
   ]
 
   if (quizPatterns.some((p) => p.test(question))) {

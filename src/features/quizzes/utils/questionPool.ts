@@ -141,3 +141,55 @@ export function getPoolSummary(config: PoolConfig): string {
   }
   return `${config.poolSize} dari ${config.totalQuestions} soal dipilih secara acak`
 }
+
+// ─── Phase 33A: Server-side bank pool helpers ─────────────────────────────
+
+/** sessionStorage key prefix for pool mode flag */
+const POOL_MODE_KEY_PREFIX = 'edusync:pool_mode:'
+
+/**
+ * Mark a quiz as using server-side pool mode.
+ * Called after load-quiz-data responds with pool_mode: true.
+ * Uses sessionStorage (auto-cleared on tab close).
+ */
+export function setPoolModeFlag(quizId: string, isActive: boolean): void {
+  try {
+    if (isActive) {
+      sessionStorage.setItem(`${POOL_MODE_KEY_PREFIX}${quizId}`, '1')
+    } else {
+      sessionStorage.removeItem(`${POOL_MODE_KEY_PREFIX}${quizId}`)
+    }
+  } catch {
+    // sessionStorage may be unavailable in some contexts — fail silently
+  }
+}
+
+/**
+ * Check whether a quiz is running in server-side pool mode.
+ * Reads the cached flag set by setPoolModeFlag() after quiz load.
+ *
+ * This enables UI components to display the "Mode Pool Aktif" indicator
+ * without making an additional network request.
+ *
+ * @param quizId — The quiz UUID to check
+ * @returns true if pool mode was active during the last quiz load
+ */
+export function isPoolModeActive(quizId: string): boolean {
+  try {
+    return sessionStorage.getItem(`${POOL_MODE_KEY_PREFIX}${quizId}`) === '1'
+  } catch {
+    return false
+  }
+}
+
+/**
+ * Clear the pool mode flag for a quiz.
+ * Call this when leaving a quiz attempt.
+ */
+export function clearPoolModeFlag(quizId: string): void {
+  try {
+    sessionStorage.removeItem(`${POOL_MODE_KEY_PREFIX}${quizId}`)
+  } catch {
+    // fail silently
+  }
+}

@@ -1,32 +1,57 @@
-import { AlertCircle, CheckCircle, Loader2, MessageSquare, Save, Sparkles } from 'lucide-react'
+import { AlertCircle, ClipboardList, Loader2, MessageSquare, Save, Sparkles } from 'lucide-react'
+import { useState } from 'react'
 
-import { OptimizedImage } from '@/src/components/ui'
-import { cn } from '@/src/utils/cn'
+import { OptimizedImage } from '@/components/ui'
+import type { RubricScore } from '@/features/rubrics'
+import {
+  RubricScoringGrid,
+  useRubricByAssignment,
+  useRubricScores,
+  useScoreSubmission,
+} from '@/features/rubrics'
+import { useToast } from '@/hooks/useToast'
+import { cn } from '@/utils/cn'
 
-import type { RubricItem, SpeedGraderStudent } from './types'
+import type { SpeedGraderStudent } from './types'
 import { QUICK_COMMENTS } from './types'
 
 interface RubricPanelProps {
   currentStudent: SpeedGraderStudent
-  rubric: RubricItem[]
-  scores: Record<string, number>
   feedback: string
   totalScore: number
+  manualScore: number
+  effectiveScore: number
+  maxScore: number
+  latePenaltyPercent: number
   isLoading: boolean
   isAIGrading: boolean
-  onScoreSelect: (criterionId: string, points: number) => void
+  // Dynamic rubric props
+  submissionId: string | null
+  assignmentId: string | null
+  tenantId: string | null
   onFeedbackChange: (feedback: string) => void
+  onManualScoreChange: (score: number) => void
   onAIGrade: () => void
   onSaveAndNext: (status: 'graded' | 'needs_revision') => void
+  /** Di mobile, action footer disembunyikan karena digantikan fixed bottom bar di halaman */
+  isMobile?: boolean
 }
 
 function StudentInfoHeader({
   student,
-  totalScore,
+  earnedScore,
+  effectiveScore,
+  totalRubricPoints,
+  hasRubric,
+  maxScore,
   isLoading,
 }: {
   student: SpeedGraderStudent
-  totalScore: number
+  earnedScore: number
+  effectiveScore: number
+  totalRubricPoints: number
+  hasRubric: boolean
+  maxScore: number
   isLoading: boolean
 }) {
   if (!student) return null
@@ -66,11 +91,16 @@ function StudentInfoHeader({
           <div className="h-8 w-12 bg-slate-200 dark:bg-slate-700 rounded animate-pulse ml-auto mb-1" />
         ) : (
           <div className="text-3xl font-black text-blue-600 dark:text-blue-400 tracking-tight">
-            {totalScore}
+            {hasRubric ? earnedScore : effectiveScore}
+            {(hasRubric ? totalRubricPoints : maxScore) > 0 && (
+              <span className="text-lg font-bold text-slate-400 dark:text-slate-500">
+                /{hasRubric ? totalRubricPoints : maxScore}
+              </span>
+            )}
           </div>
         )}
         <div className="text-xs font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider">
-          Nilai Akhir
+          {hasRubric ? 'Nilai Rubrik' : 'Nilai Efektif'}
         </div>
       </div>
     </div>
@@ -96,28 +126,82 @@ function RubricSkeleton() {
 
 export function RubricPanel({
   currentStudent,
-  rubric,
-  scores,
   feedback,
-  totalScore,
+  manualScore,
+  effectiveScore,
+  maxScore,
+  latePenaltyPercent,
   isLoading,
   isAIGrading,
-  onScoreSelect,
+  submissionId,
+  assignmentId,
+  tenantId,
   onFeedbackChange,
+  onManualScoreChange,
   onAIGrade,
   onSaveAndNext,
+  isMobile = false,
 }: RubricPanelProps) {
+  const addToast = useToast((s) => s.addToast)
+
+  // Fetch rubric for this assignment
+  const { data: rubric, isLoading: isRubricLoading } = useRubricByAssignment(assignmentId, tenantId)
+
+  // Fetch existing scores for this submission
+  const { data: existingScores, isLoading: isScoresLoading } = useRubricScores(
+    submissionId,
+    tenantId
+  )
+
+  // Local scores state — initialised from server data
+  const [scores, setScores] = useState<RubricScore[]>([])
+  const [scoresInitialized, setScoresInitialized] = useState<string | null>(null)
+
+  // Re-init when submission changes
+  if (submissionId && submissionId !== scoresInitialized && existingScores) {
+    setScores(existingScores)
+    setScoresInitialized(submissionId)
+  }
+
+  const scoreSubmission = useScoreSubmission()
+
+  const isContentLoading = isLoading || isRubricLoading || isScoresLoading
+
+  const earnedScore = scores.reduce((sum, s) => sum + Number(s.score), 0)
+  const totalRubricPoints = rubric?.total_points ?? 0
+
   const addQuickComment = (comment: string) => {
     onFeedbackChange(feedback ? `${feedback}\n${comment}` : comment)
   }
 
-  return (
-    <div className="w-full md:w-96 bg-white dark:bg-slate-900 border-t md:border-t-0 md:border-l border-slate-200 dark:border-slate-700 flex flex-col shrink-0 z-20 shadow-[-4px_0_24px_rgba(0,0,0,0.02)]">
-      <StudentInfoHeader student={currentStudent} totalScore={totalScore} isLoading={isLoading} />
+  const handleSaveAndNext = async (status: 'graded' | 'needs_revision') => {
+    // Persist rubric scores if we have a submission and rubric
+    if (submissionId && rubric && scores.length > 0) {
+      try {
+        await scoreSubmission.mutateAsync({ submissionId, scores })
+      } catch {
+        addToast({ type: 'error', message: 'Gagal menyimpan skor rubrik.' })
+        return
+      }
+    }
+    onSaveAndNext(status)
+  }
 
-      {/* Rubric Matrix */}
+  return (
+    <div className="w-full bg-white dark:bg-slate-900 border-t md:border-t-0 md:border-l border-slate-200 dark:border-slate-700 flex flex-col shrink-0 z-20 shadow-[-4px_0_24px_rgba(0,0,0,0.02)]">
+      <StudentInfoHeader
+        student={currentStudent}
+        earnedScore={earnedScore}
+        effectiveScore={effectiveScore}
+        totalRubricPoints={totalRubricPoints}
+        hasRubric={Boolean(rubric)}
+        maxScore={maxScore}
+        isLoading={isContentLoading}
+      />
+
+      {/* Rubric Scoring */}
       <div className="flex-1 overflow-y-auto p-6 space-y-8">
-        {isLoading ? (
+        {isContentLoading ? (
           <RubricSkeleton />
         ) : (
           <>
@@ -137,65 +221,55 @@ export function RubricPanel({
               </button>
             </div>
 
-            {rubric.map((item) => (
-              <div key={item.id} className="space-y-3">
-                <div className="flex justify-between items-start">
+            {/* No rubric state */}
+            {!rubric && (
+              <div className="space-y-4 rounded-2xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/50 p-4">
+                <div className="flex items-start gap-3">
+                  <ClipboardList className="w-5 h-5 text-slate-400 dark:text-slate-500 mt-0.5" />
                   <div>
-                    <h4 className="font-bold text-slate-800 dark:text-white">{item.criterion}</h4>
-                    <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
-                      {item.description}
+                    <p className="font-bold text-slate-700 dark:text-slate-200 text-sm">
+                      Penilaian manual
+                    </p>
+                    <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
+                      Tugas ini belum memiliki rubrik. Masukkan nilai manual, lalu sistem akan
+                      menghitung nilai efektif setelah penalti keterlambatan.
                     </p>
                   </div>
-                  <span className="text-sm font-bold text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-900/30 px-2 py-1 rounded-lg">
-                    {scores[item.id] || 0} / {item.maxPoints}
-                  </span>
                 </div>
-
-                <div className="grid grid-cols-1 gap-2">
-                  {item.levels.map((level) => {
-                    const isSelected = scores[item.id] === level.points
-                    return (
-                      <button
-                        key={level.points}
-                        onClick={() => onScoreSelect(item.id, level.points)}
-                        className={cn(
-                          'text-left p-3 rounded-xl border text-sm transition-all',
-                          isSelected
-                            ? 'bg-blue-50 dark:bg-blue-900/30 border-blue-500 dark:border-blue-600 shadow-sm shadow-blue-100 dark:shadow-none'
-                            : 'bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 hover:border-blue-300 dark:hover:border-blue-600 hover:bg-slate-50 dark:hover:bg-slate-800/80'
-                        )}
-                      >
-                        <div className="flex justify-between items-start mb-1">
-                          <span
-                            className={cn(
-                              'font-bold',
-                              isSelected
-                                ? 'text-blue-700 dark:text-blue-400'
-                                : 'text-slate-700 dark:text-slate-300'
-                            )}
-                          >
-                            {level.points} Poin
-                          </span>
-                          {isSelected && (
-                            <CheckCircle className="w-4 h-4 text-blue-500 dark:text-blue-400" />
-                          )}
-                        </div>
-                        <p
-                          className={cn(
-                            'text-xs leading-relaxed',
-                            isSelected
-                              ? 'text-blue-600/80 dark:text-blue-400/80'
-                              : 'text-slate-500 dark:text-slate-400'
-                          )}
-                        >
-                          {level.desc}
-                        </p>
-                      </button>
-                    )
-                  })}
+                <div className="grid grid-cols-1 gap-3">
+                  <label className="space-y-1.5">
+                    <span className="text-xs font-bold uppercase tracking-wide text-slate-500 dark:text-slate-400">
+                      Nilai Raw
+                    </span>
+                    <input
+                      type="number"
+                      min="0"
+                      max={maxScore}
+                      value={Number.isNaN(manualScore) ? 0 : manualScore}
+                      onChange={(event) => onManualScoreChange(Number(event.target.value || 0))}
+                      className="w-full rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 px-4 py-2.5 text-sm font-bold text-slate-800 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    />
+                  </label>
+                  <div className="rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 p-3 text-sm">
+                    <div className="flex items-center justify-between">
+                      <span className="text-slate-500 dark:text-slate-400">Nilai efektif</span>
+                      <span className="font-bold text-slate-900 dark:text-white">
+                        {effectiveScore}/{maxScore}
+                      </span>
+                    </div>
+                    <div className="flex items-center justify-between mt-2">
+                      <span className="text-slate-500 dark:text-slate-400">Penalti terlambat</span>
+                      <span className="font-bold text-slate-900 dark:text-white">
+                        {latePenaltyPercent}%
+                      </span>
+                    </div>
+                  </div>
                 </div>
               </div>
-            ))}
+            )}
+
+            {/* Rubric scoring grid */}
+            {rubric && <RubricScoringGrid rubric={rubric} scores={scores} onChange={setScores} />}
 
             {/* General Feedback */}
             <div className="pt-4 border-t border-slate-100 dark:border-slate-800">
@@ -204,7 +278,7 @@ export function RubricPanel({
                 Umpan Balik (Opsional)
               </h4>
               <textarea
-                value={feedback}
+                value={feedback ?? ''}
                 onChange={(e) => onFeedbackChange(e.target.value)}
                 placeholder="Berikan komentar tambahan untuk siswa..."
                 className="w-full h-24 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl p-3 text-sm focus:ring-2 focus:ring-blue-500 focus:bg-white dark:focus:bg-slate-800 dark:text-white transition-all resize-none"
@@ -225,25 +299,31 @@ export function RubricPanel({
         )}
       </div>
 
-      {/* Action Footer */}
-      <div className="p-6 border-t border-slate-100 dark:border-slate-800 bg-white dark:bg-slate-900 flex gap-2">
-        <button
-          onClick={() => onSaveAndNext('needs_revision')}
-          disabled={isLoading}
-          className="flex-1 py-3 bg-red-50 dark:bg-red-900/20 hover:bg-red-100 dark:hover:bg-red-900/40 text-red-600 dark:text-red-400 rounded-xl font-bold flex items-center justify-center gap-2 transition-all active:scale-95 disabled:opacity-50"
-        >
-          <AlertCircle className="w-5 h-5" />
-          Minta Revisi
-        </button>
-        <button
-          onClick={() => onSaveAndNext('graded')}
-          disabled={isLoading}
-          className="flex-1 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-bold flex items-center justify-center gap-2 transition-all shadow-sm shadow-blue-200 dark:shadow-none active:scale-95 disabled:opacity-50"
-        >
-          <Save className="w-5 h-5" />
-          Simpan & Lanjut
-        </button>
-      </div>
+      {/* Action Footer — disembunyikan di mobile karena ada fixed bottom bar di halaman */}
+      {!isMobile && (
+        <div className="p-6 border-t border-slate-100 dark:border-slate-800 bg-white dark:bg-slate-900 flex gap-2">
+          <button
+            onClick={() => handleSaveAndNext('needs_revision')}
+            disabled={isLoading || scoreSubmission.isPending}
+            className="flex-1 py-3 bg-red-50 dark:bg-red-900/20 hover:bg-red-100 dark:hover:bg-red-900/40 text-red-600 dark:text-red-400 rounded-xl font-bold flex items-center justify-center gap-2 transition-all active:scale-95 disabled:opacity-50"
+          >
+            <AlertCircle className="w-5 h-5" />
+            Minta Revisi
+          </button>
+          <button
+            onClick={() => handleSaveAndNext('graded')}
+            disabled={isLoading || scoreSubmission.isPending}
+            className="flex-1 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-bold flex items-center justify-center gap-2 transition-all shadow-sm shadow-blue-200 dark:shadow-none active:scale-95 disabled:opacity-50"
+          >
+            {scoreSubmission.isPending ? (
+              <Loader2 className="w-5 h-5 animate-spin" />
+            ) : (
+              <Save className="w-5 h-5" />
+            )}
+            Simpan &amp; Lanjut
+          </button>
+        </div>
+      )}
     </div>
   )
 }

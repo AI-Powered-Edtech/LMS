@@ -1,13 +1,56 @@
-import { ScormPlayer } from '@/src/features/lessons/components/ScormPlayer'
-import type { LessonResource } from '@/src/features/lessons/types'
-import type { Assignment, Quiz } from '@/src/features/lessons/types'
-import { QuizViewer } from '@/src/features/quizzes/components/QuizViewer'
+import { lazy, Suspense } from 'react'
+
+import { Skeleton } from '@/components/ui'
+import { ScormPlayer } from '@/features/lessons/components/ScormPlayer'
+import type { LessonResource } from '@/features/lessons/types'
+import type { Assignment, Quiz } from '@/features/lessons/types'
 
 import { AssignmentViewer } from './AssignmentViewer'
 import { FileBlockViewer } from './blocks/FileBlockViewer'
 import { ImageBlockViewer } from './blocks/ImageBlockViewer'
+import { LessonQuizPlayer } from './blocks/LessonQuizPlayer'
 import { MarkdownBlock } from './blocks/MarkdownBlock'
 import { VideoBlock } from './blocks/VideoBlock'
+
+// Lazy-loaded interactive block viewers (code-split for performance)
+const FlashcardBlock = lazy(() =>
+  import('@/features/interactive-blocks/components/FlashcardBlock').then((m) => ({
+    default: m.FlashcardBlock,
+  }))
+)
+const DragDropBlock = lazy(() =>
+  import('@/features/interactive-blocks/components/DragDropBlock').then((m) => ({
+    default: m.DragDropBlock,
+  }))
+)
+const HotspotBlock = lazy(() =>
+  import('@/features/interactive-blocks/components/HotspotBlock').then((m) => ({
+    default: m.HotspotBlock,
+  }))
+)
+const TimelineBlock = lazy(() =>
+  import('@/features/interactive-blocks/components/TimelineBlock').then((m) => ({
+    default: m.TimelineBlock,
+  }))
+)
+const SortingBlock = lazy(() =>
+  import('@/features/interactive-blocks/components/SortingBlock').then((m) => ({
+    default: m.SortingBlock,
+  }))
+)
+const FillBlankBlock = lazy(() =>
+  import('@/features/interactive-blocks/components/FillBlankBlock').then((m) => ({
+    default: m.FillBlankBlock,
+  }))
+)
+
+interface VideoCaption {
+  id: string
+  vtt_url: string
+  language_code: string
+  label: string
+  is_default: boolean
+}
 
 interface BlockRendererProps {
   block: LessonResource
@@ -21,7 +64,10 @@ interface BlockRendererProps {
   onCompletionMet?: () => void
   onProgressUpdate?: (pct: number) => void
   onStartViewing?: () => void
+  captions?: VideoCaption[]
 }
+
+const noop = () => {}
 
 export function BlockRenderer({
   block,
@@ -30,9 +76,10 @@ export function BlockRenderer({
   isCompleted,
   savedVideoPosition,
   onVideoTimeUpdate,
-  onCompletionMet,
-  onProgressUpdate,
-  onStartViewing,
+  onCompletionMet = noop,
+  onProgressUpdate = noop,
+  onStartViewing = noop,
+  captions,
 }: BlockRendererProps) {
   const type = block.type?.toLowerCase()
   switch (type) {
@@ -51,10 +98,11 @@ export function BlockRenderer({
           metadata={block.metadata}
           isCompleted={isCompleted}
           savedVideoPosition={savedVideoPosition}
-          onProgressUpdate={onProgressUpdate ?? (() => {})}
-          onCompletionMet={onCompletionMet ?? (() => {})}
-          onStartViewing={onStartViewing ?? (() => {})}
+          onProgressUpdate={onProgressUpdate}
+          onCompletionMet={onCompletionMet}
+          onStartViewing={onStartViewing}
           onVideoTimeUpdate={onVideoTimeUpdate}
+          captions={captions}
         />
       )
 
@@ -78,16 +126,16 @@ export function BlockRenderer({
       if (!quiz)
         return <div className="px-6 py-4 text-slate-500 text-sm">Kuis tidak ditemukan.</div>
       return (
-        <QuizViewer
+        <LessonQuizPlayer
           quizId={quiz.id}
           title={quiz.title}
           instructions={quiz.instructions}
-          questions={quiz.quiz_questions}
-          maxAttempts={quiz.max_attempts}
+          timeLimitMinutes={quiz.time_limit_minutes ?? undefined}
+          maxAttempts={quiz.max_attempts ?? undefined}
           passingScore={quiz.passing_score ?? 0}
           isCompleted={isCompleted}
-          onCompletionMet={onCompletionMet ?? (() => {})}
-          onStartViewing={onStartViewing ?? (() => {})}
+          onCompletionMet={onCompletionMet}
+          onStartViewing={onStartViewing}
         />
       )
 
@@ -104,8 +152,8 @@ export function BlockRenderer({
           isPublished={assignment.is_published}
           dueDate={assignment.due_date}
           isCompleted={isCompleted}
-          onCompletionMet={onCompletionMet ?? (() => {})}
-          onStartViewing={onStartViewing ?? (() => {})}
+          onCompletionMet={onCompletionMet}
+          onStartViewing={onStartViewing}
         />
       )
 
@@ -117,8 +165,94 @@ export function BlockRenderer({
         <ScormPlayer
           scormPackageId={scormPackageId}
           lessonId={block.lesson_id}
-          onCompletionMet={onCompletionMet ?? (() => {})}
+          onCompletionMet={onCompletionMet}
         />
+      )
+    }
+
+    // ── Phase 32A: Interactive Block Types ─────────────────────────
+
+    case 'flashcard': {
+      let data
+      try {
+        data = JSON.parse(block.content || '{}')
+      } catch {
+        data = {}
+      }
+      return (
+        <Suspense fallback={<Skeleton className="h-48 w-full mx-6 my-4" />}>
+          <FlashcardBlock data={data} blockId={block.id} lessonId={block.lesson_id} />
+        </Suspense>
+      )
+    }
+
+    case 'drag_drop': {
+      let data
+      try {
+        data = JSON.parse(block.content || '{}')
+      } catch {
+        data = {}
+      }
+      return (
+        <Suspense fallback={<Skeleton className="h-48 w-full mx-6 my-4" />}>
+          <DragDropBlock data={data} blockId={block.id} lessonId={block.lesson_id} />
+        </Suspense>
+      )
+    }
+
+    case 'hotspot': {
+      let data
+      try {
+        data = JSON.parse(block.content || '{}')
+      } catch {
+        data = {}
+      }
+      return (
+        <Suspense fallback={<Skeleton className="h-48 w-full mx-6 my-4" />}>
+          <HotspotBlock data={data} blockId={block.id} lessonId={block.lesson_id} />
+        </Suspense>
+      )
+    }
+
+    case 'timeline': {
+      let data
+      try {
+        data = JSON.parse(block.content || '{}')
+      } catch {
+        data = {}
+      }
+      return (
+        <Suspense fallback={<Skeleton className="h-48 w-full mx-6 my-4" />}>
+          <TimelineBlock data={data} blockId={block.id} lessonId={block.lesson_id} />
+        </Suspense>
+      )
+    }
+
+    case 'sorting': {
+      let data
+      try {
+        data = JSON.parse(block.content || '{}')
+      } catch {
+        data = {}
+      }
+      return (
+        <Suspense fallback={<Skeleton className="h-48 w-full mx-6 my-4" />}>
+          <SortingBlock data={data} blockId={block.id} lessonId={block.lesson_id} />
+        </Suspense>
+      )
+    }
+
+    case 'fill_blank': {
+      let data
+      try {
+        data = JSON.parse(block.content || '{}')
+      } catch {
+        data = {}
+      }
+      return (
+        <Suspense fallback={<Skeleton className="h-48 w-full mx-6 my-4" />}>
+          <FillBlankBlock data={data} blockId={block.id} lessonId={block.lesson_id} />
+        </Suspense>
       )
     }
 

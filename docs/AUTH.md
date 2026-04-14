@@ -1,133 +1,165 @@
-# EduSync LMS — Authentication Guide
+# EduSync — Auth Architecture
 
 ## Overview
 
-EduSync uses Supabase email/password authentication. All auth flows go through `supabase.auth.signInWithPassword()`. Mock sessions or fake JWTs are strictly forbidden — they break RLS and FK constraints.
+EduSync uses a custom JWT-based auth system implemented in Rust (`edusync-api/crates/auth/`). There is no GoTrue, no Supabase Auth, and no external identity provider required.
 
-## How Auth Works
+## Token Pair
+
+| Token         | Algorithm | Expiry     | Storage                  |
+| ------------- | --------- | ---------- | ------------------------ |
+| Access token  | HS256     | 15 minutes | In-memory / localStorage |
+| Refresh token | HS256     | 7 days     | DB + localStorage        |
+
+- **Access token** (`JWT_SECRET`): short-lived, sent in `Authorization: Bearer` header on every API request
+- **Refresh token** (`JWT_REFRESH_SECRET`): long-lived, stored in the `refresh_tokens` table and in `localStorage`; exchanged for a new token pair at `/auth/refresh`
+
+Both secrets must be at least 32 characters. The server logs an error at startup if they are shorter.
+
+## Auth Flow
 
 ```
-Login
-  → supabase.auth.signInWithPassword()
-  → custom_access_token_hook fires
-    → reads tenant_id + role from profiles/user_roles
-    → injects into JWT claims
-  → Frontend receives session with enriched JWT
-  → AuthContext parses JWT, fetches profile
-  → User routed to correct dashboard by role
+┌──────────┐        ┌─────────────────────────────┐       ┌──────────────┐
+│  Client  │        │    VIL Auth Service          │       │  PostgreSQL  │
+└────┬─────┘        └──────────────┬──────────────┘       └──────┬───────┘
+     │                             │                              │
+     │ POST /auth/register         │                              │
+     │────────────────────────────>│  INSERT users, profiles,     │
+     │                             │  user_roles                  │
+     │<────────────────────────────│──────────────────────────────│
+     │  { access_token,            │                              │
+     │    refresh_token, user }    │                              │
+     │                             │                              │
+     │ POST /auth/login            │                              │
+     │────────────────────────────>│  SELECT user, verify Argon2  │
+     │                             │──────────────────────────────>
+     │                             │  <user row>                  │
+     │<────────────────────────────│  INSERT refresh_tokens       │
+     │  { access_token (15m),      │                              │
+     │    refresh_token (7d) }     │                              │
+     │                             │                              │
+     │ GET /auth/bootstrap         │                              │
+     │ Authorization: Bearer ...   │                              │
+     │────────────────────────────>│  Verify JWT, SELECT profile  │
+     │<────────────────────────────│  + roles + tenant_id         │
+     │  { user, profile, roles }   │                              │
+     │                             │                              │
+     │ POST /auth/refresh          │                              │
+     │ { refresh_token }           │                              │
+     │────────────────────────────>│  Validate token, rotate      │
+     │<────────────────────────────│  new access + refresh tokens │
+     │  { access_token,            │                              │
+     │    refresh_token }          │                              │
+     │                             │                              │
+     │ POST /auth/signout          │                              │
+     │────────────────────────────>│  DELETE refresh_tokens row   │
+     │<────────────────────────────│  200 OK                      │
 ```
 
-## JWT Claims
+## Role System
 
-The `custom_access_token_hook` injects:
+Roles are stored in the `user_roles` table, **not** in the JWT payload directly. The VIL backend reads the user's role and `tenant_id` from `user_roles` at login and embeds them in the JWT claims.
 
-- `tenant_id` — the user's school organization UUID
-- `role` — the user's `app_role` (ADMIN/TEACHER/STUDENT)
+| Role      | Access                                       |
+| --------- | -------------------------------------------- |
+| `student` | Student dashboard, enrolled courses, quizzes |
+| `teacher` | Course management, gradebook, analytics      |
+| `admin`   | Tenant management, user management, reports  |
 
-These are available at `session.access_token` (decoded) and via `AuthContext`.
+Additional roles (`parent`, `principal`) may exist in `user_roles` for extended portal access.
 
-## AuthContext
-
-`src/contexts/AuthContext.tsx` provides:
+### Reading the role in React
 
 ```tsx
-const {
-  user, // Supabase auth.User
-  profile, // profiles row: first_name, last_name, avatar_url, tenant_id, etc.
-  role, // Active role string: 'admin' | 'teacher' | 'student'
-  activeRole, // Same as role
-  roles, // All roles for this user (array)
-  session, // Supabase Session
-  tenantId, // UUID from profile.tenant_id
-  activeTenant, // tenant object
-  loading, // Auth state loading
-  signOut, // Clears state eagerly then calls supabase.auth.signOut()
-} = useAuth()
+// CORRECT:
+const { user, profile, role, tenantId } = useAuth()
+
+// WRONG — profile.role does NOT exist:
+const role = profile.role // undefined
 ```
 
-**Important:** `signOut()` clears local state before calling Supabase to prevent infinite spinner on the login screen (BUG-C1-005, fixed).
+Role comes from `useAuth().role`, which reads from the JWT claims loaded at bootstrap.
 
-## Role Routing
+## Multi-Tenant Identity
 
-- `RoleRoute` wraps routes: `<RoleRoute role="teacher">` or `<RoleRoute role={["teacher","admin"]}>`
-- `RoleGuard` is used inside `/app/student`, `/app/teacher`, `/app/admin` route groups
-- `RoleResolver` at `/app` redirects to the correct role-specific dashboard
+- Every user belongs to exactly one tenant (school)
+- `tenant_id` is embedded in the JWT access token at login
+- All VIL data-plane queries automatically scope results to `tenant_id`
+- Admins may create tenants via `POST /auth/create-tenant`
 
-## Sign Up Flow
+## RBAC in Rust
 
-New users must be created via Supabase Auth (Dashboard or `signUp()` call). The `handle_new_user` trigger automatically:
+The `edusync-middleware` crate provides:
 
-1. Creates a `profiles` row with `tenant_id` from `raw_user_meta_data`
-2. Creates a `user_roles` row with default role `STUDENT`
+- **`AuthedRequest`**: Axum extractor that validates the Bearer JWT and extracts `user_id`, `tenant_id`, `role`
+- **`RbacGuard`**: enforces role requirements per handler
 
-To pass `tenant_id` during signup:
-
-```tsx
-await supabase.auth.signUp({
-  email,
-  password,
-  options: { data: { tenant_id: '...', first_name: '...', last_name: '...' } },
-})
+```rust
+// Requires a valid JWT with teacher or admin role:
+async fn create_course_handler(
+    authed: AuthedRequest,  // extracts + validates JWT
+    State(state): State<AppState>,
+    Json(body): Json<CreateCourseRequest>,
+) -> Result<Json<Course>, AppError> {
+    authed.require_role(&["teacher", "admin"])?;
+    // ...
+}
 ```
 
-If `tenant_id` is omitted, the trigger falls back to default tenant `00000000-0000-0000-0000-000000000001`.
+## MFA (TOTP)
 
-## Setting Up Dev Accounts
+Optional TOTP-based multi-factor authentication:
 
-See [AUTH_SETUP_GUIDE.md](AUTH_SETUP_GUIDE.md) for complete step-by-step instructions to set up your Supabase project and create dev accounts.
+1. `POST /auth/mfa/enroll` — returns QR code + TOTP secret
+2. User scans QR in authenticator app
+3. `POST /auth/mfa/verify` — verifies first TOTP code, enables MFA
+4. Subsequent logins require TOTP code after password verification
+5. `DELETE /auth/mfa/unenroll` — disables MFA
 
-Quick reference for existing shared dev project:
+Implemented using the `totp-rs` crate.
 
-| Email                 | Password      | Role    |
-| --------------------- | ------------- | ------- |
-| `teacher@edusync.dev` | `password123` | TEACHER |
-| `student@edusync.dev` | `password123` | STUDENT |
-| `admin@edusync.dev`   | `password123` | ADMIN   |
+## OAuth (Google)
 
-## Known Limitations
+- `GET /auth/login/google` — initiates OAuth flow
+- `GET /auth/callback/google` — handles callback, creates VIL session
+- On first OAuth login, a profile and `user_roles` row are created
 
-- `.test` TLD emails (e.g., `guru.mat@smanusantara1.test`) fail login due to GoTrue email validation. This is an infrastructure limitation. Use `.dev` or real domain emails for test accounts.
-- Auth loading flash: on token refresh, `loading || loadingMemberships` may briefly flash before stabilizing (BUG-C2-001, low priority).
-- React controlled inputs: agent-browser and automated tools cannot programmatically fill the login form — it must be filled via keyboard events.
+## Email Verification & Password Reset
 
-## Security Rules
+- `POST /auth/reset-password` — sends reset email via SMTP (lettre)
+- `POST /auth/update-password` — sets new password using recovery token
+- `POST /auth/verify` — verifies email address via token
 
-- Never create fake sessions or hardcode tokens in frontend code
-- Never expose service role keys in client code — only use `VITE_SUPABASE_ANON_KEY`
-- RLS enforces access at the database level regardless of frontend guards
-- All RPCs that modify data check `auth.uid()` and `get_my_tenant_id()`
+SMTP is configured via `SMTP_HOST`, `SMTP_PORT`, `SMTP_USERNAME`, `SMTP_PASSWORD`, `SMTP_FROM_EMAIL`.
 
-<!-- Phase 5 Feature Cross-Reference -->
+## LTI Guest Users
 
-## Feature Module Cross-Reference
+When an LTI 1.3 launch occurs from an external platform, EduSync creates a guest user account with a deterministic email:
 
-EduSync LMS terdiri dari 24 feature module yang saling terintegrasi:
+```
+lti-{platformId8}-{sub}@lti.edusync.internal
+```
 
-| Feature         | Domain         | Deskripsi                                                                                                                  |
-| --------------- | -------------- | -------------------------------------------------------------------------------------------------------------------------- |
-| administration  | Admin          | Administrasi — Manajemen tenant, konfigurasi modul sekolah, sinkronisasi data                                              |
-| ai-tutor        | Learning       | AI Tutor — Asisten belajar berbasis AI yang memberikan penjelasan personal kepada siswa                                    |
-| analytics       | Analytics      | Analitik — Dashboard analitik komprehensif untuk guru dan admin                                                            |
-| announcements   | Communication  | Pengumuman — Sistem pengumuman sekolah                                                                                     |
-| assignments     | Assessment     | Tugas — Manajemen tugas dari pembuatan hingga penilaian                                                                    |
-| calendar        | Academic       | Kalender — Kalender akademik terintegrasi dengan jadwal pelajaran, ujian, deadline tugas, dan kegiatan sekolah             |
-| classroom       | Academic       | Kelas — Manajemen kelas virtual dan fisik                                                                                  |
-| courses         | Academic       | Kursus — Core learning module                                                                                              |
-| dashboards      | Analytics      | Dashboard — Dashboard kustom dengan widget builder                                                                         |
-| discussions     | Communication  | Diskusi — Forum diskusi per kursus                                                                                         |
-| gamification    | Engagement     | Gamifikasi — Sistem gamifikasi lengkap: XP, badge, level, streak counter, dan leaderboard                                  |
-| gradebook       | Assessment     | Buku Nilai — Buku nilai digital untuk guru                                                                                 |
-| guidance        | Admin          | Panduan — Sistem panduan in-app (tooltip, walkthrough, banner, checkpoint)                                                 |
-| lessons         | Learning       | Pelajaran — Konten pelajaran dengan block-based editor                                                                     |
-| moderation      | Admin          | Moderasi — Moderasi konten user-generated (diskusi, komentar)                                                              |
-| notifications   | Communication  | Notifikasi — Sistem notifikasi real-time dengan bell icon dan panel                                                        |
-| onboarding      | Admin          | Onboarding — Wizard onboarding untuk pengguna baru                                                                         |
-| progress        | Learning       | Kemajuan Belajar — Tracking progress belajar siswa secara granular per kursus, modul, dan pelajaran                        |
-| question-bank   | Assessment     | Bank Soal — Repositori soal yang bisa digunakan ulang di berbagai kuis                                                     |
-| quizzes         | Assessment     | Kuis — Sistem kuis komprehensif dengan timer, anti-cheat, autosave, review mode, dan analitik hasil per soal               |
-| recommendations | Learning       | Rekomendasi — Engine rekomendasi konten berdasarkan progress, performa, dan pola belajar siswa                             |
-| reports         | Analytics      | Laporan — Generator laporan akademik, keuangan (SPP), PPDB, dan custom                                                     |
-| storage         | Infrastructure | Penyimpanan — Manajemen file dan media untuk materi pembelajaran                                                           |
-| struggle        | Analytics      | Deteksi Kesulitan — Deteksi otomatis siswa yang kesulitan berdasarkan pola belajar, waktu per soal, dan penurunan performa |
+where `platformId8` is the first 8 chars of the SHA-256 of the platform's `iss` URL, and `sub` is the LTI subject claim. This ensures idempotent account creation across multiple launches.
 
-Setiap feature module mengikuti arsitektur standar dengan folder: api/, queries/, hooks/, types/, components/, dan **tests**/. Semua feature mendukung dark mode dan skeleton loading screens.
+## Brute Force Protection
+
+- Implemented in `edusync-middleware::brute_force::BruteForceTracker`
+- Tracks failed login attempts per IP address
+- After 5 failed attempts within 15 minutes, subsequent attempts return `429 Too Many Requests`
+- Counter resets after the 15-minute window
+
+## Session Storage (Frontend)
+
+The `vilAuthProvider.ts` stores tokens using `vilSession.ts` helpers:
+
+- Access token stored in memory and/or `localStorage` under key `access_token`
+- Refresh token stored in `localStorage`
+- `subscribeVilSession()` allows components to react to session changes
+- `clearVilSession()` is called on signout **before** calling the API signout endpoint, preventing infinite spinner on auth failures
+
+## Known Gotchas
+
+- `.test` TLD emails fail validation — use `.dev` or real domain for test accounts
+- React controlled inputs: login form cannot be filled programmatically — requires keyboard events (for E2E testing)
+- `signOut()` must clear React state eagerly **before** calling the auth provider's signOut

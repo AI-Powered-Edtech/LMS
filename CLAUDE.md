@@ -2,16 +2,21 @@
 
 ## Project Overview
 
-EduSync is a multi-tenant SaaS Learning Management System (LMS) for Indonesian schools. It runs on a Supabase-centric architecture with no traditional backend. PostgreSQL (RLS + SQL functions) is the logic layer. The frontend is React 19 + Vite + TypeScript + Tailwind. All user-visible text is in Bahasa Indonesia.
+EduSync is a multi-tenant SaaS Learning Management System (LMS) for Indonesian schools. It uses a VIL Rust backend with PostgreSQL (RLS + SQL functions) as the data layer. The frontend is React 19 + Vite + TypeScript + Tailwind. All user-visible text is in Bahasa Indonesia.
 
 ## Tech Stack
 
 - React 19, Vite 6, TypeScript 5.8, Tailwind CSS v4
-- Supabase JS v2 (PostgreSQL + Auth + RLS + Edge Functions)
-- React Router v7 (hash routing)
-- React Query v5 (server state)
-- Zustand v5 (local feature state — quiz player only)
-- Lucide React (icons), Framer Motion/`motion` (animations), Recharts (charts)
+- **VIL backend** (`vil_server = "0.2"`) — process-oriented Rust framework (https://github.com/OceanOS-id/VIL)
+  - Handlers: `#[vil_handler(shm)]` + `ServiceCtx` + `ShmSlice` + `HandlerResult<VilResponse<T>>`
+  - AI streaming: `SseCollect` + `SseDialect::openai()` (Groq API)
+  - Realtime: `WsHub` + `pg_notify` forwarding
+  - Storage: `vil_conn_s3::S3Connector` (MinIO dev / Cloudflare R2 prod)
+  - Cron: VIL `Scheduler` (.every(), .daily_at_utc())
+  - Observer: `/_vil/dashboard/` (live metrics, routes, SHM stats)
+- PostgreSQL 16 self-hosted Docker (`pgvector/pgvector:pg16`) + pgBouncer
+- React Router v7 (hash routing), React Query v5, Zustand v5
+- Lucide React, Framer Motion/`motion`, Recharts
 
 ## Key Conventions
 
@@ -39,7 +44,7 @@ EduSync is a multi-tenant SaaS Learning Management System (LMS) for Indonesian s
 
 - All user-visible strings must be Bahasa Indonesia
 - No English labels, button text, error messages, or headers in the UI
-- Supabase English error messages must be translated (see `translateAuthError()` in Login.tsx)
+- Backend error messages must be translated (see `translateAuthError()` in Login.tsx)
 
 ### Dark Mode
 
@@ -75,7 +80,7 @@ EduSync is a multi-tenant SaaS Learning Management System (LMS) for Indonesian s
 
 - `.test` TLD emails fail GoTrue validation — use `.dev` or real domains for test accounts
 - React controlled inputs: login form cannot be filled programmatically — requires keyboard events
-- `signOut()` must clear React state eagerly BEFORE calling `supabase.auth.signOut()` (prevents infinite spinner)
+- `signOut()` must clear React state eagerly BEFORE calling the auth provider's signOut (prevents infinite spinner)
 
 ### Routing
 
@@ -102,29 +107,35 @@ Key docs:
 - `docs/TESTING.md` — test accounts and known limitations
 - `docs/ENGINEERING_ROADMAP.md` — phase status
 
-## Edge Functions
+## Component Registry
 
-All Edge Functions live in `supabase/functions/`. Each is self-contained (no shared module). Use `Deno.serve`, `jsr:` imports, and the standard CORS/response helpers.
+Maintain the component registry at `COMPONENT_REGISTRY.md`. This document tracks all feature modules, VIL backend handlers, shared hooks, UI primitives, and other key components.
 
-| Function                  | Purpose                                         | Auth                          |
-| ------------------------- | ----------------------------------------------- | ----------------------------- |
-| `ai-grade-essay`          | AI essay grading via Groq                       | User JWT                      |
-| `ai-tutor`                | AI tutor chat                                   | User JWT                      |
-| `generate-ai-content`     | AI content generation                           | User JWT                      |
-| `generate-pdf`            | PDF certificate generation                      | User JWT                      |
-| `grade-quiz-attempt`      | Background quiz grading                         | Service role                  |
-| `health-check`            | System health status                            | None (public)                 |
-| `load-quiz-data`          | Load quiz for student                           | User JWT                      |
-| `process-progress-events` | Batch progress event processing                 | API key                       |
-| `progress-events`         | Enqueue progress events                         | User JWT                      |
-| `send-email-digest`       | Email digest sender                             | Service role                  |
-| `send-push`               | Push notification sender                        | User JWT                      |
-| `lti-jwks`                | Public JWKS for LTI platforms                   | None (public GET)             |
-| `lti-oidc-login`          | LTI OIDC login initiation                       | None (platform-initiated)     |
-| `lti-launch`              | LTI launch token validation + user provisioning | None (validates LTI id_token) |
-| `scorm-extract`           | SCORM ZIP upload, validation, extraction        | User JWT (teacher/admin)      |
+**Update after any significant change:**
 
-### LTI/SCORM Environment Variables
+- New feature module (folder in `src/features/`)
+- New VIL backend handler (file in `edusync-api/`)
+- New shared hook (file in `src/hooks/`)
+- New UI primitive (component in `src/components/ui/`)
+- New Zustand store or Context provider
+
+For each update:
+
+1. Add row to appropriate registry table
+2. Set Status: "Active"
+3. Set Last Updated: current date (YYYY-MM-DD)
+4. Set Codebase Version: current git hash
+
+Quick update command:
+
+```bash
+git rev-parse --short HEAD  # get current hash
+sed -i 's/<OLD_HASH>/<NEW_HASH>/g' COMPONENT_REGISTRY.md
+```
+
+See `COMPONENT_REGISTRY.md` for the complete registry and update procedures.
+
+## LTI/SCORM Environment Variables
 
 | Variable              | Used By                  |
 | --------------------- | ------------------------ |
@@ -149,9 +160,16 @@ All Edge Functions live in `supabase/functions/`. Each is self-contained (no sha
 | `student@edusync.dev` | `password123` | STUDENT |
 | `admin@edusync.dev`   | `password123` | ADMIN   |
 
-Dev app: `http://localhost:5173` (after `npm run dev`)
+Dev app: `http://localhost:5173` (after `pnpm dev`)
 
 ## Engineering Workflow
+
+Before implementing any backend feature:
+
+1. Use VIL Way: `#[vil_handler(shm)]`, `ServiceCtx`, `ShmSlice`, `VilResponse<T>`, `VilError`
+2. No custom error enums — use `VilError` factory methods directly (`VilError::bad_request/not_found/internal/...`)
+3. AI calls: `SseCollect::post_to(url).dialect(SseDialect::openai()).collect_text().await?`
+4. State access: `ctx.state::<Arc<AppState>>()` — never `Extension<Arc<T>>` in handlers
 
 Before implementing any feature:
 

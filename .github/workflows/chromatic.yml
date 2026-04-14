@@ -1,0 +1,52 @@
+name: Visual Regression (Chromatic)
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+    paths:
+      # Only run when UI components change — avoid wasted Chromatic snapshots on backend-only PRs
+      - 'src/components/**'
+      - 'src/features/**/components/**'
+      - 'src/pages/**'
+      - '.storybook/**'
+      - 'src/**/*.stories.tsx'
+
+jobs:
+  chromatic:
+    name: Chromatic Snapshot Tests
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          # Chromatic needs full git history to determine changed stories
+          fetch-depth: 0
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Run Chromatic
+        uses: chromaui/action@latest
+        with:
+          # Get this token from https://www.chromatic.com/
+          projectToken: ${{ secrets.CHROMATIC_PROJECT_TOKEN }}
+          # Only snapshot stories that changed in this PR for speed
+          onlyChanged: true
+          # Fail the workflow if visual regressions are detected
+          exitZeroOnChanges: false
+          # Build Storybook before running Chromatic
+          buildScriptName: build-storybook
+          # Allow TurboSnap to skip unchanged stories
+          zip: true

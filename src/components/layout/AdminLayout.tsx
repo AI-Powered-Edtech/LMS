@@ -1,15 +1,17 @@
 import { AnimatePresence, motion } from 'motion/react'
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import { Outlet, useLocation, useNavigate } from 'react-router-dom'
 
-import { FeatureErrorBoundary } from '@/src/components/FeatureErrorBoundary'
-import { useAuth } from '@/src/contexts/AuthContext'
-import { useTheme } from '@/src/contexts/ThemeContext'
-import { useToast } from '@/src/hooks/useToast'
+import { FeatureErrorBoundary } from '@/components/FeatureErrorBoundary'
+import { AdminSidebar } from '@/components/navigation/AdminSidebar'
+import { useAuth } from '@/contexts/AuthContext'
+import { OnboardingChecklist } from '@/features/onboarding'
+import { useToast } from '@/hooks/useToast'
 
+import { HelpButton } from '../ui/HelpButton'
 import { Header } from './Header'
+import { MobileSidebar } from './MobileSidebar'
 import { RouteAnnouncer } from './RouteAnnouncer'
-import { Sidebar } from './Sidebar'
 
 const hiddenNavPaths = ['/lesson', '/grader', '/kiosk']
 
@@ -17,38 +19,42 @@ export function AdminLayout() {
   const location = useLocation()
   const navigate = useNavigate()
   const isHidden = hiddenNavPaths.includes(location.pathname)
-  const { theme } = useTheme()
   const { sessionExpired } = useAuth()
   const addToast = useToast((s) => s.addToast)
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
 
   // Redirect to login with toast when session expires
   useEffect(() => {
     if (sessionExpired) {
       addToast({ type: 'warning', message: 'Sesi Anda telah berakhir' })
-      navigate('/login', { replace: true })
+      void navigate('/login', { replace: true })
     }
   }, [sessionExpired, addToast, navigate])
 
   return (
-    <div
-      className={`flex h-[100dvh] overflow-hidden font-sans flex-col transition-colors duration-300 ${theme === 'dark' ? 'bg-slate-950 text-slate-100' : 'bg-slate-50 text-slate-900'}`}
-    >
+    <div className="flex h-[100dvh] overflow-hidden font-sans flex-col transition-colors duration-300 bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-100">
       <RouteAnnouncer />
       <a
         href="#main-content"
-        className="sr-only focus:not-sr-only focus:fixed focus:top-4 focus:left-4 focus:z-50 focus:px-4 focus:py-2 focus:bg-blue-600 focus:text-white focus:rounded-lg focus:outline-none"
+        className="sr-only focus:not-sr-only focus:fixed focus:top-4 focus:left-4 focus:z-50 focus:px-4 focus:py-2 focus:bg-blue-600 focus:text-white focus:rounded-lg focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
       >
         Langsung ke konten utama
       </a>
       <div className="flex-1 flex overflow-hidden relative">
-        {!isHidden && <Sidebar />}
+        {!isHidden && (
+          <>
+            <AdminSidebar />
+            <MobileSidebar isOpen={isMobileMenuOpen} onClose={() => setIsMobileMenuOpen(false)} />
+          </>
+        )}
         <div className="flex-1 flex flex-col h-full overflow-hidden relative">
-          {!isHidden && <Header />}
+          {!isHidden && <Header onMenuClick={() => setIsMobileMenuOpen(true)} />}
           <main
             id="main-content"
-            className={`flex-1 overflow-y-auto overflow-x-hidden flex flex-col ${isHidden ? 'p-0' : 'p-2 sm:p-4 md:p-8'}`}
+            tabIndex={-1}
+            className={`flex-1 overflow-y-auto overflow-x-hidden flex flex-col outline-none ${isHidden ? 'p-0' : 'p-2 sm:p-4 md:p-8 pb-24 md:pb-8'}`}
           >
-            <AnimatePresence mode="wait">
+            <AnimatePresence mode="sync">
               <motion.div
                 key={location.pathname}
                 initial={{ opacity: 0, y: 10 }}
@@ -65,6 +71,8 @@ export function AdminLayout() {
           </main>
         </div>
       </div>
+      {!isHidden && <HelpButton />}
+      <OnboardingChecklist />
     </div>
   )
 }

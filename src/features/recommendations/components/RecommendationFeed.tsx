@@ -2,7 +2,7 @@ import { Lightbulb, Loader2, Sparkles } from 'lucide-react'
 import { AnimatePresence, motion } from 'motion/react'
 import { useNavigate } from 'react-router-dom'
 
-import { cn } from '@/src/utils/cn'
+import { cn } from '@/utils/cn'
 
 import { useRecommendations, useRecordRecommendationAction } from '../queries/recommendationQueries'
 import type { Recommendation, RecommendationType } from '../types'
@@ -49,7 +49,8 @@ function RecommendationCard({ rec, onAccept, onDismiss }: RecommendationCardProp
   const handleAccept = () => {
     onAccept(rec.id)
     if (rec.course_id) {
-      navigate(`/courses/${rec.course_id}`)
+      // FIXED: Use correct hash-router student course path (was /courses/:id — missing /app/student prefix)
+      void navigate(`/app/student/courses/${rec.course_id}`)
     }
   }
 

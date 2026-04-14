@@ -1,11 +1,13 @@
-import React, { useState } from 'react'
+import { useEffect, useState } from 'react'
+
+export type UserRole = 'STUDENT' | 'TEACHER' | 'ADMIN'
 
 interface ChangeRoleModalProps {
   isOpen: boolean
   onClose: () => void
   onConfirm: (newRole: string) => Promise<void>
   userName: string
-  currentRoles: string[]
+  currentRoles: UserRole[]
 }
 
 const ROLES = [
@@ -21,16 +23,25 @@ export function ChangeRoleModal({
   userName,
   currentRoles,
 }: ChangeRoleModalProps) {
-  const [selectedRole, setSelectedRole] = useState(currentRoles[0] || 'STUDENT')
+  const [selectedRole, setSelectedRole] = useState<UserRole>(currentRoles[0] ?? 'STUDENT')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
 
+  // Reset selectedRole when modal opens or user changes
+  useEffect(() => {
+    if (isOpen) {
+      setSelectedRole(currentRoles[0] ?? 'STUDENT')
+      setError('')
+    }
+  }, [isOpen, currentRoles])
+
   if (!isOpen) return null
 
-  const primaryRole = currentRoles[0] || 'STUDENT'
+  const primaryRole = currentRoles[0] ?? 'STUDENT'
   const isDowngrade =
     (primaryRole === 'ADMIN' && selectedRole !== 'ADMIN') ||
     (primaryRole === 'TEACHER' && selectedRole === 'STUDENT')
+  const isUpgradeToAdmin = selectedRole === 'ADMIN' && primaryRole !== 'ADMIN'
 
   const handleConfirm = async () => {
     setError('')
@@ -47,10 +58,15 @@ export function ChangeRoleModal({
 
   return (
     <div
+      role="presentation"
       className="fixed inset-0 bg-black/60 flex items-center justify-center z-[9999] p-4"
+      onKeyDown={(e) => e.key === 'Escape' && onClose()}
       onClick={onClose}
     >
       <div
+        role="dialog"
+        aria-modal="true"
+        aria-label="Ubah Peran"
         className="bg-white rounded-2xl p-6 w-full max-w-md shadow-2xl"
         onClick={(e) => e.stopPropagation()}
       >
@@ -78,7 +94,7 @@ export function ChangeRoleModal({
           {ROLES.map((r) => (
             <button
               key={r.value}
-              onClick={() => setSelectedRole(r.value)}
+              onClick={() => setSelectedRole(r.value as UserRole)}
               className={`w-full p-3 rounded-xl border text-left transition-all flex items-center justify-between ${
                 selectedRole === r.value
                   ? 'border-blue-500 bg-blue-50 ring-1 ring-blue-200'
@@ -107,6 +123,15 @@ export function ChangeRoleModal({
             <p className="text-xs text-amber-700 font-medium">
               ⚠️ Ini adalah <strong>penurunan</strong>. Pengguna akan kehilangan akses fitur{' '}
               {primaryRole}.
+            </p>
+          </div>
+        )}
+
+        {isUpgradeToAdmin && (
+          <div className="mb-4 p-3 bg-blue-50 border border-blue-200 rounded-xl">
+            <p className="text-xs text-blue-700 font-medium">
+              ℹ️ Pengguna ini akan mendapat akses <strong>penuh</strong> ke seluruh sistem sekolah
+              sebagai Admin.
             </p>
           </div>
         )}

@@ -22,6 +22,14 @@ export const Login = withErrorBoundary(
   lazy(() => import('../pages/Login').then((m) => ({ default: m.Login }))),
   'Masuk'
 )
+export const AuthCallback = withErrorBoundary(
+  lazy(() => import('../pages/AuthCallback').then((m) => ({ default: m.AuthCallback }))),
+  'Callback Login'
+)
+export const AuthError = withErrorBoundary(
+  lazy(() => import('../pages/AuthError').then((m) => ({ default: m.AuthError }))),
+  'Login Gagal'
+)
 export const ForgotPassword = withErrorBoundary(
   lazy(() => import('../pages/ForgotPassword').then((m) => ({ default: m.ForgotPassword }))),
   'Lupa Kata Sandi'
@@ -49,6 +57,14 @@ export const NotFound = withErrorBoundary(
 export const NotificationsPage = withErrorBoundary(
   lazy(() => import('../pages/Notifications').then((m) => ({ default: m.Notifications }))),
   'Notifikasi'
+)
+export const PrivacyPolicy = withErrorBoundary(
+  lazy(() => import('../pages/PrivacyPolicy').then((m) => ({ default: m.PrivacyPolicy }))),
+  'Kebijakan Privasi'
+)
+export const TermsOfService = withErrorBoundary(
+  lazy(() => import('../pages/TermsOfService').then((m) => ({ default: m.TermsOfService }))),
+  'Ketentuan Layanan'
 )
 
 // ============================================================
@@ -86,6 +102,18 @@ export const StudentAttendance = withErrorBoundary(
 export const LtiCallback = withErrorBoundary(
   lazy(() => import('../pages/LtiCallback').then((m) => ({ default: m.LtiCallback }))),
   'LTI Callback'
+)
+export const InviteRedeem = withErrorBoundary(
+  lazy(() => import('../pages/InviteRedeem').then((m) => ({ default: m.InviteRedeem }))),
+  'Validasi Undangan'
+)
+export const Offline = withErrorBoundary(
+  lazy(() => import('../pages/Offline').then((m) => ({ default: m.Offline }))),
+  'Offline'
+)
+export const EnrollPage = withErrorBoundary(
+  lazy(() => import('../pages/EnrollPage').then((m) => ({ default: m.EnrollPage }))),
+  'Bergabung ke Kelas'
 )
 
 // ============================================================
@@ -134,6 +162,14 @@ export const CourseAnalytics = withErrorBoundary(
   lazy(() => import('../pages/CourseAnalytics').then((m) => ({ default: m.CourseAnalytics }))),
   'Analitik Kursus'
 )
+export const TeacherLessonMonitorPage = withErrorBoundary(
+  lazy(() =>
+    import('../features/lesson-monitor/pages/TeacherLessonMonitorPage').then((m) => ({
+      default: m.TeacherLessonMonitorPage,
+    }))
+  ),
+  'Monitor Pelajaran'
+)
 export const Dashboards = withErrorBoundary(
   lazy(() => import('../pages/Dashboards').then((m) => ({ default: m.Dashboards }))),
   'Dasbor'
@@ -161,6 +197,24 @@ export const Creator = withErrorBoundary(
 export const StudentProgress = withErrorBoundary(
   lazy(() => import('../pages/StudentProgress').then((m) => ({ default: m.StudentProgress }))),
   'Progres Siswa'
+)
+export const StruggleDashboard = withErrorBoundary(
+  lazy(() => import('../pages/StruggleDashboard').then((m) => ({ default: m.StruggleDashboard }))),
+  'Deteksi Kesulitan Belajar'
+)
+export const AdaptivePathsPage = withErrorBoundary(
+  lazy(() => import('../pages/AdaptivePaths').then((m) => ({ default: m.AdaptivePaths }))),
+  'Jalur Adaptif'
+)
+export const PlagiarismDashboard = withErrorBoundary(
+  lazy(() =>
+    import('../pages/PlagiarismDashboard').then((m) => ({ default: m.PlagiarismDashboard }))
+  ),
+  'Laporan Plagiarisme'
+)
+export const LtiManagement = withErrorBoundary(
+  lazy(() => import('../pages/admin/LtiManagement').then((m) => ({ default: m.LtiManagement }))),
+  'Pengaturan LTI'
 )
 
 // ============================================================
@@ -282,4 +336,81 @@ export const SystemHealth = withErrorBoundary(
 export const FeatureFlagsPage = withErrorBoundary(
   lazy(() => import('../pages/admin/FeatureFlags')),
   'Pengaturan Fitur'
+)
+export const SemesterPage = withErrorBoundary(
+  lazy(() => import('../pages/admin/SemesterPage')),
+  'Manajemen Semester'
+)
+
+// ============================================================
+// Parent pages
+// ============================================================
+// Parent pages
+// ============================================================
+
+export const ParentRegisterPage = withErrorBoundary(
+  lazy(() =>
+    import('../features/auth/components/ParentRegisterPage').then((m) => ({
+      default: m.ParentRegisterPage,
+    }))
+  ),
+  'Daftar Orang Tua'
+)
+
+// ============================================================
+// MFA / 2FA pages
+// ============================================================
+
+export const MFASetupPage = withErrorBoundary(
+  lazy(() =>
+    import('../features/auth/components/MFASetupPage').then((m) => ({ default: m.MFASetupPage }))
+  ),
+  'Setup 2FA'
+)
+
+export const MFAVerifyPage = withErrorBoundary(
+  lazy(() =>
+    import('../features/auth/components/MFAVerifyPage').then((m) => ({ default: m.MFAVerifyPage }))
+  ),
+  'Verifikasi 2FA'
+)
+
+// ============================================================
+// Privacy / GDPR pages
+// ============================================================
+
+export const DataExportPage = withErrorBoundary(
+  lazy(() =>
+    import('../features/profile/components/DataExportPage').then((m) => ({
+      default: m.DataExportPage,
+    }))
+  ),
+  'Export Data'
+)
+
+export const AccountDeletionPage = withErrorBoundary(
+  lazy(() =>
+    import('../features/profile/components/AccountDeletionPage').then((m) => ({
+      default: m.AccountDeletionPage,
+    }))
+  ),
+  'Hapus Akun'
+)
+
+// ============================================================
+// Peer Review
+// ============================================================
+
+export const PeerReviews = withErrorBoundary(
+  lazy(() => import('../pages/PeerReviews').then((m) => ({ default: m.PeerReviews }))),
+  'Peer Review'
+)
+
+// ============================================================
+// Survey Respondent
+// ============================================================
+
+export const SurveyRespondPage = withErrorBoundary(
+  lazy(() => import('../pages/SurveyRespond').then((m) => ({ default: m.SurveyRespondPage }))),
+  'Isi Survei'
 )

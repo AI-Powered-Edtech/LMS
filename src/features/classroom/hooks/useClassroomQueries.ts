@@ -2,9 +2,11 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useEffect } from 'react'
 import { create } from 'zustand'
 
-import { useAuth } from '@/src/contexts/AuthContext'
-import { Classroom, classroomService } from '@/src/features/classroom/api/classroomService'
-import { createQueryKeys } from '@/src/lib/queryKeys'
+import { useAuth } from '@/contexts/AuthContext'
+import { Classroom, classroomService } from '@/features/classroom/api/classroomService'
+import { useToast } from '@/hooks/useToast'
+import { createQueryKeys } from '@/lib/queryKeys'
+import { captureError } from '@/utils/sentry'
 
 const classroomKeys = createQueryKeys('classrooms')
 
@@ -55,7 +57,15 @@ function useAddClassroom() {
       await classroomService.createClassroom(user.id, name, tenantId)
     },
     onSuccess: () => {
-      if (tenantId) queryClient.invalidateQueries({ queryKey: classroomKeys.all(tenantId!) })
+      if (tenantId) void queryClient.invalidateQueries({ queryKey: classroomKeys.all(tenantId!) })
+    },
+    onError: (err) => {
+      captureError(err, { context: 'useAddClassroom' })
+      useToast.getState().addToast({
+        type: 'error',
+        message: 'Gagal membuat kelas.',
+      })
+      throw err
     },
   })
 }
@@ -66,10 +76,17 @@ function useUpdateClassroom() {
 
   return useMutation({
     mutationFn: async ({ id, name }: { id: string; name: string }) => {
-      await classroomService.updateClassroom(id, name)
+      await classroomService.updateClassroom(id, name, tenantId!)
     },
     onSuccess: () => {
-      if (tenantId) queryClient.invalidateQueries({ queryKey: classroomKeys.all(tenantId!) })
+      if (tenantId) void queryClient.invalidateQueries({ queryKey: classroomKeys.all(tenantId!) })
+    },
+    onError: (err) => {
+      captureError(err, { context: 'useUpdateClassroom' })
+      useToast.getState().addToast({
+        type: 'error',
+        message: 'Gagal memperbarui kelas.',
+      })
     },
   })
 }
@@ -83,7 +100,14 @@ function useJoinClassroom() {
       await classroomService.joinClassroom(joinCode)
     },
     onSuccess: () => {
-      if (tenantId) queryClient.invalidateQueries({ queryKey: classroomKeys.all(tenantId!) })
+      if (tenantId) void queryClient.invalidateQueries({ queryKey: classroomKeys.all(tenantId!) })
+    },
+    onError: (err) => {
+      captureError(err, { context: 'useJoinClassroom' })
+      useToast.getState().addToast({
+        type: 'error',
+        message: 'Gagal bergabung ke kelas.',
+      })
     },
   })
 }

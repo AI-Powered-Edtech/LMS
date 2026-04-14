@@ -1,16 +1,19 @@
-import { ChevronDown, Filter, Mail, RefreshCw, Search, UserPlus, Users } from 'lucide-react'
+import { ChevronDown, Filter, Mail, RefreshCw, Search, Upload, UserPlus, Users } from 'lucide-react'
+import { useState } from 'react'
 
-import { ChangeRoleModal } from '@/src/components/admin/ChangeRoleModal'
-import { InviteUserModal } from '@/src/components/admin/InviteUserModal'
-import { AdministrationSkeleton } from '@/src/features/administration/components/AdministrationSkeleton'
-import { InvitationsTable } from '@/src/features/administration/components/InvitationsTable'
-import { UserTable } from '@/src/features/administration/components/UserTable'
-import { useUserManagementState } from '@/src/features/administration/hooks/useUserManagementState'
-import { usePageTitle } from '@/src/hooks/usePageTitle'
-import { cn } from '@/src/utils/cn'
+import { ChangeRoleModal } from '@/components/admin/ChangeRoleModal'
+import { InviteUserModal } from '@/components/admin/InviteUserModal'
+import { AdministrationSkeleton } from '@/features/administration/components/AdministrationSkeleton'
+import { BulkImportWizard } from '@/features/administration/components/BulkImportWizard'
+import { InvitationsTable } from '@/features/administration/components/InvitationsTable'
+import { UserTable } from '@/features/administration/components/UserTable'
+import { useUserManagementState } from '@/features/administration/hooks/useUserManagementState'
+import { usePageTitle } from '@/hooks/usePageTitle'
+import { cn } from '@/utils/cn'
 
 export function UserManagement() {
-  usePageTitle('User Management')
+  usePageTitle('Manajemen Pengguna')
+  const [showBulkImportWizard, setShowBulkImportWizard] = useState(false)
   const {
     tab,
     setTab,
@@ -58,13 +61,22 @@ export function UserManagement() {
             Kelola pengguna dan undangan dalam sekolah Anda.
           </p>
         </div>
-        <button
-          onClick={() => setInviteModal(true)}
-          className="px-4 py-2.5 bg-blue-600 dark:bg-blue-500 text-white font-bold rounded-xl flex items-center gap-2 hover:bg-blue-700 dark:hover:bg-blue-600 transition-all text-sm"
-        >
-          <UserPlus className="w-4 h-4" />
-          Undang Pengguna
-        </button>
+        <div className="flex items-center gap-2">
+          <button
+            onClick={() => setShowBulkImportWizard(true)}
+            className="px-4 py-2.5 bg-emerald-600 dark:bg-emerald-500 text-white font-bold rounded-xl flex items-center gap-2 hover:bg-emerald-700 dark:hover:bg-emerald-600 transition-all text-sm"
+          >
+            <Upload className="w-4 h-4" />
+            Impor Massal
+          </button>
+          <button
+            onClick={() => setInviteModal(true)}
+            className="px-4 py-2.5 bg-blue-600 dark:bg-blue-500 text-white font-bold rounded-xl flex items-center gap-2 hover:bg-blue-700 dark:hover:bg-blue-600 transition-all text-sm"
+          >
+            <UserPlus className="w-4 h-4" />
+            Undang Pengguna
+          </button>
+        </div>
       </div>
 
       {/* Stats */}
@@ -74,19 +86,23 @@ export function UserManagement() {
           <p className="text-2xl font-bold text-slate-900 dark:text-slate-100">{totalCount}</p>
         </div>
         <div className="bg-white dark:bg-slate-800 p-4 rounded-xl border border-slate-200 dark:border-slate-700">
-          <p className="text-xs text-slate-500 dark:text-slate-400 font-medium">Pending Invites</p>
+          <p className="text-xs text-slate-500 dark:text-slate-400 font-medium">Undangan Pending</p>
           <p className="text-2xl font-bold text-amber-600">
             {invitations.filter((i) => i.status === 'pending').length}
           </p>
         </div>
         <div className="bg-white dark:bg-slate-800 p-4 rounded-xl border border-slate-200 dark:border-slate-700">
-          <p className="text-xs text-slate-500 dark:text-slate-400 font-medium">Active Users</p>
+          <p className="text-xs text-slate-500 dark:text-slate-400 font-medium">
+            Aktif (halaman ini)
+          </p>
           <p className="text-2xl font-bold text-green-600">
             {users.filter((u) => u.is_active).length}
           </p>
         </div>
         <div className="bg-white dark:bg-slate-800 p-4 rounded-xl border border-slate-200 dark:border-slate-700">
-          <p className="text-xs text-slate-500 dark:text-slate-400 font-medium">Admins</p>
+          <p className="text-xs text-slate-500 dark:text-slate-400 font-medium">
+            Admin (halaman ini)
+          </p>
           <p className="text-2xl font-bold text-purple-600">
             {users.filter((u) => u.roles.includes('ADMIN')).length}
           </p>
@@ -153,7 +169,7 @@ export function UserManagement() {
               <button
                 onClick={() => {
                   setCursor(null)
-                  fetchUsers()
+                  void fetchUsers()
                 }}
                 className="p-2.5 border border-slate-200 dark:border-slate-700 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-700"
                 title="Refresh"
@@ -201,6 +217,18 @@ export function UserManagement() {
         )}
       </div>
 
+      {/* Bulk Import Wizard */}
+      {showBulkImportWizard && (
+        <BulkImportWizard
+          onClose={() => setShowBulkImportWizard(false)}
+          onSuccess={() => {
+            setShowBulkImportWizard(false)
+            void fetchUsers()
+            void fetchInvitations()
+          }}
+        />
+      )}
+
       {/* Modals */}
       {roleModal && (
         <ChangeRoleModal
@@ -208,7 +236,7 @@ export function UserManagement() {
           onClose={() => setRoleModal(null)}
           onConfirm={handleRoleChange}
           userName={`${roleModal.user.first_name} ${roleModal.user.last_name}`}
-          currentRoles={roleModal.user.roles}
+          currentRoles={roleModal.user.roles as ('STUDENT' | 'TEACHER' | 'ADMIN')[]}
         />
       )}
       <InviteUserModal

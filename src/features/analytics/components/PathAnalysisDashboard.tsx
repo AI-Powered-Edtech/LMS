@@ -1,7 +1,7 @@
 import { GitBranch, Loader2 } from 'lucide-react'
-import { useState } from 'react'
+import { useCallback, useState } from 'react'
 
-import { cn } from '@/src/utils/cn'
+import { cn } from '@/utils/cn'
 
 import { useLearningPaths } from '../queries/analyticsQueries'
 import { relativeTime } from '../utils/formatters'
@@ -27,7 +27,8 @@ export function PathAnalysisDashboard({ courseId }: Props) {
 
   const { data: paths = [], isLoading } = useLearningPaths(courseId)
 
-  const handlePathSelect = (hash: string) => {
+  // ⚡ Perf: stabilize callback ref passed to PathFlowDiagram (renders list of paths with buttons)
+  const handlePathSelect = useCallback((hash: string) => {
     setSelectedHashes((prev) => {
       if (prev[0] === hash) return [null, prev[1]]
       if (prev[1] === hash) return [prev[0], null]
@@ -35,7 +36,7 @@ export function PathAnalysisDashboard({ courseId }: Props) {
       if (!prev[1]) return [prev[0], hash]
       return [hash, null]
     })
-  }
+  }, [])
 
   const computedAt = paths[0]?.computed_at
 
@@ -51,10 +52,15 @@ export function PathAnalysisDashboard({ courseId }: Props) {
       </div>
 
       {/* Tabs */}
-      <div className="mb-4 flex gap-1 border-b border-slate-200 dark:border-slate-700">
+      <div
+        className="mb-4 flex gap-1 border-b border-slate-200 dark:border-slate-700"
+        role="tablist"
+      >
         {TABS.map((tab) => (
           <button
             key={tab.id}
+            role="tab"
+            aria-selected={activeTab === tab.id}
             onClick={() => setActiveTab(tab.id)}
             className={cn(
               'px-4 py-2 text-sm font-medium transition-colors',

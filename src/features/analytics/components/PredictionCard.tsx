@@ -1,7 +1,7 @@
 import { Minus, TrendingDown, TrendingUp } from 'lucide-react'
 import { AnimatePresence, motion } from 'motion/react'
 
-import { cn } from '@/src/utils/cn'
+import { cn } from '@/utils/cn'
 
 import type { StudentPrediction } from '../types'
 

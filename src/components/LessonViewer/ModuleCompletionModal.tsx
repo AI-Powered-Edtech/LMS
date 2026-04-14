@@ -2,8 +2,8 @@ import { ArrowRight, Star, Trophy, X } from 'lucide-react'
 import { motion } from 'motion/react'
 import { useEffect, useRef } from 'react'
 
-import { useReducedMotion } from '@/src/hooks/useReducedMotion'
-import { cn } from '@/src/utils/cn'
+import { useReducedMotion } from '@/hooks/useReducedMotion'
+import { cn } from '@/utils/cn'
 
 interface ModuleCompletionModalProps {
   moduleTitle: string
@@ -21,6 +21,7 @@ export function ModuleCompletionModal({
   xpEarned,
 }: ModuleCompletionModalProps) {
   const firedRef = useRef(false)
+  const continueRef = useRef<HTMLButtonElement>(null)
   const reducedMotion = useReducedMotion()
 
   useEffect(() => {
@@ -29,19 +30,29 @@ export function ModuleCompletionModal({
 
     import('canvas-confetti')
       .then(({ default: confetti }) => {
-        confetti({
+        void confetti({
           particleCount: 120,
           spread: 80,
           origin: { y: 0.55 },
           colors: ['#6366f1', '#3b82f6', '#f59e0b', '#10b981', '#f43f5e'],
         })
         setTimeout(() => {
-          confetti({ particleCount: 60, spread: 55, origin: { y: 0.5, x: 0.2 }, angle: 60 })
-          confetti({ particleCount: 60, spread: 55, origin: { y: 0.5, x: 0.8 }, angle: 120 })
+          void confetti({ particleCount: 60, spread: 55, origin: { y: 0.5, x: 0.2 }, angle: 60 })
+          void confetti({ particleCount: 60, spread: 55, origin: { y: 0.5, x: 0.8 }, angle: 120 })
         }, 250)
       })
       .catch(() => {})
   }, [reducedMotion])
+
+  // Keyboard & focus management (A11-H1)
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') onClose()
+    }
+    document.addEventListener('keydown', handleKeyDown)
+    continueRef.current?.focus()
+    return () => document.removeEventListener('keydown', handleKeyDown)
+  }, [onClose])
 
   return (
     <motion.div
@@ -171,6 +182,7 @@ export function ModuleCompletionModal({
           className="flex flex-col gap-3"
         >
           <button
+            ref={continueRef}
             onClick={onContinue}
             className={cn(
               'flex items-center justify-center gap-2 w-full px-6 py-3.5 font-semibold rounded-xl transition-all duration-200',

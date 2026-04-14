@@ -1,5 +1,5 @@
-import { supabase } from '@/src/services/supabase/client'
-import { logger } from '@/src/utils/logger'
+import { db } from '@/services/db'
+import { logger } from '@/utils/logger'
 
 export interface StudentProgressData {
   profile: {
@@ -37,9 +37,12 @@ export interface StudentProgressData {
   }[]
 }
 export const progressService = {
-  async getStudentProgressBundle(studentId: string): Promise<StudentProgressData> {
+  async getStudentProgressBundle(
+    studentId: string,
+    _tenantId: string
+  ): Promise<StudentProgressData> {
     try {
-      const { data, error } = await supabase.rpc('get_student_progress_bundle', {
+      const { data, error } = await db.rpc('get_student_progress_bundle', {
         p_student_id: studentId,
       })
 
@@ -93,7 +96,7 @@ export const progressService = {
     }
   },
   // Keep individual method for now but getStudentProgressBundle is preferred
-  async getStudentProgress(studentId: string): Promise<StudentProgressData> {
-    return this.getStudentProgressBundle(studentId)
+  async getStudentProgress(studentId: string, tenantId: string): Promise<StudentProgressData> {
+    return this.getStudentProgressBundle(studentId, tenantId)
   },
 }

@@ -1,6 +1,6 @@
 import { X } from 'lucide-react'
 
-import type { Assignment } from '@/src/features/gradebook/hooks/useGradebookQueries'
+import type { Assignment } from '@/features/gradebook/hooks/useGradebookQueries'
 
 interface AddAssignmentModalProps {
   isOpen: boolean
@@ -20,8 +20,17 @@ export function AddAssignmentModal({
   if (!isOpen) return null
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-sm">
-      <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-xl w-full max-w-md overflow-hidden">
+    <div
+      role="presentation"
+      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-sm"
+      onKeyDown={(e) => e.key === 'Escape' && onClose()}
+    >
+      <div
+        role="dialog"
+        aria-modal="true"
+        aria-label="Tambah Kolom Nilai"
+        className="bg-white dark:bg-slate-800 rounded-2xl shadow-xl w-full max-w-md overflow-hidden"
+      >
         <div className="p-6 border-b border-slate-100 dark:border-slate-700 flex items-center justify-between">
           <h3 className="text-lg font-bold text-slate-900 dark:text-white">Tambah Kolom Nilai</h3>
           <button
@@ -35,7 +44,7 @@ export function AddAssignmentModal({
         <form onSubmit={onSubmit} className="p-6 space-y-4">
           <div>
             <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
-              Judul Tugas/Aktivitas
+              Judul Tugas/Aktivitas <span className="text-red-500">*</span>
             </label>
             <input
               type="text"
@@ -71,7 +80,7 @@ export function AddAssignmentModal({
           <div className="grid grid-cols-2 gap-4">
             <div>
               <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
-                Skor Maksimal
+                Skor Maksimal <span className="text-red-500">*</span>
               </label>
               <input
                 type="number"

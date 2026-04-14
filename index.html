@@ -10,11 +10,20 @@
       name="description"
       content="EduSync LMS — Sistem Manajemen Pembelajaran untuk sekolah Indonesia"
     />
+    <!--
+      CSP meta tag: fallback untuk environment tanpa HTTP header (CDN/hosting statis).
+      DEV MODE: Relaxed CSP to allow Vite HMR, React Refresh, and dynamic imports.
+      PRODUCTION: Strict CSP without unsafe-eval set via HTTP headers (_headers file).
+      NOTE: api.qrserver.com and chart.googleapis.com REMOVED (no longer used).
+      WARNING: inline scripts require hash in production CSP (no unsafe-inline).
+    -->
+    <meta
+      http-equiv="Content-Security-Policy"
+      content="default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://js.sentry-cdn.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; img-src 'self' data: blob: https://*.supabase.co https://api.dicebear.com https://*.cloudfront.net http://localhost:9000 https://cdn.edusync.dev https://*.r2.cloudflarestorage.com; connect-src 'self' https://*.supabase.co wss://*.supabase.co https://fonts.googleapis.com https://sentry.io https://*.vercel.app ws://localhost:* http://localhost:* http://localhost:9000 https://cdn.edusync.dev https://*.r2.cloudflarestorage.com; font-src 'self' https://fonts.gstatic.com; media-src 'self' https://www.youtube.com https://www.youtube-nocookie.com http://localhost:9000 https://cdn.edusync.dev; frame-src 'self' https://www.youtube.com https://www.youtube-nocookie.com; frame-ancestors 'none'; base-uri 'self'; form-action 'self'; object-src 'none';"
+    />
     <link rel="icon" type="image/svg+xml" href="/icons/favicon.svg" />
 
-    <!-- ⚡ Perf: Preconnect to Supabase API early — saves ~100-200ms on first auth call -->
-    <link rel="preconnect" href="https://omfnkoufjqjqilswldtz.supabase.co" />
-
+    <!-- ⚡ Perf: Preconnect to external origins (domain agnostic) -->
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
 
@@ -22,10 +31,10 @@
          Before: <link rel="stylesheet"> blocked FCP by 500-800ms waiting for font CSS.
          After: fonts load async via media="print" swap trick, FCP paints immediately with fallback. -->
     <link
+      id="google-fonts-async"
       rel="stylesheet"
       href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&family=Inter:wght@400;500;600&display=swap"
       media="print"
-      onload="this.media = 'all'"
     />
     <noscript>
       <link
@@ -46,25 +55,30 @@
         display: flex;
         height: 100dvh;
         overflow: hidden;
-        background: #020617; /* slate-950 */
+        background: #020617;
+        /* slate-950 */
         color: #e2e8f0;
         font-family:
           system-ui,
           -apple-system,
           sans-serif;
       }
+
       #app-skeleton .sidebar {
         width: 260px;
-        background: #0f172a; /* slate-900 */
+        background: #0f172a;
+        /* slate-900 */
         border-right: 1px solid #1e293b;
         padding: 20px 16px;
         display: none;
       }
+
       #app-skeleton .main {
         flex: 1;
         display: flex;
         flex-direction: column;
       }
+
       #app-skeleton .header {
         height: 64px;
         background: #0f172a;
@@ -73,6 +87,7 @@
         align-items: center;
         padding: 0 24px;
       }
+
       #app-skeleton .content {
         flex: 1;
         padding: 32px;
@@ -82,20 +97,24 @@
         justify-content: center;
         gap: 16px;
       }
+
       #app-skeleton .pulse {
         background: #1e293b;
         border-radius: 12px;
         animation: skeleton-pulse 1.5s ease-in-out infinite;
       }
+
       @keyframes skeleton-pulse {
         0%,
         100% {
           opacity: 1;
         }
+
         50% {
           opacity: 0.4;
         }
       }
+
       /* Show sidebar on desktop */
       @media (min-width: 768px) {
         #app-skeleton .sidebar {
@@ -103,7 +122,30 @@
         }
       }
     </style>
+    <!-- Bootstrap script: async font swap + dark mode class before React mount -->
+    <script>
+      ;(() => {
+        try {
+          const f = document.getElementById('google-fonts-async')
+          if (f) {
+            const e = () => {
+              f.media = 'all'
+            }
+            if (f.sheet) {
+              e()
+            } else {
+              f.addEventListener('load', e, { once: true })
+            }
+          }
+          const t = localStorage.getItem('theme')
+          if (t === 'dark' || (!t && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+            document.documentElement.classList.add('dark')
+          }
+        } catch (_) {}
+      })()
+    </script>
   </head>
+
   <body>
     <div id="root">
       <!-- ⚡ Inline skeleton: visible in <16ms, replaced when React mounts -->

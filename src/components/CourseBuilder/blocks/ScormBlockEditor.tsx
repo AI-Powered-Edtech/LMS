@@ -10,9 +10,10 @@ import {
 } from 'lucide-react'
 import { useCallback, useRef, useState } from 'react'
 
-import { useAuth } from '@/src/contexts/AuthContext'
-import { useBuilder } from '@/src/contexts/BuilderContext'
-import { supabase } from '@/src/services/supabase/client'
+import { useAuth } from '@/contexts/AuthContext'
+import { useBuilder } from '@/contexts/BuilderContext'
+import { readVilSession } from '@/services/auth/vilSession'
+import { db } from '@/services/db'
 
 interface ScormBlockEditorProps {
   blockId: string
@@ -90,14 +91,24 @@ export function ScormBlockEditor({ blockId }: ScormBlockEditorProps) {
 
         setUploadProgress('Mengekstrak dan memvalidasi manifest...')
 
-        const { data, error: fnError } = await supabase.functions.invoke<ScormExtractResponse>(
-          'scorm-extract',
-          { body: formData }
-        )
+        const apiUrl = import.meta.env.VITE_API_URL ?? 'http://localhost:8080'
+        const token = readVilSession()?.access_token
 
-        if (fnError) {
-          throw new Error(fnError.message || 'Gagal memproses paket SCORM.')
+        const res = await fetch(`${apiUrl}/api/v1/scorm/extract`, {
+          method: 'POST',
+          headers: {
+            // Do NOT set Content-Type — browser sets it automatically for FormData (multipart/form-data)
+            ...(token ? { Authorization: `Bearer ${token}` } : {}),
+          },
+          body: formData,
+        })
+
+        if (!res.ok) {
+          const errBody = await res.json().catch(() => ({ error: 'Gagal memproses paket SCORM.' }))
+          throw new Error((errBody as ScormExtractResponse).error || 'Gagal memproses paket SCORM.')
         }
+
+        const data: ScormExtractResponse = await res.json()
 
         if (!data?.success) {
           throw new Error(data?.error || 'Gagal memproses paket SCORM.')
@@ -129,13 +140,13 @@ export function ScormBlockEditor({ blockId }: ScormBlockEditorProps) {
     [state.courseId, state.activeLesson, blockId, user, tenantId, actions]
   )
 
-  const handleRemovePackage = async () => {
+  const handleRemovePackage = async (): Promise<void> => {
     if (!confirm('Hapus paket SCORM dari blok ini?')) return
 
     // Remove the scorm_packages record (cascade will clean up runtime data)
     if (scormMeta?.scorm_package_id) {
       try {
-        await supabase
+        await db
           .from('scorm_packages')
           .delete()
           .eq('id', scormMeta.scorm_package_id)
@@ -152,26 +163,26 @@ export function ScormBlockEditor({ blockId }: ScormBlockEditorProps) {
     })
   }
 
-  const handleDragOver = (e: React.DragEvent) => {
+  const handleDragOver = (e: React.DragEvent): void => {
     e.preventDefault()
     setIsDragOver(true)
   }
 
-  const handleDragLeave = (e: React.DragEvent) => {
+  const handleDragLeave = (e: React.DragEvent): void => {
     e.preventDefault()
     setIsDragOver(false)
   }
 
-  const handleDrop = (e: React.DragEvent) => {
+  const handleDrop = (e: React.DragEvent): void => {
     e.preventDefault()
     setIsDragOver(false)
     const file = e.dataTransfer.files[0]
-    if (file) handleUpload(file)
+    if (file) void handleUpload(file)
   }
 
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>): void => {
     const file = e.target.files?.[0]
-    if (file) handleUpload(file)
+    if (file) void handleUpload(file)
     // Reset input so the same file can be re-selected
     if (inputRef.current) inputRef.current.value = ''
   }
@@ -234,14 +245,10 @@ export function ScormBlockEditor({ blockId }: ScormBlockEditorProps) {
           accept=".zip"
           onChange={handleFileChange}
           className="hidden"
-          aria-label="Pilih paket SCORM"
         />
 
         {error && (
-          <div
-            role="alert"
-            className="flex items-center gap-2 text-sm text-red-600 dark:text-red-400"
-          >
+          <div className="flex items-center gap-2 text-sm text-red-600 dark:text-red-400">
             <AlertCircle className="w-4 h-4 shrink-0" />
             {error}
           </div>
@@ -254,18 +261,19 @@ export function ScormBlockEditor({ blockId }: ScormBlockEditorProps) {
   return (
     <div className="space-y-4">
       <div
-        onClick={() => !isUploading && inputRef.current?.click()}
-        onDragOver={handleDragOver}
-        onDragLeave={handleDragLeave}
-        onDrop={handleDrop}
         role="button"
-        tabIndex={0}
+        tabIndex={isUploading ? -1 : 0}
+        aria-disabled={isUploading}
+        onClick={() => !isUploading && inputRef.current?.click()}
         onKeyDown={(e) => {
           if (e.key === 'Enter' || e.key === ' ') {
             e.preventDefault()
             if (!isUploading) inputRef.current?.click()
           }
         }}
+        onDragOver={handleDragOver}
+        onDragLeave={handleDragLeave}
+        onDrop={handleDrop}
         className={[
           'relative flex flex-col items-center justify-center py-12 rounded-xl border-2 border-dashed cursor-pointer transition-all',
           isDragOver
@@ -280,7 +288,6 @@ export function ScormBlockEditor({ blockId }: ScormBlockEditorProps) {
           accept=".zip"
           onChange={handleFileChange}
           className="hidden"
-          aria-label="Pilih paket SCORM"
         />
 
         {isUploading ? (
@@ -289,7 +296,7 @@ export function ScormBlockEditor({ blockId }: ScormBlockEditorProps) {
             <p className="text-sm font-medium text-slate-700 dark:text-slate-300">
               {uploadProgress || 'Memproses...'}
             </p>
-            <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
+            <p className="text-xs text-slate-400 dark:text-slate-500 mt-1">
               Proses ini mungkin memerlukan beberapa saat untuk paket besar
             </p>
           </>
@@ -301,12 +308,12 @@ export function ScormBlockEditor({ blockId }: ScormBlockEditorProps) {
             <p className="text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
               Unggah paket SCORM
             </p>
-            <p className="text-xs text-slate-500 dark:text-slate-400">
+            <p className="text-xs text-slate-400 dark:text-slate-500">
               File ZIP dengan imsmanifest.xml (maks. 100MB)
             </p>
             <div className="flex items-center gap-2 mt-3">
-              <FileArchive className="w-3.5 h-3.5 text-slate-500 dark:text-slate-400" />
-              <span className="text-xs text-slate-500 dark:text-slate-400 uppercase tracking-wider font-bold">
+              <FileArchive className="w-3.5 h-3.5 text-slate-400 dark:text-slate-500" />
+              <span className="text-[10px] text-slate-400 dark:text-slate-500 uppercase tracking-wider font-bold">
                 SCORM 1.2 &amp; 2004
               </span>
             </div>
@@ -315,10 +322,7 @@ export function ScormBlockEditor({ blockId }: ScormBlockEditorProps) {
       </div>
 
       {error && (
-        <div
-          role="alert"
-          className="flex items-center gap-2 text-sm text-red-600 dark:text-red-400"
-        >
+        <div className="flex items-center gap-2 text-sm text-red-600 dark:text-red-400">
           <AlertCircle className="w-4 h-4 shrink-0" />
           {error}
         </div>

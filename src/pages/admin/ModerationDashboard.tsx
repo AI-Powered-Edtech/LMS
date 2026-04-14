@@ -9,17 +9,19 @@ import {
   XCircle,
 } from 'lucide-react'
 import { AnimatePresence, motion } from 'motion/react'
-import React, { useMemo, useState } from 'react'
+import { useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 
-import { ModerationSkeleton } from '@/src/features/moderation/components/ModerationSkeleton'
+import { EmptyState } from '@/components/ui'
+import { ModerationSkeleton } from '@/features/moderation/components/ModerationSkeleton'
 import {
   useModerationReports,
   useResolveReport,
-} from '@/src/features/moderation/queries/moderationQueries'
-import { useDebounce } from '@/src/hooks/useDebounce'
-import { usePageTitle } from '@/src/hooks/usePageTitle'
-import { cn } from '@/src/utils/cn'
+} from '@/features/moderation/queries/moderationQueries'
+import { useDebounce } from '@/hooks/useDebounce'
+import { usePageTitle } from '@/hooks/usePageTitle'
+import { cn } from '@/utils/cn'
+import { translateContentType } from '@/utils/statusTranslations'
 
 export function ModerationDashboard() {
   usePageTitle('Dasbor Moderasi')
@@ -201,7 +203,7 @@ export function ModerationDashboard() {
                     <div className="bg-blue-50/50 p-4 rounded-xl border border-blue-100">
                       <div className="flex items-center gap-2 mb-2 text-blue-800 font-bold text-sm">
                         <MessageSquare className="w-4 h-4" />
-                        Konten yang Dilaporkan ({report.contentType})
+                        Konten yang Dilaporkan ({translateContentType(report.contentType)})
                       </div>
                       <p className="text-slate-800 dark:text-slate-200 text-sm line-clamp-3 mb-2">
                         {report.contentSnippet || 'Konten tidak tersedia'}
@@ -217,9 +219,10 @@ export function ModerationDashboard() {
                   {report.status === 'pending' && (
                     <div className="flex flex-row md:flex-col gap-3 justify-center border-t md:border-t-0 md:border-l border-slate-100 dark:border-slate-700 pt-4 md:pt-0 md:pl-6 md:w-48 shrink-0">
                       <button
-                        onClick={() =>
+                        onClick={() => {
+                          if (!confirm('Hapus konten ini? Aksi ini tidak bisa dibatalkan.')) return
                           resolveReport.mutate({ reportId: report.id, status: 'approved' })
-                        }
+                        }}
                         className="flex-1 md:flex-none flex items-center justify-center gap-2 px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-xl font-bold text-sm transition-colors shadow-sm"
                       >
                         <CheckCircle className="w-4 h-4" />
@@ -240,13 +243,11 @@ export function ModerationDashboard() {
               </motion.div>
             ))
           ) : (
-            <div className="text-center py-12 bg-slate-50 dark:bg-slate-700/50 rounded-3xl border border-slate-200 dark:border-slate-700 border-dashed">
-              <CheckCircle className="w-12 h-12 text-slate-300 mx-auto mb-4" />
-              <h3 className="text-lg font-bold text-slate-700 dark:text-slate-300">
-                Tidak ada laporan
-              </h3>
-              <p className="text-slate-500 dark:text-slate-400 mt-1">Semua aman terkendali!</p>
-            </div>
+            <EmptyState
+              icon={<CheckCircle className="w-8 h-8" />}
+              title="Tidak ada laporan"
+              description="Semua aman terkendali!"
+            />
           )}
         </AnimatePresence>
       </div>

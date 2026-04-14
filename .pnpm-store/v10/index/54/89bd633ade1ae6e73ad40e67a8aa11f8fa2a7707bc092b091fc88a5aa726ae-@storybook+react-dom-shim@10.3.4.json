@@ -1,0 +1,43 @@
+{
+  "name": "@storybook/react-dom-shim",
+  "version": "10.3.4",
+  "requiresBuild": false,
+  "files": {
+    "README.md": {
+      "checkedAt": 1776145625411,
+      "integrity": "sha512-TdXhfptRWDKAMoSfKmNWKR0r66UP2IIav+WT3zQUN/iTJmTrl6rF+fN+HGHB08BhaiX1IVRDxRyY1+2jkef/gw==",
+      "mode": 420,
+      "size": 289
+    },
+    "dist/preset.js": {
+      "checkedAt": 1776145625411,
+      "integrity": "sha512-uxcWL/s4TWj8MuzsJVbNfbk30Xr3cNldbZ4EsQc37fO5Md3KdTlBcOlZ9Y5yjt3KXgLKxgln0UBmMDjdfOJdpA==",
+      "mode": 420,
+      "size": 15085
+    },
+    "dist/react-16.js": {
+      "checkedAt": 1776145625412,
+      "integrity": "sha512-BailFThDvsByS3d0pRRn37VZUGd8fOgz2V9IzTOh2fiQyEnyvhYoa+eqfQDpwxHVPLtFMTqv3rHQI6+xP8BI+Q==",
+      "mode": 420,
+      "size": 295
+    },
+    "dist/react-18.d.ts": {
+      "checkedAt": 1776145625412,
+      "integrity": "sha512-8rptO1UbYQ2WAexUp6As4F4ohGW1wZNyMaCFpAEyjVQCH2rlM5hztvZDknMk3eEHwhBaSZwVpi0s3BKiMwNJZQ==",
+      "mode": 420,
+      "size": 322
+    },
+    "dist/react-18.js": {
+      "checkedAt": 1776145625412,
+      "integrity": "sha512-+Hm1qJOVmzRXf8yH1HTcgOrDVTQHkxVz5HSGyJ0N1z4uzSOBDuhvGv3kdXtS8LLbAHVihpjf4et6OE97wXMSqA==",
+      "mode": 420,
+      "size": 1334
+    },
+    "package.json": {
+      "checkedAt": 1776145625412,
+      "integrity": "sha512-CXkKHm4Q/xDuHy7kmes1tbXUNxDfV1kiE29sF8GTH65BHBhJYY0H3LhYpGVTvgj3FMRMlG707mV0iHt3+hVkyg==",
+      "mode": 420,
+      "size": 1295
+    }
+  }
+}

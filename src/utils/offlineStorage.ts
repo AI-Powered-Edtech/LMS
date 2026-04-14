@@ -1,6 +1,10 @@
 // EduSync LMS — Offline Storage (IndexedDB)
 // Wraps native IndexedDB for offline quiz caching and sync queue
 
+import { logger } from '@/utils/logger'
+
+import { decryptData, encryptData } from './cryptoStorage'
+
 const DB_NAME = 'edusync-offline'
 const DB_VERSION = 2
 
@@ -12,11 +16,27 @@ const STORES = {
   UPLOAD_QUEUE: 'upload-queue',
 } as const
 
+export interface CachedQuizQuestion {
+  id: string
+  text: string
+  type: 'multiple_choice' | 'true_false' | 'essay'
+  order: number
+}
+
+export interface CachedQuizOption {
+  id: string
+  questionId: string
+  text: string
+  order: number
+}
+
 export interface CachedQuiz {
   quizId: string
-  questions: unknown[]
-  options: unknown[]
+  questions: CachedQuizQuestion[]
+  options: CachedQuizOption[]
   cachedAt: number
+  /** Schema version — increment when structure changes to detect stale caches */
+  version: number
 }
 
 export interface CachedAnswer {
@@ -29,7 +49,7 @@ export interface CachedAnswer {
 
 export interface SyncQueueItem {
   id: string
-  type: 'quiz-submission'
+  type: string
   payload: unknown
   createdAt: number
   attempts: number
@@ -125,6 +145,7 @@ export async function getCachedQuiz(quizId: string): Promise<CachedQuiz | null> 
   return result ?? null
 }
 
+/** @internal Reserved for future use */
 export async function clearQuizCache(quizId: string): Promise<void> {
   const db = await openDB()
   const tx = db.transaction(STORES.QUIZ_CACHE, 'readwrite')
@@ -137,6 +158,7 @@ export async function clearQuizCache(quizId: string): Promise<void> {
 // Quiz answers
 // ---------------------------------------------------------------------------
 
+/** @internal Reserved for future use */
 export async function saveAnswer(answer: CachedAnswer): Promise<void> {
   const db = await openDB()
   const tx = db.transaction(STORES.QUIZ_ANSWERS, 'readwrite')
@@ -145,6 +167,7 @@ export async function saveAnswer(answer: CachedAnswer): Promise<void> {
   await wrapTransaction(tx)
 }
 
+/** @internal Reserved for future use */
 export async function getAnswers(quizId: string): Promise<CachedAnswer[]> {
   const db = await openDB()
   const tx = db.transaction(STORES.QUIZ_ANSWERS, 'readonly')
@@ -183,15 +206,47 @@ export async function markSynced(id: string): Promise<void> {
   await wrapTransaction(tx)
 }
 
+export async function updateQueueItem(id: string, updates: Partial<SyncQueueItem>): Promise<void> {
+  const db = await openDB()
+  const tx = db.transaction(STORES.SYNC_QUEUE, 'readwrite')
+  const store = tx.objectStore(STORES.SYNC_QUEUE)
+  const item = await wrapRequest<SyncQueueItem | undefined>(store.get(id))
+  if (item) {
+    store.put({ ...item, ...updates })
+  }
+  await wrapTransaction(tx)
+}
+
 // ---------------------------------------------------------------------------
 // Builder drafts
 // ---------------------------------------------------------------------------
 
-export async function saveBuilderDraft(courseId: string, state: unknown): Promise<void> {
+export interface BuilderDraft {
+  courseId: string
+  state: unknown
+  savedAt: number
+  /** ISO timestamp string saat draft terakhir kali berhasil disinkronkan ke server */
+  last_synced_at: string | null
+}
+
+export async function saveBuilderDraft(
+  courseId: string,
+  state: unknown,
+  lastSyncedAt?: string | null
+): Promise<void> {
   const db = await openDB()
   const tx = db.transaction(STORES.BUILDER_DRAFTS, 'readwrite')
   const store = tx.objectStore(STORES.BUILDER_DRAFTS)
-  store.put({ courseId, state, savedAt: Date.now() })
+
+  // Preserve existing last_synced_at if not explicitly overridden
+  const existing = await wrapRequest<BuilderDraft | undefined>(store.get(courseId))
+  const draft: BuilderDraft = {
+    courseId,
+    state,
+    savedAt: Date.now(),
+    last_synced_at: lastSyncedAt !== undefined ? lastSyncedAt : (existing?.last_synced_at ?? null),
+  }
+  store.put(draft)
   await wrapTransaction(tx)
 }
 
@@ -199,10 +254,16 @@ export async function getBuilderDraft(courseId: string): Promise<unknown | null>
   const db = await openDB()
   const tx = db.transaction(STORES.BUILDER_DRAFTS, 'readonly')
   const store = tx.objectStore(STORES.BUILDER_DRAFTS)
-  const result = await wrapRequest<
-    { courseId: string; state: unknown; savedAt: number } | undefined
-  >(store.get(courseId))
+  const result = await wrapRequest<BuilderDraft | undefined>(store.get(courseId))
   return result?.state ?? null
+}
+
+export async function getBuilderDraftRecord(courseId: string): Promise<BuilderDraft | null> {
+  const db = await openDB()
+  const tx = db.transaction(STORES.BUILDER_DRAFTS, 'readonly')
+  const store = tx.objectStore(STORES.BUILDER_DRAFTS)
+  const result = await wrapRequest<BuilderDraft | undefined>(store.get(courseId))
+  return result ?? null
 }
 
 export async function deleteBuilderDraft(courseId: string): Promise<void> {
@@ -213,6 +274,7 @@ export async function deleteBuilderDraft(courseId: string): Promise<void> {
   await wrapTransaction(tx)
 }
 
+/** @internal Reserved for future use */
 export async function getAllDirtyDrafts(): Promise<unknown[]> {
   const db = await openDB()
   const tx = db.transaction(STORES.BUILDER_DRAFTS, 'readonly')
@@ -253,10 +315,75 @@ export async function getPendingCount(): Promise<number> {
 // ---------------------------------------------------------------------------
 
 /** Returns true if IndexedDB is available in the current environment. */
+/** @internal Reserved for future use */
 export function isIndexedDBAvailable(): boolean {
   try {
     return typeof indexedDB !== 'undefined' && indexedDB !== null
   } catch {
     return false
   }
+}
+
+// ---------------------------------------------------------------------------
+// Encrypted quiz answers — data sensitif dienkripsi sebelum disimpan
+// ---------------------------------------------------------------------------
+
+/**
+ * Menyimpan jawaban kuis ke IndexedDB dengan payload yang dienkripsi menggunakan AES-GCM.
+ * Field `selectedOption` dan data jawaban dienkripsi sebelum disimpan.
+ *
+ * @param answer - Objek jawaban kuis yang akan disimpan
+ * @param userId - ID pengguna untuk derivasi kunci enkripsi
+ */
+/** @internal Reserved for future use */
+export async function cacheAnswerEncrypted(answer: CachedAnswer, userId: string): Promise<void> {
+  const encryptedPayload = await encryptData(answer, userId)
+  const db = await openDB()
+  const tx = db.transaction(STORES.QUIZ_ANSWERS, 'readwrite')
+  const store = tx.objectStore(STORES.QUIZ_ANSWERS)
+  // Simpan record dengan payload terenkripsi; id dan quizId tetap plaintext untuk indexing
+  store.put({
+    id: answer.id,
+    quizId: answer.quizId,
+    payload: encryptedPayload,
+    encrypted: true,
+  })
+  await wrapTransaction(tx)
+}
+
+/**
+ * Mengambil semua jawaban kuis dari IndexedDB dan mendekripsi payload.
+ * Hanya memproses record yang memiliki flag `encrypted: true`.
+ *
+ * @param quizId - ID kuis yang jawabannya ingin diambil
+ * @param userId - ID pengguna untuk derivasi kunci dekripsi
+ * @returns Array jawaban kuis yang sudah didekripsi
+ */
+/** @internal Reserved for future use */
+export async function getAnswersEncrypted(quizId: string, userId: string): Promise<CachedAnswer[]> {
+  const db = await openDB()
+  const tx = db.transaction(STORES.QUIZ_ANSWERS, 'readonly')
+  const store = tx.objectStore(STORES.QUIZ_ANSWERS)
+  const index = store.index('quizId')
+  const records = await wrapRequest<
+    Array<{ id: string; quizId: string; payload: string; encrypted: boolean }>
+  >(index.getAll(quizId))
+
+  const results: CachedAnswer[] = []
+  for (const record of records) {
+    if (record.encrypted && record.payload) {
+      try {
+        const answer = await decryptData<CachedAnswer>(record.payload, userId)
+        results.push(answer)
+      } catch (err) {
+        // Abaikan record yang gagal didekripsi (kunci berbeda atau data korup)
+        if (import.meta.env.DEV)
+          logger.warn(
+            '[offlineStorage] Decryption failed for record — key mismatch or corruption:',
+            err
+          )
+      }
+    }
+  }
+  return results
 }

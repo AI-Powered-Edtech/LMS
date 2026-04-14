@@ -2,7 +2,7 @@ import { ChevronRight, Plus, Trash2, TrendingDown } from 'lucide-react'
 import { AnimatePresence, motion } from 'motion/react'
 import { useState } from 'react'
 
-import { Skeleton } from '@/src/components/ui'
+import { Skeleton } from '@/components/ui'
 
 import { useDeleteFunnel, useFunnelList, useFunnelResults } from '../queries/analyticsQueries'
 import { FunnelBuilder } from './FunnelBuilder'
@@ -72,6 +72,14 @@ export function FunnelComparison({ courseId }: FunnelComparisonProps) {
           {funnels.map((f) => (
             <div
               key={f.funnel_id}
+              role="button"
+              tabIndex={0}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' || e.key === ' ') {
+                  e.preventDefault()
+                  setSelectedFunnelId((prev) => (prev === f.funnel_id ? null : f.funnel_id))
+                }
+              }}
               className={`group flex cursor-pointer items-center justify-between rounded-lg px-3 py-2.5 transition-colors ${
                 selectedFunnelId === f.funnel_id
                   ? 'bg-indigo-50 dark:bg-indigo-900/20'
@@ -93,6 +101,7 @@ export function FunnelComparison({ courseId }: FunnelComparisonProps) {
               <button
                 onClick={(e) => {
                   e.stopPropagation()
+                  if (!confirm('Hapus corong ini? Aksi ini tidak bisa dibatalkan.')) return
                   deleteFunnel.mutate(f.funnel_id)
                 }}
                 aria-label="Hapus corong"

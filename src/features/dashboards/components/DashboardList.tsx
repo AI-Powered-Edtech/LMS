@@ -2,7 +2,7 @@ import { Edit2, Loader2, Plus, Share2, Star, Trash2 } from 'lucide-react'
 import { motion } from 'motion/react'
 import { useState } from 'react'
 
-import { cn } from '@/src/utils/cn'
+import { cn } from '@/utils/cn'
 
 import { useDashboards, useDeleteDashboard } from '../queries/dashboardQueries'
 import type { DashboardConfig } from '../types'
@@ -56,8 +56,13 @@ export function DashboardList({ onEdit, onCreate, onView }: DashboardListProps) 
 
       {list.length === 0 ? (
         <div
+          role="button"
+          tabIndex={0}
           className="flex flex-col items-center justify-center gap-4 rounded-2xl border-2 border-dashed border-slate-200 dark:border-slate-700 p-16 cursor-pointer hover:border-indigo-300 transition-colors"
           onClick={onCreate}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter' || e.key === ' ') onCreate()
+          }}
         >
           <Plus className="h-12 w-12 text-slate-300 dark:text-slate-600" />
           <div className="text-center">
@@ -108,6 +113,7 @@ export function DashboardList({ onEdit, onCreate, onView }: DashboardListProps) 
 
               {/* Actions */}
               <div
+                role="presentation"
                 className="flex items-center gap-2 mt-4 pt-3 border-t border-slate-100 dark:border-slate-800"
                 onClick={(e) => e.stopPropagation()}
               >

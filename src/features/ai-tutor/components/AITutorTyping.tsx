@@ -20,7 +20,7 @@ export function AITutorTyping({ message = 'AI sedang berpikir...' }: AITutorTypi
       </div>
 
       {/* Typing animation */}
-      <div className="bg-slate-50 rounded-2xl rounded-tl-md px-4 py-3">
+      <div className="bg-slate-50 dark:bg-slate-800 rounded-2xl rounded-tl-md px-4 py-3">
         <div className="flex items-center gap-1">
           <motion.div
             className="w-2 h-2 bg-slate-400 rounded-full"

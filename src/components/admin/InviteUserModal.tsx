@@ -3,7 +3,9 @@ import React, { useState } from 'react'
 import { useForm } from 'react-hook-form'
 import * as v from 'valibot'
 
-import { supabase } from '@/src/services/supabase/client'
+import { useToast } from '@/hooks/useToast'
+import { db } from '@/services/db'
+import { logger } from '@/utils/logger'
 
 import { useAuth } from '../../contexts/AuthContext'
 import { FormField } from '../ui/FormField'
@@ -23,6 +25,7 @@ interface InviteUserModalProps {
 
 export function InviteUserModal({ isOpen, onClose, onSuccess }: InviteUserModalProps) {
   const { user, tenantId, activeTenant } = useAuth()
+  const addToast = useToast((s) => s.addToast)
   const { control, handleSubmit, reset, watch, setValue } = useForm<InviteUserData>({
     resolver: valibotResolver(InviteUserSchema),
     defaultValues: { email: '', role: 'STUDENT' },
@@ -34,6 +37,7 @@ export function InviteUserModal({ isOpen, onClose, onSuccess }: InviteUserModalP
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
   const [inviteLink, setInviteLink] = useState('')
+  const [copied, setCopied] = useState(false)
 
   if (!isOpen) return null
 
@@ -48,7 +52,7 @@ export function InviteUserModal({ isOpen, onClose, onSuccess }: InviteUserModalP
         return
       }
 
-      const { data: insertData, error: insertError } = await supabase
+      const { data: insertData, error: insertError } = await db
         .from('tenant_invitations')
         .insert({
           tenant_id: tenantId,
@@ -68,7 +72,7 @@ export function InviteUserModal({ isOpen, onClose, onSuccess }: InviteUserModalP
         return
       }
 
-      const link = `${window.location.origin}/#/login?invite=${insertData.token}`
+      const link = `${window.location.origin}/login?invite=${insertData.token}`
       setInviteLink(link)
       reset({ email: data.email, role: data.role })
       onSuccess?.()
@@ -79,8 +83,27 @@ export function InviteUserModal({ isOpen, onClose, onSuccess }: InviteUserModalP
     }
   }
 
-  const copyLink = () => {
-    navigator.clipboard.writeText(inviteLink)
+  const copyLink = async () => {
+    try {
+      if (navigator.clipboard) {
+        await navigator.clipboard.writeText(inviteLink)
+      } else {
+        // Fallback for non-HTTPS contexts
+        const textarea = document.createElement('textarea')
+        textarea.value = inviteLink
+        textarea.style.position = 'fixed'
+        textarea.style.opacity = '0'
+        document.body.appendChild(textarea)
+        textarea.select()
+        document.execCommand('copy')
+        document.body.removeChild(textarea)
+      }
+      setCopied(true)
+      setTimeout(() => setCopied(false), 2000)
+    } catch {
+      if (import.meta.env.DEV) logger.warn('[InviteUserModal] Clipboard write failed')
+      addToast({ type: 'info', message: 'Salin tautan secara manual dari kolom di atas.' })
+    }
   }
 
   const handleClose = () => {
@@ -91,8 +114,8 @@ export function InviteUserModal({ isOpen, onClose, onSuccess }: InviteUserModalP
   }
 
   return (
-    <div style={styles.overlay} onClick={handleClose}>
-      <div style={styles.modal} onClick={(e) => e.stopPropagation()}>
+    <div role="presentation" style={styles.overlay} onClick={handleClose}>
+      <div role="presentation" style={styles.modal} onClick={(e) => e.stopPropagation()}>
         <div style={styles.header}>
           <h2 style={styles.title}>📨 Undang Pengguna Baru</h2>
           <p style={styles.subtitle}>
@@ -114,7 +137,7 @@ export function InviteUserModal({ isOpen, onClose, onSuccess }: InviteUserModalP
             <div style={styles.linkBox}>
               <code style={styles.linkCode}>{inviteLink}</code>
               <button style={styles.copyBtn} onClick={copyLink}>
-                📋 Copy
+                {copied ? '✅ Tersalin!' : '📋 Salin Link'}
               </button>
             </div>
             <p style={styles.linkHint}>Kirimkan link ini ke pengguna. Berlaku selama 7 hari.</p>
@@ -136,7 +159,7 @@ export function InviteUserModal({ isOpen, onClose, onSuccess }: InviteUserModalP
             </div>
 
             <div style={styles.field}>
-              <label style={styles.label}>Peran</label>
+              <p style={styles.label}>Peran</p>
               <div style={styles.roleGrid}>
                 {(['STUDENT', 'TEACHER', 'ADMIN'] as InviteRole[]).map((r) => (
                   <button

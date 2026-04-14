@@ -1,11 +1,11 @@
 import { CheckCircle2, ChevronDown, ChevronUp, Circle, X } from 'lucide-react'
-import { useCallback, useEffect, useState } from 'react'
+import { useState } from 'react'
 
-import { useAuth } from '@/src/contexts/AuthContext'
-import { supabase } from '@/src/services/supabase/client'
-import { cn } from '@/src/utils/cn'
+import { useAuth } from '@/contexts/AuthContext'
+import { cn } from '@/utils/cn'
 
-import { ONBOARDING_STEPS, OnboardingProgress } from '../types'
+import { useOnboardingProgress, useUpdateOnboardingProgress } from '../queries/onboardingQueries'
+import { ONBOARDING_STEPS } from '../types'
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -26,43 +26,16 @@ interface InnerProps {
   userId: string
 }
 
+const LS_ONBOARDING_UNAVAILABLE = 'edusync_onboarding_progress_unavailable'
+
 function OnboardingChecklistInner({ tenantId, userId }: InnerProps) {
-  const [progress, setProgress] = useState<OnboardingProgress | null>(null)
-  const [loading, setLoading] = useState(true)
   const [collapsed, setCollapsed] = useState(false)
-  const [dismissed, setDismissed] = useState(false)
+  const [dismissed, setDismissed] = useState(
+    () => localStorage.getItem(LS_ONBOARDING_UNAVAILABLE) === '1'
+  )
 
-  const fetchProgress = useCallback(async () => {
-    setLoading(true)
-    const { data } = await supabase
-      .from('onboarding_progress')
-      .select('id, tenant_id, user_id, steps_completed, completed_at')
-      .eq('tenant_id', tenantId)
-      .eq('user_id', userId)
-      .maybeSingle()
-
-    if (data) {
-      setProgress(data as OnboardingProgress)
-    } else {
-      // Upsert a fresh record for this admin
-      const { data: created } = await supabase
-        .from('onboarding_progress')
-        .insert({
-          tenant_id: tenantId,
-          user_id: userId,
-          steps_completed: {},
-          completed_at: null,
-        })
-        .select('id, tenant_id, user_id, steps_completed, completed_at')
-        .single()
-      if (created) setProgress(created as OnboardingProgress)
-    }
-    setLoading(false)
-  }, [tenantId, userId])
-
-  useEffect(() => {
-    fetchProgress()
-  }, [fetchProgress])
+  const { data: progress, isLoading: loading } = useOnboardingProgress(tenantId, userId)
+  const updateMutation = useUpdateOnboardingProgress(tenantId, userId)
 
   const stepsCompleted = progress?.steps_completed ?? {}
   const pct = calcProgress(stepsCompleted)
@@ -77,19 +50,11 @@ function OnboardingChecklistInner({ tenantId, userId }: InnerProps) {
       ...stepsCompleted,
       [stepId]: !stepsCompleted[stepId],
     }
-    const allComplete = ONBOARDING_STEPS.every((s) => updated[s.id])
 
-    const { data } = await supabase
-      .from('onboarding_progress')
-      .update({
-        steps_completed: updated,
-        completed_at: allComplete ? new Date().toISOString() : null,
-      })
-      .eq('id', progress.id)
-      .select('id, tenant_id, user_id, steps_completed, completed_at')
-      .single()
-
-    if (data) setProgress(data as OnboardingProgress)
+    await updateMutation.mutateAsync({
+      progressId: progress.id,
+      stepsCompleted: updated,
+    })
   }
 
   const doneSoFar = ONBOARDING_STEPS.filter((s) => stepsCompleted[s.id]).length
@@ -135,7 +100,14 @@ function OnboardingChecklistInner({ tenantId, userId }: InnerProps) {
           </span>
           <span className="text-xs font-bold text-blue-600 dark:text-blue-400">{pct}%</span>
         </div>
-        <div className="w-full h-2 bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden">
+        <div
+          role="progressbar"
+          aria-valuenow={pct}
+          aria-valuemin={0}
+          aria-valuemax={100}
+          aria-label={`Onboarding: ${doneSoFar} dari ${ONBOARDING_STEPS.length} selesai`}
+          className="w-full h-2 bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden"
+        >
           <div
             className="h-full bg-blue-600 dark:bg-blue-500 rounded-full transition-all duration-500"
             style={{ width: `${pct}%` }}

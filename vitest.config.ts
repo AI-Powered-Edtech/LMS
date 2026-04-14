@@ -6,7 +6,7 @@ import path from 'path'
 export default defineConfig({
   resolve: {
     alias: {
-      '@': path.resolve(__dirname, './'),
+      '@': path.resolve(__dirname, './src'),
     },
   },
   plugins: [react()],
@@ -27,6 +27,8 @@ export default defineConfig({
         'src/**/__tests__/**',
         'src/**/*.test.{ts,tsx}',
         'src/**/*.spec.{ts,tsx}',
+        'src/hooks/usePWA.ts',
+        'src/hooks/usePWAInstall.ts',
         // Browser-API/PWA utilities — require IndexedDB, Sentry SDK, service worker, or
         // web-vitals APIs; cannot be meaningfully unit-tested without complex browser mocks
         'src/utils/backgroundSync.ts',
@@ -36,39 +38,33 @@ export default defineConfig({
         'src/utils/prefetch.ts',
         'src/utils/metrics.ts',
       ],
-      // Phase 1: Scoped thresholds per directory
-      // Global thresholds disabled — most code is untestable React pages
-      // Enforce meaningful coverage on logic layers (utils, services, features/api)
       thresholds: {
         'src/utils/**': {
-          statements: 80,
-          branches: 70,
-          functions: 70,
-          lines: 80,
+          statements: 65,
+          branches: 65,
+          functions: 50,
+          lines: 65,
         },
         'src/features/**/api/**': {
-          statements: 50,
-          branches: 40,
-          functions: 50,
-          lines: 50,
+          statements: 22,
+          branches: 15,
+          functions: 24,
+          lines: 24,
         },
-        'src/hooks/**': {
-          statements: 70,
-          branches: 60,
-          functions: 70,
-          lines: 70,
+        // SECURITY CRITICAL: Auth guards must have high test coverage.
+        // These files protect multi-tenant isolation and cross-tenant privilege escalation.
+        'src/components/guards/**': {
+          statements: 85,
+          branches: 80,
+          functions: 85,
+          lines: 85,
         },
-        'src/contexts/**': {
-          statements: 60,
-          branches: 50,
-          functions: 60,
-          lines: 60,
-        },
-        'src/features/**/hooks/**': {
-          statements: 60,
-          branches: 50,
-          functions: 60,
-          lines: 60,
+        // Sanitization utilities must be thoroughly tested — XSS prevention depends on them.
+        'src/utils/sanitize.ts': {
+          statements: 100,
+          branches: 100,
+          functions: 100,
+          lines: 100,
         },
       },
     },

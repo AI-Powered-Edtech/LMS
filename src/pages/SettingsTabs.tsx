@@ -7,13 +7,16 @@ import { Camera, Eye, EyeOff, Lock, Monitor, Moon, Save, Sun } from 'lucide-reac
 import { useCallback, useState } from 'react'
 import { type Resolver, useForm } from 'react-hook-form'
 
-import { OptimizedImage } from '@/src/components/ui'
-import { OfflineFormNotice } from '@/src/components/ui/OfflineFormNotice'
-import { useAuth } from '@/src/contexts/AuthContext'
-import type { Theme } from '@/src/contexts/ThemeContext'
-import { supabase } from '@/src/services/supabase/client'
-import { type ProfileFormData, ProfileFormSchema } from '@/src/shared/schemas/forms'
-import { cn } from '@/src/utils/cn'
+import { OptimizedImage } from '@/components/ui'
+import { OfflineFormNotice } from '@/components/ui/OfflineFormNotice'
+import type { Theme } from '@/contexts/ThemeContext'
+import { MFASettings } from '@/features/auth/components/MFASettings'
+import { publicProfileService } from '@/features/profile/api/publicProfileService'
+import { db } from '@/services/db'
+import { type ProfileFormData, ProfileFormSchema } from '@/shared/schemas/forms'
+import { cn } from '@/utils/cn'
+import { logger } from '@/utils/logger'
+import { captureError } from '@/utils/sentry'
 
 // ── Toggle Row ────────────────────────────────────────────────────────────────
 export function ToggleRow({
@@ -35,6 +38,9 @@ export function ToggleRow({
       </div>
       <button
         type="button"
+        role="switch"
+        aria-checked={checked}
+        aria-label={label}
         onClick={() => onChange(!checked)}
         className={cn(
           'relative w-11 h-6 rounded-full transition-colors',
@@ -54,15 +60,20 @@ export function ToggleRow({
 
 // ── Account Tab ───────────────────────────────────────────────────────────────
 interface AccountTabProps {
+  userId: string
   avatarUrl: string | null | undefined
   displayEmail: string
   roleLabel: string
   displayName: string
 }
 
-export function AccountTab({ avatarUrl, displayEmail, roleLabel, displayName }: AccountTabProps) {
-  const { user } = useAuth()
-  const userId = user?.id ?? ''
+export function AccountTab({
+  userId,
+  avatarUrl,
+  displayEmail,
+  roleLabel,
+  displayName,
+}: AccountTabProps) {
   const [savingProfile, setSavingProfile] = useState(false)
   const [profileMessage, setProfileMessage] = useState<{
     type: 'success' | 'error'
@@ -82,19 +93,11 @@ export function AccountTab({ avatarUrl, displayEmail, roleLabel, displayName }: 
     setSavingProfile(true)
     setProfileMessage(null)
     try {
-      const [firstName, ...rest] = data.fullName.trim().split(' ')
-      const lastName = rest.join(' ')
-      const { error } = await supabase
-        .from('profiles')
-        .update({
-          first_name: firstName,
-          last_name: lastName || '',
-          updated_at: new Date().toISOString(),
-        })
-        .eq('id', userId)
-      if (error) throw error
+      await publicProfileService.updateProfileName(userId, data.fullName)
       setProfileMessage({ type: 'success', text: 'Profil berhasil diperbarui.' })
-    } catch {
+    } catch (err) {
+      captureError(err, { context: 'SettingsTabs.updateProfile' })
+      if (import.meta.env.DEV) logger.error('[SettingsTabs] Profile update failed:', err)
       setProfileMessage({ type: 'error', text: 'Gagal memperbarui profil. Coba lagi.' })
     } finally {
       setSavingProfile(false)
@@ -122,9 +125,12 @@ export function AccountTab({ avatarUrl, displayEmail, roleLabel, displayName }: 
               className="w-full h-full object-cover"
             />
           </div>
+          {/* FIXED: Camera button disabled until photo upload feature is implemented */}
           <button
             type="button"
-            className="px-4 py-2 bg-slate-100 dark:bg-slate-700 hover:bg-slate-200 dark:hover:bg-slate-600 text-slate-700 dark:text-slate-300 font-bold rounded-xl text-sm transition-colors flex items-center gap-2"
+            disabled
+            title="Fitur ubah foto belum tersedia"
+            className="px-4 py-2 bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-300 font-bold rounded-xl text-sm flex items-center gap-2 opacity-50 cursor-not-allowed"
           >
             <Camera className="w-4 h-4" />
             Ubah Foto
@@ -205,7 +211,6 @@ export function AccountTab({ avatarUrl, displayEmail, roleLabel, displayName }: 
 
 // ── Security Tab ──────────────────────────────────────────────────────────────
 export function SecurityTab() {
-  const { user } = useAuth()
   const [currentPassword, setCurrentPassword] = useState('')
   const [newPassword, setNewPassword] = useState('')
   const [confirmPassword, setConfirmPassword] = useState('')
@@ -218,10 +223,6 @@ export function SecurityTab() {
 
   const handleChangePassword = useCallback(async () => {
     setPasswordMessage(null)
-    if (!currentPassword) {
-      setPasswordMessage({ type: 'error', text: 'Masukkan kata sandi saat ini.' })
-      return
-    }
     if (newPassword.length < 6) {
       setPasswordMessage({ type: 'error', text: 'Kata sandi baru minimal 6 karakter.' })
       return
@@ -232,111 +233,148 @@ export function SecurityTab() {
     }
     setSavingPassword(true)
     try {
-      // 1. Verifikasi kata sandi lama dulu
-      const { error: authError } = await supabase.auth.signInWithPassword({
-        email: user!.email!,
-        password: currentPassword,
-      })
-      if (authError) {
-        setPasswordMessage({ type: 'error', text: 'Kata sandi saat ini tidak sesuai.' })
-        setSavingPassword(false)
-        return
+      const { data: user } = await db.auth.getUser()
+      const email = user.user?.email
+      if (email) {
+        const { error: verifyError } = await db.auth.signInWithPassword({
+          email,
+          password: currentPassword,
+        })
+        if (verifyError) {
+          throw new Error('Kata sandi lama tidak valid.')
+        }
       }
-      // 2. Baru update password
-      const { error } = await supabase.auth.updateUser({ password: newPassword })
+      const { error } = await db.auth.updateUser({ password: newPassword })
       if (error) throw error
       setPasswordMessage({ type: 'success', text: 'Kata sandi berhasil diubah.' })
       setCurrentPassword('')
       setNewPassword('')
       setConfirmPassword('')
-    } catch {
+    } catch (err) {
+      captureError(err, { context: 'SettingsTabs.changePassword' })
+      if (import.meta.env.DEV) logger.error('[SettingsTabs] Password change failed:', err)
       setPasswordMessage({
         type: 'error',
-        text: 'Gagal mengubah kata sandi. Coba lagi.',
+        text: 'Gagal mengubah kata sandi. Pastikan kata sandi lama benar.',
       })
     } finally {
       setSavingPassword(false)
     }
-  }, [currentPassword, newPassword, confirmPassword, user])
+  }, [currentPassword, newPassword, confirmPassword])
 
   return (
-    <div className="bg-white dark:bg-slate-800 rounded-3xl border border-slate-200 dark:border-slate-700 shadow-sm overflow-hidden">
-      <div className="p-6 border-b border-slate-100 dark:border-slate-700">
-        <h2 className="text-lg font-bold text-slate-900 dark:text-white">Keamanan Akun</h2>
-        <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">
-          Kelola kata sandi dan keamanan akun Anda.
-        </p>
-      </div>
-      <div className="p-6 space-y-4">
-        <div className="space-y-1.5">
-          <label className="text-sm font-bold text-slate-700 dark:text-slate-300">
-            Kata Sandi Saat Ini
-          </label>
-          <div className="relative">
+    <div className="space-y-6">
+      <div className="bg-white dark:bg-slate-800 rounded-3xl border border-slate-200 dark:border-slate-700 shadow-sm overflow-hidden">
+        <div className="p-6 border-b border-slate-100 dark:border-slate-700">
+          <h2 className="text-lg font-bold text-slate-900 dark:text-white">Keamanan Akun</h2>
+          <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">
+            Kelola kata sandi dan keamanan akun Anda.
+          </p>
+        </div>
+        <div className="p-6 space-y-4">
+          <div className="space-y-1.5">
+            <label className="text-sm font-bold text-slate-700 dark:text-slate-300">
+              Kata Sandi Saat Ini
+            </label>
+            <div className="relative">
+              <input
+                type={showPasswords ? 'text' : 'password'}
+                value={currentPassword}
+                onChange={(e) => setCurrentPassword(e.target.value)}
+                placeholder="Masukkan kata sandi saat ini"
+                className="w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-600 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-500 pr-10"
+              />
+              <button
+                type="button"
+                onClick={() => setShowPasswords(!showPasswords)}
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-300"
+              >
+                {showPasswords ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+              </button>
+            </div>
+          </div>
+          <div className="space-y-1.5">
+            <label className="text-sm font-bold text-slate-700 dark:text-slate-300">
+              Kata Sandi Baru
+            </label>
             <input
               type={showPasswords ? 'text' : 'password'}
-              value={currentPassword}
-              onChange={(e) => setCurrentPassword(e.target.value)}
-              placeholder="Masukkan kata sandi saat ini"
-              className="w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-600 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-500 pr-10"
+              value={newPassword}
+              onChange={(e) => setNewPassword(e.target.value)}
+              placeholder="Minimal 6 karakter"
+              className="w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-600 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-500"
             />
+          </div>
+          <div className="space-y-1.5">
+            <label className="text-sm font-bold text-slate-700 dark:text-slate-300">
+              Konfirmasi Kata Sandi Baru
+            </label>
+            <input
+              type={showPasswords ? 'text' : 'password'}
+              value={confirmPassword}
+              onChange={(e) => setConfirmPassword(e.target.value)}
+              placeholder="Ulangi kata sandi baru"
+              className="w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-600 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-500"
+            />
+          </div>
+
+          {passwordMessage && (
+            <div
+              className={cn(
+                'text-sm px-4 py-2 rounded-xl',
+                passwordMessage.type === 'success'
+                  ? 'bg-green-50 dark:bg-green-900/20 text-green-700 dark:text-green-400'
+                  : 'bg-red-50 dark:bg-red-900/20 text-red-700 dark:text-red-400'
+              )}
+            >
+              {passwordMessage.text}
+            </div>
+          )}
+
+          <div className="pt-4 flex justify-end">
             <button
               type="button"
-              onClick={() => setShowPasswords(!showPasswords)}
-              className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-300"
+              onClick={handleChangePassword}
+              disabled={savingPassword || !newPassword}
+              className="px-6 py-2.5 bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-white font-bold rounded-xl transition-colors shadow-sm shadow-blue-200 active:scale-95 flex items-center gap-2"
             >
-              {showPasswords ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+              <Lock className="w-4 h-4" />
+              {savingPassword ? 'Menyimpan...' : 'Ubah Kata Sandi'}
             </button>
           </div>
         </div>
-        <div className="space-y-1.5">
-          <label className="text-sm font-bold text-slate-700 dark:text-slate-300">
-            Kata Sandi Baru
-          </label>
-          <input
-            type={showPasswords ? 'text' : 'password'}
-            value={newPassword}
-            onChange={(e) => setNewPassword(e.target.value)}
-            placeholder="Minimal 6 karakter"
-            className="w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-600 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-500"
-          />
-        </div>
-        <div className="space-y-1.5">
-          <label className="text-sm font-bold text-slate-700 dark:text-slate-300">
-            Konfirmasi Kata Sandi Baru
-          </label>
-          <input
-            type={showPasswords ? 'text' : 'password'}
-            value={confirmPassword}
-            onChange={(e) => setConfirmPassword(e.target.value)}
-            placeholder="Ulangi kata sandi baru"
-            className="w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-600 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-500"
-          />
-        </div>
+      </div>
 
-        {passwordMessage && (
-          <div
-            className={cn(
-              'text-sm px-4 py-2 rounded-xl',
-              passwordMessage.type === 'success'
-                ? 'bg-green-50 dark:bg-green-900/20 text-green-700 dark:text-green-400'
-                : 'bg-red-50 dark:bg-red-900/20 text-red-700 dark:text-red-400'
-            )}
-          >
-            {passwordMessage.text}
-          </div>
-        )}
+      <div className="mt-6">
+        <MFASettings />
+      </div>
 
-        <div className="pt-4 flex justify-end">
-          <button
-            type="button"
-            onClick={handleChangePassword}
-            disabled={savingPassword || !newPassword}
-            className="px-6 py-2.5 bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-white font-bold rounded-xl transition-colors shadow-sm shadow-blue-200 active:scale-95 flex items-center gap-2"
+      <div className="mt-6 bg-white dark:bg-slate-800 rounded-3xl border border-slate-200 dark:border-slate-700 shadow-sm overflow-hidden">
+        <div className="p-6 border-b border-slate-100 dark:border-slate-700">
+          <h2 className="text-lg font-bold text-slate-900 dark:text-white">Privasi & Data</h2>
+          <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">
+            Kelola data pribadi Anda sesuai PDPA/GDPR.
+          </p>
+        </div>
+        <div className="p-6 space-y-3">
+          <a
+            href="/app/privacy/export-data"
+            className="block w-full px-4 py-3 bg-slate-50 dark:bg-slate-900 hover:bg-slate-100 dark:hover:bg-slate-800 border border-slate-200 dark:border-slate-600 rounded-xl text-left transition-colors"
           >
-            <Lock className="w-4 h-4" />
-            {savingPassword ? 'Menyimpan...' : 'Ubah Kata Sandi'}
-          </button>
+            <p className="text-sm font-bold text-slate-900 dark:text-white">Export Data Pribadi</p>
+            <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+              Download semua data Anda dalam format JSON
+            </p>
+          </a>
+          <a
+            href="/app/privacy/delete-account"
+            className="block w-full px-4 py-3 bg-red-50 dark:bg-red-900/20 hover:bg-red-100 dark:hover:bg-red-900/30 border border-red-200 dark:border-red-800 rounded-xl text-left transition-colors"
+          >
+            <p className="text-sm font-bold text-red-600 dark:text-red-400">Hapus Akun</p>
+            <p className="text-xs text-red-500 dark:text-red-500 mt-0.5">
+              Kirim permintaan penghapusan akun ke admin
+            </p>
+          </a>
         </div>
       </div>
     </div>

@@ -4,10 +4,10 @@
  */
 
 export function formatTime(seconds: number): string {
-  if (seconds < 60) return `${seconds}d`
+  if (seconds < 60) return `${seconds} dtk`
   const mins = Math.floor(seconds / 60)
   const secs = seconds % 60
-  if (mins < 60) return secs > 0 ? `${mins}m ${secs}d` : `${mins}m`
+  if (mins < 60) return secs > 0 ? `${mins}m ${secs} dtk` : `${mins}m`
   const hrs = Math.floor(mins / 60)
   const remainMins = mins % 60
   return remainMins > 0 ? `${hrs}j ${remainMins}m` : `${hrs}j`

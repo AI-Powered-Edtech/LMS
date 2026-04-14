@@ -15,13 +15,15 @@ import { motion } from 'motion/react'
 import { useState } from 'react'
 import ReactMarkdown from 'react-markdown'
 import rehypeKatex from 'rehype-katex'
+import rehypeSanitize from 'rehype-sanitize'
 import remarkMath from 'remark-math'
 
-import { OptimizedImage } from '@/src/components/ui'
-import { discussionService } from '@/src/features/discussions/api/discussionService'
-import type { ForumPost } from '@/src/features/discussions/types/forum'
-import type { ForumComment } from '@/src/features/discussions/types/forum'
-import { cn } from '@/src/utils/cn'
+import { OptimizedImage, useToast } from '@/components/ui'
+import type { ForumPost } from '@/features/discussions/types/forum'
+import type { ForumComment } from '@/features/discussions/types/forum'
+import { cn } from '@/utils/cn'
+import { sanitizeUrl } from '@/utils/sanitize'
+import { katexSanitizeSchema } from '@/utils/sanitizeMarkdown'
 
 import { CommentThread } from './CommentThread'
 import { ForumBadge, resolveBadgeType } from './ForumBadge'
@@ -31,23 +33,24 @@ interface PostItemProps {
   isTeacher: boolean
   onMarkBest: (postId: string, commentId: string) => void
   onReport: (id: string, type: 'post' | 'comment', snippet: string, author: string) => void
+  onVote?: (postId: string) => Promise<void>
 }
 
-export function PostItem({ post, isTeacher, onMarkBest, onReport }: PostItemProps) {
+export function PostItem({ post, isTeacher, onMarkBest, onReport, onVote }: PostItemProps) {
+  const addToast = useToast((s: any) => s.addToast)
   const [upvoted, setUpvoted] = useState(false)
   const [downvoted, setDownvoted] = useState(false)
   const [showMenu, setShowMenu] = useState(false)
 
-  const handleUpvote = () => {
+  const handleUpvote = async () => {
     if (upvoted) {
       setUpvoted(false)
     } else {
       setUpvoted(true)
       setDownvoted(false)
-      discussionService.voteDiscussion(post.id).then(
-        () => null,
-        () => null
-      )
+      if (onVote) {
+        await onVote(post.id)
+      }
     }
   }
 
@@ -158,7 +161,16 @@ export function PostItem({ post, isTeacher, onMarkBest, onReport }: PostItemProp
               {showMenu && (
                 <div className="absolute right-0 mt-1 w-48 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl shadow-lg overflow-hidden z-10">
                   {isTeacher && (
-                    <button className="w-full text-left px-4 py-2 text-sm font-medium text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-900/20 flex items-center gap-2 border-b border-slate-100 dark:border-slate-700">
+                    <button
+                      onClick={() =>
+                        addToast({
+                          type: 'warning',
+                          message: 'Fitur Push ke GCR dalam pengembangan.',
+                        })
+                      }
+                      disabled
+                      className="w-full text-left px-4 py-2 text-sm font-medium text-slate-400 hover:bg-slate-50 flex items-center gap-2 border-b border-slate-100 dark:border-slate-700 cursor-not-allowed"
+                    >
                       <Share2 className="w-4 h-4" /> Push ke GCR
                     </button>
                   )}
@@ -196,7 +208,7 @@ export function PostItem({ post, isTeacher, onMarkBest, onReport }: PostItemProp
 
           {post.contextLink && (
             <a
-              href={post.contextLink.url}
+              href={sanitizeUrl(post.contextLink.url)}
               className="inline-flex items-center gap-2 px-3 py-1.5 bg-indigo-50 text-indigo-700 dark:bg-indigo-900/30 dark:text-indigo-300 rounded-lg text-sm font-medium mb-4 hover:bg-indigo-100 dark:hover:bg-indigo-900/50 transition-colors border border-indigo-100 dark:border-indigo-800"
             >
               <Code className="w-4 h-4" />
@@ -205,7 +217,10 @@ export function PostItem({ post, isTeacher, onMarkBest, onReport }: PostItemProp
           )}
 
           <div className="prose prose-slate dark:prose-invert max-w-none mb-4 prose-pre:bg-slate-800 prose-pre:text-slate-50 prose-pre:rounded-xl">
-            <ReactMarkdown remarkPlugins={[remarkMath]} rehypePlugins={[rehypeKatex]}>
+            <ReactMarkdown
+              remarkPlugins={[remarkMath]}
+              rehypePlugins={[rehypeKatex, [rehypeSanitize, katexSanitizeSchema]]}
+            >
               {post.content}
             </ReactMarkdown>
           </div>

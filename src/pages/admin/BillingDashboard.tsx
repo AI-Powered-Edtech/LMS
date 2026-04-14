@@ -12,12 +12,13 @@ import {
 import { motion } from 'motion/react'
 import { useEffect, useMemo, useState } from 'react'
 
-import { useToast } from '@/src/components/ui/Toast'
-import { useAuth } from '@/src/contexts/AuthContext'
-import { useDebounce } from '@/src/hooks/useDebounce'
-import { usePageTitle } from '@/src/hooks/usePageTitle'
-import { supabase } from '@/src/services/supabase/client'
-import { cn } from '@/src/utils/cn'
+import { EmptyState } from '@/components/ui'
+import { useToast } from '@/components/ui/Toast'
+import { useAuth } from '@/contexts/AuthContext'
+import { useDebounce } from '@/hooks/useDebounce'
+import { usePageTitle } from '@/hooks/usePageTitle'
+import { db } from '@/services/db'
+import { cn } from '@/utils/cn'
 
 // --- UTILS ---
 const formatCurrency = (amount: number) => {
@@ -43,13 +44,13 @@ const getStatusLabel = (status: string) => {
     case 'open':
       return 'Menunggu'
     case 'draft':
-      return 'Draft'
+      return 'Draf'
     case 'uncollectible':
       return 'Gagal'
     case 'void':
       return 'Batal'
     default:
-      return status
+      return status.charAt(0).toUpperCase() + status.slice(1)
   }
 }
 
@@ -102,6 +103,8 @@ export function BillingDashboard() {
   const [subscription, setSubscription] = useState<Subscription | null>(null)
   const [loading, setLoading] = useState(true)
   const [searchQuery, setSearchQuery] = useState('')
+  const [page, setPage] = useState(0)
+  const PAGE_SIZE = 20
 
   // ⚡ Perf: Debounce search input to avoid re-filtering on every keystroke
   const debouncedSearch = useDebounce(searchQuery, 300)
@@ -112,29 +115,30 @@ export function BillingDashboard() {
       setLoading(true)
 
       try {
-        const { data: invData, error: invErr } = await supabase
+        const { data: invData, error: invErr } = await db
           .from('invoices')
           .select('id, amount_due, amount_paid, status, due_date, created_at')
           .eq('tenant_id', tenantId)
           .order('created_at', { ascending: false })
+          .range(page * PAGE_SIZE, (page + 1) * PAGE_SIZE - 1)
 
         if (invErr) throw invErr
 
-        const { data: subData, error: subErr } = await supabase
+        const { data: subData, error: subErr } = await db
           .from('tenant_subscriptions')
           .select(`id, status, current_period_end, plan_id`)
           .eq('tenant_id', tenantId)
-          .single()
+          .maybeSingle()
 
         // If no sub, that's fine (trial or free)
-        if (subErr && subErr.code !== 'PGRST116') throw subErr
+        if (subErr) throw subErr
 
         if (subData) {
-          const { data: planData } = await supabase
+          const { data: planData } = await db
             .from('billing_plans')
             .select('id, name, price')
             .eq('id', subData.plan_id)
-            .single()
+            .maybeSingle()
           setSubscription({ ...subData, plan: planData || { name: 'Unknown', price: 0 } })
         }
 
@@ -145,8 +149,8 @@ export function BillingDashboard() {
         setLoading(false)
       }
     }
-    fetchData()
-  }, [tenantId, addToast])
+    void fetchData()
+  }, [tenantId, addToast, page, PAGE_SIZE])
 
   // ⚡ Perf: Memoize filteredInvoices — was recomputed on every render without useMemo
   const filteredInvoices = useMemo(
@@ -185,7 +189,13 @@ export function BillingDashboard() {
           </p>
         </div>
         <div className="flex items-center gap-3">
-          <button className="flex items-center justify-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-xl transition-colors shadow-sm">
+          <button
+            onClick={() =>
+              addToast({ type: 'warning', message: 'Fitur metode pembayaran dalam pengembangan.' })
+            }
+            disabled
+            className="flex items-center justify-center gap-2 px-4 py-2 bg-slate-300 text-slate-500 text-sm font-medium rounded-xl transition-colors shadow-sm cursor-not-allowed"
+          >
             <Plus className="w-4 h-4" />
             Metode Pembayaran
           </button>
@@ -301,11 +311,12 @@ export function BillingDashboard() {
             <tbody className="divide-y divide-slate-200 dark:divide-slate-700">
               {filteredInvoices.length === 0 ? (
                 <tr>
-                  <td
-                    colSpan={4}
-                    className="px-6 py-12 text-center text-slate-500 dark:text-slate-400"
-                  >
-                    Tidak ada tagihan ditemukan.
+                  <td colSpan={4}>
+                    <EmptyState
+                      icon={<Receipt className="w-8 h-8" />}
+                      title="Tidak ada tagihan"
+                      description="Tagihan akan muncul setelah ada transaksi"
+                    />
                   </td>
                 </tr>
               ) : (
@@ -356,6 +367,27 @@ export function BillingDashboard() {
               )}
             </tbody>
           </table>
+        </div>
+
+        {/* Pagination */}
+        <div className="flex items-center justify-between px-6 py-4 border-t border-slate-200 dark:border-slate-700">
+          <p className="text-sm text-slate-500 dark:text-slate-400">Halaman {page + 1}</p>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => setPage((p) => Math.max(0, p - 1))}
+              disabled={page === 0}
+              className="px-4 py-2 text-sm font-medium rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+            >
+              Sebelumnya
+            </button>
+            <button
+              onClick={() => setPage((p) => p + 1)}
+              disabled={invoices.length < PAGE_SIZE}
+              className="px-4 py-2 text-sm font-medium rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+            >
+              Berikutnya
+            </button>
+          </div>
         </div>
       </div>
     </div>

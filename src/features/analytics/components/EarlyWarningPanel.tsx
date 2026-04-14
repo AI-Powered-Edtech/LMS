@@ -2,7 +2,7 @@ import { AlertTriangle, Loader2, ShieldAlert, TrendingDown, Users } from 'lucide
 import { motion } from 'motion/react'
 import { useState } from 'react'
 
-import { cn } from '@/src/utils/cn'
+import { cn } from '@/utils/cn'
 
 import { useAtRiskStudents, usePredictionSummary } from '../queries/analyticsQueries'
 import type { StudentPrediction } from '../types'

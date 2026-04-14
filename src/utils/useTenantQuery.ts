@@ -1,6 +1,6 @@
 import { useCallback } from 'react'
 
-import { supabase } from '@/src/services/supabase/client'
+import { db } from '@/services/db'
 
 import { useAuth } from '../contexts/AuthContext'
 
@@ -20,7 +20,11 @@ import { useAuth } from '../contexts/AuthContext'
  *   // INSERT with automatic tenant_id
  *   await tenantInsert('classes', { name: 'English 101', teacher_id: userId });
  */
-export function useTenantQuery() {
+export function useTenantQuery(): {
+  tenantId: string | null
+  tenantQuery: (table: string, columns?: string) => unknown
+  tenantInsert: (table: string, data: Record<string, unknown>) => Promise<unknown>
+} {
   const { tenantId } = useAuth()
 
   /**
@@ -31,7 +35,7 @@ export function useTenantQuery() {
    */
   const tenantQuery = useCallback(
     (table: string, columns = 'id') => {
-      const query = supabase.from(table)
+      const query = db.from(table)
       if (tenantId) {
         return query.select(columns).eq('tenant_id', tenantId)
       }
@@ -47,7 +51,7 @@ export function useTenantQuery() {
   const tenantInsert = useCallback(
     async (table: string, data: Record<string, unknown>) => {
       const record = tenantId ? { ...data, tenant_id: tenantId } : data
-      return supabase.from(table).insert(record)
+      return db.from(table).insert(record)
     },
     [tenantId]
   )

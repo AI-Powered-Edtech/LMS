@@ -2,11 +2,13 @@ import { CheckCircle, Flag, GraduationCap, MoreHorizontal, ThumbsUp } from 'luci
 import { useState } from 'react'
 import ReactMarkdown from 'react-markdown'
 import rehypeKatex from 'rehype-katex'
+import rehypeSanitize from 'rehype-sanitize'
 import remarkMath from 'remark-math'
 
-import { OptimizedImage } from '@/src/components/ui'
-import type { ForumComment } from '@/src/features/discussions/types/forum'
-import { cn } from '@/src/utils/cn'
+import { OptimizedImage } from '@/components/ui'
+import type { ForumComment } from '@/features/discussions/types/forum'
+import { cn } from '@/utils/cn'
+import { katexSanitizeSchema } from '@/utils/sanitizeMarkdown'
 
 import { ForumBadge, resolveBadgeType } from './ForumBadge'
 
@@ -103,7 +105,10 @@ export function CommentThread({
             </div>
           </div>
           <div className="text-slate-700 dark:text-slate-300 text-sm leading-relaxed prose prose-sm dark:prose-invert max-w-none prose-p:my-1 prose-pre:bg-slate-800 prose-pre:text-slate-50 prose-pre:rounded-xl">
-            <ReactMarkdown remarkPlugins={[remarkMath]} rehypePlugins={[rehypeKatex]}>
+            <ReactMarkdown
+              remarkPlugins={[remarkMath]}
+              rehypePlugins={[rehypeKatex, [rehypeSanitize, katexSanitizeSchema]]}
+            >
               {comment.content}
             </ReactMarkdown>
           </div>

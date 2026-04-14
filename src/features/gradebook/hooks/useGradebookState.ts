@@ -1,14 +1,18 @@
 import { useMemo, useState } from 'react'
 
-import { useCourses } from '@/src/features/courses/queries/courseQueries'
-import type { Course } from '@/src/features/courses/types'
-import { Assignment, useGradebook } from '@/src/features/gradebook/hooks/useGradebookQueries'
-import { useDebounce } from '@/src/hooks/useDebounce'
-import { usePageTitle } from '@/src/hooks/usePageTitle'
+import { useCourses } from '@/features/courses/queries/courseQueries'
+import type { Course } from '@/features/courses/types'
+import { Assignment, useGradebook } from '@/features/gradebook/hooks/useGradebookQueries'
+import { useDebounce } from '@/hooks/useDebounce'
+import { usePageTitle } from '@/hooks/usePageTitle'
 
 export function useGradebookState() {
   usePageTitle('Buku Nilai')
-  const { students, assignments, grades, updateGrade, addAssignment } = useGradebook()
+  const [selectedCourseId, setSelectedCourseId] = useState<string>('')
+  const { students, assignments, grades, updateGrade, addAssignment } = useGradebook(
+    0,
+    selectedCourseId || undefined
+  )
   const [searchQuery, setSearchQuery] = useState('')
   const debouncedSearch = useDebounce(searchQuery, 300)
   const [editingCell, setEditingCell] = useState<{
@@ -25,7 +29,6 @@ export function useGradebookState() {
   })
 
   // Course-based gradebook (real Supabase data)
-  const [selectedCourseId, setSelectedCourseId] = useState<string>('')
   const coursesQuery = useCourses({ limit: 50 })
   const courses: Course[] = coursesQuery.data?.courses ?? []
 
@@ -33,15 +36,21 @@ export function useGradebookState() {
     e.preventDefault()
     if (newAssignment.title && newAssignment.type && newAssignment.maxScore) {
       const id = `a${Date.now()}`
-      addAssignment({
-        id,
-        title: newAssignment.title,
-        type: newAssignment.type as Assignment['type'],
-        maxScore: Number(newAssignment.maxScore),
-        date:
-          newAssignment.date ||
-          new Date().toLocaleDateString('id-ID', { day: 'numeric', month: 'short' }),
-      })
+      // FIXED: addAssignment is now async (persists to DB); fire-and-forget is intentional
+      // — the cache is updated optimistically so UI remains responsive.
+      // Pass selectedCourseId so addGradebookItem receives a real FK-valid course UUID.
+      void addAssignment(
+        {
+          id,
+          title: newAssignment.title,
+          type: newAssignment.type as Assignment['type'],
+          maxScore: Number(newAssignment.maxScore),
+          date:
+            newAssignment.date ||
+            new Date().toLocaleDateString('id-ID', { day: 'numeric', month: 'short' }),
+        },
+        selectedCourseId || undefined
+      )
       setIsAddModalOpen(false)
       setNewAssignment({
         title: '',
@@ -88,9 +97,18 @@ export function useGradebookState() {
         lowestStudent: '-',
       }
     }
-    const sum = averages.reduce((a, b) => a + b.avg, 0)
-    const best = averages.reduce((a, b) => (b.avg > a.avg ? b : a))
-    const worst = averages.reduce((a, b) => (b.avg < a.avg ? b : a))
+    // ⚡ Perf: Consolidate multiple chained array iterations into a single pass
+    let sum = 0
+    let best = averages[0]
+    let worst = averages[0]
+
+    for (let i = 0; i < averages.length; i++) {
+      const current = averages[i]
+      sum += current.avg
+      if (current.avg > best.avg) best = current
+      if (current.avg < worst.avg) worst = current
+    }
+
     return {
       classAverage: Math.round(sum / averages.length),
       highestScore: best.avg,
@@ -178,11 +196,11 @@ export function useGradebookState() {
 }
 
 export function getGradeColor(score: number | null) {
-  if (score === null || score === 0) return 'text-slate-400'
-  if (score >= 85) return 'text-green-600 font-bold'
-  if (score >= 70) return 'text-blue-600 font-bold'
-  if (score >= 60) return 'text-yellow-600 font-bold'
-  return 'text-red-600 font-bold'
+  if (score === null || score === 0) return 'text-slate-400 dark:text-slate-500'
+  if (score >= 85) return 'text-green-600 dark:text-green-400 font-bold'
+  if (score >= 70) return 'text-blue-600 dark:text-blue-400 font-bold'
+  if (score >= 60) return 'text-yellow-600 dark:text-yellow-400 font-bold'
+  return 'text-red-600 dark:text-red-400 font-bold'
 }
 
 export function getGradeBg(score: number | null) {

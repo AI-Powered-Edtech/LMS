@@ -1,26 +1,18 @@
-import { useCallback, useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 
-import { useAuth } from '@/src/contexts/AuthContext'
-import { classroomService } from '@/src/features/classroom/api/classroomService'
-import { useClassroom } from '@/src/features/classroom/hooks/useClassroomQueries'
-import { useDebounce } from '@/src/hooks/useDebounce'
-import { usePageTitle } from '@/src/hooks/usePageTitle'
-import { useToast } from '@/src/hooks/useToast'
-import { supabase } from '@/src/services/supabase/client'
-import { logger } from '@/src/utils/logger'
-
-export interface EnrolledStudent {
-  id: string
-  student_id: string
-  full_name: string
-  email: string
-  enrolled_at: string
-  status: string
-}
+import { useAuth } from '@/contexts/AuthContext'
+import { classroomService, type EnrolledStudent } from '@/features/classroom/api/classroomService'
+import { useClassroom } from '@/features/classroom/hooks/useClassroomQueries'
+import { useDebounce } from '@/hooks/useDebounce'
+import { usePageTitle } from '@/hooks/usePageTitle'
+import { useToast } from '@/hooks/useToast'
+import { useUndoableAction } from '@/hooks/useUndoableAction'
+import { logger } from '@/utils/logger'
+import { captureError } from '@/utils/sentry'
 
 export function useClassManagementState() {
-  usePageTitle('Class Management')
+  usePageTitle('Manajemen Kelas')
   const addToast = useToast((s) => s.addToast)
   const navigate = useNavigate()
   const {
@@ -51,8 +43,7 @@ export function useClassManagementState() {
   const [copiedId, setCopiedId] = useState<string | null>(null)
 
   // Delete
-  const [classToDelete, setClassToDelete] = useState<string | null>(null)
-  const [isDeleting, setIsDeleting] = useState(false)
+  const [_isDeleting, setIsDeleting] = useState(false)
 
   const selectedClass = classrooms.find((c) => c.id === selectedClassId)
 
@@ -66,19 +57,13 @@ export function useClassManagementState() {
       const counts: Record<string, number> = {}
       await Promise.all(
         classIds.map(async (id) => {
-          const { count } = await supabase
-            .from('enrollments')
-            .select('id', { count: 'exact', head: true })
-            .eq('class_id', id)
-            .eq('tenant_id', tenantId)
-            .eq('status', 'ACTIVE')
-          counts[id] = count ?? 0
+          counts[id] = await classroomService.getActiveEnrollmentCount(id, tenantId!)
         })
       )
 
       setStudentCounts(counts)
     }
-    fetchCounts()
+    void fetchCounts()
   }, [classrooms, tenantId])
 
   // Fetch enrolled students for selected class
@@ -87,43 +72,11 @@ export function useClassManagementState() {
       if (!tenantId) return
       setLoadingStudents(true)
       try {
-        const { data: enrollmentData, error: enrollmentError } = await supabase
-          .from('enrollments')
-          .select(
-            `
-          id,
-          joined_at,
-          student:profiles!enrollments_student_id_fkey(id, full_name, email)
-        `
-          )
-          .eq('class_id', classId)
-          .eq('tenant_id', tenantId)
-          .eq('status', 'ACTIVE')
-        if (enrollmentError) throw enrollmentError
-
-        setStudents(
-          (enrollmentData || []).map(
-            (e: {
-              id: string
-              joined_at: string
-              student:
-                | { id: string; full_name: string; email: string }
-                | { id: string; full_name: string; email: string }[]
-            }) => {
-              const student = Array.isArray(e.student) ? e.student[0] : e.student
-              return {
-                id: e.id,
-                student_id: student?.id ?? '',
-                full_name: student?.full_name || 'Unnamed',
-                email: student?.email || '-',
-                enrolled_at: e.joined_at,
-                status: 'ACTIVE' as const,
-              }
-            }
-          )
-        )
+        const enrolledStudents = await classroomService.getEnrolledStudents(classId, tenantId)
+        setStudents(enrolledStudents)
       } catch (err) {
         if (import.meta.env.DEV) logger.error('Failed to fetch students:', err)
+        captureError(err, { context: 'useClassManagementState.fetchStudents' })
         setStudents([])
       } finally {
         setLoadingStudents(false)
@@ -133,7 +86,7 @@ export function useClassManagementState() {
   )
 
   useEffect(() => {
-    if (selectedClassId) fetchStudents(selectedClassId)
+    if (selectedClassId) void fetchStudents(selectedClassId)
   }, [selectedClassId, fetchStudents])
 
   // Auto-select first class
@@ -177,28 +130,47 @@ export function useClassManagementState() {
     }
   }
 
-  const confirmDeleteClass = async () => {
-    if (!classToDelete) return
+  // Undoable delete — shows a 5-second toast with "Batal" before executing
+  const undoableDeleteState = useRef<{ classId: string; className: string } | null>(null)
+  const { execute: _executeDelete } = useUndoableAction({
+    message: undoableDeleteState.current
+      ? `Kelas "${undoableDeleteState.current.className}" akan dihapus.`
+      : 'Kelas akan dihapus.',
+    delay: 5000,
+    onExecute: async () => {
+      if (!undoableDeleteState.current) return
+      const { classId } = undoableDeleteState.current
+      setIsDeleting(true)
+      try {
+        await classroomService.deleteClassroom(classId, tenantId!)
+        if (selectedClassId === classId) setSelectedClassId(null)
+      } catch (err: unknown) {
+        addToast({
+          type: 'error',
+          message:
+            'Gagal menghapus kelas: ' +
+            (err instanceof Error ? err.message : 'Kesalahan tidak diketahui'),
+        })
+      } finally {
+        setIsDeleting(false)
+        undoableDeleteState.current = null
+      }
+    },
+    onUndo: () => {
+      undoableDeleteState.current = null
+    },
+  })
 
-    setIsDeleting(true)
-    try {
-      await classroomService.deleteClassroom(classToDelete)
-      if (selectedClassId === classToDelete) setSelectedClassId(null)
-      setClassToDelete(null)
-    } catch (err: unknown) {
-      addToast({
-        type: 'error',
-        message:
-          'Gagal menghapus kelas: ' +
-          (err instanceof Error ? err.message : 'Kesalahan tidak diketahui'),
-      })
-    } finally {
-      setIsDeleting(false)
-    }
-  }
+  const handleDeleteClass = useCallback(
+    (classId: string, className: string) => {
+      undoableDeleteState.current = { classId, className }
+      _executeDelete()
+    },
+    [_executeDelete]
+  )
 
   const handleCopy = (text: string, id: string) => {
-    navigator.clipboard.writeText(text)
+    void navigator.clipboard.writeText(text)
     setCopiedId(id)
     setTimeout(() => setCopiedId(null), 2000)
   }
@@ -206,17 +178,10 @@ export function useClassManagementState() {
   const handleRemoveStudent = async (student: EnrolledStudent) => {
     if (!confirm(`Keluarkan ${student.full_name} dari kelas ini?`)) return
     try {
-      const { error } = await supabase
-        .from('enrollments')
-        .update({
-          status: 'REMOVED',
-          removed_at: new Date().toISOString(),
-          removed_by: user?.id,
-        })
-        .eq('id', student.id)
-      if (error) throw error
+      await classroomService.removeStudent(student.id, user!.id, tenantId!)
+
       // Refresh student list
-      fetchStudents(selectedClassId!)
+      void fetchStudents(selectedClassId!)
       // Update count
       setStudentCounts((prev) => ({
         ...prev,
@@ -263,10 +228,6 @@ export function useClassManagementState() {
     // Copy
     copiedId,
 
-    // Delete
-    classToDelete,
-    isDeleting,
-
     // Actions
     navigate,
     setSelectedClassId,
@@ -275,11 +236,11 @@ export function useClassManagementState() {
     setNewClassName,
     setRenamingClassId,
     setRenameValue,
-    setClassToDelete,
     setActiveClassroomId,
     handleCreateClass,
     handleRename,
-    confirmDeleteClass,
+    /** Undoable delete: shows a 5-second "Batal" toast before executing. */
+    handleDeleteClass,
     handleCopy,
     handleRemoveStudent,
   }

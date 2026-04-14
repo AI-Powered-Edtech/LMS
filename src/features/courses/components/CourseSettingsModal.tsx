@@ -1,10 +1,11 @@
-import { CheckCircle, Loader2, Settings, Users, X } from 'lucide-react'
+import { CheckCircle, GitBranch, Loader2, Settings, Users, X } from 'lucide-react'
 import { AnimatePresence, motion } from 'motion/react'
-import { useCallback, useEffect, useRef, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 
-import { useAuth } from '@/src/contexts/AuthContext'
-import { supabase } from '@/src/services/supabase/client'
+import { useAuth } from '@/contexts/AuthContext'
+import { PathRuleList } from '@/features/adaptive-paths'
 
+import { useCourseSettings } from '../hooks/useCourseSettings'
 import { CourseCollaborators } from './CourseCollaborators'
 
 interface CourseSettingsModalProps {
@@ -15,119 +16,10 @@ interface CourseSettingsModalProps {
 
 // ── General Settings Tab ────────────────────────────────────
 
-interface CourseGeneralData {
-  title: string
-  description: string
-  subject: string
-  level: string
-}
-
 function GeneralSettingsTab({ courseId }: { courseId: string }) {
-  const { tenantId } = useAuth()
-  const [data, setData] = useState<CourseGeneralData>({
-    title: '',
-    description: '',
-    subject: '',
-    level: '',
-  })
-  const [loading, setLoading] = useState(true)
-  const [saving, setSaving] = useState(false)
-  const [saved, setSaved] = useState(false)
-  const [error, setError] = useState<string | null>(null)
-  const saveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
-  const savedTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const { data, isLoading, isSaving, isSaved, error, updateField } = useCourseSettings(courseId)
 
-  // Fetch course data on mount
-  useEffect(() => {
-    if (!courseId || !tenantId) return
-
-    let cancelled = false
-
-    async function fetchCourse() {
-      setLoading(true)
-      const { data: course, error: fetchErr } = await supabase
-        .from('courses')
-        .select('title, description, subject, level')
-        .eq('id', courseId)
-        .eq('tenant_id', tenantId)
-        .single()
-
-      if (cancelled) return
-
-      if (fetchErr) {
-        setError('Gagal memuat data kursus.')
-        setLoading(false)
-        return
-      }
-
-      setData({
-        title: course.title || '',
-        description: course.description || '',
-        subject: course.subject || '',
-        level: course.level || '',
-      })
-      setLoading(false)
-    }
-
-    fetchCourse()
-
-    return () => {
-      cancelled = true
-    }
-  }, [courseId, tenantId])
-
-  // Cleanup timers on unmount
-  useEffect(() => {
-    return () => {
-      if (saveTimerRef.current) clearTimeout(saveTimerRef.current)
-      if (savedTimerRef.current) clearTimeout(savedTimerRef.current)
-    }
-  }, [])
-
-  // Debounced save
-  const debouncedSave = useCallback(
-    (updatedData: CourseGeneralData) => {
-      if (saveTimerRef.current) clearTimeout(saveTimerRef.current)
-      if (savedTimerRef.current) clearTimeout(savedTimerRef.current)
-
-      saveTimerRef.current = setTimeout(async () => {
-        if (!courseId || !tenantId) return
-
-        setSaving(true)
-        setSaved(false)
-        setError(null)
-
-        const { error: updateErr } = await supabase
-          .from('courses')
-          .update({
-            title: updatedData.title,
-            description: updatedData.description || null,
-            subject: updatedData.subject || null,
-            level: updatedData.level || null,
-          })
-          .eq('id', courseId)
-          .eq('tenant_id', tenantId)
-
-        setSaving(false)
-
-        if (updateErr) {
-          setError('Gagal menyimpan perubahan.')
-        } else {
-          setSaved(true)
-          savedTimerRef.current = setTimeout(() => setSaved(false), 3000)
-        }
-      }, 800)
-    },
-    [courseId, tenantId]
-  )
-
-  const handleChange = (field: keyof CourseGeneralData, value: string) => {
-    const updated = { ...data, [field]: value }
-    setData(updated)
-    debouncedSave(updated)
-  }
-
-  if (loading) {
+  if (isLoading) {
     return (
       <div className="flex items-center justify-center py-12">
         <Loader2 className="w-5 h-5 text-slate-400 animate-spin" />
@@ -147,13 +39,13 @@ function GeneralSettingsTab({ courseId }: { courseId: string }) {
         </h3>
         <div className="flex items-center gap-2 text-xs font-bold">
           <div aria-live="polite" aria-atomic="true">
-            {saving && (
+            {isSaving && (
               <span className="flex items-center gap-1.5 text-amber-500">
                 <Loader2 className="w-3 h-3 animate-spin" />
                 Menyimpan...
               </span>
             )}
-            {saved && (
+            {isSaved && (
               <span className="flex items-center gap-1.5 text-emerald-500">
                 <CheckCircle className="w-3 h-3" />
                 Tersimpan
@@ -175,7 +67,7 @@ function GeneralSettingsTab({ courseId }: { courseId: string }) {
           id="settings-title"
           type="text"
           value={data.title}
-          onChange={(e) => handleChange('title', e.target.value)}
+          onChange={(e) => updateField('title', e.target.value)}
           className={inputClass}
           placeholder="Masukkan judul kursus..."
         />
@@ -192,7 +84,7 @@ function GeneralSettingsTab({ courseId }: { courseId: string }) {
         <textarea
           id="settings-description"
           value={data.description}
-          onChange={(e) => handleChange('description', e.target.value)}
+          onChange={(e) => updateField('description', e.target.value)}
           rows={4}
           className={`${inputClass} resize-none`}
           placeholder="Deskripsi singkat tentang kursus ini..."
@@ -212,7 +104,7 @@ function GeneralSettingsTab({ courseId }: { courseId: string }) {
             id="settings-subject"
             type="text"
             value={data.subject}
-            onChange={(e) => handleChange('subject', e.target.value)}
+            onChange={(e) => updateField('subject', e.target.value)}
             className={inputClass}
             placeholder="Contoh: Matematika"
           />
@@ -227,7 +119,7 @@ function GeneralSettingsTab({ courseId }: { courseId: string }) {
           <select
             id="settings-level"
             value={data.level}
-            onChange={(e) => handleChange('level', e.target.value)}
+            onChange={(e) => updateField('level', e.target.value)}
             className={inputClass}
           >
             <option value="">Pilih tingkat...</option>
@@ -253,7 +145,10 @@ function GeneralSettingsTab({ courseId }: { courseId: string }) {
 // ── Modal ────────────────────────────────────────────────────
 
 export function CourseSettingsModal({ isOpen, onClose, courseId }: CourseSettingsModalProps) {
-  const [activeTab, setActiveTab] = useState<'general' | 'collaborators'>('general')
+  const { tenantId } = useAuth()
+  const [activeTab, setActiveTab] = useState<'general' | 'collaborators' | 'learning-path'>(
+    'general'
+  )
   const modalRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
@@ -354,14 +249,27 @@ export function CourseSettingsModal({ isOpen, onClose, courseId }: CourseSetting
                 <Users className="w-4 h-4" />
                 Kolaborator
               </button>
+              <button
+                onClick={() => setActiveTab('learning-path')}
+                className={`w-full flex items-center gap-3 px-4 py-3 text-sm font-bold rounded-xl transition-all ${
+                  activeTab === 'learning-path'
+                    ? 'bg-indigo-50 dark:bg-indigo-900/20 text-indigo-600 dark:text-indigo-400'
+                    : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800'
+                }`}
+              >
+                <GitBranch className="w-4 h-4" />
+                Alur Pembelajaran
+              </button>
             </div>
 
             {/* Content Area */}
             <div className="flex-1 p-6 overflow-y-auto">
               {activeTab === 'general' ? (
                 <GeneralSettingsTab courseId={courseId} />
-              ) : (
+              ) : activeTab === 'collaborators' ? (
                 <CourseCollaborators courseId={courseId} />
+              ) : (
+                <PathRuleList courseId={courseId} tenantId={tenantId ?? ''} />
               )}
             </div>
           </div>

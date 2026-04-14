@@ -4,12 +4,12 @@ import { Edit2, MessageSquare, MoreVertical, Pin, Send, Trash2 } from 'lucide-re
 import { AnimatePresence, motion } from 'motion/react'
 import { memo, useCallback, useEffect, useState } from 'react'
 
-import { OptimizedImage } from '@/src/components/ui'
-import { useAuth } from '@/src/contexts/AuthContext'
-import { Discussion, discussionService } from '@/src/features/discussions/api/discussionService'
-import { useToast } from '@/src/hooks/useToast'
-import { cn } from '@/src/utils/cn'
-import { logger } from '@/src/utils/logger'
+import { OptimizedImage } from '@/components/ui'
+import { useAuth } from '@/contexts/AuthContext'
+import { Discussion, discussionService } from '@/features/discussions/api/discussionService'
+import { useToast } from '@/hooks/useToast'
+import { cn } from '@/utils/cn'
+import { logger } from '@/utils/logger'
 
 // ⚡ Perf: CommentItem extracted to file-level and wrapped in React.memo.
 // Previously defined INSIDE CommentSection's render body, which caused React
@@ -136,8 +136,9 @@ const CommentItem = memo(function CommentItem({
             {isAdmin && !comment.is_deleted && (
               <button
                 onClick={() => onTogglePin(comment.id, !!comment.is_pinned)}
-                className="p-1 text-slate-400 hover:text-blue-600 rounded"
+                className="p-1 text-slate-400 hover:text-blue-600 rounded focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
                 title={comment.is_pinned ? 'Lepaskan sematan' : 'Sematkan'}
+                aria-label={comment.is_pinned ? 'Lepaskan sematan' : 'Sematkan'}
               >
                 <Pin
                   className={cn('w-4 h-4', comment.is_pinned && 'fill-blue-500 text-blue-500')}
@@ -148,7 +149,8 @@ const CommentItem = memo(function CommentItem({
               <div className="relative">
                 <button
                   onClick={() => onSetOpenMenuId(openMenuId === comment.id ? null : comment.id)}
-                  className="p-1 text-slate-400 hover:text-slate-600 rounded"
+                  className="p-1 text-slate-400 hover:text-slate-600 rounded focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-500"
+                  aria-label="Opsi tambahan"
                 >
                   <MoreVertical className="w-4 h-4" />
                 </button>
@@ -277,7 +279,7 @@ export function CommentSection({ entityId, entityType, className }: CommentSecti
 
   const loadComments = useCallback(async () => {
     try {
-      const _data = await discussionService.fetchDiscussions({
+      await discussionService.fetchDiscussions({
         tenantId: tenantId!,
         [`${entityType}Id`]: entityId,
         parentId: null, // Fetch top-level comments first
@@ -318,10 +320,10 @@ export function CommentSection({ entityId, entityType, className }: CommentSecti
     } finally {
       setLoading(false)
     }
-  }, [entityId, entityType, addToast])
+  }, [entityId, entityType, addToast, tenantId])
 
   useEffect(() => {
-    loadComments()
+    void loadComments()
   }, [entityId, entityType, loadComments])
 
   const handleSubmit = async (e?: React.FormEvent, parentId: string | null = null) => {
@@ -368,7 +370,7 @@ export function CommentSection({ entityId, entityType, className }: CommentSecti
         addToast({ type: 'error', message: 'Gagal mengubah status sematan komentar' })
       }
     },
-    [addToast]
+    [addToast, tenantId]
   )
 
   if (loading) {
@@ -416,7 +418,7 @@ export function CommentSection({ entityId, entityType, className }: CommentSecti
       <form
         onSubmit={(e) => {
           e.preventDefault()
-          handleSubmit()
+          void handleSubmit()
         }}
         className="mt-6 flex gap-3 pt-4 border-t border-slate-100"
       >

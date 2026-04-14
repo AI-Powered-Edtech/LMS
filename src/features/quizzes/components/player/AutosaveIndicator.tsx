@@ -1,7 +1,7 @@
 import { AlertCircle, Check, Loader2, WifiOff } from 'lucide-react'
 import { AnimatePresence, motion } from 'motion/react'
 
-import { cn } from '@/src/utils/cn'
+import { cn } from '@/utils/cn'
 
 export type SaveStatus = 'idle' | 'saving' | 'saved' | 'error' | 'offline'
 

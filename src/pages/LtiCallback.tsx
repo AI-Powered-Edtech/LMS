@@ -2,8 +2,8 @@ import { AlertTriangle, Loader2 } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 
-import { supabase } from '@/src/services/supabase/client'
-import { logger } from '@/src/utils/logger'
+import { db } from '@/services/db'
+import { logger } from '@/utils/logger'
 
 // ==========================================================================
 // LtiCallback — Handles the redirect after LTI launch
@@ -38,7 +38,7 @@ export function LtiCallback() {
 
       try {
         // Verify the OTP token to establish a Supabase session
-        const { data, error } = await supabase.auth.verifyOtp({
+        const { data, error } = await db.auth.verifyOtp({
           token_hash: token,
           type: type as 'magiclink',
         })
@@ -74,14 +74,19 @@ export function LtiCallback() {
             // If it's an internal path, use navigate
             if (url.origin === window.location.origin) {
               const path = url.pathname + url.search + url.hash
-              navigate(path, { replace: true })
+              void navigate(path, { replace: true })
             } else {
               // External redirect (shouldn't happen, but handle gracefully)
-              navigate('/app/student/courses', { replace: true })
+              void navigate('/app/student/courses', { replace: true })
             }
-          } catch {
-            // If redirect is a relative path
-            navigate(redirect, { replace: true })
+          } catch (err) {
+            if (import.meta.env.DEV)
+              logger.warn(
+                '[LtiCallback] Redirect URL parse failed, falling back to courses:',
+                redirect,
+                err
+              )
+            void navigate('/app/student/courses', { replace: true })
           }
         }, 500)
       } catch (err) {
@@ -91,7 +96,7 @@ export function LtiCallback() {
       }
     }
 
-    verifyToken()
+    void verifyToken()
   }, [searchParams, navigate])
 
   return (

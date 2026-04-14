@@ -2,9 +2,9 @@ import { BookOpen, Loader2, Plus, ToggleLeft, ToggleRight, Trash2 } from 'lucide
 import { motion } from 'motion/react'
 import { useState } from 'react'
 
-import type { LearningGuide } from '@/src/features/guidance'
-import { useDeleteGuide, useGuideList } from '@/src/features/guidance'
-import { cn } from '@/src/utils/cn'
+import type { LearningGuide } from '@/features/guidance'
+import { useDeleteGuide, useGuideList } from '@/features/guidance'
+import { cn } from '@/utils/cn'
 
 import { GuideBuilder } from './GuideBuilder'
 
@@ -26,13 +26,6 @@ const SEGMENT_LABELS: Record<string, string> = {
   medium: 'Sedang',
   high: 'Tinggi',
   struggling: 'Kesulitan',
-}
-
-const _TRIGGER_LABELS: Record<string, string> = {
-  on_enter: 'Saat masuk',
-  after_seconds: 'Setelah',
-  on_struggle: 'Saat struggle',
-  on_idle: 'Saat idle',
 }
 
 export function GuideAnalytics({ courseId }: Props) {

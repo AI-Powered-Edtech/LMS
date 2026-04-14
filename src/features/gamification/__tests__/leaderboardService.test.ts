@@ -4,8 +4,8 @@ import { leaderboardService } from '../api/leaderboardService'
 
 const mockFrom = vi.fn()
 
-vi.mock('@/src/services/supabase/client', () => ({
-  supabase: {
+vi.mock('@/services/db', () => ({
+  db: {
     from: (...args: unknown[]) => mockFrom(...args),
   },
 }))

@@ -20,8 +20,8 @@ const { mockChain, mockFrom } = vi.hoisted(() => {
   return { mockChain, mockFrom }
 })
 
-vi.mock('@/src/services/supabase/client', () => ({
-  supabase: {
+vi.mock('@/services/db', () => ({
+  db: {
     from: mockFrom,
     auth: {
       getSession: vi.fn().mockResolvedValue({
@@ -77,7 +77,7 @@ describe('moderationService', () => {
 
   describe('fetchReports', () => {
     it('harus mengembalikan daftar laporan mock', async () => {
-      const reports = await moderationService.fetchReports()
+      const reports = await moderationService.fetchReports('tenant-1')
       expect(Array.isArray(reports)).toBe(true)
       expect(reports.length).toBeGreaterThan(0)
       expect(reports[0]).toHaveProperty('id')
@@ -125,7 +125,9 @@ describe('moderationService', () => {
 
   describe('resolveReport', () => {
     it('harus menyelesaikan laporan tanpa error', async () => {
-      await expect(moderationService.resolveReport('r1', 'approved')).resolves.toBeUndefined()
+      await expect(
+        moderationService.resolveReport('r1', 'approved', 'tenant-1')
+      ).resolves.toBeUndefined()
     })
   })
 })

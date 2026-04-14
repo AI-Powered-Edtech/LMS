@@ -4,13 +4,12 @@ import { administrationService } from '../api/administrationService'
 
 const mockOrder = vi.fn()
 const mockSelect = vi.fn(() => ({ order: mockOrder }))
-const _mockFrom = vi.fn(() => ({ select: mockSelect }))
 
 const mockUpdate = vi.fn(() => ({ eq: mockUpdateEq }))
 const mockUpdateEq = vi.fn()
 
-vi.mock('@/src/services/supabase/client', () => ({
-  supabase: {
+vi.mock('@/services/db', () => ({
+  db: {
     from: (...args: unknown[]) => {
       const table = args[0] as string
       if (table === 'tenant_modules') {

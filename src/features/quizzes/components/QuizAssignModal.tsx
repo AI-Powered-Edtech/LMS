@@ -1,12 +1,12 @@
 import { Loader2, X } from 'lucide-react'
 import { useEffect, useState } from 'react'
 
-import { useAuth } from '@/src/contexts/AuthContext'
-import { Classroom, classroomService } from '@/src/features/classroom/api/classroomService'
-import { QuizAssignment, quizService } from '@/src/features/quizzes'
-import { useToast } from '@/src/hooks/useToast'
-import { cn } from '@/src/utils/cn'
-import { logger } from '@/src/utils/logger'
+import { useAuth } from '@/contexts/AuthContext'
+import { Classroom, classroomService } from '@/features/classroom/api/classroomService'
+import { QuizAssignment, quizService } from '@/features/quizzes'
+import { useToast } from '@/hooks/useToast'
+import { cn } from '@/utils/cn'
+import { logger } from '@/utils/logger'
 
 interface QuizAssignModalProps {
   quizId: string
@@ -41,7 +41,7 @@ export function QuizAssignModal({ quizId, isOpen, onClose, onSuccess }: QuizAssi
   /* eslint-disable react-hooks/exhaustive-deps */
   useEffect(() => {
     if (isOpen && user && tenantId) {
-      loadClasses()
+      void loadClasses()
     }
   }, [isOpen, quizId, user, tenantId])
   /* eslint-enable react-hooks/exhaustive-deps */
@@ -76,6 +76,7 @@ export function QuizAssignModal({ quizId, isOpen, onClose, onSuccess }: QuizAssi
       setAssignments(initialAssignments)
     } catch (error) {
       if (import.meta.env.DEV) logger.error('Failed to load classes', error)
+      addToast({ type: 'error', message: 'Gagal memuat daftar kelas.' })
     } finally {
       setIsLoading(false)
     }
@@ -109,20 +110,31 @@ export function QuizAssignModal({ quizId, isOpen, onClose, onSuccess }: QuizAssi
   if (!isOpen) return null
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50 backdrop-blur-sm p-4">
-      <div className="bg-white rounded-2xl shadow-xl w-full max-w-2xl overflow-hidden flex flex-col max-h-[90vh]">
-        <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100">
-          <h2 className="text-lg font-bold text-slate-800">Tugaskan Kuis ke Kelas</h2>
+    <div
+      role="presentation"
+      className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50 backdrop-blur-sm p-4"
+      onKeyDown={(e) => e.key === 'Escape' && onClose()}
+    >
+      <div
+        role="dialog"
+        aria-modal="true"
+        aria-label="Tugaskan Kuis ke Kelas"
+        className="bg-white dark:bg-slate-900 rounded-2xl shadow-xl dark:shadow-slate-900/50 w-full max-w-2xl overflow-hidden flex flex-col max-h-[90vh]"
+      >
+        <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100 dark:border-slate-700">
+          <h2 className="text-lg font-bold text-slate-800 dark:text-white">
+            Tugaskan Kuis ke Kelas
+          </h2>
           <button
             onClick={onClose}
-            className="p-2 text-slate-400 hover:text-slate-600 rounded-full hover:bg-slate-100 transition-colors"
+            className="p-2 text-slate-400 dark:text-slate-500 hover:text-slate-600 dark:hover:text-slate-300 rounded-full hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
             aria-label="Tutup"
           >
             <X className="w-5 h-5" />
           </button>
         </div>
 
-        <div className="flex-1 overflow-y-auto p-6 bg-slate-50">
+        <div className="flex-1 overflow-y-auto p-6 bg-slate-50 dark:bg-slate-800">
           {isLoading ? (
             <div className="flex justify-center py-8">
               <Loader2 className="w-8 h-8 text-blue-600 animate-spin" />
@@ -133,10 +145,10 @@ export function QuizAssignModal({ quizId, isOpen, onClose, onSuccess }: QuizAssi
                 <div
                   key={classroom.id}
                   className={cn(
-                    'bg-white border rounded-xl p-4 transition-colors',
+                    'bg-white dark:bg-slate-700 border rounded-xl p-4 transition-colors',
                     assignments[classroom.id]?.selected
                       ? 'border-blue-500 shadow-sm ring-1 ring-blue-500'
-                      : 'border-slate-200'
+                      : 'border-slate-200 dark:border-slate-600'
                   )}
                 >
                   <div className="flex items-start gap-4">
@@ -156,9 +168,11 @@ export function QuizAssignModal({ quizId, isOpen, onClose, onSuccess }: QuizAssi
                     />
                     <div className="flex-1">
                       <div className="flex items-center gap-2">
-                        <div className="font-bold text-slate-800">{classroom.name}</div>
+                        <div className="font-bold text-slate-800 dark:text-white">
+                          {classroom.name}
+                        </div>
                         {assignments[classroom.id]?.existingAssignmentId && (
-                          <span className="px-2 py-0.5 rounded-full bg-slate-100 text-slate-500 text-[10px] font-bold uppercase tracking-wider">
+                          <span className="px-2 py-0.5 rounded-full bg-slate-100 dark:bg-slate-600 text-slate-500 dark:text-slate-300 text-[10px] font-bold uppercase tracking-wider">
                             Existing
                           </span>
                         )}
@@ -167,12 +181,12 @@ export function QuizAssignModal({ quizId, isOpen, onClose, onSuccess }: QuizAssi
                       {assignments[classroom.id]?.selected && (
                         <div className="mt-4 grid grid-cols-1 md:grid-cols-3 gap-4">
                           <div>
-                            <label className="block text-xs font-medium text-slate-500 mb-1">
+                            <label className="block text-xs font-medium text-slate-500 dark:text-slate-400 mb-1">
                               Tersedia Dari
                             </label>
                             <input
                               type="datetime-local"
-                              className="w-full text-sm border-slate-200 rounded-lg"
+                              className="w-full text-sm bg-white dark:bg-slate-700 border border-slate-200 dark:border-slate-600 text-slate-900 dark:text-white rounded-lg"
                               value={assignments[classroom.id].availableFrom}
                               onChange={(e) =>
                                 setAssignments((prev) => ({
@@ -186,12 +200,12 @@ export function QuizAssignModal({ quizId, isOpen, onClose, onSuccess }: QuizAssi
                             />
                           </div>
                           <div>
-                            <label className="block text-xs font-medium text-slate-500 mb-1">
+                            <label className="block text-xs font-medium text-slate-500 dark:text-slate-400 mb-1">
                               Tenggat Waktu
                             </label>
                             <input
                               type="datetime-local"
-                              className="w-full text-sm border-slate-200 rounded-lg"
+                              className="w-full text-sm bg-white dark:bg-slate-700 border border-slate-200 dark:border-slate-600 text-slate-900 dark:text-white rounded-lg"
                               value={assignments[classroom.id].dueAt}
                               onChange={(e) =>
                                 setAssignments((prev) => ({
@@ -205,13 +219,13 @@ export function QuizAssignModal({ quizId, isOpen, onClose, onSuccess }: QuizAssi
                             />
                           </div>
                           <div>
-                            <label className="block text-xs font-medium text-slate-500 mb-1">
+                            <label className="block text-xs font-medium text-slate-500 dark:text-slate-400 mb-1">
                               Maks Percobaan
                             </label>
                             <input
                               type="number"
                               min="1"
-                              className="w-full text-sm border-slate-200 rounded-lg"
+                              className="w-full text-sm bg-white dark:bg-slate-700 border border-slate-200 dark:border-slate-600 text-slate-900 dark:text-white rounded-lg"
                               value={assignments[classroom.id].maxAttempts}
                               onChange={(e) =>
                                 setAssignments((prev) => ({
@@ -235,10 +249,10 @@ export function QuizAssignModal({ quizId, isOpen, onClose, onSuccess }: QuizAssi
           )}
         </div>
 
-        <div className="px-6 py-4 border-t border-slate-100 bg-white flex justify-end gap-3">
+        <div className="px-6 py-4 border-t border-slate-100 dark:border-slate-700 bg-white dark:bg-slate-900 flex justify-end gap-3">
           <button
             onClick={onClose}
-            className="px-4 py-2 text-sm font-medium text-slate-600 hover:bg-slate-100 rounded-lg transition-colors"
+            className="px-4 py-2 text-sm font-medium text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition-colors"
           >
             Batal
           </button>

@@ -1,5 +1,5 @@
-import { supabase } from '@/src/services/supabase/client'
-import { logger } from '@/src/utils/logger'
+import { db } from '@/services/db'
+import { logger } from '@/utils/logger'
 
 // Custom error types for administration operations
 class AdministrationError extends Error {
@@ -47,6 +47,21 @@ export interface SyncResult {
   recordsSynced?: number
   errorMessage?: string
   timestamp?: string
+}
+
+// Audit log entry returned by get_audit_logs RPC
+export interface AuditLog {
+  log_id: string
+  actor_id: string
+  actor_name: string
+  actor_email: string
+  action: string
+  target_type: string
+  target_id: string | null
+  target_name: string
+  details: Record<string, unknown>
+  created_at: string
+  total_count: number
 }
 
 // Map database module slugs to frontend target roles
@@ -126,7 +141,7 @@ export const administrationService = {
       // Uses a regular (left) join so that a missing modules row does not
       // cause an RLS-driven error — rows without a matching module are
       // simply filtered out in the map below.
-      const { data: tenantModules, error: tenantError } = await supabase
+      const { data: tenantModules, error: tenantError } = await db
         .from('tenant_modules')
         .select(
           `
@@ -164,8 +179,8 @@ export const administrationService = {
         // Filter out rows where the modules join returned null
         // (can happen if modules table has no matching row for the tenant).
         return tenantModules
-          .filter((tm) => tm.modules != null)
-          .map((tm) => {
+          .filter((tm: any) => tm.modules != null)
+          .map((tm: any) => {
             const mod = Array.isArray(tm.modules)
               ? tm.modules[0]
               : (tm.modules as unknown as {
@@ -205,7 +220,7 @@ export const administrationService = {
    */
   async toggleTenantModule(moduleId: string, isEnabled: boolean): Promise<void> {
     try {
-      const { error } = await supabase
+      const { error } = await db
         .from('tenant_modules')
         .update({ is_enabled: isEnabled, updated_at: new Date().toISOString() })
         .eq('module_id', moduleId)
@@ -227,7 +242,7 @@ export const administrationService = {
   async getSyncHistory(): Promise<SyncHistoryItem[]> {
     try {
       // Try to query activity_logs for sync-related events
-      const { data, error } = await supabase
+      const { data, error } = await db
         .from('activity_logs')
         .select('id, tenant_id, user_id, action, metadata, created_at')
         .ilike('action', '%sync%')
@@ -421,5 +436,126 @@ export const administrationService = {
         targetRoles: ['teacher', 'student'],
       },
     ]
+  },
+
+  /**
+   * Fetch paginated audit logs via get_audit_logs RPC.
+   */
+  async getAuditLogs(params: {
+    action?: string | null
+    cursor?: string | null
+    limit: number
+  }): Promise<AuditLog[]> {
+    const { data, error } = await db.rpc('get_audit_logs', {
+      p_action: params.action ?? null,
+      p_cursor: params.cursor ?? null,
+      p_limit: params.limit,
+    })
+    if (error) {
+      // get_audit_logs RPC may not exist in this DB instance — return empty gracefully
+      if (import.meta.env.DEV)
+        logger.warn('[AuditDashboard] get_audit_logs RPC unavailable:', error.message)
+      return []
+    }
+    return (data ?? []) as AuditLog[]
+  },
+
+  /**
+   * Health check — verifies DB and auth connectivity.
+   * Returns structured health status instead of bare boolean.
+   *
+   * DB check: queries tenants table to verify data plane is accessible
+   * Auth check: tests if auth service is responsive by checking session state
+   *   - "ok" means auth service is reachable (user may or may not be logged in)
+   *   - "error" means auth service is not reachable (network/service failure)
+   */
+  async healthCheck(): Promise<{
+    status: 'healthy' | 'degraded' | 'down'
+    checks: {
+      db: 'ok' | 'error'
+      auth: 'ok' | 'error'
+    }
+    timestamp: string
+    version?: string
+  }> {
+    const { error: dbError } = await db.from('tenants').select('id').limit(1)
+    const dbOk = !dbError
+
+    const { error: sessionError } = await db.auth.getSession()
+    const authOk = !sessionError
+
+    let status: 'healthy' | 'degraded' | 'down' = 'healthy'
+    if (!dbOk && !authOk) {
+      status = 'down'
+    } else if (!dbOk || !authOk) {
+      status = 'degraded'
+    }
+
+    return {
+      status,
+      checks: {
+        db: dbOk ? 'ok' : 'error',
+        auth: authOk ? 'ok' : 'error',
+      },
+      timestamp: new Date().toISOString(),
+      version: '4.0.0',
+    }
+  },
+
+  /**
+   * Fetch recent app metrics for the system health dashboard.
+   */
+  async getAppMetrics(): Promise<Array<{ metric_name: string; metric_value: number }>> {
+    const { data, error } = await db
+      .from('app_metrics')
+      .select('metric_name, metric_value')
+      .order('recorded_at', { ascending: false })
+      .limit(50)
+    if (error) {
+      if (import.meta.env.DEV) logger.warn('Could not fetch app_metrics:', error)
+      return []
+    }
+    return data ?? []
+  },
+
+  // ── Finance: Invoice helpers ────────────────────────────────────────────────
+
+  /**
+   * Mengambil daftar profil siswa dalam satu tenant untuk pilihan invoice.
+   */
+  async fetchStudentsForInvoice(
+    tenantId: string
+  ): Promise<Array<{ id: string; full_name: string | null; email: string }>> {
+    const { data, error } = await db
+      .from('profiles')
+      .select('id, full_name, email')
+      .eq('tenant_id', tenantId)
+      .order('full_name', { ascending: true })
+      .limit(200)
+    if (error) {
+      if (import.meta.env.DEV) logger.warn('[Finance] fetchStudentsForInvoice error:', error)
+      return []
+    }
+    return (data ?? []) as Array<{ id: string; full_name: string | null; email: string }>
+  },
+
+  /**
+   * Membuat tagihan baru via RPC create_invoice.
+   */
+  async createInvoice(params: {
+    student_id: string
+    amount: number
+    description: string
+    due_date: string | null
+    month_year: string | null
+  }): Promise<void> {
+    const { error } = await db.rpc('create_invoice', {
+      p_student_id: params.student_id,
+      p_amount: params.amount,
+      p_description: params.description,
+      p_due_date: params.due_date,
+      p_month_year: params.month_year,
+    })
+    if (error) throw error
   },
 }

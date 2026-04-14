@@ -9,8 +9,9 @@
 
 import { useCallback, useEffect, useMemo, useState } from 'react'
 
-import { useAuth } from '@/src/contexts/AuthContext'
-import { logDevError, logDevWarn } from '@/src/utils/logDevError'
+import { useAuth } from '@/contexts/AuthContext'
+import { logDevError, logDevWarn } from '@/utils/logDevError'
+import { logger } from '@/utils/logger'
 
 import * as notificationApi from '../api/notificationApi'
 
@@ -104,15 +105,16 @@ export function usePushSubscription(): UsePushSubscriptionReturn {
         if (!cancelled) {
           setIsSubscribed(existing !== null)
         }
-      } catch {
+      } catch (err) {
         // Service worker not ready or push not available
+        if (import.meta.env.DEV) logger.warn('[Push] SW check error:', err)
         if (!cancelled) {
           setIsSubscribed(false)
         }
       }
     }
 
-    checkExisting()
+    void checkExisting()
 
     return () => {
       cancelled = true
@@ -203,8 +205,10 @@ export function usePushSubscription(): UsePushSubscriptionReturn {
           if (existing) {
             await existing.unsubscribe()
           }
-        } catch {
+        } catch (err) {
           // PushManager may not be available; still clear server-side
+          if (import.meta.env.DEV) logger.warn('[Push] PushManager unsubscribe failed:', err)
+          // Non-fatal: server-side will be cleared regardless
         }
       }
 

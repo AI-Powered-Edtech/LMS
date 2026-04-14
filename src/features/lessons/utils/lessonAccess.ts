@@ -8,6 +8,11 @@ import type { Lesson, LessonProgress } from '../types'
  * @param index - Index of the lesson to check
  * @param role - User's role (teacher or admin bypasses locks)
  * @returns true if the lesson is locked, false otherwise
+ *
+ * ADAPTIVE PATHS NOTE:
+ * Remedial lessons (is_remedial = true) are NEVER locked — they are added to a student's
+ * path as supplementary material, not as a required gate. A student can always access a
+ * remedial lesson regardless of their progress on surrounding lessons.
  */
 export function isLessonLocked(
   lessons: Lesson[],
@@ -20,6 +25,11 @@ export function isLessonLocked(
 
   // First lesson is never locked
   if (index === 0) return false
+
+  const lesson = lessons[index]
+
+  // Remedial lessons are always accessible — they are recommended additions, not gates
+  if (lesson && (lesson as Lesson & { is_remedial?: boolean }).is_remedial) return false
 
   // Check if the previous lesson is completed
   const prevLesson = lessons[index - 1]

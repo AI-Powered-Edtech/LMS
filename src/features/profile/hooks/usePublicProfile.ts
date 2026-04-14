@@ -3,7 +3,8 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import {
   type PublicProfileData,
   publicProfileService,
-} from '@/src/features/profile/api/publicProfileService'
+} from '@/features/profile/api/publicProfileService'
+import { captureError } from '@/utils/sentry'
 
 // ── Query key factory ──────────────────────────────────────────────────────────
 const profileKeys = {
@@ -38,7 +39,10 @@ export function useUpdateProfilePrivacy(userId: string) {
   return useMutation({
     mutationFn: (isPublic: boolean) => publicProfileService.updatePrivacy(isPublic),
     onSuccess: () => {
-      qc.invalidateQueries({ queryKey: profileKeys.byId(userId) })
+      void qc.invalidateQueries({ queryKey: profileKeys.byId(userId) })
+    },
+    onError: (err) => {
+      captureError(err, { context: 'useUpdateProfilePrivacy' })
     },
   })
 }

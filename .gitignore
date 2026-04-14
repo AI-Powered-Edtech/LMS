@@ -1,69 +1,105 @@
+# Dependencies
 node_modules/
+
+# Build output
 build/
 dist/
-coverage/
+/src/generated/prisma
+stats.html
+
+# OS files
 .DS_Store
+Thumbs.db
+
+# Logs
 *.log
+
+# Environment
 .env*
 !.env.example
 
-# Supabase local temp files (project-ref, local config)
+# Supabase local temp
 supabase/.temp/
 
-
-
-/src/generated/prisma
-
-# refactoring scripts
-*_refactor.sh
-*_migration.sh
-
-# testing artifacts
+# Testing artifacts
 playwright-report/
 test-results/
+e2e/.auth/
+playwright_output.log
+test-summary*.txt
+.playwright-mcp/
 
-# Claude Code (local-only, not for repo)
-.claude/
-claude/agent-memory/
-
-# QA state files (agent-generated, local-only)
-qa-dev-state.md
-smart-player-qa-state.md
-
-# Accidental CLI outputs
---output
-
-# Backup files
-supabase/*.bak
-*.bak
+# Dev build artifacts
+dev-dist/
 
 # TypeScript build cache
 tsconfig.tsbuildinfo
+*.tsbuildinfo
 
-# Local editor / AI tool directories
+# Coverage
+coverage/
+
+# AI tool directories (local-only)
+.claude/
+claude/agent-memory/
 .kilocode/
+.kilo/
 .jules/
+.Jules/
 .agents/
 .vscode/
-
-# Temporary dev scripts & local backups
-remediation_script.sql
-verify_rls_policies.sql
-get_table_def.js
-testApi.ts
-supabase_migrations_safe_backup/
-creator-*.png
-
-# Developer tool configs
-opencode.json
-notion-report-*.md
 .my-agent/
+.cursorrules
+opencode.json
 
-# AI planning prompts and temporary scorecards
+# QA state files (agent-generated)
+qa-dev-state.md
+smart-player-qa-state.md
+
+# Notion sync artefacts
+notion-report-*.md
+sqa-report-*.md
+
+# Session logs (AI assistant)
+session-*.md
+session-ses_*.md
+
+# AI planning / phase files (local only)
 PHASE*.md
 *_SCORECARD.md
 *_MEGA_PROMPT.md
 *_GAP_ANALYSIS.md
-playwright_output.log
-test-summary*.txt
+*_DARKMODE_ROADMAP.md
+ROADMAP-SQA-REMEDIATION.md
 
+# Refactoring / migration scripts
+*_refactor.sh
+*_migration.sh
+
+# Patch files & merge artifacts
+*.patch
+*.orig
+*.rej
+
+# Backup files
+*.bak
+supabase_migrations_safe_backup/
+
+# Temporary dev files
+remediation_script.sql
+verify_rls_policies.sql
+get_table_def.js
+testApi.ts
+creator-*.png
+test_break.sh
+--output
+
+# Accidental test artifacts
+path/
+
+# notion-sync command sentinel files
+__command__*
+
+# Empty placeholder config (not needed)
+config.json
+.vercel

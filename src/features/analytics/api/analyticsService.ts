@@ -32,6 +32,7 @@ import {
   fetchActivityCounts,
   fetchActivityTimeline,
   fetchCourseEngagement,
+  fetchLatestEvents,
   fetchTenantCourseStats,
   getAtRiskStudents,
   getCourseAnalyticsDashboard,
@@ -51,6 +52,8 @@ import {
   refreshCourseStats,
   saveFunnelDefinition,
 } from './analyticsQueries'
+
+export type { LiveEvent } from './analyticsQueries'
 
 export const analyticsService = {
   refreshCourseStats,
@@ -76,18 +79,21 @@ export const analyticsService = {
   },
 
   async getTenantAnalytics(tenantId: string): Promise<TenantAnalyticsData> {
-    const [overview, activityMetrics, courseEngagement, activityTimeline] = await Promise.all([
-      this.getTenantAnalyticsOverview(tenantId),
-      this.getActivityMetrics(tenantId),
-      this.getCourseEngagementStats(tenantId),
-      this.getActivityTimeline(tenantId),
-    ])
+    // ANAL-MED-01: Use Promise.allSettled so a single failure does not crash all analytics
+    const [overviewResult, activityResult, courseResult, timelineResult] = await Promise.allSettled(
+      [
+        this.getTenantAnalyticsOverview(tenantId),
+        this.getActivityMetrics(tenantId),
+        this.getCourseEngagementStats(tenantId),
+        this.getActivityTimeline(tenantId),
+      ]
+    )
 
     return {
-      overview,
-      activityMetrics,
-      courseEngagement,
-      activityTimeline,
+      overview: overviewResult.status === 'fulfilled' ? overviewResult.value : null,
+      activityMetrics: activityResult.status === 'fulfilled' ? activityResult.value : null,
+      courseEngagement: courseResult.status === 'fulfilled' ? courseResult.value : null,
+      activityTimeline: timelineResult.status === 'fulfilled' ? timelineResult.value : null,
     }
   },
 
@@ -167,5 +173,10 @@ export const analyticsService = {
 
   getPredictionSummary(courseId: string): Promise<PredictionSummary | null> {
     return getPredictionSummary(courseId)
+  },
+
+  // Live Activity Feed
+  fetchLatestEvents(tenantId: string, limit = 10) {
+    return fetchLatestEvents(tenantId, limit)
   },
 }

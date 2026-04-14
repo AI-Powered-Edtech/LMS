@@ -1,7 +1,9 @@
-import { Outlet, Route } from 'react-router-dom'
+import { Navigate, Outlet, Route } from 'react-router-dom'
 
+import { CourseEnrollmentGuard } from '../../components/guards/CourseEnrollmentGuard'
 import { RoleGuard } from '../../components/guards/RoleGuard'
 import {
+  AdaptivePathsPage,
   Analytics,
   AssignmentGradebook,
   ClassManagement,
@@ -13,15 +15,20 @@ import {
   DocumentManager,
   Gradebook,
   Leaderboard,
+  LessonViewer,
   ModerationDashboard,
   NotFound,
+  PlagiarismDashboard,
   QuestionBankPage,
   QuizGradebook,
   QuizManager,
   ScanAttendance,
   SpeedGrader,
+  StruggleDashboard,
   StudentProgress,
+  SurveyRespondPage,
   TeacherDashboard,
+  TeacherLessonMonitorPage,
   TeachingHub,
 } from '../lazyPages'
 import { S } from './utils'
@@ -54,6 +61,11 @@ export function TeacherRoutes() {
             <TeacherDashboard />
           </S>
         }
+      />
+      <Route path="quizzes" element={<Navigate to="/app/teacher/quiz-manager" replace />} />
+      <Route
+        path="gradebook"
+        element={<Navigate to="/app/teacher/assignment-gradebook" replace />}
       />
       <Route
         path="teaching-hub"
@@ -160,6 +172,14 @@ export function TeacherRoutes() {
         }
       />
       <Route
+        path="lesson-monitor"
+        element={
+          <S>
+            <TeacherLessonMonitorPage />
+          </S>
+        }
+      />
+      <Route
         path="scan-attendance"
         element={
           <S>
@@ -183,6 +203,8 @@ export function TeacherRoutes() {
           </S>
         }
       />
+      <Route path="ai-quiz-gen" element={<Navigate to="/app/teacher/creator" replace />} />
+      <Route path="ai-generator" element={<Navigate to="/app/teacher/creator" replace />} />
       <Route
         path="student-progress/:studentId"
         element={
@@ -204,6 +226,48 @@ export function TeacherRoutes() {
         element={
           <S>
             <ModerationDashboard />
+          </S>
+        }
+      />
+      <Route
+        path="struggle"
+        element={
+          <S feature="Deteksi Kesulitan">
+            <StruggleDashboard />
+          </S>
+        }
+      />
+      <Route
+        path="preview/:courseId"
+        element={
+          <CourseEnrollmentGuard>
+            <S feature="Pratinjau Kursus">
+              <LessonViewer />
+            </S>
+          </CourseEnrollmentGuard>
+        }
+      />
+      <Route
+        path="survey/:surveyId"
+        element={
+          <S feature="Isi Survei">
+            <SurveyRespondPage />
+          </S>
+        }
+      />
+      <Route
+        path="adaptive-paths"
+        element={
+          <S feature="Jalur Adaptif">
+            <AdaptivePathsPage />
+          </S>
+        }
+      />
+      <Route
+        path="plagiarism"
+        element={
+          <S feature="Laporan Plagiarisme">
+            <PlagiarismDashboard />
           </S>
         }
       />

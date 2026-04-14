@@ -1,8 +1,9 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 
-import { useAuth } from '@/src/contexts/AuthContext'
-import { createQueryKeys } from '@/src/lib/queryKeys'
-import { STALE } from '@/src/utils/queryConstants'
+import { useAuth } from '@/contexts/AuthContext'
+import { createQueryKeys } from '@/shared/lib/queryKeys'
+import { STALE } from '@/utils/queryConstants'
+import { captureError } from '@/utils/sentry'
 
 import { struggleService } from '../api/struggleService'
 import type { StruggleConfig } from '../types'
@@ -46,9 +47,12 @@ export function useUpdateStruggleConfig() {
     mutationFn: (updates: Partial<StruggleConfig>) =>
       struggleService.updateStruggleConfig(tenantId!, updates),
     onSuccess: () => {
-      queryClient.invalidateQueries({
+      void queryClient.invalidateQueries({
         queryKey: struggleKeys.config(tenantId!),
       })
+    },
+    onError: (err) => {
+      captureError(err, { context: 'useUpdateStruggleConfig' })
     },
   })
 }
@@ -67,7 +71,7 @@ export function useStruggleAlerts(options?: {
     queryKey: struggleKeys.alerts(tenantId!, options),
     queryFn: () => struggleService.getStruggleAlerts(tenantId!, options),
     enabled: !!tenantId,
-    staleTime: STALE.MODERATE,
+    staleTime: STALE.DYNAMIC,
   })
 }
 
@@ -90,9 +94,12 @@ export function useMarkAlertsRead() {
     mutationFn: (alertIds: string[]) => struggleService.markAlertsRead(tenantId!, alertIds),
     onSuccess: () => {
       // Invalidate all alert queries so both unread-only and full lists refresh
-      queryClient.invalidateQueries({
+      void queryClient.invalidateQueries({
         queryKey: base.all(tenantId!),
       })
+    },
+    onError: (err) => {
+      captureError(err, { context: 'useMarkAlertsRead' })
     },
   })
 }

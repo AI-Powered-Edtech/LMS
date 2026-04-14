@@ -1,7 +1,7 @@
-import { useState } from 'react'
+import React, { useState } from 'react'
 
-import { OptimizedImage } from '@/src/components/ui'
-import { cn } from '@/src/utils/cn'
+import { OptimizedImage } from '@/components/ui'
+import { cn } from '@/utils/cn'
 
 /* ─── Types ───────────────────────────────────────────────────── */
 
@@ -59,7 +59,13 @@ function getColorFromName(name: string): string {
 
 /* ─── Avatar Component ────────────────────────────────────────── */
 
-export function Avatar({ src, name, size = 'md', online, className }: AvatarProps) {
+export function Avatar({
+  src,
+  name,
+  size = 'md',
+  online,
+  className,
+}: AvatarProps): React.JSX.Element {
   const [imgError, setImgError] = useState(false)
   const showImage = src && !imgError
 

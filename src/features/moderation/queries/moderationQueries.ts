@@ -1,12 +1,13 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 
-import { useAuth } from '@/src/contexts/AuthContext'
+import { useAuth } from '@/contexts/AuthContext'
 import {
   ContentType,
   moderationService,
   ReportReason,
-} from '@/src/features/moderation/api/moderationService'
-import { createQueryKeys } from '@/src/lib/queryKeys'
+} from '@/features/moderation/api/moderationService'
+import { createQueryKeys } from '@/shared/lib/queryKeys'
+import { captureError } from '@/utils/sentry'
 
 const base = createQueryKeys('moderation')
 const moderationKeys = {
@@ -22,7 +23,7 @@ export function useModerationReports() {
 
   return useQuery({
     queryKey: moderationKeys.reports(tenantId!),
-    queryFn: () => moderationService.fetchReports(),
+    queryFn: () => moderationService.fetchReports(tenantId!),
     enabled: !!tenantId,
   })
 }
@@ -54,7 +55,10 @@ export function useSubmitReport() {
     },
     onSuccess: () => {
       if (!tenantId) return
-      queryClient.invalidateQueries({ queryKey: moderationKeys.reports(tenantId) })
+      void queryClient.invalidateQueries({ queryKey: moderationKeys.reports(tenantId) })
+    },
+    onError: (err) => {
+      captureError(err, { context: 'useSubmitReport' })
     },
   })
 }
@@ -77,13 +81,16 @@ export function useResolveReport() {
 
   return useMutation({
     mutationFn: ({ reportId, status }: ResolveReportInput) =>
-      moderationService.resolveReport(reportId, status),
+      moderationService.resolveReport(reportId, status, tenantId!),
     onSuccess: () => {
       if (!tenantId) return
-      queryClient.invalidateQueries({ queryKey: moderationKeys.reports(tenantId) })
+      void queryClient.invalidateQueries({ queryKey: moderationKeys.reports(tenantId) })
+    },
+    onError: (err) => {
+      captureError(err, { context: 'useResolveReport' })
     },
   })
 }
 
 // Re-export types from moderationService for convenience
-export type { ContentType, ReportReason } from '@/src/features/moderation/api/moderationService'
+export type { ContentType, ReportReason } from '@/features/moderation/api/moderationService'

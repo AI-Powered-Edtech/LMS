@@ -1,17 +1,20 @@
 /**
- * @license
- * SPDX-License-Identifier: Apache-2.0
+ * @licens
+ * SPDX-License-Ide: Apache-2.
  */
 
 import { lazy, Suspense, useEffect } from 'react'
 import { HashRouter as Router } from 'react-router-dom'
 
 import { AppRoutes } from './app/routes'
+import { PWAInstallBanner } from './components/PWAInstallBanner'
+import { PWAUpdateToast } from './components/PWAUpdateToast'
 import { SessionManager } from './components/SessionManager'
 import { ErrorBoundary } from './components/ui/ErrorBoundary'
 import { ToastContainer } from './components/ui/Toast'
 import { AuthProvider } from './contexts/AuthContext'
 import { ThemeProvider } from './contexts/ThemeContext'
+import { SkipToContent } from './features/accessibility'
 import { setupPrefetchListeners } from './utils/prefetch'
 
 const OfflineIndicator = lazy(() =>
@@ -29,7 +32,6 @@ export default function App() {
       const search = window.location.search
       window.history.replaceState(null, '', `/#${path}${search}${hash}`)
     }
-
     const cleanup = setupPrefetchListeners()
     return cleanup
   }, [])
@@ -40,11 +42,16 @@ export default function App() {
         <MotionConfigWrapper>
           <ThemeProvider>
             <AuthProvider>
-              <ToastContainer />
-              <OfflineIndicator />
-              <SessionManager />
               <Router>
-                <AppRoutes />
+                <SkipToContent />
+                <ToastContainer />
+                <OfflineIndicator />
+                <PWAUpdateToast />
+                <PWAInstallBanner />
+                <SessionManager />
+                <main id="main-content" tabIndex={-1} className="outline-none">
+                  <AppRoutes />
+                </main>
               </Router>
             </AuthProvider>
           </ThemeProvider>

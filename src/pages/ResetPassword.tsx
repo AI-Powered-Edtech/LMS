@@ -1,16 +1,18 @@
 import { valibotResolver } from '@hookform/resolvers/valibot'
-import React, { useEffect, useState } from 'react'
+import { Eye, EyeOff } from 'lucide-react'
+import { useEffect, useRef, useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { Link, useNavigate } from 'react-router-dom'
 import * as v from 'valibot'
 
-import { FormField } from '@/src/components/ui/FormField'
-import { usePageTitle } from '@/src/hooks/usePageTitle'
-import { supabase } from '@/src/services/supabase/client'
+import { FormField } from '@/components/ui/FormField'
+import { usePageTitle } from '@/hooks/usePageTitle'
+import { getAuthProvider } from '@/services/auth'
 
 const resetPasswordSchema = v.pipe(
   v.object({
-    password: v.pipe(v.string(), v.minLength(6, 'Password minimal 6 karakter.')),
+    // FIXED: Minimum password length increased from 6 to 8 characters for stronger security
+    password: v.pipe(v.string(), v.minLength(8, 'Password minimal 8 karakter.')),
     confirmPassword: v.string(),
   }),
   v.forward(
@@ -31,6 +33,10 @@ export function ResetPassword() {
   const [error, setError] = useState('')
   const [success, setSuccess] = useState(false)
   const [sessionReady, setSessionReady] = useState(false)
+  // FIXED: useRef tracks recovery state inside the auth listener to avoid stale closure.
+  // Reading `sessionReady` state inside a useEffect with [] deps always sees the initial
+  // value (false), so a subsequent SIGNED_IN event would incorrectly redirect to home.
+  const isRecoveryRef = useRef(false)
 
   const {
     register,
@@ -41,33 +47,78 @@ export function ResetPassword() {
     resolver: valibotResolver(resetPasswordSchema),
     defaultValues: { password: '', confirmPassword: '' },
   })
+  const [showPassword, setShowPassword] = useState(false)
 
   useEffect(() => {
+    const searchParams = new URLSearchParams(window.location.search)
+
+    const prepareRecoverySession = async () => {
+      const code = searchParams.get('code')
+      const tokenHash = searchParams.get('token_hash')
+      const type = searchParams.get('type')
+
+      try {
+        if (code) {
+          const { error } = await getAuthProvider().exchangeCodeForSession(code)
+          if (error) throw error
+          isRecoveryRef.current = true
+          setSessionReady(true)
+          return
+        }
+
+        if (tokenHash && type === 'recovery') {
+          const { error: verifyError } = await getAuthProvider().verifyOtp({
+            token_hash: tokenHash,
+            type: 'recovery',
+          })
+
+          if (verifyError) {
+            throw verifyError
+          }
+
+          isRecoveryRef.current = true
+          setSessionReady(true)
+        }
+      } catch (err) {
+        setError(err instanceof Error ? err.message : 'Link reset password tidak valid.')
+      }
+    }
+
+    void prepareRecoverySession()
+
     // Supabase auto-logs the user in when they click the recovery link.
-    // We listen for the PASSWORD_RECOVERY event to know we're ready.
+    // Only set sessionReady=true for PASSWORD_RECOVERY events.
+    // A regular SIGNED_IN session (normal login) should not unlock the reset form —
+    // that would allow any authenticated user to reach the reset page and change their
+    // password without going through the email recovery flow.
     const {
       data: { subscription },
-    } = supabase.auth.onAuthStateChange((event) => {
+    } = getAuthProvider().onAuthStateChange((event) => {
       if (event === 'PASSWORD_RECOVERY') {
+        // Only PASSWORD_RECOVERY events unlock the password reset form.
+        // Use the ref to prevent a subsequent SIGNED_IN event (e.g. after updateUser)
+        // from incorrectly redirecting when we ARE in recovery mode.
+        isRecoveryRef.current = true
         setSessionReady(true)
+      } else if (event === 'SIGNED_IN' && !isRecoveryRef.current) {
+        // Regular sign-in (not recovery) — redirect to home.
+        void navigate('/')
       }
     })
 
-    // Also check if user already has an active session (e.g., page refresh)
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      if (session) {
-        setSessionReady(true)
-      }
-    })
+    // On page refresh after PASSWORD_RECOVERY, the session type may not re-fire.
+    // We do NOT auto-set sessionReady from getSession() alone because we cannot
+    // distinguish a recovery session from a regular session without the auth event.
+    // The user must re-click the email link if they refresh the page.
 
     return () => subscription.unsubscribe()
-  }, [])
+  }, [navigate])
 
   const onSubmit = async (data: ResetPasswordFormData) => {
     setError('')
 
     try {
-      const { error: updateError } = await supabase.auth.updateUser({
+      const { error: updateError } = await getAuthProvider().updateUser({
         password: data.password,
       })
 
@@ -84,18 +135,25 @@ export function ResetPassword() {
 
   if (!sessionReady) {
     return (
-      <div style={styles.container}>
-        <div style={styles.card}>
-          <div style={styles.logo}>
-            <span style={styles.logoIcon}>⏳</span>
-            <h1 style={styles.title}>Memverifikasi...</h1>
-            <p style={styles.subtitle}>Menunggu verifikasi link reset password.</p>
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-50 via-slate-100 to-slate-50 dark:from-slate-900 dark:via-slate-800 dark:to-slate-900 p-4">
+        <div className="bg-white dark:bg-slate-800 rounded-2xl p-10 w-full max-w-[420px] shadow-2xl border border-slate-200 dark:border-slate-700/50">
+          <div className="text-center mb-8">
+            <span className="text-5xl inline-block mb-4">⏳</span>
+            <h1 className="text-slate-900 dark:text-slate-100 text-2xl font-bold mt-2 mb-1">
+              Memverifikasi...
+            </h1>
+            <p className="text-slate-500 dark:text-slate-400 text-sm leading-relaxed m-0">
+              Menunggu verifikasi link reset password.
+            </p>
           </div>
-          <div style={styles.hint}>
-            <p style={styles.hintText}>
+          <div className="text-center mb-6">
+            <p className="text-slate-500 dark:text-slate-400 text-sm m-0">
               Jika halaman ini tidak berubah, link mungkin sudah kedaluwarsa.
             </p>
-            <Link to="/forgot-password" style={styles.backLink}>
+            <Link
+              to="/forgot-password"
+              className="text-blue-600 dark:text-blue-400 text-sm font-bold no-underline block text-center mt-4 hover:text-blue-700 dark:hover:text-blue-300"
+            >
               Minta link baru →
             </Link>
           </div>
@@ -105,14 +163,14 @@ export function ResetPassword() {
   }
 
   return (
-    <div style={styles.container}>
-      <div style={styles.card}>
-        <div style={styles.logo}>
-          <span style={styles.logoIcon}>{success ? '✅' : '🔑'}</span>
-          <h1 style={styles.title}>
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-50 via-slate-100 to-slate-50 dark:from-slate-900 dark:via-slate-800 dark:to-slate-900 p-4">
+      <div className="bg-white dark:bg-slate-800 rounded-2xl p-10 w-full max-w-[420px] shadow-2xl border border-slate-200 dark:border-slate-700/50">
+        <div className="text-center mb-8">
+          <span className="text-5xl inline-block mb-4">{success ? '✅' : '🔑'}</span>
+          <h1 className="text-slate-900 dark:text-slate-100 text-2xl font-bold mt-2 mb-1">
             {success ? 'Password Berhasil Diubah' : 'Buat Password Baru'}
           </h1>
-          <p style={styles.subtitle}>
+          <p className="text-slate-500 dark:text-slate-400 text-sm leading-relaxed m-0">
             {success
               ? 'Anda akan dialihkan ke dashboard...'
               : 'Masukkan password baru untuk akun Anda'}
@@ -120,38 +178,81 @@ export function ResetPassword() {
         </div>
 
         {success ? (
-          <div style={styles.successBox}>
-            <p style={styles.successText}>
+          <div className="bg-emerald-50 dark:bg-emerald-900/20 p-6 rounded-xl border border-emerald-200 dark:border-emerald-800/50 text-center">
+            <p className="text-emerald-700 dark:text-emerald-400 font-bold mb-2">
               Password telah diperbarui. Mengarahkan ke dashboard dalam 3 detik...
             </p>
-            <Link to="/" style={styles.backLink}>
+            <Link
+              to="/"
+              className="text-blue-600 dark:text-blue-400 text-sm font-bold no-underline block text-center mt-4 hover:text-blue-700 dark:hover:text-blue-300"
+            >
               Ke Dashboard →
             </Link>
           </div>
         ) : (
-          <form onSubmit={handleSubmit(onSubmit)} style={styles.form}>
-            <FormField control={control} name="password" label="Kata Sandi Baru">
-              <input
-                type="password"
-                style={styles.input}
-                {...register('password')}
-                placeholder="Minimal 6 karakter"
-                autoFocus
-              />
-            </FormField>
+          <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-4">
+            <div style={{ position: 'relative' }}>
+              <FormField control={control} name="password" label="Kata Sandi Baru">
+                <input
+                  type={showPassword ? 'text' : 'password'}
+                  className="p-3 pr-10 w-full rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-700/50 text-slate-900 dark:text-white outline-none focus:ring-2 focus:ring-blue-500 transition-shadow"
+                  {...register('password')}
+                  placeholder="Minimal 8 karakter"
+                  autoFocus
+                />
+              </FormField>
+              <button
+                type="button"
+                onClick={() => setShowPassword(!showPassword)}
+                style={{
+                  position: 'absolute',
+                  right: 12,
+                  top: 40,
+                  background: 'none',
+                  border: 'none',
+                  cursor: 'pointer',
+                  color: '#94a3b8',
+                }}
+                aria-label={showPassword ? 'Sembunyikan kata sandi' : 'Tampilkan kata sandi'}
+              >
+                {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+              </button>
+            </div>
 
-            <FormField control={control} name="confirmPassword" label="Konfirmasi Kata Sandi">
-              <input
-                type="password"
-                style={styles.input}
-                {...register('confirmPassword')}
-                placeholder="Ulangi password baru"
-              />
-            </FormField>
+            <div style={{ position: 'relative' }}>
+              <FormField control={control} name="confirmPassword" label="Konfirmasi Kata Sandi">
+                <input
+                  type={showPassword ? 'text' : 'password'}
+                  className="p-3 pr-10 w-full rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-700/50 text-slate-900 dark:text-white outline-none focus:ring-2 focus:ring-blue-500 transition-shadow"
+                  {...register('confirmPassword')}
+                  placeholder="Ulangi password baru"
+                />
+              </FormField>
+              <button
+                type="button"
+                onClick={() => setShowPassword(!showPassword)}
+                style={{
+                  position: 'absolute',
+                  right: 12,
+                  top: 40,
+                  background: 'none',
+                  border: 'none',
+                  cursor: 'pointer',
+                  color: '#94a3b8',
+                }}
+                aria-label={showPassword ? 'Sembunyikan kata sandi' : 'Tampilkan kata sandi'}
+              >
+                {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+              </button>
+            </div>
 
-            {error && <div style={styles.error}>{error}</div>}
+            {error && <div className="text-red-500 text-xs font-bold mt-1">{error}</div>}
 
-            <button type="submit" style={styles.submitBtn} disabled={isSubmitting}>
+            <button
+              type="submit"
+              className="mt-2 p-3 bg-blue-600 text-white font-bold rounded-lg border-none cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed hover:bg-blue-700 transition-colors w-full"
+              disabled={isSubmitting}
+            >
               {isSubmitting ? 'Menyimpan...' : 'Simpan Password Baru'}
             </button>
           </form>
@@ -159,106 +260,4 @@ export function ResetPassword() {
       </div>
     </div>
   )
-}
-
-const styles: Record<string, React.CSSProperties> = {
-  container: {
-    minHeight: '100vh',
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-    background: 'linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #0f172a 100%)',
-    padding: '1rem',
-  },
-  card: {
-    background: '#1e293b',
-    borderRadius: '1rem',
-    padding: '2.5rem',
-    width: '100%',
-    maxWidth: '420px',
-    boxShadow: '0 25px 50px rgba(0,0,0,0.5)',
-    border: '1px solid rgba(255,255,255,0.1)',
-  },
-  logo: {
-    textAlign: 'center' as const,
-    marginBottom: '2rem',
-  },
-  logoIcon: { fontSize: '3rem' },
-  title: {
-    color: '#f1f5f9',
-    fontSize: '1.5rem',
-    fontWeight: 700,
-    margin: '0.5rem 0 0.25rem',
-  },
-  subtitle: {
-    color: '#94a3b8',
-    fontSize: '0.875rem',
-    margin: 0,
-    lineHeight: 1.5,
-  },
-  form: { display: 'flex', flexDirection: 'column' as const, gap: '1rem' },
-  field: { display: 'flex', flexDirection: 'column' as const, gap: '0.25rem' },
-  label: { color: '#cbd5e1', fontSize: '0.8rem', fontWeight: 500 },
-  input: {
-    padding: '0.75rem',
-    borderRadius: '0.5rem',
-    border: '1px solid rgba(255,255,255,0.15)',
-    background: '#0f172a',
-    color: '#f1f5f9',
-    fontSize: '0.9rem',
-    outline: 'none',
-  },
-  error: {
-    background: 'rgba(239,68,68,0.15)',
-    color: '#fca5a5',
-    padding: '0.75rem',
-    borderRadius: '0.5rem',
-    fontSize: '0.8rem',
-    border: '1px solid rgba(239,68,68,0.3)',
-  },
-  submitBtn: {
-    padding: '0.875rem',
-    borderRadius: '0.5rem',
-    border: 'none',
-    background: 'linear-gradient(135deg, #3b82f6, #8b5cf6)',
-    color: '#fff',
-    fontWeight: 600,
-    fontSize: '1rem',
-    cursor: 'pointer',
-    marginTop: '0.5rem',
-  },
-  successBox: {
-    textAlign: 'center' as const,
-    padding: '1.5rem',
-    background: 'rgba(34,197,94,0.1)',
-    border: '1px solid rgba(34,197,94,0.25)',
-    borderRadius: '0.75rem',
-  },
-  successText: {
-    color: '#86efac',
-    fontSize: '0.9rem',
-    lineHeight: 1.6,
-    margin: '0 0 1rem',
-  },
-  hint: {
-    textAlign: 'center' as const,
-    padding: '1rem',
-    background: 'rgba(234,179,8,0.1)',
-    border: '1px solid rgba(234,179,8,0.25)',
-    borderRadius: '0.5rem',
-  },
-  hintText: {
-    color: '#fde68a',
-    fontSize: '0.8rem',
-    margin: '0 0 0.75rem',
-    lineHeight: 1.5,
-  },
-  backLink: {
-    display: 'block',
-    textAlign: 'center' as const,
-    color: '#94a3b8',
-    fontSize: '0.85rem',
-    textDecoration: 'none',
-    marginTop: '1rem',
-  },
 }

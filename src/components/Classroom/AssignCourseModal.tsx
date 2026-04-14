@@ -2,11 +2,11 @@ import { Check, Loader2, School, Users, X } from 'lucide-react'
 import { AnimatePresence, motion } from 'motion/react'
 import { useEffect, useState } from 'react'
 
-import { useAuth } from '@/src/contexts/AuthContext'
-import { Classroom, classroomService } from '@/src/features/classroom/api/classroomService'
-import { useToast } from '@/src/hooks/useToast'
-import { cn } from '@/src/utils/cn'
-import { logger } from '@/src/utils/logger'
+import { useAuth } from '@/contexts/AuthContext'
+import { Classroom, classroomService } from '@/features/classroom/api/classroomService'
+import { useToast } from '@/hooks/useToast'
+import { cn } from '@/utils/cn'
+import { logger } from '@/utils/logger'
 
 interface AssignCourseModalProps {
   isOpen: boolean
@@ -32,7 +32,7 @@ export function AssignCourseModal({
   /* eslint-disable react-hooks/exhaustive-deps */
   useEffect(() => {
     if (isOpen && user?.id) {
-      loadData()
+      void loadData()
     }
   }, [isOpen, user?.id, courseId])
   /* eslint-enable react-hooks/exhaustive-deps */

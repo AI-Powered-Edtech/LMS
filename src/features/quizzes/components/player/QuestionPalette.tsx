@@ -1,5 +1,5 @@
-import { SubmitAnswer } from '@/src/features/quizzes'
-import { cn } from '@/src/utils/cn'
+import { SubmitAnswer } from '@/features/quizzes'
+import { cn } from '@/utils/cn'
 
 import type { QuizAttemptQuestion } from '../../types/quizzes.types'
 

@@ -11,33 +11,29 @@ import {
   Trophy,
 } from 'lucide-react'
 import { motion } from 'motion/react'
-import { useEffect } from 'react'
 
-import { OptimizedImage } from '@/src/components/ui'
-import { useAuth } from '@/src/contexts/AuthContext'
-import { BadgeShowcase } from '@/src/features/gamification/components/BadgeShowcase'
-import { CertificateViewer } from '@/src/features/gamification/components/CertificateViewer'
-import { StreakCounter } from '@/src/features/gamification/components/StreakCounter'
-import { XPProgressBar } from '@/src/features/gamification/components/XPProgressBar'
+import { OptimizedImage, useToast } from '@/components/ui'
+import { useAuth } from '@/contexts/AuthContext'
+import { BadgeShowcase } from '@/features/gamification/components/BadgeShowcase'
+import { CertificateViewer } from '@/features/gamification/components/CertificateViewer'
+import { StreakCounter } from '@/features/gamification/components/StreakCounter'
+import { XPProgressBar } from '@/features/gamification/components/XPProgressBar'
 import {
   useStudentCertificates,
   useStudentXPProfile,
-} from '@/src/features/gamification/queries/gamificationQueries'
-import { useStudentProgressData } from '@/src/features/progress/hooks/useStudentProgressQueries'
-import { usePageTitle } from '@/src/hooks/usePageTitle'
-import { cn } from '@/src/utils/cn'
+} from '@/features/gamification/queries/gamificationQueries'
+import { PasswordChangeForm } from '@/features/profile/components/PasswordChangeForm'
+import { ProfileForm } from '@/features/profile/components/ProfileForm'
+import { useStudentProgressData } from '@/features/progress/hooks/useStudentProgressQueries'
+import { usePageTitle } from '@/hooks/usePageTitle'
+import { cn } from '@/utils/cn'
 
 export function Profile() {
   usePageTitle('Profil')
-  const { user, role, profile } = useAuth()
-
-  useEffect(() => {
-    document.title = 'Profil — EduSync'
-    return () => {
-      document.title = 'EduSync'
-    }
-  }, [])
-  const isTeacher = role === 'teacher'
+  const { user, role, activeRole, profile } = useAuth()
+  const addToast = useToast((s) => s.addToast)
+  // SECURITY FIX: Use activeRole (tenant-scoped) instead of global role
+  const isTeacher = activeRole === 'teacher'
 
   // Real data hooks (safe to call unconditionally)
   const { data: xpProfile } = useStudentXPProfile()
@@ -48,14 +44,15 @@ export function Profile() {
   const displayName =
     profile?.first_name && profile?.last_name
       ? `${profile.first_name} ${profile.last_name}`
-      : (user?.user_metadata?.full_name ?? 'Pengguna')
+      : ((user?.user_metadata?.full_name as string) ?? 'Pengguna')
   const displayEmail = user?.email ?? ''
   const avatarUrl =
     profile?.avatar_url ??
-    `https://api.dicebear.com/7.x/avataaars/svg?seed=${user?.id ?? 'default'}`
+    `https://api.dicebear.com/7.x/avataaars/svg?seed=${(user?.id as string) ?? 'default'}`
 
-  // Role label
-  const roleLabel = role === 'teacher' ? 'Guru' : role === 'admin' ? 'Admin' : 'Siswa'
+  // Use activeRole for display; fall back to global role only if activeRole not yet resolved
+  const displayRole = activeRole ?? role
+  const roleLabel = displayRole === 'teacher' ? 'Guru' : displayRole === 'admin' ? 'Admin' : 'Siswa'
 
   // Student stats from real data
   const totalXP = xpProfile?.total_xp ?? 0
@@ -73,7 +70,7 @@ export function Profile() {
       </div>
 
       <div className="flex flex-col lg:flex-row gap-6">
-        {/* Left Column: Identity Card */}
+        {/* Left Column: Identity Card + Edit Forms */}
         <div className="w-full lg:w-1/3 space-y-6 shrink-0">
           <motion.div
             initial={{ opacity: 0, y: 16 }}
@@ -101,8 +98,15 @@ export function Profile() {
                 />
               </div>
               <button
+                onClick={() =>
+                  addToast({
+                    type: 'warning',
+                    message: 'Fitur ubah foto profil dalam pengembangan.',
+                  })
+                }
                 aria-label="Ubah foto profil"
-                className="absolute bottom-0 right-0 w-8 h-8 bg-white dark:bg-slate-700 rounded-full shadow-md border border-slate-200 dark:border-slate-600 flex items-center justify-center text-slate-600 dark:text-slate-300 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors"
+                disabled
+                className="absolute bottom-0 right-0 w-8 h-8 bg-slate-100 dark:bg-slate-700 rounded-full shadow-md border border-slate-200 dark:border-slate-600 flex items-center justify-center text-slate-400 dark:text-slate-500 cursor-not-allowed"
               >
                 <Edit3 className="w-3.5 h-3.5" />
               </button>
@@ -141,6 +145,17 @@ export function Profile() {
                 <span className="truncate">{displayEmail}</span>
               </div>
             </div>
+          </motion.div>
+
+          {/* Edit profile and change password forms */}
+          <motion.div
+            initial={{ opacity: 0, y: 16 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.4, delay: 0.1 }}
+            className="space-y-4"
+          >
+            <ProfileForm />
+            <PasswordChangeForm />
           </motion.div>
         </div>
 

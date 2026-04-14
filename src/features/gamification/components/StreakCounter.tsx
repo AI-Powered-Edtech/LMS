@@ -2,9 +2,9 @@ import { Flame } from 'lucide-react'
 import { motion } from 'motion/react'
 import { useMemo } from 'react'
 
-import { useReducedMotion } from '@/src/hooks/useReducedMotion'
-import { calculateStreak } from '@/src/utils/clientCompute'
-import { cn } from '@/src/utils/cn'
+import { useReducedMotion } from '@/hooks/useReducedMotion'
+import { calculateStreak } from '@/utils/clientCompute'
+import { cn } from '@/utils/cn'
 
 import { useStudentXPProfile } from '../queries/gamificationQueries'
 
@@ -13,17 +13,28 @@ interface StreakCounterProps {
 }
 
 export function StreakCounter({ compact }: StreakCounterProps) {
-  const { data: profile } = useStudentXPProfile()
+  const { data: profile, isError } = useStudentXPProfile()
 
   const reducedMotion = useReducedMotion()
 
   // Optimistic streak: if server streak is 0 but user has XP activity today,
   // the 30-min cron may not have run yet — compute locally from recent_xp timestamps
+  // Must be called before any early return to respect Rules of Hooks
   const optimisticStreak = useMemo(() => {
     if (!profile?.recent_xp || profile.streak_current > 0) return profile?.streak_current ?? 0
     const completions = profile.recent_xp.map((t) => ({ completed_at: t.created_at }))
     return calculateStreak(completions).current
   }, [profile])
+
+  // On error, render gracefully with zeroed-out state rather than crashing
+  if (isError) {
+    return compact ? (
+      <div className="flex items-center gap-1.5">
+        <Flame className="h-5 w-5 text-slate-300 dark:text-slate-600 fill-slate-300 dark:fill-slate-600" />
+        <span className="text-sm font-bold text-slate-400 dark:text-slate-500">—</span>
+      </div>
+    ) : null
+  }
 
   const streak = optimisticStreak
   const longest = profile?.streak_longest ?? 0

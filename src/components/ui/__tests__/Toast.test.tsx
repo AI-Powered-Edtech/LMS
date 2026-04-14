@@ -2,7 +2,7 @@ import { render, screen } from '@testing-library/react'
 import { act } from 'react'
 import { beforeEach, describe, expect, it } from 'vitest'
 
-import { useToast } from '@/src/hooks/useToast'
+import { useToast } from '@/hooks/useToast'
 
 import { ToastContainer } from '../Toast'
 

@@ -1,7 +1,7 @@
 import { Zap } from 'lucide-react'
 import { useState } from 'react'
 
-import { Skeleton } from '@/src/components/ui'
+import { Skeleton } from '@/components/ui'
 
 import { useEngagementSummary, useEngagementTrend } from '../queries/analyticsQueries'
 import { EngagementRadar } from './EngagementRadar'

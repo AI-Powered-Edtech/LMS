@@ -16,25 +16,27 @@ import {
  */
 import { useEffect, useMemo, useState } from 'react'
 
-import { useAuth } from '@/src/contexts/AuthContext'
+import { useAuth } from '@/contexts/AuthContext'
 import {
   type AdminQuizOverviewItem,
   type AntiCheatAuditEntry,
   getAntiCheatAuditLog,
   getSchoolQuizOverview,
-} from '@/src/features/quizzes/api/adminQuiz.service'
-import { useDebounce } from '@/src/hooks/useDebounce'
-import { usePageTitle } from '@/src/hooks/usePageTitle'
-import { cn } from '@/src/utils/cn'
-import { logger } from '@/src/utils/logger'
+} from '@/features/quizzes/api/adminQuiz.service'
+import { useDebounce } from '@/hooks/useDebounce'
+import { usePageTitle } from '@/hooks/usePageTitle'
+import { cn } from '@/utils/cn'
+import { logger } from '@/utils/logger'
 
 type SortKey = 'quiz_title' | 'total_attempts' | 'avg_score' | 'pass_rate' | 'created_at'
 type SortDir = 'asc' | 'desc'
 
 const statusBadge: Record<string, { label: string; color: string; bg: string }> = {
-  draft: { label: 'Draft', color: 'text-slate-600', bg: 'bg-slate-100' },
+  draft: { label: 'Draf', color: 'text-slate-600', bg: 'bg-slate-100' },
   published: { label: 'Diterbitkan', color: 'text-green-700', bg: 'bg-green-100' },
-  archived: { label: 'Archived', color: 'text-amber-700', bg: 'bg-amber-100' },
+  in_review: { label: 'Dalam Tinjauan', color: 'text-blue-700', bg: 'bg-blue-100' },
+  approved: { label: 'Disetujui', color: 'text-indigo-700', bg: 'bg-indigo-100' },
+  archived: { label: 'Diarsipkan', color: 'text-amber-700', bg: 'bg-amber-100' },
 }
 
 export function AdminQuizOverview() {
@@ -74,7 +76,7 @@ export function AdminQuizOverview() {
       }
     }
 
-    fetchData()
+    void fetchData()
   }, [tenantId])
 
   const handleSort = (key: SortKey) => {
@@ -173,7 +175,7 @@ export function AdminQuizOverview() {
           </div>
           <div>
             <p className="text-2xl font-black text-slate-800">{publishedCount}</p>
-            <p className="text-xs font-bold text-slate-500 uppercase tracking-wider">Published</p>
+            <p className="text-xs font-bold text-slate-500 uppercase tracking-wider">Diterbitkan</p>
           </div>
         </div>
         <div className="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm flex items-center gap-3">
@@ -197,8 +199,10 @@ export function AdminQuizOverview() {
       </div>
 
       {/* Tabs */}
-      <div className="flex gap-2 border-b border-slate-200 mb-4">
+      <div className="flex gap-2 border-b border-slate-200 mb-4" role="tablist">
         <button
+          role="tab"
+          aria-selected={activeTab === 'quizzes'}
           onClick={() => setActiveTab('quizzes')}
           className={cn(
             'px-4 py-2 font-bold text-sm border-b-2 transition-colors',
@@ -210,6 +214,8 @@ export function AdminQuizOverview() {
           Daftar Kuis
         </button>
         <button
+          role="tab"
+          aria-selected={activeTab === 'audit'}
           onClick={() => setActiveTab('audit')}
           className={cn(
             'px-4 py-2 font-bold text-sm border-b-2 transition-colors flex items-center gap-1.5',

@@ -3,7 +3,7 @@ import { AnimatePresence, motion } from 'motion/react'
 import { useState } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 
-import { useAuth } from '@/src/contexts/AuthContext'
+import { useAuth } from '@/contexts/AuthContext'
 
 import { useRecommendations, useRecordRecommendationAction } from '../queries/recommendationQueries'
 
@@ -37,7 +37,7 @@ export function ReviewPrompt({ score, lessonId, quizId: _quizId }: ReviewPromptP
     const params = currentModuleId
       ? `moduleId=${currentModuleId}&lessonId=${lessonId}`
       : `lessonId=${lessonId}`
-    navigate(`/courses/${courseTarget}?${params}`)
+    void navigate(`/courses/${courseTarget}?${params}`)
   }
 
   const handleDismiss = () => {

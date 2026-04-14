@@ -1,5 +1,5 @@
-import { supabase } from '@/src/services/supabase/client'
-import { logger } from '@/src/utils/logger'
+import { readVilSession } from '@/services/auth/vilSession'
+import { logger } from '@/utils/logger'
 
 interface AIGradeRequest {
   submissionId: string
@@ -19,30 +19,37 @@ interface AIGradeResponse {
 
 export const aiGraderService = {
   /**
-   * Call the AI grading Edge Function to evaluate an essay.
+   * Call the VIL AI grading endpoint to evaluate an essay.
    */
   async gradeEssay(request: AIGradeRequest): Promise<AIGradeResponse> {
     try {
-      const { data, error } = await supabase.functions.invoke('ai-grade-essay', {
-        body: request,
+      const apiUrl = import.meta.env.VITE_API_URL ?? 'http://localhost:8080'
+      const token = readVilSession()?.access_token
+
+      const response = await fetch(`${apiUrl}/api/v1/ai/grade-essay`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        },
+        body: JSON.stringify(request),
       })
 
-      if (error) {
-        if (import.meta.env.DEV) logger.error('[AI Grader] Edge Function error:', error)
+      if (!response.ok) {
+        if (import.meta.env.DEV) logger.error('[AI Grader] API error:', response.status)
 
-        // Extract specific error if available
         let errorMessage = 'Gagal melakukan penilaian otomatis dengan AI.'
 
-        if (error.context && error.context.status === 504) {
+        if (response.status === 504) {
           errorMessage = 'Waktu permintaan habis (Timeout). Silakan coba lagi.'
-        } else if (error.context && error.context.status === 403) {
+        } else if (response.status === 403) {
           errorMessage = 'Anda tidak memiliki akses untuk menggunakan fitur ini.'
-        } else if (error.message) {
-          errorMessage = error.message
         }
 
         throw new Error(errorMessage)
       }
+
+      const data = await response.json()
 
       // Check if the response contains an error structure
       if (data?.error) {

@@ -10,15 +10,15 @@ import {
 } from 'lucide-react'
 import { useMemo } from 'react'
 
-import { OptimizedImage } from '@/src/components/ui'
-import { VirtualTable } from '@/src/components/ui/VirtualTable'
-import { AssignmentResultRow } from '@/src/features/quizzes'
+import { EmptyState, OptimizedImage } from '@/components/ui'
+import { VirtualTable } from '@/components/ui/VirtualTable'
+import { AssignmentResultRow } from '@/features/quizzes'
 import {
   formatDuration,
   getScoreBg,
   getScoreColor,
-} from '@/src/features/quizzes/hooks/useQuizGradebookState'
-import { cn } from '@/src/utils/cn'
+} from '@/features/quizzes/hooks/useQuizGradebookState'
+import { cn } from '@/utils/cn'
 
 interface QuizGradebookTableProps {
   filteredAttempts: AssignmentResultRow[]
@@ -50,8 +50,13 @@ export function QuizGradebookTable({
         header: 'Siswa',
         render: (attempt: AssignmentResultRow) => (
           <div
+            role="button"
+            tabIndex={0}
             className="flex items-center gap-3 cursor-pointer"
             onClick={() => onOpenAttemptDetail(attempt)}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter' || e.key === ' ') onOpenAttemptDetail(attempt)
+            }}
           >
             <div className="w-8 h-8 rounded-full bg-slate-200 overflow-hidden shrink-0">
               <OptimizedImage
@@ -158,7 +163,10 @@ export function QuizGradebookTable({
   )
 
   return (
-    <div className="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl shadow-sm overflow-hidden">
+    <div
+      data-testid="gradebook-table"
+      className="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl shadow-sm overflow-hidden"
+    >
       <div className="p-4 border-b border-slate-100 dark:border-slate-700 flex items-center justify-between gap-3">
         <div className="relative w-full sm:w-72">
           <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
@@ -184,24 +192,22 @@ export function QuizGradebookTable({
       )}
 
       {!selectedAssignment ? (
-        <div className="flex flex-col items-center justify-center py-16 text-slate-400 dark:text-slate-500">
-          <HelpCircle className="w-12 h-12 mb-3 opacity-30" />
-          <p className="font-medium text-slate-500 dark:text-slate-400">
-            Pilih kelas dan assignment
-          </p>
-          <p className="text-sm mt-1">untuk melihat rekap nilai siswa.</p>
-        </div>
+        <EmptyState
+          icon={<HelpCircle className="w-8 h-8" />}
+          title="Pilih kelas dan assignment"
+          description="untuk melihat rekap nilai siswa."
+        />
       ) : isLoading ? (
         <div className="flex items-center justify-center py-16 text-slate-400 dark:text-slate-500 gap-2">
           <Loader2 className="w-5 h-5 animate-spin" />
           <span className="text-sm">Memuat data...</span>
         </div>
       ) : filteredAttempts.length === 0 ? (
-        <div className="flex flex-col items-center justify-center py-16 text-slate-400 dark:text-slate-500">
-          <Clock className="w-10 h-10 mb-3 opacity-30" />
-          <p className="font-medium text-slate-500 dark:text-slate-400">Belum ada percobaan</p>
-          <p className="text-sm mt-1">Siswa belum mengerjakan assignment kuis ini.</p>
-        </div>
+        <EmptyState
+          icon={<Clock className="w-8 h-8" />}
+          title="Belum ada percobaan"
+          description="Siswa belum mengerjakan assignment kuis ini."
+        />
       ) : (
         <VirtualTable<AssignmentResultRow>
           data={filteredAttempts}

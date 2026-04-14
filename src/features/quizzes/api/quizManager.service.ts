@@ -20,6 +20,7 @@ export {
 // Question management and grading
 export {
   addQuestionToQuiz,
+  deleteQuizQuestion,
   getAssignmentResults,
   gradeAttemptQuestion,
   replaceQuestionOptions,

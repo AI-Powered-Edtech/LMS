@@ -4,10 +4,11 @@
  * Fetches cheating signals grouped by attempt, with student info.
  * Teachers can mark attempts as reviewed or override scores.
  */
-import { supabase } from '@/src/services/supabase/client'
-import { validateArray } from '@/src/shared/lib/validate'
-import { CheatingSignalRowSchema } from '@/src/shared/schemas'
-import { logger } from '@/src/utils/logger'
+
+import { db } from '@/services/db'
+import { validateArray } from '@/shared/lib/validate'
+import { CheatingSignalRowSchema } from '@/shared/schemas'
+import { logger } from '@/utils/logger'
 
 // ─── Types ───────────────────────────────────────────────
 
@@ -54,31 +55,32 @@ export async function getSuspiciousAttempts(
   quizId: string,
   tenantId: string
 ): Promise<SuspiciousAttempt[]> {
-  // Get all cheating signals for this quiz's attempts
-  const { data: signals, error: signalError } = await supabase
+  const { data: attempts, error: attemptError } = await db
+    .from('quiz_attempts_v2')
+    .select('id, student_id, quiz_id, score, status, is_reviewed')
+    .eq('quiz_id', quizId)
+    .eq('tenant_id', tenantId)
+
+  if (attemptError) {
+    if (import.meta.env.DEV) logger.error('Error fetching quiz attempts:', attemptError)
+    throw attemptError
+  }
+
+  const attemptRows = (attempts ?? []) as Array<{
+    id: string
+    student_id: string
+    quiz_id: string
+    score: number | null
+    status: string
+    is_reviewed: boolean | null
+  }>
+  const attemptIds = attemptRows.map((attempt) => attempt.id)
+  if (attemptIds.length === 0) return []
+
+  const { data: signals, error: signalError } = await db
     .from('quiz_cheating_signals')
-    .select(
-      `
-      id,
-      attempt_id,
-      signal_type,
-      metadata,
-      created_at,
-      quiz_attempts_v2!inner (
-        id,
-        student_id,
-        quiz_id,
-        score,
-        status,
-        is_reviewed,
-        tenant_id,
-        profiles!quiz_attempts_v2_student_id_fkey ( full_name ),
-        quizzes!quiz_attempts_v2_quiz_id_fkey ( title )
-      )
-    `
-    )
-    .eq('quiz_attempts_v2.quiz_id', quizId)
-    .eq('quiz_attempts_v2.tenant_id', tenantId)
+    .select('id, attempt_id, signal_type, metadata, created_at')
+    .in('attempt_id', attemptIds)
     .order('created_at', { ascending: true })
 
   if (signalError) {
@@ -89,18 +91,44 @@ export async function getSuspiciousAttempts(
 
   if (!signals || signals.length === 0) return []
 
+  const studentIds = attemptRows.map((attempt) => attempt.student_id)
+  const [{ data: profiles }, { data: quizzes }] = await Promise.all([
+    studentIds.length > 0
+      ? db.from('profiles').select('id, full_name').eq('tenant_id', tenantId).in('id', studentIds)
+      : Promise.resolve({ data: [], error: null }),
+    db.from('quizzes').select('id, title').eq('tenant_id', tenantId).eq('id', quizId),
+  ])
+
   // Group signals by attempt_id
   const attemptMap = new Map<
     string,
     {
       signals: CheatingSignal[]
-      attempt: Record<string, unknown>
+      attempt: {
+        id: string
+        student_id: string
+        quiz_id: string
+        score: number | null
+        status: string
+        is_reviewed: boolean | null
+      }
     }
   >()
 
+  const attemptById = new Map(attemptRows.map((attempt) => [attempt.id, attempt]))
+  const profileMap = new Map(
+    ((profiles ?? []) as Array<{ id: string; full_name: string | null }>).map((profile) => [
+      profile.id,
+      profile.full_name,
+    ])
+  )
+  const quizTitle =
+    ((quizzes ?? []) as Array<{ id: string; title: string | null }>)[0]?.title ?? '-'
+
   for (const row of signals) {
     const attemptId = row.attempt_id
-    const attempt = row.quiz_attempts_v2 as unknown as Record<string, unknown>
+    const attempt = attemptById.get(attemptId)
+    if (!attempt) continue
 
     if (!attemptMap.has(attemptId)) {
       attemptMap.set(attemptId, { signals: [], attempt })
@@ -127,16 +155,14 @@ export async function getSuspiciousAttempts(
       else if (s.signal_type === 'WINDOW_BLUR') blurs++
     }
     const others = sigs.length - tabSwitches - blurs
-    const profiles = attempt.profiles as { full_name: string } | null
-    const quizzes = attempt.quizzes as { title: string } | null
 
     results.push({
       attempt_id: attemptId,
-      student_id: attempt.student_id as string,
-      student_name: profiles?.full_name ?? 'Siswa',
-      quiz_title: quizzes?.title ?? '-',
-      score: attempt.score as number | null,
-      status: attempt.status as string,
+      student_id: attempt.student_id,
+      student_name: profileMap.get(attempt.student_id) ?? 'Siswa',
+      quiz_title: quizTitle,
+      score: attempt.score,
+      status: attempt.status,
       total_signals: sigs.length,
       tab_switch_count: tabSwitches,
       window_blur_count: blurs,
@@ -144,7 +170,7 @@ export async function getSuspiciousAttempts(
       first_signal_at: sigs.length > 0 ? sigs[0].created_at : null,
       last_signal_at: sigs.length > 0 ? sigs[sigs.length - 1].created_at : null,
       severity: classifySeverity(tabSwitches, blurs),
-      is_reviewed: (attempt.is_reviewed as boolean) ?? false,
+      is_reviewed: attempt.is_reviewed ?? false,
     })
   }
 
@@ -159,13 +185,33 @@ export async function getSuspiciousAttempts(
 
 /**
  * Get the total count of suspicious attempts for a quiz (for badge display).
+ *
+ * Uses a 2-query approach because PostgREST cross-table column filters
+ * (.eq('related_table.column', value)) only work with an !inner join in the
+ * select string — they do NOT work on head-only count queries.  We therefore
+ * first resolve the attempt IDs that belong to the quiz, then count signals.
  */
 export async function getSuspiciousAttemptCount(quizId: string, tenantId: string): Promise<number> {
-  const { count, error } = await supabase
+  // Step 1: resolve attempt IDs for this quiz + tenant
+  const { data: attempts, error: attemptsError } = await db
+    .from('quiz_attempts_v2')
+    .select('id')
+    .eq('quiz_id', quizId)
+    .eq('tenant_id', tenantId)
+
+  if (attemptsError) {
+    if (import.meta.env.DEV) logger.error('Error fetching attempts for count:', attemptsError)
+    return 0
+  }
+
+  const attemptIds = attempts?.map((a: any) => a.id) ?? []
+  if (attemptIds.length === 0) return 0
+
+  // Step 2: count cheating signals for those attempts
+  const { count, error } = await db
     .from('quiz_cheating_signals')
     .select('attempt_id', { count: 'exact', head: true })
-    .eq('quiz_attempts_v2.quiz_id', quizId)
-    .eq('quiz_attempts_v2.tenant_id', tenantId)
+    .in('attempt_id', attemptIds)
 
   if (error) {
     if (import.meta.env.DEV) logger.error('Error counting suspicious attempts:', error)

@@ -1,14 +1,14 @@
 import { X } from 'lucide-react'
 import { createContext, useCallback, useContext, useEffect, useId, useRef } from 'react'
 
-import { cn } from '@/src/utils/cn'
+import { cn } from '@/utils/cn'
 
 /* ─── Modal ────────────────────────────────────────────────── */
 
 export interface ModalProps {
   open: boolean
   onClose: () => void
-  size?: 'sm' | 'md' | 'lg' | 'xl'
+  size?: 'sm' | 'md' | 'lg' | 'xl' | '2xl'
   /** Optional aria-label for modals without a ModalHeader */
   ariaLabel?: string
   children: React.ReactNode
@@ -19,6 +19,7 @@ const modalSizes = {
   md: 'max-w-md',
   lg: 'max-w-lg',
   xl: 'max-w-xl',
+  '2xl': 'max-w-2xl',
 } as const
 
 const FOCUSABLE_SELECTOR =
@@ -27,6 +28,7 @@ const FOCUSABLE_SELECTOR =
 export function Modal({ open, onClose, size = 'md', ariaLabel, children }: ModalProps) {
   const overlayRef = useRef<HTMLDivElement>(null)
   const contentRef = useRef<HTMLDivElement>(null)
+  const previouslyFocusedRef = useRef<HTMLElement | null>(null)
   const titleId = useId()
 
   const handleKeyDown = useCallback(
@@ -61,19 +63,44 @@ export function Modal({ open, onClose, size = 'md', ariaLabel, children }: Modal
   useEffect(() => {
     if (!open) return
 
+    // Store currently focused element to return focus when modal closes
+    previouslyFocusedRef.current = document.activeElement as HTMLElement
+
     document.addEventListener('keydown', handleKeyDown)
     document.body.style.overflow = 'hidden'
 
     // Focus first focusable element
     const timer = setTimeout(() => {
       const focusable = contentRef.current?.querySelector<HTMLElement>(FOCUSABLE_SELECTOR)
-      focusable?.focus()
+      if (focusable) {
+        focusable.focus()
+      } else {
+        // If no focusable elements inside, focus the modal container itself
+        contentRef.current?.focus()
+      }
     }, 50)
+
+    // DOM-level focus boundary: snap focus back if it strays outside the modal
+    const handleFocusIn = () => {
+      if (!contentRef.current) return
+      if (document.activeElement !== null && !contentRef.current.contains(document.activeElement)) {
+        const focusable = contentRef.current.querySelector<HTMLElement>(FOCUSABLE_SELECTOR)
+        focusable?.focus()
+      }
+    }
+
+    document.addEventListener('focusin', handleFocusIn)
 
     return () => {
       document.removeEventListener('keydown', handleKeyDown)
+      document.removeEventListener('focusin', handleFocusIn)
       document.body.style.overflow = ''
       clearTimeout(timer)
+
+      // Return focus to previously focused element when modal closes
+      setTimeout(() => {
+        previouslyFocusedRef.current?.focus()
+      }, 0)
     }
   }, [open, handleKeyDown])
 
@@ -82,6 +109,7 @@ export function Modal({ open, onClose, size = 'md', ariaLabel, children }: Modal
   return (
     <div
       ref={overlayRef}
+      role="presentation"
       className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4"
       onClick={(e) => {
         if (e.target === overlayRef.current) onClose()
@@ -97,6 +125,7 @@ export function Modal({ open, onClose, size = 'md', ariaLabel, children }: Modal
         aria-modal="true"
         aria-labelledby={ariaLabel ? undefined : titleId}
         aria-label={ariaLabel}
+        tabIndex={-1}
         className={cn(
           'relative w-full bg-white dark:bg-slate-900 shadow-xl',
           'border border-slate-200 dark:border-slate-700/60',
@@ -121,12 +150,13 @@ const ModalTitleIdContext = createContext<string | undefined>(undefined)
 /* ─── ModalHeader ──────────────────────────────────────────── */
 
 export interface ModalHeaderProps {
-  title: string
+  title?: string
   onClose?: () => void
   className?: string
+  children?: React.ReactNode
 }
 
-export function ModalHeader({ title, onClose, className }: ModalHeaderProps) {
+export function ModalHeader({ title, onClose, className, children }: ModalHeaderProps) {
   const titleId = useContext(ModalTitleIdContext)
 
   return (
@@ -136,9 +166,14 @@ export function ModalHeader({ title, onClose, className }: ModalHeaderProps) {
         className
       )}
     >
-      <h2 id={titleId} className="text-lg font-bold text-slate-900 dark:text-white">
-        {title}
-      </h2>
+      {title ? (
+        <h2 id={titleId} className="text-lg font-bold text-slate-900 dark:text-white">
+          {title}
+        </h2>
+      ) : (
+        <div className="flex-1">{children}</div>
+      )}
+      {!title && children && <div className="flex-1">{children}</div>}
       {onClose && (
         <button
           type="button"

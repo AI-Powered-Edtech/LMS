@@ -2,24 +2,32 @@ import { Award, BarChart2, BookOpen, TrendingUp } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { useParams } from 'react-router-dom'
 
-import { OptimizedImage } from '@/src/components/ui'
-import { progressService, StudentProgressData } from '@/src/features/progress/api/progressService'
-import { ProgressSkeleton } from '@/src/features/progress/components/ProgressSkeleton'
-import { usePageTitle } from '@/src/hooks/usePageTitle'
-import { cn } from '@/src/utils/cn'
-import { logger } from '@/src/utils/logger'
+import { Breadcrumb, OptimizedImage } from '@/components/ui'
+import { useAuth } from '@/contexts/AuthContext'
+import { progressService, StudentProgressData } from '@/features/progress/api/progressService'
+import { ProgressSkeleton } from '@/features/progress/components/ProgressSkeleton'
+import { usePageTitle } from '@/hooks/usePageTitle'
+import { cn } from '@/utils/cn'
+import { logger } from '@/utils/logger'
 
 export function StudentProgress() {
   usePageTitle('Progres Siswa')
   const { studentId } = useParams()
+  const { tenantId } = useAuth()
   const [data, setData] = useState<StudentProgressData | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
     async function loadProgress() {
-      if (!studentId) {
-        setError('ID Siswa tidak ditemukan')
+      if (!studentId || studentId === 'overview') {
+        // 'overview' is a nav placeholder — no real studentId selected yet
+        setLoading(false)
+        return
+      }
+
+      if (!tenantId) {
+        setError('Tidak dapat memuat data: tenant tidak ditemukan.')
         setLoading(false)
         return
       }
@@ -27,7 +35,7 @@ export function StudentProgress() {
       setLoading(true)
       try {
         // High performance consolidation: 6 queries -> 1 RPC call
-        const progressData = await progressService.getStudentProgressBundle(studentId)
+        const progressData = await progressService.getStudentProgressBundle(studentId, tenantId!)
         setData(progressData)
       } catch (err: unknown) {
         if (import.meta.env.DEV) logger.error('Failed to load student progress', err)
@@ -37,11 +45,28 @@ export function StudentProgress() {
       }
     }
 
-    loadProgress()
-  }, [studentId])
+    void loadProgress()
+  }, [studentId, tenantId])
 
   if (loading) {
     return <ProgressSkeleton />
+  }
+
+  // No student selected yet (nav points to /overview as placeholder)
+  if (!studentId || studentId === 'overview') {
+    return (
+      <div className="flex-1 w-full flex flex-col items-center justify-center p-12 text-slate-500 dark:text-slate-400">
+        <TrendingUp className="w-12 h-12 mb-4 text-slate-300 dark:text-slate-600" />
+        <p className="text-lg font-medium text-slate-700 dark:text-slate-300 mb-2">Progres Siswa</p>
+        <p className="text-sm text-center">
+          Pilih siswa dari halaman{' '}
+          <a href="/app/admin/users" className="text-blue-600 dark:text-blue-400 underline">
+            Manajemen Pengguna
+          </a>{' '}
+          untuk melihat progres belajar mereka.
+        </p>
+      </div>
+    )
   }
 
   if (error || !data) {
@@ -60,6 +85,13 @@ export function StudentProgress() {
 
   return (
     <div className="max-w-6xl mx-auto space-y-8 pb-12">
+      <Breadcrumb
+        items={[
+          { label: 'Dashboard', href: '/app/teacher/dashboard' },
+          { label: 'Kemajuan Siswa' },
+        ]}
+        className="mb-2"
+      />
       <div className="flex items-center gap-4">
         <div className="w-16 h-16 bg-slate-200 rounded-full overflow-hidden shadow-md">
           <OptimizedImage
@@ -137,7 +169,14 @@ export function StudentProgress() {
                   </h3>
                   <span className="text-sm font-bold text-blue-600">{cp.percentage}%</span>
                 </div>
-                <div className="w-full bg-slate-200 rounded-full h-2.5 mb-2 overflow-hidden">
+                <div
+                  role="progressbar"
+                  aria-valuenow={cp.percentage}
+                  aria-valuemin={0}
+                  aria-valuemax={100}
+                  aria-label={`Progres ${cp.courses?.title || 'Kursus'}: ${cp.percentage}%`}
+                  className="w-full bg-slate-200 rounded-full h-2.5 mb-2 overflow-hidden"
+                >
                   <div
                     className="bg-blue-600 h-2.5 rounded-full transition-all duration-500"
                     style={{ width: `${Math.min(cp.percentage, 100)}%` }}
@@ -172,15 +211,16 @@ export function StudentProgress() {
               </p>
             ) : (
               quizAttempts.map((attempt) => {
-                const isPassed = attempt.score >= 70 // Assuming 70 is passing score
+                const isPassed = attempt.score >= 70
                 return (
                   <div
                     key={attempt.id}
                     className="flex items-center justify-between p-4 bg-slate-50 dark:bg-slate-700/50 rounded-xl border border-slate-100 dark:border-slate-700"
                   >
                     <div>
+                      {/* FIXED: Display quiz title if available, or shortened UUID instead of raw UUID */}
                       <p className="font-bold text-slate-800 dark:text-slate-200">
-                        Kuis: {attempt.quiz_id}
+                        Kuis: {'Kuis #' + attempt.quiz_id.slice(0, 8)}
                       </p>
                       <p className="text-xs text-slate-500 dark:text-slate-400">
                         {new Date(attempt.created_at).toLocaleDateString('id-ID')}

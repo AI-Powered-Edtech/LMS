@@ -2,7 +2,7 @@
 // Part of the Quiz Engine Refactor
 import { useCallback, useEffect, useRef, useState } from 'react'
 
-import { logger } from '@/src/utils/logger'
+import { logger } from '@/utils/logger'
 
 /**
  * Interface for the quiz service passed to the hook
@@ -60,8 +60,16 @@ export function useQuizAutosave({
   // Track the last saved answers to detect changes
   const lastSavedAnswersRef = useRef<string | null>(null)
 
+  // Keep a ref to the latest answers so the interval callback always reads
+  // the most-current value without being listed as an effect dependency
+  // (which would reset the interval on every answers change).
+  const answersRef = useRef<Record<string, unknown>>(answers)
+
   // Track if component is mounted to prevent state updates after unmount
   const isMountedRef = useRef(true)
+
+  // Sync answersRef on every render so the interval always sees fresh data
+  answersRef.current = answers
 
   // Serialize answers to JSON for comparison
   const serializeAnswers = useCallback((answersObj: Record<string, unknown>): string => {
@@ -72,13 +80,14 @@ export function useQuizAutosave({
     }
   }, [])
 
-  // Save function - only saves if answers changed
+  // Save function — reads from answersRef so interval deps stay stable
   const performSave = useCallback(async () => {
     if (!attemptId || !quizService?.saveProgress) {
       return
     }
 
-    const currentAnswersJson = serializeAnswers(answers)
+    const currentAnswers = answersRef.current
+    const currentAnswersJson = serializeAnswers(currentAnswers)
 
     // Skip save if answers haven't changed
     if (lastSavedAnswersRef.current === currentAnswersJson) {
@@ -86,14 +95,14 @@ export function useQuizAutosave({
     }
 
     // Skip save if there are no answers to save
-    if (Object.keys(answers).length === 0) {
+    if (Object.keys(currentAnswers).length === 0) {
       return
     }
 
     setIsSaving(true)
 
     try {
-      await quizService.saveProgress(attemptId, answers)
+      await quizService.saveProgress(attemptId, currentAnswers)
 
       // Only update state if still mounted
       if (isMountedRef.current) {
@@ -108,25 +117,22 @@ export function useQuizAutosave({
         setIsSaving(false)
       }
     }
-  }, [attemptId, answers, quizService, serializeAnswers])
+    // answersRef and lastSavedAnswersRef are refs — stable, intentionally omitted
+  }, [attemptId, quizService, serializeAnswers])
 
-  // Set up interval for periodic saves
+  // Set up interval for periodic saves.
+  // Only depends on stable values so the interval is never torn down and
+  // re-created because answers changed.
   useEffect(() => {
     isMountedRef.current = true
 
-    // Set initial lastSavedAnswersRef on mount
-    if (lastSavedAnswersRef.current === null) {
-      // Don't set it immediately so the first 5s timeout triggers a save
-      // lastSavedAnswersRef.current = currentAnswersJson
-    }
-
     const intervalId = setInterval(() => {
-      performSave()
+      void performSave()
     }, intervalMs)
 
     // Trigger first save after 5 seconds to establish connection and status
     const initialTimeout = setTimeout(() => {
-      performSave()
+      void performSave()
     }, 5000)
 
     // Cleanup on unmount
@@ -135,7 +141,7 @@ export function useQuizAutosave({
       clearInterval(intervalId)
       clearTimeout(initialTimeout)
     }
-  }, [intervalMs, performSave, serializeAnswers, answers])
+  }, [attemptId, intervalMs, quizService, performSave])
 
   return {
     lastSaved,

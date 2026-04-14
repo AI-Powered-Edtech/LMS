@@ -1,3 +1,4 @@
+import { useMemo } from 'react'
 import {
   Bar,
   BarChart,
@@ -8,6 +9,8 @@ import {
   XAxis,
   YAxis,
 } from 'recharts'
+
+import { useTheme } from '@/contexts/ThemeContext'
 
 import { FunnelStepResult } from '../types'
 
@@ -37,17 +40,32 @@ interface FunnelChartProps {
   data: FunnelStepResult[]
 }
 
+// ⚡ Perf: stable formatter refs — avoids Recharts detecting prop change every render
+const tooltipFormatter = (value: unknown, name: unknown): [string, string] => {
+  if (name === 'users') return [`${value}`, 'Pengguna']
+  return [`${value}`, `${name}`]
+}
+const labelFormatter = (v: unknown) => `${v}%`
+
 export function FunnelChart({ data }: FunnelChartProps) {
+  const { resolvedTheme } = useTheme()
+  const isDark = resolvedTheme === 'dark'
+
+  // ⚡ Perf: memoize chart data transform + maxUsers computation
+  const { chartData, maxUsers } = useMemo(() => {
+    const mapped = data.map((step) => ({
+      name: EVENT_LABELS[step.event_type] ?? step.event_type,
+      users: step.user_count,
+      conversion: step.conversion_rate,
+      dropOff: step.drop_off_rate,
+    }))
+    return {
+      chartData: mapped,
+      maxUsers: Math.max(...mapped.map((d) => d.users), 1),
+    }
+  }, [data])
+
   if (data.length === 0) return null
-
-  const chartData = data.map((step) => ({
-    name: EVENT_LABELS[step.event_type] ?? step.event_type,
-    users: step.user_count,
-    conversion: step.conversion_rate,
-    dropOff: step.drop_off_rate,
-  }))
-
-  const maxUsers = Math.max(...chartData.map((d) => d.users), 1)
 
   return (
     <div className="w-full">
@@ -58,13 +76,24 @@ export function FunnelChart({ data }: FunnelChartProps) {
           margin={{ left: 16, right: 48, top: 8, bottom: 8 }}
         >
           <XAxis type="number" domain={[0, maxUsers]} hide />
-          <YAxis type="category" dataKey="name" width={120} tick={{ fontSize: 12 }} />
+          <YAxis
+            type="category"
+            dataKey="name"
+            width={120}
+            tick={{ fontSize: 12, fill: isDark ? '#94a3b8' : '#64748b' }}
+            axisLine={{ stroke: isDark ? '#334155' : '#e2e8f0' }}
+            tickLine={{ stroke: isDark ? '#334155' : '#e2e8f0' }}
+          />
           <Tooltip
-            formatter={(value, name) => {
-              if (name === 'users') return [value, 'Pengguna']
-              return [value, name]
+            formatter={tooltipFormatter}
+            contentStyle={{
+              fontSize: 12,
+              backgroundColor: isDark ? '#1e293b' : '#ffffff',
+              border: `1px solid ${isDark ? '#334155' : '#e2e8f0'}`,
+              borderRadius: '0.5rem',
+              color: isDark ? '#f1f5f9' : '#0f172a',
             }}
-            contentStyle={{ fontSize: 12 }}
+            labelStyle={{ color: isDark ? '#94a3b8' : '#64748b' }}
           />
           <Bar dataKey="users" radius={[0, 4, 4, 0]}>
             {chartData.map((_, i) => (
@@ -73,8 +102,8 @@ export function FunnelChart({ data }: FunnelChartProps) {
             <LabelList
               dataKey="conversion"
               position="right"
-              formatter={(v: unknown) => `${v}%`}
-              style={{ fontSize: 11, fill: '#64748b' }}
+              formatter={labelFormatter}
+              style={{ fontSize: 11, fill: isDark ? '#94a3b8' : '#64748b' }}
             />
           </Bar>
         </BarChart>

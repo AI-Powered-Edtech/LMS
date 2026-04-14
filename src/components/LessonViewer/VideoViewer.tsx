@@ -1,34 +1,42 @@
-import { AlertTriangle, CheckCircle2, FileText, Lock, MessageSquare, Sparkles } from 'lucide-react'
+import { AlertTriangle, CheckCircle2, FileText, Lock, Sparkles } from 'lucide-react'
 import { AnimatePresence, motion } from 'motion/react'
 import { useCallback, useEffect, useRef, useState } from 'react'
 
-import { useInteractiveVideoEvents } from '@/src/features/lessons/hooks/useInteractiveVideoEvents'
-import { QuizViewer } from '@/src/features/quizzes/components/QuizViewer'
-import { cn } from '@/src/utils/cn'
-import { logger } from '@/src/utils/logger'
+import { useInteractiveVideoEvents } from '@/features/lessons/hooks/useInteractiveVideoEvents'
+import { QuizViewer } from '@/features/quizzes/components/QuizViewer'
+import { AdaptiveVideoPlayer, type CaptionTrack } from '@/features/video'
+import { cn } from '@/utils/cn'
+import { logger } from '@/utils/logger'
 
 interface Transcript {
   time: number
   text: string
 }
 
-interface InVideoQuiz {
-  time: number
-  question: string
-  options: string[]
-  correctAnswer: number
-}
-
 interface VideoViewerProps {
   videoUrl: string
   transcripts?: Transcript[]
-  inVideoQuizzes?: InVideoQuiz[]
   metadata?: Record<string, unknown>
   savedPosition: number
   isCompleted: boolean
   onProgressUpdate: (percentage: number, position: number) => void
   onCompletionMet: () => void
   onStartViewing: () => void
+  /** WebVTT caption tracks to display on the video */
+  captions?: CaptionTrack[]
+}
+
+/**
+ * Detect whether a URL should be streamed via HLS.
+ * Returns the HLS URL if detected, or null for regular mp4/webm.
+ */
+function detectHlsUrl(url: string): string | null {
+  if (!url) return null
+  const lower = url.toLowerCase()
+  if (lower.includes('.m3u8') || lower.includes('/hls/') || lower.includes('/stream.mux.com/')) {
+    return url
+  }
+  return null
 }
 
 export function VideoViewer({
@@ -40,12 +48,31 @@ export function VideoViewer({
   onProgressUpdate,
   onCompletionMet,
   onStartViewing,
+  captions,
 }: VideoViewerProps) {
   const videoRef = useRef<HTMLVideoElement>(null)
   const [currentTime, setCurrentTime] = useState(0)
   const [maxWatchedTime, setMaxWatchedTime] = useState(savedPosition)
+  const maxWatchedRef = useRef(savedPosition)
+  const isCompletedRef = useRef(isCompleted)
+  isCompletedRef.current = isCompleted
   const [isStalled, setIsStalled] = useState(false)
+  const isStalledRef = useRef(isStalled)
+  isStalledRef.current = isStalled
+  const [mediaError, setMediaError] = useState<string | null>(null)
   const hasCalledCompletion = useRef(false)
+
+  // Detect HLS vs plain mp4
+  const hlsUrl = detectHlsUrl(videoUrl)
+  const mp4Url = hlsUrl ? null : videoUrl
+
+  // Also check metadata for explicit hls_url override
+  const metaHlsUrl =
+    metadata && typeof (metadata as Record<string, unknown>).hls_url === 'string'
+      ? ((metadata as Record<string, unknown>).hls_url as string)
+      : null
+  const resolvedHlsUrl = metaHlsUrl || hlsUrl
+  const resolvedMp4Url = metaHlsUrl ? mp4Url || videoUrl : mp4Url
 
   // Interactive Video — shared hook
   const { activeEvent, loadedQuizzes, checkForEvent, handleEventComplete } =
@@ -55,6 +82,7 @@ export function VideoViewer({
   useEffect(() => {
     if (videoRef.current && savedPosition > 0) {
       videoRef.current.currentTime = savedPosition
+      maxWatchedRef.current = savedPosition
       setMaxWatchedTime(savedPosition)
     }
   }, [savedPosition])
@@ -68,35 +96,41 @@ export function VideoViewer({
     // Interactive event check (pauses video if triggered)
     if (checkForEvent(time)) return
 
-    if (time > maxWatchedTime) {
+    if (time > maxWatchedRef.current) {
+      maxWatchedRef.current = time
       setMaxWatchedTime(time)
     }
 
     if (duration > 0) {
-      const percentage = Math.round((Math.max(time, maxWatchedTime) / duration) * 100)
-      onProgressUpdate(percentage, Math.floor(time))
+      // Progress display uses the high-water mark position
+      const displayPct = Math.round((maxWatchedRef.current / duration) * 100)
+      onProgressUpdate(displayPct, Math.floor(time))
 
-      if (percentage >= 95 && !isCompleted && !hasCalledCompletion.current) {
+      // Completion: high-water mark must reach 95% (enforced by handleSeeking anti-cheat)
+      if (displayPct >= 95 && !isCompletedRef.current && !hasCalledCompletion.current) {
         hasCalledCompletion.current = true
         onCompletionMet()
       }
     }
-  }, [maxWatchedTime, isCompleted, onProgressUpdate, onCompletionMet, checkForEvent])
+  }, [onProgressUpdate, onCompletionMet, checkForEvent])
 
   const handleSeeking = useCallback(() => {
-    if (videoRef.current && videoRef.current.currentTime > maxWatchedTime + 1) {
-      videoRef.current.currentTime = maxWatchedTime
+    if (videoRef.current && videoRef.current.currentTime > maxWatchedRef.current) {
+      videoRef.current.currentTime = maxWatchedRef.current
     }
-  }, [maxWatchedTime])
+  }, [])
 
   const handlePlay = useCallback(() => {
     onStartViewing()
   }, [onStartViewing])
 
   const handleTranscriptClick = (time: number) => {
-    if (videoRef.current && time <= maxWatchedTime) {
+    // Use ref instead of state to avoid stale value lag (M-24)
+    if (videoRef.current && time <= maxWatchedRef.current) {
       videoRef.current.currentTime = time
-      videoRef.current.play()
+      videoRef.current.play().catch(() => {
+        // Auto-play blocked by browser policy — user must interact to play
+      })
     }
   }
 
@@ -108,9 +142,32 @@ export function VideoViewer({
     setIsStalled(false)
   }, [])
 
+  const handleMediaError = useCallback(() => {
+    if (!videoRef.current) return
+    const err = videoRef.current.error
+    let msg = 'Video tidak dapat diputar.'
+    if (err) {
+      switch (err.code) {
+        case MediaError.MEDIA_ERR_NETWORK:
+          // Network error — treat as stall, not fatal
+          setIsStalled(true)
+          return
+        case MediaError.MEDIA_ERR_SRC_NOT_SUPPORTED:
+          msg = 'Format video tidak didukung oleh browser Anda.'
+          break
+        case MediaError.MEDIA_ERR_DECODE:
+          msg = 'Video rusak atau tidak dapat didekode.'
+          break
+        default:
+          msg = 'Terjadi kesalahan saat memuat video.'
+      }
+    }
+    setMediaError(msg)
+  }, [])
+
   useEffect(() => {
     const handleOnline = () => {
-      if (videoRef.current && isStalled) {
+      if (videoRef.current && isStalledRef.current) {
         const currentPos = videoRef.current.currentTime
         videoRef.current.load()
         videoRef.current.currentTime = currentPos
@@ -121,7 +178,7 @@ export function VideoViewer({
     }
     window.addEventListener('online', handleOnline)
     return () => window.removeEventListener('online', handleOnline)
-  }, [isStalled])
+  }, []) // stable — uses ref internally
 
   return (
     <div className="w-full h-full overflow-y-auto custom-scrollbar flex flex-col lg:flex-row md:gap-8 max-w-[1400px] mx-auto p-6 md:p-10">
@@ -150,19 +207,23 @@ export function VideoViewer({
               isCompleted && 'ring-2 ring-green-400/60 dark:ring-green-500/50'
             )}
           >
-            <video
-              ref={videoRef}
-              src={videoUrl}
+            {/* AdaptiveVideoPlayer handles HLS.js + Safari native HLS + MP4 fallback */}
+            <AdaptiveVideoPlayer
+              hlsUrl={resolvedHlsUrl}
+              mp4Url={resolvedMp4Url}
               controls={!activeEvent}
+              videoRef={videoRef}
               onTimeUpdate={handleTimeUpdate}
               onSeeking={handleSeeking}
               onPlay={handlePlay}
               onWaiting={handleWaitingOrStalled}
               onStalled={handleWaitingOrStalled}
-              onError={handleWaitingOrStalled}
+              onError={handleMediaError}
               onCanPlay={handleCanPlay}
-              className="w-full h-full object-cover"
               controlsList="nodownload"
+              aria-label="Video pelajaran"
+              className="w-full h-full"
+              captions={captions}
             />
 
             {/* Interactive Event Overlay */}
@@ -217,6 +278,22 @@ export function VideoViewer({
               )}
             </AnimatePresence>
 
+            {/* Media Error Overlay */}
+            <AnimatePresence>
+              {mediaError && (
+                <motion.div
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                  className="absolute inset-0 bg-black/80 backdrop-blur-sm flex flex-col items-center justify-center text-white z-20 p-6"
+                >
+                  <AlertTriangle className="w-10 h-10 text-red-400 mb-3" />
+                  <h3 className="text-lg font-bold mb-2">Kesalahan Video</h3>
+                  <p className="text-sm text-slate-300 text-center">{mediaError}</p>
+                </motion.div>
+              )}
+            </AnimatePresence>
+
             {/* Completion badge overlay */}
             <AnimatePresence>
               {isCompleted && (
@@ -257,10 +334,7 @@ export function VideoViewer({
               <h3 className="font-bold text-slate-800 dark:text-slate-100 text-base">
                 Tentang Video Ini
               </h3>
-              <button className="hidden sm:flex items-center gap-2 text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-900/30 px-4 py-2 rounded-lg text-sm font-medium hover:bg-blue-100 dark:hover:bg-blue-900/50 transition-colors">
-                <MessageSquare className="w-4 h-4" />
-                Tanyakan di Ruang Diskusi
-              </button>
+              {/* NOTE: Diskusi lesson tersedia di tab Diskusi pada LessonViewer. Lihat DiscussionBoard component. */}
             </div>
             <p className="text-slate-600 dark:text-slate-400 text-sm leading-relaxed">
               Pastikan Anda menonton hingga akhir agar sistem mencatat progres Anda secara otomatis.
@@ -288,6 +362,11 @@ export function VideoViewer({
             <h3 className="font-bold text-slate-800 dark:text-slate-100 flex items-center gap-2">
               <FileText className="w-4 h-4 text-blue-500 dark:text-blue-400" />
               Transkrip Interaktif
+              {captions && captions.length > 0 && (
+                <span className="text-xs bg-blue-100 dark:bg-blue-900/40 text-blue-700 dark:text-blue-300 px-1.5 py-0.5 rounded font-medium">
+                  CC
+                </span>
+              )}
             </h3>
           </div>
           <div className="flex-1 overflow-y-auto p-4 space-y-3 custom-scrollbar">
@@ -302,6 +381,7 @@ export function VideoViewer({
                   key={idx}
                   onClick={() => handleTranscriptClick(transcript.time)}
                   disabled={isLocked}
+                  aria-label={`Lompat ke ${Math.floor(transcript.time / 60)}:${(transcript.time % 60).toString().padStart(2, '0')} — ${transcript.text.slice(0, 50)}`}
                   className={cn(
                     'w-full text-left p-4 rounded-xl transition-all text-sm border',
                     isActive

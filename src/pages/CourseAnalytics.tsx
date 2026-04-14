@@ -1,9 +1,9 @@
 import { ArrowLeft, BarChart3 } from 'lucide-react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 
-import { EmptyState } from '@/src/components/ui'
-import { TeacherAnalyticsDashboard } from '@/src/features/analytics'
-import { usePageTitle } from '@/src/hooks/usePageTitle'
+import { EmptyState } from '@/components/ui'
+import { TeacherAnalyticsDashboard } from '@/features/analytics'
+import { usePageTitle } from '@/hooks/usePageTitle'
 
 export function CourseAnalytics() {
   usePageTitle('Analitik Kursus')
@@ -19,8 +19,8 @@ export function CourseAnalytics() {
           title="Kursus tidak ditemukan"
           description="Parameter courseId tidak tersedia. Silakan akses halaman ini dari menu Analitik."
           action={{
-            label: 'Kembali ke Analitik',
-            onClick: () => navigate('/analytics'),
+            label: 'Kembali',
+            onClick: () => navigate(-1),
           }}
         />
       </div>

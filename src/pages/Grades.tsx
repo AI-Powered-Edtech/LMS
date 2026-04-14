@@ -2,14 +2,14 @@ import { useQuery } from '@tanstack/react-query'
 import { BookOpen, Calculator, ChevronDown, Target, Trophy } from 'lucide-react'
 import { useMemo, useState } from 'react'
 
-import { useAuth } from '@/src/contexts/AuthContext'
-import { useCourses } from '@/src/features/courses/queries/courseQueries'
-import type { Course } from '@/src/features/courses/types'
-import { GradebookSkeleton } from '@/src/features/gradebook/components/GradebookSkeleton'
-import { StudentGradeView } from '@/src/features/gradebook/components/StudentGradeView'
-import { usePageTitle } from '@/src/hooks/usePageTitle'
-import { supabase } from '@/src/services/supabase/client'
-import { cn } from '@/src/utils/cn'
+import { useAuth } from '@/contexts/AuthContext'
+import { useCourses } from '@/features/courses/queries/courseQueries'
+import type { Course } from '@/features/courses/types'
+import { gradebookService } from '@/features/gradebook/api/gradebookService'
+import { GradebookSkeleton } from '@/features/gradebook/components/GradebookSkeleton'
+import { StudentGradeView } from '@/features/gradebook/components/StudentGradeView'
+import { usePageTitle } from '@/hooks/usePageTitle'
+import { cn } from '@/utils/cn'
 
 interface Assignment {
   id: string
@@ -58,23 +58,16 @@ export function Grades() {
   const [selectedCourseId, setSelectedCourseId] = useState<string>('')
   const coursesQuery = useCourses({ limit: 50 })
 
-  const { data: submissionsData = [], isLoading } = useQuery({
+  const { data: submissionsDataRaw, isLoading } = useQuery({
     queryKey: ['student-grades', user?.id, tenantId],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from('assignment_submissions')
-        .select(
-          `id, score, status, submitted_at, assignments!inner(id, title, max_points, classes(name))`
-        )
-        .eq('student_id', user!.id)
-        .eq('tenant_id', tenantId!)
-        .order('submitted_at', { ascending: false })
-        .limit(200)
-      if (error) throw error
-      return data ?? []
+      return await gradebookService.getStudentGrades(user!.id, tenantId!)
     },
     enabled: !!user && !!tenantId,
   })
+
+  // Ensure submissionsData is always an array
+  const submissionsData = Array.isArray(submissionsDataRaw) ? submissionsDataRaw : []
 
   const assignments: Assignment[] = useMemo(() => {
     if (submissionsData.length === 0) return DEFAULT_ASSIGNMENTS
@@ -133,7 +126,7 @@ export function Grades() {
             </h2>
             <div className="relative">
               <select
-                value={selectedCourseId}
+                value={selectedCourseId ?? ''}
                 onChange={(e) => setSelectedCourseId(e.target.value)}
                 className={cn(
                   'appearance-none pl-3 pr-9 py-2 rounded-xl text-sm font-medium',
@@ -179,10 +172,12 @@ export function Grades() {
 
         {/* Dashboard Cards */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <div className="bg-white p-5 rounded-3xl border border-slate-200 shadow-sm flex flex-col justify-center">
+          <div className="bg-white dark:bg-slate-800 p-5 rounded-3xl border border-slate-200 dark:border-slate-700 shadow-sm flex flex-col justify-center">
             <p className="text-sm font-bold text-slate-500 mb-1">Nilai Saat Ini</p>
             <div className="flex items-end gap-2">
-              <span className="text-4xl font-black text-slate-800">{currentGrade.toFixed(1)}</span>
+              <span className="text-4xl font-black text-slate-800 dark:text-slate-200">
+                {currentGrade.toFixed(1)}
+              </span>
               <span className="text-slate-400 font-medium mb-1">/ 100</span>
             </div>
           </div>
@@ -198,7 +193,7 @@ export function Grades() {
             </div>
           </div>
 
-          <div className="bg-white p-5 rounded-3xl border border-slate-200 shadow-sm flex flex-col justify-center">
+          <div className="bg-white dark:bg-slate-800 p-5 rounded-3xl border border-slate-200 dark:border-slate-700 shadow-sm flex flex-col justify-center">
             <div className="flex justify-between items-center mb-1">
               <p className="text-sm font-bold text-slate-500">Target Nilai</p>
               <Target className="w-4 h-4 text-orange-500" />
@@ -208,7 +203,7 @@ export function Grades() {
                 type="number"
                 value={targetGrade}
                 onChange={(e) => setTargetGrade(Number(e.target.value))}
-                className="text-4xl font-black text-slate-800 w-24 bg-transparent outline-none border-b-2 border-dashed border-slate-300 focus:border-orange-500 transition-colors"
+                className="text-4xl font-black text-slate-800 dark:text-white w-24 bg-transparent outline-none border-b-2 border-dashed border-slate-300 dark:border-slate-600 focus:border-orange-500 transition-colors"
                 min="0"
                 max="100"
               />
@@ -225,25 +220,25 @@ export function Grades() {
         </div>
 
         {/* Assignments list */}
-        <div className="bg-white rounded-3xl border border-slate-200 shadow-sm overflow-hidden">
-          <div className="p-5 border-b border-slate-100 flex items-center gap-3 bg-slate-50/50">
-            <div className="w-10 h-10 bg-indigo-100 text-indigo-600 rounded-xl flex items-center justify-center">
+        <div className="bg-white dark:bg-slate-800 rounded-3xl border border-slate-200 dark:border-slate-700 shadow-sm overflow-hidden">
+          <div className="p-5 border-b border-slate-100 dark:border-slate-700 flex items-center gap-3 bg-slate-50/50 dark:bg-slate-800/50">
+            <div className="w-10 h-10 bg-indigo-100 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400 rounded-xl flex items-center justify-center">
               <BookOpen className="w-5 h-5" />
             </div>
             <div>
-              <h2 className="font-bold text-slate-800">Semua Tugas</h2>
+              <h2 className="font-bold text-slate-800 dark:text-slate-200">Semua Tugas</h2>
               <p className="text-xs font-medium text-slate-500">Bobot total: 100%</p>
             </div>
           </div>
 
-          <div className="divide-y divide-slate-100">
+          <div className="divide-y divide-slate-100 dark:divide-slate-700">
             {assignments.map((a) => (
               <div
                 key={a.id}
-                className="p-4 md:p-5 flex flex-col md:flex-row md:items-center justify-between gap-4 hover:bg-slate-50 transition-colors"
+                className="p-4 md:p-5 flex flex-col md:flex-row md:items-center justify-between gap-4 hover:bg-slate-50 dark:hover:bg-slate-700/50 transition-colors"
               >
                 <div className="flex-1">
-                  <h3 className="font-bold text-slate-800">{a.title}</h3>
+                  <h3 className="font-bold text-slate-800 dark:text-slate-200">{a.title}</h3>
                   <p className="text-xs font-medium text-slate-500 mt-1">
                     {a.subject} · Bobot: {a.weight}%
                   </p>
@@ -255,7 +250,7 @@ export function Grades() {
                       <span className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">
                         Nilai Asli
                       </span>
-                      <div className="px-4 py-2 bg-slate-100 text-slate-700 font-bold rounded-xl border border-slate-200">
+                      <div className="px-4 py-2 bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-300 font-bold rounded-xl border border-slate-200 dark:border-slate-600">
                         {a.actualScore} / {a.maxScore}
                       </div>
                     </div>
@@ -266,7 +261,7 @@ export function Grades() {
                         What-If Score
                       </span>
                       <div className="flex items-center gap-2">
-                        <span className="text-xs font-medium text-slate-400 mr-1 bg-slate-100 px-2 py-1 rounded-md">
+                        <span className="text-xs font-medium text-slate-400 mr-1 bg-slate-100 dark:bg-slate-700 px-2 py-1 rounded-md">
                           Belum dinilai
                         </span>
                         <input
@@ -284,7 +279,7 @@ export function Grades() {
                                 : Math.min(a.maxScore, Math.max(0, Number(e.target.value)))
                             setWhatIfScores((prev) => ({ ...prev, [a.id]: v }))
                           }}
-                          className="w-16 px-2 py-1.5 bg-blue-50 border-2 border-blue-200 focus:border-blue-500 text-blue-700 font-bold rounded-lg outline-none text-center transition-colors placeholder:text-blue-300"
+                          className="w-16 px-2 py-1.5 bg-blue-50 dark:bg-blue-900/20 border-2 border-blue-200 dark:border-blue-800 focus:border-blue-500 text-blue-700 dark:text-blue-300 font-bold rounded-lg outline-none text-center transition-colors placeholder:text-blue-300 dark:placeholder:text-blue-700"
                         />
                         <span className="text-slate-400 font-medium text-sm">/ {a.maxScore}</span>
                       </div>
@@ -295,7 +290,7 @@ export function Grades() {
             ))}
           </div>
 
-          <div className="p-5 border-t border-slate-100 bg-slate-50 flex items-center justify-between">
+          <div className="p-5 border-t border-slate-100 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/50 flex items-center justify-between">
             <div>
               <p className="text-sm font-medium text-slate-500">Total Proyeksi Nilai Akhir</p>
               <p className="text-xs text-slate-400 mt-0.5">Gabungan nilai asli dan skor What-If</p>

@@ -2,7 +2,7 @@ import { Compass, Home } from 'lucide-react'
 import { motion } from 'motion/react'
 import { useNavigate } from 'react-router-dom'
 
-import { usePageTitle } from '@/src/hooks/usePageTitle'
+import { usePageTitle } from '@/hooks/usePageTitle'
 
 export function NotFound() {
   usePageTitle('Tidak Ditemukan')

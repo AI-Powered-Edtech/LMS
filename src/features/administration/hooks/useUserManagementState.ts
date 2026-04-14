@@ -8,10 +8,10 @@ import {
   TenantInvitation,
   TenantUser,
   updateUserRole,
-} from '@/src/features/administration/api/adminUserService'
-import { useDebounce } from '@/src/hooks/useDebounce'
-import { useToast } from '@/src/hooks/useToast'
-import { logger } from '@/src/utils/logger'
+} from '@/features/administration/api/adminUserService'
+import { useDebounce } from '@/hooks/useDebounce'
+import { useToast } from '@/hooks/useToast'
+import { logger } from '@/utils/logger'
 
 type Tab = 'users' | 'invitations'
 
@@ -60,11 +60,12 @@ export function useUserManagementState() {
         }
       } catch (err) {
         if (import.meta.env.DEV) logger.error('Failed to fetch users:', err)
+        addToast({ type: 'error', message: 'Gagal memuat daftar pengguna.' })
       } finally {
         setLoading(false)
       }
     },
-    [debouncedSearch, roleFilter]
+    [addToast, debouncedSearch, roleFilter]
   )
 
   const fetchInvitations = useCallback(async () => {
@@ -74,18 +75,19 @@ export function useUserManagementState() {
       setInvitations(data)
     } catch (err) {
       if (import.meta.env.DEV) logger.error('Failed to fetch invitations:', err)
+      addToast({ type: 'error', message: 'Gagal memuat daftar undangan.' })
     } finally {
       setLoading(false)
     }
-  }, [])
+  }, [addToast])
 
   /* eslint-disable react-hooks/exhaustive-deps */
   useEffect(() => {
     if (tab === 'users') {
       setCursor(null)
-      fetchUsers()
+      void fetchUsers()
     } else {
-      fetchInvitations()
+      void fetchInvitations()
     }
   }, [tab, debouncedSearch, roleFilter])
   /* eslint-enable react-hooks/exhaustive-deps */
@@ -124,8 +126,9 @@ export function useUserManagementState() {
   }
 
   const copyInviteLink = (token: string) => {
-    const link = `${window.location.origin}/#/login?invite=${token}`
-    navigator.clipboard.writeText(link)
+    // Gunakan path parameter, bukan query param — mencegah token bocor via browser history & Referer header
+    const link = `${window.location.origin}/invite/${token}`
+    void navigator.clipboard.writeText(link)
   }
 
   const formatDate = (dateStr: string | null) => {

@@ -4,14 +4,16 @@ import {
   Clock,
   Copy,
   GraduationCap,
+  Mail,
   RefreshCw,
   Shield,
   XCircle,
 } from 'lucide-react'
 import React from 'react'
 
-import type { TenantInvitation } from '@/src/features/administration/api/adminUserService'
-import { cn } from '@/src/utils/cn'
+import { EmptyState } from '@/components/ui'
+import type { TenantInvitation } from '@/features/administration/api/adminUserService'
+import { cn } from '@/utils/cn'
 
 const ROLE_CONFIG: Record<
   string,
@@ -65,7 +67,7 @@ export function InvitationsTable({
 }: InvitationsTableProps) {
   return (
     <div className="overflow-x-auto">
-      <table className="w-full text-sm">
+      <table className="w-full text-sm" aria-label="Daftar undangan">
         <thead className="bg-slate-50/80 dark:bg-slate-900/50 text-slate-500 dark:text-slate-400 text-xs uppercase tracking-wider">
           <tr>
             <th className="px-6 py-3 text-left">Email</th>
@@ -85,8 +87,12 @@ export function InvitationsTable({
             </tr>
           ) : invitations.length === 0 ? (
             <tr>
-              <td colSpan={5} className="px-6 py-12 text-center text-slate-400 dark:text-slate-500">
-                Belum ada undangan. Klik "Undang Pengguna" untuk mulai.
+              <td colSpan={5}>
+                <EmptyState
+                  icon={<Mail className="w-8 h-8" />}
+                  title="Belum ada undangan"
+                  description="Undang pengguna baru menggunakan tombol di atas"
+                />
               </td>
             </tr>
           ) : (

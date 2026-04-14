@@ -1,21 +1,22 @@
 import { CheckCircle, HelpCircle, Loader2, Search, Trophy, Zap } from 'lucide-react'
 import { AnimatePresence } from 'motion/react'
 
-import { AttemptDetailModal } from '@/src/components/AttemptDetailModal'
-import { FeatureErrorBoundary } from '@/src/components/FeatureErrorBoundary'
-import { QuizPlayer } from '@/src/features/quizzes/components/player/QuizPlayer'
-import { QuizSkeleton } from '@/src/features/quizzes/components/QuizSkeleton'
-import { QuizAnswerReview } from '@/src/features/quizzes/components/student/QuizAnswerReview'
-import { QuizAttemptCard } from '@/src/features/quizzes/components/student/QuizAttemptCard'
-import { QuizCard } from '@/src/features/quizzes/components/student/QuizCard'
-import { QuizResultsView } from '@/src/features/quizzes/components/student/QuizResultsView'
-import { StartQuizModal } from '@/src/features/quizzes/components/student/StartQuizModal'
-import { useQuizPageState } from '@/src/features/quizzes/hooks/useQuizPageState'
-import { usePageTitle } from '@/src/hooks/usePageTitle'
-import { cn } from '@/src/utils/cn'
+import { AttemptDetailModal } from '@/components/AttemptDetailModal'
+import { FeatureErrorBoundary } from '@/components/FeatureErrorBoundary'
+import { EmptyState } from '@/components/ui'
+import { QuizPlayer } from '@/features/quizzes/components/player/QuizPlayer'
+import { QuizSkeleton } from '@/features/quizzes/components/QuizSkeleton'
+import { QuizAnswerReview } from '@/features/quizzes/components/student/QuizAnswerReview'
+import { QuizAttemptCard } from '@/features/quizzes/components/student/QuizAttemptCard'
+import { QuizCard } from '@/features/quizzes/components/student/QuizCard'
+import { QuizResultsView } from '@/features/quizzes/components/student/QuizResultsView'
+import { StartQuizModal } from '@/features/quizzes/components/student/StartQuizModal'
+import { useQuizPageState } from '@/features/quizzes/hooks/useQuizPageState'
+import { usePageTitle } from '@/hooks/usePageTitle'
+import { cn } from '@/utils/cn'
 
 export function QuizModule() {
-  usePageTitle('Quiz Module')
+  usePageTitle('Modul Kuis')
   const {
     searchQuery,
     setSearchQuery,
@@ -105,7 +106,7 @@ export function QuizModule() {
           initialAnswers={initialAnswers}
           initialQuestionIndex={initialQuestionIndex}
           isSubmitting={isSubmitting}
-          onSubmit={() => handleSubmitQuiz(initialAnswers)}
+          onSubmit={(answers) => handleSubmitQuiz(answers)}
         />
       </FeatureErrorBoundary>
     )
@@ -253,8 +254,10 @@ export function QuizModule() {
         </div>
       </div>
 
-      <div className="flex gap-2 border-b border-slate-200 dark:border-slate-700">
+      <div className="flex gap-2 border-b border-slate-200 dark:border-slate-700" role="tablist">
         <button
+          role="tab"
+          aria-selected={activeTab === 'available'}
           onClick={() => setActiveTab('available')}
           className={cn(
             'px-4 py-2 font-bold text-sm border-b-2 transition-colors',
@@ -266,6 +269,8 @@ export function QuizModule() {
           Tersedia
         </button>
         <button
+          role="tab"
+          aria-selected={activeTab === 'completed'}
           onClick={() => setActiveTab('completed')}
           className={cn(
             'px-4 py-2 font-bold text-sm border-b-2 transition-colors',
@@ -303,8 +308,12 @@ export function QuizModule() {
               )
             })
           ) : (
-            <div className="col-span-1 md:col-span-2 lg:col-span-3 text-center py-10 text-slate-500 dark:text-slate-400">
-              Belum ada kuis yang tersedia.
+            <div className="col-span-1 md:col-span-2 lg:col-span-3">
+              <EmptyState
+                icon={<HelpCircle className="w-8 h-8" />}
+                title="Belum ada kuis yang tersedia"
+                description="Kuis dari pengajar Anda akan muncul di sini."
+              />
             </div>
           )}
         </div>
@@ -326,9 +335,11 @@ export function QuizModule() {
               />
             ))
           ) : (
-            <div className="text-center py-10 text-slate-500 dark:text-slate-400">
-              Anda belum menyelesaikan kuis apapun.
-            </div>
+            <EmptyState
+              icon={<CheckCircle className="w-8 h-8" />}
+              title="Anda belum menyelesaikan kuis apapun"
+              description="Selesaikan kuis dari tab Tersedia untuk melihat hasilnya di sini."
+            />
           )}
         </div>
       )}

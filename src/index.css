@@ -1,9 +1,14 @@
+@import 'tailwindcss';
 
-@import "tailwindcss";
+/* ─── Dark Mode: class-based (html.dark) ─────────────────────
+   Tailwind v4 defaults toj @media (prefers-color-scheme: dark).
+   This overrides it so `dark:` variants respond to the .dark
+   class added/removed by ThemeContext on <html>.              */
+@variant dark (&:where(.dark, .dark *));
 
 @theme {
-  --font-sans: "Nunito", ui-sans-serif, system-ui, sans-serif;
-  --font-body: "Inter", ui-sans-serif, system-ui, sans-serif;
+  --font-sans: 'Nunito', ui-sans-serif, system-ui, sans-serif;
+  --font-body: 'Inter', ui-sans-serif, system-ui, sans-serif;
 }
 
 @layer utilities {
@@ -55,7 +60,8 @@
   }
 }
 
-html, body {
+html,
+body {
   overflow-x: hidden;
 }
 
@@ -81,4 +87,69 @@ h5,
 h6,
 .font-bold {
   font-family: var(--font-sans);
+}
+
+/* ============================================================
+   High Contrast Mode (WCAG 1.4.3 — Contrast)
+   ============================================================ */
+.high-contrast {
+  --contrast-bg: #ffffff;
+  --contrast-text: #000000;
+  --contrast-border: #000000;
+  --contrast-focus: #0000ff;
+}
+
+.dark.high-contrast {
+  --contrast-bg: #000000;
+  --contrast-text: #ffffff;
+  --contrast-border: #ffffff;
+  --contrast-focus: #ffff00;
+}
+
+.high-contrast *:focus-visible {
+  outline: 3px solid var(--contrast-focus) !important;
+  outline-offset: 2px !important;
+}
+
+.high-contrast button,
+.high-contrast a,
+.high-contrast input,
+.high-contrast select,
+.high-contrast textarea {
+  border: 2px solid var(--contrast-border) !important;
+}
+
+/* Font size variants */
+[data-font-size='sm'] {
+  font-size: 14px;
+}
+[data-font-size='md'] {
+  font-size: 16px;
+}
+[data-font-size='lg'] {
+  font-size: 18px;
+}
+
+/* WCAG 2.4.1 — Skip navigation link */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border-width: 0;
+}
+
+.focus\:not-sr-only:focus {
+  position: fixed;
+  width: auto;
+  height: auto;
+  padding: revert;
+  margin: revert;
+  overflow: visible;
+  clip: auto;
+  white-space: normal;
 }

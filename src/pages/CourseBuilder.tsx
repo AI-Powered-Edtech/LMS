@@ -1,9 +1,14 @@
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 
-import { BuilderSidebar, BuilderTopBar, LessonBlockEditor } from '@/src/components/CourseBuilder'
-import { BuilderProvider, useBuilder } from '@/src/contexts/BuilderContext'
-import { usePageTitle } from '@/src/hooks/usePageTitle'
+import { BuilderSidebar, BuilderTopBar, LessonBlockEditor } from '@/components/CourseBuilder'
+import { useAuth } from '@/contexts/AuthContext'
+import { BuilderProvider, useBuilder } from '@/contexts/BuilderContext'
+import { CourseBuilderAICopilotDrawer } from '@/features/ai-builder-copilot/components/CourseBuilderAICopilotDrawer'
+import { useAICopilotFeatureGate } from '@/features/ai-builder-copilot/hooks/useAICopilotFeatureGate'
+import { useBuilderAICopilotStore } from '@/features/ai-builder-copilot/store/builderAICopilot.store'
+import { CourseReleasePanel } from '@/features/courses/components/CourseReleasePanel'
+import { usePageTitle } from '@/hooks/usePageTitle'
 
 /**
  * CourseBuilderPage — The actual builder UI.
@@ -12,15 +17,48 @@ import { usePageTitle } from '@/src/hooks/usePageTitle'
 function CourseBuilderPage() {
   const [searchParams] = useSearchParams()
   const navigate = useNavigate()
+  const { role } = useAuth()
   const courseId = searchParams.get('courseId')
   const { state, actions } = useBuilder()
+  const { enabled: copilotEnabled } = useAICopilotFeatureGate()
+  const copilotIsOpen = useBuilderAICopilotStore((s) => s.isOpen)
+  const openCopilotDrawer = useBuilderAICopilotStore((s) => s.openDrawer)
+  const closeCopilotDrawer = useBuilderAICopilotStore((s) => s.closeDrawer)
+  const [activePanel, setActivePanel] = useState<'none' | 'release' | 'copilot'>('none')
 
+  const releasePanelOpen = activePanel === 'release'
+  const drawerOpen = activePanel === 'copilot'
+
+  const toggleReleasePanel = () =>
+    setActivePanel((prev) => (prev === 'release' ? 'none' : 'release'))
+
+  const toggleCopilot = () => {
+    if (activePanel === 'copilot') {
+      setActivePanel('none')
+      closeCopilotDrawer()
+      return
+    }
+
+    setActivePanel('copilot')
+    openCopilotDrawer()
+  }
+
+  // Auto-load course from URL param
   useEffect(() => {
-    // Prevent infinite loop if `actions` object changes on every render or if already loading
     if (courseId && !state.courseId && !state.loadingCourse && !state.error) {
-      actions.loadCourse(courseId)
+      void actions.loadCourse(courseId)
     }
   }, [courseId, state.courseId, state.loadingCourse, state.error, actions])
+
+  useEffect(() => {
+    if (copilotIsOpen && activePanel !== 'copilot') {
+      setActivePanel('copilot')
+    }
+
+    if (!copilotIsOpen && activePanel === 'copilot') {
+      setActivePanel('none')
+    }
+  }, [activePanel, copilotIsOpen])
 
   if (!courseId) {
     return (
@@ -49,7 +87,10 @@ function CourseBuilderPage() {
             Materi.
           </p>
           <button
-            onClick={() => navigate('/app/teacher/courses')}
+            data-testid="coursebuilder-back-button"
+            onClick={() =>
+              navigate(role === 'admin' ? '/app/admin/courses' : '/app/teacher/courses')
+            }
             className="min-h-[44px] px-6 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-medium transition-colors shadow-sm"
           >
             Kembali ke Kelola Materi
@@ -90,21 +131,47 @@ function CourseBuilderPage() {
   return (
     <div className="flex flex-col h-[calc(100vh-4rem)] -mx-6 -mt-6 bg-slate-50 dark:bg-slate-900 overflow-hidden">
       <a
+        data-testid="coursebuilder-skip-link"
         href="#builder-main"
         className="sr-only focus:not-sr-only focus:absolute focus:top-2 focus:left-2 focus:z-50 focus:px-4 focus:py-2 focus:bg-indigo-600 focus:text-white focus:rounded-lg focus:shadow-lg"
       >
         Langsung ke konten
       </a>
       <header>
-        <BuilderTopBar />
+        <BuilderTopBar
+          data-testid="coursebuilder-topbar"
+          releasePanelOpen={releasePanelOpen}
+          onToggleReleasePanel={toggleReleasePanel}
+          copilotOpen={drawerOpen}
+          onToggleCopilot={copilotEnabled ? toggleCopilot : undefined}
+        />
       </header>
-      <div className="flex flex-1 min-h-0 overflow-x-auto">
+      <div className="flex flex-1 min-h-0 overflow-hidden">
         <nav aria-label="Struktur kursus">
-          <BuilderSidebar />
+          <BuilderSidebar data-testid="coursebuilder-sidebar" />
         </nav>
-        <main id="builder-main" aria-label="Editor konten">
+        <main
+          id="builder-main"
+          aria-label="Editor konten"
+          data-testid="coursebuilder-editor"
+          className="flex-1 min-w-0 overflow-auto"
+        >
           <LessonBlockEditor />
         </main>
+        {drawerOpen && (
+          <CourseBuilderAICopilotDrawer
+            onClose={() => {
+              setActivePanel('none')
+              closeCopilotDrawer()
+            }}
+          />
+        )}
+        {releasePanelOpen && (
+          <CourseReleasePanel
+            data-testid="coursebuilder-release-panel"
+            onClose={() => setActivePanel('none')}
+          />
+        )}
       </div>
     </div>
   )
