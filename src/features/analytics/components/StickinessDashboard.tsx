@@ -13,37 +13,38 @@ export function StickinessDashboard({ data }: StickinessDashboardProps) {
   const { resolvedTheme } = useTheme()
   const isDark = resolvedTheme === 'dark'
   const metrics = useMemo(() => {
-    const cohortWeeks = [...new Set(data.map((r) => r.cohort_week))]
+    const week1Rates: number[] = []
+    const week4Rates: number[] = []
+    const trendDataMap: Record<string, number> = {}
 
-    const week1Rates = cohortWeeks
-      .map((w) => data.find((r) => r.cohort_week === w && r.period_offset === 1)?.retention_rate)
-      .filter((r): r is number => r !== null && r !== undefined)
+    let week1Sum = 0
+    let week4Sum = 0
 
-    const week4Rates = cohortWeeks
-      .map((w) => data.find((r) => r.cohort_week === w && r.period_offset === 4)?.retention_rate)
-      .filter((r): r is number => r !== null && r !== undefined)
+    for (let i = 0; i < data.length; i++) {
+      const row = data[i]
+      if (row.period_offset === 1 && row.retention_rate != null) {
+        week1Rates.push(row.retention_rate)
+        week1Sum += row.retention_rate
+        trendDataMap[row.cohort_week] = row.retention_rate
+      } else if (row.period_offset === 4 && row.retention_rate != null) {
+        week4Rates.push(row.retention_rate)
+        week4Sum += row.retention_rate
+      }
+    }
 
-    const avgWeek1 =
-      week1Rates.length > 0
-        ? Math.round(week1Rates.reduce((s, r) => s + r, 0) / week1Rates.length)
-        : null
-    const avgWeek4 =
-      week4Rates.length > 0
-        ? Math.round(week4Rates.reduce((s, r) => s + r, 0) / week4Rates.length)
-        : null
+    const avgWeek1 = week1Rates.length > 0 ? Math.round(week1Sum / week1Rates.length) : null
+    const avgWeek4 = week4Rates.length > 0 ? Math.round(week4Sum / week4Rates.length) : null
 
     // Trend: week 1 retention by cohort week (sorted asc)
-    const trendData = cohortWeeks
+    const trendData = Object.keys(trendDataMap)
       .sort()
       .map((w) => {
-        const r = data.find((row) => row.cohort_week === w && row.period_offset === 1)
         const d = new Date(w)
         return {
           week: `${d.getDate()}/${d.getMonth() + 1}`,
-          rate: r?.retention_rate ?? null,
+          rate: trendDataMap[w],
         }
       })
-      .filter((d) => d.rate !== null)
 
     return { avgWeek1, avgWeek4, trendData }
   }, [data])
