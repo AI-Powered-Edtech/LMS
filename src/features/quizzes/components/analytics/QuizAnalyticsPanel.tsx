@@ -1,9 +1,10 @@
 // Quiz Analytics Panel Component
 // Container that composes quiz stats overview and question difficulty chart
 // Only visible for TEACHER role
-
 import { BarChart3, Loader2 } from 'lucide-react'
 import { useEffect, useState } from 'react'
+
+import { logger } from '@/src/utils/logger'
 
 import {
   getQuestionStats,
@@ -39,7 +40,7 @@ export function QuizAnalyticsPanel({ quizId, className }: QuizAnalyticsPanelProp
         setQuizStats(quiz)
         setQuestionStats(questions)
       } catch (err) {
-        if (import.meta.env.DEV) console.error('Failed to load quiz analytics:', err)
+        if (import.meta.env.DEV) logger.error('Failed to load quiz analytics:', err)
         setError('Gagal memuat statistik kuis')
       } finally {
         setIsLoading(false)

@@ -1,4 +1,5 @@
 import { supabase } from '@/src/services/supabase/client'
+import { logger } from '@/src/utils/logger'
 
 import type { LessonStatus, StruggleAlert, StruggleConfig } from '../types'
 
@@ -11,7 +12,7 @@ export const struggleService = {
   async getStruggleConfig(_tenantId: string): Promise<StruggleConfig | null> {
     const { data, error } = await supabase.rpc('get_struggle_config')
     if (error) {
-      if (import.meta.env.DEV) console.error('[struggleService] getStruggleConfig:', error)
+      if (import.meta.env.DEV) logger.error('[struggleService] getStruggleConfig:', error)
       throw error
     }
     return (data as StruggleConfig) ?? null
@@ -29,7 +30,7 @@ export const struggleService = {
       p_cooldown_hours: updates.cooldown_hours,
     })
     if (error) {
-      if (import.meta.env.DEV) console.error('[struggleService] updateStruggleConfig:', error)
+      if (import.meta.env.DEV) logger.error('[struggleService] updateStruggleConfig:', error)
       throw error
     }
   },
@@ -51,7 +52,7 @@ export const struggleService = {
       p_limit: options?.limit ?? 50,
     })
     if (error) {
-      if (import.meta.env.DEV) console.error('[struggleService] getStruggleAlerts:', error)
+      if (import.meta.env.DEV) logger.error('[struggleService] getStruggleAlerts:', error)
       throw error
     }
     return (data as StruggleAlert[]) ?? []
@@ -66,7 +67,7 @@ export const struggleService = {
       p_alert_ids: alertIds,
     })
     if (error) {
-      if (import.meta.env.DEV) console.error('[struggleService] markAlertsRead:', error)
+      if (import.meta.env.DEV) logger.error('[struggleService] markAlertsRead:', error)
       throw error
     }
   },
@@ -79,7 +80,7 @@ export const struggleService = {
       p_lesson_id: lessonId,
     })
     if (error) {
-      if (import.meta.env.DEV) console.error('[struggleService] getMyLessonStatus:', error)
+      if (import.meta.env.DEV) logger.error('[struggleService] getMyLessonStatus:', error)
       throw error
     }
     return (data as LessonStatus) ?? null

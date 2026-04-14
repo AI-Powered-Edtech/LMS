@@ -1,4 +1,5 @@
 import { supabase } from '@/src/services/supabase/client'
+import { logger } from '@/src/utils/logger'
 
 import { Lesson, LessonProgress, ProgressQueueItem, SignedProgressQueue } from '../types'
 
@@ -76,7 +77,7 @@ async function loadSecureQueue(): Promise<ProgressQueueItem[]> {
   } catch (e) {
     if (import.meta.env.DEV)
       if (import.meta.env.DEV)
-        console.warn('[Offline Queue] Invalid or unauthorized queue detected, clearing.', e)
+        logger.warn('[Offline Queue] Invalid or unauthorized queue detected, clearing.', e)
     localStorage.removeItem(QUEUE_KEY)
     return []
   }
@@ -87,7 +88,7 @@ async function saveSecureQueue(queue: ProgressQueueItem[]): Promise<void> {
   if (!sessionKey) {
     if (import.meta.env.DEV)
       if (import.meta.env.DEV)
-        console.warn('[Offline Queue] Cannot save queue without active session')
+        logger.warn('[Offline Queue] Cannot save queue without active session')
     return
   }
 
@@ -149,7 +150,7 @@ export const lessonService = {
     }
 
     if (rpcError && rpcError.code !== 'PGRST202') {
-      if (import.meta.env.DEV) console.error('Error fetching lesson snapshot:', rpcError)
+      if (import.meta.env.DEV) logger.error('Error fetching lesson snapshot:', rpcError)
     }
 
     // Fallback: direct query (works without migration 803)
@@ -175,7 +176,7 @@ export const lessonService = {
       .maybeSingle()
 
     if (error) {
-      if (import.meta.env.DEV) console.error('Error fetching lesson:', error)
+      if (import.meta.env.DEV) logger.error('Error fetching lesson:', error)
       return null
     }
 
@@ -216,7 +217,7 @@ export const lessonService = {
       .order('order')
 
     if (lessonsError) {
-      if (import.meta.env.DEV) console.error('Error fetching module lessons:', lessonsError)
+      if (import.meta.env.DEV) logger.error('Error fetching module lessons:', lessonsError)
       return { lessons: [], progress: {} }
     }
 
@@ -231,7 +232,7 @@ export const lessonService = {
       .in('lesson_id', lessonIds)
 
     if (progressError) {
-      if (import.meta.env.DEV) console.error('Error fetching lesson progress:', progressError)
+      if (import.meta.env.DEV) logger.error('Error fetching lesson progress:', progressError)
     }
 
     // Index progress by lesson_id
@@ -283,7 +284,7 @@ export const lessonService = {
     })
 
     if (error) {
-      if (import.meta.env.DEV) console.error('Error updating progress:', error)
+      if (import.meta.env.DEV) logger.error('Error updating progress:', error)
       throw error
     }
   },
@@ -317,7 +318,7 @@ export const lessonService = {
     } catch {
       if (import.meta.env.DEV)
         if (import.meta.env.DEV)
-          console.warn('[Offline Queue] Network error, queuing progress for lesson', lessonId)
+          logger.warn('[Offline Queue] Network error, queuing progress for lesson', lessonId)
 
       let queue: ProgressQueueItem[] = await loadSecureQueue()
 
@@ -384,7 +385,7 @@ export const lessonService = {
         } catch {
           if (import.meta.env.DEV)
             if (import.meta.env.DEV)
-              console.warn('[Offline Queue] Failed to sync item, re-queuing', item.lessonId)
+              logger.warn('[Offline Queue] Failed to sync item, re-queuing', item.lessonId)
           remainingQueue.push(item)
         }
       }
@@ -427,7 +428,7 @@ export const lessonService = {
       .maybeSingle()
 
     if (error) {
-      if (import.meta.env.DEV) console.error('Error fetching progress:', error)
+      if (import.meta.env.DEV) logger.error('Error fetching progress:', error)
       return null
     }
 

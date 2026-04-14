@@ -20,6 +20,7 @@ import { useGradebook } from '@/src/features/gradebook/hooks/useGradebookQueries
 import { usePageTitle } from '@/src/hooks/usePageTitle'
 import { useToast } from '@/src/hooks/useToast'
 import { supabase } from '@/src/services/supabase/client'
+import { logger } from '@/src/utils/logger'
 
 export function SpeedGrader() {
   usePageTitle('Speed Grader')
@@ -73,12 +74,12 @@ export function SpeedGrader() {
       const { data: assignment, error: assignmentError } = await assignmentQuery.single()
       if (assignmentError || !assignment) {
         if (import.meta.env.DEV)
-          console.error('Assignment not found or access denied:', assignmentError)
+          logger.error('Assignment not found or access denied:', assignmentError)
         setIsLoading(false)
         return
       }
     } catch (authError) {
-      if (import.meta.env.DEV) console.error('Authorization check failed:', authError)
+      if (import.meta.env.DEV) logger.error('Authorization check failed:', authError)
       setIsLoading(false)
       return
     }
@@ -92,7 +93,7 @@ export function SpeedGrader() {
       if (tenantId) query = query.eq('tenant_id', tenantId)
 
       const { data: submission, error } = await query.maybeSingle()
-      if (error && import.meta.env.DEV) console.warn('Could not load submission:', error)
+      if (error && import.meta.env.DEV) logger.warn('Could not load submission:', error)
 
       setSubmissionText(submission?.submission_text || '')
       const existingGrade = grades[currentStudent.id]?.[assignmentId]
@@ -102,7 +103,7 @@ export function SpeedGrader() {
       setZoom(100)
       setActiveTool('pointer')
     } catch (err) {
-      if (import.meta.env.DEV) console.warn('Error loading submission:', err)
+      if (import.meta.env.DEV) logger.warn('Error loading submission:', err)
       setSubmissionText('')
     } finally {
       setIsLoading(false)
@@ -199,7 +200,7 @@ export function SpeedGrader() {
       setScores(newScores)
       setFeedback(aggregatedFeedback.trim())
     } catch (error: unknown) {
-      if (import.meta.env.DEV) console.error('AI Grading failed:', error)
+      if (import.meta.env.DEV) logger.error('AI Grading failed:', error)
       addToast({
         type: 'error',
         message:

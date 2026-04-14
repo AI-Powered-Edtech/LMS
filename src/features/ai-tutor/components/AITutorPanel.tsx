@@ -4,7 +4,6 @@
  * Main chat interface for AI Tutor within the Smart Player.
  * Provides contextual help based on the current lesson.
  */
-
 import { Bot, Lightbulb, Sparkles, User } from 'lucide-react'
 import { AnimatePresence, motion } from 'motion/react'
 import { useEffect, useRef, useState } from 'react'
@@ -23,6 +22,7 @@ import {
   getDifficultyColor,
 } from '@/src/features/ai-tutor'
 import { cn } from '@/src/utils/cn'
+import { logger } from '@/src/utils/logger'
 import { aiTutorRateLimiter } from '@/src/utils/rateLimiter'
 
 import { AITutorInput } from './AITutorInput'
@@ -143,7 +143,7 @@ export function AITutorPanel({
       // Remove used suggested question if matches
       setSuggestedQuestions((prev) => prev.filter((q) => q !== question))
     } catch (err) {
-      if (import.meta.env.DEV) console.error('[AI Tutor] Unexpected error:', err)
+      if (import.meta.env.DEV) logger.error('[AI Tutor] Unexpected error:', err)
       const errorMessage: AITutorMessage = {
         id: generateMessageId(),
         role: 'assistant',

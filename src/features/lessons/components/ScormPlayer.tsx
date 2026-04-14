@@ -3,6 +3,7 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 
 import { useAuth } from '@/src/contexts/AuthContext'
 import { supabase } from '@/src/services/supabase/client'
+import { logger } from '@/src/utils/logger'
 
 import {
   createScormBridge,
@@ -74,10 +75,10 @@ export function ScormPlayer({
         })
 
         if (error) {
-          console.error('[ScormPlayer] upsert_scorm_runtime error:', error)
+          logger.error('[ScormPlayer] upsert_scorm_runtime error:', error)
         }
       } catch (err) {
-        console.error('[ScormPlayer] persistState error:', err)
+        logger.error('[ScormPlayer] persistState error:', err)
       }
     },
     [user, tenantId, scormPackageId]
@@ -243,7 +244,7 @@ export function ScormPlayer({
         setPlayerState('ready')
       } catch (err) {
         if (cancelled) return
-        console.error('[ScormPlayer] init error:', err)
+        logger.error('[ScormPlayer] init error:', err)
         setPlayerState('error')
         setErrorMessage('Gagal memuat konten SCORM.')
       }

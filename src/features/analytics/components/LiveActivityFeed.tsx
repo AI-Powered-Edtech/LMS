@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from 'react'
 
 import { useAuth } from '@/src/contexts/AuthContext'
 import { supabase } from '@/src/services/supabase/client'
+import { logger } from '@/src/utils/logger'
 
 interface LiveEvent {
   id: string
@@ -78,7 +79,7 @@ export function LiveActivityFeed({
           setIsConnected(true)
         }
       } catch (err) {
-        console.error('Failed to fetch live events', err)
+        logger.error('Failed to fetch live events', err)
         if (isMounted) setIsConnected(false)
       }
     }

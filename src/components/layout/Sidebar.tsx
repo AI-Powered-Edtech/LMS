@@ -8,6 +8,7 @@ import { ModuleId, useModuleConfig } from '@/src/hooks/useModuleConfig'
 import { useToast } from '@/src/hooks/useToast'
 import { navigationItems } from '@/src/shared/config/navigation'
 import { cn } from '@/src/utils/cn'
+import { logger } from '@/src/utils/logger'
 
 export function Sidebar() {
   const { addToast } = useToast()
@@ -44,7 +45,7 @@ export function Sidebar() {
       setIsAddingClassroom(false)
       setIsClassroomDropdownOpen(false)
     } catch (err: unknown) {
-      if (import.meta.env.DEV) console.error('[Sidebar] Failed to create class:', err)
+      if (import.meta.env.DEV) logger.error('[Sidebar] Failed to create class:', err)
       addToast({
         type: 'error',
         message: `Gagal membuat kelas: ${err instanceof Error ? err.message : 'Terjadi kesalahan.'}`,
@@ -208,7 +209,7 @@ export function Sidebar() {
             try {
               await signOut()
             } catch (e) {
-              if (import.meta.env.DEV) console.error('[Sidebar] signOut error:', e)
+              if (import.meta.env.DEV) logger.error('[Sidebar] signOut error:', e)
             } finally {
               navigate('/login')
             }

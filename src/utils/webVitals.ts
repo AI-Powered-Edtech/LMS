@@ -1,10 +1,10 @@
 // EduSync LMS — Core Web Vitals monitoring
 // Dev: coloured console badges. Prod: 10 % sample → activity_events table.
-
 import type { Metric } from 'web-vitals'
 import { onCLS, onFCP, onINP, onLCP, onTTFB } from 'web-vitals'
 
 import { supabase } from '@/src/services/supabase/client'
+import { logger } from '@/src/utils/logger'
 
 /* ─── Helpers ──────────────────────────────────────────────── */
 
@@ -28,7 +28,7 @@ function logMetricDev(metric: Metric): void {
   const color = badgeColors[metric.name] ?? '#6b7280'
 
   if (import.meta.env.DEV) {
-    console.log(
+    logger.info(
       `%c ${metric.name} %c ${metric.value.toFixed(1)} ${ratingEmoji(metric.rating)}`,
       `background:${color};color:#fff;padding:2px 6px;border-radius:3px;font-weight:bold`,
       'color:inherit'

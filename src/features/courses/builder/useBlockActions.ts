@@ -3,6 +3,7 @@ import { type Dispatch, type MutableRefObject, useCallback } from 'react'
 import { builderBlockService } from '@/src/features/courses/api/builder/blockService'
 import { useToast } from '@/src/hooks/useToast'
 import { DomainBlock } from '@/src/shared/types/blockTypes'
+import { logger } from '@/src/utils/logger'
 
 import type { BuilderAction, BuilderState } from './builderReducer'
 import type { PresenceData } from './useBuilderPresence'
@@ -29,7 +30,7 @@ export function useBlockActions(
         dispatch({ type: 'ADD_BLOCK', block })
         broadcast?.({ type: 'ADD_BLOCK', block }, userName ?? '')
       } catch (err: unknown) {
-        if (import.meta.env.DEV) console.error('Failed to add block:', err)
+        if (import.meta.env.DEV) logger.error('Failed to add block:', err)
         addToast({
           type: 'error',
           message:
@@ -74,7 +75,7 @@ export function useBlockActions(
       if (getBlockLocker) {
         const locker = getBlockLocker(blockId)
         if (locker) {
-          console.warn(
+          logger.warn(
             `Block ${blockId} sedang diedit oleh ${locker.fullName}, melewati penyimpanan`
           )
           return
@@ -123,7 +124,7 @@ export function useBlockActions(
         await builderBlockService.deleteBlock(blockId, tenantId)
         broadcast?.({ type: 'DELETE_BLOCK', blockId }, userName ?? '')
       } catch (err: unknown) {
-        if (import.meta.env.DEV) console.error('Failed to delete block:', err)
+        if (import.meta.env.DEV) logger.error('Failed to delete block:', err)
         addToast({
           type: 'error',
           message:
@@ -151,7 +152,7 @@ export function useBlockActions(
         await builderBlockService.reorderBlocks(state.activeLesson!.id, blockIds, tenantId!)
         broadcast?.({ type: 'SET_BLOCKS', blocks: reordered as DomainBlock[] }, userName ?? '')
       } catch (error: unknown) {
-        if (import.meta.env.DEV) console.error('Failed to reorder blocks', error)
+        if (import.meta.env.DEV) logger.error('Failed to reorder blocks', error)
         dispatch({ type: 'SET_BLOCKS', blocks: previousBlocks })
         addToast({
           type: 'error',

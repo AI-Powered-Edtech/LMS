@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 
 import { useAuth } from '@/src/contexts/AuthContext'
 import { assignmentService } from '@/src/features/assignments/api/assignmentService'
+import { logger } from '@/src/utils/logger'
 
 import { AssignmentUiState, StudentSubmission } from '../types'
 
@@ -124,7 +125,7 @@ export function useAssignments() {
         setAssignments(mapped)
       }
     } catch (error) {
-      if (import.meta.env.DEV) console.error('Failed to load assignments', error)
+      if (import.meta.env.DEV) logger.error('Failed to load assignments', error)
     } finally {
       setLoading(false)
     }

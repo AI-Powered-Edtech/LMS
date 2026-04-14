@@ -16,6 +16,7 @@ import {
   AssignmentSubmission,
 } from '@/src/features/assignments/api/assignmentService'
 import { cn } from '@/src/utils/cn'
+import { logger } from '@/src/utils/logger'
 
 interface AssignmentViewerProps {
   assignmentId: string
@@ -65,7 +66,7 @@ export function AssignmentViewer({
           setMaxAttempt(sub.attempt_number || 1)
         }
       } catch (err: unknown) {
-        if (import.meta.env.DEV) console.error('Error loading submission:', err)
+        if (import.meta.env.DEV) logger.error('Error loading submission:', err)
       } finally {
         setIsLoading(false)
       }

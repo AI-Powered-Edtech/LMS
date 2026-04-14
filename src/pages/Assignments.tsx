@@ -23,6 +23,7 @@ import { useGradebook } from '@/src/features/gradebook/hooks/useGradebookQueries
 import { useSendNotification } from '@/src/features/notifications'
 import { useDebounce } from '@/src/hooks/useDebounce'
 import { usePageTitle } from '@/src/hooks/usePageTitle'
+import { logger } from '@/src/utils/logger'
 
 export function Assignments() {
   const addToast = useToast((s) => s.addToast)
@@ -131,7 +132,7 @@ export function Assignments() {
       await refetch()
       setSelectedFiles((prev) => ({ ...prev, [id]: null }))
     } catch (error) {
-      if (import.meta.env.DEV) console.error('Failed to turn in assignment', error)
+      if (import.meta.env.DEV) logger.error('Failed to turn in assignment', error)
       addToast({ type: 'error', message: 'Gagal menyerahkan tugas.' })
     } finally {
       clearInterval(progressInterval)

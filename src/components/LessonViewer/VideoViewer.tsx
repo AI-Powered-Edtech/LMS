@@ -5,6 +5,7 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 import { useInteractiveVideoEvents } from '@/src/features/lessons/hooks/useInteractiveVideoEvents'
 import { QuizViewer } from '@/src/features/quizzes/components/QuizViewer'
 import { cn } from '@/src/utils/cn'
+import { logger } from '@/src/utils/logger'
 
 interface Transcript {
   time: number
@@ -114,7 +115,7 @@ export function VideoViewer({
         videoRef.current.load()
         videoRef.current.currentTime = currentPos
         videoRef.current.play().catch((e) => {
-          if (import.meta.env.DEV) console.error('Recovery play failed', e)
+          if (import.meta.env.DEV) logger.error('Recovery play failed', e)
         })
       }
     }

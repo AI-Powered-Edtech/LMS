@@ -18,6 +18,7 @@ import { AdministrationSkeleton } from '@/src/features/administration/components
 import { usePageTitle } from '@/src/hooks/usePageTitle'
 import { supabase } from '@/src/services/supabase/client'
 import { cn } from '@/src/utils/cn'
+import { logger } from '@/src/utils/logger'
 
 interface AuditLog {
   log_id: string
@@ -125,7 +126,7 @@ export function AuditDashboard() {
           setHasMore(false)
         }
       } catch (err) {
-        if (import.meta.env.DEV) console.error('Failed to fetch audit logs:', err)
+        if (import.meta.env.DEV) logger.error('Failed to fetch audit logs:', err)
       } finally {
         setLoading(false)
       }

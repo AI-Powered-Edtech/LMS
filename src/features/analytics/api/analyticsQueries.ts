@@ -4,8 +4,8 @@
 // Individual Supabase RPC/query functions for analytics data retrieval.
 // Extracted from analyticsService.ts for modularity.
 // ==========================================================================
-
 import { supabase } from '@/src/services/supabase/client'
+import { logger } from '@/src/utils/logger'
 
 import type {
   ActivityTimePoint,
@@ -40,7 +40,7 @@ export async function refreshCourseStats(courseId: string, tenantId: string): Pr
   })
 
   if (error) {
-    if (import.meta.env.DEV) console.error('Failed to refresh course stats:', error)
+    if (import.meta.env.DEV) logger.error('Failed to refresh course stats:', error)
     throw parseRpcError(error)
   }
 }
@@ -58,7 +58,7 @@ export async function getTeacherAnalytics(
   })
 
   if (error) {
-    if (import.meta.env.DEV) console.error('Failed to get teacher analytics:', error)
+    if (import.meta.env.DEV) logger.error('Failed to get teacher analytics:', error)
     throw parseRpcError(error)
   }
 
@@ -72,7 +72,7 @@ export async function refreshAllCourseStats(_tenantId: string): Promise<void> {
   const { error } = await supabase.rpc('refresh_all_course_stats')
 
   if (error) {
-    if (import.meta.env.DEV) console.error('Failed to refresh all course stats:', error)
+    if (import.meta.env.DEV) logger.error('Failed to refresh all course stats:', error)
     throw parseRpcError(error)
   }
 }
@@ -89,7 +89,7 @@ export async function fetchTenantCourseStats(tenantId: string): Promise<CourseSt
     .eq('tenant_id', tenantId)
 
   if (error) {
-    if (import.meta.env.DEV) console.error('Failed to get tenant analytics overview:', error)
+    if (import.meta.env.DEV) logger.error('Failed to get tenant analytics overview:', error)
     throw new Error('Gagal memuat ringkasan analitik. Silakan coba lagi.')
   }
 
@@ -111,7 +111,7 @@ export async function fetchActivityCounts(
   })
 
   if (error) {
-    if (import.meta.env.DEV) console.error('Failed to get activity metrics via RPC:', error)
+    if (import.meta.env.DEV) logger.error('Failed to get activity metrics via RPC:', error)
     throw new Error('Gagal memuat metrik aktivitas. Silakan coba lagi.')
   }
 
@@ -126,7 +126,7 @@ export async function fetchCourseEngagement(tenantId: string): Promise<CourseEng
     p_tenant_id: tenantId,
   })
   if (error) {
-    if (import.meta.env.DEV) console.error('Failed to get course engagement stats:', error)
+    if (import.meta.env.DEV) logger.error('Failed to get course engagement stats:', error)
     throw new Error('Gagal memuat data engagement kursus. Silakan coba lagi.')
   }
   return (data || []).map(
@@ -161,7 +161,7 @@ export async function fetchActivityTimeline(
   })
 
   if (error) {
-    if (import.meta.env.DEV) console.error('Failed to get activity timeline:', error)
+    if (import.meta.env.DEV) logger.error('Failed to get activity timeline:', error)
     throw new Error('Gagal memuat timeline aktivitas. Silakan coba lagi.')
   }
 

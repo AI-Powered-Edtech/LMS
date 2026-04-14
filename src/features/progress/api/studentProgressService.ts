@@ -1,4 +1,5 @@
 import { supabase } from '@/src/services/supabase/client'
+import { logger } from '@/src/utils/logger'
 
 // --- Types (shared with consumers) ---
 
@@ -208,7 +209,7 @@ export const studentProgressService = {
       },
       { onConflict: 'user_id,lesson_id' }
     )
-    if (error) if (import.meta.env.DEV) console.error('Error updating lesson progress:', error)
+    if (error) if (import.meta.env.DEV) logger.error('Error updating lesson progress:', error)
   },
 
   /**
@@ -222,7 +223,7 @@ export const studentProgressService = {
     _tenantId: string
   ): Promise<void> {
     if (import.meta.env.DEV)
-      console.warn(
+      logger.warn(
         '[studentProgressService] Legacy submitQuizAttempt skipped. Quiz attempts are persisted via quiz_attempts_v2 RPC flow.'
       )
   },
@@ -235,6 +236,6 @@ export const studentProgressService = {
       p_user_id: userId,
       p_points: amount,
     })
-    if (error) if (import.meta.env.DEV) console.error('Error adding XP:', error)
+    if (error) if (import.meta.env.DEV) logger.error('Error adding XP:', error)
   },
 }

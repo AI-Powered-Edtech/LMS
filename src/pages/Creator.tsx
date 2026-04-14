@@ -19,6 +19,7 @@ import { useSendNotification } from '@/src/features/notifications'
 import { usePageTitle } from '@/src/hooks/usePageTitle'
 import { supabase } from '@/src/services/supabase/client'
 import { cn } from '@/src/utils/cn'
+import { logger } from '@/src/utils/logger'
 
 export function Creator() {
   const addToast = useToast((s) => s.addToast)
@@ -128,7 +129,7 @@ export function Creator() {
       })
 
       if (supaError) {
-        if (import.meta.env.DEV) console.error('Supabase edge function error:', supaError)
+        if (import.meta.env.DEV) logger.error('Supabase edge function error:', supaError)
         const msg = supaError.message ?? ''
         // 404 — edge function not deployed
         if (msg.includes('404') || msg.includes('not found') || msg.includes('FetchError')) {
@@ -162,7 +163,7 @@ export function Creator() {
         throw new Error('Respons API tidak valid.')
       }
     } catch (err: unknown) {
-      if (import.meta.env.DEV) console.error(err)
+      if (import.meta.env.DEV) logger.error(err)
       setError(err instanceof Error ? err.message : 'Terjadi kesalahan saat memproses materi.')
     } finally {
       clearTimeout(progressTimer)

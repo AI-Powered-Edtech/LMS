@@ -8,6 +8,7 @@ import { useDebounce } from '@/src/hooks/useDebounce'
 import { usePageTitle } from '@/src/hooks/usePageTitle'
 import { useToast } from '@/src/hooks/useToast'
 import { supabase } from '@/src/services/supabase/client'
+import { logger } from '@/src/utils/logger'
 
 export interface EnrolledStudent {
   id: string
@@ -122,7 +123,7 @@ export function useClassManagementState() {
           )
         )
       } catch (err) {
-        if (import.meta.env.DEV) console.error('Failed to fetch students:', err)
+        if (import.meta.env.DEV) logger.error('Failed to fetch students:', err)
         setStudents([])
       } finally {
         setLoadingStudents(false)

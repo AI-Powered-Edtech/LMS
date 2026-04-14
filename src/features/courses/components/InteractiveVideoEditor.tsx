@@ -5,6 +5,7 @@ import { useEffect, useState } from 'react'
 import { useAuth } from '@/src/contexts/AuthContext'
 import type { InteractiveEvent, InteractiveVideoMetadata } from '@/src/features/lessons/types'
 import { getTeacherQuizzes } from '@/src/features/quizzes/api/quizManager.service'
+import { logger } from '@/src/utils/logger'
 
 interface InteractiveVideoEditorProps {
   metadata: InteractiveVideoMetadata
@@ -26,7 +27,7 @@ export function InteractiveVideoEditor({ metadata, onSave, onClose }: Interactiv
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         setQuizzes(data.map((q: any) => ({ id: String(q.id ?? ''), title: String(q.title ?? '') })))
       } catch (err) {
-        console.error('Failed to load quizzes', err)
+        logger.error('Failed to load quizzes', err)
       } finally {
         setLoading(false)
       }

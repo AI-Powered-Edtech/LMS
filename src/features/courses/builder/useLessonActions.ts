@@ -4,6 +4,7 @@ import { builderBlockService } from '@/src/features/courses/api/builder/blockSer
 import { builderLessonService } from '@/src/features/courses/api/builder/lessonService'
 import { useToast } from '@/src/hooks/useToast'
 import { DomainLesson } from '@/src/shared/types/lessonTypes'
+import { logger } from '@/src/utils/logger'
 
 import type { BuilderAction, BuilderState } from './builderReducer'
 
@@ -25,7 +26,7 @@ export function useLessonActions(
         dispatch({ type: 'ADD_LESSON', moduleId, lesson })
         broadcast?.({ type: 'ADD_LESSON', moduleId, lesson }, userName ?? '')
       } catch (err: unknown) {
-        if (import.meta.env.DEV) console.error('Failed to add lesson:', err)
+        if (import.meta.env.DEV) logger.error('Failed to add lesson:', err)
         addToast({
           type: 'error',
           message:
@@ -61,7 +62,7 @@ export function useLessonActions(
         await builderLessonService.deleteLesson(lessonId, tenantId)
         broadcast?.({ type: 'DELETE_LESSON', lessonId }, userName ?? '')
       } catch (err: unknown) {
-        if (import.meta.env.DEV) console.error('Failed to delete lesson:', err)
+        if (import.meta.env.DEV) logger.error('Failed to delete lesson:', err)
         addToast({
           type: 'error',
           message:
@@ -97,7 +98,7 @@ export function useLessonActions(
           await builderLessonService.reorderLessons(targetMod.id, lessonIds, tenantId)
           broadcast?.({ type: 'SET_MODULES', modules: updatedModules }, userName ?? '')
         } catch (error: unknown) {
-          if (import.meta.env.DEV) console.error('Failed to reorder lessons', error)
+          if (import.meta.env.DEV) logger.error('Failed to reorder lessons', error)
           dispatch({ type: 'SET_MODULES', modules: previousModules })
           addToast({
             type: 'error',
@@ -119,7 +120,7 @@ export function useLessonActions(
         const blocks = await builderBlockService.fetchLessonBlocks(lessonId, tenantId)
         dispatch({ type: 'LOAD_BLOCKS_SUCCESS', lessonId, blocks })
       } catch (err) {
-        if (import.meta.env.DEV) console.error('Failed to load blocks:', err)
+        if (import.meta.env.DEV) logger.error('Failed to load blocks:', err)
       }
     },
     [tenantId, dispatch]

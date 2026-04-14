@@ -27,6 +27,7 @@ import {
 import { AdministrationSkeleton } from '@/src/features/administration/components/AdministrationSkeleton'
 import { usePageTitle } from '@/src/hooks/usePageTitle'
 import { cn } from '@/src/utils/cn'
+import { logger } from '@/src/utils/logger'
 
 // Default sync status for initial state (will be replaced with real data)
 const defaultSyncStatus: SyncHistoryItem[] = [
@@ -100,7 +101,7 @@ export function AdministrationDashboard() {
         setModules(data)
       }
     } catch (error) {
-      if (import.meta.env.DEV) console.error('Failed to fetch modules:', error)
+      if (import.meta.env.DEV) logger.error('Failed to fetch modules:', error)
       setModulesError('Gagal memuat konfigurasi modul. Menggunakan default.')
       // Fallback to defaults on error
       setModules(administrationService.getDefaultModules())
@@ -122,7 +123,7 @@ export function AdministrationDashboard() {
         setSyncHistory(defaultSyncStatus)
       }
     } catch (error) {
-      if (import.meta.env.DEV) console.error('Failed to fetch sync history:', error)
+      if (import.meta.env.DEV) logger.error('Failed to fetch sync history:', error)
       // Use defaults on error
       setSyncHistory(defaultSyncStatus)
     } finally {
@@ -151,7 +152,7 @@ export function AdministrationDashboard() {
     try {
       await administrationService.toggleTenantModule(moduleId, newEnabledState)
     } catch (error) {
-      if (import.meta.env.DEV) console.error('Failed to toggle module:', error)
+      if (import.meta.env.DEV) logger.error('Failed to toggle module:', error)
       // Revert on error
       setModules((prev) =>
         prev.map((m) => (m.moduleId === moduleId ? { ...m, isEnabled: !newEnabledState } : m))
@@ -186,7 +187,7 @@ export function AdministrationDashboard() {
         })
       }
     } catch (error) {
-      if (import.meta.env.DEV) console.error('Sync failed:', error)
+      if (import.meta.env.DEV) logger.error('Sync failed:', error)
       setSyncMessage({
         type: 'error',
         text: 'Terjadi kesalahan saat sinkronisasi. Silakan coba lagi.',

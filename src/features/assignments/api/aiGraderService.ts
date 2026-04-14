@@ -1,4 +1,5 @@
 import { supabase } from '@/src/services/supabase/client'
+import { logger } from '@/src/utils/logger'
 
 interface AIGradeRequest {
   submissionId: string
@@ -27,7 +28,7 @@ export const aiGraderService = {
       })
 
       if (error) {
-        if (import.meta.env.DEV) console.error('[AI Grader] Edge Function error:', error)
+        if (import.meta.env.DEV) logger.error('[AI Grader] Edge Function error:', error)
 
         // Extract specific error if available
         let errorMessage = 'Gagal melakukan penilaian otomatis dengan AI.'
@@ -50,7 +51,7 @@ export const aiGraderService = {
 
       return data as AIGradeResponse
     } catch (err: unknown) {
-      if (import.meta.env.DEV) console.error('[AI Grader] Unexpected error:', err)
+      if (import.meta.env.DEV) logger.error('[AI Grader] Unexpected error:', err)
 
       // Re-throw the error with a friendly message to be handled by the UI
       if (err instanceof Error && err.message && err.message !== 'Failed to fetch') {

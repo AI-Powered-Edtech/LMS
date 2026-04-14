@@ -6,6 +6,7 @@ import { useAuth } from '@/src/contexts/AuthContext'
 import { Classroom, classroomService } from '@/src/features/classroom/api/classroomService'
 import { useToast } from '@/src/hooks/useToast'
 import { cn } from '@/src/utils/cn'
+import { logger } from '@/src/utils/logger'
 
 interface AssignCourseModalProps {
   isOpen: boolean
@@ -50,7 +51,7 @@ export function AssignCourseModal({
       const currentAssignments = await classroomService.fetchAssignedClassesForCourse(courseId)
       setAssignedClassIds(currentAssignments)
     } catch (err: unknown) {
-      if (import.meta.env.DEV) console.error('Failed to load classes for assignment:', err)
+      if (import.meta.env.DEV) logger.error('Failed to load classes for assignment:', err)
       setError('Gagal memuat daftar kelas.')
     } finally {
       setLoading(false)
@@ -73,7 +74,7 @@ export function AssignCourseModal({
         setAssignedClassIds((prev) => [...prev, classId])
       }
     } catch (err: unknown) {
-      if (import.meta.env.DEV) console.error('Failed to toggle class assignment:', err)
+      if (import.meta.env.DEV) logger.error('Failed to toggle class assignment:', err)
       addToast({ type: 'error', message: 'Gagal memperbarui penugasan kelas.' })
     } finally {
       setSaving(false)

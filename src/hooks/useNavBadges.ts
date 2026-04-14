@@ -8,11 +8,11 @@
  *
  * Kedua query di-cache selama 2 menit (BADGE staleTime).
  */
-
 import { useQuery } from '@tanstack/react-query'
 
 import { useAuth } from '@/src/contexts/AuthContext'
 import { supabase } from '@/src/services/supabase/client'
+import { logger } from '@/src/utils/logger'
 
 const BADGE_STALE = 2 * 60 * 1000 // 2 menit
 
@@ -63,7 +63,7 @@ export function useNavBadges(): NavBadges {
         )
 
       if (error) {
-        if (import.meta.env.DEV) console.error('[useNavBadges] pendingAssignments error:', error)
+        if (import.meta.env.DEV) logger.error('[useNavBadges] pendingAssignments error:', error)
         return 0
       }
 
@@ -82,7 +82,7 @@ export function useNavBadges(): NavBadges {
       })
 
       if (error) {
-        if (import.meta.env.DEV) console.error('[useNavBadges] unreadNotifications error:', error)
+        if (import.meta.env.DEV) logger.error('[useNavBadges] unreadNotifications error:', error)
         return 0
       }
 

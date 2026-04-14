@@ -1,4 +1,5 @@
 import { supabase } from '@/src/services/supabase/client'
+import { logger } from '@/src/utils/logger'
 
 export interface StudentProgressData {
   profile: {
@@ -87,7 +88,7 @@ export const progressService = {
         ),
       }
     } catch (error) {
-      if (import.meta.env.DEV) console.error('Error fetching student progress bundle:', error)
+      if (import.meta.env.DEV) logger.error('Error fetching student progress bundle:', error)
       throw error
     }
   },

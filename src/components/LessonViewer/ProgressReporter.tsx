@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useRef } from 'react'
 
 import { lessonService } from '@/src/features/lessons'
+import { logger } from '@/src/utils/logger'
 
 interface ProgressReporterProps {
   lessonId: string
@@ -48,7 +49,7 @@ export function ProgressReporter({
         position: lastPosition ?? 0,
       }
     } catch (err) {
-      if (import.meta.env.DEV) console.error('[ProgressReporter] Failed to sync:', err)
+      if (import.meta.env.DEV) logger.error('[ProgressReporter] Failed to sync:', err)
     }
   }, [lessonId, tenantId, status, progressPercentage, lastPosition])
 

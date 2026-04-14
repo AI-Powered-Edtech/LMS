@@ -10,6 +10,7 @@ import { useInfiniteCoursesQuery } from '@/src/features/courses/queries/courseQu
 import { useDebounce } from '@/src/hooks/useDebounce'
 import { useToast } from '@/src/hooks/useToast'
 import { cn } from '@/src/utils/cn'
+import { logger } from '@/src/utils/logger'
 
 // Gradient palette rotated per card index
 const CARD_GRADIENTS = [
@@ -101,7 +102,7 @@ export const Courses: React.FC = () => {
       setIsModalOpen(false)
       navigate(`/app/teacher/course-builder?courseId=${newCourse.id}`)
     } catch (err: unknown) {
-      if (import.meta.env.DEV) console.error('Failed to create course:', err)
+      if (import.meta.env.DEV) logger.error('Failed to create course:', err)
       addToast({
         type: 'error',
         message: err instanceof Error ? err.message : 'Gagal membuat materi baru.',

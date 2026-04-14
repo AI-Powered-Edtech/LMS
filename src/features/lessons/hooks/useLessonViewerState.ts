@@ -12,6 +12,7 @@ import {
 import { usePageTitle } from '@/src/hooks/usePageTitle'
 import { useToast } from '@/src/hooks/useToast'
 import { supabase } from '@/src/services/supabase/client'
+import { logger } from '@/src/utils/logger'
 
 export function useLessonViewerState() {
   usePageTitle('Lesson Viewer')
@@ -107,7 +108,7 @@ export function useLessonViewerState() {
       return
     if (import.meta.env.DEV) {
       if (import.meta.env.DEV)
-        console.debug('[Lesson Completion]', { lessonId: state.lesson.id, status: state.status })
+        logger.debug('[Lesson Completion]', { lessonId: state.lesson.id, status: state.status })
     }
     actions.completionMet()
 
@@ -135,7 +136,7 @@ export function useLessonViewerState() {
         const confetti = (await import('canvas-confetti')).default
         confetti({ particleCount: 150, spread: 80, origin: { y: 0.7 } })
       } catch (err) {
-        if (import.meta.env.DEV) console.warn('Confetti failed:', err)
+        if (import.meta.env.DEV) logger.warn('Confetti failed:', err)
       }
       setTimeout(() => setShowCelebration(false), 4000)
 
@@ -155,7 +156,7 @@ export function useLessonViewerState() {
         }
       }
     } catch (err) {
-      if (import.meta.env.DEV) console.error('Completion failed:', err)
+      if (import.meta.env.DEV) logger.error('Completion failed:', err)
       addToast({ message: 'Gagal menandai selesai. Coba lagi.', type: 'error' })
     }
   }, [state.lesson, state.status, tenantId, user?.id, actions, addToast])
@@ -256,7 +257,7 @@ export function useLessonViewerState() {
       .maybeSingle()
       .then(({ data: moduleData, error }) => {
         if (error) {
-          if (import.meta.env.DEV) console.error('Failed to load module title:', error)
+          if (import.meta.env.DEV) logger.error('Failed to load module title:', error)
           return
         }
         if (!cancelled && moduleData?.title) setModuleTitle(moduleData.title)
@@ -271,7 +272,7 @@ export function useLessonViewerState() {
         }
       })
       .catch((err) => {
-        if (import.meta.env.DEV) console.error('Failed to load module lessons:', err)
+        if (import.meta.env.DEV) logger.error('Failed to load module lessons:', err)
       })
       .finally(() => {
         if (!cancelled) setSidebarLoading(false)

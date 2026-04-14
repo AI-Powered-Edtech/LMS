@@ -5,6 +5,7 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 
 import { Modal, ModalHeader } from '@/src/components/ui/Modal'
 import { useDebounce } from '@/src/hooks/useDebounce'
+import { logger } from '@/src/utils/logger'
 
 import { useImportTemplate, useTemplates } from '../queries/useTemplates'
 
@@ -46,7 +47,7 @@ export function TemplateModal({ isOpen, onClose, type, targetId, order }: Templa
       })
       onClose()
     } catch (error) {
-      console.error('Failed to import template', error)
+      logger.error('Failed to import template', error)
     }
   }
 

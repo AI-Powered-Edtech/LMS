@@ -4,10 +4,10 @@
  * Provides aggregated quiz data across all classes within a tenant.
  * Used by the Admin Quiz Overview dashboard.
  */
-
 import { supabase } from '@/src/services/supabase/client'
 import { validateArray } from '@/src/shared/lib/validate'
 import { QuizRowSchema } from '@/src/shared/schemas'
+import { logger } from '@/src/utils/logger'
 
 // ─── Types ───────────────────────────────────────────────
 
@@ -59,7 +59,7 @@ export async function getSchoolQuizOverview(tenantId: string): Promise<AdminQuiz
     .order('created_at', { ascending: false })
 
   if (error) {
-    if (import.meta.env.DEV) console.error('Error fetching school quizzes:', error)
+    if (import.meta.env.DEV) logger.error('Error fetching school quizzes:', error)
     throw error
   }
   validateArray(QuizRowSchema, quizzes || [], 'adminQuiz.getSchoolQuizOverview')
@@ -126,7 +126,7 @@ export async function getAntiCheatAuditLog(
     .limit(limit)
 
   if (error) {
-    if (import.meta.env.DEV) console.error('Error fetching audit log:', error)
+    if (import.meta.env.DEV) logger.error('Error fetching audit log:', error)
     throw error
   }
 

@@ -1,11 +1,11 @@
 // Quiz Player - Orchestrator component
 // Part of the Quiz Engine Refactor
-
 import { Eye, WifiOff } from 'lucide-react'
 import { AnimatePresence, motion } from 'motion/react'
 import { useCallback, useEffect, useMemo, useState } from 'react'
 
 import { cn } from '@/src/utils/cn'
+import { logger } from '@/src/utils/logger'
 
 import * as quizPlayerService from '../../api/quizPlayer.service'
 import { getCurrentQuestionIndex } from '../../api/quizPlayer.service'
@@ -103,7 +103,7 @@ export function QuizPlayer({
         }
       } catch (error) {
         // Gracefully fallback to initial index on error
-        if (import.meta.env.DEV) console.error('Failed to compute resume index:', error)
+        if (import.meta.env.DEV) logger.error('Failed to compute resume index:', error)
       } finally {
         setIsResuming(false)
       }

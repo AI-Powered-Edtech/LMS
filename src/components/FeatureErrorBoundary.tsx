@@ -1,6 +1,8 @@
 import { AlertTriangle, RefreshCcw } from 'lucide-react'
 import { Component, ErrorInfo, ReactNode } from 'react'
 
+import { logger } from '@/src/utils/logger'
+
 interface Props {
   children?: ReactNode
   fallback?: ReactNode
@@ -40,7 +42,7 @@ export class FeatureErrorBoundary extends Component<Props, State> {
 
   public componentDidCatch(error: Error, errorInfo: ErrorInfo) {
     if (import.meta.env.DEV)
-      console.error(`Error in ${this.props.featureName || 'halaman'}:`, error, errorInfo)
+      logger.error(`Error in ${this.props.featureName || 'halaman'}:`, error, errorInfo)
   }
 
   private handleRetry = () => {

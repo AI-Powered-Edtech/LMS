@@ -2,6 +2,7 @@ import { type Dispatch, useCallback } from 'react'
 
 import { builderCourseService } from '@/src/features/courses/api/builder/courseService'
 import { useToast } from '@/src/hooks/useToast'
+import { logger } from '@/src/utils/logger'
 
 import type { BuilderAction, BuilderState } from './builderReducer'
 
@@ -57,7 +58,7 @@ export function useCourseActions(
       setSavingStatus('saved')
       addToast({ type: 'success', message: 'Kursus berhasil diterbitkan' })
     } catch (error: unknown) {
-      if (import.meta.env.DEV) console.error('Failed to publish course:', error)
+      if (import.meta.env.DEV) logger.error('Failed to publish course:', error)
       setSavingStatus('error')
       addToast({
         type: 'error',

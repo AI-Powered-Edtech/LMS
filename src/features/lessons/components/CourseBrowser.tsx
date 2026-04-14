@@ -13,6 +13,7 @@ import { courseService } from '@/src/features/courses'
 import { LessonSkeleton } from '@/src/features/lessons/components/LessonSkeleton'
 import { supabase } from '@/src/services/supabase/client'
 import { cn } from '@/src/utils/cn'
+import { logger } from '@/src/utils/logger'
 
 // ============================================================
 // Types
@@ -167,7 +168,7 @@ export function CourseBrowser({
         setCompletedLessons(completedL)
         setTotalDuration(totalDur)
       } catch (err) {
-        if (import.meta.env.DEV) console.error('[CourseBrowser] fetch failed:', err)
+        if (import.meta.env.DEV) logger.error('[CourseBrowser] fetch failed:', err)
         setFetchError('Gagal memuat materi. Periksa koneksi internet kamu dan coba lagi.')
       } finally {
         setLoading(false)

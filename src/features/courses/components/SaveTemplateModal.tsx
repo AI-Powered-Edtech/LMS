@@ -2,6 +2,7 @@ import { Book, CheckCircle, FileText, FolderOpen, Loader2, Save } from 'lucide-r
 import { useEffect, useRef, useState } from 'react'
 
 import { Modal, ModalHeader } from '@/src/components/ui/Modal'
+import { logger } from '@/src/utils/logger'
 
 import { useSaveTemplate } from '../queries/useTemplates'
 
@@ -55,7 +56,7 @@ export function SaveTemplateModal({
         setDescription('')
       }, 1500)
     } catch (error) {
-      console.error('Failed to save template', error)
+      logger.error('Failed to save template', error)
     }
   }
 

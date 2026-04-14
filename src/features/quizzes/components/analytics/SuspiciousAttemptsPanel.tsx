@@ -4,11 +4,11 @@
  * Shows flagged quiz attempts with detailed cheating signal data.
  * Teachers can see which students triggered anti-cheat detection.
  */
-
 import { AlertTriangle, Eye, Loader2, Shield, ShieldAlert } from 'lucide-react'
 import { useEffect, useState } from 'react'
 
 import { cn } from '@/src/utils/cn'
+import { logger } from '@/src/utils/logger'
 
 import { getSuspiciousAttempts, type SuspiciousAttempt } from '../../api/suspiciousAttempts.service'
 
@@ -60,7 +60,7 @@ export function SuspiciousAttemptsPanel({
         const data = await getSuspiciousAttempts(quizId, tenantId)
         setAttempts(data)
       } catch (err) {
-        if (import.meta.env.DEV) console.error('Failed to load suspicious attempts:', err)
+        if (import.meta.env.DEV) logger.error('Failed to load suspicious attempts:', err)
         setError('Gagal memuat data kecurangan')
       } finally {
         setIsLoading(false)

@@ -11,6 +11,7 @@ import React, {
 } from 'react'
 
 import { supabase } from '@/src/services/supabase/client'
+import { logger } from '@/src/utils/logger'
 
 export type Role = 'teacher' | 'student' | 'admin'
 
@@ -143,7 +144,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         setTenantId(id)
       } else {
         if (import.meta.env.DEV)
-          console.warn(`Tenant with id ${id} not found in rawTenants - will validate on next auth`)
+          logger.warn(`Tenant with id ${id} not found in rawTenants - will validate on next auth`)
       }
     },
     [rawTenants]
@@ -170,7 +171,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       // If profile doesn't exist (406 = no rows from .single()), auto-create via RPC
       if (!profileData && profileErr) {
         if (import.meta.env.DEV)
-          console.warn('[Auth] Profile missing for user, calling ensure_profile_exists()...')
+          logger.warn('[Auth] Profile missing for user, calling ensure_profile_exists()...')
         const { data: rpcResult, error: rpcErr } = await supabase.rpc('ensure_profile_exists')
         if (rpcResult && !rpcErr) {
           // RPC returns full profile row as JSON — extract the fields we need
@@ -184,7 +185,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             tenant_id: (p.tenant_id as string) || null,
           }
         } else if (import.meta.env.DEV) {
-          console.error('[Auth] ensure_profile_exists() failed:', rpcErr)
+          logger.error('[Auth] ensure_profile_exists() failed:', rpcErr)
         }
       }
 
@@ -211,7 +212,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         .eq('user_id', userId)
 
       if (rolesErr) {
-        console.error('Failed to fetch user roles:', rolesErr)
+        logger.error('Failed to fetch user roles:', rolesErr)
       }
 
       if (rolesData) {
@@ -310,7 +311,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         await fetchUserData(userId)
       }
     } catch (e) {
-      if (import.meta.env.DEV) console.error('Failed to accept invitation:', e)
+      if (import.meta.env.DEV) logger.error('Failed to accept invitation:', e)
     }
   }
 
@@ -321,7 +322,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     try {
       await supabase.rpc('enroll_student', { p_join_code: pendingCode })
     } catch (e) {
-      if (import.meta.env.DEV) console.error('[Auth] Failed to enroll with pending join code:', e)
+      if (import.meta.env.DEV) logger.error('[Auth] Failed to enroll with pending join code:', e)
     }
   }
 
@@ -407,11 +408,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
       if (remainingS <= REFRESH_THRESHOLD_S) {
         if (import.meta.env.DEV)
-          console.info(`[Auth] Token expires in ${remainingS}s, refreshing proactively...`)
+          logger.info(`[Auth] Token expires in ${remainingS}s, refreshing proactively...`)
 
         const { error } = await supabase.auth.refreshSession()
         if (error) {
-          console.error('[Auth] Proactive token refresh failed:', error)
+          logger.error('[Auth] Proactive token refresh failed:', error)
           // If refresh fails and we had an active session, mark as expired and sign out
           setSessionExpired(true)
           await signOut()
@@ -477,7 +478,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     } catch (err) {
       // Even if Supabase signOut fails (network error, expired session),
       // we've already cleared local state so the user is effectively logged out.
-      if (import.meta.env.DEV) console.error('[Auth] signOut error (state already cleared):', err)
+      if (import.meta.env.DEV) logger.error('[Auth] signOut error (state already cleared):', err)
     }
   }, [])
 

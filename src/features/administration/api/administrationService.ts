@@ -1,4 +1,5 @@
 import { supabase } from '@/src/services/supabase/client'
+import { logger } from '@/src/utils/logger'
 
 // Custom error types for administration operations
 class AdministrationError extends Error {
@@ -151,7 +152,7 @@ export const administrationService = {
         // Log as warn — missing tenant_modules seed data is a setup
         // issue, not an application error; callers fall back to defaults.
         if (import.meta.env.DEV)
-          console.warn(
+          logger.warn(
             'tenant_modules fetch returned an error (likely no seed data):',
             tenantError.message
           )
@@ -191,7 +192,7 @@ export const administrationService = {
       return []
     } catch (error) {
       if (import.meta.env.DEV)
-        console.warn(
+        logger.warn(
           'Tenant modules unavailable, caller will use defaults:',
           error instanceof Error ? error.message : error
         )
@@ -210,11 +211,11 @@ export const administrationService = {
         .eq('module_id', moduleId)
 
       if (error) {
-        if (import.meta.env.DEV) console.error('Failed to update tenant module:', error)
+        if (import.meta.env.DEV) logger.error('Failed to update tenant module:', error)
         throw error
       }
     } catch (error) {
-      if (import.meta.env.DEV) console.error('Error toggling tenant module:', error)
+      if (import.meta.env.DEV) logger.error('Error toggling tenant module:', error)
       throw parseSupabaseError(error)
     }
   },
@@ -235,7 +236,7 @@ export const administrationService = {
 
       if (error) {
         // If table doesn't exist or other error, return empty array
-        if (import.meta.env.DEV) console.warn('No sync history available:', error.message)
+        if (import.meta.env.DEV) logger.warn('No sync history available:', error.message)
         return []
       }
 
@@ -265,7 +266,7 @@ export const administrationService = {
       return []
     } catch (error) {
       // Return empty array on any error - sync history is optional
-      if (import.meta.env.DEV) console.warn('Error fetching sync history, returning empty:', error)
+      if (import.meta.env.DEV) logger.warn('Error fetching sync history, returning empty:', error)
       return []
     }
   },

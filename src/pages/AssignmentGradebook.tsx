@@ -24,6 +24,7 @@ import {
 import { usePageTitle } from '@/src/hooks/usePageTitle'
 import { supabase } from '@/src/services/supabase/client'
 import { cn } from '@/src/utils/cn'
+import { logger } from '@/src/utils/logger'
 
 export function AssignmentGradebook() {
   usePageTitle('Buku Nilai Tugas')
@@ -77,7 +78,7 @@ export function AssignmentGradebook() {
       const data = await assignmentService.getAssignmentSubmissions(assignment.id, tenantId!)
       setSubmissions(data || [])
     } catch (err) {
-      if (import.meta.env.DEV) console.error('Error fetching submissions:', err)
+      if (import.meta.env.DEV) logger.error('Error fetching submissions:', err)
     } finally {
       setLoadingSubmissions(false)
     }

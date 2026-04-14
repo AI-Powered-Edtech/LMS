@@ -11,6 +11,7 @@ import {
 } from '@/src/features/administration/api/adminUserService'
 import { useDebounce } from '@/src/hooks/useDebounce'
 import { useToast } from '@/src/hooks/useToast'
+import { logger } from '@/src/utils/logger'
 
 type Tab = 'users' | 'invitations'
 
@@ -58,7 +59,7 @@ export function useUserManagementState() {
           setHasMore(false)
         }
       } catch (err) {
-        if (import.meta.env.DEV) console.error('Failed to fetch users:', err)
+        if (import.meta.env.DEV) logger.error('Failed to fetch users:', err)
       } finally {
         setLoading(false)
       }
@@ -72,7 +73,7 @@ export function useUserManagementState() {
       const data = await getInvitations()
       setInvitations(data)
     } catch (err) {
-      if (import.meta.env.DEV) console.error('Failed to fetch invitations:', err)
+      if (import.meta.env.DEV) logger.error('Failed to fetch invitations:', err)
     } finally {
       setLoading(false)
     }

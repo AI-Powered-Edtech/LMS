@@ -12,6 +12,7 @@ Follow this checklist for every production deployment. Steps marked [REQUIRED] m
 
 - [ ] All CI checks passing on the PR: typecheck, lint, unit tests, E2E tests
 - [ ] No `console.log` or `console.debug` in production code paths (use `logger` utility or remove)
+- [ ] Environment variables are synchronized with `.env.example` and set in Vercel/production
 - [ ] No hardcoded user IDs, tenant IDs, or credentials in changed files
 - [ ] `SELECT *` not introduced in any new query
 - [ ] New tables have RLS enabled and `tenant_id` column
@@ -74,7 +75,7 @@ The deploy workflow runs a health check automatically:
 curl -f "$PROD_URL/functions/v1/health-check"
 ```
 
-If this returns non-200, the deploy workflow fails and alerts the team.
+If this returns non-200, the deploy workflow fails, triggers an **auto-rollback** via Vercel CLI, and alerts the team.
 
 ---
 

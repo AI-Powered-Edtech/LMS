@@ -29,6 +29,7 @@ import { useDebounce } from '@/src/hooks/useDebounce'
 import { usePageTitle } from '@/src/hooks/usePageTitle'
 import { useToast } from '@/src/hooks/useToast'
 import { supabase } from '@/src/services/supabase/client'
+import { logger } from '@/src/utils/logger'
 
 export function Certificates() {
   const addToast = useToast((s) => s.addToast)
@@ -104,7 +105,7 @@ export function Certificates() {
         setTimeout(() => URL.revokeObjectURL(url), 30000)
       }
     } catch (error) {
-      if (import.meta.env.DEV) console.error('Error generating certificate:', error)
+      if (import.meta.env.DEV) logger.error('Error generating certificate:', error)
       addToast({ type: 'error', message: 'Gagal mengunduh sertifikat. Silakan coba lagi.' })
     } finally {
       setIsDownloading(null)

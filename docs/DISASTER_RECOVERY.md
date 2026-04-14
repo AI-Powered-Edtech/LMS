@@ -277,9 +277,9 @@ Perform a full DR drill on the **first Monday of each month**:
 6. Delete the staging clone after verification
 7. Update this document if the drill reveals gaps
 
-| Month   | Status    | Notes       |
-| ------- | --------- | ----------- |
-| 2026-04 | Scheduled | First drill |
+| Month   | Status    | Notes                                                      |
+| ------- | --------- | ---------------------------------------------------------- |
+| 2026-04 | Completed | [dr-drill-2026-04-14.md](incidents/dr-drill-2026-04-14.md) |
 
 ---
 

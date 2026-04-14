@@ -3,6 +3,7 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 import { useAuth } from '@/src/contexts/AuthContext'
 import type { InteractiveEvent, InteractiveVideoMetadata, Quiz } from '@/src/features/lessons/types'
 import { getQuizWithQuestions } from '@/src/features/quizzes/api/quizManager.service'
+import { logger } from '@/src/utils/logger'
 
 // ==========================================================================
 // useInteractiveVideoEvents — Shared hook for interactive video pop-up quizzes
@@ -64,7 +65,7 @@ export function useInteractiveVideoEvents({
         .then((quizData) => {
           setLoadedQuizzes((prev) => ({ ...prev, [id]: quizData as unknown as Quiz }))
         })
-        .catch((err) => console.error('[useInteractiveVideoEvents] Failed to load quiz', err))
+        .catch((err) => logger.error('[useInteractiveVideoEvents] Failed to load quiz', err))
     })
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [tenantId, events.length])

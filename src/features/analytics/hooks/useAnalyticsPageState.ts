@@ -8,6 +8,7 @@ import {
   useTeacherAnalytics,
 } from '@/src/features/analytics/queries/analyticsQueries'
 import { Course, courseService } from '@/src/features/courses'
+import { logger } from '@/src/utils/logger'
 
 export function useAnalyticsPageState() {
   const addToast = useToast((s) => s.addToast)
@@ -32,7 +33,7 @@ export function useAnalyticsPageState() {
           setSelectedCourseId(result.courses[0].id)
         }
       } catch (err) {
-        if (import.meta.env.DEV) console.error('Failed to load courses', err)
+        if (import.meta.env.DEV) logger.error('Failed to load courses', err)
       }
     }
     loadCourses()
@@ -83,7 +84,7 @@ export function useAnalyticsPageState() {
       await refreshMutation.mutateAsync(selectedCourseId)
       refetch()
     } catch (err: unknown) {
-      if (import.meta.env.DEV) console.error('Failed to refresh analytics', err)
+      if (import.meta.env.DEV) logger.error('Failed to refresh analytics', err)
 
       let refreshError = 'Gagal memperbarui data analitik manual.'
 

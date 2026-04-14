@@ -4,10 +4,10 @@
  * Fetches cheating signals grouped by attempt, with student info.
  * Teachers can mark attempts as reviewed or override scores.
  */
-
 import { supabase } from '@/src/services/supabase/client'
 import { validateArray } from '@/src/shared/lib/validate'
 import { CheatingSignalRowSchema } from '@/src/shared/schemas'
+import { logger } from '@/src/utils/logger'
 
 // ─── Types ───────────────────────────────────────────────
 
@@ -82,7 +82,7 @@ export async function getSuspiciousAttempts(
     .order('created_at', { ascending: true })
 
   if (signalError) {
-    if (import.meta.env.DEV) console.error('Error fetching cheating signals:', signalError)
+    if (import.meta.env.DEV) logger.error('Error fetching cheating signals:', signalError)
     throw signalError
   }
   validateArray(CheatingSignalRowSchema, signals || [], 'suspiciousAttempts.getSuspiciousAttempts')
@@ -168,7 +168,7 @@ export async function getSuspiciousAttemptCount(quizId: string, tenantId: string
     .eq('quiz_attempts_v2.tenant_id', tenantId)
 
   if (error) {
-    if (import.meta.env.DEV) console.error('Error counting suspicious attempts:', error)
+    if (import.meta.env.DEV) logger.error('Error counting suspicious attempts:', error)
     return 0
   }
 

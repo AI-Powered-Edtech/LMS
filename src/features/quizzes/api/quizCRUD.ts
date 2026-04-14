@@ -4,8 +4,8 @@
 // Create, read, update, delete, and status management for quizzes.
 // Extracted from quizManager.service.ts for modularity.
 // ==========================================================================
-
 import { supabase } from '@/src/services/supabase/client'
+import { logger } from '@/src/utils/logger'
 
 import type { QuizMode } from '../types/quizzes.types'
 
@@ -224,7 +224,7 @@ export async function createQuiz(payload: {
   )
 
   if (assignError) {
-    if (import.meta.env.DEV) console.error('Failed to auto-create quiz assignment:', assignError)
+    if (import.meta.env.DEV) logger.error('Failed to auto-create quiz assignment:', assignError)
     throw assignError
   }
 

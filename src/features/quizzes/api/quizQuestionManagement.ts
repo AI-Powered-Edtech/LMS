@@ -4,8 +4,8 @@
 // Question CRUD, option replacement, grading, and assignment results.
 // Extracted from quizManager.service.ts for modularity.
 // ==========================================================================
-
 import { supabase } from '@/src/services/supabase/client'
+import { logger } from '@/src/utils/logger'
 
 import type { QuestionType } from '../types/quizzes.types'
 
@@ -132,7 +132,7 @@ export async function gradeAttemptQuestion(
   })
 
   if (error) {
-    if (import.meta.env.DEV) console.error('Error grading question:', error)
+    if (import.meta.env.DEV) logger.error('Error grading question:', error)
     throw new Error(error.message || 'Failed to grade question')
   }
 
@@ -159,7 +159,7 @@ export async function getAssignmentResults(assignmentId: string, _tenantId: stri
   })
 
   if (error) {
-    if (import.meta.env.DEV) console.error('Error fetching assignment results:', error)
+    if (import.meta.env.DEV) logger.error('Error fetching assignment results:', error)
     throw new Error(error.message || 'Failed to fetch assignment results')
   }
 

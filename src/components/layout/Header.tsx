@@ -11,6 +11,7 @@ import { NotificationBell as AppNotificationBell } from '@/src/features/notifica
 import { useStudentProgressData } from '@/src/features/progress/hooks/useStudentProgressQueries'
 import { NotificationBell as StruggleBell } from '@/src/features/struggle'
 import { cn } from '@/src/utils/cn'
+import { logger } from '@/src/utils/logger'
 
 export const Header = memo(function Header() {
   const { xp } = useStudentProgressData()
@@ -45,7 +46,7 @@ export const Header = memo(function Header() {
     try {
       await signOut()
     } catch (e) {
-      if (import.meta.env.DEV) console.error('[Header] signOut error:', e)
+      if (import.meta.env.DEV) logger.error('[Header] signOut error:', e)
     } finally {
       navigate('/login')
     }

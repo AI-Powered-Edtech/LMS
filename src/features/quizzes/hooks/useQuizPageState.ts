@@ -24,6 +24,7 @@ import {
 } from '@/src/features/quizzes/queries/quizPlayer.queries'
 import { useDebounce } from '@/src/hooks/useDebounce'
 import { useToast } from '@/src/hooks/useToast'
+import { logger } from '@/src/utils/logger'
 import { quizSubmitRateLimiter } from '@/src/utils/rateLimiter'
 
 export function useQuizPageState() {
@@ -210,7 +211,7 @@ export function useQuizPageState() {
       setIsLoadingQuestions(false)
     } catch (err: unknown) {
       setIsLoadingQuestions(false)
-      if (import.meta.env.DEV) console.error('Failed to start/resume', err)
+      if (import.meta.env.DEV) logger.error('Failed to start/resume', err)
       const message = err instanceof Error ? err.message : ''
       if (message.includes('not enrolled'))
         addToast({
@@ -253,7 +254,7 @@ export function useQuizPageState() {
       setShowResults(true)
       setShowAnswerReview(false)
     } catch (err: unknown) {
-      if (import.meta.env.DEV) console.error('Gagal mengirim kuis', err)
+      if (import.meta.env.DEV) logger.error('Gagal mengirim kuis', err)
       const message = err instanceof Error ? err.message : ''
       if (message.includes('Time limit exceeded')) {
         addToast({
@@ -285,7 +286,7 @@ export function useQuizPageState() {
       setGradedQuestions(questions)
       setShowAnswerReview(true)
     } catch (err) {
-      if (import.meta.env.DEV) console.error('Failed to load graded questions:', err)
+      if (import.meta.env.DEV) logger.error('Failed to load graded questions:', err)
       addToast({ type: 'error', message: 'Gagal memuat review jawaban. Silakan coba lagi.' })
     }
   }

@@ -5,6 +5,7 @@ import { useAuth } from '@/src/contexts/AuthContext'
 import { useTheme } from '@/src/contexts/ThemeContext'
 import { usePageTitle } from '@/src/hooks/usePageTitle'
 import { cn } from '@/src/utils/cn'
+import { logger } from '@/src/utils/logger'
 
 import { AccountTab, AppearanceTab, SecurityTab, ToggleRow } from './SettingsTabs'
 
@@ -48,7 +49,7 @@ export function Settings() {
     try {
       await signOut()
     } catch (e) {
-      if (import.meta.env.DEV) console.error('[Settings] signOut error:', e)
+      if (import.meta.env.DEV) logger.error('[Settings] signOut error:', e)
     }
   }, [signOut])
 

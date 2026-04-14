@@ -3,6 +3,7 @@ import { useEffect, useState } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 
 import { supabase } from '@/src/services/supabase/client'
+import { logger } from '@/src/utils/logger'
 
 // ==========================================================================
 // LtiCallback — Handles the redirect after LTI launch
@@ -43,7 +44,7 @@ export function LtiCallback() {
         })
 
         if (error) {
-          console.error('[LtiCallback] OTP verification failed:', error)
+          logger.error('[LtiCallback] OTP verification failed:', error)
           setState('error')
 
           if (error.message?.includes('expired')) {
@@ -84,7 +85,7 @@ export function LtiCallback() {
           }
         }, 500)
       } catch (err) {
-        console.error('[LtiCallback] Unexpected error:', err)
+        logger.error('[LtiCallback] Unexpected error:', err)
         setState('error')
         setErrorMessage('Terjadi kesalahan yang tidak terduga. Silakan coba lagi.')
       }

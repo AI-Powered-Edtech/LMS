@@ -1,4 +1,5 @@
 import { supabase } from '@/src/services/supabase/client'
+import { logger } from '@/src/utils/logger'
 
 export interface Discussion {
   id: string
@@ -78,7 +79,7 @@ export const discussionService = {
     const { data, error } = await query
 
     if (error) {
-      if (import.meta.env.DEV) console.error('Error fetching discussions:', error)
+      if (import.meta.env.DEV) logger.error('Error fetching discussions:', error)
       throw error
     }
 
@@ -98,7 +99,7 @@ export const discussionService = {
       .single()
 
     if (error) {
-      if (import.meta.env.DEV) console.error('Error saving discussion:', error)
+      if (import.meta.env.DEV) logger.error('Error saving discussion:', error)
       throw error
     }
 
@@ -119,7 +120,7 @@ export const discussionService = {
       .eq('tenant_id', tenantId)
 
     if (error) {
-      if (import.meta.env.DEV) console.error('Error deleting discussion:', error)
+      if (import.meta.env.DEV) logger.error('Error deleting discussion:', error)
       throw error
     }
   },
@@ -135,7 +136,7 @@ export const discussionService = {
       .eq('tenant_id', tenantId)
 
     if (error) {
-      if (import.meta.env.DEV) console.error('Error toggling pin status:', error)
+      if (import.meta.env.DEV) logger.error('Error toggling pin status:', error)
       throw error
     }
   },

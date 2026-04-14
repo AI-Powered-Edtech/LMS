@@ -186,6 +186,13 @@ The `scorm-packages` storage bucket is **public** (`public: true`). This is inte
 
 <!-- Phase 5 Feature Cross-Reference -->
 
+## Governance and Policies
+
+For detailed operational security procedures, please refer to the following documents:
+
+- [Secret Rotation SOP](security/SECRET_ROTATION_SOP.md)
+- [Audit Logging Retention Policy](security/AUDIT_LOGGING_POLICY.md)
+
 ## Feature Module Cross-Reference
 
 EduSync LMS terdiri dari 24 feature module yang saling terintegrasi:

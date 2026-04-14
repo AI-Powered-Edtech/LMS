@@ -129,24 +129,48 @@ export default defineConfig(({ mode }) => {
       // HMR is disabled in AI Studio via DISABLE_HMR env var.
       // Do not modify — file watching is disabled to prevent flickering during agent edits.
       hmr: process.env.DISABLE_HMR !== 'true',
+      watch: {
+        ignored: ['**/node_modules/**', '**/.pnpm-store/**', '**/.git/**'],
+      },
     },
     build: {
       sourcemap: hasSentryToken ? true : false,
       rollupOptions: {
         output: {
-          manualChunks: {
-            'vendor-react': ['react', 'react-dom', 'react-router-dom'],
-            'vendor-supabase': ['@supabase/supabase-js'],
-            'vendor-recharts': ['recharts'],
-            'vendor-katex': ['katex'],
-            'vendor-query': ['@tanstack/react-query'],
-            'vendor-motion': ['motion'],
-            'vendor-dnd': ['@hello-pangea/dnd'],
-            'vendor-markdown': ['remark-gfm', 'remark-math', 'rehype-katex'],
-            'vendor-sentry': ['@sentry/react'],
-            'vendor-date': ['date-fns'],
-            'vendor-sanitize': ['dompurify'],
-            'vendor-form': ['react-hook-form', '@hookform/resolvers', 'valibot'],
+          manualChunks(id) {
+            if (id.includes('node_modules')) {
+              if (id.includes('lucide-react')) {
+                return 'vendor-lucide'
+              }
+              if (id.includes('recharts')) {
+                return 'vendor-recharts'
+              }
+              if (id.includes('@supabase')) {
+                return 'vendor-supabase'
+              }
+              if (id.includes('motion')) {
+                return 'vendor-motion'
+              }
+              if (id.includes('katex') || id.includes('remark-') || id.includes('rehype-')) {
+                return 'vendor-markdown'
+              }
+              if (id.includes('@tanstack')) {
+                return 'vendor-query'
+              }
+              if (id.includes('@hello-pangea/dnd')) {
+                return 'vendor-dnd'
+              }
+              if (
+                id.includes('react-dom') ||
+                id.includes('react-router') ||
+                id.includes('react/')
+              ) {
+                return 'vendor-react'
+              }
+              if (id.includes('@sentry')) {
+                return 'vendor-sentry'
+              }
+            }
           },
         },
       },

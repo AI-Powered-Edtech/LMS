@@ -1,0 +1,25 @@
+{
+  "name": "@oxc-parser/binding-linux-x64-musl",
+  "version": "0.121.0",
+  "requiresBuild": false,
+  "files": {
+    "package.json": {
+      "checkedAt": 1776140544481,
+      "integrity": "sha512-qr35xlPxt3Cj4paVl7Us+yDIBgXa5eDByuM86VW4kLFmJETHABMfsrJXS6Kbh+PYtVybo35bS8AguxZqmAWPAQ==",
+      "mode": 420,
+      "size": 848
+    },
+    "README.md": {
+      "checkedAt": 1776140544481,
+      "integrity": "sha512-ii/cfMj/9QHh4VX7fha4Sxc1tPUPYFmmSEoxkCyq3g1Adyt1ESA/kY0bYJhHuiiYEYLlrjuvK1Fd8FGwMV5m8g==",
+      "mode": 420,
+      "size": 115
+    },
+    "parser.linux-x64-musl.node": {
+      "checkedAt": 1776140544488,
+      "integrity": "sha512-2SDuVfKbkNUpHfJLs3SyBU9/HKtMS+DsrqzPrh2MwANE8eWGy5mJ1RbA0G/DqnGbc6qLOjDoA9LK5sD3O5KFVQ==",
+      "mode": 420,
+      "size": 2589512
+    }
+  }
+}

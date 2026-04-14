@@ -6,6 +6,7 @@ import { useEffect, useState } from 'react'
 import { useAuth } from '@/src/contexts/AuthContext'
 import { QuizAssignment, quizService } from '@/src/features/quizzes'
 import { useToast } from '@/src/hooks/useToast'
+import { logger } from '@/src/utils/logger'
 
 interface QuizAssignmentStatusProps {
   quizId: string
@@ -27,7 +28,7 @@ export function QuizAssignmentStatus({ quizId, onAssignClick }: QuizAssignmentSt
       const data = await quizService.getAssignmentsByQuiz(quizId, tenantId)
       setAssignments(data)
     } catch (err: unknown) {
-      if (import.meta.env.DEV) console.error('Failed to load assignments:', err)
+      if (import.meta.env.DEV) logger.error('Failed to load assignments:', err)
       setError(err instanceof Error ? err.message : 'Gagal memuat status assignment')
     } finally {
       setIsLoading(false)

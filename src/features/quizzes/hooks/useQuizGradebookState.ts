@@ -8,6 +8,7 @@ import {
 } from '@/src/features/quizzes/api/quizAnalyticsService'
 import { usePageTitle } from '@/src/hooks/usePageTitle'
 import { supabase } from '@/src/services/supabase/client'
+import { logger } from '@/src/utils/logger'
 
 export interface AssignmentOption {
   id: string
@@ -160,7 +161,7 @@ export function useQuizGradebookState() {
         const data = await quizAnalyticsService.getQuestionDifficulty(selectedAssignment)
         setQuestionDifficulty(data)
       } catch {
-        if (import.meta.env.DEV) console.error('Failed to load question difficulty')
+        if (import.meta.env.DEV) logger.error('Failed to load question difficulty')
       } finally {
         setIsDifficultyLoading(false)
       }
