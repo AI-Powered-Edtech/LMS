@@ -41,7 +41,6 @@ describe('aiQuizGenService', () => {
 
     it('meneruskan error dari aiAuthoringService', async () => {
       mockGenerateFromLesson.mockRejectedValue(new Error('Materi tidak ditemukan.'))
-
       await expect(
         aiQuizGenService.generateQuestions({
           lessonId: 'nonexistent',
@@ -56,4 +55,3 @@ describe('aiQuizGenService', () => {
     })
   })
 })
-

@@ -1,7 +1,11 @@
 import './index.css'
 
 if (typeof window !== 'undefined') {
-  if (window.crypto && typeof window.crypto.randomUUID !== 'function' && window.crypto.getRandomValues) {
+  if (
+    window.crypto &&
+    typeof window.crypto.randomUUID !== 'function' &&
+    window.crypto.getRandomValues
+  ) {
     window.crypto.randomUUID = function () {
       const bytes = new Uint8Array(16)
       window.crypto.getRandomValues(bytes)

@@ -10,12 +10,12 @@
 
 import type { ApiClient } from '@/services/api'
 import { getActiveApiClient } from '@/services/api/runtime'
-import { getAuthProvider } from '@/services/auth'
 import type { AuthProvider } from '@/services/auth'
-import { getRealtimeProvider } from '@/services/realtime'
+import { getAuthProvider } from '@/services/auth'
 import type { RealtimeProvider } from '@/services/realtime'
-import { getStorageProvider } from '@/services/storage'
+import { getRealtimeProvider } from '@/services/realtime'
 import type { StorageProvider } from '@/services/storage'
+import { getStorageProvider } from '@/services/storage'
 import { logger } from '@/utils/logger'
 
 export type DbFacade = {

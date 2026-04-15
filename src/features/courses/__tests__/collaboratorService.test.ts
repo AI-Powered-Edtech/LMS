@@ -20,16 +20,18 @@ import { collaboratorService } from '../api/builder/collaboratorService'
 // available for assertions in test bodies.
 // ============================================================
 
-const { spyFrom, spySelect, spyInsert, spyDelete, spyEq, spyIn, spyIlike, spyLimit } = vi.hoisted(() => ({
-  spyFrom: vi.fn(),
-  spySelect: vi.fn(),
-  spyInsert: vi.fn(),
-  spyDelete: vi.fn(),
-  spyEq: vi.fn(),
-  spyIn: vi.fn(),
-  spyIlike: vi.fn(),
-  spyLimit: vi.fn(),
-}))
+const { spyFrom, spySelect, spyInsert, spyDelete, spyEq, spyIn, spyIlike, spyLimit } = vi.hoisted(
+  () => ({
+    spyFrom: vi.fn(),
+    spySelect: vi.fn(),
+    spyInsert: vi.fn(),
+    spyDelete: vi.fn(),
+    spyEq: vi.fn(),
+    spyIn: vi.fn(),
+    spyIlike: vi.fn(),
+    spyLimit: vi.fn(),
+  })
+)
 
 // Holds the value that the terminal method resolves with.
 // Each test sets this before calling the service.

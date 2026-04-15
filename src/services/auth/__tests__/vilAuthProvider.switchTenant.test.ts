@@ -48,4 +48,3 @@ describe('vilAuthProvider.switchTenant', () => {
     expect(init.body).toBe(JSON.stringify({ tenant_id: 't-2', refresh_token: 'old-refresh' }))
   })
 })
-
