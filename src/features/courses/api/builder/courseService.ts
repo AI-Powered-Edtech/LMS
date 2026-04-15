@@ -19,21 +19,21 @@ export const builderCourseService = {
    */
   async fetchCourseStructure(
     courseId: string,
-    tenantId: string
+    _tenantId: string
   ): Promise<{
     course: DomainCourse
     modules: DomainModule[]
   }> {
-    const { data: course, error: courseErr } = await apiFetch('/courses')
+    const { data: course, error: courseErr } = await apiFetch(`/v1/courses/${courseId}`)
 
     if (courseErr || !course) throw new Error('Materi tidak ditemukan')
 
-    const { data: modules, error: modErr } = await apiFetch('/course_modules')
+    const { data: modules, error: modErr } = await apiFetch(`/v1/courses/${courseId}/modules`)
 
     if (modErr) throw new Error(modErr.message)
 
     // Sort lessons within each module
-    const sorted = (modules || []).map((m) => ({
+    const sorted = (modules || []).map((m: any) => ({
       ...m,
       description: null,
       lessons: ((m as unknown as { lessons?: BuilderLessonRow[] }).lessons || []).sort(
@@ -49,25 +49,23 @@ export const builderCourseService = {
 
   /** Use RPC to publish a course and update status/publishing timestamps */
   async publishCourse(courseId: string, _tenantId: string): Promise<void> {
-    const { error } = await apiFetch('/rpc/rpc_publish_course', { method: 'POST', body: JSON.stringify({
-          p_course_id: courseId,
-        }) })
+    const { error } = await apiFetch(`/v1/courses/${courseId}/publish`, { method: 'POST' })
     if (error) throw new Error(error.message)
   },
 
   /** Manually drafted via update instead of full RPC for now, for completeness */
-  async draftCourse(courseId: string, tenantId: string): Promise<void> {
-    const { error } = await apiFetch('/courses')
+  async draftCourse(courseId: string, _tenantId: string): Promise<void> {
+    const { error } = await apiFetch(`/v1/courses/${courseId}/draft`, { method: 'POST' })
     if (error) throw new Error(error.message)
   },
 
-  async submitForReview(courseId: string, tenantId: string): Promise<void> {
-    const { error } = await apiFetch('/courses')
+  async submitForReview(courseId: string, _tenantId: string): Promise<void> {
+    const { error } = await apiFetch(`/v1/courses/${courseId}/submit`, { method: 'POST' })
     if (error) throw new Error(error.message)
   },
 
-  async approveCourse(courseId: string, tenantId: string): Promise<void> {
-    const { error } = await apiFetch('/courses')
+  async approveCourse(courseId: string, _tenantId: string): Promise<void> {
+    const { error } = await apiFetch(`/v1/courses/${courseId}/approve`, { method: 'POST' })
     if (error) throw new Error(error.message)
   },
 }

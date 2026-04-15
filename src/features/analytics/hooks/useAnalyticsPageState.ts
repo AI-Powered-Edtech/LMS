@@ -27,9 +27,9 @@ export function useAnalyticsPageState() {
       if (!activeTenant?.id) return
       try {
         const result = await courseService.fetchCourses({ tenantId: activeTenant.id, limit: 50 })
-        setCourses(result.courses)
-        if (result.courses.length > 0) {
-          setSelectedCourseId(result.courses[0].id)
+        setCourses(result.data || [])
+        if (result.data && result.data.length > 0) {
+          setSelectedCourseId(result.data[0].id)
         }
       } catch (err) {
         if (import.meta.env.DEV) console.error('Failed to load courses', err)

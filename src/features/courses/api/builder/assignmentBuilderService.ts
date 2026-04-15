@@ -19,8 +19,8 @@ export interface AssignmentBlockData {
 // ============================================================
 
 export const builderAssignmentService = {
-  async getAssignmentByLesson(lessonId: string, tenantId: string) {
-    const { data, error } = await apiFetch('/assignments')
+  async getAssignmentByLesson(lessonId: string, _tenantId: string) {
+    const { data, error } = await apiFetch(`/v1/lessons/${lessonId}/assignments`)
 
     if (error) throw new Error(error.message)
     return data || null
@@ -29,15 +29,36 @@ export const builderAssignmentService = {
   async saveAssignmentData(
     lessonId: string,
     courseId: string,
-    tenantId: string,
+    _tenantId: string,
     data: AssignmentBlockData
   ) {
     if (data.id) {
-      const { data: result, error } = await apiFetch('/assignments')
+      const { data: result, error } = await apiFetch(`/v1/assignments/${data.id}`, {
+        method: 'PUT',
+        body: JSON.stringify({
+          title: data.title,
+          instructions: data.instructions,
+          max_points: data.max_points,
+          max_attempts: data.max_attempts,
+          is_published: data.is_published,
+          due_date: data.due_date
+        })
+      })
       if (error) throw new Error(error.message)
       return result
     } else {
-      const { data: result, error } = await apiFetch('/assignments')
+      const { data: result, error } = await apiFetch(`/v1/lessons/${lessonId}/assignments`, {
+        method: 'POST',
+        body: JSON.stringify({
+          course_id: courseId,
+          title: data.title,
+          instructions: data.instructions,
+          max_points: data.max_points,
+          max_attempts: data.max_attempts,
+          is_published: data.is_published,
+          due_date: data.due_date
+        })
+      })
       if (error) throw new Error(error.message)
       return result
     }

@@ -80,7 +80,7 @@ export function Dashboard() {
       : profile?.first_name || 'Siswa'
   const activeCourses = Array.isArray(courses)
     ? courses
-    : ((courses as unknown as { courses?: unknown[] })?.courses ?? [])
+    : ((courses as unknown as { data?: unknown[] })?.data ?? [])
   const announcementList: Announcement[] = Array.isArray(announcements) ? announcements : []
   const leaderboardList: LeaderboardEntry[] = Array.isArray(leaderboard) ? leaderboard : []
 

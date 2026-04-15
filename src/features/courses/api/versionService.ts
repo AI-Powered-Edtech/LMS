@@ -16,7 +16,7 @@ export const versionService = {
    * Fetches the version history for a course without the heavy snapshot data
    */
   async fetchCourseVersions(courseId: string) {
-    const { data, error } = await apiFetch('/course_versions')
+    const { data, error } = await apiFetch('/v1/course_versions')
 
     if (error) {
       logDevError('versionService', 'Error fetching course versions:', error)
@@ -30,7 +30,7 @@ export const versionService = {
    * Saves a new version (checkpoint) of a course
    */
   async saveCourseVersion(courseId: string, commitMessage: string) {
-    const { data, error } = await apiFetch('/rpc/save_course_version', { method: 'POST', body: JSON.stringify({
+    const { data, error } = await apiFetch('/v1/rpc/save_course_version', { method: 'POST', body: JSON.stringify({
           p_course_id: courseId,
           p_message: commitMessage,
         }) })
@@ -47,7 +47,7 @@ export const versionService = {
    * Restores a course to a specific version
    */
   async restoreCourseVersion(versionId: string) {
-    const { data, error } = await apiFetch('/rpc/restore_course_version', { method: 'POST', body: JSON.stringify({
+    const { data, error } = await apiFetch('/v1/rpc/restore_course_version', { method: 'POST', body: JSON.stringify({
           p_version_id: versionId,
         }) })
 

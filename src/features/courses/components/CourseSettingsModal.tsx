@@ -3,7 +3,7 @@ import { AnimatePresence, motion } from 'motion/react'
 import { useCallback, useEffect, useRef, useState } from 'react'
 
 import { useAuth } from '@/src/contexts/AuthContext'
-import { apiFetch } from '@/src/lib/api'
+import { courseService } from '../api/courseService'
 
 import { CourseCollaborators } from './CourseCollaborators'
 
@@ -45,23 +45,23 @@ function GeneralSettingsTab({ courseId }: { courseId: string }) {
 
     async function fetchCourse() {
       setLoading(true)
-      const { data: course, error: fetchErr } = await apiFetch('/courses')
+      try {
+        const course = await courseService.getCourseById(courseId, tenantId)
 
-      if (cancelled) return
+        if (cancelled) return
 
-      if (fetchErr) {
+        setData({
+          title: course.title || '',
+          description: course.description || '',
+          subject: course.subject || '',
+          level: course.level || '',
+        })
+      } catch (fetchErr) {
+        if (cancelled) return
         setError('Gagal memuat data kursus.')
-        setLoading(false)
-        return
+      } finally {
+        if (!cancelled) setLoading(false)
       }
-
-      setData({
-        title: course.title || '',
-        description: course.description || '',
-        subject: course.subject || '',
-        level: course.level || '',
-      })
-      setLoading(false)
     }
 
     fetchCourse()
@@ -92,15 +92,14 @@ function GeneralSettingsTab({ courseId }: { courseId: string }) {
         setSaved(false)
         setError(null)
 
-        const { error: updateErr } = await apiFetch('/courses')
-
-        setSaving(false)
-
-        if (updateErr) {
-          setError('Gagal menyimpan perubahan.')
-        } else {
+        try {
+          await courseService.updateCourse(courseId, updatedData, tenantId)
           setSaved(true)
           savedTimerRef.current = setTimeout(() => setSaved(false), 3000)
+        } catch (updateErr) {
+          setError('Gagal menyimpan perubahan.')
+        } finally {
+          setSaving(false)
         }
       }, 800)
     },

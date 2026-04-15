@@ -286,7 +286,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     const initAuth = async () => {
       try {
-        const data = await apiFetch('/auth/me')
+        const data = await apiFetch('/v1/auth/me')
         if (data && data.user) {
           setSession({ access_token: localStorage.getItem('token') || '', user: data.user })
           setUser(data.user)
@@ -316,7 +316,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const signIn = useCallback(async (email: string, password: string) => {
     setSessionExpired(false)
     try {
-      const data = await apiFetch('/auth/login', {
+      const data = await apiFetch('/v1/auth/login', {
         method: 'POST',
         body: JSON.stringify({ email, password }),
       })
@@ -346,7 +346,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       signUpTenantId?: string
     ) => {
       try {
-        const data = await apiFetch('/auth/register', {
+        const data = await apiFetch('/v1/auth/register', {
           method: 'POST',
           body: JSON.stringify({
             email,
@@ -381,14 +381,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setRawTenants({})
     setRoles([])
     try {
-      await apiFetch('/auth/logout', { method: 'POST' })
+      await apiFetch('/v1/auth/logout', { method: 'POST' })
     } catch (err) {
       if (import.meta.env.DEV) console.error('[Auth] signOut error:', err)
     }
   }, [])
 
   const signInWithGoogle = useCallback(async () => {
-    window.location.href = '/api/auth/google'
+    window.location.href = '/api/v1/auth/google'
   }, [])
 
   const hasRole = useCallback((r: Role) => roles.includes(r), [roles])

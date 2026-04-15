@@ -24,8 +24,8 @@ export function StudentClassPage() {
       if (!tenantId || !classId) return
       try {
         setLoading(true)
-        const { courses } = await courseService.fetchCourses({ tenantId, limit: 100 })
-        const classCourses = courses.filter((course) =>
+        const { data: fetchedCourses } = await courseService.fetchCourses({ tenantId, limit: 100 })
+        const classCourses = ((fetchedCourses as unknown as Course[]) || []).filter((course) =>
           course.assigned_classes?.some((ac: { class_id: string }) => ac.class_id === classId)
         )
         setCourses(classCourses)

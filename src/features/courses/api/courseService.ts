@@ -8,69 +8,45 @@ export const courseService = {
    * Fetches courses for a specific tenant with optional pagination and search.
    * RLS ensures users only see courses they have access to.
    */
-  async fetchCourses({ tenantId, page = 1, limit = 10, search, ids }: FetchCoursesOptions) {
-    // Try fetching with joined class data first
-    let query = apiFetch('/courses')
-
-    if (ids && ids.length > 0) {
-      query = query.in('id', ids)
-    }
-
-    query = query.order('created_at', { ascending: false })
-
-    if (search) {
-      query = query.ilike('title', `%${search}%`)
-    }
-
+  async fetchCourses({ tenantId: _tenantId, page = 1, limit = 10, search, ids }: FetchCoursesOptions) {
+    const queryParams = new URLSearchParams()
+    
     if (page && limit) {
-      const from = (page - 1) * limit
-      const to = from + limit - 1
-      query = query.range(from, to)
+      queryParams.append('page', page.toString())
+      queryParams.append('limit', limit.toString())
+    }
+    
+    if (search) {
+      queryParams.append('search', search)
+    }
+    
+    if (ids && ids.length > 0) {
+      queryParams.append('ids', ids.join(','))
     }
 
-    let { data, error, count } = await query
+    const queryString = queryParams.toString()
+    const url = `/v1/courses${queryString ? `?${queryString}` : ''}`
 
-    // Graceful fallback: if the join fails, fetch courses without joined data
-    if (error) {
-      logDevWarn(
-        'courseService',
-        'Courses join query failed, falling back to simple fetch:',
-        error.message
-      )
-      let fallbackQuery = apiFetch('/courses')
-
-      if (ids && ids.length > 0) {
-        fallbackQuery = fallbackQuery.in('id', ids)
-      }
-      if (search) {
-        fallbackQuery = fallbackQuery.ilike('title', `%${search}%`)
-      }
-      if (page && limit) {
-        const from = (page - 1) * limit
-        const to = from + limit - 1
-        fallbackQuery = fallbackQuery.range(from, to)
+    try {
+      const { data, error, count } = await apiFetch(url)
+      
+      if (error) {
+        logDevWarn('Courses', 'Failed to fetch courses:', error)
+        return { data: [], error, count: 0 }
       }
 
-      const fallback = await fallbackQuery
-      if (fallback.error) {
-        logDevError('courseService', 'Error fetching courses (fallback):', fallback.error)
-        throw fallback.error
-      }
-      data = fallback.data as unknown as typeof data
-      count = fallback.count
-    }
-
-    return {
-      courses: (data || []) as unknown as Course[],
-      count: count || 0,
+      return { data: data || [], error: null, count: count || 0 }
+    } catch (err) {
+      logDevError('Courses', 'Failed to fetch courses:', err)
+      return { data: [], error: err as Error, count: 0 }
     }
   },
 
   /**
    * Gets a specific course by its ID.
    */
-  async getCourseById(courseId: string, tenantId: string) {
-    const { data, error } = await apiFetch('/courses')
+  async getCourseById(courseId: string, _tenantId: string) {
+    const { data, error } = await apiFetch(`/v1/courses/${courseId}`)
 
     if (error) {
       logDevError('courseService', 'Error fetching course by ID:', error)
@@ -86,7 +62,10 @@ export const courseService = {
    * but we provide it here explicitly for completeness if the RLS allows it.
    */
   async createCourse(courseData: CourseInsert) {
-    const { data, error } = await apiFetch('/courses')
+    const { data, error } = await apiFetch('/v1/courses', {
+      method: 'POST',
+      body: JSON.stringify(courseData),
+    })
 
     if (error) {
       logDevError('courseService', 'Error creating course:', error)
@@ -99,8 +78,11 @@ export const courseService = {
   /**
    * Updates an existing course.
    */
-  async updateCourse(courseId: string, updates: CourseUpdate, tenantId: string) {
-    const { data, error } = await apiFetch('/courses')
+  async updateCourse(courseId: string, updates: CourseUpdate, _tenantId: string) {
+    const { data, error } = await apiFetch(`/v1/courses/${courseId}`, {
+      method: 'PATCH',
+      body: JSON.stringify(updates),
+    })
 
     if (error) {
       logDevError('courseService', 'Error updating course:', error)
@@ -113,8 +95,10 @@ export const courseService = {
   /**
    * Deletes a course.
    */
-  async deleteCourse(courseId: string, tenantId: string) {
-    const { error } = await apiFetch('/courses')
+  async deleteCourse(courseId: string, _tenantId: string) {
+    const { error } = await apiFetch(`/v1/courses/${courseId}`, {
+      method: 'DELETE',
+    })
 
     if (error) {
       logDevError('courseService', 'Error deleting course:', error)
@@ -125,8 +109,8 @@ export const courseService = {
   /**
    * Checks if a user is enrolled in a specific course.
    */
-  async checkEnrollment(courseId: string, userId: string, tenantId: string) {
-    const { data, error } = await apiFetch('/course_enrollments')
+  async checkEnrollment(courseId: string, userId: string, _tenantId: string) {
+    const { data, error } = await apiFetch(`/v1/courses/${courseId}/enrollments/${userId}`)
 
     if (error) {
       logDevError('courseService', 'Error checking course enrollment:', error)

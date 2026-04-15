@@ -25,8 +25,8 @@ export const collaboratorService = {
   /**
    * Fetch all collaborators for a given course within a tenant.
    */
-  async fetchCollaborators(courseId: string, tenantId: string): Promise<Collaborator[]> {
-    const { data, error } = await apiFetch('/course_collaborators')
+  async fetchCollaborators(courseId: string, _tenantId: string): Promise<Collaborator[]> {
+    const { data, error } = await apiFetch(`/v1/courses/${courseId}/collaborators`)
 
     if (error) throw error
 
@@ -41,10 +41,10 @@ export const collaboratorService = {
   /**
    * Search profiles within a tenant by name (for adding collaborators).
    */
-  async searchUsers(query: string, tenantId: string): Promise<SearchableUser[]> {
+  async searchUsers(query: string, _tenantId: string): Promise<SearchableUser[]> {
     if (!query) return []
 
-    const { data, error } = await apiFetch('/profiles')
+    const { data, error } = await apiFetch(`/v1/users/search?q=${encodeURIComponent(query)}`)
 
     if (error) throw error
     return data || []
@@ -57,17 +57,25 @@ export const collaboratorService = {
     courseId: string,
     userId: string,
     role: Collaborator['role'],
-    tenantId: string
+    _tenantId: string
   ): Promise<void> {
-    const { error } = await apiFetch('/course_collaborators')
+    const { error } = await apiFetch(`/v1/courses/${courseId}/collaborators`, {
+      method: 'POST',
+      body: JSON.stringify({
+        user_id: userId,
+        role
+      })
+    })
     if (error) throw error
   },
 
   /**
    * Remove a collaborator by record ID.
    */
-  async removeCollaborator(id: string, tenantId: string): Promise<void> {
-    const { error } = await apiFetch('/course_collaborators')
+  async removeCollaborator(id: string, _tenantId: string): Promise<void> {
+    const { error } = await apiFetch(`/v1/collaborators/${id}`, {
+      method: 'DELETE'
+    })
     if (error) throw error
   },
 }

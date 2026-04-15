@@ -111,7 +111,7 @@ export function Grades() {
     return <GradebookSkeleton />
   }
 
-  const courses: Course[] = coursesQuery.data?.courses ?? []
+  const courses: Course[] = coursesQuery.data?.data ?? []
 
   return (
     <div className="h-full flex flex-col bg-slate-50 dark:bg-slate-900 p-4 md:p-6 overflow-y-auto">

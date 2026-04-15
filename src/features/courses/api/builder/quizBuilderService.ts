@@ -38,34 +38,37 @@ export interface QuizBlockData {
 // ============================================================
 
 export const builderQuizService = {
-  async getQuizByLesson(lessonId: string, tenantId: string) {
-    const { data, error } = await apiFetch('/quizzes')
+  async getQuizByLesson(lessonId: string, _tenantId: string) {
+    const { data, error } = await apiFetch(`/v1/lessons/${lessonId}/quizzes`)
 
-    if (error && error.code !== 'PGRST116') throw new Error(error.message)
+    if (error) throw new Error(error.message)
     return data || null
   },
 
   async saveQuizData(
     lessonId: string,
-    tenantId: string,
+    _tenantId: string,
     data: QuizBlockData
   ): Promise<{ quiz_id: string }> {
-    const { data: result, error } = await apiFetch('/rpc/save_quiz_builder', { method: 'POST', body: JSON.stringify({
-          p_lesson_id: lessonId,
-          p_tenant_id: tenantId,
-          p_quiz_data: data,
-        }) })
+    const { data: result, error } = await apiFetch(`/v1/lessons/${lessonId}/quizzes`, {
+      method: 'POST',
+      body: JSON.stringify(data)
+    })
     if (error) throw new Error(error.message)
     return result as { quiz_id: string }
   },
 
-  async publishQuiz(quizId: string, tenantId: string): Promise<void> {
-    const { error } = await apiFetch('/quizzes')
+  async publishQuiz(quizId: string, _tenantId: string): Promise<void> {
+    const { error } = await apiFetch(`/v1/quizzes/${quizId}/publish`, {
+      method: 'POST'
+    })
     if (error) throw new Error(error.message)
   },
 
-  async draftQuiz(quizId: string, tenantId: string): Promise<void> {
-    const { error } = await apiFetch('/quizzes')
+  async draftQuiz(quizId: string, _tenantId: string): Promise<void> {
+    const { error } = await apiFetch(`/v1/quizzes/${quizId}/draft`, {
+      method: 'POST'
+    })
     if (error) throw new Error(error.message)
   },
 }

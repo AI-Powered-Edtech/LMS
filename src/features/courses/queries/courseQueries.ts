@@ -30,7 +30,7 @@ export function useInfiniteCoursesQuery(tenantId: string, search?: string) {
       }),
     initialPageParam: 1,
     getNextPageParam: (lastPage, allPages) => {
-      const loaded = allPages.reduce((acc, p) => acc + p.courses.length, 0)
+      const loaded = allPages.reduce((acc, p) => acc + (p.data?.length ?? 0), 0)
       return loaded < (lastPage.count ?? 0) ? allPages.length + 1 : undefined
     },
     staleTime: 5 * 60 * 1000,

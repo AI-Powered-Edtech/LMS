@@ -1,0 +1,5 @@
+- [x] Server *frontend* (dan *backend* bila perlu) telah berjalan dan dapat diakses oleh browser agent.
+- [x] Browser agent telah menavigasi proses Autentikasi/Login dengan lancar.
+- [x] Browser agent telah mengakses dan memvalidasi tampilan Dasbor (Dashboard) dan Katalog Kursus (Courses).
+- [x] Browser agent telah menguji navigasi dan fungsi komponen penting, serta memverifikasi ada tidaknya error konsol.
+- [x] Laporan `qa-pm-launch-readiness-report.md` telah diselesaikan dengan memuat temuan, skor kesiapan (Readiness Score), dan rekomendasi untuk *launch*.

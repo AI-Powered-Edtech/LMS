@@ -27,7 +27,7 @@ export function StudentCoursesList() {
       .then((res) => {
         // Filter out drafts if necessary, though fetchCourses might handle it
         setCourses(
-          (res.courses as unknown as Course[]).filter(
+          ((res.data || []) as unknown as Course[]).filter(
             (c) => c.status === 'published' || c.status === 'active'
           )
         )

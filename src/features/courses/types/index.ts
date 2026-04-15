@@ -2,10 +2,14 @@ export interface Course {
   id: string
   title: string
   description: string | null
+  subject?: string
+  level?: string
   tenant_id: string
   created_by: string
   created_at?: string
   updated_at?: string
+  modules?: any[]
+  module_count?: number
   assigned_classes?: {
     class_id: string
     class: {

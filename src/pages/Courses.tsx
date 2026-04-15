@@ -5,7 +5,8 @@ import { useNavigate } from 'react-router-dom'
 
 import { AssignCourseModal } from '@/src/components/Classroom/AssignCourseModal'
 import { useAuth } from '@/src/contexts/AuthContext'
-import { Course, courseService } from '@/src/features/courses'
+import type { Course } from '@/src/features/courses'
+import { courseService } from '@/src/features/courses'
 import { useInfiniteCoursesQuery } from '@/src/features/courses/queries/courseQueries'
 import { useDebounce } from '@/src/hooks/useDebounce'
 import { useToast } from '@/src/hooks/useToast'
@@ -56,7 +57,7 @@ export const Courses: React.FC = () => {
   const { data, fetchNextPage, hasNextPage, isFetchingNextPage, isLoading, isError, refetch } =
     useInfiniteCoursesQuery(activeTenant?.id ?? '', debouncedSearch)
 
-  const courses = data?.pages.flatMap((p) => p.courses) ?? []
+  const courses = data?.pages.flatMap((p) => p.data ?? []) ?? []
 
   // Sentinel for IntersectionObserver — triggers loading the next page
   const sentinelRef = useRef<HTMLDivElement>(null)
@@ -342,10 +343,7 @@ interface CourseCardProps {
 }
 
 function CourseCard({ course, idx, gradientClass, onNavigate, onAssign }: CourseCardProps) {
-  const moduleCount =
-    (course as Course & { modules?: unknown[]; module_count?: number }).modules?.length ??
-    (course as Course & { module_count?: number }).module_count ??
-    null
+  const moduleCount = course.modules?.length ?? course.module_count ?? null
 
   return (
     <motion.div

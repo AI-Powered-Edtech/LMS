@@ -57,7 +57,7 @@ export function CourseBrowser({
     ;(async () => {
       try {
         // 1. Fetch course
-        const { courses: coursesData } = await courseService.fetchCourses({
+        const { data: coursesData } = await courseService.fetchCourses({
           tenantId,
           limit: 100,
           ids: courseId ? [courseId] : undefined,
@@ -100,7 +100,7 @@ export function CourseBrowser({
           const { data: progressData } = await apiFetch('/lesson_progress')
 
           if (progressData) {
-            completedSet = new Set(progressData.map((p) => p.lesson_id))
+            completedSet = new Set((progressData as Array<{ lesson_id: string }>).map((p) => p.lesson_id))
           }
         }
 

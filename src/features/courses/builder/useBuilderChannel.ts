@@ -1,4 +1,4 @@
-import { api, apiFetch } from '@/src/lib/api'
+import { api } from '@/src/lib/api'
 import { useCallback, useEffect, useRef, useState } from 'react'
 
 import type { BuilderAction } from './builderReducer'

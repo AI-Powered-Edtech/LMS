@@ -10,11 +10,12 @@ export const builderLessonService = {
     moduleId: string,
     type: string,
     title: string,
-    tenantId: string
+    _tenantId: string
   ): Promise<DomainLesson> {
-    const { count } = await apiFetch('/lessons')
-
-    const { data, error } = await apiFetch('/lessons')
+    const { data, error } = await apiFetch(`/v1/modules/${moduleId}/lessons`, {
+      method: 'POST',
+      body: JSON.stringify({ type, title }),
+    })
 
     if (error) throw new Error(error.message)
     return mapLesson(data)
@@ -22,7 +23,7 @@ export const builderLessonService = {
 
   async updateLesson(
     lessonId: string,
-    tenantId: string,
+    _tenantId: string,
     data: Partial<DomainLesson>
   ): Promise<void> {
     // Map Domain model fields back to database columns if needed
@@ -31,22 +32,26 @@ export const builderLessonService = {
     if (data.isPublished !== undefined) dbUpdate.is_published = data.isPublished
     if (data.durationMinutes !== undefined) dbUpdate.duration_minutes = data.durationMinutes
 
-    const { error } = await apiFetch('/lessons')
+    const { error } = await apiFetch(`/v1/lessons/${lessonId}`, {
+      method: 'PATCH',
+      body: JSON.stringify(dbUpdate),
+    })
 
     if (error) throw new Error(error.message)
   },
 
-  async deleteLesson(lessonId: string, tenantId: string): Promise<void> {
-    const { error } = await apiFetch('/lessons')
+  async deleteLesson(lessonId: string, _tenantId: string): Promise<void> {
+    const { error } = await apiFetch(`/v1/lessons/${lessonId}`, {
+      method: 'DELETE',
+    })
     if (error) throw new Error(error.message)
   },
 
-  async reorderLessons(moduleId: string, lessonIds: string[], tenantId: string): Promise<void> {
-    const { error } = await apiFetch('/rpc/rpc_reorder_module_lessons', { method: 'POST', body: JSON.stringify({
-          p_module_id: moduleId,
-          p_lesson_ids: lessonIds,
-          p_tenant_id: tenantId,
-        }) })
+  async reorderLessons(moduleId: string, lessonIds: string[], _tenantId: string): Promise<void> {
+    const { error } = await apiFetch(`/v1/modules/${moduleId}/lessons/reorder`, {
+      method: 'POST',
+      body: JSON.stringify({ lesson_ids: lessonIds }),
+    })
 
     if (error) throw new Error(error.message)
   },

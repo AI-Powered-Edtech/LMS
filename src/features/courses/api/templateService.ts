@@ -17,7 +17,7 @@ export const templateService = {
    * Fetches the templates for a specific type
    */
   async fetchTemplates(type: 'course' | 'module' | 'lesson') {
-    const { data, error } = await apiFetch('/content_templates')
+    const { data, error } = await apiFetch('/v1/content_templates')
 
     if (error) {
       logDevError('templateService', 'Error fetching templates:', error)
@@ -36,7 +36,7 @@ export const templateService = {
     description: string,
     sourceId: string
   ) {
-    const { data, error } = await apiFetch('/rpc/save_content_template', { method: 'POST', body: JSON.stringify({
+    const { data, error } = await apiFetch('/v1/rpc/save_content_template', { method: 'POST', body: JSON.stringify({
           p_type: type,
           p_title: title,
           p_description: description,
@@ -55,7 +55,7 @@ export const templateService = {
    * Imports a template to a specific target
    */
   async importTemplate(templateId: string, targetId: string, order?: number) {
-    const { data, error } = await apiFetch('/rpc/import_content_template', { method: 'POST', body: JSON.stringify({
+    const { data, error } = await apiFetch('/v1/rpc/import_content_template', { method: 'POST', body: JSON.stringify({
           p_template_id: templateId,
           p_target_id: targetId,
           p_order: order,

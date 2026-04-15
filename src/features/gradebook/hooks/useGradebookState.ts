@@ -27,7 +27,7 @@ export function useGradebookState() {
   // Course-based gradebook (real API data)
   const [selectedCourseId, setSelectedCourseId] = useState<string>('')
   const coursesQuery = useCourses({ limit: 50 })
-  const courses: Course[] = coursesQuery.data?.courses ?? []
+  const courses: Course[] = coursesQuery.data?.data ?? []
 
   const handleAddAssignment = (e: React.FormEvent) => {
     e.preventDefault()
