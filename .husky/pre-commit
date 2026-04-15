@@ -1,2 +1,0 @@
-node_modules/.bin/lint-staged
-pnpm run audit:check

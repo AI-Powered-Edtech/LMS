@@ -1,1 +1,0 @@
-- [x] File `.git/index.lock` berhasil dihapus dan tidak ditemukan lagi di dalam direktori repositori.
