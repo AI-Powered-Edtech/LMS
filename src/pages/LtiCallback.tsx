@@ -2,7 +2,7 @@ import { AlertTriangle, Loader2 } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 
-import { api, apiFetch } from '@/src/lib/api'
+import { api, } from '@/src/lib/api'
 
 // ==========================================================================
 // LtiCallback — Handles the redirect after LTI launch

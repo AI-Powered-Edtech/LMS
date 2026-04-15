@@ -17,6 +17,6 @@ const HTML_ESCAPE_MAP: Record<string, string> = {
  * @param str - The string to escape
  * @returns The escaped string safe for HTML interpolation
  */
-export function escapeHtml(str: string): string {
+function escapeHtml(str: string): string {
   return str.replace(/[&<>"']/g, (char) => HTML_ESCAPE_MAP[char])
 }

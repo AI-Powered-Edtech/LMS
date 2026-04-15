@@ -14,7 +14,7 @@ export const discussionKeys = {
 /**
  * Query hook untuk daftar Diskusi.
  */
-export function useDiscussionList() {
+function useDiscussionList() {
   const { tenantId } = useAuth()
   return useQuery({
     queryKey: discussionKeys.all(tenantId!),

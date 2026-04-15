@@ -28,7 +28,7 @@ import { useStudentCertificates } from '@/src/features/gamification'
 import { useDebounce } from '@/src/hooks/useDebounce'
 import { usePageTitle } from '@/src/hooks/usePageTitle'
 import { useToast } from '@/src/hooks/useToast'
-import { api, apiFetch } from '@/src/lib/api'
+import { api, } from '@/src/lib/api'
 
 export function Certificates() {
   const addToast = useToast((s) => s.addToast)

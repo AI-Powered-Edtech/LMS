@@ -5,7 +5,7 @@ import { recommendationService } from '../api/recommendationService'
 /**
  * Hook untuk mengambil daftar Rekomendasi.
  */
-export function useRecommendationData(userId: string) {
+function useRecommendationData(userId: string) {
   return useQuery({
     queryKey: ['recommendations', userId],
     queryFn: () => recommendationService.getRecommendations(userId),
@@ -16,7 +16,7 @@ export function useRecommendationData(userId: string) {
 /**
  * Hook untuk membuat/mengupdate Rekomendasi.
  */
-export function useRecommendationMutation() {
+function useRecommendationMutation() {
   const qc = useQueryClient()
   return useMutation({
     mutationFn: (params: { recommendationId: string; action: 'dismissed' | 'accepted' }) =>

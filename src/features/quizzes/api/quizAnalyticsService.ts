@@ -3,7 +3,7 @@ import { logDevError } from '@/src/utils/logDevError'
 
 // --- Types ---
 
-export interface AttemptDetailAnswer {
+interface AttemptDetailAnswer {
   question_id: string
   question_text: string
   question_position: number
@@ -37,7 +37,7 @@ export interface QuizStats {
   updated_at: string
 }
 
-export interface QuestionDifficulty {
+interface QuestionDifficulty {
   question_id: string
   question_text: string
   question_position: number
@@ -190,7 +190,7 @@ export const quizAnalyticsService = {
 /**
  * Get question-level statistics for a specific quiz
  */
-export async function getQuestionStats(quizId: string): Promise<QuestionStatsWithQuestion[]> {
+export async function getQuestionStats(_quizId: string): Promise<QuestionStatsWithQuestion[]> {
   // Get question stats
   const { data: stats, error } = await apiFetch('/question_stats')
 
@@ -204,7 +204,7 @@ export async function getQuestionStats(quizId: string): Promise<QuestionStatsWit
   }
 
   // Get question text and order for display
-  const questionIds = stats.map((s) => s.question_id)
+  const _questionIds = stats.map((s) => s.question_id)
   const { data: questions, error: questionError } = await apiFetch('/quiz_questions')
 
   if (questionError) {

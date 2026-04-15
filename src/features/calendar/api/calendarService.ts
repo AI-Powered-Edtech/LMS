@@ -21,7 +21,7 @@ export const calendarService = {
    * Fetch and aggregate calendar events from multiple sources:
    * assignments, class schedules, and quizzes.
    */
-  async fetchEvents(tenantId: string): Promise<CalendarEvent[]> {
+  async fetchEvents(_tenantId: string): Promise<CalendarEvent[]> {
     const events: CalendarEvent[] = []
 
     // 1. Assignment due dates

@@ -40,7 +40,7 @@ export const publicProfileService = {
     return (data as PublicProfileData) ?? null
   },
 
-  async getProfileByUsername(username: string): Promise<{ id: string } | null> {
+  async getProfileByUsername(_username: string): Promise<{ id: string } | null> {
     const { data, error } = await apiFetch('/profiles')
     if (error) throw error
     return data
@@ -53,12 +53,12 @@ export const publicProfileService = {
     if (error) throw error
   },
 
-  async updateUsername(userId: string, username: string): Promise<void> {
+  async updateUsername(_userId: string, _username: string): Promise<void> {
     const { error } = await apiFetch('/profiles')
     if (error) throw error
   },
 
-  async updateBio(userId: string, bio: string): Promise<void> {
+  async updateBio(_userId: string, _bio: string): Promise<void> {
     const { error } = await apiFetch('/profiles')
     if (error) throw error
   },

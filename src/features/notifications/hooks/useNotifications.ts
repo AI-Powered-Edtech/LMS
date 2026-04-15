@@ -1,4 +1,3 @@
-import { api } from "@/src/lib/api"
 /**
  * Enhanced notifications hook with Realtime subscription and toast feedback
  */

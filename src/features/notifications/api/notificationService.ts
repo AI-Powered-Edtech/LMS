@@ -11,8 +11,8 @@ import type { Notification } from '../types'
  * Fetch user notifications with tenant isolation
  */
 export async function fetchNotifications(
-  userId: string,
-  tenantId: string
+  _userId: string,
+  _tenantId: string
 ): Promise<Notification[]> {
   const { data, error } = await apiFetch('/notifications')
 
@@ -27,7 +27,7 @@ export async function fetchNotifications(
 /**
  * Mark a single notification as read with tenant verification
  */
-export async function markAsRead(id: string, tenantId: string): Promise<void> {
+export async function markAsRead(_id: string, _tenantId: string): Promise<void> {
   const { error } = await apiFetch('/notifications')
 
   if (error) {
@@ -39,7 +39,7 @@ export async function markAsRead(id: string, tenantId: string): Promise<void> {
 /**
  * Mark all notifications as read with tenant verification
  */
-export async function markAllAsRead(userId: string, tenantId: string): Promise<void> {
+export async function markAllAsRead(_userId: string, _tenantId: string): Promise<void> {
   const { error } = await apiFetch('/notifications')
 
   if (error) {
@@ -56,8 +56,8 @@ export async function sendNotification(
   userId: string,
   title: string,
   message: string,
-  type: string = 'system',
-  tenantId: string
+  _type: string = 'system',
+  _tenantId: string
 ): Promise<void> {
   const { error } = await apiFetch('/notifications')
 

@@ -73,7 +73,7 @@ interface OfflineInlineWarningProps {
   message?: string
 }
 
-export function OfflineInlineWarning({ className, message }: OfflineInlineWarningProps) {
+function OfflineInlineWarning({ className, message }: OfflineInlineWarningProps) {
   const { isOnline } = useNetworkStatus()
 
   if (isOnline) return null

@@ -1,4 +1,3 @@
-import { api } from "@/src/lib/api"
 import 'katex/dist/katex.min.css'
 
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'

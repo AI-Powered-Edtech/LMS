@@ -5,7 +5,7 @@ import { lessonService } from '../api/lessonService'
 /**
  * Hook untuk mengambil daftar Pelajaran.
  */
-export function useLessonData(moduleId: string, userId: string, tenantId: string) {
+function useLessonData(moduleId: string, userId: string, tenantId: string) {
   return useQuery({
     queryKey: ['lessons', moduleId, userId, tenantId],
     queryFn: () => lessonService.fetchModuleLessons(moduleId, userId, tenantId),
@@ -16,7 +16,7 @@ export function useLessonData(moduleId: string, userId: string, tenantId: string
 /**
  * Hook untuk mengupdate progress pelajaran.
  */
-export function useLessonMutation() {
+function useLessonMutation() {
   const qc = useQueryClient()
   return useMutation({
     mutationFn: (params: {

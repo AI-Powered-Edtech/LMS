@@ -7,7 +7,7 @@ import { useLocation } from 'react-router-dom'
 
 import { helpContent, type HelpItem } from '@/src/data/helpContent'
 
-export function usePageHelp(): HelpItem | null {
+function usePageHelp(): HelpItem | null {
   const { pathname } = useLocation()
 
   for (const item of helpContent) {

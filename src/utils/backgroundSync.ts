@@ -27,7 +27,7 @@ export async function syncPendingSubmissions(): Promise<SyncResult> {
   for (const item of pending) {
     try {
       if (item.type === 'quiz-submission') {
-        const payload = item.payload as QuizSubmissionPayload
+        const _payload = item._payload as QuizSubmissionPayload
 
         const { error } = await apiFetch('/quiz_attempts')
 

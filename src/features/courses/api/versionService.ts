@@ -15,7 +15,7 @@ export const versionService = {
   /**
    * Fetches the version history for a course without the heavy snapshot data
    */
-  async fetchCourseVersions(courseId: string) {
+  async fetchCourseVersions(_courseId: string) {
     const { data, error } = await apiFetch('/v1/course_versions')
 
     if (error) {

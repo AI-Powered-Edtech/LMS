@@ -27,7 +27,7 @@ export const groupAssignmentKeys = {
  * Returns the group the current student belongs to for a given assignment,
  * along with members and their latest submission.
  */
-export function useStudentGroup(assignmentId: string) {
+function useStudentGroup(assignmentId: string) {
   const { user } = useAuth()
   const userId = user?.id ?? ''
 
@@ -47,7 +47,7 @@ export function useStudentGroup(assignmentId: string) {
  * Returns all groups for an assignment including member details
  * and submission status — for the teacher overview.
  */
-export function useTeacherGroups(assignmentId: string) {
+function useTeacherGroups(assignmentId: string) {
   return useQuery<TeacherGroupEntry[]>({
     queryKey: groupAssignmentKeys.teacherGroups(assignmentId),
     queryFn: () => groupAssignmentService.getTeacherGroups(assignmentId),
@@ -60,7 +60,7 @@ export function useTeacherGroups(assignmentId: string) {
  * Mutation to create groups for an assignment.
  * Invalidates the teacher groups query on success.
  */
-export function useCreateGroups(assignmentId: string) {
+function useCreateGroups(assignmentId: string) {
   const queryClient = useQueryClient()
 
   return useMutation<void, Error, CreateGroupInput[]>({
@@ -77,7 +77,7 @@ export function useCreateGroups(assignmentId: string) {
  * Mutation for a student to submit the group assignment.
  * Invalidates the student group query on success.
  */
-export function useSubmitGroupAssignment(assignmentId: string) {
+function useSubmitGroupAssignment(assignmentId: string) {
   const { user } = useAuth()
   const queryClient = useQueryClient()
   const userId = user?.id ?? ''
@@ -100,7 +100,7 @@ export function useSubmitGroupAssignment(assignmentId: string) {
  * Mutation for a teacher to grade a group submission.
  * Invalidates the teacher groups query on success.
  */
-export function useGradeGroupSubmission(assignmentId: string) {
+function useGradeGroupSubmission(assignmentId: string) {
   const queryClient = useQueryClient()
 
   return useMutation<void, Error, { submissionId: string; grade: number; feedback?: string }>({

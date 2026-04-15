@@ -1,4 +1,3 @@
-import { api } from "@/src/lib/api"
 /**
  * Push notification subscription hook
  *

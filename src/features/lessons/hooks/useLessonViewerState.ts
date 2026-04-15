@@ -45,7 +45,7 @@ export function useLessonViewerState() {
   const [moduleLessons, setModuleLessons] = useState<Lesson[]>([])
   const [moduleProgress, setModuleProgress] = useState<Record<string, LessonProgress>>({})
   const [_sidebarLoading, setSidebarLoading] = useState(false)
-  const [moduleTitle, setModuleTitle] = useState<string>('')
+  const [moduleTitle, _setModuleTitle] = useState<string>('')
 
   // UI state
   const [showCelebration, setShowCelebration] = useState(false)

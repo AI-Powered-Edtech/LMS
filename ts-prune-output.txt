@@ -1,0 +1,849 @@
+src/App.tsx:19 - default
+src/components/OfflineIndicator.tsx:76 - OfflineInlineWarning
+src/contexts/AuthContext.tsx:1 - User (used in module)
+src/contexts/AuthContext.tsx:8 - Session (used in module)
+src/contexts/AuthContext.tsx:31 - Permissions (used in module)
+src/contexts/AuthContext.tsx:63 - Tenant (used in module)
+src/hooks/useArrowNavigation.ts:23 - useArrowNavigation
+src/hooks/useArrowNavigation.ts:18 - UseArrowNavigationReturn (used in module)
+src/hooks/useNavBadges.ts:37 - useNavBadges
+src/hooks/useNavBadges.ts:21 - navBadgeKeys (used in module)
+src/hooks/useNavBadges.ts:30 - NavBadges (used in module)
+src/hooks/useNetworkStatus.ts:3 - NetworkStatus (used in module)
+src/hooks/usePageHelp.ts:10 - usePageHelp
+src/hooks/useUndoableAction.ts:39 - useUndoableAction
+src/hooks/useUndoableAction.ts:7 - UseUndoableActionOptions (used in module)
+src/testing/test-utils.tsx:17 - mockAuthValue (used in module)
+src/utils/animations.ts:3 - staggerContainer
+src/utils/animations.ts:13 - staggerItem
+src/utils/animations.ts:22 - fadeIn
+src/utils/backgroundSync.ts:22 - syncPendingSubmissions (used in module)
+src/utils/backgroundSync.ts:17 - SyncResult (used in module)
+src/utils/featureFlags.ts:77 - updateFeatureFlag
+src/utils/metrics.ts:18 - trackMetric (used in module)
+src/utils/metrics.ts:36 - measureAsync
+src/utils/metrics.ts:6 - MetricName (used in module)
+src/utils/offlineStorage.ts:112 - cacheQuiz
+src/utils/offlineStorage.ts:120 - getCachedQuiz
+src/utils/offlineStorage.ts:128 - clearQuizCache
+src/utils/offlineStorage.ts:140 - saveAnswer
+src/utils/offlineStorage.ts:148 - getAnswers
+src/utils/offlineStorage.ts:161 - addToSyncQueue
+src/utils/offlineStorage.ts:198 - getBuilderDraft
+src/utils/offlineStorage.ts:216 - getAllDirtyDrafts
+src/utils/offlineStorage.ts:256 - isIndexedDBAvailable
+src/utils/offlineStorage.ts:15 - CachedQuiz (used in module)
+src/utils/offlineStorage.ts:22 - CachedAnswer (used in module)
+src/utils/offlineStorage.ts:30 - SyncQueueItem (used in module)
+src/utils/offlineUploadQueue.ts:23 - queueUpload
+src/utils/offlineUploadQueue.ts:33 - getPendingUploads (used in module)
+src/utils/offlineUploadQueue.ts:43 - removeFromQueue
+src/utils/offlineUploadQueue.ts:53 - getQueueSize (used in module)
+src/utils/offlineUploadQueue.ts:58 - isQueueFull
+src/utils/offlineUploadQueue.ts:63 - clearQueue
+src/utils/offlineUploadQueue.ts:12 - QueuedUpload (used in module)
+src/utils/perf.ts:16 - perfMark (used in module)
+src/utils/perf.ts:22 - perfMeasure (used in module)
+src/utils/perf.ts:34 - perfMeasureFrom
+src/utils/perf.ts:1 - PERF
+src/utils/prefetch.ts:48 - prefetchRoute (used in module)
+src/utils/sanitize.ts:20 - escapeHtml
+src/utils/sentry.ts:141 - setSentryUser
+src/utils/sentry.ts:145 - clearSentryUser
+src/utils/sentry.ts:149 - captureError
+src/utils/sentry.ts:154 - addBreadcrumb (used in module)
+src/utils/sentry.ts:162 - Sentry (used in module)
+src/utils/statusTranslations.ts:6 - translateCourseStatus
+src/utils/statusTranslations.ts:17 - translateAssignmentStatus
+src/utils/statusTranslations.ts:33 - translateQuizStatus
+src/utils/statusTranslations.ts:44 - translateInvitationStatus
+src/utils/videoUtils.ts:8 - ParsedVideoUrl (used in module)
+src/components/CourseBuilder/index.ts:1 - BuilderSidebar
+src/components/CourseBuilder/index.ts:2 - BuilderTopBar
+src/components/CourseBuilder/index.ts:3 - LessonBlockEditor
+src/components/CourseBuilder/PresenceAvatars.tsx:13 - PresenceAvatars
+src/components/CourseOverview/index.ts:1 - CourseHeader
+src/components/CourseOverview/index.ts:2 - ModuleWithProgress
+src/components/CourseOverview/index.ts:3 - ModuleList
+src/components/CourseOverview/index.ts:4 - ProgressSummary
+src/components/guards/index.ts:1 - AuthGuard
+src/components/guards/index.ts:2 - CourseEnrollmentGuard
+src/components/guards/index.ts:3 - RoleGuard
+src/components/guards/index.ts:4 - RoleResolver
+src/components/guards/index.ts:5 - TenantGuard
+src/components/layout/index.ts:1 - AdminLayout
+src/components/layout/index.ts:2 - AppLoading
+src/components/layout/index.ts:3 - BottomNav
+src/components/layout/index.ts:4 - Header
+src/components/layout/index.ts:5 - HeaderSkeleton
+src/components/layout/index.ts:6 - Layout
+src/components/layout/index.ts:7 - OfflineBanner
+src/components/layout/index.ts:8 - Sidebar
+src/components/layout/index.ts:9 - SidebarSkeleton
+src/components/layout/index.ts:10 - StudentLayout
+src/components/layout/index.ts:11 - TeacherLayout
+src/components/LessonViewer/index.ts:1 - ArticleViewer
+src/components/LessonViewer/index.ts:2 - AssignmentViewer
+src/components/LessonViewer/index.ts:3 - LessonSidebar
+src/components/LessonViewer/index.ts:4 - ModuleCompletionModal
+src/components/LessonViewer/index.ts:5 - MultiBlockViewer
+src/components/LessonViewer/index.ts:6 - ProgressReporter
+src/components/LessonViewer/index.ts:7 - ScrollProgressBar
+src/components/LessonViewer/index.ts:8 - ViewerActionTypes
+src/components/LessonViewer/index.ts:8 - ViewerState
+src/components/LessonViewer/index.ts:8 - ViewerStatus
+src/components/LessonViewer/index.ts:9 - useViewerReducer
+src/components/LessonViewer/index.ts:10 - VideoViewer
+src/components/LessonViewer/index.ts:11 - AITutorPanel
+src/components/LessonViewer/index.ts:12 - QuizViewer
+src/components/LessonViewer/SmartPlayer.tsx:64 - SmartPlayer
+src/components/shared/EntityForm.tsx:27 - EntityForm
+src/components/skeletons/index.ts:1 - CourseDetailSkeleton
+src/components/skeletons/index.ts:2 - CourseListSkeleton
+src/components/skeletons/index.ts:3 - DashboardSkeleton
+src/components/skeletons/index.ts:4 - LeaderboardSkeleton
+src/components/skeletons/index.ts:5 - ProfileSkeleton
+src/components/skeletons/index.ts:6 - QuizSkeleton
+src/components/skeletons/index.ts:7 - SmartPlayerSkeleton
+src/components/Social/NotificationCenter.tsx:13 - NotificationCenter
+src/components/ui/Avatar.stories.tsx:18 - default
+src/components/ui/Avatar.stories.tsx:21 - Default
+src/components/ui/Avatar.stories.tsx:27 - WithImage
+src/components/ui/Avatar.stories.tsx:34 - Initials
+src/components/ui/Avatar.stories.tsx:40 - SingleName
+src/components/ui/Avatar.stories.tsx:46 - Small
+src/components/ui/Avatar.stories.tsx:53 - Medium
+src/components/ui/Avatar.stories.tsx:60 - Large
+src/components/ui/Avatar.stories.tsx:67 - Online
+src/components/ui/Avatar.stories.tsx:74 - Offline
+src/components/ui/Avatar.stories.tsx:81 - BrokenImage
+src/components/ui/Avatar.stories.tsx:88 - AllSizes
+src/components/ui/Avatar.tsx:8 - AvatarProps (used in module)
+src/components/ui/Badge.stories.tsx:22 - default
+src/components/ui/Badge.stories.tsx:25 - Default
+src/components/ui/Badge.stories.tsx:29 - InfoBadge
+src/components/ui/Badge.stories.tsx:33 - Success
+src/components/ui/Badge.stories.tsx:37 - Warning
+src/components/ui/Badge.stories.tsx:41 - Danger
+src/components/ui/Badge.stories.tsx:45 - Neutral
+src/components/ui/Badge.stories.tsx:49 - SmallSize
+src/components/ui/Badge.stories.tsx:53 - MediumSize
+src/components/ui/Badge.stories.tsx:57 - WithIconSuccess
+src/components/ui/Badge.stories.tsx:65 - WithIconWarning
+src/components/ui/Badge.stories.tsx:73 - WithIconInfo
+src/components/ui/Badge.tsx:5 - BadgeProps (used in module)
+src/components/ui/Breadcrumb.stories.tsx:19 - default
+src/components/ui/Breadcrumb.stories.tsx:22 - Default
+src/components/ui/Breadcrumb.stories.tsx:32 - TwoLevels
+src/components/ui/Breadcrumb.stories.tsx:38 - FourLevels
+src/components/ui/Breadcrumb.stories.tsx:49 - SingleItem
+src/components/ui/Breadcrumb.stories.tsx:55 - LongLabels
+src/components/ui/Breadcrumb.tsx:6 - BreadcrumbItem (used in module)
+src/components/ui/Breadcrumb.tsx:11 - BreadcrumbProps (used in module)
+src/components/ui/Button.stories.tsx:25 - default
+src/components/ui/Button.stories.tsx:28 - Default
+src/components/ui/Button.stories.tsx:32 - Primary
+src/components/ui/Button.stories.tsx:36 - Secondary
+src/components/ui/Button.stories.tsx:40 - Ghost
+src/components/ui/Button.stories.tsx:44 - Danger
+src/components/ui/Button.stories.tsx:48 - Small
+src/components/ui/Button.stories.tsx:52 - Medium
+src/components/ui/Button.stories.tsx:56 - Large
+src/components/ui/Button.stories.tsx:60 - Loading
+src/components/ui/Button.stories.tsx:64 - Disabled
+src/components/ui/Button.stories.tsx:68 - FullWidth
+src/components/ui/Button.stories.tsx:72 - WithIconLeft
+src/components/ui/Button.stories.tsx:79 - DangerWithIcon
+src/components/ui/Button.stories.tsx:87 - SecondaryWithIcon
+src/components/ui/Button.tsx:5 - ButtonProps (used in module)
+src/components/ui/Card.stories.tsx:19 - default
+src/components/ui/Card.stories.tsx:22 - Default
+src/components/ui/Card.stories.tsx:35 - PaddingNone
+src/components/ui/Card.stories.tsx:46 - PaddingSmall
+src/components/ui/Card.stories.tsx:53 - PaddingLarge
+src/components/ui/Card.stories.tsx:60 - Hoverable
+src/components/ui/Card.stories.tsx:74 - WithoutBorder
+src/components/ui/Card.tsx:5 - CardProps (used in module)
+src/components/ui/EmptyState.stories.tsx:13 - default
+src/components/ui/EmptyState.stories.tsx:16 - Default
+src/components/ui/EmptyState.stories.tsx:22 - WithDescription
+src/components/ui/EmptyState.stories.tsx:29 - WithIcon
+src/components/ui/EmptyState.stories.tsx:37 - WithAction
+src/components/ui/EmptyState.stories.tsx:49 - NoStudents
+src/components/ui/EmptyState.stories.tsx:61 - SearchEmpty
+src/components/ui/EmptyState.tsx:7 - EmptyStateProps (used in module)
+src/components/ui/ErrorBoundary.tsx:7 - ErrorBoundaryProps (used in module)
+src/components/ui/ErrorFallback.tsx:7 - ErrorFallbackProps (used in module)
+src/components/ui/index.ts:4 - Avatar
+src/components/ui/index.ts:5 - Badge
+src/components/ui/index.ts:6 - Breadcrumb
+src/components/ui/index.ts:7 - BulkAction
+src/components/ui/index.ts:7 - BulkActionBarProps
+src/components/ui/index.ts:8 - BulkActionBar
+src/components/ui/index.ts:9 - Button
+src/components/ui/index.ts:10 - Card
+src/components/ui/index.ts:11 - EmptyState
+src/components/ui/index.ts:12 - UIErrorBoundary
+src/components/ui/index.ts:13 - ErrorFallback
+src/components/ui/index.ts:15 - Input
+src/components/ui/index.ts:16 - MathRenderer
+src/components/ui/index.ts:17 - Modal
+src/components/ui/index.ts:17 - ModalBody
+src/components/ui/index.ts:17 - ModalFooter
+src/components/ui/index.ts:17 - ModalHeader
+src/components/ui/index.ts:18 - OfflineBanner
+src/components/ui/index.ts:19 - OptimizedImage
+src/components/ui/index.ts:20 - Select
+src/components/ui/index.ts:21 - Skeleton
+src/components/ui/index.ts:21 - SkeletonCard
+src/components/ui/index.ts:22 - Spinner
+src/components/ui/index.ts:23 - Tab
+src/components/ui/index.ts:24 - Tabs
+src/components/ui/index.ts:25 - Toast
+src/components/ui/index.ts:26 - ToastContainer
+src/components/ui/index.ts:26 - useToast
+src/components/ui/index.ts:27 - Tooltip
+src/components/ui/index.ts:20 - FormField
+src/components/ui/index.ts:6 - FormFieldProps
+src/components/ui/Input.stories.tsx:19 - default
+src/components/ui/Input.stories.tsx:22 - Default
+src/components/ui/Input.stories.tsx:28 - WithLabel
+src/components/ui/Input.stories.tsx:35 - WithError
+src/components/ui/Input.stories.tsx:44 - Disabled
+src/components/ui/Input.stories.tsx:52 - WithIcon
+src/components/ui/Input.stories.tsx:59 - EmailWithIcon
+src/components/ui/Input.stories.tsx:68 - Small
+src/components/ui/Input.stories.tsx:75 - Large
+src/components/ui/Input.stories.tsx:82 - Password
+src/components/ui/Input.tsx:5 - InputProps (used in module)
+src/components/ui/InstallPrompt.tsx:7 - InstallPrompt
+src/components/ui/MathRenderer.tsx:80 - MathRendererProps (used in module)
+src/components/ui/Modal.stories.tsx:20 - default
+src/components/ui/Modal.stories.tsx:49 - Default
+src/components/ui/Modal.stories.tsx:53 - Small
+src/components/ui/Modal.stories.tsx:57 - Large
+src/components/ui/Modal.stories.tsx:61 - ExtraLarge
+src/components/ui/Modal.stories.tsx:92 - ConfirmDelete
+src/components/ui/Modal.tsx:8 - ModalProps (used in module)
+src/components/ui/Modal.tsx:123 - ModalHeaderProps (used in module)
+src/components/ui/Modal.tsx:158 - ModalBodyProps (used in module)
+src/components/ui/Modal.tsx:169 - ModalFooterProps (used in module)
+src/components/ui/OptimizedImage.tsx:9 - OptimizedImageProps (used in module)
+src/components/ui/PrefetchLink.tsx:13 - PrefetchLink
+src/components/ui/Select.stories.tsx:18 - default
+src/components/ui/Select.stories.tsx:35 - Default
+src/components/ui/Select.stories.tsx:42 - WithLabel
+src/components/ui/Select.stories.tsx:50 - WithError
+src/components/ui/Select.stories.tsx:59 - Disabled
+src/components/ui/Select.stories.tsx:68 - Small
+src/components/ui/Select.stories.tsx:76 - Large
+src/components/ui/Select.tsx:8 - SelectOption (used in module)
+src/components/ui/Select.tsx:13 - SelectProps (used in module)
+src/components/ui/Skeleton.stories.tsx:11 - default
+src/components/ui/Skeleton.stories.tsx:14 - Default
+src/components/ui/Skeleton.stories.tsx:21 - Square
+src/components/ui/Skeleton.stories.tsx:29 - Circle
+src/components/ui/Skeleton.stories.tsx:37 - FullWidth
+src/components/ui/Skeleton.stories.tsx:51 - TextLines
+src/components/ui/Skeleton.stories.tsx:69 - CardDefault
+src/components/ui/Skeleton.stories.tsx:77 - CardWithMoreLines
+src/components/ui/Skeleton.stories.tsx:85 - CardGrid
+src/components/ui/Skeleton.stories.tsx:97 - cardMeta (used in module)
+src/components/ui/Skeleton.tsx:7 - SkeletonProps (used in module)
+src/components/ui/Skeleton.tsx:49 - SkeletonCardProps (used in module)
+src/components/ui/Spinner.stories.tsx:17 - default
+src/components/ui/Spinner.stories.tsx:20 - Default
+src/components/ui/Spinner.stories.tsx:24 - Small
+src/components/ui/Spinner.stories.tsx:28 - Medium
+src/components/ui/Spinner.stories.tsx:32 - Large
+src/components/ui/Spinner.stories.tsx:36 - AllSizes
+src/components/ui/Spinner.stories.tsx:55 - CustomColor
+src/components/ui/Spinner.tsx:5 - SpinnerProps (used in module)
+src/components/ui/Tabs.stories.tsx:13 - default
+src/components/ui/Tabs.stories.tsx:31 - Default
+src/components/ui/Tabs.stories.tsx:50 - WithIcons
+src/components/ui/Tabs.stories.tsx:69 - WithCounts
+src/components/ui/Tabs.stories.tsx:90 - ManyTabs
+src/components/ui/Tabs.tsx:13 - TabsProps (used in module)
+src/components/ui/Toast.stories.tsx:15 - default
+src/components/ui/Toast.stories.tsx:39 - Success
+src/components/ui/Toast.stories.tsx:43 - Error
+src/components/ui/Toast.stories.tsx:53 - Warning
+src/components/ui/Toast.stories.tsx:63 - Info
+src/components/ui/Toast.stories.tsx:109 - Interactive
+src/components/ui/Tooltip.stories.tsx:21 - default
+src/components/ui/Tooltip.stories.tsx:24 - Default
+src/components/ui/Tooltip.stories.tsx:31 - Top
+src/components/ui/Tooltip.stories.tsx:39 - Bottom
+src/components/ui/Tooltip.stories.tsx:47 - Left
+src/components/ui/Tooltip.stories.tsx:55 - Right
+src/components/ui/Tooltip.stories.tsx:63 - AllPositions
+src/components/ui/Tooltip.tsx:7 - TooltipProps (used in module)
+src/features/administration/index.ts:2 - administrationService
+src/features/administration/index.ts:5 - SyncHistoryItem
+src/features/administration/index.ts:5 - SyncResult
+src/features/administration/index.ts:5 - TenantModuleConfig
+src/features/ai-tutor/index.ts:9 - askTutor
+src/features/ai-tutor/index.ts:10 - formatDifficulty
+src/features/ai-tutor/index.ts:11 - generateMessageId
+src/features/ai-tutor/index.ts:12 - getDifficultyColor
+src/features/ai-tutor/index.ts:13 - validateQuestion
+src/features/ai-tutor/index.ts:17 - AITutorError
+src/features/ai-tutor/index.ts:17 - AITutorMessage
+src/features/ai-tutor/index.ts:17 - DifficultyLevel
+src/features/analytics/index.ts:2 - ActivityTimePoint
+src/features/analytics/index.ts:2 - CourseEngagement
+src/features/analytics/index.ts:3 - AnalyticsError
+src/features/analytics/index.ts:6 - LearningSessionProvider
+src/features/analytics/index.ts:6 - useLearningSession
+src/features/analytics/index.ts:7 - useOptionalLearningSession
+src/features/analytics/index.ts:10 - TeacherAnalyticsDashboard
+src/features/announcements/index.ts:1 - useAnnouncements
+src/features/announcements/index.ts:1 - useSaveAnnouncement
+src/features/announcements/index.ts:1 - useSubmitRSVP
+src/features/announcements/index.ts:2 - Announcement
+src/features/assignments/index.ts:2 - assignmentService
+src/features/assignments/index.ts:5 - useAssignments
+src/features/assignments/index.ts:8 - Assignment
+src/features/assignments/index.ts:8 - AssignmentSubmission
+src/features/assignments/index.ts:9 - AssignmentUiState
+src/features/assignments/index.ts:9 - Attachment
+src/features/assignments/index.ts:9 - Comment
+src/features/assignments/index.ts:9 - StudentSubmission
+src/features/calendar/index.ts:2 - calendarService
+src/features/calendar/index.ts:6 - useAddCalendarEvent
+src/features/calendar/index.ts:7 - useCalendarEvents
+src/features/calendar/index.ts:8 - useCalendarStore
+src/features/calendar/index.ts:9 - useUpdateCalendarEvent
+src/features/calendar/index.ts:13 - CalendarEvent
+src/features/classroom/index.ts:2 - classroomService
+src/features/classroom/index.ts:5 - useClassroom
+src/features/classroom/index.ts:8 - Classroom
+src/features/courses/index.ts:1 - courseService
+src/features/courses/index.ts:5 - courseKeys
+src/features/courses/index.ts:9 - useCourses
+src/features/courses/index.ts:21 - useInfiniteCoursesQuery
+src/features/dashboards/index.ts:1 - DashboardBuilder
+src/features/dashboards/index.ts:2 - DashboardList
+src/features/dashboards/index.ts:3 - DashboardViewer
+src/features/dashboards/index.ts:4 - DashboardConfig
+src/features/discussions/index.ts:2 - discussionService
+src/features/discussions/index.ts:5 - useComments
+src/features/discussions/index.ts:8 - Discussion
+src/features/gamification/index.ts:9 - Certificate
+src/features/gamification/index.ts:9 - LeaderboardEntry
+src/features/gamification/index.ts:12 - useStudentCertificates
+src/features/gamification/index.ts:13 - useLeaderboard
+src/features/gradebook/index.ts:3 - GradebookAssignment
+src/features/gradebook/index.ts:4 - GradebookData
+src/features/gradebook/index.ts:5 - gradebookService
+src/features/gradebook/index.ts:6 - GradeData
+src/features/gradebook/index.ts:7 - GradeEntry
+src/features/gradebook/index.ts:8 - GradeStatus
+src/features/gradebook/index.ts:9 - LegacyGradebookStudent
+src/features/gradebook/index.ts:13 - useGradebook
+src/features/gradebook/index.ts:13 - fetchGradebookEntries
+src/features/gradebook/index.ts:71 - updateGradebookEntry
+src/features/gradebook/index.ts:88 - upsertGradebookEntry
+src/features/gradebook/index.ts:104 - syncGradebook
+src/features/gradebook/index.ts:121 - fetchGradebookSettings
+src/features/gradebook/index.ts:135 - upsertGradebookSettings
+src/features/gradebook/index.ts:151 - exportGradebookCSV
+src/features/gradebook/index.ts:137 - GradebookTable
+src/features/gradebook/index.ts:188 - StudentGradeView
+src/features/gradebook/index.ts:28 - useGradebookEntries
+src/features/gradebook/index.ts:42 - useGradebookSettings
+src/features/gradebook/index.ts:59 - useUpdateGradebookEntry
+src/features/gradebook/index.ts:83 - useSyncGradebook
+src/features/gradebook/index.ts:98 - useUpsertGradebookSettings
+src/features/gradebook/index.ts:17 - gradebookKeys
+src/features/guidance/index.ts:4 - GuideSegment
+src/features/guidance/index.ts:4 - GuideTrigger
+src/features/guidance/index.ts:4 - GuideType
+src/features/guidance/index.ts:4 - LearningGuide
+src/features/guidance/index.ts:7 - useDeleteGuide
+src/features/guidance/index.ts:7 - useGuideList
+src/features/guidance/index.ts:7 - useUpsertGuide
+src/features/guidance/index.ts:10 - GuideRenderer
+src/features/lessons/index.ts:106 - lessonService
+src/features/lessons/index.ts:4 - BlockDefinition
+src/features/lessons/index.ts:17 - BLOCK_REGISTRY
+src/features/lessons/index.ts:67 - satisfies
+src/features/lessons/index.ts:67 - Record
+src/features/lessons/index.ts:69 - BlockType
+src/features/lessons/index.ts:70 - isValidBlockType
+src/features/lessons/index.ts:12 - isLessonLocked
+src/features/lessons/index.ts:24 - getLessonDuration
+src/features/lessons/index.ts:64 - getModuleDuration
+src/features/lessons/index.ts:76 - formatDuration
+src/features/moderation/index.ts:2 - moderationService
+src/features/moderation/index.ts:6 - useModerationReports
+src/features/moderation/index.ts:7 - useResolveReport
+src/features/moderation/index.ts:8 - useSubmitReport
+src/features/moderation/index.ts:12 - ContentType
+src/features/moderation/index.ts:12 - Report
+src/features/moderation/index.ts:12 - ReportReason
+src/features/moderation/index.ts:12 - ReportStatus
+src/features/notifications/index.ts:6 - Notification
+src/features/notifications/index.ts:6 - NotificationPreferences
+src/features/notifications/index.ts:6 - NotificationType
+src/features/notifications/index.ts:13 - notificationKeys
+src/features/notifications/index.ts:14 - useNotificationPreferences
+src/features/notifications/index.ts:15 - useNotifications
+src/features/notifications/index.ts:19 - UsePushSubscriptionReturn
+src/features/notifications/index.ts:20 - usePushSubscription
+src/features/notifications/index.ts:24 - useMarkAllAsRead
+src/features/notifications/index.ts:24 - useMarkAsRead
+src/features/notifications/index.ts:24 - useSendNotification
+src/features/notifications/index.ts:27 - NotificationBell
+src/features/notifications/index.ts:28 - NotificationPanel
+src/features/notifications/index.ts:29 - NotificationPreferencesPanel
+src/features/notifications/index.ts:30 - PushPermissionPrompt
+src/features/notifications/index.ts:30 - fetchNotifications
+src/features/notifications/index.ts:49 - markNotificationRead
+src/features/notifications/index.ts:62 - markAllNotificationsRead
+src/features/notifications/index.ts:74 - fetchUnreadCount
+src/features/notifications/index.ts:88 - fetchNotificationPreferences
+src/features/notifications/index.ts:105 - upsertNotificationPreferences
+src/features/onboarding/index.ts:1 - OnboardingChecklist
+src/features/onboarding/index.ts:2 - OnboardingProgress
+src/features/onboarding/index.ts:2 - OnboardingStep
+src/features/onboarding/index.ts:3 - ONBOARDING_STEPS
+src/features/progress/index.ts:2 - progressService
+src/features/progress/index.ts:3 - studentProgressService
+src/features/progress/index.ts:6 - useAddXP
+src/features/progress/index.ts:6 - useStudentProgressData
+src/features/progress/index.ts:9 - StudentProgressData
+src/features/progress/index.ts:10 - AchievementData
+src/features/progress/index.ts:10 - ModuleStatus
+src/features/question-bank/index.ts:2 - questionBankService
+src/features/question-bank/index.ts:5 - QuestionCard
+src/features/question-bank/index.ts:6 - QuestionEditor
+src/features/question-bank/index.ts:7 - QuestionSearchModal
+src/features/question-bank/index.ts:11 - CreateQuestionPayload
+src/features/question-bank/index.ts:12 - QuestionBankItem
+src/features/question-bank/index.ts:13 - QuestionBankOption
+src/features/question-bank/index.ts:14 - UpdateQuestionPayload
+src/features/quizzes/index.ts:5 - AssignmentResultRow
+src/features/quizzes/index.ts:6 - QuestionType
+src/features/quizzes/index.ts:7 - QuizAssignment
+src/features/quizzes/index.ts:8 - QuizAttempt
+src/features/quizzes/index.ts:9 - QuizAttemptQuestion
+src/features/quizzes/index.ts:10 - QuizAttemptResult
+src/features/quizzes/index.ts:11 - QuizMode
+src/features/quizzes/index.ts:12 - StudentQuizAssignment
+src/features/quizzes/index.ts:13 - SubmitAnswer
+src/features/quizzes/index.ts:17 - quizService
+src/features/recommendations/index.ts:1 - RecommendationFeed
+src/features/recommendations/index.ts:2 - ReviewPrompt
+src/features/recommendations/index.ts:3 - SmartNextButton
+src/features/reports/index.ts:2 - reportService
+src/features/reports/index.ts:6 - useDeleteReport
+src/features/reports/index.ts:7 - useGenerateReportData
+src/features/reports/index.ts:8 - useReports
+src/features/reports/index.ts:9 - useSaveReport
+src/features/reports/index.ts:13 - ExportButton
+src/features/reports/index.ts:14 - ReportList
+src/features/reports/index.ts:15 - ReportScheduler
+src/features/reports/index.ts:18 - ExportFormat
+src/features/reports/index.ts:18 - ReportSchedule
+src/features/reports/index.ts:18 - ReportType
+src/features/reports/index.ts:18 - ScheduledReport
+src/features/storage/index.ts:24 - storageService
+src/features/struggle/index.ts:2 - NotificationBell
+src/features/struggle/index.ts:3 - StruggleConfigPanel
+src/features/struggle/index.ts:4 - StruggleHelpPrompt
+src/shared/config/index.ts:1 - DEV_SEED_VIDEO
+src/shared/config/index.ts:2 - NavItem
+src/shared/config/index.ts:3 - navigationItems
+src/shared/lib/index.ts:25 - createQueryKeys
+src/shared/schemas/forms.ts:24 - CourseFormSchema (used in module)
+src/shared/schemas/forms.ts:29 - CourseFormData
+src/shared/schemas/index.ts:23 - CourseRowSchema (used in module)
+src/shared/schemas/index.ts:34 - CourseRow
+src/shared/schemas/index.ts:38 - ModuleRowSchema (used in module)
+src/shared/schemas/index.ts:47 - ModuleRow
+src/shared/schemas/index.ts:51 - LessonRowSchema (used in module)
+src/shared/schemas/index.ts:63 - LessonRow
+src/shared/schemas/index.ts:67 - BlockRowSchema (used in module)
+src/shared/schemas/index.ts:79 - BlockRow
+src/shared/schemas/index.ts:83 - ClassroomRowSchema (used in module)
+src/shared/schemas/index.ts:91 - ClassroomRow
+src/shared/schemas/index.ts:95 - EnrollmentRowSchema (used in module)
+src/shared/schemas/index.ts:99 - EnrollmentRow
+src/shared/schemas/index.ts:103 - QuizRowSchema (used in module)
+src/shared/schemas/index.ts:111 - QuizRow
+src/shared/schemas/index.ts:115 - QuizQuestionRowSchema (used in module)
+src/shared/schemas/index.ts:121 - QuizQuestionRow
+src/shared/schemas/index.ts:125 - QuizOptionRowSchema (used in module)
+src/shared/schemas/index.ts:130 - QuizOptionRow
+src/shared/schemas/index.ts:134 - QuizAttemptRowSchema (used in module)
+src/shared/schemas/index.ts:144 - QuizAttemptRow
+src/shared/schemas/index.ts:148 - QuizAssignmentRowSchema (used in module)
+src/shared/schemas/index.ts:156 - QuizAssignmentRow
+src/shared/schemas/index.ts:160 - QuizStatsRowSchema (used in module)
+src/shared/schemas/index.ts:166 - QuizStatsRow
+src/shared/schemas/index.ts:170 - QuestionStatsRowSchema (used in module)
+src/shared/schemas/index.ts:179 - QuestionStatsRow
+src/shared/schemas/index.ts:183 - CheatingSignalRowSchema (used in module)
+src/shared/schemas/index.ts:190 - CheatingSignalRow
+src/shared/schemas/index.ts:194 - DiscussionRowSchema (used in module)
+src/shared/schemas/index.ts:204 - DiscussionRow
+src/shared/schemas/index.ts:208 - AnnouncementRowSchema (used in module)
+src/shared/schemas/index.ts:217 - AnnouncementRow
+src/shared/schemas/index.ts:221 - AnnouncementRsvpRowSchema (used in module)
+src/shared/schemas/index.ts:228 - AnnouncementRsvpRow
+src/shared/schemas/index.ts:232 - AssignmentRowSchema (used in module)
+src/shared/schemas/index.ts:240 - AssignmentRow
+src/shared/schemas/index.ts:244 - AssignmentSubmissionRowSchema (used in module)
+src/shared/schemas/index.ts:251 - AssignmentSubmissionRow
+src/shared/schemas/index.ts:255 - UserStreakRowSchema (used in module)
+src/shared/schemas/index.ts:262 - UserStreakRow
+src/shared/schemas/index.ts:266 - BadgeRowSchema (used in module)
+src/shared/schemas/index.ts:272 - BadgeRow
+src/shared/schemas/index.ts:276 - BadgeDefinitionRowSchema (used in module)
+src/shared/schemas/index.ts:283 - BadgeDefinitionRow
+src/shared/schemas/index.ts:287 - LeaderboardRowSchema (used in module)
+src/shared/schemas/index.ts:292 - LeaderboardRow
+src/shared/schemas/index.ts:296 - NotificationRowSchema (used in module)
+src/shared/schemas/index.ts:304 - NotificationRow
+src/shared/schemas/index.ts:308 - NotificationPrefsRowSchema (used in module)
+src/shared/schemas/index.ts:316 - NotificationPrefsRow
+src/shared/schemas/index.ts:320 - CourseStatsRowSchema (used in module)
+src/shared/schemas/index.ts:329 - CourseStatsRow
+src/shared/schemas/index.ts:333 - TenantModuleRowSchema (used in module)
+src/shared/schemas/index.ts:340 - TenantModuleRow
+src/shared/schemas/index.ts:344 - ContentReportRowSchema (used in module)
+src/shared/schemas/index.ts:353 - ContentReportRow
+src/shared/schemas/index.ts:357 - OnboardingProgressRowSchema (used in module)
+src/shared/schemas/index.ts:361 - OnboardingProgressRow
+src/shared/schemas/index.ts:365 - LessonProgressRowSchema (used in module)
+src/shared/schemas/index.ts:372 - LessonProgressRow
+src/shared/schemas/index.ts:376 - GradebookEntryRowSchema (used in module)
+src/shared/schemas/index.ts:385 - GradebookEntryRow
+src/shared/schemas/index.ts:389 - GradebookSettingsRowSchema (used in module)
+src/shared/schemas/index.ts:395 - GradebookSettingsRow
+src/shared/schemas/index.ts:399 - DiscussionPostRowSchema (used in module)
+src/shared/schemas/index.ts:406 - DiscussionPostRow
+src/shared/schemas/index.ts:410 - TenantInvitationRowSchema (used in module)
+src/shared/schemas/index.ts:418 - TenantInvitationRow
+src/shared/schemas/index.ts:422 - StorageObjectRowSchema (used in module)
+src/shared/schemas/index.ts:428 - StorageObjectRow
+src/shared/schemas/index.ts:432 - ClassScheduleRowSchema (used in module)
+src/shared/schemas/index.ts:439 - ClassScheduleRow
+src/shared/schemas/index.ts:444 - RpcRowSchema
+src/shared/schemas/index.ts:449 - RpcResultSchema
+src/shared/types/index.ts:5 - mapBlock
+src/shared/types/index.ts:1 - DomainBlock
+src/shared/types/index.ts:5 - mapCourse
+src/shared/types/index.ts:1 - DomainCourse
+src/shared/types/index.ts:5 - mapLesson
+src/shared/types/index.ts:1 - DomainLesson
+src/shared/types/index.ts:6 - mapModule
+src/shared/types/index.ts:3 - DomainModule
+src/features/administration/api/adminUserService.ts:29 - GetUsersParams (used in module)
+src/features/administration/hooks/useAdministration.ts:8 - useAdministrationData
+src/features/administration/hooks/useAdministration.ts:19 - useAdministrationMutation
+src/features/administration/queries/administrationQueries.ts:21 - useTenantModules
+src/features/administration/queries/administrationQueries.ts:35 - useSyncHistory
+src/features/administration/queries/administrationQueries.ts:49 - useToggleTenantModule
+src/features/administration/types/index.ts:2 - Administration (used in module)
+src/features/administration/types/index.ts:10 - AdministrationInput
+src/features/administration/types/index.ts:15 - AdministrationResponse
+src/features/administration/types/index.ts:21 - AdministrationFilter
+src/features/ai-tutor/hooks/useAITutor.ts:8 - useAITutorMutation
+src/features/ai-tutor/queries/aiTutorQueries.ts:3 - aiTutorKeys
+src/features/ai-tutor/queries/aiTutorQueries.ts:9 - askTutor (used in module)
+src/features/ai-tutor/types/index.ts:9 - DifficultyLevel (used in module)
+src/features/ai-tutor/types/index.ts:11 - AITutorMessage
+src/features/ai-tutor/types/index.ts:18 - AITutorResponse
+src/features/ai-tutor/types/index.ts:25 - RateLimitInfo
+src/features/ai-tutor/types/index.ts:31 - AITutorError
+src/features/ai-tutor/types/index.ts:39 - TutorContext
+src/features/ai-tutor/types/index.ts:67 - StudentDifficulty
+src/features/ai-tutor/types/index.ts:73 - PromptMessage
+src/features/ai-tutor/types/index.ts:80 - AskTutorOptions
+src/features/analytics/types/index.ts:5 - ActivityEventType (used in module)
+src/features/analytics/types/index.ts:19 - CourseStatsRow
+src/features/analytics/types/index.ts:34 - ActivityEventRow
+src/features/analytics/types/index.ts:45 - TenantAnalyticsOverview (used in module)
+src/features/analytics/types/index.ts:56 - ActivityMetrics (used in module)
+src/features/analytics/types/index.ts:64 - CourseEngagement (used in module)
+src/features/analytics/types/index.ts:74 - ActivityTimePoint (used in module)
+src/features/analytics/types/index.ts:82 - TenantAnalyticsData
+src/features/analytics/types/index.ts:90 - AnalyticsError
+src/features/analytics/types/index.ts:107 - ModuleCompletion (used in module)
+src/features/analytics/types/index.ts:113 - QuizPassRate (used in module)
+src/features/analytics/types/index.ts:119 - StudentProgressItem (used in module)
+src/features/analytics/types/index.ts:126 - TeacherAnalyticsData
+src/features/analytics/types/index.ts:146 - CourseAnalytics
+src/features/analytics/types/index.ts:158 - LessonAnalytics
+src/features/analytics/types/index.ts:174 - StudentSignal
+src/features/analytics/types/index.ts:196 - EngagementSegment (used in module)
+src/features/analytics/types/index.ts:198 - EngagementSummaryRow
+src/features/analytics/types/index.ts:204 - EngagementTrendPoint
+src/features/analytics/types/index.ts:211 - FunnelDefinition
+src/features/analytics/types/index.ts:221 - FunnelStepResult
+src/features/analytics/types/index.ts:231 - RetentionRow
+src/features/analytics/types/index.ts:240 - PathStep (used in module)
+src/features/analytics/types/index.ts:247 - LearningPath
+src/features/analytics/types/index.ts:258 - StudentPathStep
+src/features/analytics/types/index.ts:270 - StudentPrediction
+src/features/analytics/types/index.ts:289 - PredictionDetail
+src/features/analytics/types/index.ts:304 - PredictionSummary
+src/features/analytics/types/index.ts:2 - LearningEventType
+src/features/analytics/types/index.ts:13 - BlockViewedMeta
+src/features/analytics/types/index.ts:19 - VideoProgressMeta
+src/features/analytics/types/index.ts:26 - QuizSubmittedMeta
+src/features/analytics/types/index.ts:33 - LessonStartedMeta
+src/features/analytics/types/index.ts:37 - LessonCompletedMeta
+src/features/analytics/types/index.ts:42 - QuizStartedMeta
+src/features/analytics/types/index.ts:47 - AssignmentSubmittedMeta
+src/features/analytics/types/index.ts:51 - FileDownloadedMeta
+src/features/analytics/types/index.ts:56 - EventMetadata
+src/features/analytics/types/index.ts:67 - LearningEvent
+src/features/announcements/hooks/useAnnouncement.ts:8 - useAnnouncementData
+src/features/announcements/hooks/useAnnouncement.ts:19 - useAnnouncementMutation
+src/features/announcements/types/index.ts:1 - Announcement
+src/features/announcements/types/index.ts:25 - AnnouncementRSVP
+src/features/assignments/api/groupAssignmentService.ts:8 - GroupMember (used in module)
+src/features/assignments/api/groupAssignmentService.ts:15 - GroupSubmission (used in module)
+src/features/assignments/hooks/useGroupAssignments.ts:30 - useStudentGroup
+src/features/assignments/hooks/useGroupAssignments.ts:50 - useTeacherGroups
+src/features/assignments/hooks/useGroupAssignments.ts:63 - useCreateGroups
+src/features/assignments/hooks/useGroupAssignments.ts:80 - useSubmitGroupAssignment
+src/features/assignments/hooks/useGroupAssignments.ts:103 - useGradeGroupSubmission
+src/features/assignments/hooks/useGroupAssignments.ts:16 - groupAssignmentKeys (used in module)
+src/features/assignments/queries/assignmentQueries.ts:15 - useAssignmentList
+src/features/assignments/queries/assignmentQueries.ts:5 - assignmentKeys (used in module)
+src/features/assignments/types/index.ts:2 - Assignment (used in module)
+src/features/assignments/types/index.ts:10 - AssignmentInput
+src/features/assignments/types/index.ts:15 - AssignmentResponse
+src/features/assignments/types/index.ts:21 - AssignmentFilter
+src/features/auth/hooks/usePermissions.ts:5 - usePermissions
+src/features/calendar/queries/calendarQueries.ts:17 - useCalendarList
+src/features/calendar/queries/calendarQueries.ts:7 - calendarKeys (used in module)
+src/features/calendar/types/index.ts:2 - Calendar (used in module)
+src/features/calendar/types/index.ts:10 - CalendarInput
+src/features/calendar/types/index.ts:15 - CalendarResponse
+src/features/calendar/types/index.ts:21 - CalendarFilter
+src/features/classroom/queries/classroomQueries.ts:16 - useClassroomList
+src/features/classroom/queries/classroomQueries.ts:6 - classroomKeys (used in module)
+src/features/classroom/types/index.ts:2 - Classroom (used in module)
+src/features/classroom/types/index.ts:10 - ClassroomInput
+src/features/classroom/types/index.ts:15 - ClassroomResponse
+src/features/classroom/types/index.ts:21 - ClassroomFilter
+src/features/courses/builder/index.ts:1 - BuilderAction
+src/features/courses/builder/index.ts:1 - BuilderState
+src/features/courses/builder/index.ts:2 - builderReducer
+src/features/courses/builder/index.ts:2 - initialBuilderState
+src/features/courses/builder/index.ts:3 - useBlockActions
+src/features/courses/builder/index.ts:4 - BroadcastPayload
+src/features/courses/builder/index.ts:4 - ChannelStatus
+src/features/courses/builder/index.ts:4 - useBuilderChannel
+src/features/courses/builder/index.ts:5 - PresenceData
+src/features/courses/builder/index.ts:5 - useBuilderPresence
+src/features/courses/builder/index.ts:6 - useCourseActions
+src/features/courses/builder/index.ts:7 - useLessonActions
+src/features/courses/builder/index.ts:8 - useModuleActions
+src/features/courses/components/CourseSettingsModal.tsx:240 - CourseSettingsModal
+src/features/courses/components/CourseVersionHistoryDrawer.tsx:16 - CourseVersionHistoryDrawer
+src/features/courses/components/SaveTemplateModal.tsx:16 - SaveTemplateModal
+src/features/courses/components/TemplateModal.tsx:19 - TemplateModal
+src/features/courses/hooks/useCourse.ts:8 - useCourseData
+src/features/courses/hooks/useCourse.ts:19 - useCourseMutation
+src/features/courses/types/index.ts:1 - Course (used in module)
+src/features/courses/types/index.ts:21 - CourseInsert (used in module)
+src/features/courses/types/index.ts:22 - CourseUpdate
+src/features/courses/types/index.ts:24 - FetchCoursesOptions
+src/features/dashboards/hooks/useDashboard.ts:8 - useDashboardData
+src/features/dashboards/hooks/useDashboard.ts:19 - useDashboardMutation
+src/features/dashboards/types/index.ts:1 - WidgetType (used in module)
+src/features/dashboards/types/index.ts:14 - LayoutItem (used in module)
+src/features/dashboards/types/index.ts:22 - WidgetConfig (used in module)
+src/features/dashboards/types/index.ts:28 - DashboardConfig
+src/features/discussions/queries/discussionQueries.ts:17 - useDiscussionList
+src/features/discussions/queries/discussionQueries.ts:7 - discussionKeys (used in module)
+src/features/discussions/types/index.ts:2 - Discussion (used in module)
+src/features/discussions/types/index.ts:10 - DiscussionInput
+src/features/discussions/types/index.ts:15 - DiscussionResponse
+src/features/discussions/types/index.ts:21 - DiscussionFilter
+src/features/discussions/utils/forumUtils.ts:15 - timeAgo (used in module)
+src/features/discussions/utils/forumUtils.ts:30 - mapToPost (used in module)
+src/features/gamification/hooks/useGamification.ts:8 - useGamificationData
+src/features/gamification/hooks/useGamification.ts:19 - useGamificationMutation
+src/features/gamification/types/index.ts:11 - UserStreak
+src/features/gamification/types/index.ts:23 - Badge (used in module)
+src/features/gamification/types/index.ts:34 - UserBadge
+src/features/gamification/types/index.ts:43 - LeaderboardEntry
+src/features/gamification/types/index.ts:58 - BadgeRarity (used in module)
+src/features/gamification/types/index.ts:59 - BadgeType (used in module)
+src/features/gamification/types/index.ts:62 - BadgeDefinition
+src/features/gamification/types/index.ts:76 - Certificate
+src/features/gamification/types/index.ts:89 - XPSourceType (used in module)
+src/features/gamification/types/index.ts:96 - XPTransaction (used in module)
+src/features/gamification/types/index.ts:104 - StudentXPProfile
+src/features/gamification/types/index.ts:116 - LeaderboardV2Entry
+src/features/gamification/types/index.ts:126 - LeaderboardSortBy
+src/features/gamification/types/index.ts:127 - LeaderboardPeriod
+src/features/gamification/types/index.ts:130 - RARITY_CONFIG
+src/features/gradebook/types/index.ts:1 - GradebookEntry (used in module)
+src/features/gradebook/types/index.ts:24 - GradebookSettings
+src/features/gradebook/types/index.ts:33 - GradebookColumn
+src/features/gradebook/types/index.ts:40 - GradebookStudent
+src/features/guidance/hooks/useGuidance.ts:8 - useGuidanceData
+src/features/guidance/hooks/useGuidance.ts:19 - useGuidanceMutation
+src/features/guidance/types/index.ts:3 - ApplicableGuide
+src/features/guidance/types/index.ts:14 - LearningGuide (used in module)
+src/features/guidance/types/index.ts:35 - GuideSegment
+src/features/guidance/types/index.ts:36 - GuideTrigger
+src/features/guidance/types/index.ts:37 - GuideType
+src/features/lessons/hooks/useLesson.ts:8 - useLessonData
+src/features/lessons/hooks/useLesson.ts:19 - useLessonMutation
+src/features/lessons/types/index.ts:1 - InteractiveEvent (used in module)
+src/features/lessons/types/index.ts:8 - InteractiveVideoMetadata
+src/features/lessons/types/index.ts:14 - LessonResource (used in module)
+src/features/lessons/types/index.ts:28 - QuizOption (used in module)
+src/features/lessons/types/index.ts:34 - QuizQuestion (used in module)
+src/features/lessons/types/index.ts:41 - Assignment (used in module)
+src/features/lessons/types/index.ts:55 - Quiz (used in module)
+src/features/lessons/types/index.ts:66 - Lesson
+src/features/lessons/types/index.ts:83 - LessonProgress
+src/features/lessons/types/index.ts:98 - SignedProgressQueue
+src/features/lessons/types/index.ts:104 - ProgressQueueItem
+src/features/lessons/utils/scormApiBridge.ts:33 - ScormBridgeOptions (used in module)
+src/features/lessons/utils/scormApiBridge.ts:49 - formatScorm12Time
+src/features/lessons/utils/scormApiBridge.ts:49 - formatScorm2004Time
+src/features/lessons/utils/scormDataModel.ts:38 - parseScorm12Time (used in module)
+src/features/lessons/utils/scormDataModel.ts:51 - parseScorm2004Time (used in module)
+src/features/lessons/utils/scormErrorHandler.ts:10 - SCORM_12_ERRORS (used in module)
+src/features/lessons/utils/scormErrorHandler.ts:23 - SCORM_2004_ERRORS (used in module)
+src/features/moderation/hooks/useModeration.ts:8 - useModerationData
+src/features/moderation/hooks/useModeration.ts:19 - useModerationMutation
+src/features/moderation/types/index.ts:2 - Moderation (used in module)
+src/features/moderation/types/index.ts:10 - ModerationInput
+src/features/moderation/types/index.ts:15 - ModerationResponse
+src/features/moderation/types/index.ts:21 - ModerationFilter
+src/features/notifications/hooks/useNotifications.ts:27 - UseNotificationsReturn (used in module)
+src/features/notifications/hooks/useNotifications.ts:79 - UseNotificationPreferencesReturn (used in module)
+src/features/notifications/queries/notificationQueries.ts:28 - useNotifications
+src/features/notifications/types/index.ts:5 - NotificationType (used in module)
+src/features/notifications/types/index.ts:17 - Notification
+src/features/notifications/types/index.ts:36 - NotificationPreferences
+src/features/onboarding/hooks/useOnboarding.ts:8 - useOnboardingData
+src/features/onboarding/hooks/useOnboarding.ts:19 - useOnboardingMutation
+src/features/onboarding/queries/onboardingQueries.ts:21 - useOnboardingProgress
+src/features/onboarding/queries/onboardingQueries.ts:37 - useUpdateOnboardingProgress
+src/features/onboarding/types/index.ts:1 - OnboardingStep (used in module)
+src/features/onboarding/types/index.ts:9 - OnboardingProgress
+src/features/onboarding/types/index.ts:17 - ONBOARDING_STEPS
+src/features/profile/api/publicProfileService.ts:3 - PublicProfileStats (used in module)
+src/features/profile/api/publicProfileService.ts:12 - PublicProfileBadge (used in module)
+src/features/profile/hooks/usePublicProfile.ts:16 - usePublicProfileById
+src/features/profile/hooks/usePublicProfile.ts:26 - useProfileIdByUsername
+src/features/profile/hooks/usePublicProfile.ts:36 - useUpdateProfilePrivacy
+src/features/progress/queries/progressQueries.ts:15 - useProgressList
+src/features/progress/queries/progressQueries.ts:5 - progressKeys (used in module)
+src/features/progress/types/index.ts:2 - Progress (used in module)
+src/features/progress/types/index.ts:10 - ProgressInput
+src/features/progress/types/index.ts:15 - ProgressResponse
+src/features/progress/types/index.ts:21 - ProgressFilter
+src/features/question-bank/hooks/useQuestionBank.ts:8 - useQuestionBankData
+src/features/question-bank/hooks/useQuestionBank.ts:19 - useQuestionBankMutation
+src/features/question-bank/queries/questionBankQueries.ts:15 - useQuestionBankList
+src/features/question-bank/queries/questionBankQueries.ts:5 - questionBankKeys
+src/features/question-bank/types/index.ts:2 - QuestionBank (used in module)
+src/features/question-bank/types/index.ts:10 - QuestionBankInput
+src/features/question-bank/types/index.ts:15 - QuestionBankResponse
+src/features/question-bank/types/index.ts:21 - QuestionBankFilter
+src/features/question-bank/utils/csvQuestionParser.ts:22 - ParsedQuestion (used in module)
+src/features/question-bank/utils/csvQuestionParser.ts:35 - ParseResult (used in module)
+src/features/question-bank/utils/csvQuestionParser.ts:41 - ParseError (used in module)
+src/features/quizzes/api/quizAnalytics.service.ts:5 - AttemptDetailAnswer
+src/features/quizzes/api/quizAnalytics.service.ts:7 - QuestionDifficulty
+src/features/quizzes/api/quizCRUD.ts:14 - deriveAssignmentStatus
+src/features/quizzes/api/suspiciousAttempts.service.ts:139 - getSuspiciousAttemptCount
+src/features/quizzes/api/suspiciousAttempts.service.ts:31 - CheatingSignal (used in module)
+src/features/quizzes/components/QuizEditorView.tsx:68 - QuizEditorViewProps (used in module)
+src/features/quizzes/components/QuizListView.tsx:57 - QuizListViewProps (used in module)
+src/features/quizzes/hooks/quizViewerTypes.ts:5 - QuizOption (used in module)
+src/features/quizzes/hooks/useQuizAutosave.ts:10 - QuizServiceInterface (used in module)
+src/features/quizzes/hooks/useQuizAutosave.ts:17 - UseQuizAutosaveOptions (used in module)
+src/features/quizzes/hooks/useQuizAutosave.ts:31 - UseQuizAutosaveResult (used in module)
+src/features/quizzes/types/quizzes.types.ts:14 - QuizAttemptStatus (used in module)
+src/features/quizzes/types/quizzes.types.ts:22 - QuizAssignmentStatus (used in module)
+src/features/quizzes/types/quizzes.types.ts:37 - QuestionSnapshot (used in module)
+src/features/quizzes/utils/antiCheatLogger.ts:13 - AntiCheatEventType (used in module)
+src/features/quizzes/utils/antiCheatLogger.ts:21 - AntiCheatEvent (used in module)
+src/features/quizzes/utils/antiCheatLogger.ts:27 - AntiCheatSummary (used in module)
+src/features/quizzes/utils/antiCheatLogger.ts:36 - AntiCheatLogger (used in module)
+src/features/quizzes/utils/autoGrader.ts:13 - GradeableQuestionType (used in module)
+src/features/quizzes/utils/autoGrader.ts:36 - GradeResult (used in module)
+src/features/quizzes/utils/itemAnalysis.ts:13 - QuestionQuality (used in module)
+src/features/quizzes/utils/itemAnalysis.ts:15 - ItemAnalysisResult (used in module)
+src/features/quizzes/utils/questionPool.ts:26 - PoolSelection (used in module)
+src/features/recommendations/hooks/useRecommendation.ts:8 - useRecommendationData
+src/features/recommendations/hooks/useRecommendation.ts:19 - useRecommendationMutation
+src/features/recommendations/types/index.ts:1 - RecommendationType (used in module)
+src/features/recommendations/types/index.ts:7 - RecommendationStatus (used in module)
+src/features/recommendations/types/index.ts:9 - Recommendation
+src/features/reports/hooks/useReport.ts:8 - useReportData
+src/features/reports/hooks/useReport.ts:19 - useReportMutation
+src/features/reports/types/index.ts:1 - ReportType (used in module)
+src/features/reports/types/index.ts:2 - ReportSchedule (used in module)
+src/features/reports/types/index.ts:3 - ExportFormat (used in module)
+src/features/reports/types/index.ts:5 - ScheduledReport
+src/features/storage/hooks/useStorage.ts:8 - useStorageData
+src/features/storage/hooks/useStorage.ts:19 - useStorageMutation
+src/features/storage/queries/storageQueries.ts:13 - useStorageList
+src/features/storage/queries/storageQueries.ts:3 - storageKeys
+src/features/storage/types/index.ts:1 - UploadOptions
+src/features/storage/types/index.ts:10 - UploadResult
+src/features/struggle/hooks/useStruggle.ts:8 - useStruggleData
+src/features/struggle/hooks/useStruggle.ts:19 - useStruggleMutation
+src/features/struggle/types/index.ts:1 - StruggleAlert
+src/features/struggle/types/index.ts:15 - StruggleConfig
+src/features/struggle/types/index.ts:23 - LessonStatus
+src/features/assignments/components/groups/index.ts:1 - GroupChatPanel
+src/features/assignments/components/groups/index.ts:2 - GroupSettingsTab
+src/features/assignments/components/groups/index.ts:3 - GroupTasksTab
+src/features/assignments/components/groups/index.ts:4 - StudentGroupView
+src/features/assignments/components/groups/index.ts:5 - TeacherGroupView
+src/features/assignments/components/page/index.ts:1 - AssignmentListSidebar
+src/features/assignments/components/page/index.ts:2 - getStatusBadge
+src/features/assignments/components/page/index.ts:3 - CreateAssignmentModal
+src/features/assignments/components/page/index.ts:4 - PrivateCommentsPanel
+src/features/assignments/components/page/index.ts:5 - StudentSubmissionPanel
+src/features/assignments/components/page/index.ts:6 - TeacherSubmissionsPanel
+src/features/courses/api/builder/collaboratorService.ts:14 - SearchableUser (used in module)
+src/features/dashboards/components/sections/index.ts:1 - AnnouncementsPreview
+src/features/dashboards/components/sections/index.ts:2 - ContinueLearning
+src/features/dashboards/components/sections/index.ts:3 - GamificationWidgets
+src/features/dashboards/components/sections/index.ts:4 - LeaderboardPreview
+src/features/dashboards/components/sections/index.ts:5 - MyClassesSection
+src/features/dashboards/components/sections/index.ts:6 - UpcomingAssignments
+src/features/dashboards/components/sections/index.ts:7 - WelcomeCard
+src/features/discussions/components/forum/index.ts:1 - CommentThread
+src/features/discussions/components/forum/index.ts:2 - CreatePostForm
+src/features/discussions/components/forum/index.ts:3 - ForumBadge
+src/features/discussions/components/forum/index.ts:3 - resolveBadgeType
+src/features/discussions/components/forum/index.ts:4 - ForumHeader
+src/features/discussions/components/forum/index.ts:5 - ForumSearchBar
+src/features/discussions/components/forum/index.ts:6 - PostItem
+src/features/gradebook/components/speedgrader/index.ts:1 - DocumentViewer
+src/features/gradebook/components/speedgrader/index.ts:2 - GraderTopBar
+src/features/gradebook/components/speedgrader/index.ts:3 - RubricPanel
+src/features/gradebook/components/speedgrader/index.ts:4 - SaveStatusToast
+src/features/gradebook/components/speedgrader/index.ts:5 - ActiveTool
+src/features/gradebook/components/speedgrader/index.ts:5 - Annotation
+src/features/gradebook/components/speedgrader/index.ts:5 - SaveStatus
+src/features/gradebook/components/speedgrader/index.ts:5 - SpeedGraderStudent
+src/features/gradebook/components/speedgrader/index.ts:6 - DEFAULT_RUBRIC
+src/features/gradebook/components/speedgrader/types.ts:13 - RubricLevel (used in module)
+src/features/gradebook/components/speedgrader/types.ts:26 - StudentGradeEntry (used in module)
+src/features/lessons/components/viewer/index.ts:1 - LegacyContentFallback
+src/features/lessons/components/viewer/index.ts:2 - LessonBottomNav
+src/features/lessons/components/viewer/index.ts:3 - LessonCelebrations
+src/features/lessons/components/viewer/index.ts:4 - LessonTopBar
+src/features/quizzes/components/analytics/index.ts:2 - QuizAnalyticsPanel
+src/features/quizzes/components/analytics/SuspiciousAttemptsPanel.tsx:45 - SuspiciousAttemptsPanel

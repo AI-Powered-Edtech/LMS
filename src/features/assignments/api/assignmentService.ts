@@ -39,17 +39,17 @@ export interface AssignmentSubmission {
 }
 
 // Explicit columns for assignment queries (no SELECT *)
-const ASSIGNMENT_COLUMNS =
+const _ASSIGNMENT_COLUMNS =
   'id, tenant_id, course_id, lesson_id, title, instructions, max_points, max_attempts, is_published, due_date, created_by, created_at, updated_at'
 
-const SUBMISSION_COLUMNS =
+const _SUBMISSION_COLUMNS =
   'id, tenant_id, assignment_id, student_id, submission_text, file_url, score, feedback, status, attempt_number, submitted_at, graded_at'
 
 export const assignmentService = {
   /**
    * Creates a new assignment linked to a lesson.
    */
-  async createAssignment(assignment: Omit<Assignment, 'id' | 'created_at' | 'updated_at'>) {
+  async createAssignment(_assignment: Omit<Assignment, 'id' | 'created_at' | 'updated_at'>) {
     const { data, error } = await apiFetch('/assignments')
 
     if (error) {
@@ -65,7 +65,7 @@ export const assignmentService = {
    * Note: lesson_progress completion is handled by DB trigger.
    */
   async submitAssignment(
-    submission: Omit<
+    _submission: Omit<
       AssignmentSubmission,
       'id' | 'submitted_at' | 'graded_at' | 'score' | 'feedback' | 'status'
     >
@@ -83,7 +83,7 @@ export const assignmentService = {
   /**
    * Teachers grade a submission.
    */
-  async gradeSubmission(submissionId: string, tenantId: string, score: number, feedback: string) {
+  async gradeSubmission(_submissionId: string, _tenantId: string, _score: number, _feedback: string) {
     const { data, error } = await apiFetch('/assignment_submissions')
 
     if (error) {
@@ -97,7 +97,7 @@ export const assignmentService = {
   /**
    * Fetches assignment details by lesson_id.
    */
-  async getAssignmentByLesson(lessonId: string, tenantId: string) {
+  async getAssignmentByLesson(_lessonId: string, _tenantId: string) {
     const { data, error } = await apiFetch('/assignments')
 
     if (error) {
@@ -111,7 +111,7 @@ export const assignmentService = {
   /**
    * Fetches assignment details along with student's current submission if any.
    */
-  async getAssignmentDetails(assignmentId: string, studentId: string, tenantId: string) {
+  async getAssignmentDetails(_assignmentId: string, _studentId: string, _tenantId: string) {
     const { data, error } = await apiFetch('/assignments')
 
     if (error) {
@@ -125,7 +125,7 @@ export const assignmentService = {
   /**
    * Fetches all submissions for an assignment (for Teacher Gradebook).
    */
-  async getAssignmentSubmissions(assignmentId: string, tenantId: string) {
+  async getAssignmentSubmissions(_assignmentId: string, _tenantId: string) {
     const { data, error } = await apiFetch('/assignment_submissions')
 
     if (error) {
@@ -143,7 +143,7 @@ export const assignmentService = {
    */
   async getStudentAssignments(tenantId: string, page = 1, limit = 20) {
     const from = (page - 1) * limit
-    const to = from + limit - 1
+    const _to = from + limit - 1
 
     const { data, error, count } = await apiFetch('/assignments')
 
@@ -177,7 +177,7 @@ export const assignmentService = {
    */
   async getAssignments(tenantId: string, page = 1, limit = 20) {
     const from = (page - 1) * limit
-    const to = from + limit - 1
+    const _to = from + limit - 1
 
     const { data, error, count } = await apiFetch('/assignments')
 

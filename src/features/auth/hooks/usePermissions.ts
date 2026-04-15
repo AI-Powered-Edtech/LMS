@@ -2,7 +2,7 @@ import { useMemo } from 'react'
 
 import { Role, useAuth } from '@/src/contexts/AuthContext'
 
-export function usePermissions() {
+function usePermissions() {
   const { permissions, roles, activeRole } = useAuth()
 
   const isAdmin = roles.includes('admin')

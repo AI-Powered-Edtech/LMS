@@ -1,4 +1,3 @@
-import { api } from "@/src/lib/api"
 // ==========================================================================
 // Quiz Manager Service — quizManager.service.ts
 //

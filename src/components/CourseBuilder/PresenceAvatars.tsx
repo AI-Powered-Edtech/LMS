@@ -10,7 +10,7 @@ interface PresenceAvatarsProps {
 
 const MAX_VISIBLE = 4
 
-export function PresenceAvatars({ others }: PresenceAvatarsProps) {
+function PresenceAvatars({ others }: PresenceAvatarsProps) {
   if (others.length === 0) return null
 
   const visible = others.slice(0, MAX_VISIBLE)

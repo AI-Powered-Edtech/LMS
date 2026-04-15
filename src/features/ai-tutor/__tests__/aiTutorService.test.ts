@@ -8,7 +8,6 @@ vi.mock('@/src/services/api/client', () => ({
   },
 }))
 
-import { apiFetch } from '@/src/lib/api'
 
 import { askTutor } from '..'
 

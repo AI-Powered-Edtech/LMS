@@ -17,7 +17,7 @@ export {
 } from './promptBuilder'
 
 // Import api for internal use
-import { api, apiFetch } from '@/src/lib/api'
+import { api, } from '@/src/lib/api'
 
 /**
  * Ask a question to the AI Tutor

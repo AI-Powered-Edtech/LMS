@@ -70,7 +70,7 @@ export default function FeatureFlagsPage() {
     setSaveSuccess(false)
 
     try {
-      for (const flag of dirty) {
+      for (const _flag of dirty) {
         const { error: updateErr } = await apiFetch('/feature_flags')
 
         if (updateErr) throw updateErr

@@ -1,4 +1,3 @@
-import { api } from "@/src/lib/api"
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
 const mockInsert = vi.fn()

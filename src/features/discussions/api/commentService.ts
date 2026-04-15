@@ -14,7 +14,7 @@ export const commentService = {
   /**
    * Fetch comments for a discussion thread, including author profile names.
    */
-  async fetchComments(threadId: string): Promise<CommentData[]> {
+  async fetchComments(_threadId: string): Promise<CommentData[]> {
     const { data, error } = await apiFetch('/discussion_posts')
 
     if (error) throw error
@@ -36,9 +36,9 @@ export const commentService = {
    * Returns the created comment data.
    */
   async addComment(
-    threadId: string,
-    authorId: string,
-    text: string
+    _threadId: string,
+    _authorId: string,
+    _text: string
   ): Promise<{ id: string; created_at: string }> {
     const { data, error } = await apiFetch('/discussion_posts')
 

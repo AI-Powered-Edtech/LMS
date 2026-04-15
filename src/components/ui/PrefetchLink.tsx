@@ -10,7 +10,7 @@ interface PrefetchLinkProps extends LinkProps {
   }
 }
 
-export function PrefetchLink({ prefetchQuery, onMouseEnter, ...props }: PrefetchLinkProps) {
+function PrefetchLink({ prefetchQuery, onMouseEnter, ...props }: PrefetchLinkProps) {
   const queryClient = useQueryClient()
   const prefetchedRef = useRef(false)
 

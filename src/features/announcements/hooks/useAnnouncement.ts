@@ -5,7 +5,7 @@ import { announcementService } from '../api/announcementService'
 /**
  * Hook untuk mengambil daftar Pengumuman.
  */
-export function useAnnouncementData(tenantId: string) {
+function useAnnouncementData(tenantId: string) {
   return useQuery({
     queryKey: ['announcements', tenantId],
     queryFn: () => announcementService.fetchAnnouncements(tenantId),
@@ -16,7 +16,7 @@ export function useAnnouncementData(tenantId: string) {
 /**
  * Hook untuk membuat/mengupdate Pengumuman.
  */
-export function useAnnouncementMutation() {
+function useAnnouncementMutation() {
   const qc = useQueryClient()
   return useMutation({
     mutationFn: announcementService.saveAnnouncement.bind(announcementService),

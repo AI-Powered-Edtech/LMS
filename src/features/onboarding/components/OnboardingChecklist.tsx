@@ -63,7 +63,7 @@ function OnboardingChecklistInner({ tenantId, userId }: InnerProps) {
       ...stepsCompleted,
       [stepId]: !stepsCompleted[stepId],
     }
-    const allComplete = ONBOARDING_STEPS.every((s) => updated[s.id])
+    const _allComplete = ONBOARDING_STEPS.every((s) => updated[s.id])
 
     const { data } = await apiFetch('/onboarding_progress')
 

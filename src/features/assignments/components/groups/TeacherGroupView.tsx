@@ -1,4 +1,3 @@
-import { api } from "@/src/lib/api"
 import { ArrowLeft, Eye, PenTool, Plus, RefreshCw, Users } from 'lucide-react'
 import { motion } from 'motion/react'
 import { useState } from 'react'

@@ -12,7 +12,7 @@ export const progressKeys = {
 /**
  * Query hook untuk daftar Kemajuan.
  */
-export function useProgressList(studentId: string) {
+function useProgressList(studentId: string) {
   return useQuery({
     queryKey: progressKeys.all(studentId),
     queryFn: () => progressService.getStudentProgress(studentId),

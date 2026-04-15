@@ -73,10 +73,10 @@ export function apiFetch(endpoint: string, options: RequestInit = {}) {
 export const api = {
   auth: {
     getSession: async () => ({ data: { session: null }, error: null }),
-    onAuthStateChange: (cb: any) => ({ data: { subscription: { unsubscribe: () => {} } } }),
-    updateUser: async (data: any) => ({ data: null, error: null }),
-    signInWithPassword: async (data: any) => ({ data: null, error: null }),
-    verifyOtp: async (data: any) => ({ data: { session: null }, error: null }),
+    onAuthStateChange: (_cb: any) => ({ data: { subscription: { unsubscribe: () => {} } } }),
+    updateUser: async (_data: any) => ({ _data: null, error: null }),
+    signInWithPassword: async (_data: any) => ({ _data: null, error: null }),
+    verifyOtp: async (_data: any) => ({ _data: { session: null }, error: null }),
   },
   functions: {
     invoke: async <T = any>(name: string, options?: any) => {
@@ -93,19 +93,19 @@ export const api = {
   },
   storage: {
     from: (bucket: string) => ({
-      upload: async (path: string, file: any, opts?: any) => ({ data: { path }, error: null }),
-      remove: async (paths: string[]) => ({ data: null, error: null }),
+      upload: async (path: string, _file: any, _opts?: any) => ({ data: { path }, error: null }),
+      remove: async (_paths: string[]) => ({ data: null, error: null }),
       getPublicUrl: (path: string) => ({ data: { publicUrl: `/api/v1/storage/${bucket}/${path}` } })
     })
   },
-  channel: (name: string, opts?: any) => ({
-    on: (event: string, filter: any, callback: any) => ({ on: () => ({ subscribe: () => ({ unsubscribe: () => {} }) }) }),
-    subscribe: (cb?: any) => ({ unsubscribe: () => {} }),
+  channel: (_name: string, _opts?: any) => ({
+    on: (_event: string, _filter: any, _callback: any) => ({ on: () => ({ subscribe: () => ({ unsubscribe: () => {} }) }) }),
+    subscribe: (_cb?: any) => ({ unsubscribe: () => {} }),
     unsubscribe: () => {},
-    send: async (data: any) => ({}),
-    track: async (data: any) => ({}),
+    send: async (_data: any) => ({}),
+    track: async (_data: any) => ({}),
     untrack: async () => ({}),
     presenceState: () => ({})
   }),
-  removeChannel: (channel: any) => {}
+  removeChannel: (_channel: any) => {}
 }

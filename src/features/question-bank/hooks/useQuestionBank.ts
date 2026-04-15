@@ -5,7 +5,7 @@ import { questionBankService } from '../api/questionBankService'
 /**
  * Hook untuk mengambil daftar Bank Soal.
  */
-export function useQuestionBankData() {
+function useQuestionBankData() {
   return useQuery({
     queryKey: ['question-bank'],
     queryFn: () => questionBankService.searchQuestions({}),
@@ -16,7 +16,7 @@ export function useQuestionBankData() {
 /**
  * Hook untuk membuat/mengupdate Bank Soal.
  */
-export function useQuestionBankMutation() {
+function useQuestionBankMutation() {
   const qc = useQueryClient()
   return useMutation({
     mutationFn: questionBankService.createQuestion.bind(questionBankService),

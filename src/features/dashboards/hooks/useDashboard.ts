@@ -5,7 +5,7 @@ import { dashboardService } from '../api/dashboardService'
 /**
  * Hook untuk mengambil daftar Dashboard.
  */
-export function useDashboardData() {
+function useDashboardData() {
   return useQuery({
     queryKey: ['dashboards'],
     queryFn: () => dashboardService.getDashboards(),
@@ -16,7 +16,7 @@ export function useDashboardData() {
 /**
  * Hook untuk membuat/mengupdate Dashboard.
  */
-export function useDashboardMutation() {
+function useDashboardMutation() {
   const qc = useQueryClient()
   return useMutation({
     mutationFn: dashboardService.saveDashboard.bind(dashboardService),

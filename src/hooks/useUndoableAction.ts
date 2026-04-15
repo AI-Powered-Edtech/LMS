@@ -36,7 +36,7 @@ export interface UseUndoableActionOptions {
  * <button onClick={execute}>Hapus Kelas</button>
  * ```
  */
-export function useUndoableAction({
+function useUndoableAction({
   message,
   delay = 5000,
   onExecute,

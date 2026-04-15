@@ -51,8 +51,8 @@ function classifySeverity(tabSwitches: number, blurs: number): 'low' | 'medium' 
  * Get suspicious attempts for a quiz — grouped by attempt with signal counts.
  */
 export async function getSuspiciousAttempts(
-  quizId: string,
-  tenantId: string
+  _quizId: string,
+  _tenantId: string
 ): Promise<SuspiciousAttempt[]> {
   // Get all cheating signals for this quiz's attempts
   const { data: signals, error: signalError } = await apiFetch('/quiz_cheating_signals')
@@ -136,7 +136,7 @@ export async function getSuspiciousAttempts(
 /**
  * Get the total count of suspicious attempts for a quiz (for badge display).
  */
-export async function getSuspiciousAttemptCount(quizId: string, tenantId: string): Promise<number> {
+async function getSuspiciousAttemptCount(_quizId: string, _tenantId: string): Promise<number> {
   const { count, error } = await apiFetch('/quiz_cheating_signals')
 
   if (error) {

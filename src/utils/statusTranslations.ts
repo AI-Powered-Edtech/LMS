@@ -3,7 +3,7 @@
  * Use these whenever displaying a status value in the UI — never render raw DB status strings.
  */
 
-export function translateCourseStatus(status: string): string {
+function translateCourseStatus(status: string): string {
   const map: Record<string, string> = {
     draft: 'Draf',
     published: 'Diterbitkan',
@@ -14,7 +14,7 @@ export function translateCourseStatus(status: string): string {
   return map[status.toLowerCase()] ?? status
 }
 
-export function translateAssignmentStatus(status: string): string {
+function translateAssignmentStatus(status: string): string {
   const map: Record<string, string> = {
     pending: 'Menunggu',
     submitted: 'Dikumpulkan',
@@ -30,7 +30,7 @@ export function translateAssignmentStatus(status: string): string {
   return map[status.toLowerCase()] ?? status
 }
 
-export function translateQuizStatus(status: string): string {
+function translateQuizStatus(status: string): string {
   const map: Record<string, string> = {
     draft: 'Draf',
     published: 'Diterbitkan',
@@ -41,7 +41,7 @@ export function translateQuizStatus(status: string): string {
   return map[status.toLowerCase()] ?? status
 }
 
-export function translateInvitationStatus(status: string): string {
+function translateInvitationStatus(status: string): string {
   const map: Record<string, string> = {
     pending: 'Menunggu',
     accepted: 'Diterima',

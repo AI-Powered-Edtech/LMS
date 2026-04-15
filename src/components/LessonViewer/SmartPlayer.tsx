@@ -61,7 +61,7 @@ interface SmartPlayerProps {
 // Component
 // ---------------------------------------------------------------------------
 
-export function SmartPlayer({
+function SmartPlayer({
   lesson,
   courseId,
   progress,

@@ -24,7 +24,7 @@ interface EntityFormProps {
  * Generic form untuk membuat/mengedit entitas.
  * Menggantikan 14 form identik di seluruh feature module.
  */
-export function EntityForm({
+function EntityForm({
   onSubmit,
   isLoading,
   className,

@@ -80,7 +80,7 @@ export async function refreshAllCourseStats(_tenantId: string): Promise<void> {
 /**
  * Fetches tenant-level course_stats rows for aggregation.
  */
-export async function fetchTenantCourseStats(tenantId: string): Promise<CourseStatsRow[]> {
+export async function fetchTenantCourseStats(_tenantId: string): Promise<CourseStatsRow[]> {
   const { data, error } = await apiFetch('/course_stats')
 
   if (error) {

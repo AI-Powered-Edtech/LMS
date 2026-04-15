@@ -31,7 +31,7 @@ export function perfMeasure(name: string, startMark: string, endMark: string): n
   }
 }
 
-export function perfMeasureFrom(name: string, startMark: string, endMark: string = 'tti') {
+function perfMeasureFrom(name: string, startMark: string, endMark: string = 'tti') {
   perfMark(endMark)
   return perfMeasure(name, startMark, endMark)
 }

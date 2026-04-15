@@ -12,7 +12,7 @@ export const assignmentKeys = {
 /**
  * Query hook untuk daftar Tugas.
  */
-export function useAssignmentList(tenantId: string) {
+function useAssignmentList(tenantId: string) {
   return useQuery({
     queryKey: assignmentKeys.all(tenantId),
     queryFn: () => assignmentService.getAssignments(tenantId),

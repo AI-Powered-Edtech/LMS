@@ -1,7 +1,7 @@
 import { apiFetch } from '@/src/lib/api'
 import { logDevError, logDevWarn } from '@/src/utils/logDevError'
 
-import type { Course, CourseInsert, CourseUpdate, FetchCoursesOptions } from '../types'
+import type {  CourseInsert, CourseUpdate, FetchCoursesOptions } from '../types'
 
 export const courseService = {
   /**

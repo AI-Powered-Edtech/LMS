@@ -109,7 +109,7 @@ export function openDB(): Promise<IDBDatabase> {
 // Quiz cache
 // ---------------------------------------------------------------------------
 
-export async function cacheQuiz(quiz: CachedQuiz): Promise<void> {
+async function cacheQuiz(quiz: CachedQuiz): Promise<void> {
   const db = await openDB()
   const tx = db.transaction(STORES.QUIZ_CACHE, 'readwrite')
   const store = tx.objectStore(STORES.QUIZ_CACHE)
@@ -117,7 +117,7 @@ export async function cacheQuiz(quiz: CachedQuiz): Promise<void> {
   await wrapTransaction(tx)
 }
 
-export async function getCachedQuiz(quizId: string): Promise<CachedQuiz | null> {
+async function getCachedQuiz(quizId: string): Promise<CachedQuiz | null> {
   const db = await openDB()
   const tx = db.transaction(STORES.QUIZ_CACHE, 'readonly')
   const store = tx.objectStore(STORES.QUIZ_CACHE)
@@ -125,7 +125,7 @@ export async function getCachedQuiz(quizId: string): Promise<CachedQuiz | null> 
   return result ?? null
 }
 
-export async function clearQuizCache(quizId: string): Promise<void> {
+async function clearQuizCache(quizId: string): Promise<void> {
   const db = await openDB()
   const tx = db.transaction(STORES.QUIZ_CACHE, 'readwrite')
   const store = tx.objectStore(STORES.QUIZ_CACHE)
@@ -137,7 +137,7 @@ export async function clearQuizCache(quizId: string): Promise<void> {
 // Quiz answers
 // ---------------------------------------------------------------------------
 
-export async function saveAnswer(answer: CachedAnswer): Promise<void> {
+async function saveAnswer(answer: CachedAnswer): Promise<void> {
   const db = await openDB()
   const tx = db.transaction(STORES.QUIZ_ANSWERS, 'readwrite')
   const store = tx.objectStore(STORES.QUIZ_ANSWERS)
@@ -145,7 +145,7 @@ export async function saveAnswer(answer: CachedAnswer): Promise<void> {
   await wrapTransaction(tx)
 }
 
-export async function getAnswers(quizId: string): Promise<CachedAnswer[]> {
+async function getAnswers(quizId: string): Promise<CachedAnswer[]> {
   const db = await openDB()
   const tx = db.transaction(STORES.QUIZ_ANSWERS, 'readonly')
   const store = tx.objectStore(STORES.QUIZ_ANSWERS)
@@ -158,7 +158,7 @@ export async function getAnswers(quizId: string): Promise<CachedAnswer[]> {
 // Sync queue
 // ---------------------------------------------------------------------------
 
-export async function addToSyncQueue(item: Omit<SyncQueueItem, 'attempts'>): Promise<void> {
+async function addToSyncQueue(item: Omit<SyncQueueItem, 'attempts'>): Promise<void> {
   const db = await openDB()
   const tx = db.transaction(STORES.SYNC_QUEUE, 'readwrite')
   const store = tx.objectStore(STORES.SYNC_QUEUE)
@@ -195,7 +195,7 @@ export async function saveBuilderDraft(courseId: string, state: unknown): Promis
   await wrapTransaction(tx)
 }
 
-export async function getBuilderDraft(courseId: string): Promise<unknown | null> {
+async function getBuilderDraft(courseId: string): Promise<unknown | null> {
   const db = await openDB()
   const tx = db.transaction(STORES.BUILDER_DRAFTS, 'readonly')
   const store = tx.objectStore(STORES.BUILDER_DRAFTS)
@@ -213,7 +213,7 @@ export async function deleteBuilderDraft(courseId: string): Promise<void> {
   await wrapTransaction(tx)
 }
 
-export async function getAllDirtyDrafts(): Promise<unknown[]> {
+async function getAllDirtyDrafts(): Promise<unknown[]> {
   const db = await openDB()
   const tx = db.transaction(STORES.BUILDER_DRAFTS, 'readonly')
   const store = tx.objectStore(STORES.BUILDER_DRAFTS)
@@ -253,7 +253,7 @@ export async function getPendingCount(): Promise<number> {
 // ---------------------------------------------------------------------------
 
 /** Returns true if IndexedDB is available in the current environment. */
-export function isIndexedDBAvailable(): boolean {
+function isIndexedDBAvailable(): boolean {
   try {
     return typeof indexedDB !== 'undefined' && indexedDB !== null
   } catch {

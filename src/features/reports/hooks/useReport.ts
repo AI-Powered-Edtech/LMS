@@ -5,7 +5,7 @@ import { reportService } from '../api/reportService'
 /**
  * Hook untuk mengambil daftar Laporan.
  */
-export function useReportData() {
+function useReportData() {
   return useQuery({
     queryKey: ['reports'],
     queryFn: () => reportService.getReports(),
@@ -16,7 +16,7 @@ export function useReportData() {
 /**
  * Hook untuk membuat/mengupdate Laporan.
  */
-export function useReportMutation() {
+function useReportMutation() {
   const qc = useQueryClient()
   return useMutation({
     mutationFn: reportService.saveReport.bind(reportService),

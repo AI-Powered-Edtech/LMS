@@ -5,7 +5,7 @@ import { storageService } from '../api/storageService'
 /**
  * Hook untuk mengambil daftar Penyimpanan.
  */
-export function useStorageData() {
+function useStorageData() {
   return useQuery({
     queryKey: ['storage'],
     queryFn: async () => [] as unknown[],
@@ -16,7 +16,7 @@ export function useStorageData() {
 /**
  * Hook untuk membuat/mengupdate Penyimpanan.
  */
-export function useStorageMutation() {
+function useStorageMutation() {
   const qc = useQueryClient()
   return useMutation({
     mutationFn: (params: { file: File; opts: Parameters<typeof storageService.uploadFile>[1] }) =>

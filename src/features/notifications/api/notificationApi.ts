@@ -11,7 +11,7 @@ import type { Notification, NotificationPreferences } from '../types'
 // Only select columns that exist in the baseline notifications table.
 // The 003_notifications migration's CREATE TABLE IF NOT EXISTS is a no-op
 // when the baseline table already exists, so body/metadata/read_at are absent.
-const NOTIFICATION_COLUMNS = `
+const _NOTIFICATION_COLUMNS = `
   id,
   tenant_id,
   user_id,
@@ -30,8 +30,8 @@ const NOTIFICATION_COLUMNS = `
 export async function fetchNotifications(
   userId: string,
   tenantId: string,
-  limit = 50,
-  offset = 0
+  _limit = 50,
+  _offset = 0
 ): Promise<Notification[]> {
   const { data, error } = await apiFetch('/notifications')
 
@@ -46,7 +46,7 @@ export async function fetchNotifications(
 /**
  * Mark a single notification as read
  */
-export async function markNotificationRead(id: string): Promise<void> {
+export async function markNotificationRead(_id: string): Promise<void> {
   // Only update is_read — read_at column may not exist in baseline schema
   const { error } = await apiFetch('/notifications')
 
@@ -59,7 +59,7 @@ export async function markNotificationRead(id: string): Promise<void> {
 /**
  * Mark all unread notifications as read for a user within a tenant
  */
-export async function markAllNotificationsRead(userId: string, tenantId: string): Promise<void> {
+export async function markAllNotificationsRead(_userId: string, _tenantId: string): Promise<void> {
   const { error } = await apiFetch('/notifications')
 
   if (error) {
@@ -71,7 +71,7 @@ export async function markAllNotificationsRead(userId: string, tenantId: string)
 /**
  * Fetch the count of unread notifications
  */
-export async function fetchUnreadCount(userId: string, tenantId: string): Promise<number> {
+export async function fetchUnreadCount(_userId: string, _tenantId: string): Promise<number> {
   const { count, error } = await apiFetch('/notifications')
 
   if (error) {
@@ -86,8 +86,8 @@ export async function fetchUnreadCount(userId: string, tenantId: string): Promis
  * Fetch notification preferences for a user within a tenant
  */
 export async function fetchNotificationPreferences(
-  userId: string,
-  tenantId: string
+  _userId: string,
+  _tenantId: string
 ): Promise<NotificationPreferences | null> {
   const { data, error } = await apiFetch('/notification_preferences')
 
@@ -103,7 +103,7 @@ export async function fetchNotificationPreferences(
  * Upsert notification preferences for a user
  */
 export async function upsertNotificationPreferences(
-  prefs: Partial<NotificationPreferences> & { user_id: string; tenant_id: string }
+  _prefs: Partial<NotificationPreferences> & { user_id: string; tenant_id: string }
 ): Promise<NotificationPreferences> {
   const { data, error } = await apiFetch('/notification_preferences')
 

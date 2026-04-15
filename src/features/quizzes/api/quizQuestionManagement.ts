@@ -43,9 +43,9 @@ export async function addQuestionToQuiz(
  * Update a quiz question
  */
 export async function updateQuizQuestion(
-  questionId: string,
-  updates: Record<string, unknown>,
-  tenantId: string
+  _questionId: string,
+  _updates: Record<string, unknown>,
+  _tenantId: string
 ) {
   const { error } = await apiFetch('/quiz_questions')
 

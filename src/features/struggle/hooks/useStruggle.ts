@@ -5,7 +5,7 @@ import { struggleService } from '../api/struggleService'
 /**
  * Hook untuk mengambil daftar Deteksi Kesulitan.
  */
-export function useStruggleData(tenantId: string) {
+function useStruggleData(tenantId: string) {
   return useQuery({
     queryKey: ['struggle', tenantId],
     queryFn: () => struggleService.getStruggleAlerts(tenantId),
@@ -16,7 +16,7 @@ export function useStruggleData(tenantId: string) {
 /**
  * Hook untuk membuat/mengupdate Deteksi Kesulitan.
  */
-export function useStruggleMutation() {
+function useStruggleMutation() {
   const qc = useQueryClient()
   return useMutation({
     mutationFn: (params: {

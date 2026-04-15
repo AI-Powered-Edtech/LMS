@@ -25,7 +25,7 @@ const notificationKeys = {
  * Main hook for fetching user notifications.
  * Polls every 60s instead of holding a WebSocket connection.
  */
-export function useNotifications() {
+function useNotifications() {
   const { user, tenantId } = useAuth()
 
   const query = useQuery({

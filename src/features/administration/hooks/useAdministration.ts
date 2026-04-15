@@ -5,7 +5,7 @@ import { administrationService } from '../api/administrationService'
 /**
  * Hook untuk mengambil daftar Administrasi.
  */
-export function useAdministrationData() {
+function useAdministrationData() {
   return useQuery({
     queryKey: ['administration'],
     queryFn: () => administrationService.getTenantModules(),
@@ -16,7 +16,7 @@ export function useAdministrationData() {
 /**
  * Hook untuk membuat/mengupdate Administrasi.
  */
-export function useAdministrationMutation() {
+function useAdministrationMutation() {
   const qc = useQueryClient()
   return useMutation({
     mutationFn: ({ moduleId, isEnabled }: { moduleId: string; isEnabled: boolean }) =>

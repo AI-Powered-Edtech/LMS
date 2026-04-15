@@ -13,7 +13,7 @@ export const classroomKeys = {
 /**
  * Query hook untuk daftar Kelas.
  */
-export function useClassroomList(userId: string, role: string, tenantId: string) {
+function useClassroomList(userId: string, role: string, tenantId: string) {
   return useQuery({
     queryKey: classroomKeys.all(tenantId),
     queryFn: () => classroomService.fetchClassrooms(userId, role as UserRole, tenantId),

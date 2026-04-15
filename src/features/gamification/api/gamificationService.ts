@@ -26,7 +26,7 @@ export const gamificationService = {
   /**
    * Fetches the current streak for the authenticated user.
    */
-  async getUserStreak(userId: string, tenantId: string): Promise<UserStreak | null> {
+  async getUserStreak(_userId: string, _tenantId: string): Promise<UserStreak | null> {
     const { data, error } = await apiFetch('/user_streaks')
 
     if (error) {
@@ -40,7 +40,7 @@ export const gamificationService = {
   /**
    * Fetches the badges earned by the authenticated user (v1 compat).
    */
-  async getUserBadges(userId: string, tenantId: string): Promise<UserBadge[]> {
+  async getUserBadges(_userId: string, _tenantId: string): Promise<UserBadge[]> {
     const { data, error } = await apiFetch('/user_badges')
 
     if (error) {
@@ -128,7 +128,7 @@ export const gamificationService = {
   },
 
   /** Get all badge definitions for teacher management */
-  async getBadgeDefinitions(tenantId: string) {
+  async getBadgeDefinitions(_tenantId: string) {
     const { data, error } = await apiFetch('/badge_definitions')
     if (error) throw error
     return data ?? []

@@ -1,4 +1,3 @@
-import { api } from "@/src/lib/api"
 import { AlertCircle, CheckCircle, Loader2, MessageSquare, Save, Sparkles } from 'lucide-react'
 
 import { OptimizedImage } from '@/src/components/ui'

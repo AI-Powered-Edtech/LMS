@@ -1,4 +1,3 @@
-import { api } from "@/src/lib/api"
 import { useCallback, useEffect, useRef } from 'react'
 
 import { lessonService } from '@/src/features/lessons'

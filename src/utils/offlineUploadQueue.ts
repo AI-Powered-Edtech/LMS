@@ -20,7 +20,7 @@ export interface QueuedUpload {
   createdAt: string
 }
 
-export async function queueUpload(upload: QueuedUpload): Promise<void> {
+async function queueUpload(upload: QueuedUpload): Promise<void> {
   const db = await openDB()
   return new Promise((resolve, reject) => {
     const tx = db.transaction(STORE_NAME, 'readwrite')
@@ -40,7 +40,7 @@ export async function getPendingUploads(): Promise<QueuedUpload[]> {
   })
 }
 
-export async function removeFromQueue(id: string): Promise<void> {
+async function removeFromQueue(id: string): Promise<void> {
   const db = await openDB()
   return new Promise((resolve, reject) => {
     const tx = db.transaction(STORE_NAME, 'readwrite')
@@ -55,12 +55,12 @@ export async function getQueueSize(): Promise<number> {
   return uploads.reduce((total, u) => total + u.file.size, 0)
 }
 
-export async function isQueueFull(): Promise<boolean> {
+async function isQueueFull(): Promise<boolean> {
   const size = await getQueueSize()
   return size >= MAX_QUEUE_SIZE_BYTES
 }
 
-export async function clearQueue(): Promise<void> {
+async function clearQueue(): Promise<void> {
   const db = await openDB()
   return new Promise((resolve, reject) => {
     const tx = db.transaction(STORE_NAME, 'readwrite')

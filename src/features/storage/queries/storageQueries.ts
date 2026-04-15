@@ -10,7 +10,7 @@ export const storageKeys = {
 /**
  * Query hook untuk daftar Penyimpanan.
  */
-export function useStorageList() {
+function useStorageList() {
   return useQuery({
     queryKey: ['storage'],
     queryFn: async () => [] as unknown[],

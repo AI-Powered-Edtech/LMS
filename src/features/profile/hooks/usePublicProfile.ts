@@ -13,7 +13,7 @@ const profileKeys = {
 }
 
 // ── Fetch by user ID (owner view — always loads own data) ─────────────────────
-export function usePublicProfileById(userId: string | undefined) {
+function usePublicProfileById(userId: string | undefined) {
   return useQuery<PublicProfileData | null>({
     queryKey: profileKeys.byId(userId ?? ''),
     queryFn: () => publicProfileService.getPublicProfile(userId!),
@@ -23,7 +23,7 @@ export function usePublicProfileById(userId: string | undefined) {
 }
 
 // ── Resolve username → userId ─────────────────────────────────────────────────
-export function useProfileIdByUsername(username: string | undefined) {
+function useProfileIdByUsername(username: string | undefined) {
   return useQuery<{ id: string } | null>({
     queryKey: profileKeys.byUsername(username ?? ''),
     queryFn: () => publicProfileService.getProfileByUsername(username!),
@@ -33,7 +33,7 @@ export function useProfileIdByUsername(username: string | undefined) {
 }
 
 // ── Update privacy toggle ─────────────────────────────────────────────────────
-export function useUpdateProfilePrivacy(userId: string) {
+function useUpdateProfilePrivacy(userId: string) {
   const qc = useQueryClient()
   return useMutation({
     mutationFn: (isPublic: boolean) => publicProfileService.updatePrivacy(isPublic),

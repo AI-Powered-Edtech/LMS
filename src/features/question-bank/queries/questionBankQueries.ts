@@ -12,7 +12,7 @@ export const questionBankKeys = {
 /**
  * Query hook untuk daftar Bank Soal.
  */
-export function useQuestionBankList() {
+function useQuestionBankList() {
   return useQuery({
     queryKey: ['question-bank'],
     queryFn: () => questionBankService.searchQuestions({}),

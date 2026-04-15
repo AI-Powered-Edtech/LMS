@@ -5,7 +5,7 @@ import { gamificationService } from '../api/gamificationService'
 /**
  * Hook untuk mengambil daftar Gamifikasi.
  */
-export function useGamificationData(userId: string, tenantId: string) {
+function useGamificationData(userId: string, tenantId: string) {
   return useQuery({
     queryKey: ['gamification', userId, tenantId],
     queryFn: () => gamificationService.getUserBadges(userId, tenantId),
@@ -16,7 +16,7 @@ export function useGamificationData(userId: string, tenantId: string) {
 /**
  * Hook untuk membuat/mengupdate Gamifikasi.
  */
-export function useGamificationMutation() {
+function useGamificationMutation() {
   const qc = useQueryClient()
   return useMutation({
     mutationFn: (params: { userId: string; tenantId: string }) =>

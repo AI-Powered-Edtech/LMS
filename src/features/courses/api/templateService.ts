@@ -16,7 +16,7 @@ export const templateService = {
   /**
    * Fetches the templates for a specific type
    */
-  async fetchTemplates(type: 'course' | 'module' | 'lesson') {
+  async fetchTemplates(_type: 'course' | 'module' | 'lesson') {
     const { data, error } = await apiFetch('/v1/content_templates')
 
     if (error) {

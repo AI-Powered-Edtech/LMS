@@ -75,7 +75,7 @@ export async function getInvitations(): Promise<TenantInvitation[]> {
   return (data ?? []) as TenantInvitation[]
 }
 
-export async function revokeInvitation(id: string): Promise<void> {
+export async function revokeInvitation(_id: string): Promise<void> {
   const { error } = await apiFetch('/tenant_invitations')
 
   if (error) throw error

@@ -1,6 +1,6 @@
 import Papa from 'papaparse'
 
-import { api, apiFetch } from '@/src/lib/api'
+import {  apiFetch } from '@/src/lib/api'
 
 import type { GradebookColumn, GradebookEntry, GradebookSettings } from '../types'
 
@@ -11,8 +11,8 @@ import type { GradebookColumn, GradebookEntry, GradebookSettings } from '../type
  * judul tugas/kuis, dan tipe item (quiz|assignment).
  */
 export async function fetchGradebookEntries(
-  courseId: string,
-  tenantId: string
+  _courseId: string,
+  _tenantId: string
 ): Promise<GradebookEntry[]> {
   const { data, error } = await apiFetch('/gradebook_entries')
 
@@ -69,8 +69,8 @@ export async function fetchGradebookEntries(
  * Memperbarui nilai, catatan, atau huruf mutu pada entri yang sudah ada.
  */
 export async function updateGradebookEntry(
-  id: string,
-  updates: Partial<Pick<GradebookEntry, 'score' | 'notes' | 'grade_letter'>>
+  _id: string,
+  _updates: Partial<Pick<GradebookEntry, 'score' | 'notes' | 'grade_letter'>>
 ): Promise<GradebookEntry> {
   const { data, error } = await apiFetch('/gradebook_entries')
 
@@ -86,7 +86,7 @@ export async function updateGradebookEntry(
  * percentage adalah generated column, tidak boleh dikirim ke API.
  */
 export async function upsertGradebookEntry(
-  entry: Omit<GradebookEntry, 'id' | 'percentage'>
+  _entry: Omit<GradebookEntry, 'id' | 'percentage'>
 ): Promise<GradebookEntry> {
   const { data, error } = await apiFetch('/gradebook_entries')
 
@@ -119,8 +119,8 @@ export async function syncGradebook(courseId: string, tenantId: string): Promise
  * Mengembalikan null jika belum dikonfigurasi.
  */
 export async function fetchGradebookSettings(
-  courseId: string,
-  tenantId: string
+  _courseId: string,
+  _tenantId: string
 ): Promise<GradebookSettings | null> {
   const { data, error } = await apiFetch('/gradebook_settings')
 
@@ -133,7 +133,7 @@ export async function fetchGradebookSettings(
  * Menyimpan (insert atau update) pengaturan gradebook untuk satu kursus.
  */
 export async function upsertGradebookSettings(
-  settings: Omit<GradebookSettings, 'id'>
+  _settings: Omit<GradebookSettings, 'id'>
 ): Promise<GradebookSettings> {
   const { data, error } = await apiFetch('/gradebook_settings')
 

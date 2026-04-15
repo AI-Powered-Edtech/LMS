@@ -4,7 +4,7 @@ import { AnimatePresence, motion } from 'motion/react'
 import { usePWAInstall } from '@/src/hooks/usePWAInstall'
 import { cn } from '@/src/utils/cn'
 
-export function InstallPrompt() {
+function InstallPrompt() {
   const { canInstall, promptInstall, isDismissed, dismiss } = usePWAInstall()
 
   const visible = canInstall && !isDismissed

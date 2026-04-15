@@ -52,7 +52,7 @@ export const announcementService = {
   /**
    * Get announcement by ID with tenant isolation
    */
-  async getAnnouncementById(id: string, tenantId: string) {
+  async getAnnouncementById(_id: string, _tenantId: string) {
     const { data, error } = await apiFetch('/announcements')
 
     if (error) throw error
@@ -63,7 +63,7 @@ export const announcementService = {
    * Create or update announcement
    */
   async saveAnnouncement(
-    announcement: Partial<Announcement> & { tenant_id: string; created_by: string }
+    _announcement: Partial<Announcement> & { tenant_id: string; created_by: string }
   ) {
     const { data, error } = await apiFetch('/announcements')
 
@@ -78,7 +78,7 @@ export const announcementService = {
   /**
    * Delete announcement with tenant isolation
    */
-  async deleteAnnouncement(id: string, tenantId: string) {
+  async deleteAnnouncement(_id: string, _tenantId: string) {
     const { error } = await apiFetch('/announcements')
 
     if (error) throw error
@@ -88,10 +88,10 @@ export const announcementService = {
    * Submit RSVP
    */
   async submitRSVP(
-    announcementId: string,
-    tenantId: string,
-    userId: string,
-    response: 'yes' | 'no' | 'maybe'
+    _announcementId: string,
+    _tenantId: string,
+    _userId: string,
+    _response: 'yes' | 'no' | 'maybe'
   ) {
     const { data, error } = await apiFetch('/announcement_rsvps')
 
@@ -106,7 +106,7 @@ export const announcementService = {
   /**
    * Get RSVP status for a user/announcement with tenant isolation
    */
-  async getUserRSVP(announcementId: string, userId: string, tenantId: string) {
+  async getUserRSVP(_announcementId: string, _userId: string, _tenantId: string) {
     const { data, error } = await apiFetch('/announcement_rsvps')
 
     if (error) throw error

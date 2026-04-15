@@ -42,7 +42,7 @@ const severityConfig = {
   },
 }
 
-export function SuspiciousAttemptsPanel({
+function SuspiciousAttemptsPanel({
   quizId,
   tenantId,
   className,

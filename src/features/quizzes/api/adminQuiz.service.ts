@@ -40,7 +40,7 @@ export interface AntiCheatAuditEntry {
  * Get school-wide quiz overview for admin dashboard.
  * Returns all quizzes in the tenant with aggregated stats.
  */
-export async function getSchoolQuizOverview(tenantId: string): Promise<AdminQuizOverviewItem[]> {
+export async function getSchoolQuizOverview(_tenantId: string): Promise<AdminQuizOverviewItem[]> {
   // Fetch quizzes with their class and creator info
   const { data: quizzes, error } = await apiFetch('/quizzes')
 
@@ -53,7 +53,7 @@ export async function getSchoolQuizOverview(tenantId: string): Promise<AdminQuiz
   if (!quizzes || quizzes.length === 0) return []
 
   // Fetch quiz stats for all quizzes in one query
-  const quizIds = quizzes.map((q) => q.id)
+  const _quizIds = quizzes.map((q) => q.id)
   const { data: stats } = await apiFetch('/quiz_stats')
 
   const statsMap = new Map((stats ?? []).map((s) => [s.quiz_id, s]))
@@ -85,7 +85,7 @@ export async function getSchoolQuizOverview(tenantId: string): Promise<AdminQuiz
  */
 export async function getAntiCheatAuditLog(
   tenantId: string,
-  limit: number = 50
+  _limit: number = 50
 ): Promise<AntiCheatAuditEntry[]> {
   const { data, error } = await apiFetch('/quiz_cheating_signals')
 

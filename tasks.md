@@ -1,0 +1,3 @@
+- [x] Analyze `src/` directory for dead code (unused variables, unused imports, unused files, and unused exports)
+- [x] Remove the identified dead code and delete unused files
+- [x] Ensure the build passes (`pnpm run build`)

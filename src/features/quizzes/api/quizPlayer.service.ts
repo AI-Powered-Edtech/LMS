@@ -6,7 +6,7 @@
 // timer/helpers to quizTimerService.ts.
 // ==========================================================================
 
-import { api, apiFetch } from '@/src/lib/api'
+import {  apiFetch } from '@/src/lib/api'
 
 import type {
   QuestionType,
@@ -106,7 +106,7 @@ export async function getAttemptQuestions(attemptId: string): Promise<QuizAttemp
  * Get all quiz assignments for the current student
  */
 export async function getStudentQuizAssignments(
-  tenantId: string
+  _tenantId: string
 ): Promise<StudentQuizAssignment[]> {
   const session = { user: { id: "mock" } }
   if (!session) throw new Error('Not authenticated')
@@ -158,7 +158,7 @@ export async function getStudentQuizAssignments(
 /**
  * Get all attempts for the current user
  */
-export async function getUserAttempts(tenantId: string): Promise<QuizAttempt[]> {
+export async function getUserAttempts(_tenantId: string): Promise<QuizAttempt[]> {
   const session = { user: { id: "mock" } }
   if (!session) throw new Error('Not authenticated')
 

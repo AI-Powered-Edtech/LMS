@@ -18,7 +18,7 @@ export const leaderboardService = {
    * @param classId - The class ID
    * @param tenantId - The tenant ID for isolation
    */
-  async getLeaderboard(classId: string, tenantId: string): Promise<LeaderboardEntry[]> {
+  async getLeaderboard(classId: string, _tenantId: string): Promise<LeaderboardEntry[]> {
     // Try with class_id filter (migration 052+)
     let query = apiFetch('/leaderboards')
 
@@ -67,12 +67,12 @@ export const leaderboardService = {
    * @param classId - The class ID
    * @param tenantId - The tenant ID for isolation
    */
-  async getWeeklyLeaderboard(classId: string, tenantId: string): Promise<LeaderboardEntry[]> {
+  async getWeeklyLeaderboard(classId: string, _tenantId: string): Promise<LeaderboardEntry[]> {
     const now = new Date()
     const day = now.getUTCDay() || 7 // 1-7 (Mon-Sun)
     now.setUTCDate(now.getUTCDate() + 1 - day)
     now.setUTCHours(0, 0, 0, 0)
-    const weekStart = now.toISOString()
+    const _weekStart = now.toISOString()
 
     let query = apiFetch('/leaderboards_weekly')
 

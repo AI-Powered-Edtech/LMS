@@ -18,7 +18,7 @@ const onboardingKeys = {
  * React Query hook for onboarding progress.
  * Onboarding steps don't change after completion — use STATIC stale time.
  */
-export function useOnboardingProgress(tenantId: string, userId: string) {
+function useOnboardingProgress(tenantId: string, userId: string) {
   return useQuery({
     queryKey: onboardingKeys.progress(tenantId, userId),
     queryFn: async (): Promise<OnboardingProgress | null> => {
@@ -34,17 +34,17 @@ export function useOnboardingProgress(tenantId: string, userId: string) {
 /**
  * Mutation hook for updating onboarding step completion.
  */
-export function useUpdateOnboardingProgress(tenantId: string, userId: string) {
+function useUpdateOnboardingProgress(tenantId: string, userId: string) {
   const queryClient = useQueryClient()
   return useMutation({
     mutationFn: async ({
-      progressId,
+      _progressId,
       stepsCompleted,
     }: {
       progressId: string
       stepsCompleted: Record<string, boolean>
     }): Promise<OnboardingProgress> => {
-      const allDone = Object.values(stepsCompleted).every(Boolean)
+      const _allDone = Object.values(stepsCompleted).every(Boolean)
       const { data, error } = await apiFetch('/onboarding_progress')
       if (error) throw error
       return data as OnboardingProgress

@@ -138,15 +138,15 @@ export function initSentry(): void {
   })
 }
 
-export function setSentryUser(id: string, role: string): void {
+function setSentryUser(id: string, role: string): void {
   Sentry.setUser({ id, role })
 }
 
-export function clearSentryUser(): void {
+function clearSentryUser(): void {
   Sentry.setUser(null)
 }
 
-export function captureError(error: unknown, context?: Record<string, unknown>): void {
+function captureError(error: unknown, context?: Record<string, unknown>): void {
   if (context) Sentry.setContext('extra', context)
   Sentry.captureException(error)
 }

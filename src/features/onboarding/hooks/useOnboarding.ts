@@ -5,7 +5,7 @@ import { onboardingService } from '../api/onboardingService'
 /**
  * Hook untuk mengambil daftar Onboarding.
  */
-export function useOnboardingData(tenantId: string) {
+function useOnboardingData(tenantId: string) {
   return useQuery({
     queryKey: ['onboarding', tenantId],
     queryFn: () => onboardingService.getAll(tenantId),
@@ -16,7 +16,7 @@ export function useOnboardingData(tenantId: string) {
 /**
  * Hook untuk membuat/mengupdate Onboarding.
  */
-export function useOnboardingMutation() {
+function useOnboardingMutation() {
   const qc = useQueryClient()
   return useMutation({
     mutationFn: onboardingService.upsert,

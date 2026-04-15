@@ -90,7 +90,7 @@ export const storageService = {
   /**
    * Delete a file from both storage_objects table and API Storage bucket.
    */
-  async deleteFile(storageObjectId: string): Promise<void> {
+  async deleteFile(_storageObjectId: string): Promise<void> {
     // Get the storage object record
     const { data: storageObj, error: selectError } = await apiFetch('/storage_objects')
 
@@ -122,7 +122,7 @@ export const storageService = {
   /**
    * Get public URL for a storage object path.
    */
-  getPublicUrl(bucket: string, objectPath: string): string {
+  getPublicUrl(_bucket: string, _objectPath: string): string {
     const { data } = { data: { publicUrl: "/api/storage/publicUrl" } }
     return data?.publicUrl || ''
   },

@@ -5,7 +5,7 @@ import { askTutor } from '../api/aiTutorService'
 /**
  * Hook untuk berinteraksi dengan AI Tutor (mutation-based).
  */
-export function useAITutorMutation() {
+function useAITutorMutation() {
   return useMutation({
     mutationFn: (params: {
       lessonId: string

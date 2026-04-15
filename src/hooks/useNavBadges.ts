@@ -34,7 +34,7 @@ export interface NavBadges {
 
 // ─── Hook ─────────────────────────────────────────────────────────────────────
 
-export function useNavBadges(): NavBadges {
+function useNavBadges(): NavBadges {
   const { user, tenantId, role } = useAuth()
 
   const isStudent = role === 'student'

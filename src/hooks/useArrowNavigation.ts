@@ -20,7 +20,7 @@ export interface UseArrowNavigationReturn {
   handleKeyDown: (e: React.KeyboardEvent<HTMLElement>) => void
 }
 
-export function useArrowNavigation(): UseArrowNavigationReturn {
+function useArrowNavigation(): UseArrowNavigationReturn {
   const containerRef = useRef<HTMLElement | null>(null)
 
   const handleKeyDown = useCallback((e: React.KeyboardEvent<HTMLElement>) => {

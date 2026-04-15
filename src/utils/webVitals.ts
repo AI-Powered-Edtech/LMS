@@ -36,7 +36,7 @@ function logMetricDev(metric: Metric): void {
   }
 }
 
-async function sendMetricProd(metric: Metric): Promise<void> {
+async function sendMetricProd(_metric: Metric): Promise<void> {
   // 10 % sampling
   if (Math.random() > 0.1) return
 

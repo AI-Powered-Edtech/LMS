@@ -165,9 +165,9 @@ export const lessonService = {
    * Fetch all lessons in a module with the current user's progress.
    */
   async fetchModuleLessons(
-    moduleId: string,
-    userId: string,
-    tenantId: string
+    _moduleId: string,
+    _userId: string,
+    _tenantId: string
   ): Promise<{
     lessons: Lesson[]
     progress: Record<string, LessonProgress>
@@ -181,7 +181,7 @@ export const lessonService = {
     }
 
     // Fetch progress for all lessons in this module
-    const lessonIds = (lessons || []).map((l) => l.id)
+    const _lessonIds = (lessons || []).map((l) => l.id)
     const { data: progressData, error: progressError } = await apiFetch('/lesson_progress')
 
     if (progressError) {
@@ -364,9 +364,9 @@ export const lessonService = {
    * Fetch the user's progress for a specific lesson.
    */
   async fetchProgress(
-    lessonId: string,
-    userId: string,
-    tenantId: string
+    _lessonId: string,
+    _userId: string,
+    _tenantId: string
   ): Promise<LessonProgress | null> {
     const { data, error } = await apiFetch('/lesson_progress')
 

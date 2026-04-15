@@ -82,8 +82,8 @@ export function AccountTab({ avatarUrl, displayEmail, roleLabel, displayName }: 
     setSavingProfile(true)
     setProfileMessage(null)
     try {
-      const [firstName, ...rest] = data.fullName.trim().split(' ')
-      const lastName = rest.join(' ')
+      const [_firstName, ...rest] = data.fullName.trim().split(' ')
+      const _lastName = rest.join(' ')
       const { error } = await apiFetch('/profiles')
       if (error) throw error
       setProfileMessage({ type: 'success', text: 'Profil berhasil diperbarui.' })

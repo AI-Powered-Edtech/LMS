@@ -56,7 +56,7 @@ function GeneralSettingsTab({ courseId }: { courseId: string }) {
           subject: course.subject || '',
           level: course.level || '',
         })
-      } catch (fetchErr) {
+      } catch (_fetchErr) {
         if (cancelled) return
         setError('Gagal memuat data kursus.')
       } finally {
@@ -96,7 +96,7 @@ function GeneralSettingsTab({ courseId }: { courseId: string }) {
           await courseService.updateCourse(courseId, updatedData, tenantId)
           setSaved(true)
           savedTimerRef.current = setTimeout(() => setSaved(false), 3000)
-        } catch (updateErr) {
+        } catch (_updateErr) {
           setError('Gagal menyimpan perubahan.')
         } finally {
           setSaving(false)
@@ -237,7 +237,7 @@ function GeneralSettingsTab({ courseId }: { courseId: string }) {
 
 // ── Modal ────────────────────────────────────────────────────
 
-export function CourseSettingsModal({ isOpen, onClose, courseId }: CourseSettingsModalProps) {
+function CourseSettingsModal({ isOpen, onClose, courseId }: CourseSettingsModalProps) {
   const [activeTab, setActiveTab] = useState<'general' | 'collaborators'>('general')
   const modalRef = useRef<HTMLDivElement>(null)
 

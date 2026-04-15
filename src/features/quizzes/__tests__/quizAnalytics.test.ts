@@ -1,4 +1,3 @@
-import { api } from "@/src/lib/api"
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { quizAnalyticsService } from '../api/quizAnalyticsService'

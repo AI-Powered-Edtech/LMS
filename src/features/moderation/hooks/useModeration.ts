@@ -5,7 +5,7 @@ import { moderationService } from '../api/moderationService'
 /**
  * Hook untuk mengambil daftar Moderasi.
  */
-export function useModerationData() {
+function useModerationData() {
   return useQuery({
     queryKey: ['moderation'],
     queryFn: () => moderationService.fetchReports(),
@@ -16,7 +16,7 @@ export function useModerationData() {
 /**
  * Hook untuk membuat/mengupdate Moderasi.
  */
-export function useModerationMutation() {
+function useModerationMutation() {
   const qc = useQueryClient()
   return useMutation({
     mutationFn: (params: { reportId: string; status: 'approved' | 'rejected' }) =>

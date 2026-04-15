@@ -14,7 +14,7 @@ export const calendarKeys = {
 /**
  * Query hook untuk daftar Kalender.
  */
-export function useCalendarList() {
+function useCalendarList() {
   const { tenantId } = useAuth()
   return useQuery({
     queryKey: calendarKeys.all(tenantId!),

@@ -11,7 +11,7 @@ import type { QuizMode } from '../types/quizzes.types'
 
 // ── Helper ─────────────────────────────────────────────────────
 
-export function deriveAssignmentStatus(
+function deriveAssignmentStatus(
   quizStatus: string,
   availableFrom?: string | null,
   dueAt?: string | null
@@ -29,7 +29,7 @@ export function deriveAssignmentStatus(
 /**
  * Get all quizzes for a teacher (tenant-level)
  */
-export async function getTeacherQuizzes(tenantId: string) {
+export async function getTeacherQuizzes(_tenantId: string) {
   const { data, error } = await apiFetch('/quizzes')
 
   if (error) throw error
@@ -48,7 +48,7 @@ export async function getTeacherQuizzes(tenantId: string) {
 /**
  * Get quizzes by course
  */
-export async function getQuizzesByCourse(courseId: string, tenantId: string) {
+export async function getQuizzesByCourse(_courseId: string, _tenantId: string) {
   const { data, error } = await apiFetch('/quizzes')
 
   if (error) throw error
@@ -58,7 +58,7 @@ export async function getQuizzesByCourse(courseId: string, tenantId: string) {
 /**
  * Get quizzes by class
  */
-export async function getQuizzesByClass(classId: string, tenantId: string) {
+export async function getQuizzesByClass(_classId: string, _tenantId: string) {
   const { data, error } = await apiFetch('/quiz_assignments')
 
   if (error) throw error
@@ -78,7 +78,7 @@ export async function getQuizzesByClass(classId: string, tenantId: string) {
 /**
  * Get quiz with all questions and options
  */
-export async function getQuizWithQuestions(quizId: string, tenantId: string) {
+export async function getQuizWithQuestions(_quizId: string, _tenantId: string) {
   const { data, error } = await apiFetch('/quizzes')
 
   if (error) throw error
@@ -112,7 +112,7 @@ export async function createQuiz(payload: {
   due_at?: string | null
   available_until?: string | null
 }) {
-  const dueAt = payload.due_at ?? payload.available_until ?? null
+  const _dueAt = payload.due_at ?? payload.available_until ?? null
 
   const { data, error } = await apiFetch('/quizzes')
 
@@ -133,9 +133,9 @@ export async function createQuiz(payload: {
  * Update quiz details
  */
 export async function updateQuiz(
-  quizId: string,
-  updates: Record<string, unknown>,
-  tenantId: string
+  _quizId: string,
+  _updates: Record<string, unknown>,
+  _tenantId: string
 ) {
   const { error } = await apiFetch('/quizzes')
 
@@ -145,7 +145,7 @@ export async function updateQuiz(
 /**
  * Delete a quiz
  */
-export async function deleteQuiz(quizId: string, tenantId: string) {
+export async function deleteQuiz(_quizId: string, _tenantId: string) {
   const { error } = await apiFetch('/quizzes')
 
   if (error) throw error
@@ -155,9 +155,9 @@ export async function deleteQuiz(quizId: string, tenantId: string) {
  * Set quiz status (draft/published)
  */
 export async function setQuizStatus(
-  quizId: string,
-  status: 'draft' | 'published',
-  tenantId: string
+  _quizId: string,
+  _status: 'draft' | 'published',
+  _tenantId: string
 ) {
   const { error } = await apiFetch('/quizzes')
 
@@ -171,7 +171,7 @@ export async function setQuizStatus(
   if (!assignments || assignments.length === 0) return
 
   await Promise.all(
-    assignments.map((assignment) =>
+    assignments.map((_assignment) =>
       apiFetch('/quiz_assignments')
     )
   )

@@ -21,7 +21,7 @@ export const classroomService = {
    * - admin: all classes in tenant
    * - student: enrolled classes
    */
-  async fetchClassrooms(userId: string, role: UserRole, tenantId: string): Promise<Classroom[]> {
+  async fetchClassrooms(userId: string, role: UserRole, _tenantId: string): Promise<Classroom[]> {
     if (role === 'teacher') {
       const { data, error } = await apiFetch('/classes')
       if (error) throw error
@@ -45,7 +45,7 @@ export const classroomService = {
   /**
    * Create a new classroom with auto-generated join code.
    */
-  async createClassroom(teacherId: string, name: string, tenantId: string): Promise<void> {
+  async createClassroom(_teacherId: string, _name: string, _tenantId: string): Promise<void> {
     // SECURITY: Use crypto.getRandomValues() for cryptographically secure join codes to prevent predictability
     const charset = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789'
     let joinCode = ''
@@ -66,7 +66,7 @@ export const classroomService = {
   /**
    * Update classroom name.
    */
-  async updateClassroom(id: string, name: string): Promise<void> {
+  async updateClassroom(_id: string, _name: string): Promise<void> {
     const { error } = await apiFetch('/classes')
     if (error) throw error
   },
@@ -109,7 +109,7 @@ export const classroomService = {
   /**
    * Assign a course to a class.
    */
-  async assignCourseToClass(courseId: string, classId: string, tenantId: string): Promise<void> {
+  async assignCourseToClass(_courseId: string, _classId: string, _tenantId: string): Promise<void> {
     const { error } = await apiFetch('/course_classes')
     if (error) throw error
   },
@@ -118,9 +118,9 @@ export const classroomService = {
    * Unassign a course from a class.
    */
   async unassignCourseFromClass(
-    courseId: string,
-    classId: string,
-    tenantId: string
+    _courseId: string,
+    _classId: string,
+    _tenantId: string
   ): Promise<void> {
     const { error } = await apiFetch('/course_classes')
     if (error) throw error
@@ -129,7 +129,7 @@ export const classroomService = {
   /**
    * Fetch classes assigned to a specific course.
    */
-  async fetchAssignedClassesForCourse(courseId: string): Promise<string[]> {
+  async fetchAssignedClassesForCourse(_courseId: string): Promise<string[]> {
     const { data, error } = await apiFetch('/course_classes')
 
     if (error) throw error
@@ -155,7 +155,7 @@ export const classroomService = {
   /**
    * Delete a classroom by ID.
    */
-  async deleteClassroom(classId: string): Promise<void> {
+  async deleteClassroom(_classId: string): Promise<void> {
     const { error } = await apiFetch('/classes')
     if (error) throw error
   },

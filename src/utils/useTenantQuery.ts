@@ -46,7 +46,7 @@ export function useTenantQuery() {
    */
   const tenantInsert = useCallback(
     async (table: string, data: Record<string, unknown>) => {
-      const record = tenantId ? { ...data, tenant_id: tenantId } : data
+      const _record = tenantId ? { ...data, tenant_id: tenantId } : data
       return apiFetch('/table')
     },
     [tenantId]

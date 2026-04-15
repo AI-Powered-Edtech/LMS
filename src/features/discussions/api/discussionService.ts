@@ -30,7 +30,7 @@ export interface Discussion {
 }
 
 // Explicit columns for discussion queries (no SELECT *)
-const DISCUSSION_COLUMNS = `
+const _DISCUSSION_COLUMNS = `
   id, tenant_id, course_id, lesson_id, announcement_id,
   author_id, parent_id, content, is_pinned, is_edited, is_deleted,
   created_at, updated_at, title, category, tags, is_anonymous,
@@ -85,7 +85,7 @@ export const discussionService = {
    * Save (create or update) a discussion entry
    */
   async saveDiscussion(
-    discussion: Partial<Discussion> & { tenant_id: string; author_id: string; content: string }
+    _discussion: Partial<Discussion> & { tenant_id: string; author_id: string; content: string }
   ) {
     const { data, error } = await apiFetch('/discussions')
 
@@ -100,7 +100,7 @@ export const discussionService = {
   /**
    * Soft delete a discussion entry (preserves thread integrity)
    */
-  async deleteDiscussion(id: string, tenantId: string) {
+  async deleteDiscussion(_id: string, _tenantId: string) {
     const { error } = await apiFetch('/discussions')
 
     if (error) {
@@ -112,7 +112,7 @@ export const discussionService = {
   /**
    * Toggle the pinned status of a discussion
    */
-  async togglePin(id: string, is_pinned: boolean, tenantId: string) {
+  async togglePin(_id: string, _is_pinned: boolean, _tenantId: string) {
     const { error } = await apiFetch('/discussions')
 
     if (error) {
@@ -124,7 +124,7 @@ export const discussionService = {
   /**
    * Fetch top-level forum posts (no lesson/course/announcement context)
    */
-  async fetchForumPosts(tenantId: string): Promise<Discussion[]> {
+  async fetchForumPosts(_tenantId: string): Promise<Discussion[]> {
     const { data, error } = await apiFetch('/discussions')
 
     if (error) throw error
@@ -141,7 +141,7 @@ export const discussionService = {
   /**
    * Mark a comment as the best answer for a post.
    */
-  async setBestAnswer(postId: string, commentId: string, tenantId: string): Promise<void> {
+  async setBestAnswer(_postId: string, _commentId: string, _tenantId: string): Promise<void> {
     await apiFetch('/discussions')
     await apiFetch('/discussions')
   },

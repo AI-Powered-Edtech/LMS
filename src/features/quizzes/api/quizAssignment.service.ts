@@ -42,7 +42,7 @@ export async function assignQuizToClasses(
   if (quizError) throw quizError
 
   // Create assignment rows
-  const rows = assignments.map((assignment) => ({
+  const _rows = assignments.map((assignment) => ({
     quiz_id: quizId,
     class_id: assignment.class_id,
     tenant_id: tenantId,
@@ -61,7 +61,7 @@ export async function assignQuizToClasses(
 /**
  * Get all assignments for a specific quiz
  */
-export async function getAssignmentsByQuiz(quizId: string, tenantId: string) {
+export async function getAssignmentsByQuiz(_quizId: string, _tenantId: string) {
   const { data, error } = await apiFetch('/quiz_assignments')
 
   if (error) throw error
@@ -71,7 +71,7 @@ export async function getAssignmentsByQuiz(quizId: string, tenantId: string) {
 /**
  * Get all assignments for a specific class
  */
-export async function getAssignmentsByClass(classId: string, tenantId: string) {
+export async function getAssignmentsByClass(_classId: string, _tenantId: string) {
   const { data, error } = await apiFetch('/quiz_assignments')
 
   if (error) throw error
@@ -81,7 +81,7 @@ export async function getAssignmentsByClass(classId: string, tenantId: string) {
 /**
  * Remove a quiz assignment (unassign from class)
  */
-export async function removeQuizAssignment(assignmentId: string, tenantId: string) {
+export async function removeQuizAssignment(_assignmentId: string, _tenantId: string) {
   const { error } = await apiFetch('/quiz_assignments')
 
   if (error) throw error

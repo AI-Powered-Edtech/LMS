@@ -74,9 +74,9 @@ export function useFeatureFlag(flagName: string): boolean {
 // Admin: persist flag change
 // ---------------------------------------------------------------------------
 
-export async function updateFeatureFlag(
-  flagName: string,
-  updates: Partial<Omit<FeatureFlag, 'flag_name'>>
+async function updateFeatureFlag(
+  _flagName: string,
+  _updates: Partial<Omit<FeatureFlag, 'flag_name'>>
 ): Promise<void> {
   await apiFetch('/feature_flags')
 

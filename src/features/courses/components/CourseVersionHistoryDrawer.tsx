@@ -13,7 +13,7 @@ interface CourseVersionHistoryDrawerProps {
   courseId: string
 }
 
-export function CourseVersionHistoryDrawer({
+function CourseVersionHistoryDrawer({
   isOpen,
   onClose,
   courseId,

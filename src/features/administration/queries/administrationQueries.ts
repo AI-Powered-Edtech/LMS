@@ -18,7 +18,7 @@ const adminKeys = {
  * React Query hook for tenant module configuration.
  * Module config rarely changes — use STATIC stale time.
  */
-export function useTenantModules() {
+function useTenantModules() {
   const { tenantId } = useAuth()
   return useQuery({
     queryKey: adminKeys.modules(tenantId!),
@@ -32,7 +32,7 @@ export function useTenantModules() {
 /**
  * React Query hook for sync history logs.
  */
-export function useSyncHistory() {
+function useSyncHistory() {
   const { tenantId } = useAuth()
   return useQuery({
     queryKey: adminKeys.syncHistory(tenantId!),
@@ -46,7 +46,7 @@ export function useSyncHistory() {
 /**
  * Mutation hook for toggling a tenant module on/off.
  */
-export function useToggleTenantModule() {
+function useToggleTenantModule() {
   const { tenantId } = useAuth()
   const queryClient = useQueryClient()
   return useMutation({

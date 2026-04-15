@@ -83,7 +83,7 @@ export function QuizManager() {
 
   const activeClass = classrooms.find((c) => c.id === activeClassroomId)
 
-  const [studentCount, setStudentCount] = useState<number>(0)
+  const [studentCount, _setStudentCount] = useState<number>(0)
 
   useEffect(() => {
     if (activeClassroomId && tenantId) {

@@ -57,7 +57,7 @@ export const studentProgressService = {
   /**
    * Fetch course modules for a specific tenant, ordered by position.
    */
-  async fetchModules(tenantId: string): Promise<ModuleData[]> {
+  async fetchModules(_tenantId: string): Promise<ModuleData[]> {
     const { data } = await apiFetch('/course_modules')
 
     return (data ?? []).map((m, i) => ({
@@ -72,8 +72,8 @@ export const studentProgressService = {
    * Fetch lesson progress for a specific user within a tenant.
    */
   async fetchLessonProgress(
-    userId: string,
-    tenantId: string
+    _userId: string,
+    _tenantId: string
   ): Promise<Record<string, LessonProgress>> {
     const { data } = await apiFetch('/lesson_progress')
 
@@ -94,8 +94,8 @@ export const studentProgressService = {
    * Fetch quiz attempts for a specific user within a tenant.
    */
   async fetchQuizAttempts(
-    userId: string,
-    tenantId: string
+    _userId: string,
+    _tenantId: string
   ): Promise<Record<string, QuizAttempt[]>> {
     const { data } = await apiFetch('/quiz_attempts_v2')
 
@@ -120,7 +120,7 @@ export const studentProgressService = {
   /**
    * Fetch user XP total within a tenant.
    */
-  async fetchXP(userId: string, tenantId: string): Promise<number> {
+  async fetchXP(_userId: string, _tenantId: string): Promise<number> {
     const { data, error } = await apiFetch('/user_points')
     if (error) return 0
     return (data ?? []).reduce((sum, row) => sum + (row.points ?? 0), 0)
@@ -129,7 +129,7 @@ export const studentProgressService = {
   /**
    * Fetch user badges/achievements within a tenant.
    */
-  async fetchAchievements(userId: string, tenantId: string): Promise<AchievementData[]> {
+  async fetchAchievements(_userId: string, _tenantId: string): Promise<AchievementData[]> {
     const { data, error } = await apiFetch('/user_badges')
 
     if (error) return []
@@ -145,7 +145,7 @@ export const studentProgressService = {
   /**
    * Fetch upcoming assignments for a tenant (limited to 10).
    */
-  async fetchAssignments(tenantId: string): Promise<AssignmentData[]> {
+  async fetchAssignments(_tenantId: string): Promise<AssignmentData[]> {
     const { data } = await apiFetch('/assignments')
 
     return (data ?? []).map((a) => ({
@@ -165,10 +165,10 @@ export const studentProgressService = {
    * Upsert lesson progress for a user within a tenant.
    */
   async updateLessonProgress(
-    userId: string,
-    lessonId: string,
-    completed: boolean,
-    tenantId: string
+    _userId: string,
+    _lessonId: string,
+    _completed: boolean,
+    _tenantId: string
   ): Promise<void> {
     const { error } = await apiFetch('/lesson_progress')
     if (error) if (import.meta.env.DEV) console.error('Error updating lesson progress:', error)

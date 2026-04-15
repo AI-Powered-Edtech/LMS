@@ -13,7 +13,7 @@ interface SaveTemplateModalProps {
   defaultTitle?: string
 }
 
-export function SaveTemplateModal({
+function SaveTemplateModal({
   isOpen,
   onClose,
   type,

@@ -16,7 +16,7 @@ interface TemplateModalProps {
   order?: number
 }
 
-export function TemplateModal({ isOpen, onClose, type, targetId, order }: TemplateModalProps) {
+function TemplateModal({ isOpen, onClose, type, targetId, order }: TemplateModalProps) {
   const { data: templates, isLoading } = useTemplates(type)
   const importTemplateMutation = useImportTemplate()
   const [searchQuery, setSearchQuery] = useState('')

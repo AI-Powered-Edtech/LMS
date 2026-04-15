@@ -182,7 +182,7 @@ export const administrationService = {
   /**
    * Update module enabled status for the current tenant
    */
-  async toggleTenantModule(moduleId: string, isEnabled: boolean): Promise<void> {
+  async toggleTenantModule(_moduleId: string, _isEnabled: boolean): Promise<void> {
     try {
       const { error } = await apiFetch('/tenant_modules')
 

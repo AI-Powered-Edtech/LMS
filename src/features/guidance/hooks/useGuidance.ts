@@ -5,7 +5,7 @@ import { guidanceService } from '../api/guidanceService'
 /**
  * Hook untuk mengambil daftar Panduan.
  */
-export function useGuidanceData() {
+function useGuidanceData() {
   return useQuery({
     queryKey: ['guidance'],
     queryFn: () => guidanceService.listGuides(),
@@ -16,7 +16,7 @@ export function useGuidanceData() {
 /**
  * Hook untuk membuat/mengupdate Panduan.
  */
-export function useGuidanceMutation() {
+function useGuidanceMutation() {
   const qc = useQueryClient()
   return useMutation({
     mutationFn: guidanceService.upsertGuide.bind(guidanceService),

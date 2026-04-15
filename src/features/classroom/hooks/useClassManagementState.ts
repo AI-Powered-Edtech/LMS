@@ -29,7 +29,7 @@ export function useClassManagementState() {
     setActiveClassroomId,
     loading: classLoading,
   } = useClassroom()
-  const { tenantId, user } = useAuth()
+  const { tenantId, _user } = useAuth()
 
   const [selectedClassId, setSelectedClassId] = useState<string | null>(null)
   const [students, setStudents] = useState<EnrolledStudent[]>([])
@@ -77,7 +77,7 @@ export function useClassManagementState() {
 
   // Fetch enrolled students for selected class
   const fetchStudents = useCallback(
-    async (classId: string) => {
+    async (_classId: string) => {
       if (!tenantId) return
       setLoadingStudents(true)
       try {
