@@ -134,6 +134,11 @@ export default defineConfig(({ mode }) => {
       '/rest': {
         target: 'http://localhost:8080',
         changeOrigin: true
+      },
+      '/ws': {
+        target: 'ws://localhost:8080',
+        ws: true,
+        changeOrigin: true
       }
     },
       // HMR is disabled in AI Studio via DISABLE_HMR env var.

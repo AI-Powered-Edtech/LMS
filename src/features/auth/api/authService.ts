@@ -225,9 +225,17 @@ export const authService = {
         },
       })
 
-      // TODO: Phase 6 — Saat VIL mengimplementasi /api/v1/rate-limit, ganti endpoint ini.
-      // Sementara, fail-semi-open: jika health check OK, izinkan request.
       if (!response.ok) {
+        if (response.status >= 500) {
+          logDevError('auth', 'Rate limit health check failed (5xx) - fail-semi-open:', response.status)
+          captureError(new Error(`rate_limit_health_check_failed_${response.status}`), {
+            context: 'checkRateLimit',
+            action,
+            level: 'warning',
+          })
+          return { allowed: true }
+        }
+
         logDevError('auth', 'Rate limit health check failed - fail-closed:', response.status)
         return { allowed: false, retryAfterMs: 5000 }
       }
