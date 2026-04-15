@@ -111,7 +111,12 @@ export function BuilderSidebar() {
       const destinationModuleId = destination.droppableId
 
       if (sourceModuleId !== destinationModuleId) {
-        actions.moveLesson(result.draggableId, sourceModuleId, destinationModuleId, destination.index)
+        actions.moveLesson(
+          result.draggableId,
+          sourceModuleId,
+          destinationModuleId,
+          destination.index
+        )
         return
       }
 
@@ -391,7 +396,10 @@ export function BuilderSidebar() {
                                               <button
                                                 onClick={(e) => {
                                                   e.stopPropagation()
-                                                  setEditingLesson({ id: lesson.id, value: lesson.title })
+                                                  setEditingLesson({
+                                                    id: lesson.id,
+                                                    value: lesson.title,
+                                                  })
                                                 }}
                                                 className={cn(
                                                   'p-1.5 rounded-lg transition-all focus-visible:opacity-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500',

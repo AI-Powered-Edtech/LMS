@@ -32,8 +32,8 @@ export function CourseDangerZoneDeleteCourseSection({
               Danger Zone
             </p>
             <p className="text-xs text-red-700/80 dark:text-red-300/80 mt-1 leading-relaxed">
-              Menghapus kursus akan menghilangkan seluruh modul, lesson, dan konten terkait. Tindakan
-              ini tidak dapat dibatalkan.
+              Menghapus kursus akan menghilangkan seluruh modul, lesson, dan konten terkait.
+              Tindakan ini tidak dapat dibatalkan.
             </p>
           </div>
           <button
@@ -69,4 +69,3 @@ export function CourseDangerZoneDeleteCourseSection({
     </>
   )
 }
-

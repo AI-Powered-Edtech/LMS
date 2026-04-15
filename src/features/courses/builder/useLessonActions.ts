@@ -133,7 +133,10 @@ export function useLessonActions(
       const nextDestinationLessons = [...destinationMod.lessons]
 
       const clampedIndex = Math.max(0, Math.min(destinationIndex, nextDestinationLessons.length))
-      nextDestinationLessons.splice(clampedIndex, 0, { ...movingLesson, moduleId: destinationModuleId })
+      nextDestinationLessons.splice(clampedIndex, 0, {
+        ...movingLesson,
+        moduleId: destinationModuleId,
+      })
 
       const updatedModules = state.modules.map((m) => {
         if (m.id === sourceModuleId) {
@@ -155,7 +158,9 @@ export function useLessonActions(
       setSavingStatus('saving')
 
       try {
-        await builderLessonService.updateLesson(lessonId, tenantId, { moduleId: destinationModuleId })
+        await builderLessonService.updateLesson(lessonId, tenantId, {
+          moduleId: destinationModuleId,
+        })
         await builderLessonService.reorderLessons(
           sourceModuleId,
           nextSourceLessons.map((l) => l.id),
@@ -201,5 +206,13 @@ export function useLessonActions(
     dispatch({ type: 'CLOSE_LESSON' })
   }, [dispatch])
 
-  return { addLesson, updateLesson, deleteLesson, reorderLessons, moveLesson, selectLesson, closeLesson }
+  return {
+    addLesson,
+    updateLesson,
+    deleteLesson,
+    reorderLessons,
+    moveLesson,
+    selectLesson,
+    closeLesson,
+  }
 }

@@ -76,9 +76,12 @@ export const classroomService = {
    * Note: student_id and tenant_id are inferred by the RPC from auth context.
    */
   async joinClassroom(joinCode: string): Promise<void> {
-    const { error } = await apiFetch('/rpc/enroll_student', { method: 'POST', body: JSON.stringify({
-          p_join_code: joinCode.toUpperCase(),
-        }) })
+    const { error } = await apiFetch('/rpc/enroll_student', {
+      method: 'POST',
+      body: JSON.stringify({
+        p_join_code: joinCode.toUpperCase(),
+      }),
+    })
 
     if (error) {
       const message = error.message || ''

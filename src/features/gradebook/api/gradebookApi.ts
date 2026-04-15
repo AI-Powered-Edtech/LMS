@@ -1,6 +1,6 @@
 import Papa from 'papaparse'
 
-import {  apiFetch } from '@/src/lib/api'
+import { apiFetch } from '@/src/lib/api'
 
 import type { GradebookColumn, GradebookEntry, GradebookSettings } from '../types'
 
@@ -99,10 +99,13 @@ export async function upsertGradebookEntry(
  * ke gradebook_entries. Mengembalikan jumlah baris yang di-upsert.
  */
 export async function syncGradebook(courseId: string, tenantId: string): Promise<number> {
-  const { data, error } = await apiFetch('/rpc/sync_gradebook_entries', { method: 'POST', body: JSON.stringify({
+  const { data, error } = await apiFetch('/rpc/sync_gradebook_entries', {
+    method: 'POST',
+    body: JSON.stringify({
       p_course_id: courseId,
       p_tenant_id: tenantId,
-    }) })
+    }),
+  })
 
   if (error) throw error
 

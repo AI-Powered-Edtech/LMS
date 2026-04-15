@@ -110,10 +110,13 @@ export const lessonService = {
    */
   async fetchLesson(lessonId: string, tenantId: string): Promise<Lesson | null> {
     // Try RPC first (migration 803+), fallback to direct query
-    const { data: rpcData, error: rpcError } = await apiFetch('/rpc/get_lesson_snapshot', { method: 'POST', body: JSON.stringify({
-          p_lesson_id: lessonId,
-          p_tenant_id: tenantId,
-        }) })
+    const { data: rpcData, error: rpcError } = await apiFetch('/rpc/get_lesson_snapshot', {
+      method: 'POST',
+      body: JSON.stringify({
+        p_lesson_id: lessonId,
+        p_tenant_id: tenantId,
+      }),
+    })
 
     if (!rpcError && rpcData?.lesson) {
       interface RpcSnapshot {
@@ -218,21 +221,24 @@ export const lessonService = {
       lastVideoPosition?: number
     }
   ): Promise<void> {
-    const user = { id: "mock" }
+    const user = { id: 'mock' }
     if (!user) throw new Error('Not authenticated')
 
-    const { error } = await apiFetch('/rpc/update_lesson_progress_monotonic', { method: 'POST', body: JSON.stringify({
-          p_user_id: user.id,
-          p_lesson_id: lessonId,
-          p_tenant_id: tenantId,
-          p_status: status,
-          p_progress_percentage: progressPercentage,
-          p_last_position: lastPosition ?? null,
-          p_last_block_id: resumeAnchor?.lastBlockId ?? null,
-          p_last_block_index: resumeAnchor?.lastBlockIndex ?? null,
-          p_last_block_offset: resumeAnchor?.lastBlockOffset ?? null,
-          p_last_video_position: resumeAnchor?.lastVideoPosition ?? null,
-        }) })
+    const { error } = await apiFetch('/rpc/update_lesson_progress_monotonic', {
+      method: 'POST',
+      body: JSON.stringify({
+        p_user_id: user.id,
+        p_lesson_id: lessonId,
+        p_tenant_id: tenantId,
+        p_status: status,
+        p_progress_percentage: progressPercentage,
+        p_last_position: lastPosition ?? null,
+        p_last_block_id: resumeAnchor?.lastBlockId ?? null,
+        p_last_block_index: resumeAnchor?.lastBlockIndex ?? null,
+        p_last_block_offset: resumeAnchor?.lastBlockOffset ?? null,
+        p_last_video_position: resumeAnchor?.lastVideoPosition ?? null,
+      }),
+    })
 
     if (error) {
       if (import.meta.env.DEV) console.error('Error updating progress:', error)

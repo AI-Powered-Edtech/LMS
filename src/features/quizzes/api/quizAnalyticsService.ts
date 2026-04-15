@@ -73,9 +73,12 @@ export const quizAnalyticsService = {
    * Shows student's selected option vs correct option per question.
    */
   async getAttemptDetail(attemptId: string): Promise<AttemptDetailAnswer[]> {
-    const { data, error } = await apiFetch('/rpc/get_attempt_detail', { method: 'POST', body: JSON.stringify({
-          p_attempt_id: attemptId,
-        }) })
+    const { data, error } = await apiFetch('/rpc/get_attempt_detail', {
+      method: 'POST',
+      body: JSON.stringify({
+        p_attempt_id: attemptId,
+      }),
+    })
 
     if (error) {
       logDevError('quizAnalytics', 'Error fetching attempt detail:', error)
@@ -90,9 +93,12 @@ export const quizAnalyticsService = {
    * Returns percentage of students who answered each question correctly.
    */
   async getQuestionDifficulty(assignmentId: string): Promise<QuestionDifficulty[]> {
-    const { data, error } = await apiFetch('/rpc/get_question_difficulty', { method: 'POST', body: JSON.stringify({
-          p_assignment_id: assignmentId,
-        }) })
+    const { data, error } = await apiFetch('/rpc/get_question_difficulty', {
+      method: 'POST',
+      body: JSON.stringify({
+        p_assignment_id: assignmentId,
+      }),
+    })
 
     if (error) {
       logDevError('quizAnalytics', 'Error fetching question difficulty:', error)

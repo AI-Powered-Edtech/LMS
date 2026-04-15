@@ -69,17 +69,19 @@ export function useLoginState() {
         setMode('register')
         apiFetch('/invitations/validate', {
           method: 'POST',
-          body: JSON.stringify({ token })
-        }).then((data: any) => {
-          if (data?.valid) {
-            setInviteInfo(data as InviteInfo)
-            registerForm.setValue('email', data.email)
-          } else {
-            setError(data?.error || 'Undangan tidak valid atau sudah kedaluwarsa.')
-          }
-        }).catch((err: any) => {
-          setError(err?.message || 'Gagal memvalidasi undangan')
+          body: JSON.stringify({ token }),
         })
+          .then((data: any) => {
+            if (data?.valid) {
+              setInviteInfo(data as InviteInfo)
+              registerForm.setValue('email', data.email)
+            } else {
+              setError(data?.error || 'Undangan tidak valid atau sudah kedaluwarsa.')
+            }
+          })
+          .catch((err: any) => {
+            setError(err?.message || 'Gagal memvalidasi undangan')
+          })
       }
     }
   }, [registerForm])

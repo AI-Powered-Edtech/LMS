@@ -46,7 +46,7 @@ export function useQuizGradebookState() {
 
   useEffect(() => {
     async function loadClasses() {
-      const user = { id: "mock" }
+      const user = { id: 'mock' }
       if (!user || !activeTenant) return
 
       const { data, error } = await apiFetch('/classes')

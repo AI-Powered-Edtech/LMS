@@ -194,10 +194,13 @@ export const studentProgressService = {
    * Add XP to a user via RPC.
    */
   async addXP(userId: string, amount: number): Promise<void> {
-    const { error } = await apiFetch('/rpc/add_user_points', { method: 'POST', body: JSON.stringify({
-          p_user_id: userId,
-          p_points: amount,
-        }) })
+    const { error } = await apiFetch('/rpc/add_user_points', {
+      method: 'POST',
+      body: JSON.stringify({
+        p_user_id: userId,
+        p_points: amount,
+      }),
+    })
     if (error) if (import.meta.env.DEV) console.error('Error adding XP:', error)
   },
 }

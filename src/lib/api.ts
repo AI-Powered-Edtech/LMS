@@ -82,7 +82,10 @@ export function apiFetch(endpoint: string, options: RequestInit = {}) {
 // Mock API client to replace Supabase client functionality
 export const api = {
   auth: {
-    getSession: async (): Promise<{ data: { session: unknown | null }; error: ApiError | null }> => ({
+    getSession: async (): Promise<{
+      data: { session: unknown | null }
+      error: ApiError | null
+    }> => ({
       data: { session: null },
       error: null,
     }),
@@ -95,7 +98,10 @@ export const api = {
     }),
     signInWithPassword: async (
       _data: any
-    ): Promise<{ data: { user: unknown | null; session: unknown | null }; error: ApiError | null }> => ({
+    ): Promise<{
+      data: { user: unknown | null; session: unknown | null }
+      error: ApiError | null
+    }> => ({
       data: { user: null, session: null },
       error: null,
     }),

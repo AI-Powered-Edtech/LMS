@@ -48,7 +48,7 @@ export const moderationService = {
     _userId: string,
     _userName: string
   ): Promise<Report> {
-    const session = { user: { id: "mock" } }
+    const session = { user: { id: 'mock' } }
     if (!session) throw new Error('Tidak terautentikasi')
 
     const { data: roleData } = await apiFetch('/user_roles')
@@ -75,7 +75,7 @@ export const moderationService = {
    * Resolve a report (approve or reject) in content_reports table.
    */
   async resolveReport(_reportId: string, _status: 'approved' | 'rejected'): Promise<void> {
-    const user = { id: "mock" }
+    const user = { id: 'mock' }
     if (!user) throw new Error('Tidak terautentikasi')
     const { error } = await apiFetch('/content_reports')
     if (error) throw error

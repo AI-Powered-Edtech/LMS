@@ -4,7 +4,6 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 import { useAuth } from '@/src/contexts/AuthContext'
 
 import { courseService } from '../api/courseService'
-
 import { CourseCoverUploadSection } from './CourseCoverUploadSection'
 import { CourseDangerZoneDeleteCourseSection } from './CourseDangerZoneDeleteCourseSection'
 
@@ -307,7 +306,13 @@ export function CourseGeneralSettingsTab({ courseId }: { courseId: string }) {
         </p>
       )}
 
-      {tenantId && <CourseDangerZoneDeleteCourseSection courseId={courseId} tenantId={tenantId} courseTitle={data.title} />}
+      {tenantId && (
+        <CourseDangerZoneDeleteCourseSection
+          courseId={courseId}
+          tenantId={tenantId}
+          courseTitle={data.title}
+        />
+      )}
     </div>
   )
 }

@@ -175,19 +175,19 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     fetchLock.current = true
     try {
       const data = await apiFetch(`/users/${userId}/data`)
-      
+
       const profileData = data.profile || {
         id: userId,
         email: '',
         first_name: '',
         last_name: '',
         avatar_url: null,
-        tenant_id: null
+        tenant_id: null,
       }
-      
+
       setProfile(profileData)
       setTenantId(profileData.tenant_id)
-      
+
       const rolesData = data.roles || []
       const userRoles = rolesData.map((r: any) => r.role.toLowerCase() as Role)
       setRoles(userRoles)

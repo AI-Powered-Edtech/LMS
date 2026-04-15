@@ -1,4 +1,5 @@
 # Tasks
+
 - [x] Task 1: Fondasi UX (Modal Konfirmasi Konsisten)
   - [x] SubTask 1.1: Buat komponen confirm modal reuse [Modal.tsx](file:///workspace/src/components/ui/Modal.tsx) (title, description, confirm/cancel).
   - [x] SubTask 1.2: Ganti `confirm()` pada [BuilderSidebar.tsx](file:///workspace/src/components/CourseBuilder/BuilderSidebar.tsx) untuk hapus modul dan hapus lesson.
@@ -37,6 +38,7 @@
     - Buat course \u2192 set cover \u2192 tambah modul \u2192 rename modul \u2192 tambah lesson \u2192 rename lesson \u2192 pindah lesson antar modul \u2192 tambah block \u2192 hapus (via modal) \u2192 publish (via konfirmasi).
 
 # Task Dependencies
+
 - Task 2 depends on Task 1
 - Task 3 depends on Task 1
 - Task 4 depends on Task 1, Task 2

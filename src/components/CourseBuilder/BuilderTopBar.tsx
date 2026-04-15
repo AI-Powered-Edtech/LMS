@@ -201,8 +201,8 @@ export function BuilderTopBar() {
         title="Batalkan publikasi kursus?"
         description={
           <p className="text-sm text-slate-600 dark:text-slate-300 leading-relaxed">
-            Kursus akan kembali menjadi draf dan tidak terlihat oleh siswa sampai Anda mempublikasikannya
-            lagi.
+            Kursus akan kembali menjadi draf dan tidak terlihat oleh siswa sampai Anda
+            mempublikasikannya lagi.
           </p>
         }
         confirmText="Ya, batalkan"

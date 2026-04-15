@@ -9,6 +9,7 @@ vi.mock('@/src/services/api/client', () => ({
 }))
 
 import { api } from '@/src/services/api/client'
+
 import { askTutor } from '..'
 
 describe('AI Tutor Service', () => {

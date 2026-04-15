@@ -114,7 +114,11 @@ export function CourseCoverUploadSection({
         <div className="flex items-start gap-4">
           <div className="w-44 h-28 rounded-xl overflow-hidden bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 shrink-0">
             {previewUrl || coverUrl ? (
-              <OptimizedImage src={previewUrl || coverUrl || ''} alt="Cover kursus" className="w-full h-full" />
+              <OptimizedImage
+                src={previewUrl || coverUrl || ''}
+                alt="Cover kursus"
+                className="w-full h-full"
+              />
             ) : (
               <div className="w-full h-full flex items-center justify-center text-xs font-bold text-slate-400 dark:text-slate-500">
                 Belum ada cover
@@ -129,11 +133,14 @@ export function CourseCoverUploadSection({
             <p className="text-xs text-slate-500 dark:text-slate-400 mt-1 leading-relaxed">
               Gunakan gambar 16:9. Maksimal 5MB (JPG/PNG/WebP/GIF).
             </p>
-            {error && <p role="alert" className="text-xs text-red-600 dark:text-red-400 mt-2">{error}</p>}
+            {error && (
+              <p role="alert" className="text-xs text-red-600 dark:text-red-400 mt-2">
+                {error}
+              </p>
+            )}
           </div>
         </div>
       </div>
     </div>
   )
 }
-

@@ -155,9 +155,5 @@ export async function setQuizStatus(
 
   if (!assignments || assignments.length === 0) return
 
-  await Promise.all(
-    assignments.map((_assignment: any) =>
-      apiFetch('/quiz_assignments')
-    )
-  )
+  await Promise.all(assignments.map((_assignment: any) => apiFetch('/quiz_assignments')))
 }

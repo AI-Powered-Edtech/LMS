@@ -16,16 +16,16 @@ export const courseService = {
     ids,
   }: FetchCoursesOptions): Promise<{ data: Course[]; error: Error | null; count: number }> {
     const queryParams = new URLSearchParams()
-    
+
     if (page && limit) {
       queryParams.append('page', page.toString())
       queryParams.append('limit', limit.toString())
     }
-    
+
     if (search) {
       queryParams.append('search', search)
     }
-    
+
     if (ids && ids.length > 0) {
       queryParams.append('ids', ids.join(','))
     }
@@ -35,7 +35,7 @@ export const courseService = {
 
     try {
       const { data, error, count } = await apiFetch(url)
-      
+
       if (error) {
         logDevWarn('Courses', 'Failed to fetch courses:', error)
         return { data: [], error, count: 0 }

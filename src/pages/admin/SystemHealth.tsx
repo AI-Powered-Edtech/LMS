@@ -76,11 +76,14 @@ export function SystemHealth() {
 
       // Aggregate from stored metrics
       if (recentMetrics) {
-        const byName = (recentMetrics as any[]).reduce((acc: Record<string, number[]>, m: any) => {
-          if (!acc[m.metric_name]) acc[m.metric_name] = []
-          acc[m.metric_name].push(m.metric_value)
-          return acc
-        }, {} as Record<string, number[]>)
+        const byName = (recentMetrics as any[]).reduce(
+          (acc: Record<string, number[]>, m: any) => {
+            if (!acc[m.metric_name]) acc[m.metric_name] = []
+            acc[m.metric_name].push(m.metric_value)
+            return acc
+          },
+          {} as Record<string, number[]>
+        )
 
         const avgLoad = byName['page.load_time_ms']
         if (avgLoad?.length) {
