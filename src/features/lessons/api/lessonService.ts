@@ -73,7 +73,7 @@ async function getSessionKey(): Promise<string | null> {
   // but since progress queue data lives in sessionStorage (cleared on tab close) and is
   // non-sensitive, the practical risk is acceptable. The previous expires_at approach
   // caused queue invalidation on every token refresh (bug fix rationale).
-  return session.user.id + '_' + (session.user.created_at || session.user.id)
+  return session.user.id
 }
 
 async function loadSecureQueue(): Promise<ProgressQueueItem[]> {

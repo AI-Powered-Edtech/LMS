@@ -8,7 +8,6 @@
  * All consumer files import: import { db } from '@/services/db'
  */
 
-import type { ApiClient } from '@/services/api'
 import { getActiveApiClient } from '@/services/api/runtime'
 import type { AuthProvider } from '@/services/auth'
 import { getAuthProvider } from '@/services/auth'
@@ -19,8 +18,8 @@ import { getStorageProvider } from '@/services/storage'
 import { logger } from '@/utils/logger'
 
 export type DbFacade = {
-  from: ApiClient['from']
-  rpc: ApiClient['rpc']
+  from: (table: string) => any
+  rpc: (fn: string, args?: Record<string, unknown>) => Promise<any>
   readonly auth: AuthProvider
   readonly storage: StorageProvider
   channel: RealtimeProvider['channel']
@@ -32,21 +31,21 @@ export type DbFacade = {
 }
 
 export const db: DbFacade = {
-  from<T = unknown>(table: string) {
+  from(table: string) {
     const client = getActiveApiClient()
     if (!client)
       throw new Error(
         `[VIL] API client not initialized. Call setActiveApiClient() before using db.from('${table}').`
       )
-    return client.from<T>(table)
+    return (client as any).from(table)
   },
-  rpc<T = unknown>(fn: string, args?: Record<string, unknown>) {
+  rpc(fn: string, args?: Record<string, unknown>) {
     const client = getActiveApiClient()
     if (!client)
       throw new Error(
         `[VIL] API client not initialized. Call setActiveApiClient() before using db.rpc('${fn}').`
       )
-    return client.rpc<T>(fn, args)
+    return (client as any).rpc(fn, args)
   },
   get auth() {
     return getAuthProvider()

@@ -140,6 +140,7 @@ pub async fn register_handler(
         expires_in: 3600,
         refresh_token: tokens.refresh_token,
         user: UserPayload { id: user_id, email: body.email, role, tenant_id },
+        active_tenant_id: tenant_id,
         memberships: Vec::new(),
     }))
 }

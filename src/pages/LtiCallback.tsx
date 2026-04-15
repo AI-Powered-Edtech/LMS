@@ -38,7 +38,7 @@ export function LtiCallback() {
 
       try {
         // Verify the OTP token to establish a session
-        const { data, error } = await db.auth.verifyOtp({
+        const { error } = await db.auth.verifyOtp({
           token_hash: token,
           type: type as 'magiclink',
         })
@@ -57,7 +57,10 @@ export function LtiCallback() {
           return
         }
 
-        if (!data.session) {
+        const {
+          data: { session },
+        } = await db.auth.getSession()
+        if (!session) {
           setState('error')
           setErrorMessage('Sesi tidak dapat dibuat. Silakan coba lagi.')
           return

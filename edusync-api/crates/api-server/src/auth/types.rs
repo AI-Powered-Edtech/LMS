@@ -93,6 +93,7 @@ pub struct AuthResponse {
     pub expires_in: i64,
     pub refresh_token: String,
     pub user: UserPayload,
+    pub active_tenant_id: Option<Uuid>,
     pub memberships: Vec<TenantMembershipPayload>,
 }
 

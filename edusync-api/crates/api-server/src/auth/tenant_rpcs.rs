@@ -379,6 +379,7 @@ pub async fn onboard_student_handler(
         expires_in: 3600,
         refresh_token: tokens.refresh_token,
         user: UserPayload { id: user_id, email: body.email, role: "STUDENT".to_string(), tenant_id: Some(class.tenant_id) },
+        active_tenant_id: Some(class.tenant_id),
         memberships: vec![TenantMembershipPayload {
             tenant_id: class.tenant_id,
             tenant_name: tenant_info.name,

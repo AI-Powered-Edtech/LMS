@@ -68,9 +68,10 @@ export async function submitQuizAttempt(
     },
   })
 
-  if (limitData && !limitData.allowed) {
+  const limit = limitData as { allowed?: boolean; retryAfterMs?: number } | null
+  if (limit && limit.allowed === false) {
     throw new Error(
-      `Terlalu banyak percobaan submit. Coba lagi dalam ${Math.ceil(limitData.retryAfterMs / 1000)} detik.`
+      `Terlalu banyak percobaan submit. Coba lagi dalam ${Math.ceil((limit.retryAfterMs ?? 0) / 1000)} detik.`
     )
   }
 

@@ -7,7 +7,7 @@ use uuid::Uuid;
 /// Allowed storage bucket names.
 ///
 /// These map to path prefixes inside the single S3 bucket, mirroring the
-/// Supabase Storage buckets used in the legacy architecture.
+/// buckets used in the legacy architecture.
 pub const ALLOWED_BUCKETS: &[&str] = &[
     "course-images",
     "assignment-submissions",

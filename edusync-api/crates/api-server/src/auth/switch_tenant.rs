@@ -124,6 +124,7 @@ pub async fn switch_tenant_handler(
             role: active_role,
             tenant_id: Some(body.tenant_id),
         },
+        active_tenant_id: Some(body.tenant_id),
         memberships,
     }))
 }

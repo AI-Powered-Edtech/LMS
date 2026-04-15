@@ -116,6 +116,7 @@ pub async fn refresh_handler(
             role: active_role,
             tenant_id: Some(active_tenant_id),
         },
+        active_tenant_id: Some(active_tenant_id),
         memberships,
     }))
 }
