@@ -1,7 +1,7 @@
 // ==========================================================================
 // Executive API — executiveApi.ts
 //
-// Supabase queries for Principal Executive Dashboard.
+// Query API for Principal Executive Dashboard.
 // ==========================================================================
 import { db } from '@/services/db'
 import { logger } from '@/utils/logger'

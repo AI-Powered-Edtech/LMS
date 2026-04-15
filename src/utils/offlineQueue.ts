@@ -130,7 +130,7 @@ function calculateBackoff(attempt: number): number {
 // ---------------------------------------------------------------------------
 
 /**
- * Process a single queued operation against the Supabase API.
+ * Process a single queued operation against the backend API.
  * Returns true if the operation was successfully synced.
  */
 async function processOperation(

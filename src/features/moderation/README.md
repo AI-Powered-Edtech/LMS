@@ -6,7 +6,7 @@ Moderasi konten diskusi, komentar, dan aktivitas pengguna
 
 ```
 src/features/moderation/
-├── api/           # Supabase service layer
+├── api/           # API service layer
 ├── queries/       # React Query hooks & query keys
 ├── hooks/         # Custom React hooks
 ├── types/         # TypeScript interfaces

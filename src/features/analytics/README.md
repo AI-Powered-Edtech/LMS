@@ -6,7 +6,7 @@ Dashboard analitik untuk memantau engagement, progress, dan performa siswa
 
 ```
 src/features/analytics/
-├── api/           # Supabase service layer
+├── api/           # API service layer
 ├── queries/       # React Query hooks & query keys
 ├── hooks/         # Custom React hooks
 ├── types/         # TypeScript interfaces

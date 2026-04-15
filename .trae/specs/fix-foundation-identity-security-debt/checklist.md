@@ -1,0 +1,13 @@
+- [ ] Login mengembalikan semua membership tenant+role user (tanpa `LIMIT 1`) dan menyertakan `active_tenant_id`.
+- [ ] Access token selalu memiliki claim `tenant_id` (active tenant) dan `role` sesuai tenant aktif.
+- [ ] Endpoint `POST /api/v1/auth/switch-tenant` tersedia, memvalidasi membership, dan mengembalikan token baru untuk tenant target.
+- [ ] Frontend tenant switch memanggil endpoint switch-tenant dan mengganti session/token aktif.
+- [ ] Layout dan Sidebar tidak lagi memakai fallback `activeRole ?? role` dan tidak merender layout yang salah saat bootstrap.
+- [ ] `main.rs` hard-fail bila `JWT_SECRET` tidak ada atau < 32 karakter.
+- [ ] `observer(true)` hanya aktif bila `ENABLE_OBSERVER=true`.
+- [ ] Tidak ada `console.log` user state di AuthContext (dan log sensitif serupa).
+- [ ] `TooManyRequests` mengembalikan HTTP 429 (brute-force lock + mapping error).
+- [ ] Semua komentar legacy “Supabase” di kode telah dihapus.
+- [ ] `.pnpm-store/` dihapus dari repo dan sudah masuk `.gitignore`.
+- [ ] `db: any` sudah diganti menjadi typed facade tanpa mengubah behavior consumer.
+- [ ] Tidak ada UUID fallback berbasis `Math.random()` untuk ID yang bersifat UUID.

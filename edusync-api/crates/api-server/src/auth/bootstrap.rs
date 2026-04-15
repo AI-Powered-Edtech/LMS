@@ -97,7 +97,7 @@ pub async fn bootstrap_handler(
     let memberships: Vec<BootstrapMembership> = memberships_rows
         .into_iter()
         .map(|m| BootstrapMembership {
-            role: m.role,
+            role: m.role.to_lowercase(),
             status: "active".to_string(),
             is_active: true,
             // OffsetDateTime → RFC3339 string via time crate
@@ -109,7 +109,10 @@ pub async fn bootstrap_handler(
         })
         .collect();
 
-    let default_tenant_id = memberships.first().map(|m| m.tenant_id);
+    let default_tenant_id = row
+        .tenant_id
+        .filter(|tenant_id| memberships.iter().any(|m| m.tenant_id == *tenant_id))
+        .or_else(|| memberships.first().map(|m| m.tenant_id));
 
     // first_name / last_name are NOT NULL String in profiles (default '')
     let first_name = if row.first_name.is_empty() { None } else { Some(row.first_name) };

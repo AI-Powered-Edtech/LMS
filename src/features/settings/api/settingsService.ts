@@ -24,7 +24,7 @@ export const settingsService = {
   },
 
   /**
-   * Change the authenticated user's password via Supabase Auth.
+   * Change the authenticated user's password via auth provider.
    */
   async changePassword(newPassword: string): Promise<void> {
     const { error } = await db.auth.updateUser({ password: newPassword })

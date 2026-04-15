@@ -48,8 +48,8 @@ export function useNotifications(): UseNotificationsReturn {
     enabled: !!tenantId && !!user,
     staleTime: STALE.DYNAMIC,
     // WHY BOTH POLLING + REALTIME:
-    // Supabase free tier rate-limits Realtime connections (max 200 concurrent,
-    // messages may be dropped under load). Polling every 60s is the safety net —
+    // Some realtime providers rate-limit WebSocket connections and may drop messages under load.
+    // Polling every 60s is the safety net —
     // it guarantees eventual consistency even if a Realtime event is missed.
     // Realtime subscription below gives instant cache updates when events DO arrive,
     // eliminating the 60s lag for the happy path.
@@ -58,7 +58,7 @@ export function useNotifications(): UseNotificationsReturn {
     refetchIntervalInBackground: false,
   })
 
-  // ─── Supabase Realtime Subscription ───────────────────────────────────────
+  // ─── Realtime Subscription ───────────────────────────────────────────────
   useEffect(() => {
     if (!tenantId || !user) return
 

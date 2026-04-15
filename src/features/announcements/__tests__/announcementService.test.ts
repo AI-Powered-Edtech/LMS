@@ -11,7 +11,7 @@ vi.mock('@/services/db', () => ({
 }))
 
 /**
- * Build a fully chainable Supabase query mock.
+ * Build a fully chainable query mock.
  * Every method returns `this` so any chain order works,
  * and `then` makes the object awaitable with the given result.
  */

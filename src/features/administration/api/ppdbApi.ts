@@ -1,7 +1,7 @@
 /**
  * ppdbApi.ts — Service layer untuk modul PPDB Online.
  *
- * Semua query menggunakan Supabase client dengan RLS.
+ * Semua query menggunakan db client dengan RLS.
  * Tenant isolation dilakukan via RLS policy + auto_set_tenant_id trigger.
  */
 import { db } from '@/services/db'

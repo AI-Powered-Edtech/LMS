@@ -9,7 +9,7 @@ interface MembershipItem {
 
 interface MembershipListProps {
   memberships: MembershipItem[]
-  onSelectTenant: (tenantId: string) => void
+  onSelectTenant: (tenantId: string) => Promise<void>
   onSignOut: () => void
 }
 
@@ -26,7 +26,7 @@ export function MembershipList({ memberships, onSelectTenant, onSignOut }: Membe
           {memberships.map((membership) => (
             <button
               key={membership.tenant_id}
-              onClick={() => onSelectTenant(membership.tenant_id)}
+              onClick={() => void onSelectTenant(membership.tenant_id)}
               className="w-full text-left bg-slate-800 hover:bg-slate-700 hover:border-blue-500 border border-slate-700 rounded-xl p-6 transition-all duration-200 group flex items-center justify-between"
             >
               <div>

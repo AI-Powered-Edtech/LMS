@@ -45,7 +45,7 @@ function createAuthValue(overrides: Partial<AuthContextType>): AuthContextType {
     tenantId: 'tenant-1',
     memberships: [],
     activeTenant: { id: 'tenant-1', name: 'Tenant 1', slug: 'tenant-1', is_active: true },
-    setActiveTenant: vi.fn(),
+    setActiveTenant: vi.fn().mockResolvedValue(undefined),
     activeRole: 'student',
     roles: ['student'],
     role: 'student',

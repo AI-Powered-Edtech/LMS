@@ -157,7 +157,7 @@ export async function updateGradebookEntry(
 
 /**
  * Menyimpan (insert atau update) satu entri nilai.
- * percentage adalah generated column, tidak boleh dikirim ke Supabase.
+ * percentage adalah generated column, tidak boleh dikirim ke DB.
  */
 export async function upsertGradebookEntry(
   entry: Pick<

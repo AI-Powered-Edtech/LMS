@@ -17,7 +17,7 @@ interface MobileSidebarProps {
 
 export function MobileSidebar({ isOpen, onClose }: MobileSidebarProps) {
   const location = useLocation()
-  const { role } = useAuth()
+  const { activeRole } = useAuth()
   const handleSignOut = useSignOut()
   const { isModuleEnabled } = useModuleConfig()
 
@@ -40,7 +40,8 @@ export function MobileSidebar({ isOpen, onClose }: MobileSidebarProps) {
 
   const filteredNavItems = navigationItems.filter((item) => {
     if (item.location !== 'sidebar') return false
-    if (!item.roles.includes(role)) return false
+    if (!activeRole) return false
+    if (!item.roles.includes(activeRole)) return false
     if (item.moduleId && !isModuleEnabled(item.moduleId as ModuleId)) return false
     return true
   })
@@ -88,7 +89,7 @@ export function MobileSidebar({ isOpen, onClose }: MobileSidebarProps) {
             {/* Content */}
             <div className="flex-1 overflow-y-auto p-4 custom-scrollbar">
               {/* Classroom switcher — hanya untuk teacher */}
-              {role === 'teacher' && (
+              {activeRole === 'teacher' && (
                 <div className="mb-8">
                   <ClassroomSwitcher variant="neutral" />
                 </div>

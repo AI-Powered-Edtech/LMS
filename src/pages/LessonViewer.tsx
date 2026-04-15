@@ -336,7 +336,7 @@ export function LessonViewer() {
               />
             )}
 
-          {/* Progress Reporter (invisible -- syncs to Supabase every 5s) */}
+          {/* Progress Reporter (invisible -- syncs every 5s) */}
           {/* Only report progress when actively viewing/in-progress, not during completion or idle */}
           {s.state.lesson && s.tenantId && (
             <ProgressReporter

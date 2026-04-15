@@ -71,13 +71,14 @@ describe('Select', () => {
   it('renders sm size', () => {
     render(<Select options={defaultOptions} selectSize="sm" />)
     const select = screen.getByRole('combobox')
-    expect(select.className).toContain('px-3')
+    expect(select.className).toContain('px-2')
   })
 
   it('renders lg size', () => {
     render(<Select options={defaultOptions} selectSize="lg" />)
     const select = screen.getByRole('combobox')
-    expect(select.className).toContain('text-base')
+    expect(select.className).toContain('text-sm')
+    expect(select.className).toContain('px-3')
   })
 
   it('accepts external id', () => {

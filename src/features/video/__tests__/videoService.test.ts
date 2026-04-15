@@ -1,6 +1,8 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
-// ── Supabase Mock ────────────────────────────────────────────────────────────
+import { setStorageProvider } from '@/services/storage'
+
+// ── DB Mock ─────────────────────────────────────────────────────────────────
 
 const mockFrom = vi.fn()
 
@@ -291,9 +293,7 @@ describe('videoUploadService', () => {
         upload: mockStorageUpload,
       })
 
-      vi.mocked(await import('@/services/db')).db.storage = {
-        from: mockStorageFrom,
-      } as any
+      setStorageProvider({ from: mockStorageFrom } as any)
 
       await expect(
         videoUploadService.uploadVideo(file, 'lesson-1', null, 'tenant-1', progressFn)

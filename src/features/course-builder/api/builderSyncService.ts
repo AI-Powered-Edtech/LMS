@@ -25,7 +25,7 @@ export interface BuilderSyncResult {
 }
 
 /**
- * Sinkronisasi seluruh state builder ke server Supabase.
+ * Sinkronisasi seluruh state builder ke server.
  *
  * Urutan sync:
  * 1. Metadata kursus (title, description)

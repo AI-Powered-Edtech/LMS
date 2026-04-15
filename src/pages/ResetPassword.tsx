@@ -86,7 +86,7 @@ export function ResetPassword() {
 
     void prepareRecoverySession()
 
-    // Supabase auto-logs the user in when they click the recovery link.
+    // Auth provider may auto-login the user when they click the recovery link.
     // Only set sessionReady=true for PASSWORD_RECOVERY events.
     // A regular SIGNED_IN session (normal login) should not unlock the reset form —
     // that would allow any authenticated user to reach the reset page and change their

@@ -263,7 +263,7 @@ export function ScormPlayer({
   // ── Beforeunload: flush state ────────────────────────────────
   // Uses lessonService.sendBeaconUpsert() which internally uses fetch with
   // keepalive:true instead of sendBeacon because sendBeacon cannot send
-  // Authorization headers required by Supabase RPC.
+  // Authorization headers required by RPC.
 
   useEffect(() => {
     const handleBeforeUnload = () => {

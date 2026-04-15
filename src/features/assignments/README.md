@@ -6,7 +6,7 @@ Manajemen tugas, pengumpulan, dan penilaian untuk guru dan siswa
 
 ```
 src/features/assignments/
-├── api/           # Supabase service layer
+├── api/           # API service layer
 ├── queries/       # React Query hooks & query keys
 ├── hooks/         # Custom React hooks
 ├── types/         # TypeScript interfaces

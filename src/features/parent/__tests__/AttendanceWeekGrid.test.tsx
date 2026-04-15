@@ -105,7 +105,7 @@ describe('AttendanceWeekGrid', () => {
 
   it('menampilkan skeleton saat loading', () => {
     const { container } = render(<AttendanceWeekGrid attendance={[]} isLoading />)
-    const skeletons = container.querySelectorAll('[aria-busy="true"]')
+    const skeletons = container.querySelectorAll('[role="status"]')
     expect(skeletons.length).toBeGreaterThan(0)
   })
 

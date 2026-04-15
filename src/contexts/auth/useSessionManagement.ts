@@ -60,7 +60,7 @@ const AUTH_KEYS = [
 ]
 
 /**
- * Hook untuk mengelola Supabase session.
+ * Hook untuk mengelola session.
  * Mendengarkan perubahan auth state (login, logout, token refresh).
  */
 export function useSessionManagement(): UseSessionManagementResult {

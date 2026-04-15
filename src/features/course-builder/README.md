@@ -9,7 +9,7 @@ Modul editor kursus: state machine builder, action hooks, kolaborasi real-time, 
 - `useModuleActions.ts` — CRUD + reorder module
 - `useLessonActions.ts` — CRUD + reorder lesson, select/close
 - `useBlockActions.ts` — CRUD + reorder block, autosave
-- `useBuilderChannel.ts` — real-time collaboration via Supabase Broadcast
+- `useBuilderChannel.ts` — real-time collaboration via broadcast
 - `useBuilderPresence.ts` — cursor presence tracking
 - `useBuilderOffline.ts` — IndexedDB draft + conflict resolution
 - `useMobileBuilder.ts` — responsive sidebar state

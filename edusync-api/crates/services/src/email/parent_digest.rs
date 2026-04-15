@@ -101,7 +101,7 @@ pub async fn send_parent_digest(db: &PgPool) -> Result<DigestResult, AppError> {
     )
     .fetch_all(db)
     .await
-    .map_err(|e| AppError::Internal(format!("Gagal mengambil pengaturan digest: {e}")))?;
+    .map_err(|e| AppError::internal(format!("Gagal mengambil pengaturan digest: {e}")))?;
 
     if settings.is_empty() {
         tracing::info!("[send_parent_digest] Tidak ada orang tua yang perlu digest hari ini");
@@ -135,7 +135,7 @@ pub async fn send_parent_digest(db: &PgPool) -> Result<DigestResult, AppError> {
     )
     .fetch_all(db)
     .await
-    .map_err(|e| AppError::Internal(format!("Gagal mengambil link orang tua–anak: {e}")))?;
+    .map_err(|e| AppError::internal(format!("Gagal mengambil link orang tua–anak: {e}")))?;
 
     if all_links.is_empty() {
         result.skipped = settings.len();
@@ -163,7 +163,7 @@ pub async fn send_parent_digest(db: &PgPool) -> Result<DigestResult, AppError> {
     )
     .fetch_all(db)
     .await
-    .map_err(|e| AppError::Internal(format!("Gagal mengambil profil orang tua: {e}")))?;
+    .map_err(|e| AppError::internal(format!("Gagal mengambil profil orang tua: {e}")))?;
 
     let profile_map: std::collections::HashMap<Uuid, &ParentProfile> =
         parent_profiles.iter().map(|p| (p.parent_id, p)).collect();
@@ -377,7 +377,7 @@ async fn fetch_lessons_completed(
     )
     .fetch_all(db)
     .await
-    .map_err(|e| AppError::Internal(format!("Gagal mengambil lesson_progress: {e}")))
+    .map_err(|e| AppError::internal(format!("Gagal mengambil lesson_progress: {e}")))
 }
 
 async fn fetch_submissions(
@@ -406,7 +406,7 @@ async fn fetch_submissions(
     )
     .fetch_all(db)
     .await
-    .map_err(|e| AppError::Internal(format!("Gagal mengambil assignment_submissions: {e}")))
+    .map_err(|e| AppError::internal(format!("Gagal mengambil assignment_submissions: {e}")))
 }
 
 async fn fetch_enrollments(
@@ -427,7 +427,7 @@ async fn fetch_enrollments(
     )
     .fetch_all(db)
     .await
-    .map_err(|e| AppError::Internal(format!("Gagal mengambil enrollments: {e}")))
+    .map_err(|e| AppError::internal(format!("Gagal mengambil enrollments: {e}")))
 }
 
 async fn fetch_attendance(
@@ -451,7 +451,7 @@ async fn fetch_attendance(
     )
     .fetch_all(db)
     .await
-    .map_err(|e| AppError::Internal(format!("Gagal mengambil attendance_records: {e}")))?;
+    .map_err(|e| AppError::internal(format!("Gagal mengambil attendance_records: {e}")))?;
 
     let mut map = std::collections::HashMap::new();
     for row in rows {

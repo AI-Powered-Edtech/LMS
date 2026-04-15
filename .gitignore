@@ -1,5 +1,6 @@
 # Dependencies
 node_modules/
+.pnpm-store/
 
 # Build output
 build/
@@ -18,7 +19,7 @@ Thumbs.db
 .env*
 !.env.example
 
-# Supabase local temp
+# Local temp
 supabase/.temp/
 
 # Testing artifacts

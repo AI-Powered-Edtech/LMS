@@ -1,6 +1,6 @@
 /**
  * EduSync LMS — Image optimization utilities
- * Provides helpers for Supabase Image Transformation.
+ * Provides helpers for storage image transformation.
  */
 
 interface SupabaseTransformOptions {
@@ -12,8 +12,8 @@ interface SupabaseTransformOptions {
 }
 
 /**
- * Transforms a Supabase storage URL to use the built-in image transformation service.
- * @param url - Original Supabase storage public URL
+ * Transforms a storage public URL to use the built-in image transformation service.
+ * @param url - Original public URL
  * @param options - Transformation options
  */
 export function getOptimizedImageUrl(url: string, options: SupabaseTransformOptions = {}): string {
@@ -30,7 +30,7 @@ export function getOptimizedImageUrl(url: string, options: SupabaseTransformOpti
   params.set('quality', quality.toString())
   if (format !== 'origin') params.set('format', format)
 
-  // Supabase transformation URL structure:
+  // Transformation URL structure:
   // /storage/v1/render/image/public/[bucket]/[path]?[params]
   return (
     url.replace('/storage/v1/object/public/', '/storage/v1/render/image/public/') +

@@ -30,7 +30,7 @@ interface UseQuizTimerResult {
 /**
  * Pure logic hook for quiz timer countdown.
  * Handles both server-side expires_at and client-side timeLimitMinutes.
- * Supports pause/resume via Supabase RPC (max 1 pause, max 5 minutes).
+ * Supports pause/resume via RPC (max 1 pause, max 5 minutes).
  */
 export function useQuizTimer({
   expiresAt,

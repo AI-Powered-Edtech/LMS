@@ -6,7 +6,7 @@ use edusync_auth::{AuthError, verify_access_token};
 use vil_server::prelude::{ServiceCtx, ShmSlice, VilResponse, VilError, HandlerResult};
 use crate::state::AppState;
 use super::types::{OnboardStudentRequest, EnrollStudentRequest, CreateTenantRequest, AcceptInvitationRequest};
-use super::types::{AuthResponse, UserPayload};
+use super::types::{AuthResponse, TenantMembershipPayload, UserPayload};
 use edusync_auth::{password::hash_password, session::create_session};
 
 // --- 1B-18: Validate invitation (public) ---
@@ -364,12 +364,31 @@ pub async fn onboard_student_handler(
         Some(class.tenant_id), false, &state.jwt_secret,
     ).await.map_err(VilError::from)?;
 
+    let tenant_info = sqlx::query!(
+        r#"SELECT name, slug FROM public.tenants WHERE id = $1"#,
+        class.tenant_id
+    )
+    .fetch_optional(&state.db)
+    .await
+    .map_err(|e| VilError::from(AuthError::Database(e.to_string())))?
+    .ok_or_else(|| VilError::from(AuthError::TenantMismatch))?;
+
     Ok(VilResponse::ok(AuthResponse {
         access_token: tokens.access_token,
         token_type: "bearer".to_string(),
         expires_in: 3600,
         refresh_token: tokens.refresh_token,
         user: UserPayload { id: user_id, email: body.email, role: "STUDENT".to_string(), tenant_id: Some(class.tenant_id) },
+        memberships: vec![TenantMembershipPayload {
+            tenant_id: class.tenant_id,
+            tenant_name: tenant_info.name,
+            tenant_slug: tenant_info.slug,
+            tenant_logo: None,
+            role: "student".to_string(),
+            status: "active".to_string(),
+            is_active: true,
+            joined_at: None,
+        }],
     }))
 }
 

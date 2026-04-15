@@ -2,13 +2,13 @@ import { render, screen } from '@testing-library/react'
 import { MemoryRouter, Route, Routes } from 'react-router-dom'
 import { describe, expect, it, vi } from 'vitest'
 
-import * as authContext from '../../../contexts/AuthContext'
 import { RoleGuard } from '../RoleGuard'
 import { TenantGuard } from '../TenantGuard'
 
 // Mock the AuthContext
+const mockUseAuth = vi.fn()
 vi.mock('../../../contexts/AuthContext', () => ({
-  useAuth: vi.fn(),
+  useAuth: (...args: unknown[]) => mockUseAuth(...args),
 }))
 
 vi.mock('../../layout/AppLoading', () => ({
@@ -17,7 +17,7 @@ vi.mock('../../layout/AppLoading', () => ({
 
 describe('RoleGuard', () => {
   it('shows loading state when auth is loading', () => {
-    vi.mocked(authContext.useAuth).mockReturnValue({ loading: true } as any)
+    mockUseAuth.mockReturnValue({ loading: true } as any)
     render(
       <MemoryRouter>
         <RoleGuard allowedRoles={['student']}>
@@ -31,7 +31,7 @@ describe('RoleGuard', () => {
   })
 
   it('redirects to /unauthorized when role is not allowed', () => {
-    vi.mocked(authContext.useAuth).mockReturnValue({
+    mockUseAuth.mockReturnValue({
       loading: false,
       activeRole: 'student',
       role: 'student',
@@ -56,7 +56,7 @@ describe('RoleGuard', () => {
   })
 
   it('renders children when activeRole is allowed', () => {
-    vi.mocked(authContext.useAuth).mockReturnValue({
+    mockUseAuth.mockReturnValue({
       loading: false,
       activeRole: 'teacher',
       role: 'student',
@@ -71,26 +71,35 @@ describe('RoleGuard', () => {
     expect(screen.getByText('Protected Content')).toBeInTheDocument()
   })
 
-  it('renders children when fallback primary role is allowed', () => {
-    vi.mocked(authContext.useAuth).mockReturnValue({
+  it('menolak akses jika activeRole tidak diizinkan meski role global lebih tinggi', () => {
+    mockUseAuth.mockReturnValue({
       loading: false,
       activeRole: 'student',
       role: 'admin',
     } as any)
     render(
-      <MemoryRouter>
-        <RoleGuard allowedRoles={['admin']}>
-          <div>Protected Content</div>
-        </RoleGuard>
+      <MemoryRouter initialEntries={['/protected']}>
+        <Routes>
+          <Route
+            path="/protected"
+            element={
+              <RoleGuard allowedRoles={['admin']}>
+                <div>Protected Content</div>
+              </RoleGuard>
+            }
+          />
+          <Route path="/unauthorized" element={<div>Unauthorized Page</div>} />
+        </Routes>
       </MemoryRouter>
     )
-    expect(screen.getByText('Protected Content')).toBeInTheDocument()
+    expect(screen.getByText('Unauthorized Page')).toBeInTheDocument()
+    expect(screen.queryByText('Protected Content')).not.toBeInTheDocument()
   })
 })
 
 describe('TenantGuard', () => {
   it('shows loading state when auth is loading', () => {
-    vi.mocked(authContext.useAuth).mockReturnValue({ loading: true } as any)
+    mockUseAuth.mockReturnValue({ loading: true } as any)
     render(
       <MemoryRouter>
         <TenantGuard>
@@ -102,7 +111,7 @@ describe('TenantGuard', () => {
   })
 
   it('redirects to /workspace-selector when activeTenant is missing', () => {
-    vi.mocked(authContext.useAuth).mockReturnValue({
+    mockUseAuth.mockReturnValue({
       loading: false,
       activeTenant: null,
     } as any)
@@ -126,7 +135,7 @@ describe('TenantGuard', () => {
   })
 
   it('renders children when activeTenant is present', () => {
-    vi.mocked(authContext.useAuth).mockReturnValue({
+    mockUseAuth.mockReturnValue({
       loading: false,
       activeTenant: { id: 'tenant-1' },
     } as any)

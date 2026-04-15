@@ -6,7 +6,7 @@ Modul ini menyediakan sistem rubrik penilaian dinamis untuk tugas di EduSync LMS
 
 ```
 src/features/rubrics/
-├── api/                  ← Supabase calls (rubricService.ts)
+├── api/                  ← API calls (rubricService.ts)
 ├── queries/              ← React Query hooks + query keys
 ├── hooks/                ← useRubricBuilder (useReducer state)
 ├── components/

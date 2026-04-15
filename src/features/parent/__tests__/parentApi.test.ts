@@ -2,7 +2,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 import type { AttendanceDay, ChildGradeSummary, PendingAssignment } from '../types'
 
-// ── Supabase Mock (vi.hoisted untuk referensi stabil) ─────────────────────
+// ── DB Mock (vi.hoisted untuk referensi stabil) ──────────────────────────
 
 const { mockRpc, mockFrom } = vi.hoisted(() => {
   const mockRpc = vi.fn()
@@ -28,7 +28,7 @@ import {
 // ── Helpers ─────────────────────────────────────────────────────────────────
 
 /**
- * Builder untuk chainable Supabase query mock.
+ * Builder untuk chainable query mock.
  * Setiap method mengembalikan chain (untuk chaining) DAN bisa di-await (thenable).
  * Ini menyerupai perilaku PostgREST builder dimana setiap call bisa jadi terminal.
  */
@@ -127,20 +127,32 @@ describe('parentApi', () => {
 
   describe('getChildGrades', () => {
     it('mengambil gradebook_entries dan mengembalikan summary per course', async () => {
-      const chain = createChainMock({
+      const gradeChain = createChainMock({
         data: [
-          { score: 85, max_score: 100, created_at: '2026-03-20', courses: { title: 'Matematika' } },
-          { score: 70, max_score: 100, created_at: '2026-03-15', courses: { title: 'Matematika' } },
-          { score: 90, max_score: 100, created_at: '2026-03-20', courses: { title: 'IPA' } },
+          { score: 85, max_score: 100, created_at: '2026-03-20', course_id: 'course-math' },
+          { score: 70, max_score: 100, created_at: '2026-03-15', course_id: 'course-math' },
+          { score: 90, max_score: 100, created_at: '2026-03-20', course_id: 'course-ipa' },
         ],
         error: null,
       })
-      mockFrom.mockReturnValue(chain)
+      const courseChain = createChainMock({
+        data: [
+          { id: 'course-math', title: 'Matematika' },
+          { id: 'course-ipa', title: 'IPA' },
+        ],
+        error: null,
+      })
+
+      mockFrom.mockImplementation((table: string) => {
+        if (table === 'gradebook_entries') return gradeChain
+        if (table === 'courses') return courseChain
+        return createChainMock({ data: [], error: null })
+      })
 
       const result = await getChildGrades('student-1')
 
       expect(mockFrom).toHaveBeenCalledWith('gradebook_entries')
-      expect(chain.eq).toHaveBeenCalledWith('student_id', 'student-1')
+      expect(gradeChain.eq).toHaveBeenCalledWith('student_id', 'student-1')
       expect(result).toHaveLength(2)
 
       const math = result.find((g) => g.subject === 'Matematika')
@@ -271,36 +283,40 @@ describe('parentApi', () => {
 
   describe('getChildPendingAssignments', () => {
     it('mengembalikan tugas yang belum dikumpulkan', async () => {
-      // Call 1: enrollments query
       const enrollmentChain = createChainMock({
-        data: [{ course_id: 'course-1' }],
+        data: [{ course_id: 'course-1' }, { course_id: 'course-2' }],
         error: null,
       })
-      // Call 2: assignments query
       const assignmentChain = createChainMock({
         data: [
           {
             id: 'a1',
             title: 'Tugas Matematika',
             due_date: '2026-04-10',
-            courses: { title: 'Matematika' },
+            course_id: 'course-1',
           },
-          { id: 'a2', title: 'Tugas IPA', due_date: '2026-04-12', courses: { title: 'IPA' } },
+          { id: 'a2', title: 'Tugas IPA', due_date: '2026-04-12', course_id: 'course-2' },
         ],
         error: null,
       })
-      // Call 3: submissions query
+      const courseChain = createChainMock({
+        data: [
+          { id: 'course-1', title: 'Matematika' },
+          { id: 'course-2', title: 'IPA' },
+        ],
+        error: null,
+      })
       const submissionChain = createChainMock({
         data: [{ assignment_id: 'a1' }], // a1 sudah dikumpulkan
         error: null,
       })
 
-      let callCount = 0
-      mockFrom.mockImplementation(() => {
-        callCount++
-        if (callCount === 1) return enrollmentChain
-        if (callCount === 2) return assignmentChain
-        return submissionChain
+      mockFrom.mockImplementation((table: string) => {
+        if (table === 'enrollments') return enrollmentChain
+        if (table === 'assignments') return assignmentChain
+        if (table === 'courses') return courseChain
+        if (table === 'assignment_submissions') return submissionChain
+        return createChainMock({ data: [], error: null })
       })
 
       const result = await getChildPendingAssignments('student-1', 'tenant-1')

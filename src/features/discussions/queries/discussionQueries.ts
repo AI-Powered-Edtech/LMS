@@ -27,7 +27,7 @@ export const discussionKeys = {
  * Query hook untuk daftar Diskusi dengan Realtime updates.
  *
  * Menggunakan dua strategi untuk memastikan data selalu fresh:
- * 1. Supabase Realtime channel — instant invalidation saat ada INSERT/UPDATE/DELETE
+ * 1. Realtime channel — instant invalidation saat ada INSERT/UPDATE/DELETE
  * 2. refetchInterval 30 detik — fallback polling jika WebSocket terputus
  */
 export function useDiscussionList() {
@@ -69,7 +69,7 @@ export function useDiscussionList() {
     // staleTime=0: always consider data stale so realtime invalidation triggers refetch
     staleTime: STALE.REALTIME,
     gcTime: GC.SHORT,
-    // 30-second polling as fallback if Supabase Realtime channel disconnects
+    // 30-second polling as fallback if realtime channel disconnects
     refetchInterval: 30_000,
     refetchIntervalInBackground: false,
   })

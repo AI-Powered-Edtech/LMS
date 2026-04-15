@@ -8,7 +8,7 @@ import { object, optional, parse, string } from 'valibot'
  * Optional vars degrade gracefully (features disabled).
  */
 const envSchema = object({
-  // ── Optional (legacy Supabase — decommissioned in Phase 6) ────────────────
+  // ── Optional (legacy — decommissioned in Phase 6) ────────────────────────
   VITE_SUPABASE_URL: optional(string()),
   VITE_SUPABASE_ANON_KEY: optional(string()),
 

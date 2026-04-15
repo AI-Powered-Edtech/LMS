@@ -6,7 +6,7 @@
  * Uses the shared `notifications` table but filters by admin event types so that
  * admin-targeted notifications are surfaced separately from student/teacher notifications.
  *
- * Real-time: subscribes to Supabase Realtime channel for instant updates
+ * Real-time: subscribes to realtime channel for instant updates
  * Fallback:  refetches every 60 s to handle dropped Realtime events on free tier
  */
 

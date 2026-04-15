@@ -69,7 +69,7 @@ pub async fn send_email_digest(db: &PgPool) -> Result<DigestResult, AppError> {
     )
     .fetch_all(db)
     .await
-    .map_err(|e| AppError::Internal(format!("Gagal mengambil notifikasi: {e}")))?;
+    .map_err(|e| AppError::internal(format!("Gagal mengambil notifikasi: {e}")))?;
 
     if rows.is_empty() {
         tracing::info!("[send_email_digest] Tidak ada notifikasi baru dalam 24 jam");
@@ -133,7 +133,7 @@ async fn process_user_digest(
     )
     .fetch_optional(db)
     .await
-    .map_err(|e| AppError::Internal(format!("Gagal membaca preferensi: {e}")))?;
+    .map_err(|e| AppError::internal(format!("Gagal membaca preferensi: {e}")))?;
 
     // Skip jika email dinonaktifkan
     if let Some(ref p) = pref {
@@ -197,7 +197,7 @@ async fn process_user_digest(
     )
     .execute(db)
     .await
-    .map_err(|e| AppError::Internal(format!("Gagal menandai email_sent: {e}")))?;
+    .map_err(|e| AppError::internal(format!("Gagal menandai email_sent: {e}")))?;
 
     tracing::info!(
         to = %recipient.email,

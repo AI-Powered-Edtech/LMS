@@ -40,7 +40,7 @@ describe('onboardingService', () => {
       expect(result).toEqual(mockData)
     })
 
-    it('harus mengembalikan array kosong saat Supabase error', async () => {
+    it('harus mengembalikan array kosong saat DB error', async () => {
       mockEq.mockResolvedValue({
         data: null,
         error: { message: 'RLS violation' },

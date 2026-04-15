@@ -6,7 +6,7 @@ import { collaboratorService } from '../api/builder/collaboratorService'
 // ============================================================
 // Mock architecture
 //
-// The Supabase query builder is a chainable fluent interface.
+// The query builder is a chainable fluent interface.
 // Each method returns `this` so `.select().eq().eq()` works.
 //
 // Strategy: the `from()` factory creates a fresh builder object
@@ -20,12 +20,13 @@ import { collaboratorService } from '../api/builder/collaboratorService'
 // available for assertions in test bodies.
 // ============================================================
 
-const { spyFrom, spySelect, spyInsert, spyDelete, spyEq, spyIlike, spyLimit } = vi.hoisted(() => ({
+const { spyFrom, spySelect, spyInsert, spyDelete, spyEq, spyIn, spyIlike, spyLimit } = vi.hoisted(() => ({
   spyFrom: vi.fn(),
   spySelect: vi.fn(),
   spyInsert: vi.fn(),
   spyDelete: vi.fn(),
   spyEq: vi.fn(),
+  spyIn: vi.fn(),
   spyIlike: vi.fn(),
   spyLimit: vi.fn(),
 }))
@@ -33,11 +34,13 @@ const { spyFrom, spySelect, spyInsert, spyDelete, spyEq, spyIlike, spyLimit } = 
 // Holds the value that the terminal method resolves with.
 // Each test sets this before calling the service.
 let terminalResult: unknown = { data: null, error: null }
+let terminalResultByTable: Record<string, unknown> = {}
 
 vi.mock('@/services/db', () => ({
   db: {
     from: (table: string) => {
       spyFrom(table)
+      const resolveTerminal = () => terminalResultByTable[table] ?? terminalResult
       const builder: Record<string, any> = {
         select: (...args: unknown[]) => {
           spySelect(...args)
@@ -45,7 +48,7 @@ vi.mock('@/services/db', () => ({
         },
         insert: (...args: unknown[]) => {
           spyInsert(...args)
-          return Promise.resolve(terminalResult)
+          return Promise.resolve(resolveTerminal())
         },
         delete: (...args: unknown[]) => {
           spyDelete(...args)
@@ -55,13 +58,17 @@ vi.mock('@/services/db', () => ({
           spyEq(...args)
           return builder
         },
+        in: (...args: unknown[]) => {
+          spyIn(...args)
+          return Promise.resolve(resolveTerminal())
+        },
         ilike: (...args: unknown[]) => {
           spyIlike(...args)
           return builder
         },
         limit: (...args: unknown[]) => {
           spyLimit(...args)
-          return Promise.resolve(terminalResult)
+          return Promise.resolve(resolveTerminal())
         },
       }
       // fetchCollaborators and removeCollaborator terminate with the last `.eq()` call.
@@ -72,7 +79,7 @@ vi.mock('@/services/db', () => ({
         eqCallCount++
         // For chains with exactly 2 `.eq()` calls (fetchCollaborators, removeCollaborator)
         // the second call is terminal.
-        if (eqCallCount >= 2) return Promise.resolve(terminalResult)
+        if (eqCallCount >= 2) return Promise.resolve(resolveTerminal())
         return builder
       }
       return builder
@@ -83,6 +90,7 @@ vi.mock('@/services/db', () => ({
 beforeEach(() => {
   vi.clearAllMocks()
   terminalResult = { data: null, error: null }
+  terminalResultByTable = {}
 })
 
 // ============================================================
@@ -141,14 +149,20 @@ describe('collaboratorService.fetchCollaborators', () => {
   })
 
   it('selects the correct columns including the profiles join', async () => {
-    terminalResult = { data: [], error: null }
+    terminalResultByTable.course_collaborators = { data: [], error: null }
+    terminalResultByTable.profiles = { data: [], error: null }
     await collaboratorService.fetchCollaborators(COURSE_ID, TENANT_ID)
-    expect(spySelect).toHaveBeenCalledOnce()
-    const selectArg: string = spySelect.mock.calls[0][0]
-    expect(selectArg).toMatch(/id/)
-    expect(selectArg).toMatch(/user_id/)
-    expect(selectArg).toMatch(/role/)
-    expect(selectArg).toMatch(/profiles/)
+    expect(spySelect).toHaveBeenCalledTimes(2)
+
+    const selectCollaboratorsArg: string = spySelect.mock.calls[0][0]
+    expect(selectCollaboratorsArg).toMatch(/id/)
+    expect(selectCollaboratorsArg).toMatch(/user_id/)
+    expect(selectCollaboratorsArg).toMatch(/role/)
+
+    const selectProfilesArg: string = spySelect.mock.calls[1][0]
+    expect(selectProfilesArg).toMatch(/id/)
+    expect(selectProfilesArg).toMatch(/full_name/)
+    expect(selectProfilesArg).toMatch(/email/)
   })
 
   it('applies course_id filter for course isolation', async () => {
@@ -171,13 +185,33 @@ describe('collaboratorService.fetchCollaborators', () => {
   })
 
   it('returns mapped Collaborator objects with id, user_id, role, profile', async () => {
-    terminalResult = { data: rawCollaboratorRows, error: null }
+    terminalResultByTable.course_collaborators = {
+      data: rawCollaboratorRows.map(({ id, user_id, role }) => ({ id, user_id, role })),
+      error: null,
+    }
+    terminalResultByTable.profiles = {
+      data: [
+        { id: USER_ID, full_name: 'Budi Santoso', email: 'budi@edusync.dev' },
+        { id: 'user-456', full_name: 'Siti Rahayu', email: 'siti@edusync.dev' },
+      ],
+      error: null,
+    }
     const result = await collaboratorService.fetchCollaborators(COURSE_ID, TENANT_ID)
     expect(result).toEqual(expectedCollaborators)
   })
 
   it('maps the profiles relation to the profile property', async () => {
-    terminalResult = { data: rawCollaboratorRows, error: null }
+    terminalResultByTable.course_collaborators = {
+      data: rawCollaboratorRows.map(({ id, user_id, role }) => ({ id, user_id, role })),
+      error: null,
+    }
+    terminalResultByTable.profiles = {
+      data: [
+        { id: USER_ID, full_name: 'Budi Santoso', email: 'budi@edusync.dev' },
+        { id: 'user-456', full_name: 'Siti Rahayu', email: 'siti@edusync.dev' },
+      ],
+      error: null,
+    }
     const result = await collaboratorService.fetchCollaborators(COURSE_ID, TENANT_ID)
     expect(result[0].profile).toEqual({ full_name: 'Budi Santoso', email: 'budi@edusync.dev' })
     expect(result[1].profile).toEqual({ full_name: 'Siti Rahayu', email: 'siti@edusync.dev' })

@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
-// ── Supabase Mock ────────────────────────────────────────────────────────────
+// ── DB Mock ─────────────────────────────────────────────────────────────────
 
 const mockFrom = vi.fn()
 const mockAuthUpdateUser = vi.fn()
@@ -89,7 +89,7 @@ describe('settingsService', () => {
   })
 
   describe('changePassword', () => {
-    it('memperbarui password pengguna melalui Supabase Auth', async () => {
+    it('memperbarui password pengguna melalui auth provider', async () => {
       mockAuthUpdateUser.mockResolvedValue({ error: null })
 
       await settingsService.changePassword('newSecurePass123')

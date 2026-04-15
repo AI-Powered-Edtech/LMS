@@ -11,7 +11,7 @@ import { cn } from '@/utils/cn'
 
 export function Sidebar() {
   const location = useLocation()
-  const { role } = useAuth()
+  const { activeRole } = useAuth()
   const handleSignOut = useSignOut()
   const { isModuleEnabled } = useModuleConfig()
   const { containerRef, handleKeyDown } = useArrowNavigation()
@@ -21,7 +21,8 @@ export function Sidebar() {
     if (item.location !== 'sidebar') return false
 
     // Check role
-    if (!item.roles.includes(role)) return false
+    if (!activeRole) return false
+    if (!item.roles.includes(activeRole)) return false
 
     // Check module config if applicable
     if (item.moduleId && !isModuleEnabled(item.moduleId as ModuleId)) return false
@@ -39,7 +40,7 @@ export function Sidebar() {
       </div>
 
       {/* Classroom switcher — hanya untuk teacher */}
-      {role === 'teacher' && (
+      {activeRole === 'teacher' && (
         <div className="mb-6 px-2">
           <ClassroomSwitcher variant="slate" />
         </div>

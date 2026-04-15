@@ -149,7 +149,7 @@ export const gradebookService = {
   ): Promise<void> {
     if (!tenantId) throw new Error('tenantId is required for submitGrade')
 
-    // Use direct Supabase update with RLS - more reliable than edge function
+    // Use direct DB update with RLS - more reliable than edge function
     const { error } = await db
       .from('assignment_submissions')
       .update({

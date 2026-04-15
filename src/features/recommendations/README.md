@@ -6,7 +6,7 @@ Rekomendasi konten belajar berdasarkan progress dan performa siswa
 
 ```
 src/features/recommendations/
-├── api/           # Supabase service layer
+├── api/           # API service layer
 ├── queries/       # React Query hooks & query keys
 ├── hooks/         # Custom React hooks
 ├── types/         # TypeScript interfaces

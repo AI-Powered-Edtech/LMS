@@ -28,7 +28,7 @@ export function useTenantQuery(): {
   const { tenantId } = useAuth()
 
   /**
-   * Returns a Supabase query builder pre-filtered by tenant_id.
+   * Returns a query builder pre-filtered by tenant_id.
    * Caller must chain `.select('col1, col2, ...')` to specify columns.
    * Falls back to an unfiltered query if tenantId is not available
    * (RLS will still enforce isolation).

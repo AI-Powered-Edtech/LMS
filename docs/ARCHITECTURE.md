@@ -298,7 +298,7 @@ Some handlers retain non-VIL extractors by design:
 VilApp::new("edusync-lms")
     .port(8080)
     .profile(&vil_profile)         // env-driven profile: dev / staging / prod (VIL_PROFILE)
-    .observer(true)                // /_vil/dashboard/ live metrics UI + /_vil/api/*
+    .observer(observer_enabled)    // ENABLE_OBSERVER=true untuk /_vil/dashboard/ + /_vil/api/*
     .service(auth_service)
     .service(courses_service)
     .service(data_plane_service)
@@ -316,7 +316,7 @@ VilApp::new("edusync-lms")
 
 ## Observer Dashboard
 
-Available at `/_vil/dashboard/` when `.observer(true)` is set (enabled in dev/staging; disabled in prod profile by default):
+Available at `/_vil/dashboard/` hanya ketika `ENABLE_OBSERVER=true` (melalui `.observer(observer_enabled)`):
 
 - Live RPS, latency P50/P95/P99
 - Per-route metrics table

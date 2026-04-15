@@ -6,7 +6,7 @@ Forum diskusi per kursus untuk interaksi guru-siswa
 
 ```
 src/features/discussions/
-├── api/           # Supabase service layer
+├── api/           # API service layer
 ├── queries/       # React Query hooks & query keys
 ├── hooks/         # Custom React hooks
 ├── types/         # TypeScript interfaces

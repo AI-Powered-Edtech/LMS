@@ -99,7 +99,7 @@ export function translateEventType(type: string): string {
 }
 
 /**
- * Translate raw Supabase/Postgres error messages to user-friendly Bahasa Indonesia.
+ * Translate raw database error messages to user-friendly Bahasa Indonesia.
  * Use this instead of displaying err.message directly.
  */
 export function translateDbError(message: string): string {

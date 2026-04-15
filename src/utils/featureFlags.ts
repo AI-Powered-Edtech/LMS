@@ -1,5 +1,5 @@
 // EduSync LMS — Feature Flags
-// Tenant-aware, rollout-percentage feature flag system backed by Supabase
+// Tenant-aware, rollout-percentage feature flag system backed by database
 
 import { useAuth } from '@/contexts/AuthContext'
 import { db } from '@/services/db'

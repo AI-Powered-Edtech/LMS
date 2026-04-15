@@ -15,16 +15,16 @@ src/features/settings/
 
 ## Key Files
 
-| File                     | Purpose                                                                  |
-| ------------------------ | ------------------------------------------------------------------------ |
-| `api/settingsService.ts` | Wraps `profiles.update` (name) dan `supabase.auth.updateUser` (password) |
+| File                     | Purpose                                                         |
+| ------------------------ | --------------------------------------------------------------- |
+| `api/settingsService.ts` | Wraps `profiles.update` (name) dan `auth.updateUser` (password) |
 
 ## Functions
 
 | Function           | Purpose                           |
 | ------------------ | --------------------------------- |
 | `updateProfile()`  | Update nama profile               |
-| `changePassword()` | Update password via Supabase Auth |
+| `changePassword()` | Update password via auth provider |
 
 ## Pages
 

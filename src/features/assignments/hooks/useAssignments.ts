@@ -3,7 +3,7 @@ import { useAuth } from '@/contexts/AuthContext'
 import { useAssignmentList } from '../queries/assignmentQueries'
 import { AssignmentAttemptUi, AssignmentUiState, Attachment, StudentSubmission } from '../types'
 
-// Raw database response type (snake_case from Supabase)
+// Raw database response type (snake_case)
 // Note: Type is used indirectly through SubmissionLike interface
 
 function normalizeSubmissionStatus(status: string | null | undefined) {

@@ -1,6 +1,6 @@
 import { logger } from '@/utils/logger'
 // Client-side cache layer using localStorage with TTL
-// Reduces Supabase Disk IO by caching query results
+// Reduces backend round-trips by caching query results
 
 interface CacheEntry<T> {
   data: T

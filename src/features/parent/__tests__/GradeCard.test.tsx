@@ -82,8 +82,7 @@ describe('GradeCard', () => {
 
   it('menampilkan skeleton saat loading', () => {
     const { container } = render(<GradeCard grades={[]} isLoading />)
-    // Skeleton menggunakan role="status" dan aria-busy="true"
-    const skeletons = container.querySelectorAll('[aria-busy="true"]')
+    const skeletons = container.querySelectorAll('[role="status"]')
     expect(skeletons.length).toBeGreaterThan(0)
   })
 

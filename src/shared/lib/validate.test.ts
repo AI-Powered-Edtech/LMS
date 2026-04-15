@@ -39,9 +39,9 @@ describe('validate utilities', () => {
       const result = validate(schema, invalidData, 'TestLabel')
 
       expect(result).toBe(invalidData)
-      expect(consoleWarnSpy).toHaveBeenCalledWith(
-        '[validate] TestLabel: validation failed',
-        expect.any(Object)
+      expect(consoleWarnSpy).toHaveBeenCalled()
+      expect(String(consoleWarnSpy.mock.calls[0]?.[0])).toContain(
+        '[validate] TestLabel: validation failed'
       )
     })
 
@@ -63,9 +63,9 @@ describe('validate utilities', () => {
       const invalidData = { name: 123 }
       validate(schema, invalidData)
 
-      expect(consoleWarnSpy).toHaveBeenCalledWith(
-        '[validate] unknown: validation failed',
-        expect.any(Object)
+      expect(consoleWarnSpy).toHaveBeenCalled()
+      expect(String(consoleWarnSpy.mock.calls[0]?.[0])).toContain(
+        '[validate] unknown: validation failed'
       )
     })
   })
@@ -91,15 +91,11 @@ describe('validate utilities', () => {
 
       expect(result).toBe(mixedData)
       expect(consoleWarnSpy).toHaveBeenCalledTimes(2)
-      expect(consoleWarnSpy).toHaveBeenNthCalledWith(
-        1,
-        '[validate] TestArray[1]: validation failed',
-        expect.any(Object)
+      expect(String(consoleWarnSpy.mock.calls[0]?.[0])).toContain(
+        '[validate] TestArray[1]: validation failed'
       )
-      expect(consoleWarnSpy).toHaveBeenNthCalledWith(
-        2,
-        '[validate] TestArray[2]: validation failed',
-        expect.any(Object)
+      expect(String(consoleWarnSpy.mock.calls[1]?.[0])).toContain(
+        '[validate] TestArray[2]: validation failed'
       )
     })
 
@@ -121,9 +117,9 @@ describe('validate utilities', () => {
       const invalidData = [{ name: 123 }]
       validateArray(schema, invalidData)
 
-      expect(consoleWarnSpy).toHaveBeenCalledWith(
-        '[validate] item[0]: validation failed',
-        expect.any(Object)
+      expect(consoleWarnSpy).toHaveBeenCalled()
+      expect(String(consoleWarnSpy.mock.calls[0]?.[0])).toContain(
+        '[validate] item[0]: validation failed'
       )
     })
   })

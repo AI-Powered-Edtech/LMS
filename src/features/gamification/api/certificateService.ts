@@ -22,7 +22,10 @@ export const certificateService = {
       const apiUrl = import.meta.env.VITE_API_URL ?? ''
       const token = readVilSession()?.access_token
 
-      const response = await fetch(`${apiUrl}/api/v1/pdf/certificate`, {
+      const url = apiUrl
+        ? `${apiUrl}/api/v1/pdf/certificate`
+        : new URL('/api/v1/pdf/certificate', window.location.origin).toString()
+      const response = await fetch(url, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

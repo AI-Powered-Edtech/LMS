@@ -131,7 +131,7 @@ describe('assignmentService.submitAssignmentAttempt', () => {
     })
   })
 
-  it('calls rate-limit edge function before submit RPC', async () => {
+  it('does not call rate-limit edge function (sementara dinonaktifkan)', async () => {
     mockRpc.mockResolvedValue({
       data: {
         id: 'submission-1',
@@ -150,14 +150,7 @@ describe('assignmentService.submitAssignmentAttempt', () => {
       clientRequestId: 'request-1',
     })
 
-    expect(mockInvoke).toHaveBeenCalledWith('check-rate-limit', {
-      body: {
-        action: 'assignment-submit',
-        key: studentId,
-        maxAttempts: 10,
-        windowMs: 60000,
-      },
-    })
+    expect(mockInvoke).not.toHaveBeenCalled()
   })
 
   it('calls submit_assignment_attempt RPC with p_ parameters', async () => {

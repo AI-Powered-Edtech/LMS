@@ -6,7 +6,7 @@ Dashboard eksekutif untuk kepala sekolah: metrics, analytics, report generator, 
 
 ```
 src/features/principal/
-├── api/           # Supabase service layer
+├── api/           # API service layer
 ├── components/    # React components
 ├── hooks/         # Custom React hooks
 ├── types/         # TypeScript interfaces

@@ -2,6 +2,7 @@ use axum::{
     extract::{Path, Query},
     http::HeaderMap,
 };
+use edusync_middleware::errors::from_sqlx_error;
 use edusync_models::{course::Course, lesson::Lesson};
 use serde::{Deserialize, Serialize};
 use sqlx::{postgres::PgRow, QueryBuilder, Row};
@@ -110,7 +111,8 @@ pub async fn list_courses_handler(
     .bind(ctx.tenant_id)
     .bind(search_pattern.as_deref())
     .fetch_one(&state.db)
-    .await?;
+    .await
+    .map_err(from_sqlx_error)?;
 
     let rows = sqlx::query(
         r#"SELECT id, title, description, subject, level, created_by, created_at, updated_at, tenant_id, status::text AS status, published_at
@@ -125,11 +127,12 @@ pub async fn list_courses_handler(
     .bind(limit)
     .bind(offset)
     .fetch_all(&state.db)
-    .await?;
+    .await
+    .map_err(from_sqlx_error)?;
 
     let mut courses = Vec::with_capacity(rows.len());
     for row in rows {
-        courses.push(map_course(row)?);
+        courses.push(map_course(row).map_err(from_sqlx_error)?);
     }
 
     Ok(VilResponse::ok(CourseListResponse { courses, count }))
@@ -160,10 +163,11 @@ pub async fn get_course_handler(
     .bind(course_id)
     .bind(ctx.tenant_id)
     .fetch_optional(&state.db)
-    .await?
+    .await
+    .map_err(from_sqlx_error)?
     .ok_or_else(|| VilError::not_found("Kursus tidak ditemukan"))?;
 
-    Ok(VilResponse::ok(map_course(row)?))
+    Ok(VilResponse::ok(map_course(row).map_err(from_sqlx_error)?))
 }
 
 pub async fn create_course_handler(
@@ -198,9 +202,10 @@ pub async fn create_course_handler(
     .bind(rbac.ctx().tenant_id)
     .bind(body.status.unwrap_or_else(|| "draft".to_string()))
     .fetch_one(&state.db)
-    .await?;
+    .await
+    .map_err(from_sqlx_error)?;
 
-    Ok(VilResponse::ok(map_course(row)?))
+    Ok(VilResponse::ok(map_course(row).map_err(from_sqlx_error)?))
 }
 
 pub async fn update_course_handler(
@@ -257,10 +262,11 @@ pub async fn update_course_handler(
     let row = builder
         .build()
         .fetch_optional(&state.db)
-        .await?
+        .await
+        .map_err(from_sqlx_error)?
         .ok_or_else(|| VilError::not_found("Kursus tidak ditemukan"))?;
 
-    Ok(VilResponse::ok(map_course(row)?))
+    Ok(VilResponse::ok(map_course(row).map_err(from_sqlx_error)?))
 }
 
 pub async fn delete_course_handler(
@@ -275,7 +281,8 @@ pub async fn delete_course_handler(
         .bind(course_id)
         .bind(rbac.ctx().tenant_id)
         .execute(&state.db)
-        .await?;
+        .await
+        .map_err(from_sqlx_error)?;
 
     if result.rows_affected() == 0 {
         return Err(VilError::not_found("Kursus tidak ditemukan"));
@@ -310,7 +317,8 @@ pub async fn get_course_modules_handler(
     .bind(ctx.tenant_id)
     .bind(course_id)
     .fetch_all(&state.db)
-    .await?;
+    .await
+    .map_err(from_sqlx_error)?;
 
     let lessons = sqlx::query_as::<_, Lesson>(
         r#"SELECT id, module_id, title, content, "order" AS "order", tenant_id, created_at, updated_at, type AS lesson_type, passing_score, is_published, duration_minutes
@@ -323,7 +331,8 @@ pub async fn get_course_modules_handler(
     .bind(ctx.tenant_id)
     .bind(course_id)
     .fetch_all(&state.db)
-    .await?;
+    .await
+    .map_err(from_sqlx_error)?;
 
     let data = modules
         .into_iter()

@@ -11,7 +11,7 @@ const COLUMNS =
 
 /**
  * Service layer for LTI platform registration CRUD operations.
- * All Supabase calls for the LTI feature go through here.
+ * All database calls for the LTI feature go through here.
  */
 export const ltiService = {
   /** Fetch all LTI platform registrations for the current tenant */

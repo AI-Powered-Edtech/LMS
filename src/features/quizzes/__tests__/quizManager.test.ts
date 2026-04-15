@@ -10,43 +10,55 @@ vi.mock('@/services/db', () => ({
   },
 }))
 
+function makeChain(resolvedValue: { data: unknown; error: unknown }) {
+  const chain: Record<string, any> = {}
+  const promise = Promise.resolve(resolvedValue)
+  chain.then = (onFulfilled?: (v: unknown) => unknown, onRejected?: (v: unknown) => unknown) =>
+    promise.then(onFulfilled, onRejected)
+  chain.select = vi.fn().mockReturnValue(chain)
+  chain.eq = vi.fn().mockReturnValue(chain)
+  chain.in = vi.fn().mockReturnValue(chain)
+  chain.order = vi.fn().mockReturnValue(chain)
+  chain.single = vi.fn().mockResolvedValue(resolvedValue)
+  return chain
+}
+
 describe('getTeacherQuizzes', () => {
   beforeEach(() => vi.clearAllMocks())
 
   it('queries quizzes table', async () => {
-    const fromSpy = vi.fn().mockReturnValue({
-      select: vi.fn().mockReturnThis(),
-      eq: vi.fn().mockReturnThis(),
-      order: vi.fn().mockResolvedValue({ data: [], error: null }),
-    })
-    mockFrom.mockImplementation(fromSpy)
+    mockFrom.mockImplementation(() => makeChain({ data: [], error: null }))
     await getTeacherQuizzes('tenant-1')
-    expect(fromSpy).toHaveBeenCalledWith('quizzes')
+    expect(mockFrom).toHaveBeenCalledWith('quizzes')
   })
 
   it('returns empty array for no quizzes', async () => {
-    mockFrom.mockReturnValue({
-      select: vi.fn().mockReturnThis(),
-      eq: vi.fn().mockReturnThis(),
-      order: vi.fn().mockResolvedValue({ data: [], error: null }),
-    })
+    mockFrom.mockImplementation(() => makeChain({ data: [], error: null }))
     const result = await getTeacherQuizzes('tenant-1')
     expect(result).toEqual([])
   })
 
   it('enriches quizzes with question_count and assignment_count', async () => {
-    const quizData = [
-      {
-        id: 'q1',
-        title: 'Math Quiz',
-        quiz_questions: [{ id: 'qq1' }, { id: 'qq2' }],
-        quiz_assignments: [{ id: 'qa1' }],
-      },
-    ]
-    mockFrom.mockReturnValue({
-      select: vi.fn().mockReturnThis(),
-      eq: vi.fn().mockReturnThis(),
-      order: vi.fn().mockResolvedValue({ data: quizData, error: null }),
+    mockFrom.mockImplementation((table: string) => {
+      if (table === 'quizzes') {
+        return makeChain({ data: [{ id: 'q1', title: 'Math Quiz' }], error: null })
+      }
+      if (table === 'quiz_assignments') {
+        return makeChain({
+          data: [{ id: 'qa1', quiz_id: 'q1', class_id: 'class-1' }],
+          error: null,
+        })
+      }
+      if (table === 'quiz_questions') {
+        return makeChain({
+          data: [
+            { id: 'qq1', quiz_id: 'q1' },
+            { id: 'qq2', quiz_id: 'q1' },
+          ],
+          error: null,
+        })
+      }
+      return makeChain({ data: [], error: null })
     })
     const result = await getTeacherQuizzes('tenant-1')
     expect(result[0].question_count).toBe(2)
@@ -54,11 +66,17 @@ describe('getTeacherQuizzes', () => {
   })
 
   it('returns 0 counts when arrays are empty', async () => {
-    const quizData = [{ id: 'q1', title: 'Math Quiz', quiz_questions: [], quiz_assignments: [] }]
-    mockFrom.mockReturnValue({
-      select: vi.fn().mockReturnThis(),
-      eq: vi.fn().mockReturnThis(),
-      order: vi.fn().mockResolvedValue({ data: quizData, error: null }),
+    mockFrom.mockImplementation((table: string) => {
+      if (table === 'quizzes') {
+        return makeChain({ data: [{ id: 'q1', title: 'Math Quiz' }], error: null })
+      }
+      if (table === 'quiz_assignments') {
+        return makeChain({ data: [], error: null })
+      }
+      if (table === 'quiz_questions') {
+        return makeChain({ data: [], error: null })
+      }
+      return makeChain({ data: [], error: null })
     })
     const result = await getTeacherQuizzes('tenant-1')
     expect(result[0].question_count).toBe(0)
@@ -66,11 +84,7 @@ describe('getTeacherQuizzes', () => {
   })
 
   it('throws on database error', async () => {
-    mockFrom.mockReturnValue({
-      select: vi.fn().mockReturnThis(),
-      eq: vi.fn().mockReturnThis(),
-      order: vi.fn().mockResolvedValue({ data: null, error: { message: 'DB error' } }),
-    })
+    mockFrom.mockImplementation(() => makeChain({ data: null, error: { message: 'DB error' } }))
     await expect(getTeacherQuizzes('tenant-1')).rejects.toMatchObject({ message: 'DB error' })
   })
 })
@@ -83,7 +97,11 @@ describe('getQuizzesByCourse', () => {
     mockFrom.mockReturnValue({
       select: vi.fn().mockReturnThis(),
       eq: eqSpy,
-      order: vi.fn().mockResolvedValue({ data: [], error: null }),
+      in: vi.fn().mockReturnThis(),
+      order: vi.fn().mockReturnThis(),
+      then: vi.fn((onFulfilled?: (v: unknown) => unknown, onRejected?: (v: unknown) => unknown) =>
+        Promise.resolve({ data: [], error: null }).then(onFulfilled, onRejected)
+      ),
     })
     await getQuizzesByCourse('course-1', 'tenant-1')
     expect(eqSpy).toHaveBeenCalledWith('course_id', 'course-1')

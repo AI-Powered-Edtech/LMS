@@ -158,10 +158,10 @@ fn generate_placeholder_pdf(title: &str, body_text: &str) -> Result<Vec<u8>, App
 
     let font_bold = doc
         .add_builtin_font(BuiltinFont::HelveticaBold)
-        .map_err(|e| AppError::Internal(format!("Gagal load font: {e}")))?;
+        .map_err(|e| AppError::internal(format!("Gagal load font: {e}")))?;
     let font_reg = doc
         .add_builtin_font(BuiltinFont::Helvetica)
-        .map_err(|e| AppError::Internal(format!("Gagal load font: {e}")))?;
+        .map_err(|e| AppError::internal(format!("Gagal load font: {e}")))?;
 
     layer.set_fill_color(Color::Rgb(Rgb::new(0.145, 0.388, 0.922, None)));
     layer.use_text(title, 18.0, Mm(30.0), Mm(260.0), &font_bold);
@@ -171,6 +171,6 @@ fn generate_placeholder_pdf(title: &str, body_text: &str) -> Result<Vec<u8>, App
 
     let bytes = doc
         .save_to_bytes()
-        .map_err(|e| AppError::Internal(format!("Gagal menyimpan placeholder PDF: {e}")))?;
+        .map_err(|e| AppError::internal(format!("Gagal menyimpan placeholder PDF: {e}")))?;
     Ok(bytes)
 }

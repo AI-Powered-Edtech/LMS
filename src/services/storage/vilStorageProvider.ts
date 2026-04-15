@@ -45,12 +45,12 @@ const LARGE_FILE_THRESHOLD = 10 * 1024 * 1024
 // ---------------------------------------------------------------------------
 
 function getToken(): string | null {
-  // Baca JWT dari localStorage (kunci yang digunakan oleh Supabase atau VIL)
+  // Baca JWT dari localStorage (mendukung kunci legacy dan kunci VIL)
   try {
     const raw = localStorage.getItem('sb-access-token') ?? localStorage.getItem('access_token')
     if (raw) return raw
 
-    // Coba ambil dari sesi Supabase tersimpan (format: sb-{ref}-auth-token)
+    // Coba ambil dari sesi legacy tersimpan (format: sb-{ref}-auth-token)
     for (let i = 0; i < localStorage.length; i++) {
       const key = localStorage.key(i)
       if (key && key.includes('-auth-token')) {
@@ -182,7 +182,7 @@ class VilBucketClient implements StorageBucketClient {
       const resultPath = json.path ?? path
       const result: StorageUploadResponse = { data: { path: resultPath }, error: null }
 
-      // Dual-write: also upload to Supabase (fire-and-forget)
+      // Dual-write: also upload to legacy provider (fire-and-forget)
       if (DUAL_WRITE) {
         this._dualWriteToSupabase(path, file, options)
       }
@@ -255,7 +255,7 @@ class VilBucketClient implements StorageBucketClient {
         }
       }
 
-      // Dual-write: also upload to Supabase (fire-and-forget)
+      // Dual-write: also upload to legacy provider (fire-and-forget)
       if (DUAL_WRITE) {
         this._dualWriteToSupabase(path, file, options)
       }
@@ -314,7 +314,7 @@ class VilBucketClient implements StorageBucketClient {
       const deleted = (json.deleted ?? paths).map((name) => ({ name }))
 
       if (DUAL_WRITE) {
-        // Also remove from Supabase (fire-and-forget)
+        // Also remove from legacy provider (fire-and-forget)
         this._dualRemoveFromSupabase(paths)
       }
 
@@ -332,7 +332,7 @@ class VilBucketClient implements StorageBucketClient {
   getPublicUrl(path: string): StoragePublicUrlResponse {
     // When running in dual-write mode with a non-S3 primary, fall through to VIL URL
     if (DUAL_WRITE && STORAGE_PRIMARY !== 's3') {
-      // dual-write via Supabase client removed — VIL storage is now the sole provider
+      // dual-write via legacy client removed — VIL storage is now the sole provider
     }
 
     // CDN URL takes precedence over direct API URL

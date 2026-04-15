@@ -1,7 +1,7 @@
 // ==========================================================================
 // Analytics Queries — analyticsQueries.ts
 //
-// Individual Supabase RPC/query functions for analytics data retrieval.
+// Individual RPC/query functions for analytics data retrieval.
 // Extracted from analyticsService.ts for modularity.
 // ==========================================================================
 

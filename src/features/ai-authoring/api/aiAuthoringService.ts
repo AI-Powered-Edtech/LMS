@@ -9,6 +9,12 @@ import type {
   GenerateFromLessonResponse,
 } from '../types'
 
+function resolveApiUrl(path: string): string {
+  const apiUrl = import.meta.env.VITE_API_URL ?? ''
+  if (apiUrl) return `${apiUrl}${path}`
+  return new URL(path, window.location.origin).toString()
+}
+
 /**
  * AI Authoring Service
  *
@@ -20,13 +26,12 @@ export const aiAuthoringService = {
 
   /**
    * Generate AI content (quiz / reading / writing) from an uploaded file.
-   * Calls the generate-ai-content Supabase Edge Function.
+   * Calls the AI generation endpoint.
    */
   async generateFromFile(formData: FormData): Promise<GenerateFromFileResponse> {
-    const apiUrl = import.meta.env.VITE_API_URL ?? ''
     const token = readVilSession()?.access_token
 
-    const res = await fetch(`${apiUrl}/api/v1/ai/generate-content`, {
+    const res = await fetch(resolveApiUrl('/api/v1/ai/generate-content'), {
       method: 'POST',
       headers: {
         ...(token ? { Authorization: `Bearer ${token}` } : {}),
@@ -121,13 +126,12 @@ export const aiAuthoringService = {
 
   /**
    * Generate quiz questions from an existing lesson's content.
-   * Calls the generate-quiz-from-content Supabase Edge Function.
+   * Calls the quiz generation endpoint.
    */
   async generateFromLesson(config: GenerateFromLessonConfig): Promise<GenerateFromLessonResponse> {
-    const apiUrl = import.meta.env.VITE_API_URL ?? ''
     const token = readVilSession()?.access_token
 
-    const res = await fetch(`${apiUrl}/api/v1/ai/generate-quiz`, {
+    const res = await fetch(resolveApiUrl('/api/v1/ai/generate-quiz'), {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',

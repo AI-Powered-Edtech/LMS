@@ -3,7 +3,7 @@
 // Wave 4 — Task 29.5 (Mobile-first)
 //
 // Fitur:
-// - Real-time via Supabase Realtime subscription
+// - Real-time via realtime subscription
 // - Scroll to bottom saat ada pesan baru
 // - Timestamp per pesan
 // - Quick reply templates
@@ -184,7 +184,7 @@ export function MessageThread() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [threadId])
 
-  // ── Supabase Realtime subscription ────────────────────────
+  // ── Realtime subscription ────────────────────────────────
   useEffect(() => {
     if (!threadId) return
 

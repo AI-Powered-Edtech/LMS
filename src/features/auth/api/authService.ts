@@ -85,7 +85,7 @@ function extractAuthCode(input: string): string {
 
 /**
  * Auth Service
- * Wraps Supabase RPC and Edge Function calls for auth-related operations.
+ * Wraps RPC and API calls for auth-related operations.
  * AuthContext still manages session state and onAuthStateChange directly.
  */
 export const authService = {

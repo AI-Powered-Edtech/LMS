@@ -2,7 +2,7 @@ use axum::{
     extract::Path,
     http::HeaderMap,
 };
-use edusync_middleware::errors::VilError;
+use edusync_middleware::errors::{from_sqlx_error, VilError};
 use serde::{Deserialize, Serialize};
 use serde_json::{json, Map, Value};
 use sqlx::{postgres::PgRow, PgPool, Postgres, QueryBuilder, Row, Transaction};
@@ -324,7 +324,8 @@ async fn fetch_table_columns(pool: &PgPool, table: &str) -> Result<Vec<ColumnMet
     )
     .bind(table)
     .fetch_all(pool)
-    .await?;
+    .await
+    .map_err(from_sqlx_error)?;
 
     if columns.is_empty() {
         return Err(VilError::not_found("Tabel tidak ditemukan"));
@@ -733,13 +734,15 @@ async fn set_request_claims(
     .bind(tenant_id.to_string())
     .bind(role)
     .execute(&mut **tx)
-    .await?;
+    .await
+    .map_err(from_sqlx_error)?;
 
     if !email.is_empty() {
         sqlx::query("SELECT set_config('request.jwt.claim.email', $1, true)")
             .bind(email)
             .execute(&mut **tx)
-            .await?;
+            .await
+            .map_err(from_sqlx_error)?;
     }
 
     Ok(())
@@ -837,7 +840,8 @@ async fn resolve_rpc_signature(
     )
     .bind(name)
     .fetch_all(pool)
-    .await?;
+    .await
+    .map_err(from_sqlx_error)?;
 
     let provided = provided_arg_names
         .iter()
@@ -929,8 +933,12 @@ pub async fn query_table_handler(
                 let mut count_builder = QueryBuilder::new("SELECT COUNT(*)::bigint AS count FROM public.");
                 count_builder.push(quote_ident(&table));
                 apply_filters(&mut count_builder, &body.filters, &ctx, &columns_by_name)?;
-                let row = count_builder.build().fetch_one(&state.db).await?;
-                count = Some(row.try_get::<i64, _>("count")?);
+                let row = count_builder
+                    .build()
+                    .fetch_one(&state.db)
+                    .await
+                    .map_err(from_sqlx_error)?;
+                count = Some(row.try_get::<i64, _>("count").map_err(from_sqlx_error)?);
             }
 
             if options.head.unwrap_or(false) {
@@ -951,7 +959,11 @@ pub async fn query_table_handler(
             }
             builder.push(") item");
 
-            let rows = builder.build().fetch_all(&state.db).await?;
+            let rows = builder
+                .build()
+                .fetch_all(&state.db)
+                .await
+                .map_err(from_sqlx_error)?;
             let data = single_payload(map_rows(rows)?, body.single.as_deref())?;
 
             Ok(VilResponse::ok(QueryResponse { data, count }))
@@ -1091,7 +1103,11 @@ pub async fn query_table_handler(
 
             builder.push(" RETURNING ").push(selected_sql).push(") SELECT row_to_json(item)::jsonb AS data FROM mutated item");
 
-            let rows = builder.build().fetch_all(&state.db).await?;
+            let rows = builder
+                .build()
+                .fetch_all(&state.db)
+                .await
+                .map_err(from_sqlx_error)?;
             let data = if body.select.is_some() || body.single.is_some() {
                 single_payload(map_rows(rows)?, body.single.as_deref())?
             } else {
@@ -1159,7 +1175,11 @@ pub async fn query_table_handler(
             apply_filters(&mut builder, &body.filters, &ctx, &columns_by_name)?;
             builder.push(" RETURNING ").push(selected_sql).push(") SELECT row_to_json(item)::jsonb AS data FROM mutated item");
 
-            let rows = builder.build().fetch_all(&state.db).await?;
+            let rows = builder
+                .build()
+                .fetch_all(&state.db)
+                .await
+                .map_err(from_sqlx_error)?;
             let data = if body.select.is_some() || body.single.is_some() {
                 single_payload(map_rows(rows)?, body.single.as_deref())?
             } else {
@@ -1184,7 +1204,11 @@ pub async fn query_table_handler(
             apply_filters(&mut builder, &body.filters, &ctx, &columns_by_name)?;
             builder.push(" RETURNING ").push(selected_sql).push(") SELECT row_to_json(item)::jsonb AS data FROM mutated item");
 
-            let rows = builder.build().fetch_all(&state.db).await?;
+            let rows = builder
+                .build()
+                .fetch_all(&state.db)
+                .await
+                .map_err(from_sqlx_error)?;
             let data = if body.select.is_some() || body.single.is_some() {
                 single_payload(map_rows(rows)?, body.single.as_deref())?
             } else {
@@ -1220,7 +1244,11 @@ pub async fn rpc_proxy_handler(
         }
     };
 
-    let mut tx = state.db.begin().await?;
+    let mut tx = state
+        .db
+        .begin()
+        .await
+        .map_err(from_sqlx_error)?;
     set_request_claims(
         &mut tx,
         ctx.user_id,
@@ -1251,24 +1279,36 @@ pub async fn rpc_proxy_handler(
     let payload = if resolved.return_type == "void" {
         let mut builder = QueryBuilder::new("SELECT ");
         push_rpc_call(&mut builder, &name, &entries, &resolved.arg_types)?;
-        builder.build().execute(&mut *tx).await?;
+        builder
+            .build()
+            .execute(&mut *tx)
+            .await
+            .map_err(from_sqlx_error)?;
         Value::Null
     } else if resolved.returns_set {
         let mut builder =
             QueryBuilder::new("SELECT COALESCE(jsonb_agg(to_jsonb(q)), '[]'::jsonb) AS payload FROM ");
         push_rpc_call(&mut builder, &name, &entries, &resolved.arg_types)?;
         builder.push(" q");
-        let row = builder.build().fetch_one(&mut *tx).await?;
+        let row = builder
+            .build()
+            .fetch_one(&mut *tx)
+            .await
+            .map_err(from_sqlx_error)?;
         row.try_get::<Value, _>("payload").unwrap_or(Value::Array(Vec::new()))
     } else {
         let mut builder = QueryBuilder::new("SELECT to_jsonb(");
         push_rpc_call(&mut builder, &name, &entries, &resolved.arg_types)?;
         builder.push(") AS payload");
-        let row = builder.build().fetch_one(&mut *tx).await?;
+        let row = builder
+            .build()
+            .fetch_one(&mut *tx)
+            .await
+            .map_err(from_sqlx_error)?;
         row.try_get::<Value, _>("payload").unwrap_or(Value::Null)
     };
 
-    tx.commit().await?;
+    tx.commit().await.map_err(from_sqlx_error)?;
 
     Ok(VilResponse::ok(RpcResponse {
         data: payload,

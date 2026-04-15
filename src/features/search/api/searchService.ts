@@ -4,7 +4,7 @@ import { captureError } from '@/utils/sentry'
 /**
  * Global search service menggunakan PostgreSQL full-text search (tsvector).
  *
- * Supabase PostgreSQL mendukung full-text search via:
+ * PostgreSQL mendukung full-text search via:
  *   to_tsvector('indonesian', column) @@ plainto_tsquery('indonesian', query)
  *
  * Untuk saat ini, search dilakukan di client-side dengan filtering dari

@@ -13,7 +13,7 @@ interface ProgressReporterProps {
 }
 
 /**
- * ProgressReporter — Invisible component that throttles progress updates to Supabase.
+ * ProgressReporter — Invisible component that throttles progress updates to backend.
  * Sends updates every 5 seconds using the monotonic RPC function.
  */
 export function ProgressReporter({

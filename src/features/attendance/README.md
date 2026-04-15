@@ -6,7 +6,7 @@ Sistem tracking kehadiran siswa per kelas dan sesi
 
 ```
 src/features/attendance/
-├── api/           # Supabase service layer
+├── api/           # API service layer
 ├── queries/       # React Query hooks & query keys
 ├── types/         # TypeScript interfaces
 ├── components/    # React components

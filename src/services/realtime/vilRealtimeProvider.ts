@@ -4,7 +4,7 @@ import { logger } from '@/utils/logger'
 // VIL WebSocket Realtime Provider
 //
 // Implementasi nyata dari RealtimeProvider yang menggunakan koneksi WebSocket
-// ke server Rust (VIL backend), bukan Supabase Realtime.
+// ke server Rust (VIL backend), bukan layanan realtime pihak ketiga.
 //
 // Semua saluran berbagi SATU koneksi WebSocket (multiplexed).
 // Rekoneksi otomatis dengan exponential backoff.
@@ -417,12 +417,12 @@ interface WsConnection {
 }
 
 function getToken(): string | null {
-  // Baca JWT dari localStorage (kunci yang digunakan oleh Supabase)
+  // Baca JWT dari localStorage (mendukung kunci legacy dan kunci VIL)
   try {
     const raw = localStorage.getItem('sb-access-token') ?? localStorage.getItem('access_token')
     if (raw) return raw
 
-    // Coba ambil dari sesi Supabase yang tersimpan (format: sb-{ref}-auth-token)
+    // Coba ambil dari sesi legacy yang tersimpan (format: sb-{ref}-auth-token)
     for (let i = 0; i < localStorage.length; i++) {
       const key = localStorage.key(i)
       if (key && key.includes('-auth-token')) {

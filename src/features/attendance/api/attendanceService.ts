@@ -4,7 +4,7 @@ import type { AttendanceRecord, ClassOption, ClassStudent, UpsertAttendanceParam
 
 /**
  * Service layer for attendance operations.
- * All Supabase calls for the attendance feature go through here.
+ * All database calls for the attendance feature go through here.
  */
 export const attendanceService = {
   /** Fetch classes taught by a specific teacher */

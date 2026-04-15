@@ -6,7 +6,7 @@ Repositori soal yang bisa digunakan ulang di berbagai kuis
 
 ```
 src/features/question-bank/
-├── api/           # Supabase service layer
+├── api/           # API service layer
 ├── queries/       # React Query hooks & query keys
 ├── hooks/         # Custom React hooks
 ├── types/         # TypeScript interfaces

@@ -48,22 +48,22 @@ describe('Button', () => {
   it('renders sm size', () => {
     render(<Button size="sm">Small</Button>)
     const btn = screen.getByRole('button')
-    expect(btn.className).toContain('px-3')
-    expect(btn.className).toContain('py-1.5')
+    expect(btn.className).toContain('px-2')
+    expect(btn.className).toContain('py-0.5')
   })
 
   it('renders md size (default)', () => {
     render(<Button>Medium</Button>)
     const btn = screen.getByRole('button')
-    expect(btn.className).toContain('px-4')
-    expect(btn.className).toContain('py-2')
+    expect(btn.className).toContain('px-2.5')
+    expect(btn.className).toContain('py-1')
   })
 
   it('renders lg size', () => {
     render(<Button size="lg">Large</Button>)
     const btn = screen.getByRole('button')
-    expect(btn.className).toContain('px-6')
-    expect(btn.className).toContain('py-3')
+    expect(btn.className).toContain('px-3')
+    expect(btn.className).toContain('py-1.5')
   })
 
   it('shows loading spinner when loading is true', () => {

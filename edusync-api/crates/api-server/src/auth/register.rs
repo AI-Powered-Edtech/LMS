@@ -3,7 +3,7 @@ use uuid::Uuid;
 use edusync_auth::{password::hash_password, session::create_session};
 use vil_server::prelude::{ServiceCtx, ShmSlice, VilResponse, VilError, HandlerResult};
 use crate::state::AppState;
-use super::types::{RegisterRequest, AuthResponse, UserPayload};
+use super::types::{AuthResponse, RegisterRequest, UserPayload};
 
 pub async fn register_handler(
     svc: ServiceCtx,
@@ -140,6 +140,7 @@ pub async fn register_handler(
         expires_in: 3600,
         refresh_token: tokens.refresh_token,
         user: UserPayload { id: user_id, email: body.email, role, tenant_id },
+        memberships: Vec::new(),
     }))
 }
 

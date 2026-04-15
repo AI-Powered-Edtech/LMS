@@ -2,7 +2,7 @@
 // Parent API — parentApi.ts
 // Wave 4 — Task 29.3
 //
-// Supabase queries untuk Parent Dashboard.
+// Query API untuk Parent Dashboard.
 // RLS di DB memastikan orang tua hanya bisa melihat data anak mereka sendiri.
 // ==========================================================================
 import { db } from '@/services/db'

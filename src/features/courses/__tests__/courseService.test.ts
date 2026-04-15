@@ -55,27 +55,25 @@ vi.mock('@/services/db', () => ({
 describe('courseService.fetchCourses', () => {
   beforeEach(() => {
     vi.clearAllMocks()
-    // Default: eq returns itself, range returns data
-    mockEq.mockReturnThis()
-    mockLimit.mockReturnThis()
-    mockOrder.mockReturnThis()
-    mockRange.mockResolvedValue({ data: [], count: 0, error: null })
-    mockSelect.mockReturnThis()
+    vi.stubGlobal(
+      'fetch',
+      vi.fn().mockResolvedValue(
+        new Response(JSON.stringify({ courses: [], count: 0 }), {
+          status: 200,
+          headers: { 'content-type': 'application/json' },
+        })
+      )
+    )
   })
 
-  it('queries the courses table', async () => {
+  it('memanggil endpoint /api/v1/courses', async () => {
     await courseService.fetchCourses({ tenantId: 'tenant-1', page: 1, limit: 10 })
-    expect(mockFrom).toHaveBeenCalledWith('courses')
-  })
-
-  it('applies tenant_id filter', async () => {
-    mockRange.mockResolvedValue({ data: [], count: 0, error: null })
-    await courseService.fetchCourses({ tenantId: 'tenant-1', page: 1, limit: 10 })
-    expect(mockEq).toHaveBeenCalledWith('tenant_id', 'tenant-1')
+    expect(vi.mocked(fetch)).toHaveBeenCalledTimes(1)
+    const [url] = vi.mocked(fetch).mock.calls[0] as [string]
+    expect(url).toContain('/api/v1/courses')
   })
 
   it('returns empty courses and count 0 on empty result', async () => {
-    mockRange.mockResolvedValue({ data: [], count: 0, error: null })
     const result = await courseService.fetchCourses({ tenantId: 'tenant-1', page: 1, limit: 10 })
     expect(result.courses).toEqual([])
     expect(result.count).toBe(0)
@@ -83,16 +81,23 @@ describe('courseService.fetchCourses', () => {
 
   it('returns courses when data is present', async () => {
     const courses = [{ id: 'c1', title: 'Math', tenant_id: 'tenant-1' }]
-    mockRange.mockResolvedValue({ data: courses, count: 1, error: null })
+    vi.stubGlobal(
+      'fetch',
+      vi.fn().mockResolvedValue(
+        new Response(JSON.stringify({ courses, count: 1 }), {
+          status: 200,
+          headers: { 'content-type': 'application/json' },
+        })
+      )
+    )
     const result = await courseService.fetchCourses({ tenantId: 'tenant-1', page: 1, limit: 10 })
     expect(result.courses).toEqual(courses)
     expect(result.count).toBe(1)
   })
 
   it('applies search filter when provided', async () => {
-    mockIlike.mockReturnThis()
-    mockRange.mockResolvedValue({ data: [], count: 0, error: null })
     await courseService.fetchCourses({ tenantId: 'tenant-1', page: 1, limit: 10, search: 'math' })
-    expect(mockIlike).toHaveBeenCalledWith('title', '%math%')
+    const [url] = vi.mocked(fetch).mock.calls[0] as [string]
+    expect(url).toContain('search=math')
   })
 })

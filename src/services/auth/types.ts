@@ -99,6 +99,10 @@ export interface AuthProvider {
   onAuthStateChange(callback: (event: string, session: AuthSession | null) => void): {
     data: { subscription: AuthSubscription }
   }
+  switchTenant(params: { tenantId: string }): Promise<{
+    data: { session: AuthSession | null }
+    error: AuthError | null
+  }>
   signInWithPassword(credentials: { email: string; password: string }): Promise<{
     data: { session: AuthSession | null; user: AuthUser | null }
     error: AuthError | null

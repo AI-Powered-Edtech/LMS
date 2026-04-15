@@ -53,7 +53,7 @@ function formatPhoneDisplay(phone: string): string {
   return `+62 ${d.slice(0, 3)}-${d.slice(3, 7)}-${d.slice(7, 11)}`
 }
 
-/** Generate email sementara dari nomor HP (untuk Supabase Auth) */
+/** Generate email sementara dari nomor HP (untuk auth provider) */
 function generateTempEmail(phone: string): string {
   const digits = phone.replace(/[^0-9]/g, '')
   return `parent_${digits}@otp.edusync.internal`
@@ -340,7 +340,7 @@ export function ParentRegisterPage() {
       const tempEmail = generateTempEmail(normalized)
       const tempPassword = generateSecurePassword()
 
-      // Buat akun Supabase Auth dengan email sementara
+      // Buat akun auth dengan email sementara
       const { data: signUpData, error: signUpError } = await db.auth.signUp({
         email: tempEmail,
         password: tempPassword,

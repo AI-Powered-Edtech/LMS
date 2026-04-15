@@ -4,7 +4,7 @@
  * Stores per-type, per-channel (in-app / email / push) preferences.
  * Persists with key `edusync_notification_prefs` so settings survive page reloads.
  *
- * Separate from the Supabase-backed `NotificationPreferences` table which controls
+ * Separate from the backend-backed `NotificationPreferences` table which controls
  * broader flags (email_enabled, push_enabled). This hook provides fine-grained
  * per-type control that lives client-side.
  */

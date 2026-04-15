@@ -6,7 +6,7 @@ Generator laporan akademik, keuangan (SPP), dan PPDB
 
 ```
 src/features/reports/
-├── api/           # Supabase service layer
+├── api/           # API service layer
 ├── queries/       # React Query hooks & query keys
 ├── hooks/         # Custom React hooks
 ├── types/         # TypeScript interfaces

@@ -7,7 +7,7 @@
 - **Algorithm**: HS256
 - **Access token expiry**: 15 minutes (`JWT_SECRET`)
 - **Refresh token expiry**: 7 days (`JWT_REFRESH_SECRET`)
-- **Minimum secret length**: 32 characters (enforced at startup with error log)
+- **Minimum secret length**: 32 characters (enforced at startup; server gagal start jika <32 / tidak diset)
 - **Storage**: access token in memory/localStorage; refresh token in DB (`refresh_tokens` table) + localStorage
 
 ### Brute Force Protection

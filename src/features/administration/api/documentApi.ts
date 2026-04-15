@@ -130,7 +130,7 @@ export const documentApi = {
   },
 
   /**
-   * Upload file ke Supabase Storage dan simpan metadata ke tabel.
+   * Upload file ke storage dan simpan metadata ke tabel.
    */
   async uploadDocument(file: File, metadata: DocumentMetadata): Promise<SchoolDocument> {
     // Validasi ukuran

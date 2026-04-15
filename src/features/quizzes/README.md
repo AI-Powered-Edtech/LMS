@@ -6,7 +6,7 @@ This module is the canonical home for all quiz-related logic in EduSync.
 
 ```
 src/features/quizzes/
-├── api/           # Supabase RPC calls (v1_start_quiz_attempt, v1_submit_quiz_attempt, etc.)
+├── api/           # RPC calls (v1_start_quiz_attempt, v1_submit_quiz_attempt, etc.)
 ├── queries/       # React Query hooks
 ├── hooks/         # Custom React hooks (useQuizTimer, useAutosave, etc.)
 ├── store/         # Zustand state management for quiz player state

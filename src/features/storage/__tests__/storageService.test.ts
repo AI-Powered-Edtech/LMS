@@ -1,5 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
+import { setStorageProvider } from '@/services/storage'
+
 import { storageService } from '../api/storageService'
 
 const { mockStorageRemove, mockStorageFrom, mockSingle, mockFrom } = vi.hoisted(() => {
@@ -34,6 +36,7 @@ vi.mock('@/services/db', () => ({
 describe('storageService', () => {
   beforeEach(() => {
     vi.clearAllMocks()
+    setStorageProvider({ from: (bucket: string) => (mockStorageFrom as any)(bucket) } as any)
   })
 
   describe('getPublicUrl', () => {

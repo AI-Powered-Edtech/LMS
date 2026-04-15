@@ -50,7 +50,7 @@ pub async fn send_push_to_user(
     )
     .fetch_all(db)
     .await
-    .map_err(|e| AppError::Internal(format!("Gagal mengambil push subscriptions: {e}")))?;
+    .map_err(|e| AppError::internal(format!("Gagal mengambil push subscriptions: {e}")))?;
 
     if subscriptions.is_empty() {
         tracing::debug!(
@@ -67,7 +67,7 @@ pub async fn send_push_to_user(
     let http_client = reqwest::Client::builder()
         .timeout(std::time::Duration::from_secs(10))
         .build()
-        .map_err(|e| AppError::Internal(format!("Gagal membuat HTTP client: {e}")))?;
+        .map_err(|e| AppError::internal(format!("Gagal membuat HTTP client: {e}")))?;
 
     let push_body = build_push_body(&payload);
     let mut sent = 0usize;
@@ -147,7 +147,7 @@ async fn send_single_push(
     let endpoint_url = sub.endpoint.as_str();
     let audience = {
         let url = reqwest::Url::parse(endpoint_url)
-            .map_err(|e| AppError::Internal(format!("Endpoint URL tidak valid: {e}")))?;
+            .map_err(|e| AppError::internal(format!("Endpoint URL tidak valid: {e}")))?;
         format!("{}://{}", url.scheme(), url.host_str().unwrap_or_default())
     };
 
@@ -173,7 +173,7 @@ async fn send_single_push(
         .body(body.to_string())
         .send()
         .await
-        .map_err(|e| AppError::Internal(format!("HTTP error saat kirim push: {e}")))?;
+        .map_err(|e| AppError::internal(format!("HTTP error saat kirim push: {e}")))?;
 
     match response.status().as_u16() {
         200..=204 => Ok(true),
@@ -184,7 +184,7 @@ async fn send_single_push(
         }
         code => {
             let body = response.text().await.unwrap_or_default();
-            Err(AppError::Internal(format!(
+            Err(AppError::internal(format!(
                 "Push service merespons {code}: {body}"
             )))
         }
@@ -209,14 +209,14 @@ fn build_vapid_header(
 
     let private_key_bytes = URL_SAFE_NO_PAD
         .decode(private_key_b64)
-        .map_err(|e| AppError::Internal(format!("VAPID private key base64 tidak valid: {e}")))?;
+        .map_err(|e| AppError::internal(format!("VAPID private key base64 tidak valid: {e}")))?;
 
     let key_pair = EcdsaKeyPair::from_pkcs8(
         &ECDSA_P256_SHA256_FIXED_SIGNING,
         &private_key_bytes,
         &ring::rand::SystemRandom::new(),
     )
-    .map_err(|e| AppError::Internal(format!("VAPID key pair tidak valid: {e}")))?;
+    .map_err(|e| AppError::internal(format!("VAPID key pair tidak valid: {e}")))?;
 
     // Ambil public key bytes dan encode base64url
     let public_key_b64 = URL_SAFE_NO_PAD.encode(key_pair.public_key().as_ref());
@@ -242,7 +242,7 @@ fn build_vapid_header(
     let rng = ring::rand::SystemRandom::new();
     let sig = key_pair
         .sign(&rng, unsigned.as_bytes())
-        .map_err(|e| AppError::Internal(format!("VAPID signing gagal: {e}")))?;
+        .map_err(|e| AppError::internal(format!("VAPID signing gagal: {e}")))?;
 
     let sig_b64 = URL_SAFE_NO_PAD.encode(sig.as_ref());
     let jwt = format!("{}.{}", unsigned, sig_b64);

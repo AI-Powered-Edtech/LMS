@@ -9,7 +9,7 @@ import { logger } from '@/utils/logger'
 // LtiCallback — Handles the redirect after LTI launch
 //
 // Receives a magic link token from the lti-launch Edge Function,
-// verifies it via Supabase OTP, and redirects to the target lesson/course.
+// verifies it via OTP, and redirects to the target lesson/course.
 //
 // Route: /#/lti/callback?token=...&type=magiclink&redirect=...
 // ==========================================================================
@@ -37,7 +37,7 @@ export function LtiCallback() {
       }
 
       try {
-        // Verify the OTP token to establish a Supabase session
+        // Verify the OTP token to establish a session
         const { data, error } = await db.auth.verifyOtp({
           token_hash: token,
           type: type as 'magiclink',

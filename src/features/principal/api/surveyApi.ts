@@ -1,7 +1,7 @@
 // ==========================================================================
 // Survey API — surveyApi.ts
 //
-// Supabase queries untuk Satisfaction Survey System.
+// Query API untuk Satisfaction Survey System.
 // ==========================================================================
 import { db } from '@/services/db'
 import { logger } from '@/utils/logger'

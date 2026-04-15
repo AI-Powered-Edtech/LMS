@@ -28,7 +28,7 @@ export function useGradebookState() {
     date: new Date().toLocaleDateString('id-ID', { day: 'numeric', month: 'short' }),
   })
 
-  // Course-based gradebook (real Supabase data)
+  // Course-based gradebook (real DB data)
   const coursesQuery = useCourses({ limit: 50 })
   const courses: Course[] = coursesQuery.data?.courses ?? []
 

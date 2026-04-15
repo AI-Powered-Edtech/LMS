@@ -55,7 +55,7 @@ describe('administrationService', () => {
       expect(result[0].isEnabled).toBe(true)
     })
 
-    it('harus throw error saat Supabase error', async () => {
+    it('harus throw error saat DB error', async () => {
       mockOrder.mockResolvedValue({ data: null, error: { message: 'RLS violation' } })
 
       await expect(administrationService.getTenantModules()).rejects.toThrow()

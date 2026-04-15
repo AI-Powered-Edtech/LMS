@@ -24,7 +24,7 @@ const MAX_FILE_SIZE = 20 * 1024 * 1024 // 20MB
 
 export const storageService = {
   /**
-   * Upload a file to Supabase Storage + track in storage_objects.
+   * Upload a file to storage + track in storage_objects.
    * Returns storageObjectId and publicUrl.
    */
   async uploadFile(file: File, opts: UploadOptions): Promise<UploadResult> {
@@ -45,7 +45,7 @@ export const storageService = {
     const extension = file.name.split('.').pop()?.toLowerCase() || ''
     const objectPath = `${opts.tenantId}/${opts.courseId}/${opts.lessonId}/${crypto.randomUUID()}.${extension}`
 
-    // Upload to Supabase Storage
+    // Upload to storage
     const { data: uploadData, error: uploadError } = await getStorageProvider()
       .from(opts.bucket)
       .upload(objectPath, file)
@@ -104,7 +104,7 @@ export const storageService = {
   },
 
   /**
-   * Delete a file from both storage_objects table and Supabase Storage bucket.
+   * Delete a file from both storage_objects table and storage bucket.
    */
   async deleteFile(storageObjectId: string): Promise<void> {
     // Get the storage object record
@@ -122,7 +122,7 @@ export const storageService = {
       throw new Error('Storage object not found')
     }
 
-    // Delete from Supabase Storage
+    // Delete from storage
     const { error: storageError } = await getStorageProvider()
       .from(storageObj.bucket)
       .remove([storageObj.object_path])

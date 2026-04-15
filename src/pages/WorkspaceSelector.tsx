@@ -79,7 +79,7 @@ export function WorkspaceSelector() {
 
       await refreshAuthBootstrap()
       if (result?.tenant_id) {
-        setActiveTenant(result.tenant_id)
+        await setActiveTenant(result.tenant_id)
       }
       void navigate(returnPath ?? peekPostAuthRedirect() ?? '/app', { replace: true })
     } catch (err: unknown) {
@@ -116,7 +116,7 @@ export function WorkspaceSelector() {
       })
 
       await refreshAuthBootstrap()
-      setActiveTenant(tenantId)
+      await setActiveTenant(tenantId)
       void navigate(returnPath ?? peekPostAuthRedirect() ?? '/app', { replace: true })
     } catch (err: unknown) {
       addToast({
@@ -149,7 +149,7 @@ export function WorkspaceSelector() {
       })
 
       await refreshAuthBootstrap()
-      setActiveTenant(tenantId)
+      await setActiveTenant(tenantId)
       void navigate(returnPath ?? peekPostAuthRedirect() ?? '/app', { replace: true })
     } catch (err: unknown) {
       addToast({

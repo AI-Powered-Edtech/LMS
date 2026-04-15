@@ -6,7 +6,7 @@ Sistem pengumuman sekolah untuk guru, siswa, dan orang tua
 
 ```
 src/features/announcements/
-├── api/           # Supabase service layer
+├── api/           # API service layer
 ├── queries/       # React Query hooks & query keys
 ├── hooks/         # Custom React hooks
 ├── types/         # TypeScript interfaces

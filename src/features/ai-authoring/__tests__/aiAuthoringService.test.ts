@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
-// ── Supabase Mock (vi.hoisted untuk referensi stabil) ─────────────────────────
+// ── DB Mock (vi.hoisted untuk referensi stabil) ──────────────────────────────
 
 const { mockFrom, mockInvoke } = vi.hoisted(() => ({
   mockFrom: vi.fn(),
@@ -82,34 +82,39 @@ function makeHistoryEntry(overrides?: Partial<AIGeneratedContent>): AIGeneratedC
 describe('aiAuthoringService — generateFromFile', () => {
   beforeEach(() => {
     vi.clearAllMocks()
+    vi.stubGlobal('fetch', vi.fn())
   })
 
   it('mengembalikan questions dari Edge Function response', async () => {
     const questions = [makeAIQuestion()]
-    mockInvoke.mockResolvedValue({
-      data: {
-        generation_id: 'gen-1',
-        type: 'quiz',
-        tenant_id: 'tenant-1',
-        summary: 'Generated quiz',
-        questions,
-      },
-      error: null,
-    })
+    vi.mocked(fetch).mockResolvedValue(
+      new Response(
+        JSON.stringify({
+          generation_id: 'gen-1',
+          type: 'quiz',
+          tenant_id: 'tenant-1',
+          summary: 'Generated quiz',
+          questions,
+        }),
+        { status: 200, headers: { 'content-type': 'application/json' } }
+      )
+    )
 
     const formData = new FormData()
     const result = await aiAuthoringService.generateFromFile(formData)
 
-    expect(mockInvoke).toHaveBeenCalledWith('generate-ai-content', { body: formData })
+    expect(vi.mocked(fetch)).toHaveBeenCalledTimes(1)
     expect(result.questions).toHaveLength(1)
     expect(result.generation_id).toBe('gen-1')
   })
 
   it('melempar error spesifik untuk rate limit', async () => {
-    mockInvoke.mockResolvedValue({
-      data: null,
-      error: { message: '429 Too Many Requests: RATE_LIMITED' },
-    })
+    vi.mocked(fetch).mockResolvedValue(
+      new Response(JSON.stringify({ error: '429 Too Many Requests: RATE_LIMITED' }), {
+        status: 429,
+        headers: { 'content-type': 'application/json' },
+      })
+    )
 
     const formData = new FormData()
     await expect(aiAuthoringService.generateFromFile(formData)).rejects.toThrow(
@@ -118,10 +123,12 @@ describe('aiAuthoringService — generateFromFile', () => {
   })
 
   it('melempar error spesifik untuk unauthorized role', async () => {
-    mockInvoke.mockResolvedValue({
-      data: null,
-      error: { message: 'UNAUTHORIZED_ROLE' },
-    })
+    vi.mocked(fetch).mockResolvedValue(
+      new Response(JSON.stringify({ error: 'UNAUTHORIZED_ROLE' }), {
+        status: 403,
+        headers: { 'content-type': 'application/json' },
+      })
+    )
 
     const formData = new FormData()
     await expect(aiAuthoringService.generateFromFile(formData)).rejects.toThrow(
@@ -130,10 +137,12 @@ describe('aiAuthoringService — generateFromFile', () => {
   })
 
   it('melempar error jika respons AI tidak memiliki questions array', async () => {
-    mockInvoke.mockResolvedValue({
-      data: { generation_id: 'gen-1', type: 'quiz', tenant_id: 't1', summary: 'test' },
-      error: null,
-    })
+    vi.mocked(fetch).mockResolvedValue(
+      new Response(
+        JSON.stringify({ generation_id: 'gen-1', type: 'quiz', tenant_id: 't1', summary: 'test' }),
+        { status: 200, headers: { 'content-type': 'application/json' } }
+      )
+    )
 
     const formData = new FormData()
     await expect(aiAuthoringService.generateFromFile(formData)).rejects.toThrow(
@@ -142,10 +151,12 @@ describe('aiAuthoringService — generateFromFile', () => {
   })
 
   it('melempar error spesifik untuk insufficient content', async () => {
-    mockInvoke.mockResolvedValue({
-      data: { error: 'INSUFFICIENT_CONTENT' },
-      error: null,
-    })
+    vi.mocked(fetch).mockResolvedValue(
+      new Response(JSON.stringify({ error: 'INSUFFICIENT_CONTENT' }), {
+        status: 200,
+        headers: { 'content-type': 'application/json' },
+      })
+    )
 
     const formData = new FormData()
     await expect(aiAuthoringService.generateFromFile(formData)).rejects.toThrow(
@@ -154,10 +165,12 @@ describe('aiAuthoringService — generateFromFile', () => {
   })
 
   it('melempar error untuk network failure', async () => {
-    mockInvoke.mockResolvedValue({
-      data: null,
-      error: { message: 'Failed to fetch' },
-    })
+    vi.mocked(fetch).mockResolvedValue(
+      new Response(JSON.stringify({ error: 'Failed to fetch' }), {
+        status: 500,
+        headers: { 'content-type': 'application/json' },
+      })
+    )
 
     const formData = new FormData()
     await expect(aiAuthoringService.generateFromFile(formData)).rejects.toThrow(
@@ -166,16 +179,18 @@ describe('aiAuthoringService — generateFromFile', () => {
   })
 
   it('menggunakan legacy id field jika generation_id tidak ada', async () => {
-    mockInvoke.mockResolvedValue({
-      data: {
-        id: 'legacy-id',
-        type: 'quiz',
-        tenant_id: 'tenant-1',
-        summary: 'Test',
-        questions: [makeAIQuestion()],
-      },
-      error: null,
-    })
+    vi.mocked(fetch).mockResolvedValue(
+      new Response(
+        JSON.stringify({
+          id: 'legacy-id',
+          type: 'quiz',
+          tenant_id: 'tenant-1',
+          summary: 'Test',
+          questions: [makeAIQuestion()],
+        }),
+        { status: 200, headers: { 'content-type': 'application/json' } }
+      )
+    )
 
     const formData = new FormData()
     const result = await aiAuthoringService.generateFromFile(formData)
@@ -189,17 +204,20 @@ describe('aiAuthoringService — generateFromFile', () => {
 describe('aiAuthoringService — generateFromLesson', () => {
   beforeEach(() => {
     vi.clearAllMocks()
+    vi.stubGlobal('fetch', vi.fn())
   })
 
   it('mengirim config yang benar ke Edge Function', async () => {
-    mockInvoke.mockResolvedValue({
-      data: {
-        generation_id: 'gen-2',
-        questions: [makeAIQuestion()],
-        lesson_title: 'Pecahan',
-      },
-      error: null,
-    })
+    vi.mocked(fetch).mockResolvedValue(
+      new Response(
+        JSON.stringify({
+          generation_id: 'gen-2',
+          questions: [makeAIQuestion()],
+          lesson_title: 'Pecahan',
+        }),
+        { status: 200, headers: { 'content-type': 'application/json' } }
+      )
+    )
 
     await aiAuthoringService.generateFromLesson({
       lessonId: 'lesson-1',
@@ -208,21 +226,22 @@ describe('aiAuthoringService — generateFromLesson', () => {
       difficulty: 'medium',
     })
 
-    expect(mockInvoke).toHaveBeenCalledWith('generate-quiz-from-content', {
-      body: expect.objectContaining({
-        lesson_id: 'lesson-1',
-        question_count: 5,
-        question_types: ['MCQ', 'TRUE_FALSE'],
-        difficulty: 'medium',
-      }),
-    })
+    expect(vi.mocked(fetch)).toHaveBeenCalledTimes(1)
+    const [, init] = vi.mocked(fetch).mock.calls[0] as [string, RequestInit]
+    const parsed = JSON.parse(init.body as string) as Record<string, unknown>
+    expect(parsed.lesson_id).toBe('lesson-1')
+    expect(parsed.question_count).toBe(5)
+    expect(parsed.question_types).toEqual(['MCQ', 'TRUE_FALSE'])
+    expect(parsed.difficulty).toBe('medium')
   })
 
   it('melempar error spesifik untuk LESSON_NOT_FOUND', async () => {
-    mockInvoke.mockResolvedValue({
-      data: null,
-      error: { message: 'LESSON_NOT_FOUND' },
-    })
+    vi.mocked(fetch).mockResolvedValue(
+      new Response(JSON.stringify({ error: 'LESSON_NOT_FOUND' }), {
+        status: 404,
+        headers: { 'content-type': 'application/json' },
+      })
+    )
 
     await expect(
       aiAuthoringService.generateFromLesson({
@@ -235,10 +254,12 @@ describe('aiAuthoringService — generateFromLesson', () => {
   })
 
   it('melempar error spesifik untuk INSUFFICIENT_CONTENT', async () => {
-    mockInvoke.mockResolvedValue({
-      data: { error: 'INSUFFICIENT_CONTENT' },
-      error: null,
-    })
+    vi.mocked(fetch).mockResolvedValue(
+      new Response(JSON.stringify({ error: 'INSUFFICIENT_CONTENT' }), {
+        status: 200,
+        headers: { 'content-type': 'application/json' },
+      })
+    )
 
     await expect(
       aiAuthoringService.generateFromLesson({
@@ -251,10 +272,12 @@ describe('aiAuthoringService — generateFromLesson', () => {
   })
 
   it('melempar error spesifik untuk INVALID_QUESTION_COUNT', async () => {
-    mockInvoke.mockResolvedValue({
-      data: null,
-      error: { message: 'INVALID_QUESTION_COUNT' },
-    })
+    vi.mocked(fetch).mockResolvedValue(
+      new Response(JSON.stringify({ error: 'INVALID_QUESTION_COUNT' }), {
+        status: 400,
+        headers: { 'content-type': 'application/json' },
+      })
+    )
 
     await expect(
       aiAuthoringService.generateFromLesson({
@@ -268,14 +291,12 @@ describe('aiAuthoringService — generateFromLesson', () => {
 
   it('mengembalikan response dengan generation_id dan questions', async () => {
     const questions = [makeAIQuestion(), makeAIQuestion({ id: 'q-2', text: 'Soal kedua' })]
-    mockInvoke.mockResolvedValue({
-      data: {
-        generation_id: 'gen-3',
-        questions,
-        lesson_title: 'Aljabar',
-      },
-      error: null,
-    })
+    vi.mocked(fetch).mockResolvedValue(
+      new Response(JSON.stringify({ generation_id: 'gen-3', questions, lesson_title: 'Aljabar' }), {
+        status: 200,
+        headers: { 'content-type': 'application/json' },
+      })
+    )
 
     const result = await aiAuthoringService.generateFromLesson({
       lessonId: 'lesson-1',
@@ -290,13 +311,12 @@ describe('aiAuthoringService — generateFromLesson', () => {
   })
 
   it('mengembalikan null generation_id jika tidak ada di response', async () => {
-    mockInvoke.mockResolvedValue({
-      data: {
-        questions: [makeAIQuestion()],
-        lesson_title: 'Geometri',
-      },
-      error: null,
-    })
+    vi.mocked(fetch).mockResolvedValue(
+      new Response(JSON.stringify({ questions: [makeAIQuestion()], lesson_title: 'Geometri' }), {
+        status: 200,
+        headers: { 'content-type': 'application/json' },
+      })
+    )
 
     const result = await aiAuthoringService.generateFromLesson({
       lessonId: 'lesson-1',

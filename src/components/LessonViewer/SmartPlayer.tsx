@@ -7,7 +7,7 @@
  * Responsibilities:
  * - Renders lesson blocks via MultiBlockViewer
  * - Provides an AI Tutor side-panel toggled by a floating action button
- * - Reports progress to Supabase via the invisible ProgressReporter
+ * - Reports progress via the invisible ProgressReporter
  * - Shows a thin scroll-progress indicator at the viewport top
  */
 

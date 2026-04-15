@@ -42,7 +42,7 @@ export const videoUploadService = {
       metadata: { mime_type: file.type },
     })
 
-    // Upload to Supabase Storage
+    // Upload to storage bucket
     const ext = file.name.split('.').pop() || 'mp4'
     const path = `${tenantId}/${asset.id}.${ext}`
 

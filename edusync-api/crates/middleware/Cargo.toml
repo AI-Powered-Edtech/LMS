@@ -11,4 +11,5 @@ thiserror.workspace = true
 tracing.workspace = true
 tower-http.workspace = true
 uuid.workspace = true
+vil_server.workspace = true
 edusync-auth = { path = "../auth" }

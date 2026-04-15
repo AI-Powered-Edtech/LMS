@@ -2,7 +2,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { ltiService } from '../api/ltiService'
 
-// ── Supabase mock ──────────────────────────────────────────────
+// ── DB mock ─────────────────────────────────────────────────────
 const mockFrom = vi.fn()
 
 vi.mock('@/services/db', () => ({

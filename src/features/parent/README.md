@@ -6,7 +6,7 @@ Portal orang tua untuk monitoring anak: nilai, kehadiran, pesan, laporan
 
 ```
 src/features/parent/
-├── api/           # Supabase service layer
+├── api/           # API service layer
 ├── components/    # React components
 ├── hooks/         # Custom React hooks
 ├── types/         # TypeScript interfaces

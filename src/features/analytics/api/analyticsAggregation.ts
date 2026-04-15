@@ -14,7 +14,7 @@ import type {
 import { AnalyticsError } from '../types'
 
 /**
- * Parse Supabase RPC error and return user-friendly error
+ * Parse RPC error and return user-friendly error
  */
 export function parseRpcError(error: unknown): AnalyticsErrorType {
   const errorMessage = error instanceof Error ? error.message : String(error)

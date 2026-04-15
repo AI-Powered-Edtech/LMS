@@ -11,9 +11,9 @@ import { usePageTitle } from '@/hooks/usePageTitle'
 /**
  * ScanAttendance — AI-powered attendance book scanning.
  *
- * The scan feature requires a Supabase Edge Function (`scan-attendance`)
+ * The scan feature requires a backend endpoint (`scan-attendance`)
  * that accepts an image and returns structured attendance data via AI vision.
- * Until that Edge Function is deployed, the scan buttons show an informational
+ * Until that endpoint is deployed, the scan buttons show an informational
  * toast. The class selector queries real data from the `classes` table.
  */
 export function ScanAttendance() {

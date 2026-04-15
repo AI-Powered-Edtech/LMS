@@ -147,7 +147,7 @@ pub fn generate_certificate(data: CertificateData) -> Result<Vec<u8>, AppError> 
     // ── Garis dekoratif horizontal (gold) ──────────────────────────────────
 
     current_layer.set_outline_color(gold());
-    current_layer.set_outline_thickness(0.5 * MM_TO_PT);
+    current_layer.set_outline_thickness((0.5 * MM_TO_PT) as f32);
     draw_h_line(&current_layer, 28.0, h - 50.0, w - 56.0); // atas konten
     draw_h_line(&current_layer, 28.0, 35.0, w - 56.0); // bawah konten
 
@@ -155,13 +155,13 @@ pub fn generate_certificate(data: CertificateData) -> Result<Vec<u8>, AppError> 
 
     let font_regular = doc
         .add_builtin_font(BuiltinFont::Helvetica)
-        .map_err(|e| AppError::Internal(format!("Gagal load font regular: {e}")))?;
+        .map_err(|e| AppError::internal(format!("Gagal load font regular: {e}")))?;
     let font_bold = doc
         .add_builtin_font(BuiltinFont::HelveticaBold)
-        .map_err(|e| AppError::Internal(format!("Gagal load font bold: {e}")))?;
+        .map_err(|e| AppError::internal(format!("Gagal load font bold: {e}")))?;
     let font_italic = doc
         .add_builtin_font(BuiltinFont::HelveticaOblique)
-        .map_err(|e| AppError::Internal(format!("Gagal load font italic: {e}")))?;
+        .map_err(|e| AppError::internal(format!("Gagal load font italic: {e}")))?;
 
     let center = w / 2.0;
 
@@ -208,7 +208,7 @@ pub fn generate_certificate(data: CertificateData) -> Result<Vec<u8>, AppError> 
 
     // Garis bawah nama
     current_layer.set_outline_color(blue());
-    current_layer.set_outline_thickness(0.7 * MM_TO_PT);
+    current_layer.set_outline_thickness((0.7 * MM_TO_PT) as f32);
     let name_line_half = (data.student_name.len() as f64 * 2.5).min(70.0);
     draw_h_line(
         &current_layer,
@@ -286,7 +286,7 @@ pub fn generate_certificate(data: CertificateData) -> Result<Vec<u8>, AppError> 
 
     let bytes = doc
         .save_to_bytes()
-        .map_err(|e| AppError::Internal(format!("Gagal menyimpan PDF: {e}")))?;
+        .map_err(|e| AppError::internal(format!("Gagal menyimpan PDF: {e}")))?;
 
     Ok(bytes)
 }
@@ -337,7 +337,7 @@ fn write_centered(
 
     layer.use_text(
         text,
-        font_size_mm * MM_TO_PT, // pt
+        (font_size_mm * MM_TO_PT) as f32, // pt
         mm(x),
         mm(baseline_y),
         font,

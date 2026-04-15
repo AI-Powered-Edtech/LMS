@@ -5,7 +5,7 @@ vi.mock('@/contexts/AuthContext', () => ({
   useAuth: () => ({ tenantId: null, user: null }),
 }))
 
-// Mock Supabase before importing featureFlags
+// Mock db before importing featureFlags
 vi.mock('@/services/db', () => {
   const mockSelect = vi.fn()
   const mockFrom = vi.fn((_table?: string) => ({ select: mockSelect }))

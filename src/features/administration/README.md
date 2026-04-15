@@ -6,7 +6,7 @@ Manajemen tenant, konfigurasi modul sekolah, dan sinkronisasi data antar sistem
 
 ```
 src/features/administration/
-├── api/           # Supabase service layer
+├── api/           # API service layer
 ├── queries/       # React Query hooks & query keys
 ├── hooks/         # Custom React hooks
 ├── types/         # TypeScript interfaces

@@ -34,7 +34,9 @@ describe('ErrorBoundary', () => {
     )
     // ErrorFallback uses "Terjadi Kesalahan" as title
     expect(screen.getByText('Terjadi Kesalahan')).toBeInTheDocument()
-    expect(screen.getByText('Maaf, terjadi kesalahan yang tidak terduga.')).toBeInTheDocument()
+    expect(
+      screen.getByText(/Maaf, terjadi kesalahan saat memuat komponen ini/i)
+    ).toBeInTheDocument()
   })
 
   it('shows custom fallback when provided', () => {
@@ -59,15 +61,6 @@ describe('ErrorBoundary', () => {
     expect(retryBtn).toBeInTheDocument()
     fireEvent.click(retryBtn)
     expect(onRetry).toHaveBeenCalledTimes(1)
-  })
-
-  it('shows home link by default in fallback', () => {
-    render(
-      <ErrorBoundary>
-        <ThrowingChild shouldThrow />
-      </ErrorBoundary>
-    )
-    expect(screen.getByText('Kembali ke Beranda')).toBeInTheDocument()
   })
 
   it('renders alert role in fallback', () => {

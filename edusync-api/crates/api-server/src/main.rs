@@ -20,6 +20,7 @@ use sqlx::postgres::PgPoolOptions;
 use state::{AppState, ShadowRuntimeConfig, SmtpConfig};
 use std::sync::Arc;
 use vil_server::prelude::{delete, get, post, put, Method, ServiceProcess, VilApp};
+use anyhow::{bail, Context};
 
 use ai_handlers::{
     generate_content_handler, generate_quiz_handler, grade_essay_handler, tutor_chat_handler,
@@ -33,6 +34,7 @@ use auth::refresh::refresh_handler;
 use auth::register::register_handler;
 use auth::reset_password::{reset_password_handler, update_password_handler};
 use auth::signout::signout_handler;
+use auth::switch_tenant::switch_tenant_handler;
 use auth::tenant_rpcs::{
     accept_invitation_handler, create_tenant_handler, enroll_student_handler,
     lookup_class_handler, onboard_student_handler, validate_invitation_handler,
@@ -62,34 +64,17 @@ async fn main() -> anyhow::Result<()> {
     observability::init_tracing();
 
     let database_url = std::env::var("DATABASE_URL").expect("DATABASE_URL must be set");
-    let jwt_secret = std::env::var("JWT_SECRET").unwrap_or_else(|_| {
-        let secret = "dev-secret-change-in-prod".to_string();
-        tracing::warn!(
-            "JWT_SECRET tidak dikonfigurasi — menggunakan nilai default yang TIDAK AMAN. \
-             Atur JWT_SECRET di environment sebelum deploy ke produksi."
-        );
-        secret
-    });
-    if jwt_secret.len() < 32 {
-        tracing::error!(
-            "JWT_SECRET terlalu pendek ({} karakter). Minimal 32 karakter untuk keamanan.",
-            jwt_secret.len()
-        );
+    let jwt_secret = std::env::var("JWT_SECRET").context("JWT_SECRET harus diset")?;
+    if jwt_secret.trim().len() < 32 {
+        bail!("JWT_SECRET terlalu pendek (minimal 32 karakter)");
     }
-    let jwt_refresh_secret = std::env::var("JWT_REFRESH_SECRET").unwrap_or_else(|_| {
-        let secret = "dev-refresh-secret-change-in-prod".to_string();
-        tracing::warn!(
-            "JWT_REFRESH_SECRET tidak dikonfigurasi — menggunakan nilai default yang TIDAK AMAN. \
-             Atur JWT_REFRESH_SECRET di environment sebelum deploy ke produksi."
-        );
-        secret
-    });
-    if jwt_refresh_secret.len() < 32 {
-        tracing::error!(
-            "JWT_REFRESH_SECRET terlalu pendek ({} karakter). Minimal 32 karakter untuk keamanan.",
-            jwt_refresh_secret.len()
-        );
+
+    let jwt_refresh_secret =
+        std::env::var("JWT_REFRESH_SECRET").context("JWT_REFRESH_SECRET harus diset")?;
+    if jwt_refresh_secret.trim().len() < 32 {
+        bail!("JWT_REFRESH_SECRET terlalu pendek (minimal 32 karakter)");
     }
+
     let port = std::env::var("PORT")
         .ok()
         .and_then(|value| value.parse::<u16>().ok())
@@ -99,17 +84,23 @@ async fn main() -> anyhow::Result<()> {
         .ok()
         .map(|value| matches!(value.as_str(), "1" | "true" | "TRUE" | "yes" | "YES"))
         .unwrap_or(false);
+
+    let observer_enabled = std::env::var("ENABLE_OBSERVER")
+        .ok()
+        .map(|value| matches!(value.as_str(), "1" | "true" | "TRUE" | "yes" | "YES"))
+        .unwrap_or(false);
+
     let divergence_sample_rate = std::env::var("DIVERGENCE_SAMPLE_RATE")
         .ok()
         .and_then(|value| value.parse::<f64>().ok())
         .map(|value| value.clamp(0.0, 1.0))
         .unwrap_or(if shadow_enabled { 1.0 } else { 0.0 });
 
+
     let db = PgPoolOptions::new()
         .max_connections(50)
         .connect(&database_url)
         .await?;
-
     let _sentry = observability::init_sentry();
 
     let brute_force = edusync_middleware::brute_force::BruteForceTracker::new();
@@ -196,6 +187,7 @@ async fn main() -> anyhow::Result<()> {
         .endpoint(Method::POST, "/login", post(login_handler))
         .endpoint(Method::POST, "/signout", post(signout_handler))
         .endpoint(Method::POST, "/refresh", post(refresh_handler))
+        .endpoint(Method::POST, "/switch-tenant", post(switch_tenant_handler))
         // Bootstrap — frontend init
         .endpoint(Method::GET, "/bootstrap", get(bootstrap_handler))
         .endpoint(Method::POST, "/ensure-profile", post(ensure_profile_handler))
@@ -318,7 +310,7 @@ async fn main() -> anyhow::Result<()> {
     VilApp::new("edusync-api")
         .port(port)
         .profile(&vil_profile)
-        .observer(true)
+        .observer(observer_enabled)
         .extension(state_arc)
         .service(health_service)
         .service(auth_service)

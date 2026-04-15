@@ -62,6 +62,12 @@ function handleFunctionError(error: { message?: string } | null, data: unknown):
   }
 }
 
+function resolveApiUrl(path: string): string {
+  const apiUrl = import.meta.env.VITE_API_URL ?? ''
+  if (apiUrl) return `${apiUrl}${path}`
+  return new URL(path, window.location.origin).toString()
+}
+
 // ─── Service ─────────────────────────────────────────────────────────────────
 
 export const aiBuilderCopilotService = {
@@ -70,10 +76,9 @@ export const aiBuilderCopilotService = {
   async generateOutline(req: GenerateOutlineRequest): Promise<GenerateOutlineResponse> {
     // TODO: Phase 6 — generate-course-outline belum punya VIL endpoint resmi.
     // Menggunakan /api/v1/ai/generate-content sebagai proxy terdekat.
-    const apiUrl = import.meta.env.VITE_API_URL ?? ''
     const token = readVilSession()?.access_token
 
-    const res = await fetch(`${apiUrl}/api/v1/ai/generate-content`, {
+    const res = await fetch(resolveApiUrl('/api/v1/ai/generate-content'), {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -112,10 +117,9 @@ export const aiBuilderCopilotService = {
   async generateLessonDraft(req: GenerateLessonDraftRequest): Promise<GenerateLessonDraftResponse> {
     // TODO: Phase 6 — generate-lesson-draft belum punya VIL endpoint resmi.
     // Menggunakan /api/v1/ai/generate-content sebagai proxy terdekat.
-    const apiUrl = import.meta.env.VITE_API_URL ?? ''
     const token = readVilSession()?.access_token
 
-    const res = await fetch(`${apiUrl}/api/v1/ai/generate-content`, {
+    const res = await fetch(resolveApiUrl('/api/v1/ai/generate-content'), {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -170,10 +174,9 @@ export const aiBuilderCopilotService = {
   async transformContent(req: TransformContentRequest): Promise<TransformContentResponse> {
     // TODO: Phase 6 — transform-course-content belum punya VIL endpoint resmi.
     // Menggunakan /api/v1/ai/generate-content sebagai proxy terdekat.
-    const apiUrl = import.meta.env.VITE_API_URL ?? ''
     const token = readVilSession()?.access_token
 
-    const res = await fetch(`${apiUrl}/api/v1/ai/generate-content`, {
+    const res = await fetch(resolveApiUrl('/api/v1/ai/generate-content'), {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',

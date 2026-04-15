@@ -14,7 +14,11 @@ async function requestVil<T>(
   init?: RequestInit & { requestId?: string }
 ): Promise<T> {
   const requestId = init?.requestId ?? createRequestId()
-  const response = await fetch(`${VIL_BASE_URL}${path}`, {
+  const url = VIL_BASE_URL
+    ? `${VIL_BASE_URL}${path}`
+    : new URL(path, typeof window !== 'undefined' ? window.location.origin : 'http://localhost')
+        .toString()
+  const response = await fetch(url, {
     ...init,
     headers: buildRequestHeaders(init?.headers ?? {}, { withAuth: true, requestId }),
   })

@@ -19,13 +19,16 @@ import { aiBuilderCopilotService } from '../api/aiBuilderCopilotService'
 describe('aiBuilderCopilotService', () => {
   beforeEach(() => {
     vi.clearAllMocks()
+    vi.stubGlobal('fetch', vi.fn())
   })
 
   it('maps course access errors from edge functions into Indonesian message', async () => {
-    mockInvoke.mockResolvedValue({
-      data: { error: 'FORBIDDEN_NO_COURSE_ACCESS' },
-      error: null,
-    })
+    vi.mocked(fetch).mockResolvedValue(
+      new Response(JSON.stringify({ error: 'FORBIDDEN_NO_COURSE_ACCESS' }), {
+        status: 200,
+        headers: { 'content-type': 'application/json' },
+      })
+    )
 
     await expect(
       aiBuilderCopilotService.generateOutline({

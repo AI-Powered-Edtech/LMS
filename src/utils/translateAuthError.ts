@@ -1,5 +1,5 @@
 /**
- * Translates raw Supabase authentication errors into Bahasa Indonesia
+ * Translates raw authentication errors into Bahasa Indonesia
  */
 export const translateAuthError = (message: string): string => {
   if (!message) return 'Terjadi kesalahan yang tidak diketahui.'

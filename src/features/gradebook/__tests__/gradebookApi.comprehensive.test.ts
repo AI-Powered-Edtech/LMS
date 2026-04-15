@@ -1,7 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 // ══════════════════════════════════════════════════════════════
-// Supabase Mock
+// DB Mock
 // ══════════════════════════════════════════════════════════════
 
 const mockFrom = vi.fn()

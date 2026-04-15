@@ -6,7 +6,7 @@ Asisten belajar berbasis AI yang memberikan penjelasan personal dan saran belaja
 
 ```
 src/features/ai-tutor/
-├── api/           # Supabase service layer
+├── api/           # API service layer
 ├── queries/       # React Query hooks & query keys
 ├── hooks/         # Custom React hooks
 ├── types/         # TypeScript interfaces

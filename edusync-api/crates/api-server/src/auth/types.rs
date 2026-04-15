@@ -68,6 +68,24 @@ pub struct AcceptInvitationRequest {
     pub token: String,
 }
 
+#[derive(Deserialize)]
+pub struct SwitchTenantRequest {
+    pub tenant_id: Uuid,
+    pub refresh_token: String,
+}
+
+#[derive(Serialize, Clone)]
+pub struct TenantMembershipPayload {
+    pub tenant_id: Uuid,
+    pub tenant_name: String,
+    pub tenant_slug: String,
+    pub tenant_logo: Option<String>,
+    pub role: String,
+    pub status: String,
+    pub is_active: bool,
+    pub joined_at: Option<String>,
+}
+
 #[derive(Serialize)]
 pub struct AuthResponse {
     pub access_token: String,
@@ -75,6 +93,7 @@ pub struct AuthResponse {
     pub expires_in: i64,
     pub refresh_token: String,
     pub user: UserPayload,
+    pub memberships: Vec<TenantMembershipPayload>,
 }
 
 #[derive(Serialize, Clone)]

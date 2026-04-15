@@ -163,6 +163,35 @@ export function createVilAuthProvider(baseUrl = ''): AuthProvider {
       return { data: { user: mapUserFromSession(session) }, error: null }
     },
 
+    switchTenant: async ({ tenantId }) => {
+      const session = readVilSession()
+      if (!session?.access_token || !session.refresh_token) {
+        return {
+          data: { session: null },
+          error: { message: 'Sesi tidak tersedia untuk mengganti ruang kerja.', status: 401 },
+        }
+      }
+
+      const { data, error } = await requestJson<VilAuthResponse>(
+        baseUrl,
+        '/api/v1/auth/switch-tenant',
+        {
+          method: 'POST',
+          headers: buildHeaders(session),
+          body: JSON.stringify({ tenant_id: tenantId, refresh_token: session.refresh_token }),
+        },
+        'Gagal mengganti ruang kerja.'
+      )
+
+      if (error || !data) {
+        return { data: { session: null }, error }
+      }
+
+      const nextSession = buildSession(data)
+      persistSession('TENANT_SWITCHED', nextSession)
+      return { data: { session: nextSession }, error: null }
+    },
+
     getAuthBootstrap: async () => {
       const session = readVilSession()
       if (!session?.access_token) {

@@ -6,7 +6,7 @@ Konten pelajaran dengan block editor, video, dan materi interaktif
 
 ```
 src/features/lessons/
-├── api/           # Supabase service layer
+├── api/           # API service layer
 ├── queries/       # React Query hooks & query keys
 ├── hooks/         # Custom React hooks
 ├── types/         # TypeScript interfaces

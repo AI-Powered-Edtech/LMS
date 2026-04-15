@@ -2,7 +2,7 @@
 // Message API — messageApi.ts
 // Wave 4 — Task 29.5: Message Teacher Feature
 //
-// Supabase queries untuk Parent-Teacher messaging.
+// Query API untuk Parent-Teacher messaging.
 // RLS di DB memastikan hanya participant yang bisa mengakses.
 // ==========================================================================
 

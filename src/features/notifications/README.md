@@ -6,7 +6,7 @@ Sistem notifikasi real-time dengan preferensi per pengguna
 
 ```
 src/features/notifications/
-├── api/           # Supabase service layer
+├── api/           # API service layer
 ├── queries/       # React Query hooks & query keys
 ├── hooks/         # Custom React hooks
 ├── types/         # TypeScript interfaces

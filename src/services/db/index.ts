@@ -8,29 +8,45 @@
  * All consumer files import: import { db } from '@/services/db'
  */
 
+import type { ApiClient } from '@/services/api'
 import { getActiveApiClient } from '@/services/api/runtime'
 import { getAuthProvider } from '@/services/auth'
+import type { AuthProvider } from '@/services/auth'
 import { getRealtimeProvider } from '@/services/realtime'
+import type { RealtimeProvider } from '@/services/realtime'
 import { getStorageProvider } from '@/services/storage'
+import type { StorageProvider } from '@/services/storage'
 import { logger } from '@/utils/logger'
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-export const db: any = {
-  from(table: string) {
+export type DbFacade = {
+  from: ApiClient['from']
+  rpc: ApiClient['rpc']
+  readonly auth: AuthProvider
+  readonly storage: StorageProvider
+  channel: RealtimeProvider['channel']
+  removeChannel: RealtimeProvider['removeChannel']
+  removeAllChannels: RealtimeProvider['removeAllChannels']
+  functions: {
+    invoke(fnName: string, options?: { body?: unknown }): Promise<{ data: null; error: Error }>
+  }
+}
+
+export const db: DbFacade = {
+  from<T = unknown>(table: string) {
     const client = getActiveApiClient()
     if (!client)
       throw new Error(
         `[VIL] API client not initialized. Call setActiveApiClient() before using db.from('${table}').`
       )
-    return client.from(table)
+    return client.from<T>(table)
   },
-  rpc(fn: string, args?: Record<string, unknown>) {
+  rpc<T = unknown>(fn: string, args?: Record<string, unknown>) {
     const client = getActiveApiClient()
     if (!client)
       throw new Error(
         `[VIL] API client not initialized. Call setActiveApiClient() before using db.rpc('${fn}').`
       )
-    return client.rpc(fn, args)
+    return client.rpc<T>(fn, args)
   },
   get auth() {
     return getAuthProvider()
@@ -48,8 +64,7 @@ export const db: any = {
     return getRealtimeProvider().removeAllChannels()
   },
   functions: {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    invoke(fnName: string, _options?: any): Promise<{ data: null; error: Error }> {
+    invoke(fnName: string, _options?: { body?: unknown }): Promise<{ data: null; error: Error }> {
       const msg = `[VIL] Edge Function '${fnName}' removed. Use fetch('/api/v1/...') instead.`
       logger.error(msg)
       return Promise.resolve({ data: null, error: new Error(msg) })
@@ -58,8 +73,7 @@ export const db: any = {
 }
 
 // Backward-compat helpers (no-ops)
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-export function getDbClient(): any {
+export function getDbClient(): DbFacade {
   return db
 }
 export function initializeDbClient(): void {}

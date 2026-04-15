@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
-// ── Supabase Mock ────────────────────────────────────────────────────────────
+// ── DB Mock ─────────────────────────────────────────────────────────────────
 
 const { mockFrom } = vi.hoisted(() => {
   const mockFrom = vi.fn()
@@ -24,7 +24,7 @@ import {
 // ── Helpers ─────────────────────────────────────────────────────────────────
 
 /**
- * Builder untuk chainable Supabase query mock.
+ * Builder untuk chainable query mock.
  * Setiap method mengembalikan chain (thenable) — bisa di-await di mana saja.
  */
 function createChainMock(resolvedValue: { data: unknown; error: unknown }) {
@@ -41,6 +41,7 @@ function createChainMock(resolvedValue: { data: unknown; error: unknown }) {
   chain.upsert = vi.fn().mockReturnValue(chain)
   chain.update = vi.fn().mockReturnValue(chain)
   chain.eq = vi.fn().mockReturnValue(chain)
+  chain.in = vi.fn().mockReturnValue(chain)
   chain.order = vi.fn().mockReturnValue(chain)
   chain.single = vi.fn().mockResolvedValue(resolvedValue)
   chain.limit = vi.fn().mockReturnValue(chain)
@@ -58,8 +59,6 @@ const MOCK_THREAD_ROW = {
   parent_unread_count: 2,
   teacher_unread_count: 0,
   created_at: '2026-03-29T08:00:00Z',
-  teacher: { full_name: 'Pak Budi', avatar_url: null },
-  student: { full_name: 'Andi Pratama' },
 }
 
 const MOCK_MESSAGE_ROW = {
@@ -69,7 +68,6 @@ const MOCK_MESSAGE_ROW = {
   sender_id: 'parent-1',
   content: 'Halo Pak',
   created_at: '2026-03-30T10:01:00Z',
-  sender: { full_name: 'Bu Sari', avatar_url: null },
 }
 
 // ── Tests ────────────────────────────────────────────────────────────────────
@@ -83,17 +81,23 @@ describe('messageApi', () => {
 
   describe('getThreads', () => {
     it('mengambil threads yang diurutkan berdasarkan last_message_at desc', async () => {
-      const chain = createChainMock({
-        data: [MOCK_THREAD_ROW],
+      const threadsChain = createChainMock({ data: [MOCK_THREAD_ROW], error: null })
+      const profilesChain = createChainMock({
+        data: [
+          { id: 'teacher-1', full_name: 'Pak Budi', avatar_url: null },
+          { id: 'student-1', full_name: 'Andi Pratama', avatar_url: null },
+        ],
         error: null,
       })
-      mockFrom.mockReturnValue(chain)
+      mockFrom.mockImplementation((table: string) =>
+        table === 'profiles' ? profilesChain : threadsChain
+      )
 
       const result = await getThreads('parent-1')
 
       expect(mockFrom).toHaveBeenCalledWith('parent_teacher_threads')
-      expect(chain.eq).toHaveBeenCalledWith('parent_id', 'parent-1')
-      expect(chain.order).toHaveBeenCalledWith('last_message_at', { ascending: false })
+      expect(threadsChain.eq).toHaveBeenCalledWith('parent_id', 'parent-1')
+      expect(threadsChain.order).toHaveBeenCalledWith('last_message_at', { ascending: false })
       expect(result).toHaveLength(1)
       expect(result[0].id).toBe('thread-1')
       expect(result[0].teacher_name).toBe('Pak Budi')
@@ -116,9 +120,11 @@ describe('messageApi', () => {
     })
 
     it('mengisi default teacher_name dan student_name jika null', async () => {
-      const row = { ...MOCK_THREAD_ROW, teacher: null, student: null }
-      const chain = createChainMock({ data: [row], error: null })
-      mockFrom.mockReturnValue(chain)
+      const threadsChain = createChainMock({ data: [MOCK_THREAD_ROW], error: null })
+      const profilesChain = createChainMock({ data: [], error: null })
+      mockFrom.mockImplementation((table: string) =>
+        table === 'profiles' ? profilesChain : threadsChain
+      )
 
       const result = await getThreads('parent-1')
       expect(result[0].teacher_name).toBe('Guru')
@@ -130,17 +136,20 @@ describe('messageApi', () => {
 
   describe('getMessages', () => {
     it('mengambil pesan dalam thread diurutkan ascending', async () => {
-      const chain = createChainMock({
-        data: [MOCK_MESSAGE_ROW],
+      const messagesChain = createChainMock({ data: [MOCK_MESSAGE_ROW], error: null })
+      const profilesChain = createChainMock({
+        data: [{ id: 'parent-1', full_name: 'Bu Sari', avatar_url: null }],
         error: null,
       })
-      mockFrom.mockReturnValue(chain)
+      mockFrom.mockImplementation((table: string) =>
+        table === 'profiles' ? profilesChain : messagesChain
+      )
 
       const result = await getMessages('thread-1')
 
       expect(mockFrom).toHaveBeenCalledWith('parent_teacher_messages')
-      expect(chain.eq).toHaveBeenCalledWith('thread_id', 'thread-1')
-      expect(chain.order).toHaveBeenCalledWith('created_at', { ascending: true })
+      expect(messagesChain.eq).toHaveBeenCalledWith('thread_id', 'thread-1')
+      expect(messagesChain.order).toHaveBeenCalledWith('created_at', { ascending: true })
       expect(result).toHaveLength(1)
       expect(result[0].content).toBe('Halo Pak')
       expect(result[0].sender_name).toBe('Bu Sari')
@@ -166,18 +175,19 @@ describe('messageApi', () => {
 
   describe('sendMessage', () => {
     it('mengirim pesan baru ke thread', async () => {
-      const chain = createChainMock({
-        data: MOCK_MESSAGE_ROW,
+      const insertChain = createChainMock({ data: MOCK_MESSAGE_ROW, error: null })
+      const profilesChain = createChainMock({
+        data: [{ id: 'parent-1', full_name: 'Bu Sari', avatar_url: null }],
         error: null,
       })
-      // Untuk sendMessage: insert → select → single
-      // chain.insert returns chain, chain.select returns chain, chain.single resolves
-      mockFrom.mockReturnValue(chain)
+      mockFrom.mockImplementation((table: string) =>
+        table === 'profiles' ? profilesChain : insertChain
+      )
 
       const result = await sendMessage('thread-1', ' Halo Pak Guru ')
 
       expect(mockFrom).toHaveBeenCalledWith('parent_teacher_messages')
-      expect(chain.insert).toHaveBeenCalledWith({
+      expect(insertChain.insert).toHaveBeenCalledWith({
         thread_id: 'thread-1',
         content: 'Halo Pak Guru', // trimmed
       })
@@ -197,11 +207,17 @@ describe('messageApi', () => {
 
   describe('createThread', () => {
     it('membuat thread baru dengan upsert', async () => {
-      const chain = createChainMock({
-        data: MOCK_THREAD_ROW,
+      const upsertChain = createChainMock({ data: MOCK_THREAD_ROW, error: null })
+      const profilesChain = createChainMock({
+        data: [
+          { id: 'teacher-1', full_name: 'Pak Budi', avatar_url: null },
+          { id: 'student-1', full_name: 'Andi Pratama', avatar_url: null },
+        ],
         error: null,
       })
-      mockFrom.mockReturnValue(chain)
+      mockFrom.mockImplementation((table: string) =>
+        table === 'profiles' ? profilesChain : upsertChain
+      )
 
       const result = await createThread({
         parent_id: 'parent-1',
@@ -211,7 +227,7 @@ describe('messageApi', () => {
       })
 
       expect(mockFrom).toHaveBeenCalledWith('parent_teacher_threads')
-      expect(chain.upsert).toHaveBeenCalledWith(
+      expect(upsertChain.upsert).toHaveBeenCalledWith(
         {
           parent_id: 'parent-1',
           teacher_id: 'teacher-1',
@@ -231,9 +247,17 @@ describe('messageApi', () => {
       // Upsert fails → fallback fetch succeeds
       const upsertChain = createChainMock({ data: null, error: { message: 'Conflict' } })
       const fetchChain = createChainMock({ data: MOCK_THREAD_ROW, error: null })
+      const profilesChain = createChainMock({
+        data: [
+          { id: 'teacher-1', full_name: 'Pak Budi', avatar_url: null },
+          { id: 'student-1', full_name: 'Andi Pratama', avatar_url: null },
+        ],
+        error: null,
+      })
 
       let callCount = 0
-      mockFrom.mockImplementation(() => {
+      mockFrom.mockImplementation((table: string) => {
+        if (table === 'profiles') return profilesChain
         callCount++
         return callCount === 1 ? upsertChain : fetchChain
       })
@@ -261,8 +285,17 @@ describe('messageApi', () => {
     })
 
     it('mengisi subject null jika tidak diberikan', async () => {
-      const chain = createChainMock({ data: MOCK_THREAD_ROW, error: null })
-      mockFrom.mockReturnValue(chain)
+      const upsertChain = createChainMock({ data: MOCK_THREAD_ROW, error: null })
+      const profilesChain = createChainMock({
+        data: [
+          { id: 'teacher-1', full_name: 'Pak Budi', avatar_url: null },
+          { id: 'student-1', full_name: 'Andi Pratama', avatar_url: null },
+        ],
+        error: null,
+      })
+      mockFrom.mockImplementation((table: string) =>
+        table === 'profiles' ? profilesChain : upsertChain
+      )
 
       await createThread({
         parent_id: 'parent-1',
@@ -270,7 +303,7 @@ describe('messageApi', () => {
         student_id: 'student-1',
       })
 
-      expect(chain.upsert).toHaveBeenCalledWith(
+      expect(upsertChain.upsert).toHaveBeenCalledWith(
         expect.objectContaining({ subject: null }),
         expect.any(Object)
       )

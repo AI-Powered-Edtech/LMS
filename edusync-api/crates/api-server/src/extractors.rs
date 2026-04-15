@@ -59,7 +59,9 @@ impl From<AuthError> for VilError {
             | AuthError::ClassNotFound
             | AuthError::UserNotFound => VilError::not_found(err.to_string()),
             AuthError::TooManyRequests => {
-                VilError::bad_request(err.to_string())
+                let mut e = VilError::rate_limited();
+                e.detail = err.to_string();
+                e
             }
             AuthError::EmailAlreadyExists
             | AuthError::InvalidEmail
@@ -152,5 +154,18 @@ where
         extract_tenant_context(parts, &state.jwt_secret)
             .map(RbacGuard)
             .map_err(VilError::from)
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use axum::http::StatusCode;
+    use edusync_auth::AuthError;
+
+    #[test]
+    fn too_many_requests_maps_to_429() {
+        let err: VilError = AuthError::TooManyRequests.into();
+        assert_eq!(err.status, StatusCode::TOO_MANY_REQUESTS);
     }
 }

@@ -3,119 +3,162 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { logDevError, logDevWarn } from '../logDevError'
 
 describe('logDevError', () => {
+  const fixedIso = '2023-01-01T00:00:00.000Z'
+
   beforeEach(() => {
+    vi.useFakeTimers()
+    vi.setSystemTime(new Date(fixedIso))
+    vi.stubEnv('DEV', true)
     vi.spyOn(console, 'error').mockImplementation(() => {})
     vi.spyOn(console, 'warn').mockImplementation(() => {})
   })
 
   afterEach(() => {
+    vi.useRealTimers()
+    vi.unstubAllEnvs()
     vi.restoreAllMocks()
   })
 
   describe('logDevError', () => {
     it('harus call logger.error dalam mode DEV dengan context prefix', () => {
       const devSpy = vi.spyOn(console, 'error')
-      // Pastikan import.meta.env.DEV adalah true untuk test ini
-      if (import.meta.env.DEV) {
-        logDevError('MyComponent', 'error message')
-        expect(devSpy).toHaveBeenCalledWith('[MyComponent]', 'error message')
-      }
+      logDevError('MyComponent', 'error message')
+
+      expect(devSpy).toHaveBeenCalledTimes(1)
+      expect(devSpy).toHaveBeenCalledWith(
+        expect.stringContaining(`[${fixedIso}] [ERROR] [MyComponent]`),
+        'error message'
+      )
     })
 
     it('harus handle multiple arguments', () => {
       const devSpy = vi.spyOn(console, 'error')
-      if (import.meta.env.DEV) {
-        logDevError('Context', 'arg1', 'arg2', 42)
-        expect(devSpy).toHaveBeenCalledWith('[Context]', 'arg1', 'arg2', 42)
-      }
+      logDevError('Context', 'arg1', 'arg2', 42)
+
+      expect(devSpy).toHaveBeenCalledTimes(1)
+      expect(devSpy).toHaveBeenCalledWith(
+        expect.stringContaining(`[${fixedIso}] [ERROR] [Context]`),
+        'arg1',
+        'arg2',
+        42
+      )
     })
 
     it('harus handle error objects sebagai arguments', () => {
       const devSpy = vi.spyOn(console, 'error')
       const error = new Error('Test error')
-      if (import.meta.env.DEV) {
-        logDevError('ErrorContext', error)
-        expect(devSpy).toHaveBeenCalledWith('[ErrorContext]', error)
-      }
+      logDevError('ErrorContext', error)
+
+      expect(devSpy).toHaveBeenCalledTimes(1)
+      const call = devSpy.mock.calls[0]
+      expect(call[0]).toEqual(expect.stringContaining(`[${fixedIso}] [ERROR] [ErrorContext]`))
+      expect(call[1]).toBe('Test error')
+      expect(call[2]).toEqual(expect.any(String))
+      expect(call[3]).toBe(error)
     })
 
     it('harus prefix dengan context dalam square brackets', () => {
       const devSpy = vi.spyOn(console, 'error')
-      if (import.meta.env.DEV) {
-        logDevError('MyComponent', 'message')
-        const calls = devSpy.mock.calls
-        expect(calls[0][0]).toBe('[MyComponent]')
-      }
+      logDevError('MyComponent', 'message')
+
+      const firstArg = devSpy.mock.calls[0]?.[0]
+      expect(firstArg).toEqual(expect.stringContaining('[ERROR] [MyComponent]'))
     })
 
     it('harus handle empty context string', () => {
       const devSpy = vi.spyOn(console, 'error')
-      if (import.meta.env.DEV) {
-        logDevError('', 'message')
-        expect(devSpy).toHaveBeenCalledWith('[]', 'message')
-      }
+      logDevError('', 'message')
+
+      expect(devSpy).toHaveBeenCalledTimes(1)
+      expect(devSpy).toHaveBeenCalledWith(
+        expect.stringContaining(`[${fixedIso}] [ERROR] []`),
+        'message'
+      )
     })
 
     it('harus handle numeric arguments', () => {
       const devSpy = vi.spyOn(console, 'error')
-      if (import.meta.env.DEV) {
-        logDevError('NumberContext', 123, 456.78)
-        expect(devSpy).toHaveBeenCalledWith('[NumberContext]', 123, 456.78)
-      }
+      logDevError('NumberContext', 123, 456.78)
+
+      expect(devSpy).toHaveBeenCalledTimes(1)
+      expect(devSpy).toHaveBeenCalledWith(
+        expect.stringContaining(`[${fixedIso}] [ERROR] [NumberContext]`),
+        123,
+        456.78
+      )
     })
 
     it('harus handle object arguments', () => {
       const devSpy = vi.spyOn(console, 'error')
       const testObj = { key: 'value' }
-      if (import.meta.env.DEV) {
-        logDevError('ObjectContext', testObj)
-        expect(devSpy).toHaveBeenCalledWith('[ObjectContext]', testObj)
-      }
+      logDevError('ObjectContext', testObj)
+
+      expect(devSpy).toHaveBeenCalledTimes(1)
+      expect(devSpy).toHaveBeenCalledWith(
+        expect.stringContaining(`[${fixedIso}] [ERROR] [ObjectContext]`),
+        testObj
+      )
     })
   })
 
   describe('logDevWarn', () => {
     it('harus call logger.warn dalam mode DEV dengan context prefix', () => {
       const warnSpy = vi.spyOn(console, 'warn')
-      if (import.meta.env.DEV) {
-        logDevWarn('MyComponent', 'warning message')
-        expect(warnSpy).toHaveBeenCalledWith('[MyComponent]', 'warning message')
-      }
+      logDevWarn('MyComponent', 'warning message')
+
+      expect(warnSpy).toHaveBeenCalledTimes(1)
+      const call = warnSpy.mock.calls[0]
+      expect(call).toHaveLength(1)
+      expect(call[0]).toEqual(expect.stringContaining(`[${fixedIso}] [WARN] [MyComponent]`))
+      expect(call[0]).toEqual(expect.stringContaining('warning message'))
     })
 
     it('harus handle multiple arguments', () => {
       const warnSpy = vi.spyOn(console, 'warn')
-      if (import.meta.env.DEV) {
-        logDevWarn('WarnContext', 'arg1', 'arg2', true)
-        expect(warnSpy).toHaveBeenCalledWith('[WarnContext]', 'arg1', 'arg2', true)
-      }
+      logDevWarn('WarnContext', 'arg1', 'arg2', true)
+
+      expect(warnSpy).toHaveBeenCalledTimes(1)
+      const call = warnSpy.mock.calls[0]
+      expect(call).toHaveLength(1)
+      expect(call[0]).toEqual(expect.stringContaining(`[${fixedIso}] [WARN] [WarnContext]`))
+      expect(call[0]).toEqual(expect.stringContaining('arg1'))
+      expect(call[0]).toEqual(expect.stringContaining('arg2'))
+      expect(call[0]).toEqual(expect.stringContaining('true'))
     })
 
     it('harus prefix dengan context dalam square brackets', () => {
       const warnSpy = vi.spyOn(console, 'warn')
-      if (import.meta.env.DEV) {
-        logDevWarn('MyWarning', 'message')
-        const calls = warnSpy.mock.calls
-        expect(calls[0][0]).toBe('[MyWarning]')
-      }
+      logDevWarn('MyWarning', 'message')
+
+      const firstArg = warnSpy.mock.calls[0]?.[0]
+      expect(firstArg).toEqual(expect.stringContaining('[WARN] [MyWarning]'))
     })
 
     it('harus handle warning dengan object data', () => {
       const warnSpy = vi.spyOn(console, 'warn')
       const data = { warning: 'data' }
-      if (import.meta.env.DEV) {
-        logDevWarn('DataWarning', data)
-        expect(warnSpy).toHaveBeenCalledWith('[DataWarning]', data)
-      }
+      logDevWarn('DataWarning', data)
+
+      expect(warnSpy).toHaveBeenCalledTimes(1)
+      const call = warnSpy.mock.calls[0]
+      expect(call).toHaveLength(1)
+      expect(call[0]).toEqual(expect.stringContaining(`[${fixedIso}] [WARN] [DataWarning]`))
+      expect(call[0]).toEqual(expect.stringContaining('"warning": "data"'))
     })
 
     it('harus handle multiple arguments dengan different types', () => {
       const warnSpy = vi.spyOn(console, 'warn')
       const obj = { key: 'val' }
-      if (import.meta.env.DEV) {
-        logDevWarn('MixedContext', 'string', 42, obj, true)
-        expect(warnSpy).toHaveBeenCalledWith('[MixedContext]', 'string', 42, obj, true)
-      }
+      logDevWarn('MixedContext', 'string', 42, obj, true)
+
+      expect(warnSpy).toHaveBeenCalledTimes(1)
+      const call = warnSpy.mock.calls[0]
+      expect(call).toHaveLength(1)
+      expect(call[0]).toEqual(expect.stringContaining(`[${fixedIso}] [WARN] [MixedContext]`))
+      expect(call[0]).toEqual(expect.stringContaining('"string"'))
+      expect(call[0]).toEqual(expect.stringContaining('42'))
+      expect(call[0]).toEqual(expect.stringContaining('"key": "val"'))
+      expect(call[0]).toEqual(expect.stringContaining('true'))
     })
   })
 })

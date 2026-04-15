@@ -7,6 +7,7 @@ members = [
     "crates/middleware",
     "crates/services",
     "crates/integration-tests",
+    "crates/vil_conn_s3",
 ]
 
 [workspace.dependencies]
@@ -45,6 +46,6 @@ printpdf = "0.7"
 zip = "2"
 quick-xml = "0.37"
 csv = "1"
-vil_conn_s3 = "0.2"
+vil_conn_s3 = { path = "crates/vil_conn_s3" }
 vil_ws = "0.2"
 vil_server_auth = "0.2"

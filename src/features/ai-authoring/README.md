@@ -31,10 +31,10 @@ src/features/ai-authoring/
 | --------------------------- | ---------------------- | ---------------------------- |
 | Generate dari file upload   | `generateFromFile()`   | `generate-ai-content`        |
 | Generate dari konten lesson | `generateFromLesson()` | `generate-quiz-from-content` |
-| History & riwayat           | `fetchHistory()`       | Supabase DB                  |
-| Tandai digunakan            | `markAsUsed()`         | Supabase DB                  |
-| Edit soal                   | `updateQuestions()`    | Supabase DB                  |
-| Hapus riwayat               | `deleteGeneration()`   | Supabase DB                  |
+| History & riwayat           | `fetchHistory()`       | DB                           |
+| Tandai digunakan            | `markAsUsed()`         | DB                           |
+| Edit soal                   | `updateQuestions()`    | DB                           |
+| Hapus riwayat               | `deleteGeneration()`   | DB                           |
 
 ## Database Tables
 

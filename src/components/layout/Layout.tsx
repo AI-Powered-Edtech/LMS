@@ -13,9 +13,9 @@ export function Layout() {
   // SECURITY FIX: Use activeRole (per-tenant) not global `role` so the correct
   // layout is shown for the active tenant context. A user who is admin in Tenant A
   // but student in Tenant B should see the Student layout when in Tenant B.
-  const { activeRole, role } = useAuth()
-  // Fall back to global role when activeTenant hasn't been set yet
-  const effectiveRole = activeRole ?? role
+  const { activeRole } = useAuth()
+
+  if (!activeRole) return null
 
   return (
     <>
@@ -29,11 +29,11 @@ export function Layout() {
 
       <OfflineBanner />
 
-      {effectiveRole === 'student' && <StudentLayout />}
-      {effectiveRole === 'teacher' && <TeacherLayout />}
-      {effectiveRole === 'admin' && <AdminLayout />}
-      {effectiveRole === 'parent' && <ParentLayout />}
-      {effectiveRole === 'principal' && <PrincipalLayout />}
+      {activeRole === 'student' && <StudentLayout />}
+      {activeRole === 'teacher' && <TeacherLayout />}
+      {activeRole === 'admin' && <AdminLayout />}
+      {activeRole === 'parent' && <ParentLayout />}
+      {activeRole === 'principal' && <PrincipalLayout />}
     </>
   )
 }

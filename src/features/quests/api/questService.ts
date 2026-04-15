@@ -1,6 +1,6 @@
 /**
  * Quest API Service — Phase 36A
- * All Supabase calls for the Learning Quests system.
+ * All database calls for the Learning Quests system.
  */
 
 import { db } from '@/services/db'

@@ -3,7 +3,7 @@
  *
  * In-memory, per-key rate limiter with sliding window and automatic TTL cleanup.
  * This is a client-side defense-in-depth measure — real rate limiting must
- * also exist server-side (Supabase RLS / Edge Functions).
+ * also exist server-side (RLS / API middleware).
  */
 
 interface RateLimitEntry {

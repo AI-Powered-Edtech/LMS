@@ -1,5 +1,5 @@
 /**
- * Shared Valibot schemas for Supabase row validation.
+ * Shared Valibot schemas for database row validation.
  *
  * Uses `v.looseObject()` so extra columns / join data pass through
  * without failing validation. Only the *critical* fields are checked.

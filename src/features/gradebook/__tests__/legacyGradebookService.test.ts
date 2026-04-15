@@ -4,7 +4,7 @@ import { db } from '@/services/db'
 
 import { gradebookService } from '../api/legacyGradebookService'
 
-// Mock the Supabase client — must include both `from` AND `rpc` since
+// Mock the db client — must include both `from` AND `rpc` since
 // legacyGradebookService calls db.rpc('get_gradebook_students', ...)
 // for student data instead of querying the `profiles` table directly.
 vi.mock('@/services/db', () => {
@@ -17,7 +17,7 @@ vi.mock('@/services/db', () => {
 })
 
 /**
- * Build a fully chainable Supabase query mock.
+ * Build a fully chainable query mock.
  * Every method returns `this` so any chain order works,
  * and `then` makes the object awaitable with the given result.
  */

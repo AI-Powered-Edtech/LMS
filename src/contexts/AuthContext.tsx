@@ -1,5 +1,8 @@
 import React, { createContext, ReactNode, useCallback, useContext, useMemo } from 'react'
 
+import { getAuthProvider } from '@/services/auth'
+import { captureError } from '@/utils/sentry'
+
 import {
   getPermissions,
   getPrimaryRole,
@@ -36,7 +39,7 @@ export interface AuthContextType {
   tenantId: string | null
   memberships: ReturnType<typeof useRoleResolution>['memberships']
   activeTenant: Tenant | null
-  setActiveTenant: (tenantId: string) => void
+  setActiveTenant: (tenantId: string) => Promise<void>
   activeRole: Role | null
   roles: Role[]
   role: Role
@@ -104,10 +107,30 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   } = useTenantSwitching({ rawTenants, defaultTenantId })
 
   const setActiveTenant = useCallback(
-    (id: string) => {
-      setActiveTenantRaw(id)
+    async (id: string) => {
+      try {
+        if (!user) {
+          setActiveTenantRaw(id)
+          return
+        }
+        const { error } = await getAuthProvider().switchTenant({ tenantId: id })
+        if (error) {
+          throw new Error(error.message)
+        }
+        await fetchUserData(user.id)
+        setActiveTenantRaw(id)
+      } catch (err) {
+        captureError(err, { context: 'AuthContext.setActiveTenant', tenantId: id })
+        const { useToast } = await import('@/hooks/useToast')
+        useToast.getState().addToast({
+          type: 'error',
+          message: 'Gagal mengganti ruang kerja.',
+          description: err instanceof Error ? err.message : 'Silakan coba lagi.',
+        })
+        throw err
+      }
     },
-    [setActiveTenantRaw]
+    [fetchUserData, setActiveTenantRaw, user]
   )
 
   const activeRole = React.useMemo(() => {
@@ -119,7 +142,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const role = useMemo(() => getPrimaryRole(roles), [roles])
   const permissions = useMemo(() => getPermissions(role), [role])
   const emailVerified = !!user?.email_confirmed_at
-  console.log('USER:', user, 'emailVerified:', emailVerified)
 
   const hasRole = useCallback((r: Role) => roles.includes(r), [roles])
   const refreshAuthBootstrap = useCallback(async () => {

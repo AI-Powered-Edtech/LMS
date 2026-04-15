@@ -67,7 +67,7 @@ describe('metrics', () => {
       vi.stubEnv('DEV', false)
       vi.stubEnv('PROD', true)
 
-      mockInsert.mockRejectedValue(new Error('Supabase error'))
+      mockInsert.mockRejectedValue(new Error('DB error'))
 
       const consoleWarnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {})
 

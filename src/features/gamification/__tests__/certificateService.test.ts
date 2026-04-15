@@ -2,25 +2,19 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { certificateService } from '../api/certificateService'
 
-// Mock db
-const { mockInvoke } = vi.hoisted(() => ({ mockInvoke: vi.fn() }))
-
-vi.mock('@/services/db', () => ({
-  db: {
-    functions: {
-      invoke: mockInvoke,
-    },
-  },
-}))
-
 describe('certificateService.generatePdf', () => {
   beforeEach(() => {
     vi.clearAllMocks()
+    vi.stubGlobal('fetch', vi.fn())
   })
 
   it('returns Blob on success', async () => {
-    const mockBlob = new Blob(['pdf'], { type: 'application/pdf' })
-    mockInvoke.mockResolvedValue({ data: mockBlob, error: null })
+    vi.mocked(fetch).mockResolvedValue(
+      new Response(new Blob(['pdf'], { type: 'application/pdf' }), {
+        status: 200,
+        headers: { 'content-type': 'application/pdf' },
+      })
+    )
 
     const params = {
       studentName: 'John Doe',
@@ -32,30 +26,11 @@ describe('certificateService.generatePdf', () => {
 
     const result = await certificateService.generatePdf(params)
     expect(result).toBeInstanceOf(Blob)
-    expect(result.type).toBe('application/pdf')
-  })
-
-  it('wraps Blob correctly if not Blob', async () => {
-    mockInvoke.mockResolvedValue({ data: 'pdf data', error: null })
-
-    const params = {
-      studentName: 'John Doe',
-      courseTitle: 'Math 101',
-      completionDate: '2026-04-01',
-      tenantName: 'School ABC',
-      certificateNumber: 'CERT-123',
-    }
-
-    const result = await certificateService.generatePdf(params)
-    expect(result).toBeInstanceOf(Blob)
-    expect(result.type).toBe('application/pdf')
+    expect(result.type).toContain('application/pdf')
   })
 
   it('throws custom error for missing function', async () => {
-    mockInvoke.mockRejectedValue({
-      message: 'generate-pdf function not found',
-      code: 'PGRST202',
-    })
+    vi.mocked(fetch).mockResolvedValue(new Response('not found', { status: 404 }))
 
     const params = {
       studentName: 'John Doe',
@@ -71,7 +46,7 @@ describe('certificateService.generatePdf', () => {
   })
 
   it('throws original error for other issues', async () => {
-    mockInvoke.mockRejectedValue(new Error('Network error'))
+    vi.mocked(fetch).mockResolvedValue(new Response('error', { status: 500 }))
 
     const params = {
       studentName: 'John Doe',
@@ -81,6 +56,6 @@ describe('certificateService.generatePdf', () => {
       certificateNumber: 'CERT-123',
     }
 
-    await expect(certificateService.generatePdf(params)).rejects.toThrow('Network error')
+    await expect(certificateService.generatePdf(params)).rejects.toThrow('HTTP 500')
   })
 })

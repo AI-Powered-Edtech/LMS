@@ -15,7 +15,7 @@ vi.mock('@/contexts/AuthContext', () => ({
     tenantId: 'tenant-1',
     memberships: [],
     activeTenant: { id: 'tenant-1', name: 'Test School', slug: 'test', is_active: true },
-    setActiveTenant: vi.fn(),
+    setActiveTenant: vi.fn().mockResolvedValue(undefined),
     roles: ['student'],
     permissions: {
       canCreateCourse: false,

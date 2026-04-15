@@ -91,7 +91,7 @@ impl EmailClient {
 
         let from_mailbox: Mailbox = format!("{} <{}>", self.from_name, self.from_email)
             .parse()
-            .map_err(|e| AppError::Internal(format!("Alamat pengirim tidak valid: {e}")))?;
+            .map_err(|e| AppError::internal(format!("Alamat pengirim tidak valid: {e}")))?;
 
         let to_display = to
             .name
@@ -101,7 +101,7 @@ impl EmailClient {
 
         let to_mailbox: Mailbox = to_display
             .parse()
-            .map_err(|e| AppError::Internal(format!("Alamat penerima tidak valid: {e}")))?;
+            .map_err(|e| AppError::internal(format!("Alamat penerima tidak valid: {e}")))?;
 
         let email = Message::builder()
             .from(from_mailbox)
@@ -120,7 +120,7 @@ impl EmailClient {
                             .body(html.to_string()),
                     ),
             )
-            .map_err(|e| AppError::Internal(format!("Gagal membangun email: {e}")))?;
+            .map_err(|e| AppError::internal(format!("Gagal membangun email: {e}")))?;
 
         // ── Bangun transport SMTP ────────────────────────────────────────────
         let transport = if let (Some(user), Some(pass)) =
@@ -128,7 +128,7 @@ impl EmailClient {
         {
             let creds = Credentials::new(user.clone(), pass.clone());
             AsyncSmtpTransport::<Tokio1Executor>::starttls_relay(&smtp_host)
-                .map_err(|e| AppError::Internal(format!("Konfigurasi SMTP gagal: {e}")))?
+                .map_err(|e| AppError::internal(format!("Konfigurasi SMTP gagal: {e}")))?
                 .port(self.smtp_port)
                 .credentials(creds)
                 .build()
@@ -141,7 +141,7 @@ impl EmailClient {
         transport
             .send(email)
             .await
-            .map_err(|e| AppError::Internal(format!("Gagal mengirim email ke {}: {e}", to.email)))?;
+            .map_err(|e| AppError::internal(format!("Gagal mengirim email ke {}: {e}", to.email)))?;
 
         tracing::info!(to = %to.email, subject = %subject, "Email berhasil dikirim");
         Ok(())

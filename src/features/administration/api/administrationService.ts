@@ -86,7 +86,7 @@ function getTargetRolesForModule(slug: string): ('teacher' | 'student')[] {
 }
 
 /**
- * Parse Supabase error and return user-friendly error
+ * Parse backend error and return user-friendly error
  */
 function parseSupabaseError(error: unknown): AdministrationError {
   const errorMessage = error instanceof Error ? error.message : String(error)

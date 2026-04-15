@@ -20,7 +20,7 @@ function makeLeaderboardChain(resolveWith: { data: unknown; error: unknown }) {
   // The final method in the chain resolves the promise
   // The chain is: .from().select().eq('tenant_id').order().limit()
   // Then conditionally .eq('class_id') is added before await
-  // Since Supabase query builder is chainable, limit returns a thenable
+  // Since the query builder is chainable, limit returns a thenable
   chain.limit.mockImplementation(() => {
     // Return a thenable that also has .eq() for the class_id filter
     const thenable = {

@@ -6,7 +6,7 @@ Manajemen file dan media untuk materi pembelajaran
 
 ```
 src/features/storage/
-├── api/           # Supabase service layer
+├── api/           # API service layer
 ├── queries/       # React Query hooks & query keys
 ├── hooks/         # Custom React hooks
 ├── types/         # TypeScript interfaces

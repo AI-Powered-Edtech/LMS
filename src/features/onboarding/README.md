@@ -110,7 +110,7 @@ email verification
 | `Onboarding` wizard   | `localStorage` | `onboarded_${role}`         | Set saat wizard selesai atau di-skip. Diperiksa satu kali via `useRef` guard.                                  |
 | `StudentWelcome`      | `localStorage` | `edusync_student_welcomed`  | Set `'1'` saat dismiss. Delay 800ms sebelum muncul.                                                            |
 | `TeacherWelcome`      | `localStorage` | `edusync_teacher_welcomed`  | Set `'1'` saat dismiss. Delay 800ms sebelum muncul.                                                            |
-| `OnboardingChecklist` | Supabase DB    | `onboarding_progress` table | Record per `(tenant_id, user_id)`. `steps_completed: Record<string, boolean>`. Otomatis dibuat jika belum ada. |
+| `OnboardingChecklist` | DB             | `onboarding_progress` table | Record per `(tenant_id, user_id)`. `steps_completed: Record<string, boolean>`. Otomatis dibuat jika belum ada. |
 
 ### Schema DB: `onboarding_progress`
 
@@ -136,7 +136,7 @@ CREATE POLICY "tenant_isolation" ON onboarding_progress
 ## Flow Diagram (ASCII)
 
 ```
-Supabase Auth
+Auth
     │
     ▼ email verified + session
 AuthGuard ──(no session)──► /login

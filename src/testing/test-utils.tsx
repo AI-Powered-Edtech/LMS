@@ -59,7 +59,7 @@ export const mockAuthValue: AuthContextType = {
     id: 'tenant-123',
     name: 'Test Tenant',
   } as AuthContextType['activeTenant'],
-  setActiveTenant: vi.fn(),
+  setActiveTenant: vi.fn().mockResolvedValue(undefined),
 
   // Roles & permissions
   activeRole: 'student',

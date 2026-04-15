@@ -115,12 +115,12 @@ impl WhatsAppClient {
         let token = self
             .access_token
             .as_deref()
-            .ok_or_else(|| AppError::Internal("WHATSAPP_ACCESS_TOKEN tidak diset".to_string()))?;
+            .ok_or_else(|| AppError::internal("WHATSAPP_ACCESS_TOKEN tidak diset".to_string()))?;
         let phone_number_id = self
             .phone_number_id
             .as_deref()
             .ok_or_else(|| {
-                AppError::Internal("WHATSAPP_PHONE_NUMBER_ID tidak diset".to_string())
+                AppError::internal("WHATSAPP_PHONE_NUMBER_ID tidak diset".to_string())
             })?;
 
         let url = format!(
@@ -141,7 +141,7 @@ impl WhatsAppClient {
             .json(&body)
             .send()
             .await
-            .map_err(|e| AppError::Internal(format!("WhatsApp API request gagal: {e}")))?;
+            .map_err(|e| AppError::internal(format!("WhatsApp API request gagal: {e}")))?;
 
         if response.status().is_success() {
             tracing::info!(to = %phone, "[WhatsAppClient] Pesan terkirim via WA Business");
@@ -149,7 +149,7 @@ impl WhatsAppClient {
         } else {
             let status = response.status();
             let err_body = response.text().await.unwrap_or_default();
-            Err(AppError::Internal(format!(
+            Err(AppError::internal(format!(
                 "WhatsApp API error {status}: {err_body}"
             )))
         }
@@ -161,7 +161,7 @@ impl WhatsAppClient {
         let api_key = self
             .api_key
             .as_deref()
-            .ok_or_else(|| AppError::Internal("WHATSAPP_API_KEY tidak diset".to_string()))?;
+            .ok_or_else(|| AppError::internal("WHATSAPP_API_KEY tidak diset".to_string()))?;
         let base_url = self
             .base_url
             .as_deref()
@@ -177,7 +177,7 @@ impl WhatsAppClient {
             }))
             .send()
             .await
-            .map_err(|e| AppError::Internal(format!("Fonnte request gagal: {e}")))?;
+            .map_err(|e| AppError::internal(format!("Fonnte request gagal: {e}")))?;
 
         if response.status().is_success() {
             tracing::info!(to = %phone, "[WhatsAppClient] Pesan terkirim via Fonnte");
@@ -185,7 +185,7 @@ impl WhatsAppClient {
         } else {
             let status = response.status();
             let err_body = response.text().await.unwrap_or_default();
-            Err(AppError::Internal(format!(
+            Err(AppError::internal(format!(
                 "Fonnte API error {status}: {err_body}"
             )))
         }
@@ -197,7 +197,7 @@ impl WhatsAppClient {
         let api_key = self
             .api_key
             .as_deref()
-            .ok_or_else(|| AppError::Internal("WHATSAPP_API_KEY tidak diset".to_string()))?;
+            .ok_or_else(|| AppError::internal("WHATSAPP_API_KEY tidak diset".to_string()))?;
         let base_url = self
             .base_url
             .as_deref()
@@ -213,7 +213,7 @@ impl WhatsAppClient {
             }))
             .send()
             .await
-            .map_err(|e| AppError::Internal(format!("Wablas request gagal: {e}")))?;
+            .map_err(|e| AppError::internal(format!("Wablas request gagal: {e}")))?;
 
         if response.status().is_success() {
             tracing::info!(to = %phone, "[WhatsAppClient] Pesan terkirim via Wablas");
@@ -221,7 +221,7 @@ impl WhatsAppClient {
         } else {
             let status = response.status();
             let err_body = response.text().await.unwrap_or_default();
-            Err(AppError::Internal(format!(
+            Err(AppError::internal(format!(
                 "Wablas API error {status}: {err_body}"
             )))
         }

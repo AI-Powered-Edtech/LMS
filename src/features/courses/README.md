@@ -9,7 +9,7 @@ Pengelolaan katalog kursus, rilis, kolaborator, versi, dan template. Fitur ini b
 ```
 src/features/courses/
 ├── api/
-│   ├── courseService.ts        # Supabase CRUD kursus (list, detail, create, update)
+│   ├── courseService.ts        # API CRUD kursus (list, detail, create, update)
 │   ├── templateService.ts      # Import/export content template
 │   └── versionService.ts       # Version history, snapshot, restore, diff
 ├── queries/

@@ -26,9 +26,9 @@ export interface UsePushSubscriptionReturn {
   permission: PushPermission
   /** Whether the user has an active push subscription stored */
   isSubscribed: boolean
-  /** Request permission + create subscription + persist to Supabase */
+  /** Request permission + create subscription + persist to backend */
   subscribe: () => Promise<void>
-  /** Remove push subscription from browser + clear from Supabase */
+  /** Remove push subscription from browser + clear from backend */
   unsubscribe: () => Promise<void>
   /** True while subscribe/unsubscribe is in progress */
   isLoading: boolean
@@ -169,7 +169,7 @@ export function usePushSubscription(): UsePushSubscriptionReturn {
         applicationServerKey,
       })
 
-      // 5. Persist subscription to Supabase notification_preferences
+      // 5. Persist subscription to notification_preferences
       const serialized = serializeSubscription(subscription)
       await notificationApi.upsertNotificationPreferences({
         user_id: user.id,
@@ -212,7 +212,7 @@ export function usePushSubscription(): UsePushSubscriptionReturn {
         }
       }
 
-      // 2. Clear subscription from Supabase
+      // 2. Clear subscription from notification_preferences
       await notificationApi.upsertNotificationPreferences({
         user_id: user.id,
         tenant_id: tenantId,

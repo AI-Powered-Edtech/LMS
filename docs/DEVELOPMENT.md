@@ -205,7 +205,7 @@ Standard Axum extractors that are still fine to use: `Path<T>`, `Query<T>`, `Hea
 
 ## Observer Dashboard (dev)
 
-`http://localhost:8080/_vil/dashboard/` — live metrics during development:
+Set `ENABLE_OBSERVER=true`, lalu buka `http://localhost:8080/_vil/dashboard/` untuk live metrics:
 
 - Real-time RPS and latency (P50/P95/P99)
 - Per-route breakdown table

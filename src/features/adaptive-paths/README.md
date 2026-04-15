@@ -13,7 +13,7 @@ Modul ini mengimplementasikan jalur belajar adaptif untuk EduSync LMS. Guru dapa
 
 ```
 adaptive-paths/
-├── api/              ← adaptivePathService (Supabase calls)
+├── api/              ← adaptivePathService (API calls)
 ├── queries/          ← React Query hooks + cache keys
 ├── components/       ← PathConditionPicker, PathRuleCard, PathRuleEditor, PathRuleList, RemedialBanner
 ├── utils/            ← pathEvaluator (client-side preview only)

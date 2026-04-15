@@ -13,7 +13,7 @@ dikonfigurasi dengan bobot tertentu terhadap nilai akhir.
 ```
 src/features/peer-review/
 ├── api/
-│   └── peerReviewService.ts    ← Supabase calls (CRUD, RPC)
+│   └── peerReviewService.ts    ← API calls (CRUD, RPC)
 ├── queries/
 │   ├── peerReviewKeys.ts       ← React Query key factory
 │   └── peerReviewQueries.ts    ← useQuery / useMutation hooks

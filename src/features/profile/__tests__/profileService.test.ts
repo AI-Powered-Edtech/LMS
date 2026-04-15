@@ -1,6 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
-// ── Supabase Mock ─────────────────────────────────────────────────────────────
+// ── DB Mock ──────────────────────────────────────────────────────────────────
 
 const mockRpc = vi.fn()
 const mockFrom = vi.fn()
