@@ -297,7 +297,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         } else {
           setLoadingMemberships(false)
         }
-      } catch (_err) {
+      } catch {
         setLoadingMemberships(false)
       } finally {
         setLoading(false)

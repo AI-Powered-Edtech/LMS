@@ -3,7 +3,7 @@ import { logDevError } from '@/src/utils/logDevError'
 
 // --- Types ---
 
-interface AttemptDetailAnswer {
+export interface AttemptDetailAnswer {
   question_id: string
   question_text: string
   question_position: number
@@ -37,7 +37,7 @@ export interface QuizStats {
   updated_at: string
 }
 
-interface QuestionDifficulty {
+export interface QuestionDifficulty {
   question_id: string
   question_text: string
   question_position: number
@@ -204,12 +204,13 @@ export async function getQuestionStats(_quizId: string): Promise<QuestionStatsWi
   }
 
   // Get question text and order for display
-  const _questionIds = stats.map((s) => s.question_id)
+  const statsArr = stats as Array<Record<string, unknown> & { question_id: string }>
+  const _questionIds = statsArr.map((s) => s.question_id)
   const { data: questions, error: questionError } = await apiFetch('/quiz_questions')
 
   if (questionError) {
     logDevError('quizAnalytics', 'Error fetching questions:', questionError)
-    return stats.map((s) => ({
+    return statsArr.map((s) => ({
       ...s,
       question_text: 'Question',
       question_order: 0,
@@ -217,12 +218,14 @@ export async function getQuestionStats(_quizId: string): Promise<QuestionStatsWi
   }
 
   // Merge stats with question info
-  return stats.map((stat) => {
-    const question = questions?.find((q) => q.id === stat.question_id)
+  const questionArr = (questions ?? []) as Array<Record<string, unknown> & { id: string }>
+  return statsArr.map((stat) => {
+    const question = questionArr.find((q) => q.id === stat.question_id)
     return {
       ...stat,
-      question_text: question?.text?.substring(0, 80) || 'Question',
-      question_order: question?.order || 0,
+      question_text:
+        typeof question?.text === 'string' ? question.text.substring(0, 80) : 'Question',
+      question_order: (question?.order as number | undefined) || 0,
     } as QuestionStatsWithQuestion
   })
 }

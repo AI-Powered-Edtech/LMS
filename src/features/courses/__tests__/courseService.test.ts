@@ -77,7 +77,7 @@ describe('courseService.fetchCourses', () => {
   it('returns empty courses and count 0 on empty result', async () => {
     mockRange.mockResolvedValue({ data: [], count: 0, error: null })
     const result = await courseService.fetchCourses({ tenantId: 'tenant-1', page: 1, limit: 10 })
-    expect(result.courses).toEqual([])
+    expect(result.data).toEqual([])
     expect(result.count).toBe(0)
   })
 
@@ -85,7 +85,7 @@ describe('courseService.fetchCourses', () => {
     const courses = [{ id: 'c1', title: 'Math', tenant_id: 'tenant-1' }]
     mockRange.mockResolvedValue({ data: courses, count: 1, error: null })
     const result = await courseService.fetchCourses({ tenantId: 'tenant-1', page: 1, limit: 10 })
-    expect(result.courses).toEqual(courses)
+    expect(result.data).toEqual(courses)
     expect(result.count).toBe(1)
   })
 

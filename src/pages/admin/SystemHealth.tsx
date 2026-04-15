@@ -76,15 +76,15 @@ export function SystemHealth() {
 
       // Aggregate from stored metrics
       if (recentMetrics) {
-        const byName = recentMetrics.reduce<Record<string, number[]>>((acc, m) => {
+        const byName = (recentMetrics as any[]).reduce((acc: Record<string, number[]>, m: any) => {
           if (!acc[m.metric_name]) acc[m.metric_name] = []
           acc[m.metric_name].push(m.metric_value)
           return acc
-        }, {})
+        }, {} as Record<string, number[]>)
 
         const avgLoad = byName['page.load_time_ms']
         if (avgLoad?.length) {
-          const avg = avgLoad.reduce((a, b) => a + b, 0) / avgLoad.length
+          const avg = avgLoad.reduce((a: number, b: number) => a + b, 0) / avgLoad.length
           summary.push({
             name: 'Waktu Muat Halaman',
             value: Math.round(avg),
@@ -95,7 +95,7 @@ export function SystemHealth() {
 
         const quizScore = byName['quiz.avg_score']
         if (quizScore?.length) {
-          const avg = quizScore.reduce((a, b) => a + b, 0) / quizScore.length
+          const avg = quizScore.reduce((a: number, b: number) => a + b, 0) / quizScore.length
           summary.push({
             name: 'Rata-rata Nilai Kuis',
             value: Math.round(avg),

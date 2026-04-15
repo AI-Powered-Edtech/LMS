@@ -28,7 +28,7 @@ import { useStudentCertificates } from '@/src/features/gamification'
 import { useDebounce } from '@/src/hooks/useDebounce'
 import { usePageTitle } from '@/src/hooks/usePageTitle'
 import { useToast } from '@/src/hooks/useToast'
-import { api, } from '@/src/lib/api'
+import { api } from '@/src/lib/api'
 
 export function Certificates() {
   const addToast = useToast((s) => s.addToast)
@@ -73,7 +73,8 @@ export function Certificates() {
     setIsDownloading(cert.id)
 
     try {
-      const { data, error } = await api.functions.invoke('generate-pdf', {
+      type PdfData = Blob | ArrayBuffer | Uint8Array | string
+      const { data, error } = await api.functions.invoke<PdfData>('generate-pdf', {
         body: {
           type: 'certificate',
           data: {
@@ -88,7 +89,15 @@ export function Certificates() {
 
       if (error) throw error
 
-      const blob = data instanceof Blob ? data : new Blob([data], { type: 'application/pdf' })
+      const blobPart: BlobPart =
+        data instanceof Blob
+          ? data
+          : data instanceof ArrayBuffer
+            ? data
+            : data instanceof Uint8Array
+              ? data
+              : String(data)
+      const blob = data instanceof Blob ? data : new Blob([blobPart], { type: 'application/pdf' })
 
       if (format === 'png') {
         // For PNG, open the PDF in a new tab (server only generates PDF)

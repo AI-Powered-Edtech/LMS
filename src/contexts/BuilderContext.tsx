@@ -50,6 +50,12 @@ interface BuilderContextValue {
     updateLesson: (lessonId: string, data: Partial<DomainLesson>) => Promise<void>
     deleteLesson: (lessonId: string) => Promise<void>
     reorderLessons: (lessonIds: string[]) => Promise<void>
+    moveLesson: (
+      lessonId: string,
+      sourceModuleId: string,
+      destinationModuleId: string,
+      destinationIndex: number
+    ) => Promise<void>
     selectLesson: (lessonId: string) => Promise<void>
     closeLesson: () => void
     addBlock: (type: string) => Promise<void>

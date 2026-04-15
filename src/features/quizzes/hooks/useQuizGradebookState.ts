@@ -72,7 +72,7 @@ export function useQuizGradebookState() {
 
         if (error) throw error
 
-        const mappedAssignments = (data || []).map((assignment) => {
+        const mappedAssignments = (data || []).map((assignment: any) => {
           const quiz = Array.isArray(assignment.quizzes)
             ? assignment.quizzes[0]
             : assignment.quizzes

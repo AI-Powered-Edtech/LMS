@@ -29,6 +29,7 @@ export const builderLessonService = {
     // Map Domain model fields back to database columns if needed
     const dbUpdate: Record<string, unknown> = {}
     if (data.title !== undefined) dbUpdate.title = data.title
+    if (data.moduleId !== undefined) dbUpdate.module_id = data.moduleId
     if (data.isPublished !== undefined) dbUpdate.is_published = data.isPublished
     if (data.durationMinutes !== undefined) dbUpdate.duration_minutes = data.durationMinutes
 

@@ -4,11 +4,10 @@
  * Uses polling (60s) instead of WebSocket to reduce API Free Tier load.
  */
 
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import { useMutation, useQueryClient } from '@tanstack/react-query'
 
 import { useAuth } from '@/src/contexts/AuthContext'
 import { createQueryKeys } from '@/src/lib/queryKeys'
-import { STALE } from '@/src/utils/queryConstants'
 
 import * as notificationService from '../api/notificationService'
 
@@ -19,33 +18,6 @@ const notificationKeys = {
   user: (tenantId: string, userId: string) => [...base.all(tenantId), 'user', userId] as const,
   unreadCount: (tenantId: string, userId: string) =>
     [...base.all(tenantId), 'unread', userId] as const,
-}
-
-/**
- * Main hook for fetching user notifications.
- * Polls every 60s instead of holding a WebSocket connection.
- */
-function useNotifications() {
-  const { user, tenantId } = useAuth()
-
-  const query = useQuery({
-    queryKey: notificationKeys.user(tenantId!, user!.id),
-    queryFn: () => notificationService.fetchNotifications(user!.id, tenantId!),
-    enabled: !!tenantId && !!user,
-    staleTime: STALE.DYNAMIC,
-    refetchInterval: 60000, // Poll every minute instead of WebSocket
-  })
-
-  const notifications = query.data ?? []
-  const unreadCount = notifications.filter((n) => !n.is_read).length
-
-  return {
-    notifications,
-    unreadCount,
-    loading: query.isLoading,
-    isError: query.isError,
-    error: query.error,
-  }
 }
 
 /**

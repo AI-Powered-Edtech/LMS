@@ -105,68 +105,6 @@ export function openDB(): Promise<IDBDatabase> {
   return dbPromise
 }
 
-// ---------------------------------------------------------------------------
-// Quiz cache
-// ---------------------------------------------------------------------------
-
-async function cacheQuiz(quiz: CachedQuiz): Promise<void> {
-  const db = await openDB()
-  const tx = db.transaction(STORES.QUIZ_CACHE, 'readwrite')
-  const store = tx.objectStore(STORES.QUIZ_CACHE)
-  store.put(quiz)
-  await wrapTransaction(tx)
-}
-
-async function getCachedQuiz(quizId: string): Promise<CachedQuiz | null> {
-  const db = await openDB()
-  const tx = db.transaction(STORES.QUIZ_CACHE, 'readonly')
-  const store = tx.objectStore(STORES.QUIZ_CACHE)
-  const result = await wrapRequest<CachedQuiz | undefined>(store.get(quizId))
-  return result ?? null
-}
-
-async function clearQuizCache(quizId: string): Promise<void> {
-  const db = await openDB()
-  const tx = db.transaction(STORES.QUIZ_CACHE, 'readwrite')
-  const store = tx.objectStore(STORES.QUIZ_CACHE)
-  store.delete(quizId)
-  await wrapTransaction(tx)
-}
-
-// ---------------------------------------------------------------------------
-// Quiz answers
-// ---------------------------------------------------------------------------
-
-async function saveAnswer(answer: CachedAnswer): Promise<void> {
-  const db = await openDB()
-  const tx = db.transaction(STORES.QUIZ_ANSWERS, 'readwrite')
-  const store = tx.objectStore(STORES.QUIZ_ANSWERS)
-  store.put(answer)
-  await wrapTransaction(tx)
-}
-
-async function getAnswers(quizId: string): Promise<CachedAnswer[]> {
-  const db = await openDB()
-  const tx = db.transaction(STORES.QUIZ_ANSWERS, 'readonly')
-  const store = tx.objectStore(STORES.QUIZ_ANSWERS)
-  const index = store.index('quizId')
-  const result = await wrapRequest<CachedAnswer[]>(index.getAll(quizId))
-  return result
-}
-
-// ---------------------------------------------------------------------------
-// Sync queue
-// ---------------------------------------------------------------------------
-
-async function addToSyncQueue(item: Omit<SyncQueueItem, 'attempts'>): Promise<void> {
-  const db = await openDB()
-  const tx = db.transaction(STORES.SYNC_QUEUE, 'readwrite')
-  const store = tx.objectStore(STORES.SYNC_QUEUE)
-  const full: SyncQueueItem = { ...item, attempts: 0 }
-  store.put(full)
-  await wrapTransaction(tx)
-}
-
 export async function getPendingSubmissions(): Promise<SyncQueueItem[]> {
   const db = await openDB()
   const tx = db.transaction(STORES.SYNC_QUEUE, 'readonly')
@@ -195,32 +133,12 @@ export async function saveBuilderDraft(courseId: string, state: unknown): Promis
   await wrapTransaction(tx)
 }
 
-async function getBuilderDraft(courseId: string): Promise<unknown | null> {
-  const db = await openDB()
-  const tx = db.transaction(STORES.BUILDER_DRAFTS, 'readonly')
-  const store = tx.objectStore(STORES.BUILDER_DRAFTS)
-  const result = await wrapRequest<
-    { courseId: string; state: unknown; savedAt: number } | undefined
-  >(store.get(courseId))
-  return result?.state ?? null
-}
-
 export async function deleteBuilderDraft(courseId: string): Promise<void> {
   const db = await openDB()
   const tx = db.transaction(STORES.BUILDER_DRAFTS, 'readwrite')
   const store = tx.objectStore(STORES.BUILDER_DRAFTS)
   store.delete(courseId)
   await wrapTransaction(tx)
-}
-
-async function getAllDirtyDrafts(): Promise<unknown[]> {
-  const db = await openDB()
-  const tx = db.transaction(STORES.BUILDER_DRAFTS, 'readonly')
-  const store = tx.objectStore(STORES.BUILDER_DRAFTS)
-  const result = await wrapRequest<{ courseId: string; state: unknown; savedAt: number }[]>(
-    store.getAll()
-  )
-  return result.map((r) => r.state)
 }
 
 // ---------------------------------------------------------------------------
@@ -245,18 +163,5 @@ export async function getPendingCount(): Promise<number> {
   } catch {
     // IndexedDB unavailable or transaction failed — treat as zero pending
     return 0
-  }
-}
-
-// ---------------------------------------------------------------------------
-// IndexedDB availability check
-// ---------------------------------------------------------------------------
-
-/** Returns true if IndexedDB is available in the current environment. */
-function isIndexedDBAvailable(): boolean {
-  try {
-    return typeof indexedDB !== 'undefined' && indexedDB !== null
-  } catch {
-    return false
   }
 }

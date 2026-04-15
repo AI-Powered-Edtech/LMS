@@ -25,7 +25,7 @@ export const moderationService = {
   async fetchReports(): Promise<Report[]> {
     const { data, error } = await apiFetch('/content_reports')
     if (error) throw error
-    return (data || []).map((r) => ({
+    return (data || []).map((r: any) => ({
       id: r.id,
       contentId: r.content_id,
       contentType: r.content_type as ContentType,

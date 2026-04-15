@@ -9,21 +9,6 @@ import { apiFetch } from '@/src/lib/api'
 
 import type { QuizMode } from '../types/quizzes.types'
 
-// ── Helper ─────────────────────────────────────────────────────
-
-function deriveAssignmentStatus(
-  quizStatus: string,
-  availableFrom?: string | null,
-  dueAt?: string | null
-): 'draft' | 'active' | 'scheduled' | 'ended' {
-  if (quizStatus !== 'published') return 'draft'
-
-  const now = Date.now()
-  if (dueAt && new Date(dueAt).getTime() < now) return 'ended'
-  if (availableFrom && new Date(availableFrom).getTime() > now) return 'scheduled'
-  return 'active'
-}
-
 // ── Read Operations ────────────────────────────────────────────
 
 /**
@@ -171,7 +156,7 @@ export async function setQuizStatus(
   if (!assignments || assignments.length === 0) return
 
   await Promise.all(
-    assignments.map((_assignment) =>
+    assignments.map((_assignment: any) =>
       apiFetch('/quiz_assignments')
     )
   )

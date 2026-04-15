@@ -60,7 +60,7 @@ export const studentProgressService = {
   async fetchModules(_tenantId: string): Promise<ModuleData[]> {
     const { data } = await apiFetch('/course_modules')
 
-    return (data ?? []).map((m, i) => ({
+    return (data ?? []).map((m: any, i: number) => ({
       id: m.id,
       title: m.title,
       status: (i === 0 ? 'active' : 'locked') as ModuleStatus,
@@ -78,7 +78,7 @@ export const studentProgressService = {
     const { data } = await apiFetch('/lesson_progress')
 
     const progressMap: Record<string, LessonProgress> = {}
-    ;(data ?? []).forEach((p) => {
+    ;(data ?? []).forEach((p: any) => {
       progressMap[p.lesson_id] = {
         lessonId: p.lesson_id,
         moduleId: p.lesson_id,
@@ -100,7 +100,7 @@ export const studentProgressService = {
     const { data } = await apiFetch('/quiz_attempts_v2')
 
     const attemptsMap: Record<string, QuizAttempt[]> = {}
-    ;(data ?? []).forEach((a) => {
+    ;(data ?? []).forEach((a: any) => {
       const attempt: QuizAttempt = {
         id: a.id,
         quizId: a.quiz_id,
@@ -123,7 +123,7 @@ export const studentProgressService = {
   async fetchXP(_userId: string, _tenantId: string): Promise<number> {
     const { data, error } = await apiFetch('/user_points')
     if (error) return 0
-    return (data ?? []).reduce((sum, row) => sum + (row.points ?? 0), 0)
+    return (data ?? []).reduce((sum: number, row: any) => sum + (row.points ?? 0), 0)
   },
 
   /**
@@ -134,7 +134,7 @@ export const studentProgressService = {
 
     if (error) return []
 
-    return (data ?? []).map((b) => ({
+    return (data ?? []).map((b: any) => ({
       id: b.id,
       title: (b as unknown as { badges?: { name: string; icon: string } }).badges?.name ?? 'Badge',
       icon: (b as unknown as { badges?: { name: string; icon: string } }).badges?.icon ?? 'star',
@@ -148,7 +148,7 @@ export const studentProgressService = {
   async fetchAssignments(_tenantId: string): Promise<AssignmentData[]> {
     const { data } = await apiFetch('/assignments')
 
-    return (data ?? []).map((a) => ({
+    return (data ?? []).map((a: any) => ({
       id: a.id,
       title: a.title,
       subject: (a as unknown as { classes?: { name: string } }).classes?.name ?? '',

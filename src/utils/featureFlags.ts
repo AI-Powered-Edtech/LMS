@@ -69,17 +69,3 @@ export function useFeatureFlag(flagName: string): boolean {
   const flag = flagCache.get(flagName)
   return flag?.enabled ?? false
 }
-
-// ---------------------------------------------------------------------------
-// Admin: persist flag change
-// ---------------------------------------------------------------------------
-
-async function updateFeatureFlag(
-  _flagName: string,
-  _updates: Partial<Omit<FeatureFlag, 'flag_name'>>
-): Promise<void> {
-  await apiFetch('/feature_flags')
-
-  // Invalidate so the next read refreshes from DB
-  invalidateFlagCache()
-}

@@ -61,8 +61,9 @@ export function LiveActivityFeed({
         const { data } = await apiFetch('/learning_events')
 
         if (isMounted && data) {
+          const list = data as LiveEvent[]
           setEvents((prev) => {
-            const newEvents = data.filter((d) => !prev.some((p) => p.id === d.id))
+            const newEvents = list.filter((d: LiveEvent) => !prev.some((p) => p.id === d.id))
             const merged = [...newEvents, ...prev]
             // sort by created_at desc so latest is first
             merged.sort(

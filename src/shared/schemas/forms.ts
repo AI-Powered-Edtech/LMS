@@ -26,7 +26,7 @@ export const CourseFormSchema = v.object({
   description: v.optional(v.string(), ''),
 })
 
-type CourseFormData = v.InferOutput<typeof CourseFormSchema>
+export type CourseFormData = v.InferOutput<typeof CourseFormSchema>
 
 export const ProfileFormSchema = v.object({
   fullName: v.pipe(

@@ -138,19 +138,6 @@ export function initSentry(): void {
   })
 }
 
-function setSentryUser(id: string, role: string): void {
-  Sentry.setUser({ id, role })
-}
-
-function clearSentryUser(): void {
-  Sentry.setUser(null)
-}
-
-function captureError(error: unknown, context?: Record<string, unknown>): void {
-  if (context) Sentry.setContext('extra', context)
-  Sentry.captureException(error)
-}
-
 export function addBreadcrumb(
   message: string,
   category: string,

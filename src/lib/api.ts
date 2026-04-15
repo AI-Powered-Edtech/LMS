@@ -1,3 +1,11 @@
+export type ApiError = Error & { code?: string }
+
+export interface ApiFetchResult<T> {
+  data: T | null
+  error: ApiError | null
+  count: number
+}
+
 export function apiFetch(endpoint: string, options: RequestInit = {}) {
   const execute = async () => {
     const token = localStorage.getItem('token')
@@ -17,7 +25,9 @@ export function apiFetch(endpoint: string, options: RequestInit = {}) {
 
     if (!response.ok) {
       const errorData = await response.json().catch(() => ({}))
-      return { data: null, error: new Error(errorData.message || `API Error: ${response.status}`), count: 0 }
+      const err = new Error(errorData.message || `API Error: ${response.status}`) as ApiError
+      if (typeof errorData?.code === 'string') err.code = errorData.code
+      return { data: null, error: err, count: 0 }
     }
 
     const data = await response.json()
@@ -72,40 +82,78 @@ export function apiFetch(endpoint: string, options: RequestInit = {}) {
 // Mock API client to replace Supabase client functionality
 export const api = {
   auth: {
-    getSession: async () => ({ data: { session: null }, error: null }),
-    onAuthStateChange: (_cb: any) => ({ data: { subscription: { unsubscribe: () => {} } } }),
-    updateUser: async (_data: any) => ({ _data: null, error: null }),
-    signInWithPassword: async (_data: any) => ({ _data: null, error: null }),
-    verifyOtp: async (_data: any) => ({ _data: { session: null }, error: null }),
+    getSession: async (): Promise<{ data: { session: unknown | null }; error: ApiError | null }> => ({
+      data: { session: null },
+      error: null,
+    }),
+    onAuthStateChange: (_cb: any) => ({
+      data: { subscription: { unsubscribe: () => {} } },
+    }),
+    updateUser: async (_data: any): Promise<{ data: unknown | null; error: ApiError | null }> => ({
+      data: null,
+      error: null,
+    }),
+    signInWithPassword: async (
+      _data: any
+    ): Promise<{ data: { user: unknown | null; session: unknown | null }; error: ApiError | null }> => ({
+      data: { user: null, session: null },
+      error: null,
+    }),
+    verifyOtp: async (
+      _data: any
+    ): Promise<{ data: { session: unknown | null }; error: ApiError | null }> => ({
+      data: { session: null },
+      error: null,
+    }),
   },
   functions: {
-    invoke: async <T = any>(name: string, options?: any) => {
+    invoke: async <T = unknown>(
+      name: string,
+      options?: { body?: unknown }
+    ): Promise<{ data: T | null; error: ApiError | null }> => {
       try {
-        const data = await apiFetch(`/v1/functions/${name}`, {
+        const { data, error } = (await apiFetch(`/v1/functions/${name}`, {
           method: 'POST',
           body: options?.body ? JSON.stringify(options.body) : undefined,
-        })
-        return { data: data as T, error: null }
-      } catch (error) {
-        return { data: null, error }
+        })) as ApiFetchResult<unknown>
+
+        return { data: (data as T) ?? null, error }
+      } catch (e) {
+        const err = (e instanceof Error ? e : new Error(String(e))) as ApiError
+        return { data: null, error: err }
       }
-    }
+    },
   },
   storage: {
     from: (bucket: string) => ({
-      upload: async (path: string, _file: any, _opts?: any) => ({ data: { path }, error: null }),
-      remove: async (_paths: string[]) => ({ data: null, error: null }),
-      getPublicUrl: (path: string) => ({ data: { publicUrl: `/api/v1/storage/${bucket}/${path}` } })
-    })
+      upload: async (
+        path: string,
+        _file: any,
+        _opts?: any
+      ): Promise<{ data: { path: string } | null; error: ApiError | null }> => ({
+        data: { path },
+        error: null,
+      }),
+      remove: async (_paths: string[]): Promise<{ data: null; error: ApiError | null }> => ({
+        data: null,
+        error: null,
+      }),
+      getPublicUrl: (path: string): { data: { publicUrl: string } } => ({
+        data: { publicUrl: `/api/v1/storage/${bucket}/${path}` },
+      }),
+    }),
   },
-  channel: (_name: string, _opts?: any) => ({
-    on: (_event: string, _filter: any, _callback: any) => ({ on: () => ({ subscribe: () => ({ unsubscribe: () => {} }) }) }),
-    subscribe: (_cb?: any) => ({ unsubscribe: () => {} }),
-    unsubscribe: () => {},
-    send: async (_data: any) => ({}),
-    track: async (_data: any) => ({}),
-    untrack: async () => ({}),
-    presenceState: () => ({})
-  }),
-  removeChannel: (_channel: any) => {}
+  channel: (_name: string, _opts?: any) => {
+    const channel: any = {
+      on: (_event: string, _filter: any, _callback: any) => channel,
+      subscribe: (_cb?: (status: string) => void) => channel,
+      unsubscribe: () => {},
+      send: async (_data: any) => {},
+      track: async (_data: any) => {},
+      untrack: async () => {},
+      presenceState: () => ({}),
+    }
+    return channel
+  },
+  removeChannel: (_channel: any) => {},
 }

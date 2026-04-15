@@ -38,7 +38,7 @@ export const classroomService = {
     const { data: enrollments, error } = await apiFetch('/enrollments')
     if (error) throw error
     return (enrollments
-      ?.map((e) => (e as unknown as { classes: Classroom }).classes)
+      ?.map((e: any) => (e as unknown as { classes: Classroom }).classes)
       .filter(Boolean) ?? []) as Classroom[]
   },
 
@@ -133,7 +133,7 @@ export const classroomService = {
     const { data, error } = await apiFetch('/course_classes')
 
     if (error) throw error
-    return data?.map((item) => item.class_id) || []
+    return data?.map((item: any) => item.class_id) || []
   },
   /**
    * Subscribe to realtime classroom changes.

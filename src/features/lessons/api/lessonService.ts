@@ -45,7 +45,7 @@ async function verifySignature(
 }
 
 async function getSessionKey(): Promise<string | null> {
-  const session = { user: { id: "mock" } }
+  const session = { user: { id: 'mock' }, expires_at: 0 }
   if (!session || !session.user) return null
   return session.user.id + (session.expires_at || 0).toString()
 }
@@ -181,7 +181,7 @@ export const lessonService = {
     }
 
     // Fetch progress for all lessons in this module
-    const _lessonIds = (lessons || []).map((l) => l.id)
+    const _lessonIds = ((lessons || []) as any[]).map((l: any) => l.id)
     const { data: progressData, error: progressError } = await apiFetch('/lesson_progress')
 
     if (progressError) {

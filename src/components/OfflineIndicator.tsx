@@ -62,35 +62,3 @@ export function OfflineIndicator() {
     </AnimatePresence>
   )
 }
-
-// ---------------------------------------------------------------------------
-// Inline form-level warning — embed inside any form or card
-// ---------------------------------------------------------------------------
-
-interface OfflineInlineWarningProps {
-  className?: string
-  /** Custom message override */
-  message?: string
-}
-
-function OfflineInlineWarning({ className, message }: OfflineInlineWarningProps) {
-  const { isOnline } = useNetworkStatus()
-
-  if (isOnline) return null
-
-  return (
-    <div
-      role="status"
-      aria-live="polite"
-      className={cn(
-        'flex items-center gap-2 rounded-lg px-3 py-2 text-sm',
-        'bg-amber-50 text-amber-800 border border-amber-200',
-        'dark:bg-amber-950/60 dark:text-amber-200 dark:border-amber-800',
-        className
-      )}
-    >
-      <WifiOff className="w-4 h-4 shrink-0" aria-hidden="true" />
-      <span>{message ?? 'Anda sedang offline. Perubahan akan disimpan saat online.'}</span>
-    </div>
-  )
-}

@@ -47,12 +47,13 @@ export function useBuilderPresence(
     const myColor = getColorForUser(userId)
 
     channel.on('presence', { event: 'sync' }, () => {
-      const state = channel.presenceState<PresenceData>()
+      const state = channel.presenceState() as Record<string, unknown[]>
       const newOthers = new Map<string, PresenceData>()
       for (const [, presences] of Object.entries(state)) {
-        for (const p of presences) {
-          if (p.userId !== userId) {
-            newOthers.set(p.userId, p as unknown as PresenceData)
+        for (const p of presences as unknown[]) {
+          const presence = p as Partial<PresenceData>
+          if (presence.userId && presence.userId !== userId) {
+            newOthers.set(presence.userId, presence as PresenceData)
           }
         }
       }

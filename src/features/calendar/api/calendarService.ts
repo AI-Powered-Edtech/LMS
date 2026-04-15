@@ -28,7 +28,7 @@ export const calendarService = {
     const { data: assignments } = await apiFetch('/assignments')
 
     if (assignments) {
-      assignments.forEach((a) => {
+      ;(assignments as any[]).forEach((a: any) => {
         const dueDate = new Date(a.due_date!)
         events.push({
           id: `assignment-${a.id}`,
@@ -64,7 +64,7 @@ export const calendarService = {
         Minggu: 0,
       }
 
-      schedules.forEach((s) => {
+      ;(schedules as any[]).forEach((s: any) => {
         const targetDay = dayMap[s.day] ?? 1
         const now = new Date()
         const diff = (targetDay - now.getDay() + 7) % 7
@@ -88,7 +88,7 @@ export const calendarService = {
     const { data: quizzes } = await apiFetch('/quizzes')
 
     if (quizzes) {
-      quizzes.forEach((q) => {
+      ;(quizzes as any[]).forEach((q: any) => {
         events.push({
           id: `quiz-${q.id}`,
           title: q.title,

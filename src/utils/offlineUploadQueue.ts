@@ -7,7 +7,6 @@
 import { openDB } from './offlineStorage'
 
 const STORE_NAME = 'upload-queue'
-const MAX_QUEUE_SIZE_BYTES = 50 * 1024 * 1024 // 50MB
 
 export interface QueuedUpload {
   id: string
@@ -20,16 +19,6 @@ export interface QueuedUpload {
   createdAt: string
 }
 
-async function queueUpload(upload: QueuedUpload): Promise<void> {
-  const db = await openDB()
-  return new Promise((resolve, reject) => {
-    const tx = db.transaction(STORE_NAME, 'readwrite')
-    tx.objectStore(STORE_NAME).put(upload)
-    tx.oncomplete = () => resolve()
-    tx.onerror = () => reject(tx.error)
-  })
-}
-
 export async function getPendingUploads(): Promise<QueuedUpload[]> {
   const db = await openDB()
   return new Promise((resolve, reject) => {
@@ -40,32 +29,7 @@ export async function getPendingUploads(): Promise<QueuedUpload[]> {
   })
 }
 
-async function removeFromQueue(id: string): Promise<void> {
-  const db = await openDB()
-  return new Promise((resolve, reject) => {
-    const tx = db.transaction(STORE_NAME, 'readwrite')
-    tx.objectStore(STORE_NAME).delete(id)
-    tx.oncomplete = () => resolve()
-    tx.onerror = () => reject(tx.error)
-  })
-}
-
 export async function getQueueSize(): Promise<number> {
   const uploads = await getPendingUploads()
   return uploads.reduce((total, u) => total + u.file.size, 0)
-}
-
-async function isQueueFull(): Promise<boolean> {
-  const size = await getQueueSize()
-  return size >= MAX_QUEUE_SIZE_BYTES
-}
-
-async function clearQueue(): Promise<void> {
-  const db = await openDB()
-  return new Promise((resolve, reject) => {
-    const tx = db.transaction(STORE_NAME, 'readwrite')
-    tx.objectStore(STORE_NAME).clear()
-    tx.oncomplete = () => resolve()
-    tx.onerror = () => reject(tx.error)
-  })
 }

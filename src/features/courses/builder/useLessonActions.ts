@@ -111,6 +111,78 @@ export function useLessonActions(
     [state.modules, tenantId, dispatch, addToast, broadcast, userName]
   )
 
+  const moveLesson = useCallback(
+    async (
+      lessonId: string,
+      sourceModuleId: string,
+      destinationModuleId: string,
+      destinationIndex: number
+    ) => {
+      if (!tenantId) return
+
+      const previousModules = state.modules
+
+      const sourceMod = state.modules.find((m) => m.id === sourceModuleId)
+      const destinationMod = state.modules.find((m) => m.id === destinationModuleId)
+      if (!sourceMod || !destinationMod) return
+
+      const movingLesson = sourceMod.lessons.find((l) => l.id === lessonId)
+      if (!movingLesson) return
+
+      const nextSourceLessons = sourceMod.lessons.filter((l) => l.id !== lessonId)
+      const nextDestinationLessons = [...destinationMod.lessons]
+
+      const clampedIndex = Math.max(0, Math.min(destinationIndex, nextDestinationLessons.length))
+      nextDestinationLessons.splice(clampedIndex, 0, { ...movingLesson, moduleId: destinationModuleId })
+
+      const updatedModules = state.modules.map((m) => {
+        if (m.id === sourceModuleId) {
+          return {
+            ...m,
+            lessons: nextSourceLessons.map((l, idx) => ({ ...l, orderIndex: idx })),
+          }
+        }
+        if (m.id === destinationModuleId) {
+          return {
+            ...m,
+            lessons: nextDestinationLessons.map((l, idx) => ({ ...l, orderIndex: idx })),
+          }
+        }
+        return m
+      })
+
+      dispatch({ type: 'SET_MODULES', modules: updatedModules })
+      setSavingStatus('saving')
+
+      try {
+        await builderLessonService.updateLesson(lessonId, tenantId, { moduleId: destinationModuleId })
+        await builderLessonService.reorderLessons(
+          sourceModuleId,
+          nextSourceLessons.map((l) => l.id),
+          tenantId
+        )
+        await builderLessonService.reorderLessons(
+          destinationModuleId,
+          nextDestinationLessons.map((l) => l.id),
+          tenantId
+        )
+        setSavingStatus('saved')
+        broadcast?.({ type: 'SET_MODULES', modules: updatedModules }, userName ?? '')
+      } catch (error: unknown) {
+        if (import.meta.env.DEV) console.error('Failed to move lesson', error)
+        dispatch({ type: 'SET_MODULES', modules: previousModules })
+        setSavingStatus('error')
+        addToast({
+          type: 'error',
+          message:
+            'Gagal memindahkan materi: ' +
+            (error instanceof Error ? error.message : 'Kesalahan tidak diketahui'),
+        })
+      }
+    },
+    [state.modules, tenantId, dispatch, setSavingStatus, addToast, broadcast, userName]
+  )
+
   const selectLesson = useCallback(
     async (lessonId: string) => {
       if (!tenantId) return
@@ -129,5 +201,5 @@ export function useLessonActions(
     dispatch({ type: 'CLOSE_LESSON' })
   }, [dispatch])
 
-  return { addLesson, updateLesson, deleteLesson, reorderLessons, selectLesson, closeLesson }
+  return { addLesson, updateLesson, deleteLesson, reorderLessons, moveLesson, selectLesson, closeLesson }
 }

@@ -17,7 +17,12 @@ export {
 } from './promptBuilder'
 
 // Import api for internal use
-import { api, } from '@/src/lib/api'
+import { api } from '@/src/lib/api'
+
+import type { AITutorError, AITutorResponse } from '../types'
+
+type TutorEdgeErrorResponse = { error: unknown; retryAfter?: number }
+type TutorEdgeResponse = AITutorResponse | TutorEdgeErrorResponse
 
 /**
  * Ask a question to the AI Tutor
@@ -31,9 +36,9 @@ export async function askTutor(
   question: string,
   tenantId: string,
   sessionId?: string
-): Promise<{ data?: import('../types').AITutorResponse; error?: import('../types').AITutorError }> {
+): Promise<{ data?: AITutorResponse; error?: AITutorError }> {
   try {
-    const { data, error } = await api.functions.invoke('ai-tutor', {
+    const { data, error } = await api.functions.invoke<TutorEdgeResponse>('ai-tutor', {
       body: {
         lesson_id: lessonId,
         question: question.trim(),
@@ -60,19 +65,23 @@ export async function askTutor(
     }
 
     // Check for error responses from the Edge Function
-    if (data?.error) {
+    if (data && 'error' in data && data.error) {
       const errorMsg =
         typeof data.error === 'string'
           ? data.error
-          : data.error?.message || 'Kesalahan tidak diketahui'
+          : (data.error as { message?: string } | null)?.message || 'Kesalahan tidak diketahui'
 
       // Handle rate limiting errors
       if (errorMsg.includes('Terlalu banyak') || errorMsg.includes('rate_limit')) {
+        const retryAfter =
+          typeof (data as TutorEdgeErrorResponse).retryAfter === 'number'
+            ? (data as TutorEdgeErrorResponse).retryAfter
+            : undefined
         return {
           error: {
             message: errorMsg,
             code: 'RATE_LIMIT_MINUTE',
-            retryAfter: data.retryAfter,
+            retryAfter,
           },
         }
       }
@@ -95,7 +104,7 @@ export async function askTutor(
     }
 
     // Validate the response shape
-    if (!data || typeof data.response !== 'string') {
+    if (!data || !('response' in data) || typeof data.response !== 'string') {
       return {
         error: {
           message: 'Terjadi kesalahan yang tidak terduga',
@@ -113,7 +122,7 @@ export async function askTutor(
       }
     }
 
-    return { data: data as import('../types').AITutorResponse }
+    return { data }
   } catch (err: unknown) {
     if (import.meta.env.DEV) console.error('[AI Tutor] Unexpected error:', err)
 

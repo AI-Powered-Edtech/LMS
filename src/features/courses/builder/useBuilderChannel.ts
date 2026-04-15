@@ -29,7 +29,7 @@ export function useBuilderChannel(
     })
 
     channel
-      .on('broadcast', { event: 'builder_action' }, (payload) => {
+      .on('broadcast', { event: 'builder_action' }, (payload: { payload: unknown }) => {
         const data = payload.payload as BroadcastPayload
         if (data.userId === userId) return // ignore own broadcasts
 
@@ -39,7 +39,7 @@ export function useBuilderChannel(
           dispatch(remoteAction)
         }
       })
-      .subscribe((status) => {
+      .subscribe((status: string) => {
         if (status === 'SUBSCRIBED') {
           setChannelStatus('connected')
         } else if (status === 'CLOSED' || status === 'CHANNEL_ERROR') {

@@ -5,6 +5,35 @@ import { useToast } from '@/src/hooks/useToast'
 
 import type { BuilderAction, BuilderState } from './builderReducer'
 
+export type PublishReadinessCheck = {
+  id: 'hasModule' | 'hasLesson'
+  label: string
+  ok: boolean
+  toastMessage: string
+}
+
+export function getPublishReadiness(modules: BuilderState['modules']) {
+  const hasModule = modules.length > 0
+  const hasLesson = modules.some((mod) => mod.lessons && mod.lessons.length > 0)
+
+  const checks: PublishReadinessCheck[] = [
+    {
+      id: 'hasModule',
+      label: 'Minimal 1 modul di kurikulum',
+      ok: hasModule,
+      toastMessage: 'Gagal dipublish: Kursus harus memiliki setidaknya satu modul.',
+    },
+    {
+      id: 'hasLesson',
+      label: 'Minimal 1 materi/pelajaran di dalam modul',
+      ok: hasLesson,
+      toastMessage: 'Gagal dipublish: Modul harus memiliki setidaknya satu pelajaran.',
+    },
+  ]
+
+  return { ready: checks.every((c) => c.ok), checks }
+}
+
 export function useCourseActions(
   state: BuilderState,
   dispatch: Dispatch<BuilderAction>,
@@ -33,20 +62,10 @@ export function useCourseActions(
   const publishCourse = useCallback(async () => {
     if (!state.courseId || !tenantId) return
 
-    if (state.modules.length === 0) {
-      addToast({
-        type: 'error',
-        message: 'Gagal dipublish: Kursus harus memiliki setidaknya satu modul.',
-      })
-      return
-    }
-
-    const hasLessons = state.modules.some((mod) => mod.lessons && mod.lessons.length > 0)
-    if (!hasLessons) {
-      addToast({
-        type: 'error',
-        message: 'Gagal dipublish: Modul harus memiliki setidaknya satu pelajaran.',
-      })
+    const { checks } = getPublishReadiness(state.modules)
+    const firstFailed = checks.find((c) => !c.ok)
+    if (firstFailed) {
+      addToast({ type: 'error', message: firstFailed.toastMessage })
       return
     }
 

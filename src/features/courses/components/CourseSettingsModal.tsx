@@ -1,11 +1,9 @@
-import { CheckCircle, Loader2, Settings, Users, X } from 'lucide-react'
+import { Settings, Users, X } from 'lucide-react'
 import { AnimatePresence, motion } from 'motion/react'
-import { useCallback, useEffect, useRef, useState } from 'react'
-
-import { useAuth } from '@/src/contexts/AuthContext'
-import { courseService } from '../api/courseService'
+import { useEffect, useRef, useState } from 'react'
 
 import { CourseCollaborators } from './CourseCollaborators'
+import { CourseGeneralSettingsTab } from './CourseGeneralSettingsTab'
 
 interface CourseSettingsModalProps {
   isOpen: boolean
@@ -13,231 +11,9 @@ interface CourseSettingsModalProps {
   courseId: string
 }
 
-// ── General Settings Tab ────────────────────────────────────
-
-interface CourseGeneralData {
-  title: string
-  description: string
-  subject: string
-  level: string
-}
-
-function GeneralSettingsTab({ courseId }: { courseId: string }) {
-  const { tenantId } = useAuth()
-  const [data, setData] = useState<CourseGeneralData>({
-    title: '',
-    description: '',
-    subject: '',
-    level: '',
-  })
-  const [loading, setLoading] = useState(true)
-  const [saving, setSaving] = useState(false)
-  const [saved, setSaved] = useState(false)
-  const [error, setError] = useState<string | null>(null)
-  const saveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
-  const savedTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
-
-  // Fetch course data on mount
-  useEffect(() => {
-    if (!courseId || !tenantId) return
-
-    let cancelled = false
-
-    async function fetchCourse() {
-      setLoading(true)
-      try {
-        const course = await courseService.getCourseById(courseId, tenantId)
-
-        if (cancelled) return
-
-        setData({
-          title: course.title || '',
-          description: course.description || '',
-          subject: course.subject || '',
-          level: course.level || '',
-        })
-      } catch (_fetchErr) {
-        if (cancelled) return
-        setError('Gagal memuat data kursus.')
-      } finally {
-        if (!cancelled) setLoading(false)
-      }
-    }
-
-    fetchCourse()
-
-    return () => {
-      cancelled = true
-    }
-  }, [courseId, tenantId])
-
-  // Cleanup timers on unmount
-  useEffect(() => {
-    return () => {
-      if (saveTimerRef.current) clearTimeout(saveTimerRef.current)
-      if (savedTimerRef.current) clearTimeout(savedTimerRef.current)
-    }
-  }, [])
-
-  // Debounced save
-  const debouncedSave = useCallback(
-    (updatedData: CourseGeneralData) => {
-      if (saveTimerRef.current) clearTimeout(saveTimerRef.current)
-      if (savedTimerRef.current) clearTimeout(savedTimerRef.current)
-
-      saveTimerRef.current = setTimeout(async () => {
-        if (!courseId || !tenantId) return
-
-        setSaving(true)
-        setSaved(false)
-        setError(null)
-
-        try {
-          await courseService.updateCourse(courseId, updatedData, tenantId)
-          setSaved(true)
-          savedTimerRef.current = setTimeout(() => setSaved(false), 3000)
-        } catch (_updateErr) {
-          setError('Gagal menyimpan perubahan.')
-        } finally {
-          setSaving(false)
-        }
-      }, 800)
-    },
-    [courseId, tenantId]
-  )
-
-  const handleChange = (field: keyof CourseGeneralData, value: string) => {
-    const updated = { ...data, [field]: value }
-    setData(updated)
-    debouncedSave(updated)
-  }
-
-  if (loading) {
-    return (
-      <div className="flex items-center justify-center py-12">
-        <Loader2 className="w-5 h-5 text-slate-400 animate-spin" />
-      </div>
-    )
-  }
-
-  const inputClass =
-    'w-full px-4 py-3 text-sm bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-slate-800 dark:text-slate-200 placeholder:text-slate-400 dark:placeholder:text-slate-600 focus:outline-none focus:ring-2 focus:ring-indigo-500/30 focus:border-indigo-400 dark:focus:border-indigo-500 transition-all'
-
-  return (
-    <div className="space-y-6">
-      {/* Save status */}
-      <div className="flex items-center justify-between">
-        <h3 className="text-sm font-black text-slate-800 dark:text-slate-200 uppercase tracking-widest">
-          Informasi Kursus
-        </h3>
-        <div className="flex items-center gap-2 text-xs font-bold">
-          <div aria-live="polite" aria-atomic="true">
-            {saving && (
-              <span className="flex items-center gap-1.5 text-amber-500">
-                <Loader2 className="w-3 h-3 animate-spin" />
-                Menyimpan...
-              </span>
-            )}
-            {saved && (
-              <span className="flex items-center gap-1.5 text-emerald-500">
-                <CheckCircle className="w-3 h-3" />
-                Tersimpan
-              </span>
-            )}
-          </div>
-        </div>
-      </div>
-
-      {/* Title */}
-      <div>
-        <label
-          htmlFor="settings-title"
-          className="block text-xs font-bold text-slate-500 dark:text-slate-400 mb-2 uppercase tracking-wider"
-        >
-          Judul Kursus
-        </label>
-        <input
-          id="settings-title"
-          type="text"
-          value={data.title}
-          onChange={(e) => handleChange('title', e.target.value)}
-          className={inputClass}
-          placeholder="Masukkan judul kursus..."
-        />
-      </div>
-
-      {/* Description */}
-      <div>
-        <label
-          htmlFor="settings-description"
-          className="block text-xs font-bold text-slate-500 dark:text-slate-400 mb-2 uppercase tracking-wider"
-        >
-          Deskripsi
-        </label>
-        <textarea
-          id="settings-description"
-          value={data.description}
-          onChange={(e) => handleChange('description', e.target.value)}
-          rows={4}
-          className={`${inputClass} resize-none`}
-          placeholder="Deskripsi singkat tentang kursus ini..."
-        />
-      </div>
-
-      {/* Subject & Level — side by side */}
-      <div className="grid grid-cols-2 gap-4">
-        <div>
-          <label
-            htmlFor="settings-subject"
-            className="block text-xs font-bold text-slate-500 dark:text-slate-400 mb-2 uppercase tracking-wider"
-          >
-            Mata Pelajaran
-          </label>
-          <input
-            id="settings-subject"
-            type="text"
-            value={data.subject}
-            onChange={(e) => handleChange('subject', e.target.value)}
-            className={inputClass}
-            placeholder="Contoh: Matematika"
-          />
-        </div>
-        <div>
-          <label
-            htmlFor="settings-level"
-            className="block text-xs font-bold text-slate-500 dark:text-slate-400 mb-2 uppercase tracking-wider"
-          >
-            Tingkat
-          </label>
-          <select
-            id="settings-level"
-            value={data.level}
-            onChange={(e) => handleChange('level', e.target.value)}
-            className={inputClass}
-          >
-            <option value="">Pilih tingkat...</option>
-            <option value="SD">SD</option>
-            <option value="SMP">SMP</option>
-            <option value="SMA">SMA</option>
-            <option value="SMK">SMK</option>
-            <option value="Universitas">Universitas</option>
-            <option value="Umum">Umum</option>
-          </select>
-        </div>
-      </div>
-
-      {error && (
-        <p role="alert" className="text-sm text-red-600 dark:text-red-400">
-          {error}
-        </p>
-      )}
-    </div>
-  )
-}
-
 // ── Modal ────────────────────────────────────────────────────
 
-function CourseSettingsModal({ isOpen, onClose, courseId }: CourseSettingsModalProps) {
+export function CourseSettingsModal({ isOpen, onClose, courseId }: CourseSettingsModalProps) {
   const [activeTab, setActiveTab] = useState<'general' | 'collaborators'>('general')
   const modalRef = useRef<HTMLDivElement>(null)
 
@@ -344,7 +120,7 @@ function CourseSettingsModal({ isOpen, onClose, courseId }: CourseSettingsModalP
             {/* Content Area */}
             <div className="flex-1 p-6 overflow-y-auto">
               {activeTab === 'general' ? (
-                <GeneralSettingsTab courseId={courseId} />
+                <CourseGeneralSettingsTab courseId={courseId} />
               ) : (
                 <CourseCollaborators courseId={courseId} />
               )}

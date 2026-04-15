@@ -53,13 +53,13 @@ export async function getSchoolQuizOverview(_tenantId: string): Promise<AdminQui
   if (!quizzes || quizzes.length === 0) return []
 
   // Fetch quiz stats for all quizzes in one query
-  const _quizIds = quizzes.map((q) => q.id)
+  const _quizIds = (quizzes as any[]).map((q: any) => q.id)
   const { data: stats } = await apiFetch('/quiz_stats')
 
-  const statsMap = new Map((stats ?? []).map((s) => [s.quiz_id, s]))
+  const statsMap = new Map((stats ?? []).map((s: any) => [s.quiz_id, s]))
 
-  return quizzes.map((q) => {
-    const stat = statsMap.get(q.id)
+  return (quizzes as any[]).map((q: any) => {
+    const stat = statsMap.get(q.id) as any
     const classes = q.classes as unknown as { name: string } | null
     const profiles = q.profiles as unknown as { full_name: string } | null
     const questions = q.quiz_questions as unknown as { id: string }[] | null
@@ -96,7 +96,7 @@ export async function getAntiCheatAuditLog(
 
   if (!data || data.length === 0) return []
 
-  return data.map((row) => {
+  return (data as any[]).map((row: any) => {
     const attempt = row.quiz_attempts_v2 as unknown as Record<string, unknown>
     const profiles = attempt?.profiles as unknown as { full_name: string } | null
     const quizzes = attempt?.quizzes as unknown as { title: string } | null

@@ -29,7 +29,7 @@ export function useClassManagementState() {
     setActiveClassroomId,
     loading: classLoading,
   } = useClassroom()
-  const { tenantId, _user } = useAuth()
+  const { tenantId } = useAuth()
 
   const [selectedClassId, setSelectedClassId] = useState<string | null>(null)
   const [students, setStudents] = useState<EnrolledStudent[]>([])

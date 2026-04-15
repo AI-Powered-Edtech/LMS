@@ -132,17 +132,3 @@ export async function getSuspiciousAttempts(
     return b.total_signals - a.total_signals
   })
 }
-
-/**
- * Get the total count of suspicious attempts for a quiz (for badge display).
- */
-async function getSuspiciousAttemptCount(_quizId: string, _tenantId: string): Promise<number> {
-  const { count, error } = await apiFetch('/quiz_cheating_signals')
-
-  if (error) {
-    if (import.meta.env.DEV) console.error('Error counting suspicious attempts:', error)
-    return 0
-  }
-
-  return count ?? 0
-}

@@ -42,11 +42,13 @@ export async function getAttemptQuestions(attemptId: string): Promise<QuizAttemp
   if (questionError) throw questionError
 
   // Build Maps for O(1) lookup instead of O(n) find() - fixes O(n^2) performance
-  const questionsMap = new Map<string, (typeof questions)[0]>()
-  questions.forEach((q) => questionsMap.set(q.id, q))
+  const questionsArr = (questions ?? []) as any[]
+  const questionsMap = new Map<string, any>()
+  questionsArr.forEach((q: any) => questionsMap.set(q.id, q))
 
-  const answersMap = new Map<string, (typeof answers)[0]>()
-  answers.forEach((a) => answersMap.set(a.question_id, a))
+  const answersArr = (answers ?? []) as any[]
+  const answersMap = new Map<string, any>()
+  answersArr.forEach((a: any) => answersMap.set(a.question_id, a))
 
   // Map and normalize the data
   return manifest.map((questionId: string, index: number) => {
@@ -116,7 +118,7 @@ export async function getStudentQuizAssignments(
 
   if (enrollmentError) throw enrollmentError
 
-  const classIds = (enrollments || []).map((item) => item.class_id).filter(Boolean)
+  const classIds = (enrollments || []).map((item: any) => item.class_id).filter(Boolean)
   if (classIds.length === 0) return []
 
   // Get quiz assignments for those classes
@@ -124,7 +126,7 @@ export async function getStudentQuizAssignments(
 
   if (error) throw error
 
-  return (data || []).map((assignment) => {
+  return (data || []).map((assignment: any) => {
     const quizArr = assignment.quizzes as unknown
     const quiz = ((Array.isArray(quizArr) ? quizArr[0] : quizArr) as Record<string, unknown>) || {}
     const classArr = assignment.classes as unknown

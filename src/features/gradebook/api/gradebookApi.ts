@@ -17,10 +17,7 @@ export async function fetchGradebookEntries(
   const { data, error } = await apiFetch('/gradebook_entries')
 
   if (error) throw error
-
-  type RawRow = typeof data extends (infer R)[] | null ? R : never
-
-  return ((data ?? []) as RawRow[]).map((row) => {
+  return ((data ?? []) as any[]).map((row: any) => {
     const profile = row.profiles as unknown as {
       first_name: string
       last_name: string

@@ -1,14 +1,20 @@
 import { apiFetch } from '@/src/lib/api'
 import { logDevError, logDevWarn } from '@/src/utils/logDevError'
 
-import type {  CourseInsert, CourseUpdate, FetchCoursesOptions } from '../types'
+import type { Course, CourseInsert, CourseUpdate, FetchCoursesOptions } from '../types'
 
 export const courseService = {
   /**
    * Fetches courses for a specific tenant with optional pagination and search.
    * RLS ensures users only see courses they have access to.
    */
-  async fetchCourses({ tenantId: _tenantId, page = 1, limit = 10, search, ids }: FetchCoursesOptions) {
+  async fetchCourses({
+    tenantId: _tenantId,
+    page = 1,
+    limit = 10,
+    search,
+    ids,
+  }: FetchCoursesOptions): Promise<{ data: Course[]; error: Error | null; count: number }> {
     const queryParams = new URLSearchParams()
     
     if (page && limit) {
@@ -35,7 +41,7 @@ export const courseService = {
         return { data: [], error, count: 0 }
       }
 
-      return { data: data || [], error: null, count: count || 0 }
+      return { data: (data || []) as Course[], error: null, count: count || 0 }
     } catch (err) {
       logDevError('Courses', 'Failed to fetch courses:', err)
       return { data: [], error: err as Error, count: 0 }
@@ -45,7 +51,7 @@ export const courseService = {
   /**
    * Gets a specific course by its ID.
    */
-  async getCourseById(courseId: string, _tenantId: string) {
+  async getCourseById(courseId: string, _tenantId: string): Promise<Course> {
     const { data, error } = await apiFetch(`/v1/courses/${courseId}`)
 
     if (error) {
@@ -53,7 +59,7 @@ export const courseService = {
       throw error
     }
 
-    return data
+    return data as Course
   },
 
   /**
@@ -61,7 +67,7 @@ export const courseService = {
    * The created_by field should ideally be set by the edge function/DB defaults using auth.uid(),
    * but we provide it here explicitly for completeness if the RLS allows it.
    */
-  async createCourse(courseData: CourseInsert) {
+  async createCourse(courseData: CourseInsert): Promise<Course> {
     const { data, error } = await apiFetch('/v1/courses', {
       method: 'POST',
       body: JSON.stringify(courseData),
@@ -72,13 +78,13 @@ export const courseService = {
       throw error
     }
 
-    return data
+    return data as Course
   },
 
   /**
    * Updates an existing course.
    */
-  async updateCourse(courseId: string, updates: CourseUpdate, _tenantId: string) {
+  async updateCourse(courseId: string, updates: CourseUpdate, _tenantId: string): Promise<Course> {
     const { data, error } = await apiFetch(`/v1/courses/${courseId}`, {
       method: 'PATCH',
       body: JSON.stringify(updates),
@@ -89,7 +95,7 @@ export const courseService = {
       throw error
     }
 
-    return data
+    return data as Course
   },
 
   /**

@@ -24,6 +24,7 @@ import {
 import { AnimatePresence, motion } from 'motion/react'
 import { useState } from 'react'
 
+import { ConfirmModal } from '@/src/components/ui'
 import { useBuilder } from '@/src/contexts/BuilderContext'
 import { QuizBlockEditor } from '@/src/features/quizzes/components/QuizBlockEditor'
 import { cn } from '@/src/utils/cn'
@@ -39,6 +40,10 @@ import { CollaboratorCursor } from './CollaboratorCursor'
 export function LessonBlockEditor() {
   const { state, actions, presence, mobile } = useBuilder()
   const [showAddMenu, setShowAddMenu] = useState(false)
+  const [confirmDeleteBlock, setConfirmDeleteBlock] = useState<{
+    id: string
+    label: string
+  } | null>(null)
 
   if (!state.activeLesson) {
     return (
@@ -102,6 +107,20 @@ export function LessonBlockEditor() {
       default:
         return <FileText className="w-4 h-4 text-slate-500" />
     }
+  }
+
+  const getBlockLabel = (type: string) => {
+    return (
+      {
+        text: 'Teks',
+        video: 'Video',
+        image: 'Gambar',
+        file: 'File',
+        quiz: 'Kuis',
+        assignment: 'Tugas',
+        scorm: 'SCORM',
+      }[type?.toLowerCase()] || type?.toUpperCase()
+    )
   }
 
   const handleDragStart = (_start: DragStart) => {
@@ -195,7 +214,7 @@ export function LessonBlockEditor() {
     <main
       id="builder-main"
       aria-label="Editor konten"
-      className="flex-1 overflow-y-auto bg-slate-50 dark:bg-slate-900"
+      className="flex-1 overflow-y-auto bg-slate-50/60 dark:bg-slate-900/50"
     >
       <div className={cn('max-w-3xl mx-auto py-8', mobile.isMobile ? 'px-4' : 'px-6')}>
         {/* Lesson Header */}
@@ -323,9 +342,10 @@ export function LessonBlockEditor() {
 
                               <button
                                 onClick={() => {
-                                  if (confirm('Hapus konten ini?')) {
-                                    actions.deleteBlock(block.id)
-                                  }
+                                  setConfirmDeleteBlock({
+                                    id: block.id,
+                                    label: getBlockLabel(block.type),
+                                  })
                                 }}
                                 className="p-2 md:opacity-0 md:group-hover:opacity-100 hover:bg-rose-50 text-slate-500 hover:text-rose-600 rounded-xl transition-all"
                                 aria-label="Hapus konten"
@@ -395,6 +415,23 @@ export function LessonBlockEditor() {
           </AnimatePresence>
         </div>
       </div>
+
+      <ConfirmModal
+        open={!!confirmDeleteBlock}
+        onClose={() => setConfirmDeleteBlock(null)}
+        title="Hapus konten?"
+        description={
+          confirmDeleteBlock
+            ? `Apakah Anda yakin ingin menghapus konten "${confirmDeleteBlock.label}" ini? Tindakan ini tidak dapat dibatalkan.`
+            : undefined
+        }
+        confirmText="Hapus"
+        cancelText="Batal"
+        onConfirm={() => {
+          if (!confirmDeleteBlock) return
+          actions.deleteBlock(confirmDeleteBlock.id)
+        }}
+      />
     </main>
   )
 }

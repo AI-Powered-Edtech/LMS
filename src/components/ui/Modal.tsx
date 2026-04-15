@@ -1,7 +1,9 @@
 import { X } from 'lucide-react'
-import { createContext, useCallback, useContext, useEffect, useId, useRef } from 'react'
+import { createContext, useCallback, useContext, useEffect, useId, useRef, useState } from 'react'
 
 import { cn } from '@/src/utils/cn'
+
+import { Button } from './Button'
 
 /* ─── Modal ────────────────────────────────────────────────── */
 
@@ -181,5 +183,81 @@ export function ModalFooter({ children, className }: ModalFooterProps) {
     >
       {children}
     </div>
+  )
+}
+
+export interface ConfirmModalProps {
+  open: boolean
+  onClose: () => void
+  title: string
+  description?: React.ReactNode
+  confirmText?: string
+  cancelText?: string
+  confirmDisabled?: boolean
+  onConfirm: () => void | Promise<void>
+  size?: ModalProps['size']
+  danger?: boolean
+}
+
+export function ConfirmModal({
+  open,
+  onClose,
+  title,
+  description,
+  confirmText = 'Konfirmasi',
+  cancelText = 'Batal',
+  confirmDisabled = false,
+  onConfirm,
+  size = 'sm',
+  danger = true,
+}: ConfirmModalProps) {
+  const [submitting, setSubmitting] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+
+  const handleClose = () => {
+    if (submitting) return
+    setError(null)
+    onClose()
+  }
+
+  const handleConfirm = async () => {
+    if (confirmDisabled) return
+    setSubmitting(true)
+    setError(null)
+    try {
+      await onConfirm()
+      onClose()
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Terjadi kesalahan. Coba lagi.')
+    } finally {
+      setSubmitting(false)
+    }
+  }
+
+  return (
+    <Modal open={open} onClose={handleClose} size={size} ariaLabel={title}>
+      <ModalHeader title={title} onClose={handleClose} />
+      <ModalBody>
+        {typeof description === 'string' ? (
+          <p className="text-sm text-slate-600 dark:text-slate-300 leading-relaxed">{description}</p>
+        ) : (
+          description
+        )}
+        {error && <p className="mt-3 text-sm text-red-600 dark:text-red-400">{error}</p>}
+      </ModalBody>
+      <ModalFooter>
+        <Button variant="secondary" onClick={handleClose} disabled={submitting}>
+          {cancelText}
+        </Button>
+        <Button
+          variant={danger ? 'danger' : 'primary'}
+          onClick={handleConfirm}
+          loading={submitting}
+          disabled={confirmDisabled}
+        >
+          {confirmText}
+        </Button>
+      </ModalFooter>
+    </Modal>
   )
 }

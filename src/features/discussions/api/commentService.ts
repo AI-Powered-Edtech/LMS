@@ -20,7 +20,7 @@ export const commentService = {
     if (error) throw error
     validateArray(DiscussionPostRowSchema, data ?? [], 'commentService.fetchComments')
 
-    return (data ?? []).map((d) => ({
+    return (data ?? []).map((d: any) => ({
       id: d.id,
       author:
         `${(d as unknown as { profiles?: { first_name?: string; last_name?: string } }).profiles?.first_name ?? ''} ${(d as unknown as { profiles?: { first_name?: string; last_name?: string } }).profiles?.last_name ?? ''}`.trim() ||

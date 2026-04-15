@@ -1,7 +1,7 @@
 // EduSync LMS — Application metrics tracking
 // Fire-and-forget: sends metrics to app_metrics table without blocking UI
 
-import {  apiFetch } from '@/src/lib/api'
+import { apiFetch } from '@/src/lib/api'
 
 export type MetricName =
   | 'quiz.completion_rate'
@@ -28,19 +28,4 @@ export async function trackMetric(
   } catch {
     // Metrics are non-critical — silently ignore errors
   }
-}
-
-/**
- * Measure how long an async operation takes and record it.
- */
-async function measureAsync<T>(
-  name: MetricName,
-  fn: () => Promise<T>,
-  metadata?: Record<string, unknown>
-): Promise<T> {
-  const start = performance.now()
-  const result = await fn()
-  const duration = performance.now() - start
-  void trackMetric(name, duration, metadata)
-  return result
 }

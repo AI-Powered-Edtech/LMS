@@ -1,0 +1,8 @@
+- [x] Sidebar mendukung inline rename modul dan inline rename lesson (Enter simpan, Escape batal).
+- [x] Lesson dapat dipindahkan lintas modul via drag-and-drop dan urutan tetap konsisten setelah reload.
+- [x] Tidak ada lagi penggunaan `confirm()` di Course Builder; semua aksi destruktif memakai modal UI.
+- [x] Course Settings memiliki upload cover/thumbnail dan cover tampil di daftar course guru.
+- [x] Course Settings memiliki Danger Zone delete course dengan konfirmasi aman.
+- [x] Tombol publish/unpublish memiliki konfirmasi dan readiness check sebelum publish.
+- [x] BuilderSidebar konsisten dengan dark mode dan copywriting Indonesia.
+- [x] Build + typecheck + lint lulus, dan flow guru utama dapat diselesaikan end-to-end tanpa hambatan UX besar.

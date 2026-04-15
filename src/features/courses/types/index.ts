@@ -2,8 +2,12 @@ export interface Course {
   id: string
   title: string
   description: string | null
+  status?: 'draft' | 'published' | 'archived'
+  published_at?: string | null
   subject?: string
   level?: string
+  cover_url?: string | null
+  cover_storage_object_id?: string | null
   tenant_id: string
   created_by: string
   created_at?: string
