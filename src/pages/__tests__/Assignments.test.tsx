@@ -1,0 +1,12 @@
+import { describe, expect, it } from 'vitest'
+
+import { renderWithAllProviders } from '@/testing/test-utils'
+
+import { Assignments } from '../Assignments'
+
+describe('Assignments', () => {
+  it('renders without crashing', () => {
+    const { container } = renderWithAllProviders(<Assignments />)
+    expect(container).toBeTruthy()
+  })
+})

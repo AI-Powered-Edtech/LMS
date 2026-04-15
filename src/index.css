@@ -1,0 +1,155 @@
+@import 'tailwindcss';
+
+/* ─── Dark Mode: class-based (html.dark) ─────────────────────
+   Tailwind v4 defaults toj @media (prefers-color-scheme: dark).
+   This overrides it so `dark:` variants respond to the .dark
+   class added/removed by ThemeContext on <html>.              */
+@variant dark (&:where(.dark, .dark *));
+
+@theme {
+  --font-sans: 'Nunito', ui-sans-serif, system-ui, sans-serif;
+  --font-body: 'Inter', ui-sans-serif, system-ui, sans-serif;
+}
+
+@layer utilities {
+  .pb-safe {
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+  .animate-pulse-slow {
+    animation: pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+  }
+  .scrollbar-hide {
+    -ms-overflow-style: none; /* IE and Edge */
+    scrollbar-width: none; /* Firefox */
+  }
+  .scrollbar-hide::-webkit-scrollbar {
+    display: none; /* Chrome, Safari and Opera */
+  }
+  .perspective-1000 {
+    perspective: 1000px;
+  }
+  .preserve-3d {
+    transform-style: preserve-3d;
+  }
+  .backface-hidden {
+    backface-visibility: hidden;
+  }
+  .rotate-y-180 {
+    transform: rotateY(180deg);
+  }
+  .custom-scrollbar::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+  .custom-scrollbar::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  .custom-scrollbar::-webkit-scrollbar-thumb {
+    background: #e2e8f0;
+    border-radius: 10px;
+  }
+  .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+    background: #cbd5e1;
+  }
+  /* Button press micro-interaction — add to clickable elements for tactile feedback */
+  .press-scale {
+    transition: transform 0.1s ease;
+  }
+  .press-scale:active {
+    transform: scale(0.98);
+  }
+}
+
+html,
+body {
+  overflow-x: hidden;
+}
+
+/* ─── Global Focus Indicator (WCAG 2.1 AA) ─────────────────── */
+:focus-visible {
+  outline: 2px solid #2563eb;
+  outline-offset: 2px;
+}
+
+.dark :focus-visible {
+  outline-color: #60a5fa;
+}
+
+body {
+  font-family: var(--font-body);
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6,
+.font-bold {
+  font-family: var(--font-sans);
+}
+
+/* ============================================================
+   High Contrast Mode (WCAG 1.4.3 — Contrast)
+   ============================================================ */
+.high-contrast {
+  --contrast-bg: #ffffff;
+  --contrast-text: #000000;
+  --contrast-border: #000000;
+  --contrast-focus: #0000ff;
+}
+
+.dark.high-contrast {
+  --contrast-bg: #000000;
+  --contrast-text: #ffffff;
+  --contrast-border: #ffffff;
+  --contrast-focus: #ffff00;
+}
+
+.high-contrast *:focus-visible {
+  outline: 3px solid var(--contrast-focus) !important;
+  outline-offset: 2px !important;
+}
+
+.high-contrast button,
+.high-contrast a,
+.high-contrast input,
+.high-contrast select,
+.high-contrast textarea {
+  border: 2px solid var(--contrast-border) !important;
+}
+
+/* Font size variants */
+[data-font-size='sm'] {
+  font-size: 14px;
+}
+[data-font-size='md'] {
+  font-size: 16px;
+}
+[data-font-size='lg'] {
+  font-size: 18px;
+}
+
+/* WCAG 2.4.1 — Skip navigation link */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border-width: 0;
+}
+
+.focus\:not-sr-only:focus {
+  position: fixed;
+  width: auto;
+  height: auto;
+  padding: revert;
+  margin: revert;
+  overflow: visible;
+  clip: auto;
+  white-space: normal;
+}

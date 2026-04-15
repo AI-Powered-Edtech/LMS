@@ -1,0 +1,6 @@
+{
+  "entry": ["src/main.tsx", "src/App.tsx", "src/app/routes/**/*.{ts,tsx}", "src/setupTests.ts"],
+  "project": ["src/**/*.{ts,tsx}"],
+  "ignoreDependencies": ["tailwindcss"],
+  "ignore": ["src/**/*.test.{ts,tsx}", "src/**/__tests__/**", "src/test-utils/**"]
+}

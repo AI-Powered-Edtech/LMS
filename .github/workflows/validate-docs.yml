@@ -1,0 +1,34 @@
+name: Validate Documentation
+
+on:
+  pull_request:
+    branches: [main, develop]
+  push:
+    branches: [main]
+
+jobs:
+  validate-docs:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Run documentation validation script
+        run: |
+          chmod +x scripts/validate-docs.sh
+          ./scripts/validate-docs.sh
+
+      - name: Upload validation results
+        if: always()
+        uses: actions/upload-artifact@v3
+        with:
+          name: validation-results
+          path: |
+            scripts/validate-docs.sh
+            docs/ENVIRONMENT.md
+            docs/MIGRATIONS.md

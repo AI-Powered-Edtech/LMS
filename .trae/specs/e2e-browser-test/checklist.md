@@ -1,0 +1,7 @@
+- [x] Dev Server dapat diakses dan diinisialisasi melalui Browser Agent.
+- [ ] UI telah di-refactor menjadi desain yang lebih kompak (Compact Design).
+- [x] Otentikasi (Login/Logout) untuk *role* berbeda (Student, Teacher, Admin) berjalan lancar.
+- [ ] Alur siswa (Student Journey: Dashboard, Kelas, Materi, Tugas, Kuis) berjalan tanpa blocker.
+- [ ] Alur guru (Teacher Journey: Kelas, Gradebook, Assignment/Quiz Builder) berjalan tanpa blocker.
+- [ ] Alur admin (Admin Journey: Administrasi, Laporan, Analitik) berjalan tanpa blocker.
+- [ ] Semua *bug* atau *blocker* yang terdeteksi telah diperbaiki dan diuji ulang.

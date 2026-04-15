@@ -1,0 +1,24 @@
+{
+  "profile": {
+    "id": "ecdfd0b7-0cd7-49ec-bf5f-0c81d66c6185",
+    "email": "teacher@edusync.dev",
+    "last_name": "Dev",
+    "tenant_id": "00000000-0000-0000-0000-00000000000d",
+    "avatar_url": null,
+    "first_name": "Teacher"
+  },
+  "memberships": [
+    {
+      "role": "teacher",
+      "status": "active",
+      "is_active": true,
+      "joined_at": "2026-03-17T11:58:05.88057+00:00",
+      "tenant_id": "00000000-0000-0000-0000-00000000000d",
+      "tenant_logo": null,
+      "tenant_name": "EduSync Dev Tenant",
+      "tenant_slug": "dev"
+    }
+  ],
+  "default_tenant_id": "00000000-0000-0000-0000-00000000000d",
+  "requires_email_verification": false
+}

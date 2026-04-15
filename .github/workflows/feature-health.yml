@@ -1,0 +1,29 @@
+name: Feature Health Sync
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'src/features/**'
+      - 'docs/**'
+  workflow_dispatch: # allow manual trigger from GitHub UI
+
+jobs:
+  score-and-sync:
+    name: Score Features → Notion
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+
+      - name: Run feature scorer
+        run: node scripts/score-features.js
+        env:
+          NOTION_TOKEN: ${{ secrets.NOTION_TOKEN }}
+          NOTION_DATABASE_ID: ${{ secrets.NOTION_DATABASE_ID }}
