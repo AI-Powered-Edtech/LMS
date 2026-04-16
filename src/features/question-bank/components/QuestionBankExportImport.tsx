@@ -83,10 +83,10 @@ export function QuestionBankExportImport() {
           throw new Error('Format file tidak valid')
         }
 
-        let imported = 0
-        for (const q of data.questions) {
-          try {
-            await questionBankService.createQuestion({
+        // ⚡ Bolt: Parallelize question bank imports
+        const results = await Promise.allSettled(
+          data.questions.map((q) =>
+            questionBankService.createQuestion({
               subject_id: q.subject,
               type: q.question_type as any,
               text: q.question_text,
@@ -100,11 +100,9 @@ export function QuestionBankExportImport() {
                 })) ?? [],
               tags: q.tags ?? [],
             })
-            imported++
-          } catch {
-            // Skip failed questions, continue with rest
-          }
-        }
+          )
+        )
+        const imported = results.filter((r) => r.status === 'fulfilled').length
 
         addToast({
           type: imported > 0 ? 'success' : 'error',
