@@ -13,6 +13,7 @@
 
 pub mod types;
 
+use ring::signature::KeyPair;
 use sqlx::PgPool;
 use uuid::Uuid;
 

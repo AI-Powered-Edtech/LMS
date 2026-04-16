@@ -210,8 +210,8 @@ async fn save_delivery_report(
 ) -> Result<(), AppError> {
     sqlx::query!(
         r#"
-        INSERT INTO activity_events (event_type, metadata)
-        VALUES ('whatsapp_delivery_report', $1)
+        INSERT INTO whatsapp_delivery_reports (metadata)
+        VALUES ($1)
         "#,
         serde_json::json!({
             "message_id": report.message_id,

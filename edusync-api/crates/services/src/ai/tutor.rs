@@ -61,9 +61,7 @@ async fn check_rate_limit(db: &PgPool, user_id: Uuid, tenant_id: Uuid) -> Result
     .unwrap_or(0);
 
     if count >= AI_RATE_LIMIT_PER_HOUR {
-        return Err(VilError::rate_limited(
-            "Batas penggunaan AI tercapai, coba lagi nanti",
-        ));
+        return Err(VilError::rate_limited());
     }
     Ok(())
 }
@@ -206,7 +204,7 @@ async fn load_student_progress(
     .ok()
     .flatten()
     .map(|r| StudentProgress {
-        total_time_spent: r.total_time_spent,
+        total_time_spent: r.total_time_spent.map(|v| v as i64),
         latest_quiz_score: r.latest_quiz_score,
     })
     .unwrap_or(StudentProgress {

@@ -123,13 +123,10 @@ async fn verify_enrollment(
     user_id: Uuid,
     tenant_id: Uuid,
 ) -> Result<(), QuizLoaderError> {
-    // Derive course_id from quiz via: quizzes.lesson_id → lessons.module_id → course_modules.course_id
     let course_id: Option<Uuid> = sqlx::query_scalar!(
         r#"
-        SELECT cm.course_id
-        FROM public.quizzes        q
-        JOIN public.lessons        l  ON l.id = q.lesson_id
-        JOIN public.course_modules cm ON cm.id = l.module_id
+        SELECT q.course_id
+        FROM public.quizzes q
         WHERE q.id        = $1
           AND q.tenant_id = $2
         LIMIT 1
@@ -151,10 +148,12 @@ async fn verify_enrollment(
         r#"
         SELECT EXISTS (
             SELECT 1
-            FROM public.enrollments
-            WHERE course_id = $1
-              AND user_id   = $2
-              AND tenant_id = $3
+            FROM public.enrollments e
+            JOIN public.classes c ON c.id = e.class_id
+            WHERE c.course_id = $1
+              AND e.user_id   = $2
+              AND e.tenant_id = $3
+              AND e.status    = 'ACTIVE'
         )
         "#,
         cid,
@@ -163,7 +162,7 @@ async fn verify_enrollment(
     )
     .fetch_one(db)
     .await
-    .map_err(|e| QuizLoaderError::Database(e.to_string()))?
+    .map_err(|e: sqlx::Error| QuizLoaderError::Database(e.to_string()))?
     .unwrap_or(false);
 
     if !enrolled {
@@ -199,10 +198,10 @@ pub async fn load_quiz_for_student(
         SELECT
             id,
             title,
-            description,
             time_limit_minutes,
             shuffle_questions,
-            show_results
+            instructions as description,
+            show_correct_answers as show_results
         FROM public.quizzes
         WHERE id        = $1
           AND tenant_id = $2
@@ -213,7 +212,7 @@ pub async fn load_quiz_for_student(
     )
     .fetch_optional(db)
     .await
-    .map_err(|e| QuizLoaderError::Database(e.to_string()))?
+    .map_err(|e: sqlx::Error| QuizLoaderError::Database(e.to_string()))?
     .ok_or(QuizLoaderError::NotFound)?;
 
     let quiz = QuizData {
@@ -233,8 +232,8 @@ pub async fn load_quiz_for_student(
         SELECT
             id,
             text,
-            question_type,
-            points
+            COALESCE(question_type::text, 'MCQ') as "question_type!",
+            COALESCE(points, 10) as "points!"
         FROM public.quiz_questions
         WHERE quiz_id   = $1
           AND tenant_id = $2
@@ -263,13 +262,13 @@ pub async fn load_quiz_for_student(
                 text
             FROM public.quiz_options
             WHERE question_id = ANY($1)
-            ORDER BY "order" ASC
+            ORDER BY id ASC
             "#,
-            &question_ids
+            &question_ids as &[Uuid]
         )
         .fetch_all(db)
         .await
-        .map_err(|e| QuizLoaderError::Database(e.to_string()))?
+        .map_err(|e: sqlx::Error| QuizLoaderError::Database(e.to_string()))?
     };
 
     // Build options map: question_id → Vec<OptionData>

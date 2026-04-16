@@ -94,7 +94,7 @@ pub async fn process_progress_batch(db: &PgPool) -> Result<usize, ProgressProces
     let result = process_inner(db).await;
 
     // ── 6. Always release advisory lock ──────────────────────────────────────
-    let _ = sqlx::query!("SELECT pg_advisory_unlock(hashtext('progress_events'))")
+    let _ = sqlx::query("SELECT pg_advisory_unlock(hashtext('progress_events'))")
         .execute(db)
         .await;
 

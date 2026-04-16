@@ -465,7 +465,6 @@ pub async fn handle_launch(
     sig_validation.validate_exp = true;
     sig_validation.set_audience(&[&platform.client_id]);
     // Do not validate iss here — done manually below against the DB record.
-    sig_validation.validate_iss = false;
 
     let token_data =
         decode::<LtiLaunchClaims>(id_token, &decoding_key, &sig_validation).map_err(|e| {

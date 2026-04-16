@@ -423,7 +423,7 @@ pub async fn upsert_scorm_lesson_resource(
             scorm_manifest_json,
             created_at
         ) VALUES (
-            $1, $2, $3, 'scorm', $4, $5, $6, NOW()
+            $1, $2, $3, 'SCORM', $4, $5, $6, NOW()
         )
         ON CONFLICT (lesson_id, type) DO UPDATE
         SET
@@ -443,5 +443,5 @@ pub async fn upsert_scorm_lesson_resource(
     .fetch_one(db)
     .await
     .map(|r| r.id)
-    .map_err(|e| ScormError::Database(e.to_string()))
+    .map_err(|e: sqlx::Error| ScormError::Database(e.to_string()))
 }

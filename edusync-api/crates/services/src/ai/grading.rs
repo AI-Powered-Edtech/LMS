@@ -39,9 +39,7 @@ async fn check_rate_limit(db: &PgPool, user_id: Uuid, tenant_id: Uuid) -> Result
     .unwrap_or(0); // fail open
 
     if count >= AI_RATE_LIMIT_PER_HOUR {
-        return Err(VilError::rate_limited(
-            "Batas penggunaan AI tercapai, coba lagi nanti",
-        ));
+        return Err(VilError::rate_limited());
     }
     Ok(())
 }

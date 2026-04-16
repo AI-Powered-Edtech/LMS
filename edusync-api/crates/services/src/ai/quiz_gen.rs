@@ -49,9 +49,7 @@ async fn check_rate_limit(
     .unwrap_or(0);
 
     if count >= CONTENT_GEN_RATE_LIMIT_PER_HOUR {
-        return Err(VilError::rate_limited(
-            "Batas pembuatan kuis AI tercapai (20/jam), coba lagi nanti",
-        ));
+        return Err(VilError::rate_limited());
     }
     Ok(())
 }
@@ -102,7 +100,7 @@ async fn load_lesson_with_resources(
         if let Some(c) = &r.content {
             content_parts.push(c.clone());
         } else {
-            content_parts.push(r.title.clone());
+            content_parts.push(r.title.clone().unwrap_or_default());
         }
     }
 

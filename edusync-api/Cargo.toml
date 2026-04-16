@@ -6,7 +6,6 @@ members = [
     "crates/auth",
     "crates/middleware",
     "crates/services",
-    "crates/integration-tests",
     "crates/vil_conn_s3",
 ]
 
@@ -16,7 +15,7 @@ vil_server = "0.2.2"
 tokio = { version = "1", features = ["full"] }
 serde = { version = "1", features = ["derive"] }
 serde_json = "1"
-sqlx = { version = "0.8", features = ["postgres", "runtime-tokio-native-tls", "uuid", "time", "json", "chrono"] }
+sqlx = { version = "0.8", features = ["postgres", "runtime-tokio-native-tls", "uuid", "json", "chrono"] }
 uuid = { version = "1", features = ["v4", "serde"] }
 jsonwebtoken = "9"
 argon2 = "0.5"

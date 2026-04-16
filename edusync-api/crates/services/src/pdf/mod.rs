@@ -63,10 +63,11 @@ pub async fn generate_pdf_for_enrollment(
             e.completed_at,
             t.name         AS tenant_name,
             e.user_id
-        FROM enrollments e
-        JOIN profiles p ON p.id = e.user_id
-        JOIN courses  c ON c.id = e.course_id
-        JOIN tenants  t ON t.id = e.tenant_id
+        FROM public.enrollments e
+        JOIN public.profiles p ON p.id = e.user_id
+        JOIN public.classes cls ON cls.id = e.class_id
+        JOIN public.courses c ON c.id = cls.course_id
+        JOIN public.tenants t ON t.id = e.tenant_id
         WHERE e.id        = $1
           AND e.tenant_id = $2
         "#,
