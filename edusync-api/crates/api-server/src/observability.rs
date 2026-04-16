@@ -22,11 +22,19 @@ pub fn init_tracing() {
 }
 
 pub fn init_sentry() -> Option<sentry::ClientInitGuard> {
-    let dsn = std::env::var("SENTRY_DSN").ok()?;
+    let dsn = std::env::var("SENTRY_DSN").ok().filter(|v| !v.trim().is_empty())?;
+    let release = std::env::var("SENTRY_RELEASE")
+        .ok()
+        .map(std::borrow::Cow::Owned)
+        .or_else(|| sentry::release_name!());
+    let environment = std::env::var("APP_ENV").unwrap_or_else(|_| "development".into());
     Some(sentry::init((
         dsn,
         sentry::ClientOptions {
-            release: sentry::release_name!(),
+            release,
+            environment: Some(environment.into()),
+            traces_sample_rate: 0.1,
+            send_default_pii: false,
             ..Default::default()
         },
     )))
