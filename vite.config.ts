@@ -70,22 +70,25 @@ export default defineConfig(({ mode }) => {
         },
         workbox: {
           navigateFallback: '/offline.html',
+          navigateFallbackDenylist: [/^\/api\//],
           runtimeCaching: [
+            // VIL backend API
             {
-              urlPattern: /^https:\/\/.*\.supabase\.co\/.*/i,
+              urlPattern: /\/api\/v1\//i,
               handler: 'NetworkFirst',
               options: {
-                cacheName: 'supabase-api',
+                cacheName: 'vil-api-cache',
                 networkTimeoutSeconds: 5,
-                expiration: { maxEntries: 200, maxAgeSeconds: 60 * 60 },
+                expiration: { maxEntries: 50, maxAgeSeconds: 60 * 60 },
               },
             },
+            // Cloudflare R2 object storage
             {
-              urlPattern: /^https:\/\/.*\.supabase\.co\/storage\/v1\/object\/.*/i,
+              urlPattern: /^https:\/\/.*\.r2\.cloudflarestorage\.com\/.*/i,
               handler: 'StaleWhileRevalidate' as const,
               options: {
-                cacheName: 'supabase-storage',
-                expiration: { maxEntries: 200, maxAgeSeconds: 7 * 24 * 60 * 60 }, // 7 days
+                cacheName: 'r2-storage-cache',
+                expiration: { maxEntries: 100, maxAgeSeconds: 7 * 24 * 60 * 60 }, // 7 days
               },
             },
             {
