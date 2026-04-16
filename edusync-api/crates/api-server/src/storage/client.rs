@@ -4,7 +4,7 @@
 //! The client is constructed per-handler (or lazily) from `AppState` config.
 //! `vil_conn_s3` handles connection pooling internally.
 
-use vil_conn_s3::{S3Config, S3Connector};
+pub use vil_conn_s3::{S3Config, S3Connector};
 use crate::state::AppState;
 
 /// Initialize an S3Connector from `AppState` config values.
@@ -30,5 +30,4 @@ pub async fn create_s3_client(state: &AppState) -> Option<S3Connector> {
     .ok()
 }
 
-// Re-export for handlers
-pub use vil_conn_s3::S3Connector;
+

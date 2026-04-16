@@ -49,17 +49,22 @@ async fn check_rate_limit(
     .unwrap_or(0);
 
     if count >= CONTENT_GEN_RATE_LIMIT_PER_HOUR {
-        return Err(VilError::rate_limited(
-            "Batas pembuatan kuis AI tercapai (20/jam), coba lagi nanti",
-        ));
+        return Err(VilError::rate_limited());
     }
     Ok(())
 }
 
 // ─── DB load ──────────────────────────────────────────────────────────────────
 
+#[derive(sqlx::FromRow)]
 struct LessonData {
     title: String,
+    content: Option<String>,
+}
+
+#[derive(sqlx::FromRow)]
+struct LessonResourceRow {
+    title: Option<String>,
     content: Option<String>,
 }
 
@@ -68,28 +73,28 @@ async fn load_lesson_with_resources(
     lesson_id: Uuid,
     tenant_id: Uuid,
 ) -> Result<(LessonData, String), VilError> {
-    let lesson = sqlx::query!(
+    let lesson = sqlx::query_as::<_, LessonData>(
         r#"SELECT title, content
            FROM public.lessons
            WHERE id = $1 AND tenant_id = $2
            LIMIT 1"#,
-        lesson_id,
-        tenant_id
     )
+    .bind(lesson_id)
+    .bind(tenant_id)
     .fetch_optional(db)
     .await
     .map_err(|e| VilError::internal(e.to_string()))?
     .ok_or_else(|| VilError::not_found("Pelajaran tidak ditemukan"))?;
 
     // Load up to 5 lesson resources for additional context
-    let resources = sqlx::query!(
+    let resources: Vec<LessonResourceRow> = sqlx::query_as::<_, LessonResourceRow>(
         r#"SELECT title, content
            FROM public.lesson_resources
            WHERE lesson_id = $1 AND tenant_id = $2
            LIMIT 5"#,
-        lesson_id,
-        tenant_id
     )
+    .bind(lesson_id)
+    .bind(tenant_id)
     .fetch_all(db)
     .await
     .unwrap_or_default();
@@ -102,7 +107,7 @@ async fn load_lesson_with_resources(
         if let Some(c) = &r.content {
             content_parts.push(c.clone());
         } else {
-            content_parts.push(r.title.clone());
+            content_parts.push(r.title.clone().unwrap_or_default());
         }
     }
 

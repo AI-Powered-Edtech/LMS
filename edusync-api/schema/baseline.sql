@@ -11415,11 +11415,6 @@ ALTER TABLE ONLY "public"."quiz_attempt_questions_legacy"
 
 
 ALTER TABLE "public"."quiz_attempt_questions_v2"
-    ADD CONSTRAINT "quiz_attempt_questions_v2_attempt_id_started_at_fkey" FOREIGN KEY ("attempt_id", "started_at") REFERENCES "public"."quiz_attempts_v2"("id", "started_at") ON DELETE CASCADE;
-
-
-
-ALTER TABLE "public"."quiz_attempt_questions_v2"
     ADD CONSTRAINT "quiz_attempt_questions_v2_question_id_fkey" FOREIGN KEY ("question_id") REFERENCES "public"."quiz_questions"("id") ON DELETE CASCADE;
 
 
@@ -14132,8 +14127,8 @@ GRANT ALL ON TABLE "public"."quiz_attempts" TO "service_role";
 
 
 
-GRANT SELECT,REFERENCES,TRIGGER,TRUNCATE,MAINTAIN ON TABLE "public"."quiz_attempts_legacy" TO "anon";
-GRANT SELECT,REFERENCES,TRIGGER,TRUNCATE,MAINTAIN ON TABLE "public"."quiz_attempts_legacy" TO "authenticated";
+GRANT SELECT,REFERENCES,TRIGGER,TRUNCATE ON TABLE "public"."quiz_attempts_legacy" TO "anon";
+GRANT SELECT,REFERENCES,TRIGGER,TRUNCATE ON TABLE "public"."quiz_attempts_legacy" TO "authenticated";
 GRANT ALL ON TABLE "public"."quiz_attempts_legacy" TO "service_role";
 
 
@@ -14294,8 +14289,6 @@ ALTER DEFAULT PRIVILEGES FOR ROLE "postgres" IN SCHEMA "public" GRANT ALL ON TAB
 ALTER DEFAULT PRIVILEGES FOR ROLE "postgres" IN SCHEMA "public" GRANT ALL ON TABLES TO "anon";
 ALTER DEFAULT PRIVILEGES FOR ROLE "postgres" IN SCHEMA "public" GRANT ALL ON TABLES TO "authenticated";
 ALTER DEFAULT PRIVILEGES FOR ROLE "postgres" IN SCHEMA "public" GRANT ALL ON TABLES TO "service_role";
-
-
 
 
 

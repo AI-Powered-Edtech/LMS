@@ -223,22 +223,21 @@ pub async fn import_users_from_csv(
     // ── 3. Bulk duplicate check ──────────────────────────────────────────────
     let emails_to_check: Vec<String> = valid_rows.iter().map(|(_, e, ..)| e.clone()).collect();
 
-    let existing_rows = sqlx::query!(
+    let existing_emails: std::collections::HashSet<String> = sqlx::query_scalar(
         r#"
         SELECT email
         FROM public.profiles
-        WHERE email     = ANY($1)
+        WHERE email     = ANY($1::text[])
           AND tenant_id = $2
         "#,
-        &emails_to_check,
-        tenant_id
     )
+    .bind(&emails_to_check[..])
+    .bind(tenant_id)
     .fetch_all(db)
     .await
-    .map_err(|e| BulkImportError::Database(e.to_string()))?;
-
-    let existing_emails: std::collections::HashSet<String> =
-        existing_rows.into_iter().map(|r| r.email).collect();
+    .map_err(|e| BulkImportError::Database(e.to_string()))?
+    .into_iter()
+    .collect();
 
     let mut new_rows: Vec<(usize, String, String, &'static str, Option<String>)> = vec![];
     let mut duplicates: usize = 0;
@@ -262,27 +261,33 @@ pub async fn import_users_from_csv(
     for (row_num, email, full_name, role, class_code) in &new_rows {
         let new_user_id = Uuid::new_v4();
 
+        let mut name_parts = full_name.splitn(2, ' ');
+        let first_name = name_parts.next().unwrap_or("").to_string();
+        let last_name = name_parts.next().unwrap_or("").to_string();
+
         // 4a. Insert into profiles
-        let profile_result = sqlx::query!(
+        let profile_result: Result<sqlx::postgres::PgQueryResult, sqlx::Error> = sqlx::query(
             r#"
             INSERT INTO public.profiles (
                 id,
                 email,
-                full_name,
+                first_name,
+                last_name,
                 tenant_id,
                 created_at,
                 imported_by
             ) VALUES (
-                $1, $2, $3, $4, NOW(), $5
+                $1, $2, $3, $4, $5, NOW(), $6
             )
             ON CONFLICT (email, tenant_id) DO NOTHING
             "#,
-            new_user_id,
-            email,
-            full_name,
-            tenant_id,
-            imported_by
         )
+        .bind(new_user_id)
+        .bind(email)
+        .bind(&first_name)
+        .bind(&last_name)
+        .bind(tenant_id)
+        .bind(imported_by)
         .execute(&mut *tx)
         .await;
 
@@ -304,7 +309,7 @@ pub async fn import_users_from_csv(
         }
 
         // 4b. Insert into user_roles
-        let role_result = sqlx::query!(
+        let role_result = sqlx::query(
             r#"
             INSERT INTO public.user_roles (
                 user_id,
@@ -312,14 +317,14 @@ pub async fn import_users_from_csv(
                 tenant_id,
                 created_at
             ) VALUES (
-                $1, $2, $3, NOW()
+                $1, $2::text::app_role, $3, NOW()
             )
             ON CONFLICT (user_id, tenant_id) DO NOTHING
             "#,
-            new_user_id,
-            role,
-            tenant_id
         )
+        .bind(new_user_id)
+        .bind(role)
+        .bind(tenant_id)
         .execute(&mut *tx)
         .await;
 
@@ -336,29 +341,30 @@ pub async fn import_users_from_csv(
         // enrollments.user_id (NOT student_id per CLAUDE.md)
         // courses.status = 'published' (NOT is_published)
         if let Some(code) = class_code {
-            let enroll_result = sqlx::query!(
+            let enroll_result = sqlx::query(
                 r#"
                 INSERT INTO public.enrollments (
                     user_id,
-                    course_id,
+                    student_id,
+                    class_id,
                     tenant_id,
-                    enrolled_at
+                    joined_at
                 )
                 SELECT
+                    $1,
                     $1,
                     id,
                     tenant_id,
                     NOW()
-                FROM public.courses
-                WHERE class_code = $2
+                FROM public.classes
+                WHERE join_code = $2
                   AND tenant_id  = $3
-                  AND status     = 'published'
-                ON CONFLICT (user_id, course_id) DO NOTHING
+                ON CONFLICT (student_id, class_id) DO NOTHING
                 "#,
-                new_user_id,
-                code,
-                tenant_id
             )
+            .bind(new_user_id)
+            .bind(code)
+            .bind(tenant_id)
             .execute(&mut *tx)
             .await;
 

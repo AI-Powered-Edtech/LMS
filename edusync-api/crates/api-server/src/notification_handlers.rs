@@ -209,7 +209,7 @@ pub async fn generate_pdf_handler(
     AuthedRequest(ctx): AuthedRequest,
     svc: ServiceCtx,
     body: ShmSlice,
-) -> HandlerResult<VilResponse<serde_json::Value>> {
+) -> HandlerResult<impl IntoResponse> {
     let state = svc.state::<Arc<AppState>>()?;
     let req: GenerateCertificateRequest = body
         .json()
@@ -233,5 +233,5 @@ pub async fn generate_pdf_handler(
     )
         .into_response();
 
-    Ok(VilResponse::raw(response))
+    Ok(response)
 }

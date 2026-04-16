@@ -75,7 +75,7 @@ pub fn build_scheduler(db: PgPool) -> Scheduler {
         sched.every(Duration::from_secs(900), "analytics-refresh", move || {
             let db = db.clone();
             async move {
-                let result = sqlx::query!("SELECT public.refresh_analytics_snapshots()")
+                let result = sqlx::query("SELECT public.refresh_analytics_snapshots()")
                     .execute(&db)
                     .await;
                 match result {

@@ -15,6 +15,7 @@ pub mod progress;
 pub mod push;
 pub mod quiz;
 pub mod scorm;
+pub mod video;
 pub mod whatsapp;
 
 // Re-export the primary email client for convenience

@@ -92,22 +92,23 @@ fn should_sample(request_id: &str, sample_rate: f64) -> bool {
 
 pub async fn shadow_config_handler(
     ctx: ServiceCtx,
-) -> VilResponse<ShadowConfigResponse> {
-    let state = ctx.state::<Arc<AppState>>();
-    VilResponse::ok(ShadowConfigResponse {
+) -> HandlerResult<VilResponse<ShadowConfigResponse>> {
+    let state = ctx.state::<Arc<AppState>>()?;
+    Ok(VilResponse::ok(ShadowConfigResponse {
         enabled: state.shadow.enabled,
         divergence_sample_rate: state.shadow.divergence_sample_rate,
-    })
+    }))
 }
 
-#[vil_handler(shm)]
 pub async fn divergence_event_handler(
     AuthedRequest(req_ctx): AuthedRequest,
     ctx: ServiceCtx,
     body: ShmSlice,
 ) -> HandlerResult<VilResponse<Value>> {
-    let state = ctx.state::<Arc<AppState>>();
-    let mut event: DivergenceEvent = body.json()?;
+    let state = ctx.state::<Arc<AppState>>()?;
+    let mut event: DivergenceEvent = body
+        .json()
+        .map_err(|e| VilError::bad_request(e.to_string()))?;
 
     if !state.shadow.enabled {
         return Ok(VilResponse::ok(Value::Null));

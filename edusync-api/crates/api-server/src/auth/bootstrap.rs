@@ -1,11 +1,33 @@
+use crate::extractors::IntoVilError;
 use std::sync::Arc;
 use axum::http::HeaderMap;
 use edusync_auth::{verify_access_token, AuthError};
 use serde::Serialize;
 use uuid::Uuid;
-use vil_server::prelude::{ServiceCtx, VilResponse, VilError, HandlerResult};
+use vil_server::prelude::{HandlerResult, ServiceCtx, VilError, VilResponse};
 
 use crate::{observability::request_id_from_headers, state::AppState};
+
+#[derive(sqlx::FromRow)]
+struct ProfileRow {
+    id: Uuid,
+    first_name: String,
+    last_name: String,
+    avatar_url: Option<String>,
+    tenant_id: Option<Uuid>,
+    email: String,
+    email_confirmed_at: Option<chrono::DateTime<chrono::Utc>>,
+}
+
+#[derive(sqlx::FromRow)]
+struct MembershipRow {
+    role: String,
+    tenant_id: Uuid,
+    created_at: chrono::DateTime<chrono::Utc>,
+    tenant_name: String,
+    tenant_slug: String,
+    tenant_logo: Option<String>,
+}
 
 #[derive(Serialize)]
 pub struct BootstrapProfile {
@@ -48,11 +70,16 @@ pub async fn bootstrap_handler(
         .get("authorization")
         .and_then(|v| v.to_str().ok())
         .and_then(|v| v.strip_prefix("Bearer "))
-        .ok_or_else(|| VilError::from(AuthError::InvalidToken))?;
+        .ok_or_else(|| AuthError::InvalidToken)
+        .map_err(IntoVilError::into_vil_error)?;
 
     let claims = verify_access_token(token, &state.jwt_secret)
-        .map_err(VilError::from)?;
-    let user_id: Uuid = claims.sub.parse().map_err(|_| VilError::from(AuthError::InvalidToken))?;
+        .map_err(IntoVilError::into_vil_error)?;
+    let user_id: Uuid = claims
+        .sub
+        .parse()
+        .map_err(|_| AuthError::InvalidToken)
+        .map_err(IntoVilError::into_vil_error)?;
     tracing::info!(
         target: "edusync_api_server::auth",
         request_id = %request_id,
@@ -64,35 +91,35 @@ pub async fn bootstrap_handler(
     );
 
     // Get profile + email_confirmed_at
-    let row = sqlx::query!(
+    let row: ProfileRow = sqlx::query_as::<_, ProfileRow>(
         r#"SELECT p.id, p.first_name, p.last_name, p.avatar_url, p.tenant_id,
-                  COALESCE(u.email, p.email) as "email!",
+                  COALESCE(u.email, p.email) as email,
                   u.email_confirmed_at
            FROM public.profiles p
            LEFT JOIN public.users u ON u.id = p.id
            WHERE p.id = $1"#,
-        user_id
     )
+    .bind(user_id)
     .fetch_optional(&state.db)
     .await
-    .map_err(|e| VilError::from(AuthError::Database(e.to_string())))?
-    .ok_or_else(|| VilError::from(AuthError::UserNotFound))?;
+    .map_err(|e| AuthError::Database(e).into_vil_error())?
+    .ok_or_else(|| AuthError::UserNotFound.into_vil_error())?;
 
     let requires_email_verification = row.email_confirmed_at.is_none();
 
     // Get memberships via user_roles JOIN tenants
-    let memberships_rows = sqlx::query!(
-        r#"SELECT ur.role::text as "role!", ur.tenant_id, ur.created_at,
+    let memberships_rows: Vec<MembershipRow> = sqlx::query_as::<_, MembershipRow>(
+        r#"SELECT ur.role::text as role, ur.tenant_id, ur.created_at,
                   t.name as tenant_name, t.slug as tenant_slug,
                   NULL::text as tenant_logo
            FROM public.user_roles ur
            JOIN public.tenants t ON t.id = ur.tenant_id
            WHERE ur.user_id = $1"#,
-        user_id
     )
+    .bind(user_id)
     .fetch_all(&state.db)
     .await
-    .map_err(|e| VilError::from(AuthError::Database(e.to_string())))?;
+    .map_err(|e| AuthError::Database(e).into_vil_error())?;
 
     let memberships: Vec<BootstrapMembership> = memberships_rows
         .into_iter()
@@ -100,8 +127,7 @@ pub async fn bootstrap_handler(
             role: m.role.to_lowercase(),
             status: "active".to_string(),
             is_active: true,
-            // OffsetDateTime → RFC3339 string via time crate
-            joined_at: Some(m.created_at.format(&time::format_description::well_known::Rfc3339).unwrap_or_default()),
+            joined_at: Some(m.created_at.to_rfc3339()),
             tenant_id: m.tenant_id,
             tenant_logo: m.tenant_logo,
             tenant_name: m.tenant_name,

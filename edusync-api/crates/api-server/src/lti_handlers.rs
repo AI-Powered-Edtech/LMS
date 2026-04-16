@@ -16,7 +16,7 @@ use axum::{
     response::IntoResponse,
 };
 use std::sync::Arc;
-use vil_server::prelude::{HandlerResult, ServiceCtx, VilError, VilResponse};
+use vil_server::prelude::{HandlerResult, ServiceCtx, VilError};
 
 use crate::state::AppState;
 use edusync_services::lti::{
@@ -29,12 +29,12 @@ use edusync_services::lti::{
 // ─── JWKS ─────────────────────────────────────────────────────────────────────
 
 /// Public JWKS endpoint — no auth required.
-pub async fn lti_jwks_handler() -> HandlerResult<VilResponse<serde_json::Value>> {
+pub async fn lti_jwks_handler() -> HandlerResult<impl IntoResponse> {
     let resp = get_jwks()
         .await
         .map_err(|e| VilError::internal(e.to_string()))?;
 
-    Ok(VilResponse::raw(resp.into_response()))
+    Ok(resp.into_response())
 }
 
 // ─── OIDC Login ───────────────────────────────────────────────────────────────
@@ -46,7 +46,7 @@ pub async fn lti_jwks_handler() -> HandlerResult<VilResponse<serde_json::Value>>
 pub async fn lti_oidc_login_handler(
     svc: ServiceCtx,
     Query(req): Query<LtiOidcLoginRequest>,
-) -> HandlerResult<VilResponse<serde_json::Value>> {
+) -> HandlerResult<impl IntoResponse> {
     let state = svc.state::<Arc<AppState>>()?;
     let ctx = OidcLoginContext {
         db: Arc::new(state.db.clone()),
@@ -56,7 +56,7 @@ pub async fn lti_oidc_login_handler(
         .await
         .map_err(|e| VilError::bad_request(e.to_string()))?;
 
-    Ok(VilResponse::raw(resp.into_response()))
+    Ok(resp.into_response())
 }
 
 // ─── Launch ───────────────────────────────────────────────────────────────────
@@ -68,7 +68,7 @@ pub async fn lti_oidc_login_handler(
 pub async fn lti_launch_handler(
     svc: ServiceCtx,
     Form(form): Form<LtiLaunchForm>,
-) -> HandlerResult<VilResponse<serde_json::Value>> {
+) -> HandlerResult<impl IntoResponse> {
     let state = svc.state::<Arc<AppState>>()?;
     let ctx = LaunchContext {
         db: Arc::new(state.db.clone()),
@@ -79,5 +79,5 @@ pub async fn lti_launch_handler(
         .await
         .map_err(|e| VilError::bad_request(e.to_string()))?;
 
-    Ok(VilResponse::raw(resp.into_response()))
+    Ok(resp.into_response())
 }

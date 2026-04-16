@@ -58,7 +58,7 @@ const PAGE_HEIGHT_MM: f64 = 210.0;
 const MM_TO_PT: f64 = 2.834_645_669;
 
 fn mm(v: f64) -> printpdf::Mm {
-    printpdf::Mm(v)
+    printpdf::Mm(v as f32)
 }
 
 // ── Warna ─────────────────────────────────────────────────────────────────────
@@ -115,7 +115,7 @@ pub fn generate_certificate(data: CertificateData) -> Result<Vec<u8>, AppError> 
     // ── Border luar (biru) ──────────────────────────────────────────────────
 
     current_layer.set_outline_color(blue());
-    current_layer.set_outline_thickness(1.5 * MM_TO_PT);
+    current_layer.set_outline_thickness((1.5 * MM_TO_PT) as f32);
     current_layer.set_fill_color(printpdf::Color::Rgb(Rgb::new(0.0, 0.0, 0.0, None))); // transparent trick
                                                                                        // Outer rect
     draw_rect_outline(&current_layer, 7.0, 7.0, w - 14.0, h - 14.0);
@@ -123,7 +123,7 @@ pub fn generate_certificate(data: CertificateData) -> Result<Vec<u8>, AppError> 
     // ── Border dalam (gold) ─────────────────────────────────────────────────
 
     current_layer.set_outline_color(gold());
-    current_layer.set_outline_thickness(0.75 * MM_TO_PT);
+    current_layer.set_outline_thickness((0.75 * MM_TO_PT) as f32);
     draw_rect_outline(&current_layer, 12.0, 12.0, w - 24.0, h - 24.0);
 
     // ── Dekorasi sudut (gold) ───────────────────────────────────────────────

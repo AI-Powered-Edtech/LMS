@@ -89,14 +89,14 @@ pub async fn get_export_status_handler(
 
 /// Handler untuk background worker
 pub async fn run_export_worker_handler(db: &PgPool, state: &Arc<AppState>) {
-    match create_s3_client(state) {
-        Ok(s3_client) => {
+    match create_s3_client(state).await {
+        Some(s3_client) => {
             // Export worker akan dipanggil dari cron job
             // Implementation ada di services layer
             tracing::debug!("cron:export_worker tick (handled by services)");
         }
-        Err(e) => {
-            tracing::error!(error = %e, "cron:export_worker - failed to create S3 client");
+        None => {
+            tracing::error!("cron:export_worker - failed to create S3 client");
         }
     }
 }

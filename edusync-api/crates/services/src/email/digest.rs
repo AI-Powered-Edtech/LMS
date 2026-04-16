@@ -46,13 +46,12 @@ pub async fn send_email_digest(db: &PgPool) -> Result<DigestResult, AppError> {
     let mut result = DigestResult::default();
 
     // ── Ambil semua notifikasi belum terkirim dalam 24 jam ────────────────────
-    let rows: Vec<NotificationRow> = sqlx::query_as!(
-        NotificationRow,
+    let rows: Vec<NotificationRow> = sqlx::query_as::<_, NotificationRow>(
         r#"
         SELECT
             n.id,
             n.user_id,
-            n.type           AS "notification_type",
+            n.type::text AS notification_type,
             n.title,
             n.body,
             n.created_at,
@@ -65,7 +64,7 @@ pub async fn send_email_digest(db: &PgPool) -> Result<DigestResult, AppError> {
             AND n.is_read  = false
             AND n.created_at > NOW() - INTERVAL '24 hours'
         ORDER BY n.user_id, n.created_at
-        "#
+        "#,
     )
     .fetch_all(db)
     .await
@@ -122,15 +121,14 @@ async fn process_user_digest(
     rows: &[&NotificationRow],
 ) -> Result<DigestOutcome, AppError> {
     // Cek preferensi email
-    let pref: Option<NotifPref> = sqlx::query_as!(
-        NotifPref,
+    let pref: Option<NotifPref> = sqlx::query_as::<_, NotifPref>(
         r#"
         SELECT email_enabled, disabled_types
         FROM notification_preferences
         WHERE user_id = $1
         "#,
-        user_id
     )
+    .bind(user_id)
     .fetch_optional(db)
     .await
     .map_err(|e| AppError::internal(format!("Gagal membaca preferensi: {e}")))?;
@@ -191,13 +189,11 @@ async fn process_user_digest(
 
     // Tandai notifikasi sebagai sudah dikirim
     let ids: Vec<Uuid> = filtered.iter().map(|r| r.id).collect();
-    sqlx::query!(
-        "UPDATE notifications SET email_sent = true WHERE id = ANY($1)",
-        &ids as &[Uuid]
-    )
-    .execute(db)
-    .await
-    .map_err(|e| AppError::internal(format!("Gagal menandai email_sent: {e}")))?;
+    sqlx::query("UPDATE notifications SET email_sent = true WHERE id = ANY($1)")
+        .bind(&ids[..])
+        .execute(db)
+        .await
+        .map_err(|e| AppError::internal(format!("Gagal menandai email_sent: {e}")))?;
 
     tracing::info!(
         to = %recipient.email,

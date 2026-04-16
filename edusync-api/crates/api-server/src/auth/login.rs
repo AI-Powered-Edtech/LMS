@@ -1,3 +1,4 @@
+use crate::extractors::IntoVilError;
 use std::sync::Arc;
 use uuid::Uuid;
 use edusync_auth::{password::{verify_password, maybe_rehash}, session::create_session};
@@ -5,6 +6,25 @@ use vil_server::prelude::{ServiceCtx, ShmSlice, VilResponse, VilError, HandlerRe
 use crate::state::AppState;
 use super::types::{LoginRequest, AuthResponse, TenantMembershipPayload, UserPayload};
 use super::tenant_selection::{select_active_role, select_active_tenant};
+
+#[derive(sqlx::FromRow)]
+struct UserRow {
+    id: Uuid,
+    email: String,
+    encrypted_password: Option<String>,
+    banned_until: Option<chrono::DateTime<chrono::Utc>>,
+    email_confirmed_at: Option<chrono::DateTime<chrono::Utc>>,
+}
+
+#[derive(sqlx::FromRow)]
+struct MembershipRow {
+    role: String,
+    tenant_id: Uuid,
+    created_at: chrono::DateTime<chrono::Utc>,
+    tenant_name: String,
+    tenant_slug: String,
+    tenant_logo: Option<String>,
+}
 
 pub async fn login_handler(
     svc: ServiceCtx,
@@ -20,13 +40,13 @@ pub async fn login_handler(
         return Err(err);
     }
 
-    let user = sqlx::query!(
+    let user: UserRow = sqlx::query_as::<_, UserRow>(
         r#"SELECT id, email, encrypted_password,
                   banned_until,
                   email_confirmed_at
            FROM public.users WHERE email = $1"#,
-        body.email
     )
+    .bind(&body.email)
     .fetch_optional(&state.db)
     .await
     .map_err(|e| {
@@ -40,7 +60,7 @@ pub async fn login_handler(
 
     // Cek banned
     if let Some(banned_until) = user.banned_until {
-        let now_utc = time::OffsetDateTime::now_utc();
+        let now_utc = chrono::Utc::now();
         if banned_until > now_utc {
             return Err(VilError::forbidden("Akun diblokir"));
         }
@@ -63,16 +83,16 @@ pub async fn login_handler(
         let _ = maybe_rehash(&pool, user_id, &plain, &hash_clone).await;
     });
 
-    let memberships_rows = sqlx::query!(
-        r#"SELECT ur.role::text as "role!", ur.tenant_id, ur.created_at,
+    let memberships_rows: Vec<MembershipRow> = sqlx::query_as::<_, MembershipRow>(
+        r#"SELECT ur.role::text as role, ur.tenant_id, ur.created_at,
                   t.name as tenant_name, t.slug as tenant_slug,
                   NULL::text as tenant_logo
            FROM public.user_roles ur
            JOIN public.tenants t ON t.id = ur.tenant_id
            WHERE ur.user_id = $1
            ORDER BY ur.created_at ASC"#,
-        user.id
     )
+    .bind(user.id)
     .fetch_all(&state.db)
     .await
     .map_err(|e| {
@@ -94,18 +114,13 @@ pub async fn login_handler(
             role: m.role.to_lowercase(),
             status: "active".to_string(),
             is_active: true,
-            joined_at: Some(
-                m.created_at
-                    .format(&time::format_description::well_known::Rfc3339)
-                    .unwrap_or_default(),
-            ),
+            joined_at: Some(m.created_at.to_rfc3339()),
         })
         .collect();
 
-    let profile_tenant_id: Option<Uuid> = sqlx::query_scalar!(
-        "SELECT tenant_id FROM public.profiles WHERE id = $1",
-        user.id
-    )
+    let profile_tenant_id: Option<Uuid> =
+        sqlx::query_scalar("SELECT tenant_id FROM public.profiles WHERE id = $1")
+            .bind(user.id)
     .fetch_optional(&state.db)
     .await
     .map_err(|e| {
@@ -118,31 +133,30 @@ pub async fn login_handler(
     let active_role = select_active_role(active_tenant_id, &memberships);
 
     if profile_tenant_id != Some(active_tenant_id) {
-        let _ = sqlx::query!(
+        let _ = sqlx::query(
             r#"INSERT INTO public.profiles (id, email, first_name, last_name, tenant_id, created_at, updated_at)
                VALUES ($1, $2, '', '', $3, now(), now())
                ON CONFLICT (id) DO UPDATE
                SET tenant_id = EXCLUDED.tenant_id, updated_at = now()"#,
-            user.id,
-            user.email,
-            active_tenant_id
         )
+        .bind(user.id)
+        .bind(&user.email)
+        .bind(active_tenant_id)
         .execute(&state.db)
         .await;
     }
 
     // Check MFA enrollment
-    let mfa_enrolled: bool = sqlx::query_scalar!(
+    let mfa_enrolled: bool = sqlx::query_scalar::<_, bool>(
         "SELECT EXISTS(SELECT 1 FROM public.mfa_factors WHERE user_id = $1 AND status = 'verified')",
-        user.id
     )
+    .bind(user.id)
     .fetch_one(&state.db)
     .await
     .map_err(|e| {
         tracing::error!(error = ?e, "DB error checking MFA");
         VilError::internal("Terjadi kesalahan pada database")
-    })?
-    .unwrap_or(false);
+    })?;
 
     let tokens = create_session(
         &state.db,
@@ -154,18 +168,16 @@ pub async fn login_handler(
         &state.jwt_secret,
     )
     .await
-    .map_err(VilError::from)?;
+    .map_err(IntoVilError::into_vil_error)?;
 
     // Successful login — clear brute force counter
     state.brute_force.record_success(&body.email);
 
     // Update last_sign_in_at
-    let _ = sqlx::query!(
-        "UPDATE public.users SET last_sign_in_at = now() WHERE id = $1",
-        user.id
-    )
-    .execute(&state.db)
-    .await;
+    let _ = sqlx::query("UPDATE public.users SET last_sign_in_at = now() WHERE id = $1")
+        .bind(user.id)
+        .execute(&state.db)
+        .await;
 
     Ok(VilResponse::ok(AuthResponse {
         access_token: tokens.access_token,

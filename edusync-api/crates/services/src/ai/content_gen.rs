@@ -52,9 +52,7 @@ async fn check_rate_limit(
     .unwrap_or(0); // fail open
 
     if count >= CONTENT_GEN_RATE_LIMIT_PER_HOUR {
-        return Err(VilError::rate_limited(
-            "Batas pembuatan konten AI tercapai (20/jam), coba lagi nanti",
-        ));
+        return Err(VilError::rate_limited());
     }
     Ok(())
 }

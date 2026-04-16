@@ -121,19 +121,19 @@ fn validate_event(event: &TelemetryEvent) -> Option<String> {
 /// Fails open: if the count query errors, we allow the request through
 /// (availability > strict backpressure on infrastructure failure).
 async fn is_queue_over_limit(db: &PgPool) -> bool {
-    let result = sqlx::query_scalar!(
+    let result: Result<i64, _> = sqlx::query_scalar(
         r#"
-        SELECT COUNT(*)
+        SELECT COUNT(*)::bigint
         FROM public.progress_events
         WHERE processed = false
-        "#
+        "#,
     )
     .fetch_one(db)
     .await;
 
     match result {
-        Ok(Some(count)) => count >= QUEUE_BACKPRESSURE_LIMIT,
-        _ => false,
+        Ok(count) => count >= QUEUE_BACKPRESSURE_LIMIT,
+        Err(_) => false,
     }
 }
 
@@ -220,7 +220,7 @@ pub async fn enqueue_progress_events(
         .map_err(|e| ProgressApiError::Database(e.to_string()))?;
 
     for ev in &valid_events {
-        sqlx::query!(
+        sqlx::query(
             r#"
             INSERT INTO public.progress_events (
                 event_id,
@@ -243,18 +243,18 @@ pub async fn enqueue_progress_events(
             )
             ON CONFLICT (event_id) DO NOTHING
             "#,
-            ev.event_id,
-            ev.event_version as i32,
-            ev.tenant_id,
-            ev.user_id,
-            ev.course_id,
-            ev.lesson_id,
-            ev.event_type,
-            ev.position,
-            ev.timestamp,
-            ev.session_id,
-            ev.device_type
         )
+        .bind(ev.event_id)
+        .bind(ev.event_version as i32)
+        .bind(ev.tenant_id)
+        .bind(ev.user_id)
+        .bind(ev.course_id)
+        .bind(ev.lesson_id)
+        .bind(&ev.event_type)
+        .bind(ev.position)
+        .bind(ev.timestamp)
+        .bind(ev.session_id.as_deref())
+        .bind(&ev.device_type)
         .execute(&mut *tx)
         .await
         .map_err(|e| ProgressApiError::Database(e.to_string()))?;
