@@ -1,0 +1,35 @@
+name: QA Harness
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+jobs:
+  persona-flows:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - name: Install Playwright browsers
+        run: pnpm exec playwright install chromium --with-deps
+      - name: Start dev server
+        run: pnpm dev &
+      - name: Wait for dev server
+        run: npx --yes wait-on http://localhost:5173 -t 60000
+      - name: Run QA harness
+        run: pnpm exec playwright test --config=playwright.qa.config.ts
+      - name: Upload reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: qa-reports
+          path: tests/qa/reports/
