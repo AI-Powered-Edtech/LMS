@@ -12,7 +12,7 @@ use super::tenant_selection::{select_active_role, select_active_tenant};
 struct MembershipRow {
     role: String,
     tenant_id: Uuid,
-    created_at: time::OffsetDateTime,
+    created_at: chrono::DateTime<chrono::Utc>,
     tenant_name: String,
     tenant_slug: String,
     tenant_logo: Option<String>,
@@ -74,11 +74,7 @@ pub async fn refresh_handler(
             role: m.role.to_lowercase(),
             status: "active".to_string(),
             is_active: true,
-            joined_at: Some(
-                m.created_at
-                    .format(&time::format_description::well_known::Rfc3339)
-                    .unwrap_or_default(),
-            ),
+            joined_at: Some(m.created_at.to_rfc3339()),
         })
         .collect();
 

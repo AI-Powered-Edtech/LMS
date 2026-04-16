@@ -43,13 +43,19 @@ pub async fn mfa_enroll_handler(
     let token = extract_bearer(&headers)?;
     let claims = verify_access_token(token, &state.jwt_secret)
         .map_err(IntoVilError::into_vil_error)?;
-    let user_id: Uuid = claims.sub.parse().map_err(|_| AuthError::InvalidToken).into_vil_error()?;
+    let user_id: Uuid = claims
+        .sub
+        .parse()
+        .map_err(|_| AuthError::InvalidToken)
+        .map_err(IntoVilError::into_vil_error)?;
 
     let secret = totp_rs::Secret::generate_secret();
     let secret_encoded = secret.to_encoded();
     let secret_base32 = secret_encoded.to_string();
-    let secret_bytes: Vec<u8> = secret.to_bytes()
-        .map_err(|e: totp_rs::SecretParseError| AuthError::Internal(e.to_string())).into_vil_error()?;
+    let secret_bytes: Vec<u8> = secret
+        .to_bytes()
+        .map_err(|e: totp_rs::SecretParseError| AuthError::Internal(e.to_string()))
+        .map_err(IntoVilError::into_vil_error)?;
     let factor_id = Uuid::new_v4();
 
     sqlx::query(
@@ -70,10 +76,12 @@ pub async fn mfa_enroll_handler(
         Some("EduSync".to_string()),
         claims.email.clone(),
     )
-    .map_err(|e| AuthError::Internal(e.to_string())).into_vil_error()?;
+    .map_err(|e| AuthError::Internal(e.to_string()))
+    .map_err(IntoVilError::into_vil_error)?;
 
     let qr_code = totp.get_qr_base64()
-        .map_err(|e| AuthError::Internal(e.to_string())).into_vil_error()?;
+        .map_err(|e| AuthError::Internal(e.to_string()))
+        .map_err(IntoVilError::into_vil_error)?;
     let uri = totp.get_url();
 
     // Generate 10 recovery codes
@@ -99,7 +107,11 @@ pub async fn mfa_verify_handler(
     let token = extract_bearer(&headers)?;
     let claims = verify_access_token(token, &state.jwt_secret)
         .map_err(IntoVilError::into_vil_error)?;
-    let user_id: Uuid = claims.sub.parse().map_err(|_| AuthError::InvalidToken).into_vil_error()?;
+    let user_id: Uuid = claims
+        .sub
+        .parse()
+        .map_err(|_| AuthError::InvalidToken)
+        .map_err(IntoVilError::into_vil_error)?;
 
     let factor_secret: String = sqlx::query_scalar(
         "SELECT secret FROM public.mfa_factors WHERE id = $1 AND user_id = $2",
@@ -113,14 +125,20 @@ pub async fn mfa_verify_handler(
 
     let secret_bytes = totp_rs::Secret::Encoded(factor_secret)
         .to_bytes()
-        .map_err(|e: totp_rs::SecretParseError| AuthError::Internal(e.to_string())).into_vil_error()?;
+        .map_err(|e: totp_rs::SecretParseError| AuthError::Internal(e.to_string()))
+        .map_err(IntoVilError::into_vil_error)?;
 
     let totp = totp_rs::TOTP::new(
         totp_rs::Algorithm::SHA1, 6, 1, 30, secret_bytes, None, "".to_string()
     )
-    .map_err(|e| AuthError::Internal(e.to_string())).into_vil_error()?;
+    .map_err(|e| AuthError::Internal(e.to_string()))
+    .map_err(IntoVilError::into_vil_error)?;
 
-    if !totp.check_current(&body.code).map_err(|e| AuthError::Internal(e.to_string())).into_vil_error()? {
+    if !totp
+        .check_current(&body.code)
+        .map_err(|e| AuthError::Internal(e.to_string()))
+        .map_err(IntoVilError::into_vil_error)?
+    {
         return Err(AuthError::InvalidCredentials.into_vil_error());
     }
 
@@ -144,7 +162,11 @@ pub async fn mfa_unenroll_handler(
     let token = extract_bearer(&headers)?;
     let claims = verify_access_token(token, &state.jwt_secret)
         .map_err(IntoVilError::into_vil_error)?;
-    let user_id: Uuid = claims.sub.parse().map_err(|_| AuthError::InvalidToken).into_vil_error()?;
+    let user_id: Uuid = claims
+        .sub
+        .parse()
+        .map_err(|_| AuthError::InvalidToken)
+        .map_err(IntoVilError::into_vil_error)?;
 
     sqlx::query(
         "DELETE FROM public.mfa_factors WHERE user_id = $1",
@@ -162,5 +184,6 @@ fn extract_bearer(headers: &HeaderMap) -> Result<&str, VilError> {
         .get("authorization")
         .and_then(|v| v.to_str().ok())
         .and_then(|v| v.strip_prefix("Bearer "))
-        .ok_or_else(|| AuthError::InvalidToken).into_vil_error()
+        .ok_or_else(|| AuthError::InvalidToken)
+        .map_err(IntoVilError::into_vil_error)
 }

@@ -4,6 +4,7 @@ use edusync_auth::AuthError;
 use vil_server::prelude::{HandlerResult, ServiceCtx, ShmSlice, VilError, VilResponse};
 use crate::state::AppState;
 use super::types::VerifyEmailRequest;
+use uuid::Uuid;
 
 pub async fn verify_email_handler(
     svc: ServiceCtx,

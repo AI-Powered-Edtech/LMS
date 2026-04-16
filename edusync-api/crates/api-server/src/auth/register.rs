@@ -40,15 +40,16 @@ pub async fn register_handler(
         VilError::internal("Terjadi kesalahan pada database")
     })?;
 
-    let exists: bool = sqlx::query_scalar("SELECT EXISTS(SELECT 1 FROM public.users WHERE email = $1)")
+    let exists: bool = sqlx::query_scalar::<_, bool>(
+        "SELECT EXISTS(SELECT 1 FROM public.users WHERE email = $1)",
+    )
     .bind(&body.email)
     .fetch_one(&mut *tx)
     .await
     .map_err(|e| {
         tracing::error!(error = ?e, "DB error checking email existence");
         VilError::internal("Terjadi kesalahan pada database")
-    })?
-    .unwrap_or(false);
+    })?;
 
     if exists {
         return Err(VilError::bad_request("Email sudah terdaftar"));

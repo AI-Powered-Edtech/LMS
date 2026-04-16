@@ -89,7 +89,7 @@ pub async fn generate_content_handler(
     AuthedRequest(ctx): AuthedRequest,
     svc: ServiceCtx,
     body: ShmSlice,
-) -> HandlerResult<VilResponse<serde_json::Value>> {
+) -> HandlerResult<impl IntoResponse> {
     let state = svc.state::<Arc<AppState>>()?;
     let payload: GenerateContentRequest = body
         .json()
@@ -106,7 +106,7 @@ pub async fn generate_content_handler(
         .await
         .map_err(|e| VilError::internal(e.to_string()))?;
 
-    Ok(VilResponse::ok(resp))
+    Ok(resp)
 }
 
 // ─── Generate Quiz ────────────────────────────────────────────────────────────
@@ -123,7 +123,7 @@ pub async fn generate_quiz_handler(
     AuthedRequest(ctx): AuthedRequest,
     svc: ServiceCtx,
     body: ShmSlice,
-) -> HandlerResult<VilResponse<serde_json::Value>> {
+) -> HandlerResult<impl IntoResponse> {
     let state = svc.state::<Arc<AppState>>()?;
     let payload: GenerateQuizRequest = body
         .json()
@@ -146,5 +146,5 @@ pub async fn generate_quiz_handler(
     .await
     .map_err(|e| VilError::internal(e.to_string()))?;
 
-    Ok(VilResponse::ok(resp))
+    Ok(resp)
 }

@@ -183,7 +183,7 @@ pub async fn upload_handler(
         .ok_or_else(|| VilError::bad_request("Field 'file' tidak ditemukan"))?;
 
     let size = bytes.len() as u64;
-    let s3_key = build_s3_key(&query.bucket, &ctx.tenant_id, &clean_path);
+    let s3_key = build_s3_key(&query.bucket, &auth.tenant_id, &clean_path);
 
     s3.put(&s3_key, bytes.into(), Some(&content_type))
         .await
@@ -232,7 +232,7 @@ pub async fn download_handler(
         None => return Ok((StatusCode::BAD_REQUEST, "Path tidak valid").into_response()),
     };
 
-    let s3_key = build_s3_key(&bucket, &ctx.tenant_id, &clean_path);
+    let s3_key = build_s3_key(&bucket, &auth.tenant_id, &clean_path);
     let content_type = guess_content_type(&clean_path);
 
     match s3.get(&s3_key).await {

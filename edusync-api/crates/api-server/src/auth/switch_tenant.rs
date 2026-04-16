@@ -15,7 +15,7 @@ use super::types::{AuthResponse, SwitchTenantRequest, TenantMembershipPayload, U
 struct MembershipRow {
     role: String,
     tenant_id: Uuid,
-    created_at: time::OffsetDateTime,
+    created_at: chrono::DateTime<chrono::Utc>,
     tenant_name: String,
     tenant_slug: String,
     tenant_logo: Option<String>,
@@ -33,13 +33,15 @@ pub async fn switch_tenant_handler(
         .get("authorization")
         .and_then(|v| v.to_str().ok())
         .and_then(|v| v.strip_prefix("Bearer "))
-        .ok_or_else(|| AuthError::InvalidToken).into_vil_error()?;
+        .ok_or_else(|| AuthError::InvalidToken)
+        .map_err(IntoVilError::into_vil_error)?;
 
     let access_claims = verify_access_token(token, &state.jwt_secret).map_err(IntoVilError::into_vil_error)?;
     let user_id: Uuid = access_claims
         .sub
         .parse()
-        .map_err(|_| AuthError::InvalidToken).into_vil_error()?;
+        .map_err(|_| AuthError::InvalidToken)
+        .map_err(IntoVilError::into_vil_error)?;
 
     let refresh_claims = verify_refresh_token_with_session_secret(&state, &body.refresh_token)
         .map_err(IntoVilError::into_vil_error)?;
@@ -82,11 +84,7 @@ pub async fn switch_tenant_handler(
             role: m.role.to_lowercase(),
             status: "active".to_string(),
             is_active: true,
-            joined_at: Some(
-                m.created_at
-                    .format(&time::format_description::well_known::Rfc3339)
-                    .unwrap_or_default(),
-            ),
+            joined_at: Some(m.created_at.to_rfc3339()),
         })
         .collect();
 

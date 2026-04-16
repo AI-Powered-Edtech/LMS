@@ -102,11 +102,16 @@ pub async fn accept_invitation_handler(
         .get("authorization")
         .and_then(|v| v.to_str().ok())
         .and_then(|v| v.strip_prefix("Bearer "))
-        .ok_or_else(|| AuthError::Unauthorized).into_vil_error()?;
+        .ok_or_else(|| AuthError::Unauthorized)
+        .map_err(IntoVilError::into_vil_error)?;
 
     let claims = verify_access_token(token_str, &state.jwt_secret)
         .map_err(IntoVilError::into_vil_error)?;
-    let user_id: Uuid = claims.sub.parse().map_err(|_| AuthError::InvalidToken).into_vil_error()?;
+    let user_id: Uuid = claims
+        .sub
+        .parse()
+        .map_err(|_| AuthError::InvalidToken)
+        .map_err(IntoVilError::into_vil_error)?;
 
     // Look up pending, non-expired invitation
     let inv: InvitationRow = sqlx::query_as::<_, InvitationRow>(
@@ -261,11 +266,16 @@ pub async fn enroll_student_handler(
         .get("authorization")
         .and_then(|v| v.to_str().ok())
         .and_then(|v| v.strip_prefix("Bearer "))
-        .ok_or_else(|| AuthError::InvalidToken).into_vil_error()?;
+        .ok_or_else(|| AuthError::InvalidToken)
+        .map_err(IntoVilError::into_vil_error)?;
 
     let claims = verify_access_token(token, &state.jwt_secret)
         .map_err(IntoVilError::into_vil_error)?;
-    let user_id: Uuid = claims.sub.parse().map_err(|_| AuthError::InvalidToken).into_vil_error()?;
+    let user_id: Uuid = claims
+        .sub
+        .parse()
+        .map_err(|_| AuthError::InvalidToken)
+        .map_err(IntoVilError::into_vil_error)?;
 
     let class: ClassRow = sqlx::query_as::<_, ClassRow>(
         "SELECT id, tenant_id FROM public.classes WHERE join_code = $1",
@@ -278,15 +288,14 @@ pub async fn enroll_student_handler(
 
     // Upsert enrollment (use student_id per schema)
     // enrollments has no unique constraint on (class_id, student_id) — use plain INSERT with conflict guard
-    let existing: bool = sqlx::query_scalar(
+    let existing: bool = sqlx::query_scalar::<_, bool>(
         "SELECT EXISTS(SELECT 1 FROM public.enrollments WHERE class_id = $1 AND student_id = $2)",
     )
     .bind(class.id)
     .bind(user_id)
     .fetch_one(&state.db)
     .await
-    .map_err(|e| AuthError::Database(e).into_vil_error())?
-    .unwrap_or(false);
+    .map_err(|e| AuthError::Database(e).into_vil_error())?;
 
     if !existing {
         sqlx::query(
@@ -313,10 +322,10 @@ pub async fn onboard_student_handler(
     let body: OnboardStudentRequest = body.json().map_err(|e| VilError::bad_request(e.to_string()))?;
 
     if !body.email.contains('@') {
-        return Err(AuthError::InvalidEmail).into_vil_error();
+        return Err(AuthError::InvalidEmail.into_vil_error());
     }
     if body.password.len() < 8 {
-        return Err(AuthError::WeakPassword).into_vil_error();
+        return Err(AuthError::WeakPassword.into_vil_error());
     }
 
     // Find class
@@ -329,17 +338,16 @@ pub async fn onboard_student_handler(
     .map_err(|e| AuthError::Database(e).into_vil_error())?
     .ok_or_else(|| AuthError::ClassNotFound.into_vil_error())?;
 
-    let exists: bool = sqlx::query_scalar(
+    let exists: bool = sqlx::query_scalar::<_, bool>(
         "SELECT EXISTS(SELECT 1 FROM public.users WHERE email = $1)",
     )
     .bind(&body.email)
     .fetch_one(&state.db)
     .await
-    .map_err(|e| AuthError::Database(e).into_vil_error())?
-    .unwrap_or(false);
+    .map_err(|e| AuthError::Database(e).into_vil_error())?;
 
     if exists {
-        return Err(AuthError::EmailAlreadyExists).into_vil_error();
+        return Err(AuthError::EmailAlreadyExists.into_vil_error());
     }
 
     let user_id = Uuid::new_v4();
@@ -457,11 +465,16 @@ pub async fn create_tenant_handler(
         .get("authorization")
         .and_then(|v| v.to_str().ok())
         .and_then(|v| v.strip_prefix("Bearer "))
-        .ok_or_else(|| AuthError::InvalidToken).into_vil_error()?;
+        .ok_or_else(|| AuthError::InvalidToken)
+        .map_err(IntoVilError::into_vil_error)?;
 
     let claims = verify_access_token(token, &state.jwt_secret)
         .map_err(IntoVilError::into_vil_error)?;
-    let user_id: Uuid = claims.sub.parse().map_err(|_| AuthError::InvalidToken).into_vil_error()?;
+    let user_id: Uuid = claims
+        .sub
+        .parse()
+        .map_err(|_| AuthError::InvalidToken)
+        .map_err(IntoVilError::into_vil_error)?;
 
     let mut tx = state.db.begin().await
         .map_err(|e| AuthError::Database(e).into_vil_error())?;

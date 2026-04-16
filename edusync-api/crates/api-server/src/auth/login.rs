@@ -12,15 +12,15 @@ struct UserRow {
     id: Uuid,
     email: String,
     encrypted_password: Option<String>,
-    banned_until: Option<time::OffsetDateTime>,
-    email_confirmed_at: Option<time::OffsetDateTime>,
+    banned_until: Option<chrono::DateTime<chrono::Utc>>,
+    email_confirmed_at: Option<chrono::DateTime<chrono::Utc>>,
 }
 
 #[derive(sqlx::FromRow)]
 struct MembershipRow {
     role: String,
     tenant_id: Uuid,
-    created_at: time::OffsetDateTime,
+    created_at: chrono::DateTime<chrono::Utc>,
     tenant_name: String,
     tenant_slug: String,
     tenant_logo: Option<String>,
@@ -60,7 +60,7 @@ pub async fn login_handler(
 
     // Cek banned
     if let Some(banned_until) = user.banned_until {
-        let now_utc = time::OffsetDateTime::now_utc();
+        let now_utc = chrono::Utc::now();
         if banned_until > now_utc {
             return Err(VilError::forbidden("Akun diblokir"));
         }
@@ -114,11 +114,7 @@ pub async fn login_handler(
             role: m.role.to_lowercase(),
             status: "active".to_string(),
             is_active: true,
-            joined_at: Some(
-                m.created_at
-                    .format(&time::format_description::well_known::Rfc3339)
-                    .unwrap_or_default(),
-            ),
+            joined_at: Some(m.created_at.to_rfc3339()),
         })
         .collect();
 
@@ -151,7 +147,7 @@ pub async fn login_handler(
     }
 
     // Check MFA enrollment
-    let mfa_enrolled: bool = sqlx::query_scalar(
+    let mfa_enrolled: bool = sqlx::query_scalar::<_, bool>(
         "SELECT EXISTS(SELECT 1 FROM public.mfa_factors WHERE user_id = $1 AND status = 'verified')",
     )
     .bind(user.id)
@@ -160,8 +156,7 @@ pub async fn login_handler(
     .map_err(|e| {
         tracing::error!(error = ?e, "DB error checking MFA");
         VilError::internal("Terjadi kesalahan pada database")
-    })?
-    .unwrap_or(false);
+    })?;
 
     let tokens = create_session(
         &state.db,

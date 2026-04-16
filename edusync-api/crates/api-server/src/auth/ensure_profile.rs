@@ -4,6 +4,7 @@ use axum::http::HeaderMap;
 use edusync_auth::{AuthError, verify_access_token};
 use vil_server::prelude::{ServiceCtx, VilResponse, VilError, HandlerResult};
 use crate::state::AppState;
+use uuid::Uuid;
 
 pub async fn ensure_profile_handler(
     svc: ServiceCtx,
@@ -15,11 +16,16 @@ pub async fn ensure_profile_handler(
         .get("authorization")
         .and_then(|v| v.to_str().ok())
         .and_then(|v| v.strip_prefix("Bearer "))
-        .ok_or_else(|| AuthError::InvalidToken).into_vil_error()?;
+        .ok_or_else(|| AuthError::InvalidToken)
+        .map_err(IntoVilError::into_vil_error)?;
 
     let claims = verify_access_token(token, &state.jwt_secret)
         .map_err(IntoVilError::into_vil_error)?;
-    let user_id: uuid::Uuid = claims.sub.parse().map_err(|_| AuthError::InvalidToken).into_vil_error()?;
+    let user_id: Uuid = claims
+        .sub
+        .parse()
+        .map_err(|_| AuthError::InvalidToken)
+        .map_err(IntoVilError::into_vil_error)?;
 
     sqlx::query(
         r#"INSERT INTO public.profiles (id, email, first_name, last_name, created_at, updated_at)

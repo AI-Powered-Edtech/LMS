@@ -81,7 +81,7 @@ pub fn start_pg_listener(db: PgPool, hub: std::sync::Arc<WsHub>) {
 async fn run_listener(db: &PgPool, hub: &WsHub) -> Result<(), sqlx::Error> {
     let mut listener = PgListener::connect_with(db).await?;
 
-    listener.listen_all(PG_CHANNELS).await?;
+    listener.listen_all(PG_CHANNELS.iter().copied()).await?;
 
     tracing::info!(
         channels = ?PG_CHANNELS,
