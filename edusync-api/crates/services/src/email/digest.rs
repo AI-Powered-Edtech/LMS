@@ -52,7 +52,7 @@ pub async fn send_email_digest(db: &PgPool) -> Result<DigestResult, AppError> {
         SELECT
             n.id,
             n.user_id,
-            n.type           AS "notification_type",
+            n.type::text     AS "notification_type!",
             n.title,
             n.body,
             n.created_at,

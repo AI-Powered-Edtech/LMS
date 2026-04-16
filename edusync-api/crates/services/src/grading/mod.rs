@@ -21,7 +21,7 @@
 // DEPENDENCY: chrono = "0.4"
 
 use serde::{Deserialize, Serialize};
-use sqlx::PgPool;
+use sqlx::{PgPool, Row};
 use uuid::Uuid;
 
 // ─── Constants ────────────────────────────────────────────────────────────────
@@ -427,18 +427,18 @@ pub async fn run_grading_worker(db: &PgPool) -> Result<usize, GradingWorkerError
     // Best-effort cleanup — do not abort if this fails
 
     // ── 2. Circuit breaker: count recent failures ─────────────────────────────
-    let recent_failures: i64 = sqlx::query_scalar!(
+    let recent_failures_result: Result<Option<i64>, _> = sqlx::query_scalar!(
         r#"
-        SELECT COUNT(*)
+        SELECT COUNT(*)::bigint AS "count"
         FROM public.quiz_submission_queue
         WHERE status     = 'FAILED'
           AND updated_at >= NOW() - INTERVAL '60 seconds'
         "#
     )
     .fetch_one(db)
-    .await
-    .unwrap_or(Some(0))
-    .unwrap_or(0);
+    .await;
+    
+    let recent_failures = recent_failures_result.unwrap_or(Some(0)).unwrap_or(0);
 
     if recent_failures >= 5 {
         tracing::warn!(

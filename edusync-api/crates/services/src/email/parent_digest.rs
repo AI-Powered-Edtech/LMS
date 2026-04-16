@@ -87,6 +87,9 @@ pub async fn send_parent_digest(db: &PgPool) -> Result<DigestResult, AppError> {
     let today_start_utc = format!("{}T00:00:00+07:00", today_str);
     let today_end_utc = format!("{}T23:59:59+07:00", today_str);
 
+    let today_start_dt = chrono::DateTime::parse_from_rfc3339(&today_start_utc).unwrap().with_timezone(&Utc);
+    let today_end_dt = chrono::DateTime::parse_from_rfc3339(&today_end_utc).unwrap().with_timezone(&Utc);
+
     // ── 1. Ambil semua pengaturan digest yang aktif ────────────────────────────
     let settings: Vec<DigestSetting> = sqlx::query_as!(
         DigestSetting,
@@ -95,9 +98,9 @@ pub async fn send_parent_digest(db: &PgPool) -> Result<DigestResult, AppError> {
         FROM parent_digest_settings
         WHERE
             digest_enabled = true
-            AND (last_sent_at IS NULL OR last_sent_at < $1::timestamptz)
+            AND (last_sent_at IS NULL OR last_sent_at < $1)
         "#,
-        format!("{}T00:00:00Z", today_str)
+        today_start_dt
     )
     .fetch_all(db)
     .await
@@ -170,10 +173,10 @@ pub async fn send_parent_digest(db: &PgPool) -> Result<DigestResult, AppError> {
 
     // ── 4. Batch ambil aktivitas ──────────────────────────────────────────────
     let lessons = fetch_lessons_completed(
-        db, &student_ids_raw, &tenant_ids, &today_start_utc, &today_end_utc,
+        db, &student_ids_raw, &tenant_ids, today_start_dt, today_end_dt,
     ).await?;
     let submissions = fetch_submissions(
-        db, &student_ids_raw, &tenant_ids, &today_start_utc, &today_end_utc,
+        db, &student_ids_raw, &tenant_ids, today_start_dt, today_end_dt,
     ).await?;
     let enrollments = fetch_enrollments(db, &student_ids_raw, &tenant_ids).await?;
 
@@ -355,13 +358,13 @@ async fn fetch_lessons_completed(
     db: &PgPool,
     student_ids: &[Uuid],
     tenant_ids: &[Uuid],
-    day_start: &str,
-    day_end: &str,
+    day_start: chrono::DateTime<Utc>,
+    day_end: chrono::DateTime<Utc>,
 ) -> Result<Vec<LessonCompleted>, AppError> {
-    sqlx::query_as!(
+    let rows: Vec<LessonCompleted> = sqlx::query_as!(
         LessonCompleted,
         r#"
-        SELECT user_id
+        SELECT user_id AS "user_id!"
         FROM lesson_progress
         WHERE
             user_id    = ANY($1)
@@ -377,25 +380,26 @@ async fn fetch_lessons_completed(
     )
     .fetch_all(db)
     .await
-    .map_err(|e| AppError::internal(format!("Gagal mengambil lesson_progress: {e}")))
+    .map_err(|e| AppError::internal(format!("Gagal mengambil lesson_progress: {e}")))?;
+    Ok(rows)
 }
 
 async fn fetch_submissions(
     db: &PgPool,
     student_ids: &[Uuid],
     tenant_ids: &[Uuid],
-    day_start: &str,
-    day_end: &str,
+    day_start: chrono::DateTime<Utc>,
+    day_end: chrono::DateTime<Utc>,
 ) -> Result<Vec<SubmissionRow>, AppError> {
-    sqlx::query_as!(
+    let rows_result: Result<Vec<SubmissionRow>, _> = sqlx::query_as!(
         SubmissionRow,
         r#"
-        SELECT student_id
+        SELECT student_id AS "student_id!"
         FROM assignment_submissions
         WHERE
-            student_id = ANY($1)
-            AND tenant_id  = ANY($2)
-            AND status     IN ('submitted', 'graded')
+            student_id = ANY($1::uuid[])
+            AND tenant_id  = ANY($2::uuid[])
+            AND status     IN ('SUBMITTED', 'GRADED')
             AND submitted_at BETWEEN $3::timestamptz AND $4::timestamptz
         LIMIT 5000
         "#,
@@ -405,8 +409,9 @@ async fn fetch_submissions(
         day_end,
     )
     .fetch_all(db)
-    .await
-    .map_err(|e| AppError::internal(format!("Gagal mengambil assignment_submissions: {e}")))
+    .await;
+    let rows = rows_result.map_err(|e| AppError::internal(format!("Gagal mengambil submissions: {e}")))?;
+    Ok(rows)
 }
 
 async fn fetch_enrollments(
@@ -438,16 +443,19 @@ async fn fetch_attendance(
     if enrollment_ids.is_empty() {
         return Ok(std::collections::HashMap::new());
     }
+    let parsed_date = chrono::NaiveDate::parse_from_str(date_str, "%Y-%m-%d")
+        .map_err(|e| AppError::internal(format!("Tanggal tidak valid: {e}")))?;
+
     let rows: Vec<AttendanceRow> = sqlx::query_as!(
         AttendanceRow,
         r#"
-        SELECT enrollment_id, status
+        SELECT enrollment_id, status::text AS "status!"
         FROM attendance_records
-        WHERE enrollment_id = ANY($1) AND date = $2::date
+        WHERE enrollment_id = ANY($1) AND date = $2
         LIMIT 10000
         "#,
         enrollment_ids as &[Uuid],
-        date_str
+        parsed_date
     )
     .fetch_all(db)
     .await

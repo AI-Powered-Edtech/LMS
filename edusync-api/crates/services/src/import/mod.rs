@@ -262,24 +262,30 @@ pub async fn import_users_from_csv(
     for (row_num, email, full_name, role, class_code) in &new_rows {
         let new_user_id = Uuid::new_v4();
 
+        let mut name_parts = full_name.splitn(2, ' ');
+        let first_name = name_parts.next().unwrap_or("").to_string();
+        let last_name = name_parts.next().unwrap_or("").to_string();
+
         // 4a. Insert into profiles
-        let profile_result = sqlx::query!(
+        let profile_result: Result<sqlx::postgres::PgQueryResult, sqlx::Error> = sqlx::query!(
             r#"
             INSERT INTO public.profiles (
                 id,
                 email,
-                full_name,
+                first_name,
+                last_name,
                 tenant_id,
                 created_at,
                 imported_by
             ) VALUES (
-                $1, $2, $3, $4, NOW(), $5
+                $1, $2, $3, $4, $5, NOW(), $6
             )
             ON CONFLICT (email, tenant_id) DO NOTHING
             "#,
             new_user_id,
             email,
-            full_name,
+            first_name,
+            last_name,
             tenant_id,
             imported_by
         )
@@ -312,7 +318,7 @@ pub async fn import_users_from_csv(
                 tenant_id,
                 created_at
             ) VALUES (
-                $1, $2, $3, NOW()
+                $1, $2::text::app_role, $3, NOW()
             )
             ON CONFLICT (user_id, tenant_id) DO NOTHING
             "#,
@@ -340,20 +346,21 @@ pub async fn import_users_from_csv(
                 r#"
                 INSERT INTO public.enrollments (
                     user_id,
-                    course_id,
+                    student_id,
+                    class_id,
                     tenant_id,
-                    enrolled_at
+                    joined_at
                 )
                 SELECT
+                    $1,
                     $1,
                     id,
                     tenant_id,
                     NOW()
-                FROM public.courses
-                WHERE class_code = $2
+                FROM public.classes
+                WHERE join_code = $2
                   AND tenant_id  = $3
-                  AND status     = 'published'
-                ON CONFLICT (user_id, course_id) DO NOTHING
+                ON CONFLICT (student_id, class_id) DO NOTHING
                 "#,
                 new_user_id,
                 code,

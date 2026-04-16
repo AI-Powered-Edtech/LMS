@@ -1,3 +1,4 @@
+use crate::extractors::IntoVilError;
 use std::sync::Arc;
 use axum::http::HeaderMap;
 use edusync_auth::{verify_access_token, AuthError};
@@ -48,11 +49,11 @@ pub async fn bootstrap_handler(
         .get("authorization")
         .and_then(|v| v.to_str().ok())
         .and_then(|v| v.strip_prefix("Bearer "))
-        .ok_or_else(|| VilError::from(AuthError::InvalidToken))?;
+        .ok_or_else(|| AuthError::InvalidToken).into_vil_error()?;
 
     let claims = verify_access_token(token, &state.jwt_secret)
-        .map_err(VilError::from)?;
-    let user_id: Uuid = claims.sub.parse().map_err(|_| VilError::from(AuthError::InvalidToken))?;
+        .map_err(IntoVilError::into_vil_error)?;
+    let user_id: Uuid = claims.sub.parse().map_err(|_| AuthError::InvalidToken).into_vil_error()?;
     tracing::info!(
         target: "edusync_api_server::auth",
         request_id = %request_id,
@@ -75,8 +76,8 @@ pub async fn bootstrap_handler(
     )
     .fetch_optional(&state.db)
     .await
-    .map_err(|e| VilError::from(AuthError::Database(e.to_string())))?
-    .ok_or_else(|| VilError::from(AuthError::UserNotFound))?;
+    .map_err(|e| AuthError::Database(e.to_string())).into_vil_error()?
+    .ok_or_else(|| AuthError::UserNotFound).into_vil_error()?;
 
     let requires_email_verification = row.email_confirmed_at.is_none();
 
@@ -92,7 +93,7 @@ pub async fn bootstrap_handler(
     )
     .fetch_all(&state.db)
     .await
-    .map_err(|e| VilError::from(AuthError::Database(e.to_string())))?;
+    .map_err(|e| AuthError::Database(e.to_string())).into_vil_error()?;
 
     let memberships: Vec<BootstrapMembership> = memberships_rows
         .into_iter()

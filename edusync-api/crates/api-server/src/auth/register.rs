@@ -1,3 +1,4 @@
+use crate::extractors::IntoVilError;
 use std::sync::Arc;
 use uuid::Uuid;
 use edusync_auth::{password::hash_password, session::create_session};
@@ -132,7 +133,7 @@ pub async fn register_handler(
 
     let tokens = create_session(&state.db, user_id, &body.email, &role, tenant_id, false, &state.jwt_secret)
         .await
-        .map_err(VilError::from)?;
+        .map_err(IntoVilError::into_vil_error)?;
 
     Ok(VilResponse::ok(AuthResponse {
         access_token: tokens.access_token,

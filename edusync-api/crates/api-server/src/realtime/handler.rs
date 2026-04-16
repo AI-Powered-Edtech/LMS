@@ -128,7 +128,7 @@ pub async fn ws_handler(
     vil_ctx: ServiceCtx,
 ) -> impl IntoResponse {
     let state = vil_ctx.state::<Arc<AppState>>().clone();
-    let hub = vil_ctx.state::<WsHub>().clone();
+    let hub = vil_ctx.state::<Arc<WsHub>>().clone();
     ws.on_upgrade(move |socket| handle_socket(socket, state, hub, params.token))
 }
 
@@ -137,7 +137,7 @@ pub async fn ws_handler(
 async fn handle_socket(
     socket: WebSocket,
     state: Arc<AppState>,
-    hub: WsHub,
+    hub: Arc<WsHub>,
     token: Option<String>,
 ) {
     // ── 1. Optional JWT authentication ────────────────────────────────────────

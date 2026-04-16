@@ -1,3 +1,4 @@
+use crate::extractors::IntoVilError;
 use std::sync::Arc;
 use axum::http::StatusCode;
 use edusync_auth::{AuthError, password::hash_password, session::revoke_all_user_sessions};
@@ -52,7 +53,7 @@ pub async fn update_password_handler(
     let body: UpdatePasswordRequest = body.json().map_err(|e| VilError::bad_request(e.to_string()))?;
 
     if body.password.len() < 8 {
-        return Err(VilError::from(AuthError::WeakPassword));
+        return Err(AuthError::WeakPassword).into_vil_error();
     }
 
     let token_hash = sha256_hex(&body.token);
@@ -65,13 +66,13 @@ pub async fn update_password_handler(
     )
     .fetch_optional(&state.db)
     .await
-    .map_err(|e| VilError::from(AuthError::Database(e.to_string())))?
-    .ok_or_else(|| VilError::from(AuthError::InvalidToken))?;
+    .map_err(|e| AuthError::Database(e.to_string())).into_vil_error()?
+    .ok_or_else(|| AuthError::InvalidToken).into_vil_error()?;
 
-    let new_hash = hash_password(&body.password).map_err(VilError::from)?;
+    let new_hash = hash_password(&body.password).map_err(IntoVilError::into_vil_error)?;
 
     let mut tx = state.db.begin().await
-        .map_err(|e| VilError::from(AuthError::Database(e.to_string())))?;
+        .map_err(|e| AuthError::Database(e.to_string())).into_vil_error()?;
 
     sqlx::query!(
         "UPDATE public.users SET encrypted_password = $1, updated_at = now() WHERE id = $2",
@@ -79,7 +80,7 @@ pub async fn update_password_handler(
     )
     .execute(&mut *tx)
     .await
-    .map_err(|e| VilError::from(AuthError::Database(e.to_string())))?;
+    .map_err(|e| AuthError::Database(e.to_string())).into_vil_error()?;
 
     sqlx::query!(
         "UPDATE public.password_reset_tokens SET used_at = now() WHERE token_hash = $1",
@@ -87,13 +88,13 @@ pub async fn update_password_handler(
     )
     .execute(&mut *tx)
     .await
-    .map_err(|e| VilError::from(AuthError::Database(e.to_string())))?;
+    .map_err(|e| AuthError::Database(e.to_string())).into_vil_error()?;
 
     tx.commit().await
-        .map_err(|e| VilError::from(AuthError::Database(e.to_string())))?;
+        .map_err(|e| AuthError::Database(e.to_string())).into_vil_error()?;
 
     revoke_all_user_sessions(&state.db, row.user_id).await
-        .map_err(VilError::from)?;
+        .map_err(IntoVilError::into_vil_error)?;
 
     Ok(VilResponse::ok(StatusCode::OK))
 }

@@ -46,21 +46,25 @@ fn extract_tenant_context(
 // AuthError → VilError conversion
 // ---------------------------------------------------------------------------
 
-impl From<AuthError> for VilError {
-    fn from(err: AuthError) -> Self {
-        match err {
+pub trait IntoVilError {
+    fn into_vil_error(self) -> VilError;
+}
+
+impl IntoVilError for AuthError {
+    fn into_vil_error(self) -> VilError {
+        match self {
             AuthError::Unauthorized
             | AuthError::InvalidToken
-            | AuthError::TokenExpired => VilError::unauthorized(err.to_string()),
+            | AuthError::TokenExpired => VilError::unauthorized(self.to_string()),
             AuthError::Forbidden
             | AuthError::UserBanned
-            | AuthError::TenantMismatch => VilError::forbidden(err.to_string()),
+            | AuthError::TenantMismatch => VilError::forbidden(self.to_string()),
             AuthError::InvitationNotFound
             | AuthError::ClassNotFound
-            | AuthError::UserNotFound => VilError::not_found(err.to_string()),
+            | AuthError::UserNotFound => VilError::not_found(self.to_string()),
             AuthError::TooManyRequests => {
                 let mut e = VilError::rate_limited();
-                e.detail = err.to_string();
+                e.detail = self.to_string();
                 e
             }
             AuthError::EmailAlreadyExists
@@ -68,9 +72,9 @@ impl From<AuthError> for VilError {
             | AuthError::WeakPassword
             | AuthError::InvalidCredentials
             | AuthError::EmailNotConfirmed
-            | AuthError::MfaRequired => VilError::bad_request(err.to_string()),
+            | AuthError::MfaRequired => VilError::bad_request(self.to_string()),
             AuthError::Internal(_) | AuthError::Database(_) => {
-                tracing::error!(error = ?err, "AuthError internal");
+                tracing::error!(error = ?self, "AuthError internal");
                 VilError::internal("Terjadi kesalahan server internal")
             }
         }
@@ -105,7 +109,7 @@ where
                 .map_err(|_| VilError::unauthorized("Tidak terautentikasi"))?;
         extract_tenant_context(parts, &state.jwt_secret)
             .map(AuthedRequest)
-            .map_err(VilError::from)
+            .map_err(IntoVilError::into_vil_error)
     }
 }
 
@@ -153,7 +157,7 @@ where
                 .map_err(|_| VilError::unauthorized("Tidak terautentikasi"))?;
         extract_tenant_context(parts, &state.jwt_secret)
             .map(RbacGuard)
-            .map_err(VilError::from)
+            .map_err(IntoVilError::into_vil_error)
     }
 }
 

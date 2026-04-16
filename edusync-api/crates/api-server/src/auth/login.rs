@@ -1,3 +1,4 @@
+use crate::extractors::IntoVilError;
 use std::sync::Arc;
 use uuid::Uuid;
 use edusync_auth::{password::{verify_password, maybe_rehash}, session::create_session};
@@ -154,7 +155,7 @@ pub async fn login_handler(
         &state.jwt_secret,
     )
     .await
-    .map_err(VilError::from)?;
+    .map_err(IntoVilError::into_vil_error)?;
 
     // Successful login — clear brute force counter
     state.brute_force.record_success(&body.email);

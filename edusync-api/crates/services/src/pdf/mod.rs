@@ -27,7 +27,7 @@ pub struct GenerateCertificateRequest {
 
 #[derive(sqlx::FromRow)]
 struct EnrollmentCertRow {
-    student_name: String,
+    student_name: Option<String>,
     course_name: String,
     completed_at: Option<chrono::DateTime<chrono::Utc>>,
     tenant_name: String,
@@ -102,7 +102,7 @@ pub async fn generate_pdf_for_enrollment(
     );
 
     let cert_data = CertificateData {
-        student_name: row.student_name,
+        student_name: row.student_name.unwrap_or_default(),
         course_name: row.course_name,
         completion_date,
         certificate_number: cert_number.clone(),

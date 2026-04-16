@@ -100,8 +100,8 @@ pub async fn create_transcode_handler(
 
 /// Handler untuk background worker - dipanggil dari scheduler
 pub async fn run_transcoding_worker_handler(db: &PgPool, state: &Arc<AppState>) {
-    match create_s3_client(state) {
-        Ok(s3_client) => {
+    match create_s3_client(state).await {
+        Some(s3_client) => {
             match edusync_services::video::transcode::run_transcoding_worker(db, &s3_client, 5)
                 .await
             {
@@ -114,8 +114,8 @@ pub async fn run_transcoding_worker_handler(db: &PgPool, state: &Arc<AppState>) 
                 }
             }
         }
-        Err(e) => {
-            tracing::error!(error = %e, "cron:transcoding_worker - failed to create S3 client");
+        None => {
+            tracing::error!("cron:transcoding_worker - failed to create S3 client");
         }
     }
 }

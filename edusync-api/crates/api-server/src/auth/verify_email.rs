@@ -1,3 +1,4 @@
+use crate::extractors::IntoVilError;
 use std::sync::Arc;
 use axum::http::StatusCode;
 use edusync_auth::AuthError;
@@ -20,8 +21,8 @@ pub async fn verify_email_handler(
     )
     .fetch_optional(&state.db)
     .await
-    .map_err(|e| VilError::from(AuthError::Database(e.to_string())))?
-    .ok_or_else(|| VilError::from(AuthError::InvalidToken))?;
+    .map_err(|e| AuthError::Database(e.to_string())).into_vil_error()?
+    .ok_or_else(|| AuthError::InvalidToken).into_vil_error()?;
 
     sqlx::query!(
         "UPDATE public.users SET email_confirmed_at = now(), confirmation_token = NULL WHERE id = $1",
@@ -29,7 +30,7 @@ pub async fn verify_email_handler(
     )
     .execute(&state.db)
     .await
-    .map_err(|e| VilError::from(AuthError::Database(e.to_string())))?;
+    .map_err(|e| AuthError::Database(e.to_string())).into_vil_error()?;
 
     Ok(VilResponse::ok(StatusCode::OK))
 }

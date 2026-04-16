@@ -1,3 +1,4 @@
+use crate::extractors::IntoVilError;
 use std::sync::Arc;
 use uuid::Uuid;
 use edusync_auth::session::refresh_session;
@@ -15,7 +16,7 @@ pub async fn refresh_handler(
     let body: RefreshRequest = body.json().map_err(|e| VilError::bad_request(e.to_string()))?;
 
     let claims = verify_refresh_token_with_session_secret(&state, &body.refresh_token)
-        .map_err(VilError::from)?;
+        .map_err(IntoVilError::into_vil_error)?;
     let user_id: Uuid = claims
         .sub
         .parse()
@@ -103,7 +104,7 @@ pub async fn refresh_handler(
         &active_role, Some(active_tenant_id), true, &state.jwt_secret,
     )
     .await
-    .map_err(VilError::from)?;
+    .map_err(IntoVilError::into_vil_error)?;
 
     Ok(VilResponse::ok(AuthResponse {
         access_token: tokens.access_token,

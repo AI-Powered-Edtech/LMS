@@ -1,3 +1,4 @@
+use crate::extractors::IntoVilError;
 use std::sync::Arc;
 
 use axum::http::HeaderMap;
@@ -22,18 +23,18 @@ pub async fn switch_tenant_handler(
         .get("authorization")
         .and_then(|v| v.to_str().ok())
         .and_then(|v| v.strip_prefix("Bearer "))
-        .ok_or_else(|| VilError::from(AuthError::InvalidToken))?;
+        .ok_or_else(|| AuthError::InvalidToken).into_vil_error()?;
 
-    let access_claims = verify_access_token(token, &state.jwt_secret).map_err(VilError::from)?;
+    let access_claims = verify_access_token(token, &state.jwt_secret).map_err(IntoVilError::into_vil_error)?;
     let user_id: Uuid = access_claims
         .sub
         .parse()
-        .map_err(|_| VilError::from(AuthError::InvalidToken))?;
+        .map_err(|_| AuthError::InvalidToken).into_vil_error()?;
 
     let refresh_claims = verify_refresh_token_with_session_secret(&state, &body.refresh_token)
-        .map_err(VilError::from)?;
+        .map_err(IntoVilError::into_vil_error)?;
     if refresh_claims.sub != user_id.to_string() {
-        return Err(VilError::from(AuthError::InvalidToken));
+        return Err(AuthError::InvalidToken).into_vil_error();
     }
 
     let user = sqlx::query!(
@@ -42,7 +43,7 @@ pub async fn switch_tenant_handler(
     )
     .fetch_optional(&state.db)
     .await
-    .map_err(|e| VilError::from(AuthError::Database(e.to_string())))?
+    .map_err(|e| AuthError::Database(e.to_string())).into_vil_error()?
     .ok_or_else(|| VilError::unauthorized("Pengguna tidak ditemukan"))?;
 
     let memberships_rows = sqlx::query!(
@@ -57,7 +58,7 @@ pub async fn switch_tenant_handler(
     )
     .fetch_all(&state.db)
     .await
-    .map_err(|e| VilError::from(AuthError::Database(e.to_string())))?;
+    .map_err(|e| AuthError::Database(e.to_string())).into_vil_error()?;
 
     if memberships_rows.is_empty() {
         return Err(VilError::unauthorized("Pengguna belum terdaftar pada tenant mana pun"));
@@ -111,7 +112,7 @@ pub async fn switch_tenant_handler(
         &state.jwt_secret,
     )
     .await
-    .map_err(VilError::from)?;
+    .map_err(IntoVilError::into_vil_error)?;
 
     Ok(VilResponse::ok(AuthResponse {
         access_token: tokens.access_token,
