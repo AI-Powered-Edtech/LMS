@@ -3,6 +3,7 @@ use serde::{Deserialize, Serialize};
 use serde_json::Value;
 use sha2::{Digest, Sha256};
 use std::sync::Arc;
+use tracing_subscriber::{fmt, prelude::*, EnvFilter};
 use uuid::Uuid;
 use vil_server::prelude::*;
 
@@ -10,15 +11,32 @@ use crate::extractors::AuthedRequest;
 use crate::state::AppState;
 
 pub fn init_tracing() {
-    let filter =
-        std::env::var("RUST_LOG").unwrap_or_else(|_| "edusync_api_server=debug,info".to_string());
+    let env_filter = EnvFilter::try_from_default_env().unwrap_or_else(|_| {
+        EnvFilter::new("edusync_api_server=debug,info,sqlx=warn,hyper=warn")
+    });
 
-    let _ = tracing_subscriber::fmt()
-        .with_env_filter(filter)
-        .with_target(true)
-        .with_thread_ids(false)
-        .json()
-        .try_init();
+    let is_prod = std::env::var("APP_ENV")
+        .map(|v| v == "production")
+        .unwrap_or(false);
+
+    if is_prod {
+        let _ = tracing_subscriber::registry()
+            .with(env_filter)
+            .with(
+                fmt::layer()
+                    .json()
+                    .with_target(true)
+                    .with_thread_ids(false)
+                    .with_current_span(true)
+                    .with_span_list(false),
+            )
+            .try_init();
+    } else {
+        let _ = tracing_subscriber::registry()
+            .with(env_filter)
+            .with(fmt::layer().pretty())
+            .try_init();
+    }
 }
 
 pub fn init_sentry() -> Option<sentry::ClientInitGuard> {
