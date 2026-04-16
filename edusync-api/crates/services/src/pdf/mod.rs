@@ -54,8 +54,7 @@ pub async fn generate_pdf_for_enrollment(
     req: GenerateCertificateRequest,
 ) -> Result<(Vec<u8>, String), AppError> {
     // Ambil data enrollment + kursus + profil + tenant
-    let row = sqlx::query_as!(
-        EnrollmentCertRow,
+    let row = sqlx::query_as::<_, EnrollmentCertRow>(
         r#"
         SELECT
             p.full_name    AS student_name,
@@ -71,9 +70,9 @@ pub async fn generate_pdf_for_enrollment(
         WHERE e.id        = $1
           AND e.tenant_id = $2
         "#,
-        req.course_enrollment_id,
-        tenant_id,
     )
+    .bind(req.course_enrollment_id)
+    .bind(tenant_id)
     .fetch_optional(db)
     .await
     .map_err(|e| AppError::Internal(format!("Gagal mengambil data enrollment: {e}")))?

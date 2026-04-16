@@ -152,6 +152,7 @@ async fn fetch_platform_decoding_key(
 
 // ─── Nonce validation ─────────────────────────────────────────────────────────
 
+#[derive(sqlx::FromRow)]
 struct NonceRow {
     platform_id: Uuid,
     tenant_id: Uuid,
@@ -162,27 +163,24 @@ struct NonceRow {
 /// Returns bad_request if not found or expired.
 async fn consume_nonce(db: &PgPool, nonce: &str, state: &str) -> Result<NonceRow, VilError> {
     // Delete and return atomically
-    let row = sqlx::query!(
+    let row = sqlx::query_as::<_, NonceRow>(
         r#"DELETE FROM public.lti_nonces
            WHERE nonce = $1 AND state = $2 AND expires_at > NOW()
            RETURNING platform_id, tenant_id, redirect_uri"#,
-        nonce,
-        state
     )
+    .bind(nonce)
+    .bind(state)
     .fetch_optional(db)
     .await
     .map_err(|e| VilError::internal(e.to_string()))?
     .ok_or_else(|| VilError::bad_request("Nonce LTI sudah kadaluwarsa atau tidak ditemukan"))?;
 
-    Ok(NonceRow {
-        platform_id: row.platform_id,
-        tenant_id: row.tenant_id,
-        redirect_uri: row.redirect_uri,
-    })
+    Ok(row)
 }
 
 // ─── Platform lookup ──────────────────────────────────────────────────────────
 
+#[derive(sqlx::FromRow)]
 struct PlatformData {
     id: Uuid,
     tenant_id: Uuid,
@@ -192,23 +190,16 @@ struct PlatformData {
 }
 
 async fn load_platform(db: &PgPool, platform_id: Uuid) -> Result<PlatformData, VilError> {
-    sqlx::query!(
-        r#"SELECT id, tenant_id, client_id, deployment_id, key_set_url
+    sqlx::query_as::<_, PlatformData>(
+        r#"SELECT id, tenant_id, client_id, deployment_id, key_set_url AS jwks_url
            FROM public.lti_platform_registrations
            WHERE id = $1 AND is_active = true
            LIMIT 1"#,
-        platform_id
     )
+    .bind(platform_id)
     .fetch_optional(db)
     .await
     .map_err(|e| VilError::internal(e.to_string()))?
-    .map(|r| PlatformData {
-        id: r.id,
-        tenant_id: r.tenant_id,
-        client_id: r.client_id,
-        deployment_id: r.deployment_id,
-        jwks_url: r.key_set_url,
-    })
     .ok_or_else(|| VilError::bad_request("State tidak valid"))
 }
 
@@ -265,24 +256,24 @@ async fn provision_user(
     lti_role: &str,
 ) -> Result<ProvisionedUser, VilError> {
     // 1. Check existing link
-    let existing_link = sqlx::query!(
+    let existing_user_id: Option<Uuid> = sqlx::query_scalar(
         r#"SELECT user_id FROM public.lti_user_links
            WHERE platform_id = $1 AND platform_sub = $2 AND tenant_id = $3
            LIMIT 1"#,
-        platform_id,
-        sub,
-        tenant_id
     )
+    .bind(platform_id)
+    .bind(sub)
+    .bind(tenant_id)
     .fetch_optional(db)
     .await
     .map_err(|e| VilError::internal(e.to_string()))?;
 
-    let (user_id, user_email) = if let Some(link) = existing_link {
+    let (user_id, user_email) = if let Some(user_id) = existing_user_id {
         // Existing user — get their email
-        let user = sqlx::query!(
+        let user: (Uuid, String) = sqlx::query_as(
             r#"SELECT id, email FROM public.profiles WHERE id = $1 LIMIT 1"#,
-            link.user_id
         )
+        .bind(user_id)
         .fetch_optional(db)
         .await
         .map_err(|e| VilError::internal(e.to_string()))?
@@ -299,7 +290,7 @@ async fn provision_user(
         .execute(db)
         .await;
 
-        (user.id, user.email)
+        (user.0, user.1)
     } else {
         // New user — provision
         let resolved_email = email
@@ -328,18 +319,16 @@ async fn provision_user(
         .map_err(|e| VilError::internal(format!("Profile upsert: {e}")))?;
 
         // Fetch the actual ID (may differ on conflict)
-        let profile_row = sqlx::query!(
+        let actual_user_id: Uuid = sqlx::query_scalar(
             r#"SELECT id FROM public.profiles
                WHERE email = $1 AND tenant_id = $2 LIMIT 1"#,
-            resolved_email,
-            tenant_id
         )
+        .bind(&resolved_email)
+        .bind(tenant_id)
         .fetch_optional(db)
         .await
         .map_err(|e| VilError::internal(e.to_string()))?
         .ok_or_else(|| VilError::internal("Profil tidak ditemukan setelah upsert".to_string()))?;
-
-        let actual_user_id = profile_row.id;
 
         // Upsert user_roles
         sqlx::query(

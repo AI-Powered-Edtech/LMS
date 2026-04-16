@@ -52,17 +52,17 @@ pub async fn mfa_enroll_handler(
         .map_err(|e: totp_rs::SecretParseError| AuthError::Internal(e.to_string())).into_vil_error()?;
     let factor_id = Uuid::new_v4();
 
-    sqlx::query!(
+    sqlx::query(
         r#"INSERT INTO public.mfa_factors (id, user_id, friendly_name, factor_type, status, secret)
            VALUES ($1, $2, $3, 'totp', 'unverified', $4)"#,
-        factor_id,
-        user_id,
-        body.friendly_name.unwrap_or_else(|| "Authenticator".to_string()),
-        secret_base32,
     )
+    .bind(factor_id)
+    .bind(user_id)
+    .bind(body.friendly_name.unwrap_or_else(|| "Authenticator".to_string()))
+    .bind(&secret_base32)
     .execute(&state.db)
     .await
-    .map_err(|e| AuthError::Database(e.to_string())).into_vil_error()?;
+    .map_err(|e| AuthError::Database(e).into_vil_error())?;
 
     let totp = totp_rs::TOTP::new(
         totp_rs::Algorithm::SHA1, 6, 1, 30,
@@ -101,16 +101,17 @@ pub async fn mfa_verify_handler(
         .map_err(IntoVilError::into_vil_error)?;
     let user_id: Uuid = claims.sub.parse().map_err(|_| AuthError::InvalidToken).into_vil_error()?;
 
-    let factor = sqlx::query!(
+    let factor_secret: String = sqlx::query_scalar(
         "SELECT secret FROM public.mfa_factors WHERE id = $1 AND user_id = $2",
-        body.factor_id, user_id
     )
+    .bind(body.factor_id)
+    .bind(user_id)
     .fetch_optional(&state.db)
     .await
-    .map_err(|e| AuthError::Database(e.to_string())).into_vil_error()?
-    .ok_or_else(|| AuthError::InvalidToken).into_vil_error()?;
+    .map_err(|e| AuthError::Database(e).into_vil_error())?
+    .ok_or_else(|| AuthError::InvalidToken.into_vil_error())?;
 
-    let secret_bytes = totp_rs::Secret::Encoded(factor.secret.unwrap_or_default())
+    let secret_bytes = totp_rs::Secret::Encoded(factor_secret)
         .to_bytes()
         .map_err(|e: totp_rs::SecretParseError| AuthError::Internal(e.to_string())).into_vil_error()?;
 
@@ -120,16 +121,16 @@ pub async fn mfa_verify_handler(
     .map_err(|e| AuthError::Internal(e.to_string())).into_vil_error()?;
 
     if !totp.check_current(&body.code).map_err(|e| AuthError::Internal(e.to_string())).into_vil_error()? {
-        return Err(AuthError::InvalidCredentials).into_vil_error();
+        return Err(AuthError::InvalidCredentials.into_vil_error());
     }
 
-    sqlx::query!(
+    sqlx::query(
         "UPDATE public.mfa_factors SET status = 'verified', updated_at = now() WHERE id = $1",
-        body.factor_id
     )
+    .bind(body.factor_id)
     .execute(&state.db)
     .await
-    .map_err(|e| AuthError::Database(e.to_string())).into_vil_error()?;
+    .map_err(|e| AuthError::Database(e).into_vil_error())?;
 
     Ok(VilResponse::ok(serde_json::json!({ "success": true })))
 }
@@ -145,13 +146,13 @@ pub async fn mfa_unenroll_handler(
         .map_err(IntoVilError::into_vil_error)?;
     let user_id: Uuid = claims.sub.parse().map_err(|_| AuthError::InvalidToken).into_vil_error()?;
 
-    sqlx::query!(
+    sqlx::query(
         "DELETE FROM public.mfa_factors WHERE user_id = $1",
-        user_id
     )
+    .bind(user_id)
     .execute(&state.db)
     .await
-    .map_err(|e| AuthError::Database(e.to_string())).into_vil_error()?;
+    .map_err(|e| AuthError::Database(e).into_vil_error())?;
 
     Ok(VilResponse::ok(serde_json::json!({ "success": true })))
 }

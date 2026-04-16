@@ -97,12 +97,26 @@ struct QueueTicket {
 }
 
 /// A row from `quiz_attempt_questions_v2`.
-#[derive(Debug)]
+#[derive(Debug, sqlx::FromRow)]
 struct AttemptQuestion {
     pub question_id: Uuid,
     pub started_at: chrono::DateTime<chrono::Utc>,
     /// student_answers stored as a JSON value (array or string of option UUIDs).
     pub student_answers: Option<serde_json::Value>,
+}
+
+#[derive(Debug, sqlx::FromRow)]
+struct QuizQuestionRow {
+    pub id: Uuid,
+    pub points: i32,
+    pub question_type: String,
+}
+
+#[derive(Debug, sqlx::FromRow)]
+struct QuizOptionRow {
+    pub id: Uuid,
+    pub question_id: Uuid,
+    pub is_correct: bool,
 }
 
 /// An option from `quiz_options`.
@@ -199,7 +213,7 @@ pub async fn grade_attempt(
     tenant_id: Uuid,
 ) -> Result<GradeResult, GradingWorkerError> {
     // ── Step 1: Load attempt question rows ───────────────────────────────────
-    let aq_rows = sqlx::query!(
+    let attempt_questions: Vec<AttemptQuestion> = sqlx::query_as::<_, AttemptQuestion>(
         r#"
         SELECT
             question_id,
@@ -208,20 +222,11 @@ pub async fn grade_attempt(
         FROM public.quiz_attempt_questions_v2
         WHERE attempt_id = $1
         "#,
-        attempt_id
     )
+    .bind(attempt_id)
     .fetch_all(db)
     .await
     .map_err(|e| GradingWorkerError::Database(e.to_string()))?;
-
-    let attempt_questions: Vec<AttemptQuestion> = aq_rows
-        .into_iter()
-        .map(|r| AttemptQuestion {
-            question_id: r.question_id,
-            started_at: r.started_at,
-            student_answers: r.student_answers,
-        })
-        .collect();
 
     let question_ids: Vec<Uuid> = attempt_questions.iter().map(|aq| aq.question_id).collect();
 
@@ -230,26 +235,26 @@ pub async fn grade_attempt(
         vec![]
     } else {
         // Fetch questions — column is `text` NOT `question_text`
-        let q_rows = sqlx::query!(
+        let q_rows: Vec<QuizQuestionRow> = sqlx::query_as::<_, QuizQuestionRow>(
             r#"
             SELECT
                 id,
-                COALESCE(points, 10) as "points!",
-                COALESCE(question_type::text, 'MCQ') as "question_type!"
+                COALESCE(points, 10) as points,
+                COALESCE(question_type::text, 'MCQ') as question_type
             FROM public.quiz_questions
             WHERE id = ANY($1)
               AND tenant_id = $2
             "#,
-            &question_ids,
-            tenant_id
         )
+        .bind(&question_ids[..])
+        .bind(tenant_id)
         .fetch_all(db)
         .await
         .map_err(|e| GradingWorkerError::Database(e.to_string()))?;
 
         // Fetch options — column is `text` NOT `option_text`
         // Tenant isolation: filter by tenant_id to prevent cross-tenant option leakage
-        let opt_rows = sqlx::query!(
+        let opt_rows: Vec<QuizOptionRow> = sqlx::query_as::<_, QuizOptionRow>(
             r#"
             SELECT
                 id,
@@ -258,8 +263,8 @@ pub async fn grade_attempt(
             FROM public.quiz_options
             WHERE question_id = ANY($1)
             "#,
-            &question_ids
         )
+        .bind(&question_ids[..])
         .fetch_all(db)
         .await
         .map_err(|e| GradingWorkerError::Database(e.to_string()))?;
@@ -412,7 +417,7 @@ pub async fn grade_attempt(
 /// Called by cron every 30 s or triggered on-demand.
 pub async fn run_grading_worker(db: &PgPool) -> Result<usize, GradingWorkerError> {
     // ── 1. Circuit recovery: release stuck PROCESSING tickets ────────────────
-    let _ = sqlx::query!(
+    let _ = sqlx::query(
         r#"
         UPDATE public.quiz_submission_queue
         SET
@@ -427,18 +432,17 @@ pub async fn run_grading_worker(db: &PgPool) -> Result<usize, GradingWorkerError
     // Best-effort cleanup — do not abort if this fails
 
     // ── 2. Circuit breaker: count recent failures ─────────────────────────────
-    let recent_failures_result: Result<Option<i64>, _> = sqlx::query_scalar!(
+    let recent_failures: i64 = sqlx::query_scalar(
         r#"
-        SELECT COUNT(*)::bigint AS "count"
+        SELECT COUNT(*)::bigint
         FROM public.quiz_submission_queue
         WHERE status     = 'FAILED'
           AND updated_at >= NOW() - INTERVAL '60 seconds'
-        "#
+        "#,
     )
     .fetch_one(db)
-    .await;
-    
-    let recent_failures = recent_failures_result.unwrap_or(Some(0)).unwrap_or(0);
+    .await
+    .unwrap_or(0);
 
     if recent_failures >= 5 {
         tracing::warn!(
@@ -499,14 +503,14 @@ pub async fn run_grading_worker(db: &PgPool) -> Result<usize, GradingWorkerError
     match grade_result {
         Ok(result) => {
             // ── 5a. Mark ticket COMPLETED ─────────────────────────────────────
-            sqlx::query!(
+            sqlx::query(
                 r#"
                 UPDATE public.quiz_submission_queue
                 SET status = 'COMPLETED'
                 WHERE id   = $1
                 "#,
-                ticket.ticket_id
             )
+            .bind(ticket.ticket_id)
             .execute(db)
             .await
             .map_err(|e| GradingWorkerError::Database(e.to_string()))?;
@@ -552,11 +556,9 @@ pub async fn run_grading_worker(db: &PgPool) -> Result<usize, GradingWorkerError
                     MAX_RETRIES
                 );
 
-                let _ = sqlx::query!(
-                    r#"SELECT public.v1_mark_dead_letter($1::uuid, $2::text)"#,
-                    ticket.ticket_id,
-                    err_msg
-                )
+                let _ = sqlx::query(r#"SELECT public.v1_mark_dead_letter($1::uuid, $2::text)"#)
+                .bind(ticket.ticket_id)
+                .bind(err_msg)
                 .execute(db)
                 .await;
             } else {
@@ -574,7 +576,7 @@ pub async fn run_grading_worker(db: &PgPool) -> Result<usize, GradingWorkerError
                     "grading_worker: menjadwalkan ulang percobaan penilaian"
                 );
 
-                let _ = sqlx::query!(
+                let _ = sqlx::query(
                     r#"
                     SELECT public.v1_schedule_retry_submission(
                         $1::uuid,
@@ -583,11 +585,11 @@ pub async fn run_grading_worker(db: &PgPool) -> Result<usize, GradingWorkerError
                         $4::int
                     )
                     "#,
-                    ticket.ticket_id,
-                    new_retry_count,
-                    err_msg,
-                    backoff_secs as i32
                 )
+                .bind(ticket.ticket_id)
+                .bind(new_retry_count)
+                .bind(err_msg)
+                .bind(backoff_secs as i32)
                 .execute(db)
                 .await;
             }

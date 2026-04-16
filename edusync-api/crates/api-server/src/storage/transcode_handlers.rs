@@ -55,10 +55,12 @@ pub async fn get_transcode_status_handler(
 /// POST /api/v1/storage/transcode
 /// Membuat transcoding job baru
 pub async fn create_transcode_handler(
-    AuthedRequest { user_id, db, .. }: AuthedRequest,
+    AuthedRequest(auth): AuthedRequest,
     State(state): State<Arc<AppState>>,
     Json(req): Json<CreateTranscodeRequest>,
 ) -> Result<Json<serde_json::Value>, (axum::http::StatusCode, Json<serde_json::Value>)> {
+    let user_id = auth.user_id;
+    let db = &state.db;
     // Validasi bahwa user memiliki akses ke video
     // TODO: Implementasi validasi ownership
 
@@ -100,7 +102,7 @@ pub async fn create_transcode_handler(
 
 /// Handler untuk background worker - dipanggil dari scheduler
 pub async fn run_transcoding_worker_handler(db: &PgPool, state: &Arc<AppState>) {
-    match create_s3_client(state).await {
+    match create_s3_client(state.as_ref()).await {
         Some(s3_client) => {
             match edusync_services::video::transcode::run_transcoding_worker(db, &s3_client, 5)
                 .await

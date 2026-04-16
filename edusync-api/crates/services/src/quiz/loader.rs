@@ -110,6 +110,31 @@ pub struct LoadQuizResponse {
     pub questions: Vec<QuestionData>,
 }
 
+#[derive(sqlx::FromRow)]
+struct QuizRow {
+    id: Uuid,
+    title: String,
+    time_limit_minutes: Option<i32>,
+    shuffle_questions: Option<bool>,
+    description: Option<String>,
+    show_results: Option<bool>,
+}
+
+#[derive(sqlx::FromRow)]
+struct QuestionRow {
+    id: Uuid,
+    text: String,
+    question_type: String,
+    points: i32,
+}
+
+#[derive(sqlx::FromRow)]
+struct OptionRow {
+    id: Uuid,
+    question_id: Uuid,
+    text: String,
+}
+
 // ─── Enrollment check ─────────────────────────────────────────────────────────
 
 /// Verify that `user_id` is enrolled in the course that owns the quiz.
@@ -123,7 +148,7 @@ async fn verify_enrollment(
     user_id: Uuid,
     tenant_id: Uuid,
 ) -> Result<(), QuizLoaderError> {
-    let course_id: Option<Uuid> = sqlx::query_scalar!(
+    let course_id: Option<Uuid> = sqlx::query_scalar(
         r#"
         SELECT q.course_id
         FROM public.quizzes q
@@ -131,20 +156,20 @@ async fn verify_enrollment(
           AND q.tenant_id = $2
         LIMIT 1
         "#,
-        quiz_id,
-        tenant_id
     )
+    .bind(quiz_id)
+    .bind(tenant_id)
     .fetch_optional(db)
     .await
     .map_err(|e| QuizLoaderError::Database(e.to_string()))?
-    .flatten();
+    ;
 
     let Some(cid) = course_id else {
         return Err(QuizLoaderError::NotFound);
     };
 
     // Check enrollment — column is user_id (NOT student_id per CLAUDE.md)
-    let enrolled: bool = sqlx::query_scalar!(
+    let enrolled: bool = sqlx::query_scalar(
         r#"
         SELECT EXISTS (
             SELECT 1
@@ -156,14 +181,13 @@ async fn verify_enrollment(
               AND e.status    = 'ACTIVE'
         )
         "#,
-        cid,
-        user_id,
-        tenant_id
     )
+    .bind(cid)
+    .bind(user_id)
+    .bind(tenant_id)
     .fetch_one(db)
     .await
-    .map_err(|e: sqlx::Error| QuizLoaderError::Database(e.to_string()))?
-    .unwrap_or(false);
+    .map_err(|e: sqlx::Error| QuizLoaderError::Database(e.to_string()))?;
 
     if !enrolled {
         return Err(QuizLoaderError::Forbidden);
@@ -193,7 +217,7 @@ pub async fn load_quiz_for_student(
     verify_enrollment(db, quiz_id, user_id, tenant_id).await?;
 
     // ── 2. Load quiz metadata ────────────────────────────────────────────────
-    let quiz_row = sqlx::query!(
+    let quiz_row: QuizRow = sqlx::query_as::<_, QuizRow>(
         r#"
         SELECT
             id,
@@ -207,9 +231,9 @@ pub async fn load_quiz_for_student(
           AND tenant_id = $2
         LIMIT 1
         "#,
-        quiz_id,
-        tenant_id
     )
+    .bind(quiz_id)
+    .bind(tenant_id)
     .fetch_optional(db)
     .await
     .map_err(|e: sqlx::Error| QuizLoaderError::Database(e.to_string()))?
@@ -227,21 +251,21 @@ pub async fn load_quiz_for_student(
     // ── 3. Load questions ────────────────────────────────────────────────────
     // Column is `text` NOT `question_text` per CLAUDE.md.
     // `"order"` must be quoted — it is a SQL reserved word.
-    let question_rows = sqlx::query!(
+    let question_rows: Vec<QuestionRow> = sqlx::query_as::<_, QuestionRow>(
         r#"
         SELECT
             id,
             text,
-            COALESCE(question_type::text, 'MCQ') as "question_type!",
-            COALESCE(points, 10) as "points!"
+            COALESCE(question_type::text, 'MCQ') as question_type,
+            COALESCE(points, 10) as points
         FROM public.quiz_questions
         WHERE quiz_id   = $1
           AND tenant_id = $2
         ORDER BY "order" ASC
         "#,
-        quiz_id,
-        tenant_id
     )
+    .bind(quiz_id)
+    .bind(tenant_id)
     .fetch_all(db)
     .await
     .map_err(|e| QuizLoaderError::Database(e.to_string()))?;
@@ -254,7 +278,7 @@ pub async fn load_quiz_for_student(
     let option_rows = if question_ids.is_empty() {
         vec![]
     } else {
-        sqlx::query!(
+        sqlx::query_as::<_, OptionRow>(
             r#"
             SELECT
                 id,
@@ -264,8 +288,8 @@ pub async fn load_quiz_for_student(
             WHERE question_id = ANY($1)
             ORDER BY id ASC
             "#,
-            &question_ids as &[Uuid]
         )
+        .bind(&question_ids[..])
         .fetch_all(db)
         .await
         .map_err(|e: sqlx::Error| QuizLoaderError::Database(e.to_string()))?

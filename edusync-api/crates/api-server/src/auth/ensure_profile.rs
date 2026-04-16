@@ -1,7 +1,6 @@
 use crate::extractors::IntoVilError;
 use std::sync::Arc;
 use axum::http::HeaderMap;
-use axum::http::StatusCode;
 use edusync_auth::{AuthError, verify_access_token};
 use vil_server::prelude::{ServiceCtx, VilResponse, VilError, HandlerResult};
 use crate::state::AppState;
@@ -9,7 +8,7 @@ use crate::state::AppState;
 pub async fn ensure_profile_handler(
     svc: ServiceCtx,
     headers: HeaderMap,
-) -> HandlerResult<VilResponse<StatusCode>> {
+) -> HandlerResult<VilResponse<serde_json::Value>> {
     let state = svc.state::<Arc<AppState>>()?.clone();
 
     let token = headers
@@ -22,16 +21,16 @@ pub async fn ensure_profile_handler(
         .map_err(IntoVilError::into_vil_error)?;
     let user_id: uuid::Uuid = claims.sub.parse().map_err(|_| AuthError::InvalidToken).into_vil_error()?;
 
-    sqlx::query!(
+    sqlx::query(
         r#"INSERT INTO public.profiles (id, email, first_name, last_name, created_at, updated_at)
            VALUES ($1, $2, '', '', now(), now())
            ON CONFLICT (id) DO UPDATE SET updated_at = now()"#,
-        user_id,
-        claims.email,
     )
+    .bind(user_id)
+    .bind(&claims.email)
     .execute(&state.db)
     .await
-    .map_err(|e| AuthError::Database(e.to_string())).into_vil_error()?;
+    .map_err(|e| AuthError::Database(e).into_vil_error())?;
 
-    Ok(VilResponse::ok(StatusCode::OK))
+    Ok(VilResponse::ok(serde_json::json!({ "ok": true })))
 }

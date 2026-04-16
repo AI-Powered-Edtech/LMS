@@ -120,8 +120,8 @@ pub async fn upload_handler(
     Query(query): Query<UploadQuery>,
     mut multipart: Multipart,
 ) -> HandlerResult<VilResponse<UploadResponse>> {
-    let state = vil_ctx.state::<Arc<AppState>>();
-    let s3 = require_s3(state).await?;
+    let state = vil_ctx.state::<Arc<AppState>>()?;
+    let s3 = require_s3(state.as_ref()).await?;
 
     // Validate bucket.
     if !validate_bucket(&query.bucket) {
@@ -189,7 +189,7 @@ pub async fn upload_handler(
         .await
         .map_err(|e| VilError::internal(&format!("Gagal mengunggah file: {}", e)))?;
 
-    let public_url = public_url_for(state, &s3_key);
+    let public_url = public_url_for(state.as_ref(), &s3_key);
     Ok(VilResponse::created(UploadResponse {
         path: s3_key,
         public_url,
@@ -209,34 +209,34 @@ pub async fn download_handler(
     AuthedRequest(auth): AuthedRequest,
     vil_ctx: ServiceCtx,
     Path((bucket, path)): Path<(String, String)>,
-) -> impl IntoResponse {
-    let state = vil_ctx.state::<Arc<AppState>>();
+) -> HandlerResult<impl IntoResponse> {
+    let state = vil_ctx.state::<Arc<AppState>>()?;
 
-    let s3 = match create_s3_client(state).await {
+    let s3 = match create_s3_client(state.as_ref()).await {
         Some(c) => c,
         None => {
-            return (
+            return Ok((
                 StatusCode::SERVICE_UNAVAILABLE,
                 "Layanan penyimpanan tidak dikonfigurasi",
             )
-                .into_response()
+                .into_response())
         }
     };
 
     if !validate_bucket(&bucket) {
-        return (StatusCode::BAD_REQUEST, "Nama bucket tidak valid").into_response();
+        return Ok((StatusCode::BAD_REQUEST, "Nama bucket tidak valid").into_response());
     }
 
     let clean_path = match sanitize_path(&path) {
         Some(p) => p,
-        None => return (StatusCode::BAD_REQUEST, "Path tidak valid").into_response(),
+        None => return Ok((StatusCode::BAD_REQUEST, "Path tidak valid").into_response()),
     };
 
     let s3_key = build_s3_key(&bucket, &ctx.tenant_id, &clean_path);
     let content_type = guess_content_type(&clean_path);
 
     match s3.get(&s3_key).await {
-        Ok(bytes) => (
+        Ok(bytes) => Ok((
             StatusCode::OK,
             [
                 (header::CONTENT_TYPE, content_type),
@@ -244,17 +244,17 @@ pub async fn download_handler(
             ],
             bytes,
         )
-            .into_response(),
+            .into_response()),
         Err(e) => {
             let msg = e.to_string();
             if msg.contains("tidak ditemukan") || msg.contains("NoSuchKey") || msg.contains("404") {
-                (StatusCode::NOT_FOUND, "Objek tidak ditemukan").into_response()
+                Ok((StatusCode::NOT_FOUND, "Objek tidak ditemukan").into_response())
             } else {
-                (
+                Ok((
                     StatusCode::INTERNAL_SERVER_ERROR,
                     format!("Gagal mengunduh file: {}", e),
                 )
-                    .into_response()
+                    .into_response())
             }
         }
     }
@@ -272,16 +272,16 @@ pub struct RemoveRequest {
 /// `DELETE /api/v1/storage/object/{bucket}`
 ///
 /// Deletes one or more objects.  Silently ignores non-existent keys.
-#[vil_handler(shm)]
 pub async fn remove_handler(
     AuthedRequest(auth): AuthedRequest,
     ctx: ServiceCtx,
     Path(bucket): Path<String>,
     body: ShmSlice,
 ) -> HandlerResult<VilResponse<serde_json::Value>> {
-    let state = ctx.state::<Arc<AppState>>();
-    let s3 = require_s3(state).await?;
-    let body: RemoveRequest = body.json()?;
+    let state = ctx.state::<Arc<AppState>>()?;
+    let s3 = require_s3(state.as_ref()).await?;
+    let body: RemoveRequest =
+        body.json().map_err(|e| VilError::bad_request(e.to_string()))?;
 
     if !validate_bucket(&bucket) {
         return Err(VilError::bad_request("Nama bucket tidak valid"));
@@ -340,7 +340,7 @@ pub async fn public_url_handler(
     vil_ctx: ServiceCtx,
     Path((bucket, path)): Path<(String, String)>,
 ) -> HandlerResult<VilResponse<PublicUrlResponse>> {
-    let state = vil_ctx.state::<Arc<AppState>>();
+    let state = vil_ctx.state::<Arc<AppState>>()?;
 
     if !state.s3_endpoint.is_some() {
         return Err(VilError::service_unavailable(
@@ -358,7 +358,7 @@ pub async fn public_url_handler(
     // For public-url we don't have tenant context (unauthenticated call).
     // The caller must supply the full path including the tenant prefix.
     let s3_key = format!("{}/{}", bucket, clean_path);
-    let public_url = public_url_for(state, &s3_key);
+    let public_url = public_url_for(state.as_ref(), &s3_key);
 
     Ok(VilResponse::ok(PublicUrlResponse { public_url }))
 }
@@ -384,15 +384,15 @@ pub struct SignedUrlResponse {
 /// `POST /api/v1/storage/sign`
 ///
 /// Returns a presigned GET URL for private objects (e.g. submitted assignments).
-#[vil_handler(shm)]
 pub async fn create_signed_url_handler(
     AuthedRequest(auth): AuthedRequest,
     ctx: ServiceCtx,
     body: ShmSlice,
 ) -> HandlerResult<VilResponse<SignedUrlResponse>> {
-    let state = ctx.state::<Arc<AppState>>();
-    let s3 = require_s3(state).await?;
-    let body: SignedUrlRequest = body.json()?;
+    let state = ctx.state::<Arc<AppState>>()?;
+    let s3 = require_s3(state.as_ref()).await?;
+    let body: SignedUrlRequest =
+        body.json().map_err(|e| VilError::bad_request(e.to_string()))?;
 
     if !validate_bucket(&body.bucket) {
         return Err(VilError::bad_request("Nama bucket tidak valid"));
@@ -439,15 +439,15 @@ pub struct PresignUploadResponse {
 ///
 /// Returns a presigned PUT URL so large files (videos) can be uploaded directly
 /// from the browser to S3 without passing through the API server.
-#[vil_handler(shm)]
 pub async fn presign_upload_handler(
     AuthedRequest(auth): AuthedRequest,
     ctx: ServiceCtx,
     body: ShmSlice,
 ) -> HandlerResult<VilResponse<PresignUploadResponse>> {
-    let state = ctx.state::<Arc<AppState>>();
-    let s3 = require_s3(state).await?;
-    let body: PresignUploadRequest = body.json()?;
+    let state = ctx.state::<Arc<AppState>>()?;
+    let s3 = require_s3(state.as_ref()).await?;
+    let body: PresignUploadRequest =
+        body.json().map_err(|e| VilError::bad_request(e.to_string()))?;
 
     if !validate_bucket(&body.bucket) {
         return Err(VilError::bad_request("Nama bucket tidak valid"));
@@ -458,7 +458,7 @@ pub async fn presign_upload_handler(
 
     let expires_in = body.expires_in.unwrap_or(3_600).min(604_800);
     let s3_key = build_s3_key(&body.bucket, &auth.tenant_id, &clean_path);
-    let public_url = public_url_for(state, &s3_key);
+    let public_url = public_url_for(state.as_ref(), &s3_key);
 
     let upload_url = s3
         .presign_put(&s3_key, Duration::from_secs(expires_in))
@@ -496,7 +496,7 @@ pub async fn list_handler(
     Path(bucket): Path<String>,
     Query(params): Query<ListParams>,
 ) -> HandlerResult<VilResponse<serde_json::Value>> {
-    let state = vil_ctx.state::<Arc<AppState>>();
+    let state = vil_ctx.state::<Arc<AppState>>()?;
     let s3 = require_s3(state).await?;
 
     if !validate_bucket(&bucket) {
@@ -541,6 +541,16 @@ pub struct MigrationStatusResponse {
     pub note: Option<String>,
 }
 
+#[derive(sqlx::FromRow)]
+struct StorageMigrationAgg {
+    pending: i64,
+    migrating: i64,
+    completed: i64,
+    failed: i64,
+    skipped: i64,
+    total: i64,
+}
+
 /// `GET /api/v1/storage/migration-status`
 ///
 /// Returns the current storage migration state read from `storage_file_migrations`.
@@ -549,7 +559,7 @@ pub async fn migration_status_handler(
     AuthedRequest(_auth): AuthedRequest,
     vil_ctx: ServiceCtx,
 ) -> HandlerResult<VilResponse<MigrationStatusResponse>> {
-    let state = vil_ctx.state::<Arc<AppState>>();
+    let state = vil_ctx.state::<Arc<AppState>>()?;
     let storage_configured = state.s3_endpoint.is_some();
     let bucket = if storage_configured {
         Some(state.s3_bucket.clone())
@@ -577,15 +587,15 @@ pub async fn migration_status_handler(
     }
 
     // Query aggregate counts from storage_file_migrations
-    let row = sqlx::query!(
+    let row: Result<StorageMigrationAgg, sqlx::Error> = sqlx::query_as::<_, StorageMigrationAgg>(
         r#"
         SELECT
-            COUNT(*) FILTER (WHERE status = 'pending')   AS "pending!: i64",
-            COUNT(*) FILTER (WHERE status = 'migrating') AS "migrating!: i64",
-            COUNT(*) FILTER (WHERE status = 'completed') AS "completed!: i64",
-            COUNT(*) FILTER (WHERE status = 'failed')    AS "failed!: i64",
-            COUNT(*) FILTER (WHERE status = 'skipped')   AS "skipped!: i64",
-            COUNT(*)                                     AS "total!: i64"
+            COUNT(*) FILTER (WHERE status = 'pending')   AS pending,
+            COUNT(*) FILTER (WHERE status = 'migrating') AS migrating,
+            COUNT(*) FILTER (WHERE status = 'completed') AS completed,
+            COUNT(*) FILTER (WHERE status = 'failed')    AS failed,
+            COUNT(*) FILTER (WHERE status = 'skipped')   AS skipped,
+            COUNT(*)                                     AS total
         FROM public.storage_file_migrations
         "#
     )

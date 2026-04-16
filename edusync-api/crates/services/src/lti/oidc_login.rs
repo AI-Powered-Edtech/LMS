@@ -61,6 +61,7 @@ fn html_escape(s: &str) -> String {
 
 // ─── DB helpers ───────────────────────────────────────────────────────────────
 
+#[derive(sqlx::FromRow)]
 struct PlatformRow {
     id: Uuid,
     tenant_id: Uuid,
@@ -74,40 +75,28 @@ async fn lookup_platform(
     client_id: Option<&str>,
 ) -> Result<PlatformRow, VilError> {
     let row = if let Some(cid) = client_id {
-        sqlx::query!(
+        sqlx::query_as::<_, PlatformRow>(
             r#"SELECT id, tenant_id, client_id, auth_endpoint
                FROM public.lti_platform_registrations
                WHERE issuer = $1 AND client_id = $2 AND is_active = true
                LIMIT 1"#,
-            iss,
-            cid
         )
+        .bind(iss)
+        .bind(cid)
         .fetch_optional(db)
         .await
         .map_err(|e| VilError::internal(e.to_string()))?
-        .map(|r| PlatformRow {
-            id: r.id,
-            tenant_id: r.tenant_id,
-            client_id: r.client_id,
-            auth_endpoint: r.auth_endpoint,
-        })
     } else {
-        sqlx::query!(
+        sqlx::query_as::<_, PlatformRow>(
             r#"SELECT id, tenant_id, client_id, auth_endpoint
                FROM public.lti_platform_registrations
                WHERE issuer = $1 AND is_active = true
                LIMIT 1"#,
-            iss
         )
+        .bind(iss)
         .fetch_optional(db)
         .await
         .map_err(|e| VilError::internal(e.to_string()))?
-        .map(|r| PlatformRow {
-            id: r.id,
-            tenant_id: r.tenant_id,
-            client_id: r.client_id,
-            auth_endpoint: r.auth_endpoint,
-        })
     };
 
     row.ok_or_else(|| {

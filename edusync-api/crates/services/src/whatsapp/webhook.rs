@@ -208,19 +208,19 @@ async fn save_delivery_report(
     db: &PgPool,
     report: &DeliveryReport,
 ) -> Result<(), AppError> {
-    sqlx::query!(
+    sqlx::query(
         r#"
         INSERT INTO whatsapp_delivery_reports (metadata)
         VALUES ($1)
         "#,
-        serde_json::json!({
+    )
+    .bind(serde_json::json!({
             "message_id": report.message_id,
             "phone":      report.phone,
             "status":     report.status.to_string(),
             "provider":   report.provider,
             "timestamp":  report.timestamp,
-        })
-    )
+        }))
     .execute(db)
     .await
     .map_err(|e| AppError::Internal(format!("Gagal simpan delivery report: {e}")))?;

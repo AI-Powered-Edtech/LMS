@@ -100,7 +100,6 @@ pub async fn shadow_config_handler(
     })
 }
 
-#[vil_handler(shm)]
 pub async fn divergence_event_handler(
     AuthedRequest(req_ctx): AuthedRequest,
     ctx: ServiceCtx,

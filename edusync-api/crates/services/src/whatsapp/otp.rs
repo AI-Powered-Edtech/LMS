@@ -69,18 +69,15 @@ pub fn is_valid_phone(phone: &str) -> bool {
 /// Rate limit ditangani di DB: hanya 1 OTP per 1 menit per `parent_user_id`.
 pub async fn send_otp(db: &PgPool, parent_user_id: Uuid) -> Result<Otp, AppError> {
     // Ambil nomor HP orang tua
-    let phone_row = sqlx::query!(
-        "SELECT phone FROM profiles WHERE id = $1",
-        parent_user_id
-    )
+    let raw_phone: Option<String> = sqlx::query_scalar("SELECT phone FROM profiles WHERE id = $1")
+        .bind(parent_user_id)
     .fetch_optional(db)
     .await
     .map_err(|e| AppError::Internal(format!("Gagal mengambil profil: {e}")))?
     .ok_or(AppError::NotFound)?;
 
-    let raw_phone = phone_row
-        .phone
-        .ok_or_else(|| AppError::BadRequest("Nomor HP orang tua belum diisi".to_string()))?;
+    let raw_phone =
+        raw_phone.ok_or_else(|| AppError::BadRequest("Nomor HP orang tua belum diisi".to_string()))?;
 
     if !is_valid_phone(&raw_phone) {
         return Err(AppError::BadRequest(
@@ -91,16 +88,17 @@ pub async fn send_otp(db: &PgPool, parent_user_id: Uuid) -> Result<Otp, AppError
     let phone = normalize_phone(&raw_phone);
 
     // Cek rate limit — batalkan jika sudah ada OTP aktif dibuat < 1 menit lalu
-    let recent = sqlx::query!(
+    let recent: Option<Uuid> = sqlx::query_scalar(
         r#"
-        SELECT id FROM parent_otp_codes
+        SELECT id
+        FROM parent_otp_codes
         WHERE parent_user_id = $1
           AND created_at > NOW() - INTERVAL '1 minute'
           AND used = false
         LIMIT 1
         "#,
-        parent_user_id
     )
+    .bind(parent_user_id)
     .fetch_optional(db)
     .await
     .map_err(|e| AppError::Internal(format!("Gagal cek rate limit OTP: {e}")))?;
@@ -116,28 +114,28 @@ pub async fn send_otp(db: &PgPool, parent_user_id: Uuid) -> Result<Otp, AppError
     let expires_at = Utc::now() + Duration::minutes(5);
 
     // Hapus OTP lama yang belum terpakai, simpan yang baru
-    sqlx::query!(
+    sqlx::query(
         r#"
         DELETE FROM parent_otp_codes
         WHERE parent_user_id = $1 AND used = false
         "#,
-        parent_user_id
     )
+    .bind(parent_user_id)
     .execute(db)
     .await
     .map_err(|e| AppError::Internal(format!("Gagal hapus OTP lama: {e}")))?;
 
-    sqlx::query!(
+    sqlx::query(
         r#"
         INSERT INTO parent_otp_codes
             (parent_user_id, code, expires_at, used)
         VALUES
             ($1, $2, $3, false)
         "#,
-        parent_user_id,
-        code,
-        expires_at,
     )
+    .bind(parent_user_id)
+    .bind(&code)
+    .bind(expires_at)
     .execute(db)
     .await
     .map_err(|e| AppError::Internal(format!("Gagal menyimpan OTP: {e}")))?;
@@ -182,8 +180,7 @@ pub async fn verify_otp(
     parent_user_id: Uuid,
     code: &str,
 ) -> Result<bool, AppError> {
-    let row: Option<OtpRow> = sqlx::query_as!(
-        OtpRow,
+    let row: Option<OtpRow> = sqlx::query_as::<_, OtpRow>(
         r#"
         SELECT code, expires_at, used
         FROM parent_otp_codes
@@ -191,8 +188,8 @@ pub async fn verify_otp(
         ORDER BY created_at DESC
         LIMIT 1
         "#,
-        parent_user_id
     )
+    .bind(parent_user_id)
     .fetch_optional(db)
     .await
     .map_err(|e| AppError::Internal(format!("Gagal membaca OTP: {e}")))?;
@@ -215,15 +212,15 @@ pub async fn verify_otp(
     }
 
     // Tandai OTP sudah dipakai
-    sqlx::query!(
+    sqlx::query(
         r#"
         UPDATE parent_otp_codes
         SET used = true
         WHERE parent_user_id = $1 AND code = $2
         "#,
-        parent_user_id,
-        code,
     )
+    .bind(parent_user_id)
+    .bind(code)
     .execute(db)
     .await
     .map_err(|e| AppError::Internal(format!("Gagal menandai OTP terpakai: {e}")))?;

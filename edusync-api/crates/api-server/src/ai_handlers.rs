@@ -44,13 +44,11 @@ pub async fn grade_essay_handler(
         role: ctx.role.clone(),
     };
 
-    // grade_essay returns an impl IntoResponse; collect it as JSON bytes via
-    // axum's body so we can re-wrap in VilResponse.
     let resp = grade_essay(context, payload)
         .await
         .map_err(|e| VilError::internal(e.to_string()))?;
 
-    Ok(VilResponse::ok(resp))
+    Ok(resp)
 }
 
 // ─── Tutor Chat ───────────────────────────────────────────────────────────────
@@ -82,7 +80,7 @@ pub async fn tutor_chat_handler(
         .await
         .map_err(|e| VilError::internal(e.to_string()))?;
 
-    Ok(VilResponse::ok(resp))
+    Ok(resp)
 }
 
 // ─── Generate Content ─────────────────────────────────────────────────────────

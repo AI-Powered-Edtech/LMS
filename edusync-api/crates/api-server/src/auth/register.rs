@@ -40,10 +40,8 @@ pub async fn register_handler(
         VilError::internal("Terjadi kesalahan pada database")
     })?;
 
-    let exists: bool = sqlx::query_scalar!(
-        "SELECT EXISTS(SELECT 1 FROM public.users WHERE email = $1)",
-        body.email
-    )
+    let exists: bool = sqlx::query_scalar("SELECT EXISTS(SELECT 1 FROM public.users WHERE email = $1)")
+    .bind(&body.email)
     .fetch_one(&mut *tx)
     .await
     .map_err(|e| {
@@ -77,11 +75,13 @@ pub async fn register_handler(
         tracing::warn!(error = %e, "Gagal sinkronisasi auth.users — diabaikan");
     }
 
-    sqlx::query!(
+    sqlx::query(
         r#"INSERT INTO public.users (id, email, encrypted_password, created_at, updated_at)
            VALUES ($1, $2, $3, now(), now())"#,
-        user_id, body.email, hash
     )
+    .bind(user_id)
+    .bind(&body.email)
+    .bind(&hash)
     .execute(&mut *tx)
     .await
     .map_err(|e| {
@@ -89,12 +89,15 @@ pub async fn register_handler(
         VilError::internal("Terjadi kesalahan pada database")
     })?;
 
-    sqlx::query!(
+    sqlx::query(
         r#"INSERT INTO public.profiles (id, email, first_name, last_name, created_at, updated_at)
            VALUES ($1, $2, $3, $4, now(), now())
            ON CONFLICT (id) DO UPDATE SET updated_at = now()"#,
-        user_id, body.email, first_name, last_name
     )
+    .bind(user_id)
+    .bind(&body.email)
+    .bind(&first_name)
+    .bind(&last_name)
     .execute(&mut *tx)
     .await
     .map_err(|e| {
@@ -107,10 +110,10 @@ pub async fn register_handler(
         VilError::internal("Terjadi kesalahan pada database")
     })?;
 
-    let role: String = sqlx::query_scalar!(
+    let role: String = sqlx::query_scalar(
         "SELECT role::text FROM public.user_roles WHERE user_id = $1 LIMIT 1",
-        user_id
     )
+    .bind(user_id)
     .fetch_optional(&state.db)
     .await
     .map_err(|e| {
@@ -120,10 +123,9 @@ pub async fn register_handler(
     .flatten()
     .unwrap_or_else(|| "STUDENT".to_string());
 
-    let tenant_id: Option<Uuid> = sqlx::query_scalar!(
-        "SELECT tenant_id FROM public.user_roles WHERE user_id = $1 LIMIT 1",
-        user_id
-    )
+    let tenant_id: Option<Uuid> =
+        sqlx::query_scalar("SELECT tenant_id FROM public.user_roles WHERE user_id = $1 LIMIT 1")
+            .bind(user_id)
     .fetch_optional(&state.db)
     .await
     .map_err(|e| {

@@ -8,6 +8,27 @@ use vil_server::prelude::{ServiceCtx, VilResponse, VilError, HandlerResult};
 
 use crate::{observability::request_id_from_headers, state::AppState};
 
+#[derive(sqlx::FromRow)]
+struct ProfileRow {
+    id: Uuid,
+    first_name: String,
+    last_name: String,
+    avatar_url: Option<String>,
+    tenant_id: Option<Uuid>,
+    email: String,
+    email_confirmed_at: Option<time::OffsetDateTime>,
+}
+
+#[derive(sqlx::FromRow)]
+struct MembershipRow {
+    role: String,
+    tenant_id: Uuid,
+    created_at: time::OffsetDateTime,
+    tenant_name: String,
+    tenant_slug: String,
+    tenant_logo: Option<String>,
+}
+
 #[derive(Serialize)]
 pub struct BootstrapProfile {
     pub id: Uuid,
@@ -65,35 +86,35 @@ pub async fn bootstrap_handler(
     );
 
     // Get profile + email_confirmed_at
-    let row = sqlx::query!(
+    let row: ProfileRow = sqlx::query_as::<_, ProfileRow>(
         r#"SELECT p.id, p.first_name, p.last_name, p.avatar_url, p.tenant_id,
-                  COALESCE(u.email, p.email) as "email!",
+                  COALESCE(u.email, p.email) as email,
                   u.email_confirmed_at
            FROM public.profiles p
            LEFT JOIN public.users u ON u.id = p.id
            WHERE p.id = $1"#,
-        user_id
     )
+    .bind(user_id)
     .fetch_optional(&state.db)
     .await
-    .map_err(|e| AuthError::Database(e.to_string())).into_vil_error()?
-    .ok_or_else(|| AuthError::UserNotFound).into_vil_error()?;
+    .map_err(|e| AuthError::Database(e).into_vil_error())?
+    .ok_or_else(|| AuthError::UserNotFound.into_vil_error())?;
 
     let requires_email_verification = row.email_confirmed_at.is_none();
 
     // Get memberships via user_roles JOIN tenants
-    let memberships_rows = sqlx::query!(
-        r#"SELECT ur.role::text as "role!", ur.tenant_id, ur.created_at,
+    let memberships_rows: Vec<MembershipRow> = sqlx::query_as::<_, MembershipRow>(
+        r#"SELECT ur.role::text as role, ur.tenant_id, ur.created_at,
                   t.name as tenant_name, t.slug as tenant_slug,
                   NULL::text as tenant_logo
            FROM public.user_roles ur
            JOIN public.tenants t ON t.id = ur.tenant_id
            WHERE ur.user_id = $1"#,
-        user_id
     )
+    .bind(user_id)
     .fetch_all(&state.db)
     .await
-    .map_err(|e| AuthError::Database(e.to_string())).into_vil_error()?;
+    .map_err(|e| AuthError::Database(e).into_vil_error())?;
 
     let memberships: Vec<BootstrapMembership> = memberships_rows
         .into_iter()

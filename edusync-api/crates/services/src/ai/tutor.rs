@@ -32,7 +32,7 @@ struct TutorSession {
     messages_json: Value,
 }
 
-#[derive(Debug)]
+#[derive(Debug, sqlx::FromRow)]
 struct LessonContext {
     title: String,
     content: Option<String>,
@@ -41,6 +41,19 @@ struct LessonContext {
 #[derive(Debug)]
 struct StudentProgress {
     total_time_spent: Option<i64>,
+    latest_quiz_score: Option<f64>,
+}
+
+#[derive(Debug, sqlx::FromRow)]
+struct TutorSessionRow {
+    id: Uuid,
+    message_count: Option<i32>,
+    messages_json: Option<Value>,
+}
+
+#[derive(Debug, sqlx::FromRow)]
+struct StudentProgressRow {
+    total_time_spent: Option<i32>,
     latest_quiz_score: Option<f64>,
 }
 
@@ -90,15 +103,15 @@ async fn get_or_create_session(
 ) -> Result<TutorSession, VilError> {
     // 1. Try to load the requested session
     if let Some(sid) = session_id {
-        let row = sqlx::query!(
+        let row = sqlx::query_as::<_, TutorSessionRow>(
             r#"SELECT id, message_count, messages_json
                FROM public.ai_tutor_sessions
                WHERE id = $1 AND user_id = $2 AND tenant_id = $3
                LIMIT 1"#,
-            sid,
-            user_id,
-            tenant_id
         )
+        .bind(sid)
+        .bind(user_id)
+        .bind(tenant_id)
         .fetch_optional(db)
         .await
         .map_err(|e| VilError::internal(e.to_string()))?;
@@ -113,16 +126,16 @@ async fn get_or_create_session(
     }
 
     // 2. Look for an existing active session for this lesson
-    let existing = sqlx::query!(
+    let existing = sqlx::query_as::<_, TutorSessionRow>(
         r#"SELECT id, message_count, messages_json
            FROM public.ai_tutor_sessions
            WHERE user_id = $1 AND lesson_id = $2 AND tenant_id = $3 AND status = 'active'
            ORDER BY last_message_at DESC NULLS LAST
            LIMIT 1"#,
-        user_id,
-        lesson_id,
-        tenant_id
     )
+    .bind(user_id)
+    .bind(lesson_id)
+    .bind(tenant_id)
     .fetch_optional(db)
     .await
     .map_err(|e| VilError::internal(e.to_string()))?;
@@ -137,15 +150,15 @@ async fn get_or_create_session(
 
     // 3. Create new session
     let new_id = Uuid::new_v4();
-    sqlx::query!(
+    sqlx::query(
         r#"INSERT INTO public.ai_tutor_sessions
               (id, tenant_id, user_id, lesson_id, status, message_count, messages_json, last_message_at, created_at)
            VALUES ($1, $2, $3, $4, 'active', 0, '[]'::jsonb, NOW(), NOW())"#,
-        new_id,
-        tenant_id,
-        user_id,
-        lesson_id
     )
+    .bind(new_id)
+    .bind(tenant_id)
+    .bind(user_id)
+    .bind(lesson_id)
     .execute(db)
     .await
     .map_err(|e| VilError::internal(format!("Failed to create tutor session: {e}")))?;
@@ -164,23 +177,20 @@ async fn load_lesson(
     lesson_id: Uuid,
     tenant_id: Uuid,
 ) -> Result<LessonContext, VilError> {
-    let row = sqlx::query!(
+    let row = sqlx::query_as::<_, LessonContext>(
         r#"SELECT title, content
            FROM public.lessons
            WHERE id = $1 AND tenant_id = $2
            LIMIT 1"#,
-        lesson_id,
-        tenant_id
     )
+    .bind(lesson_id)
+    .bind(tenant_id)
     .fetch_optional(db)
     .await
     .map_err(|e| VilError::internal(e.to_string()))?
     .ok_or_else(|| VilError::not_found("Pelajaran tidak ditemukan"))?;
 
-    Ok(LessonContext {
-        title: row.title,
-        content: row.content,
-    })
+    Ok(row)
 }
 
 async fn load_student_progress(
@@ -190,15 +200,15 @@ async fn load_student_progress(
     tenant_id: Uuid,
 ) -> StudentProgress {
     // Fail gracefully — progress is context enrichment only
-    sqlx::query!(
+    sqlx::query_as::<_, StudentProgressRow>(
         r#"SELECT total_time_spent, latest_quiz_score
            FROM public.student_lesson_signals
            WHERE user_id = $1 AND lesson_id = $2 AND tenant_id = $3
            LIMIT 1"#,
-        user_id,
-        lesson_id,
-        tenant_id
     )
+    .bind(user_id)
+    .bind(lesson_id)
+    .bind(tenant_id)
     .fetch_optional(db)
     .await
     .ok()
@@ -289,17 +299,17 @@ async fn persist_session_messages(
     let new_count = current_count + 2; // user + assistant
     let msgs_json = Value::Array(msgs);
 
-    sqlx::query!(
+    sqlx::query(
         r#"UPDATE public.ai_tutor_sessions
            SET messages_json = $1,
                message_count = $2,
                last_message_at = NOW()
            WHERE id = $3 AND tenant_id = $4"#,
-        msgs_json,
-        new_count,
-        session_id,
-        tenant_id
     )
+    .bind(msgs_json)
+    .bind(new_count)
+    .bind(session_id)
+    .bind(tenant_id)
     .execute(db)
     .await
     .map_err(|e| VilError::internal(format!("Failed to update session: {e}")))?;

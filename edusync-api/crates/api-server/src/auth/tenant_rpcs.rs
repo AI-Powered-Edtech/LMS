@@ -10,6 +10,42 @@ use super::types::{OnboardStudentRequest, EnrollStudentRequest, CreateTenantRequ
 use super::types::{AuthResponse, TenantMembershipPayload, UserPayload};
 use edusync_auth::{password::hash_password, session::create_session};
 
+#[derive(sqlx::FromRow)]
+struct ValidateInvitationRow {
+    email: String,
+    role: String,
+    tenant_id: Uuid,
+    tenant_name: String,
+}
+
+#[derive(sqlx::FromRow)]
+struct InvitationRow {
+    id: Uuid,
+    email: String,
+    role: String,
+    tenant_id: Uuid,
+}
+
+#[derive(sqlx::FromRow)]
+struct ClassInfoRow {
+    id: Uuid,
+    name: String,
+    tenant_id: Uuid,
+    tenant_name: String,
+}
+
+#[derive(sqlx::FromRow)]
+struct ClassRow {
+    id: Uuid,
+    tenant_id: Uuid,
+}
+
+#[derive(sqlx::FromRow)]
+struct TenantInfoRow {
+    name: String,
+    slug: String,
+}
+
 // --- 1B-18: Validate invitation (public) ---
 #[derive(Deserialize)]
 pub struct ValidateInvitationQuery {
@@ -30,19 +66,19 @@ pub async fn validate_invitation_handler(
 ) -> HandlerResult<VilResponse<InvitationInfo>> {
     let state = svc.state::<Arc<AppState>>()?.clone();
 
-    let row = sqlx::query!(
-        r#"SELECT i.email, i.role::text as "role!", i.tenant_id, t.name as tenant_name
+    let row: ValidateInvitationRow = sqlx::query_as::<_, ValidateInvitationRow>(
+        r#"SELECT i.email, i.role::text as role, i.tenant_id, t.name as tenant_name
            FROM public.user_invitations i
            JOIN public.tenants t ON t.id = i.tenant_id
            WHERE i.token = $1
              AND i.status = 'pending'
              AND i.expires_at > now()"#,
-        params.token
     )
+    .bind(&params.token)
     .fetch_optional(&state.db)
     .await
-    .map_err(|e| AuthError::Database(e.to_string())).into_vil_error()?
-    .ok_or_else(|| AuthError::InvitationNotFound).into_vil_error()?;
+    .map_err(|e| AuthError::Database(e).into_vil_error())?
+    .ok_or_else(|| AuthError::InvitationNotFound.into_vil_error())?;
 
     Ok(VilResponse::ok(InvitationInfo {
         email: row.email,
@@ -73,57 +109,58 @@ pub async fn accept_invitation_handler(
     let user_id: Uuid = claims.sub.parse().map_err(|_| AuthError::InvalidToken).into_vil_error()?;
 
     // Look up pending, non-expired invitation
-    let inv = sqlx::query!(
-        r#"SELECT id, email, role::text as "role!", tenant_id
+    let inv: InvitationRow = sqlx::query_as::<_, InvitationRow>(
+        r#"SELECT id, email, role::text as role, tenant_id
            FROM public.user_invitations
            WHERE token = $1 AND status = 'pending' AND expires_at > now()"#,
-        body.token
     )
+    .bind(&body.token)
     .fetch_optional(&state.db)
     .await
-    .map_err(|e| AuthError::Database(e.to_string())).into_vil_error()?
-    .ok_or_else(|| AuthError::InvitationNotFound).into_vil_error()?;
+    .map_err(|e| AuthError::Database(e).into_vil_error())?
+    .ok_or_else(|| AuthError::InvitationNotFound.into_vil_error())?;
 
     // Verify the logged-in user's email matches the invitation
-    let user_email: String = sqlx::query_scalar!(
-        "SELECT COALESCE(email, '') FROM public.users WHERE id = $1",
-        user_id
-    )
+    let user_email: String =
+        sqlx::query_scalar("SELECT COALESCE(email, '') FROM public.users WHERE id = $1")
+            .bind(user_id)
     .fetch_optional(&state.db)
     .await
-    .map_err(|e| AuthError::Database(e.to_string())).into_vil_error()?
+    .map_err(|e| AuthError::Database(e).into_vil_error())?
     .flatten()
-    .ok_or_else(|| AuthError::UserNotFound).into_vil_error()?;
+    .ok_or_else(|| AuthError::UserNotFound.into_vil_error())?;
 
     if user_email.trim().to_lowercase() != inv.email.trim().to_lowercase() {
-        return Err(AuthError::TenantMismatch).into_vil_error();
+        return Err(AuthError::TenantMismatch.into_vil_error());
     }
 
     let role_upper = inv.role.to_uppercase();
 
     let mut tx = state.db.begin().await
-        .map_err(|e| AuthError::Database(e.to_string())).into_vil_error()?;
+        .map_err(|e| AuthError::Database(e).into_vil_error())?;
 
     // 1. Mark invitation accepted
-    sqlx::query!(
+    sqlx::query(
         "UPDATE public.user_invitations SET status = 'accepted', accepted_at = now() WHERE id = $1",
-        inv.id
     )
+    .bind(inv.id)
     .execute(&mut *tx)
     .await
-    .map_err(|e| AuthError::Database(e.to_string())).into_vil_error()?;
+    .map_err(|e| AuthError::Database(e).into_vil_error())?;
 
     // 2. Upsert tenant_memberships
-    sqlx::query!(
+    sqlx::query(
         r#"INSERT INTO public.tenant_memberships (tenant_id, user_id, role, status, joined_at, updated_at)
            VALUES ($1, $2, $3, 'active', now(), now())
            ON CONFLICT (tenant_id, user_id) DO UPDATE
            SET role = EXCLUDED.role, status = 'active', updated_at = now()"#,
-        inv.tenant_id, user_id, role_upper
     )
+    .bind(inv.tenant_id)
+    .bind(user_id)
+    .bind(&role_upper)
     .execute(&mut *tx)
     .await
-    .map_err(|e| AuthError::Database(e.to_string())).into_vil_error()?;
+    .map_err(|e| AuthError::Database(e).into_vil_error())?;
 
     // 3. Upsert user_roles — mirrors sync_user_tenant_access:
     //    remove existing (user, tenant) entry first to avoid unique(user_id, tenant_id) conflict,
@@ -135,7 +172,7 @@ pub async fn accept_invitation_handler(
     .bind(inv.tenant_id)
     .execute(&mut *tx)
     .await
-    .map_err(|e| AuthError::Database(e.to_string())).into_vil_error()?;
+    .map_err(|e| AuthError::Database(e).into_vil_error())?;
 
     // Use non-macro query for app_role enum cast (sqlx! macro has no built-in app_role mapping)
     sqlx::query(
@@ -149,19 +186,20 @@ pub async fn accept_invitation_handler(
     .bind(&role_upper)
     .execute(&mut *tx)
     .await
-    .map_err(|e| AuthError::Database(e.to_string())).into_vil_error()?;
+    .map_err(|e| AuthError::Database(e).into_vil_error())?;
 
     // 4. Update profile tenant_id if currently unset
-    sqlx::query!(
+    sqlx::query(
         "UPDATE public.profiles SET tenant_id = COALESCE(tenant_id, $1), updated_at = now() WHERE id = $2",
-        inv.tenant_id, user_id
     )
+    .bind(inv.tenant_id)
+    .bind(user_id)
     .execute(&mut *tx)
     .await
-    .map_err(|e| AuthError::Database(e.to_string())).into_vil_error()?;
+    .map_err(|e| AuthError::Database(e).into_vil_error())?;
 
     tx.commit().await
-        .map_err(|e| AuthError::Database(e.to_string())).into_vil_error()?;
+        .map_err(|e| AuthError::Database(e).into_vil_error())?;
 
     Ok(VilResponse::ok(serde_json::json!({
         "success": true,
@@ -190,17 +228,17 @@ pub async fn lookup_class_handler(
 ) -> HandlerResult<VilResponse<ClassInfo>> {
     let state = svc.state::<Arc<AppState>>()?.clone();
 
-    let class = sqlx::query!(
+    let class: ClassInfoRow = sqlx::query_as::<_, ClassInfoRow>(
         r#"SELECT c.id, c.name, c.tenant_id, t.name as tenant_name
            FROM public.classes c
            JOIN public.tenants t ON t.id = c.tenant_id
            WHERE c.join_code = $1"#,
-        params.code
     )
+    .bind(&params.code)
     .fetch_optional(&state.db)
     .await
-    .map_err(|e| AuthError::Database(e.to_string())).into_vil_error()?
-    .ok_or_else(|| AuthError::ClassNotFound).into_vil_error()?;
+    .map_err(|e| AuthError::Database(e).into_vil_error())?
+    .ok_or_else(|| AuthError::ClassNotFound.into_vil_error())?;
 
     Ok(VilResponse::ok(ClassInfo {
         id: class.id,
@@ -229,35 +267,38 @@ pub async fn enroll_student_handler(
         .map_err(IntoVilError::into_vil_error)?;
     let user_id: Uuid = claims.sub.parse().map_err(|_| AuthError::InvalidToken).into_vil_error()?;
 
-    let class = sqlx::query!(
+    let class: ClassRow = sqlx::query_as::<_, ClassRow>(
         "SELECT id, tenant_id FROM public.classes WHERE join_code = $1",
-        body.join_code
     )
+    .bind(&body.join_code)
     .fetch_optional(&state.db)
     .await
-    .map_err(|e| AuthError::Database(e.to_string())).into_vil_error()?
-    .ok_or_else(|| AuthError::ClassNotFound).into_vil_error()?;
+    .map_err(|e| AuthError::Database(e).into_vil_error())?
+    .ok_or_else(|| AuthError::ClassNotFound.into_vil_error())?;
 
     // Upsert enrollment (use student_id per schema)
     // enrollments has no unique constraint on (class_id, student_id) — use plain INSERT with conflict guard
-    let existing: bool = sqlx::query_scalar!(
+    let existing: bool = sqlx::query_scalar(
         "SELECT EXISTS(SELECT 1 FROM public.enrollments WHERE class_id = $1 AND student_id = $2)",
-        class.id, user_id
     )
+    .bind(class.id)
+    .bind(user_id)
     .fetch_one(&state.db)
     .await
-    .map_err(|e| AuthError::Database(e.to_string())).into_vil_error()?
+    .map_err(|e| AuthError::Database(e).into_vil_error())?
     .unwrap_or(false);
 
     if !existing {
-        sqlx::query!(
+        sqlx::query(
             r#"INSERT INTO public.enrollments (class_id, student_id, tenant_id)
                VALUES ($1, $2, $3)"#,
-            class.id, user_id, class.tenant_id
         )
+        .bind(class.id)
+        .bind(user_id)
+        .bind(class.tenant_id)
         .execute(&state.db)
         .await
-        .map_err(|e| AuthError::Database(e.to_string())).into_vil_error()?;
+        .map_err(|e| AuthError::Database(e).into_vil_error())?;
     }
 
     Ok(VilResponse::ok(serde_json::json!({ "success": true })))
@@ -279,22 +320,22 @@ pub async fn onboard_student_handler(
     }
 
     // Find class
-    let class = sqlx::query!(
+    let class: ClassRow = sqlx::query_as::<_, ClassRow>(
         "SELECT id, tenant_id FROM public.classes WHERE join_code = $1",
-        body.join_code
     )
+    .bind(&body.join_code)
     .fetch_optional(&state.db)
     .await
-    .map_err(|e| AuthError::Database(e.to_string())).into_vil_error()?
-    .ok_or_else(|| AuthError::ClassNotFound).into_vil_error()?;
+    .map_err(|e| AuthError::Database(e).into_vil_error())?
+    .ok_or_else(|| AuthError::ClassNotFound.into_vil_error())?;
 
-    let exists: bool = sqlx::query_scalar!(
+    let exists: bool = sqlx::query_scalar(
         "SELECT EXISTS(SELECT 1 FROM public.users WHERE email = $1)",
-        body.email
     )
+    .bind(&body.email)
     .fetch_one(&state.db)
     .await
-    .map_err(|e| AuthError::Database(e.to_string())).into_vil_error()?
+    .map_err(|e| AuthError::Database(e).into_vil_error())?
     .unwrap_or(false);
 
     if exists {
@@ -306,7 +347,7 @@ pub async fn onboard_student_handler(
     let (first_name, last_name) = split_name(body.full_name.as_deref().unwrap_or(""));
 
     let mut tx = state.db.begin().await
-        .map_err(|e| AuthError::Database(e.to_string())).into_vil_error()?;
+        .map_err(|e| AuthError::Database(e).into_vil_error())?;
 
     // Insert into auth.users FIRST — public.profiles.id FK references auth.users.id
     sqlx::query(
@@ -319,60 +360,69 @@ pub async fn onboard_student_handler(
     .bind(&hash)
     .execute(&mut *tx)
     .await
-    .map_err(|e| AuthError::Database(e.to_string())).into_vil_error()?;
+    .map_err(|e| AuthError::Database(e).into_vil_error())?;
 
-    sqlx::query!(
+    sqlx::query(
         r#"INSERT INTO public.users (id, email, encrypted_password, created_at, updated_at)
            VALUES ($1, $2, $3, now(), now())"#,
-        user_id, body.email, hash
     )
+    .bind(user_id)
+    .bind(&body.email)
+    .bind(&hash)
     .execute(&mut *tx)
     .await
-    .map_err(|e| AuthError::Database(e.to_string())).into_vil_error()?;
+    .map_err(|e| AuthError::Database(e).into_vil_error())?;
 
-    sqlx::query!(
+    sqlx::query(
         r#"INSERT INTO public.profiles (id, email, first_name, last_name, tenant_id, created_at, updated_at)
            VALUES ($1, $2, $3, $4, $5, now(), now())"#,
-        user_id, body.email, first_name, last_name, class.tenant_id
     )
+    .bind(user_id)
+    .bind(&body.email)
+    .bind(&first_name)
+    .bind(&last_name)
+    .bind(class.tenant_id)
     .execute(&mut *tx)
     .await
-    .map_err(|e| AuthError::Database(e.to_string())).into_vil_error()?;
+    .map_err(|e| AuthError::Database(e).into_vil_error())?;
 
-    sqlx::query!(
+    sqlx::query(
         r#"INSERT INTO public.user_roles (user_id, role, tenant_id)
            VALUES ($1, 'STUDENT', $2)"#,
-        user_id, class.tenant_id
     )
+    .bind(user_id)
+    .bind(class.tenant_id)
     .execute(&mut *tx)
     .await
-    .map_err(|e| AuthError::Database(e.to_string())).into_vil_error()?;
+    .map_err(|e| AuthError::Database(e).into_vil_error())?;
 
-    sqlx::query!(
+    sqlx::query(
         r#"INSERT INTO public.enrollments (class_id, student_id, tenant_id)
            VALUES ($1, $2, $3)"#,
-        class.id, user_id, class.tenant_id
     )
+    .bind(class.id)
+    .bind(user_id)
+    .bind(class.tenant_id)
     .execute(&mut *tx)
     .await
-    .map_err(|e| AuthError::Database(e.to_string())).into_vil_error()?;
+    .map_err(|e| AuthError::Database(e).into_vil_error())?;
 
     tx.commit().await
-        .map_err(|e| AuthError::Database(e.to_string())).into_vil_error()?;
+        .map_err(|e| AuthError::Database(e).into_vil_error())?;
 
     let tokens = create_session(
         &state.db, user_id, &body.email, "STUDENT",
         Some(class.tenant_id), false, &state.jwt_secret,
     ).await.map_err(IntoVilError::into_vil_error)?;
 
-    let tenant_info = sqlx::query!(
+    let tenant_info: TenantInfoRow = sqlx::query_as::<_, TenantInfoRow>(
         r#"SELECT name, slug FROM public.tenants WHERE id = $1"#,
-        class.tenant_id
     )
+    .bind(class.tenant_id)
     .fetch_optional(&state.db)
     .await
-    .map_err(|e| AuthError::Database(e.to_string())).into_vil_error()?
-    .ok_or_else(|| AuthError::TenantMismatch).into_vil_error()?;
+    .map_err(|e| AuthError::Database(e).into_vil_error())?
+    .ok_or_else(|| AuthError::TenantMismatch.into_vil_error())?;
 
     Ok(VilResponse::ok(AuthResponse {
         access_token: tokens.access_token,
@@ -414,7 +464,7 @@ pub async fn create_tenant_handler(
     let user_id: Uuid = claims.sub.parse().map_err(|_| AuthError::InvalidToken).into_vil_error()?;
 
     let mut tx = state.db.begin().await
-        .map_err(|e| AuthError::Database(e.to_string())).into_vil_error()?;
+        .map_err(|e| AuthError::Database(e).into_vil_error())?;
     let tenant_id = Uuid::new_v4();
     let requested_role = body
         .role
@@ -423,14 +473,16 @@ pub async fn create_tenant_handler(
         .filter(|value| matches!(value.as_str(), "ADMIN" | "TEACHER"))
         .unwrap_or_else(|| "ADMIN".to_string());
 
-    sqlx::query!(
+    sqlx::query(
         r#"INSERT INTO public.tenants (id, name, slug, created_at, updated_at)
            VALUES ($1, $2, $3, now(), now())"#,
-        tenant_id, body.name, body.slug
     )
+    .bind(tenant_id)
+    .bind(&body.name)
+    .bind(&body.slug)
     .execute(&mut *tx)
     .await
-    .map_err(|e| AuthError::Database(e.to_string())).into_vil_error()?;
+    .map_err(|e| AuthError::Database(e).into_vil_error())?;
 
     sqlx::query(
         r#"INSERT INTO public.user_roles (user_id, role, tenant_id)
@@ -441,49 +493,49 @@ pub async fn create_tenant_handler(
     .bind(tenant_id)
     .execute(&mut *tx)
     .await
-    .map_err(|e| AuthError::Database(e.to_string())).into_vil_error()?;
+    .map_err(|e| AuthError::Database(e).into_vil_error())?;
 
-    sqlx::query!(
+    sqlx::query(
         r#"INSERT INTO public.tenant_memberships (tenant_id, user_id, role, status, joined_at, created_at, updated_at)
            VALUES ($1, $2, $3, 'active', now(), now(), now())
            ON CONFLICT (tenant_id, user_id) DO UPDATE
            SET role = EXCLUDED.role, status = 'active', updated_at = now()"#,
-        tenant_id, user_id, requested_role
     )
+    .bind(tenant_id)
+    .bind(user_id)
+    .bind(&requested_role)
     .execute(&mut *tx)
     .await
-    .map_err(|e| AuthError::Database(e.to_string())).into_vil_error()?;
+    .map_err(|e| AuthError::Database(e).into_vil_error())?;
 
     if let Some(full_name) = body.full_name.as_deref() {
         let (first_name, last_name) = split_name(full_name);
-        sqlx::query!(
+        sqlx::query(
             r#"UPDATE public.profiles
                SET first_name = CASE WHEN COALESCE(first_name, '') = '' THEN $1 ELSE first_name END,
                    last_name = CASE WHEN COALESCE(last_name, '') = '' THEN $2 ELSE last_name END,
                    tenant_id = COALESCE(tenant_id, $3),
                    updated_at = now()
                WHERE id = $4"#,
-            first_name,
-            last_name,
-            tenant_id,
-            user_id
         )
+        .bind(&first_name)
+        .bind(&last_name)
+        .bind(tenant_id)
+        .bind(user_id)
         .execute(&mut *tx)
         .await
-        .map_err(|e| AuthError::Database(e.to_string())).into_vil_error()?;
+        .map_err(|e| AuthError::Database(e).into_vil_error())?;
     } else {
-        sqlx::query!(
-            "UPDATE public.profiles SET tenant_id = COALESCE(tenant_id, $1), updated_at = now() WHERE id = $2",
-            tenant_id,
-            user_id
-        )
+        sqlx::query("UPDATE public.profiles SET tenant_id = COALESCE(tenant_id, $1), updated_at = now() WHERE id = $2")
+        .bind(tenant_id)
+        .bind(user_id)
         .execute(&mut *tx)
         .await
-        .map_err(|e| AuthError::Database(e.to_string())).into_vil_error()?;
+        .map_err(|e| AuthError::Database(e).into_vil_error())?;
     }
 
     tx.commit().await
-        .map_err(|e| AuthError::Database(e.to_string())).into_vil_error()?;
+        .map_err(|e| AuthError::Database(e).into_vil_error())?;
 
     Ok(VilResponse::ok(serde_json::json!({
         "tenant_id": tenant_id,

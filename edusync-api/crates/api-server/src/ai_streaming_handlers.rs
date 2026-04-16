@@ -193,6 +193,12 @@ async fn stream_from_groq(
 
 // ─── Session Management Helpers ───────────────────────────────────────────────
 
+#[derive(sqlx::FromRow)]
+struct TutorSessionRow {
+    id: Uuid,
+    messages_json: Option<serde_json::Value>,
+}
+
 struct TutorSession {
     id: Uuid,
     messages_json: serde_json::Value,
@@ -206,13 +212,13 @@ async fn get_or_create_session(
     session_id: Option<Uuid>,
 ) -> Result<TutorSession, anyhow::Error> {
     if let Some(sid) = session_id {
-        let row = sqlx::query!(
+        let row: Option<TutorSessionRow> = sqlx::query_as::<_, TutorSessionRow>(
             r#"SELECT id, messages_json FROM public.ai_tutor_sessions
                WHERE id = $1 AND user_id = $2 AND tenant_id = $3 LIMIT 1"#,
-            sid,
-            user_id,
-            tenant_id
         )
+        .bind(sid)
+        .bind(user_id)
+        .bind(tenant_id)
         .fetch_optional(db)
         .await?;
 
@@ -226,15 +232,15 @@ async fn get_or_create_session(
 
     // Create new session
     let new_id = Uuid::new_v4();
-    sqlx::query!(
+    sqlx::query(
         r#"INSERT INTO public.ai_tutor_sessions
             (id, tenant_id, user_id, lesson_id, status, message_count, messages_json, last_message_at, created_at)
            VALUES ($1, $2, $3, $4, 'active', 0, '[]'::jsonb, NOW(), NOW())"#,
-        new_id,
-        tenant_id,
-        user_id,
-        lesson_id
     )
+    .bind(new_id)
+    .bind(tenant_id)
+    .bind(user_id)
+    .bind(lesson_id)
     .execute(db)
     .await?;
 
@@ -270,10 +276,10 @@ async fn save_response_to_session(
     user_message: &str,
     assistant_reply: &str,
 ) -> Result<(), anyhow::Error> {
-    let row = sqlx::query!(
-        r#"SELECT messages_json FROM public.ai_tutor_sessions WHERE id = $1"#,
-        session_id
+    let row: Option<TutorSessionRow> = sqlx::query_as::<_, TutorSessionRow>(
+        r#"SELECT id, messages_json FROM public.ai_tutor_sessions WHERE id = $1"#,
     )
+    .bind(session_id)
     .fetch_optional(db)
     .await?;
 
@@ -299,13 +305,13 @@ async fn save_response_to_session(
         messages = messages.split_off(messages.len() - 20);
     }
 
-    sqlx::query!(
+    sqlx::query(
         r#"UPDATE public.ai_tutor_sessions
            SET messages_json = $2, message_count = message_count + 2, last_message_at = NOW()
            WHERE id = $1"#,
-        session_id,
-        serde_json::json!(messages)
     )
+    .bind(session_id)
+    .bind(serde_json::json!(messages))
     .execute(db)
     .await?;
 
@@ -313,14 +319,14 @@ async fn save_response_to_session(
 }
 
 async fn record_usage(db: &sqlx::PgPool, user_id: Uuid, tenant_id: Uuid) {
-    let _ = sqlx::query!(
+    let _ = sqlx::query(
         r#"INSERT INTO public.ai_quota_usage (id, user_id, tenant_id, endpoint, created_at)
            VALUES ($1, $2, $3, $4, NOW())"#,
-        Uuid::new_v4(),
-        user_id,
-        tenant_id,
-        "ai_tutor_stream"
     )
+    .bind(Uuid::new_v4())
+    .bind(user_id)
+    .bind(tenant_id)
+    .bind("ai_tutor_stream")
     .execute(db)
     .await;
 }
