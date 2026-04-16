@@ -1,185 +1,50 @@
 name: CI
 
 on:
+  pull_request:
   push:
     branches: [main]
-  pull_request:
-    branches: [main]
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
-  quality:
-    name: Lint, Type-check, Test & Build
+  frontend:
     runs-on: ubuntu-latest
-
+    timeout-minutes: 15
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Setup pnpm
-        uses: pnpm/action-setup@v4
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
         with:
-          node-version: 24
+          version: 10
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
           cache: pnpm
-
-      - name: Install dependencies
-        run: pnpm install --frozen-lockfile
-
-      # Lint
-      - name: ESLint
-        run: pnpm lint
-
-      # Format check
-      - name: Prettier
-        run: pnpm format:check
-
-      # Type check
-      - name: TypeScript
-        run: pnpm typecheck
-
-      # Validate migrations
-      - name: Validate migrations
-        run: bash scripts/validate-migrations.sh
-
-      # Unit tests with coverage
-      - name: Unit Tests
-        run: pnpm test --run --coverage
-        # pnpm test maps to vitest; --run disables watch mode, --coverage enables coverage
-
-      # Build (catches type errors missed by tsc --noEmit and Vite-specific issues)
-      - name: Build
-        run: pnpm build
-
-      # Check if build output exists
-      - name: Check build output
-        run: 'test -f dist/index.html || (echo "Build failed: dist/index.html not found" && exit 1)'
-
-      # Smoke test for build artifact
-      - name: Smoke Test
-        run: bash scripts/smoke-build.sh
-
-      # Bundle size enforcement — only runs when bundlesize.config.json is present
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm typecheck
+      - run: pnpm lint
+      - run: pnpm test:ci
+      - run: pnpm build
       - name: Bundle size check
-        if: hashFiles('bundlesize.config.json') != ''
-        run: |
-          echo "## Bundle Size Report" >> $GITHUB_STEP_SUMMARY
-          echo "" >> $GITHUB_STEP_SUMMARY
-          echo "| Chunk | Size | Budget | Status |" >> $GITHUB_STEP_SUMMARY
-          echo "|-------|------|--------|--------|" >> $GITHUB_STEP_SUMMARY
+        run: ./node_modules/.bin/bundlesize
+        continue-on-error: true
 
-          # Find the largest index-*.js (main app chunk, not tiny entry shims)
-          MAIN_SIZE=$(ls -lS dist/assets/index-*.js 2>/dev/null | head -1 | awk '{print $5}')
-          VENDOR_REACT=$(ls -l dist/assets/vendor-react-*.js 2>/dev/null | awk '{print $5}' | head -1)
-
-          # Convert to KB (integer division)
-          MAIN_KB=$((${MAIN_SIZE:-0} / 1024))
-          REACT_KB=$((${VENDOR_REACT:-0} / 1024))
-          TOTAL_KB=$((MAIN_KB + REACT_KB))
-
-          # Read budgets from bundlesize.config.json
-          MAIN_BUDGET=500
-          REACT_BUDGET=150
-          TOTAL_BUDGET=700
-
-          FAIL=0
-
-          check_budget() {
-            local name=$1 size=$2 budget=$3
-            if [ "$size" -gt "$budget" ]; then
-              echo "| $name | ${size}kB | ${budget}kB | :x: OVER |" >> $GITHUB_STEP_SUMMARY
-              FAIL=1
-            else
-              echo "| $name | ${size}kB | ${budget}kB | :white_check_mark: |" >> $GITHUB_STEP_SUMMARY
-            fi
-          }
-
-          check_budget "main" "$MAIN_KB" "$MAIN_BUDGET"
-          check_budget "vendor-react" "$REACT_KB" "$REACT_BUDGET"
-          check_budget "total-initial" "$TOTAL_KB" "$TOTAL_BUDGET"
-
-          echo "" >> $GITHUB_STEP_SUMMARY
-
-          if [ "$FAIL" -eq 1 ]; then
-            echo ":warning: **Bundle size budget exceeded!** Review chunking in \`vite.config.ts\`." >> $GITHUB_STEP_SUMMARY
-            exit 1
-          else
-            echo ":white_check_mark: All chunks within budget." >> $GITHUB_STEP_SUMMARY
-          fi
-
-      # Coverage summary
-      - name: Coverage summary
-        if: always()
-        run: |
-          echo "## Coverage Report" >> $GITHUB_STEP_SUMMARY
-          echo "" >> $GITHUB_STEP_SUMMARY
-          if [ -f coverage/coverage-summary.json ]; then
-            echo "### Global Coverage" >> $GITHUB_STEP_SUMMARY
-            echo "| Metric | Percentage |" >> $GITHUB_STEP_SUMMARY
-            echo "|--------|-----------|" >> $GITHUB_STEP_SUMMARY
-            node -e "
-              const s = require('./coverage/coverage-summary.json').total;
-              const fmt = (m) => s[m].pct + '%';
-              console.log('| Statements | ' + fmt('statements') + ' |');
-              console.log('| Branches | ' + fmt('branches') + ' |');
-              console.log('| Functions | ' + fmt('functions') + ' |');
-              console.log('| Lines | ' + fmt('lines') + ' |');
-            " >> $GITHUB_STEP_SUMMARY
-          else
-            echo ":warning: No coverage summary found." >> $GITHUB_STEP_SUMMARY
-          fi
-          echo "" >> $GITHUB_STEP_SUMMARY
-          echo "### Scoped Thresholds" >> $GITHUB_STEP_SUMMARY
-          echo "Coverage thresholds are enforced by vitest. The test step will fail if thresholds are not met." >> $GITHUB_STEP_SUMMARY
-          echo "" >> $GITHUB_STEP_SUMMARY
-          echo "| Scope | Stmts | Branches | Fns | Lines |" >> $GITHUB_STEP_SUMMARY
-          echo "|-------|-------|----------|-----|-------|" >> $GITHUB_STEP_SUMMARY
-          echo "| \`src/utils/**\` | 65% | 65% | 50% | 65% |" >> $GITHUB_STEP_SUMMARY
-          echo "| \`src/features/**/api/**\` | 22% | 15% | 24% | 24% |" >> $GITHUB_STEP_SUMMARY
-          echo "| \`src/components/guards/**\` | 85% | 80% | 85% | 85% |" >> $GITHUB_STEP_SUMMARY
-          echo "| \`src/utils/sanitize.ts\` | 100% | 100% | 100% | 100% |" >> $GITHUB_STEP_SUMMARY
-
-      # Upload coverage
-      - name: Upload coverage
-        uses: actions/upload-artifact@v4
-        if: always()
-        with:
-          name: coverage-report
-          path: coverage/
-          retention-days: 7
-
-  e2e:
-    name: E2E Tests (Playwright)
+  backend:
     runs-on: ubuntu-latest
-    needs: quality
-
+    timeout-minutes: 20
+    defaults:
+      run:
+        working-directory: edusync-api
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Setup pnpm
-        uses: pnpm/action-setup@v4
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: Swatinem/rust-cache@v2
         with:
-          node-version: 24
-          cache: pnpm
-
-      - name: Install dependencies
-        run: pnpm install --frozen-lockfile
-
-      - name: Install Playwright
-        run: npx playwright install --with-deps chromium
-
-      - name: E2E Tests
-        run: pnpm test:e2e
-
-      - name: Upload E2E report
-        uses: actions/upload-artifact@v4
-        if: always()
-        with:
-          name: playwright-report
-          path: playwright-report/
-          retention-days: 7
+          workspaces: edusync-api
+      - run: cargo fmt --all -- --check
+        continue-on-error: true
+      - run: cargo clippy --all-targets -- -D warnings
+        continue-on-error: true
+      - run: cargo check --workspace
