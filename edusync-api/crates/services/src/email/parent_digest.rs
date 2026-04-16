@@ -87,18 +87,20 @@ pub async fn send_parent_digest(db: &PgPool) -> Result<DigestResult, AppError> {
     let today_start_utc = format!("{}T00:00:00+07:00", today_str);
     let today_end_utc = format!("{}T23:59:59+07:00", today_str);
 
+    let today_start_dt = chrono::DateTime::parse_from_rfc3339(&today_start_utc).unwrap().with_timezone(&Utc);
+    let today_end_dt = chrono::DateTime::parse_from_rfc3339(&today_end_utc).unwrap().with_timezone(&Utc);
+
     // ── 1. Ambil semua pengaturan digest yang aktif ────────────────────────────
-    let settings: Vec<DigestSetting> = sqlx::query_as!(
-        DigestSetting,
+    let settings: Vec<DigestSetting> = sqlx::query_as::<_, DigestSetting>(
         r#"
         SELECT id, parent_id, tenant_id, channel
         FROM parent_digest_settings
         WHERE
             digest_enabled = true
-            AND (last_sent_at IS NULL OR last_sent_at < $1::timestamptz)
+            AND (last_sent_at IS NULL OR last_sent_at < $1)
         "#,
-        format!("{}T00:00:00Z", today_str)
     )
+    .bind(today_start_dt)
     .fetch_all(db)
     .await
     .map_err(|e| AppError::internal(format!("Gagal mengambil pengaturan digest: {e}")))?;
@@ -118,8 +120,7 @@ pub async fn send_parent_digest(db: &PgPool) -> Result<DigestResult, AppError> {
     let student_ids_raw: Vec<Uuid>;
 
     // ── 2. Batch ambil semua link orang tua–anak ──────────────────────────────
-    let all_links: Vec<ParentChildLink> = sqlx::query_as!(
-        ParentChildLink,
+    let all_links: Vec<ParentChildLink> = sqlx::query_as::<_, ParentChildLink>(
         r#"
         SELECT
             psl.parent_id,
@@ -128,11 +129,11 @@ pub async fn send_parent_digest(db: &PgPool) -> Result<DigestResult, AppError> {
             p.full_name AS child_full_name
         FROM student_parent_links psl
         JOIN profiles p ON p.id = psl.student_id
-        WHERE psl.parent_id = ANY($1) AND psl.tenant_id = ANY($2)
+        WHERE psl.parent_id = ANY($1::uuid[]) AND psl.tenant_id = ANY($2::uuid[])
         "#,
-        &parent_ids as &[Uuid],
-        &tenant_ids as &[Uuid]
     )
+    .bind(&parent_ids[..])
+    .bind(&tenant_ids[..])
     .fetch_all(db)
     .await
     .map_err(|e| AppError::internal(format!("Gagal mengambil link orang tua–anak: {e}")))?;
@@ -152,15 +153,14 @@ pub async fn send_parent_digest(db: &PgPool) -> Result<DigestResult, AppError> {
     student_ids_raw = unique_student_ids.clone();
 
     // ── 3. Batch ambil profil orang tua (email) ───────────────────────────────
-    let parent_profiles: Vec<ParentProfile> = sqlx::query_as!(
-        ParentProfile,
+    let parent_profiles: Vec<ParentProfile> = sqlx::query_as::<_, ParentProfile>(
         r#"
         SELECT id AS parent_id, email, full_name, phone
         FROM profiles
-        WHERE id = ANY($1)
+        WHERE id = ANY($1::uuid[])
         "#,
-        &parent_ids as &[Uuid]
     )
+    .bind(&parent_ids[..])
     .fetch_all(db)
     .await
     .map_err(|e| AppError::internal(format!("Gagal mengambil profil orang tua: {e}")))?;
@@ -170,10 +170,10 @@ pub async fn send_parent_digest(db: &PgPool) -> Result<DigestResult, AppError> {
 
     // ── 4. Batch ambil aktivitas ──────────────────────────────────────────────
     let lessons = fetch_lessons_completed(
-        db, &student_ids_raw, &tenant_ids, &today_start_utc, &today_end_utc,
+        db, &student_ids_raw, &tenant_ids, today_start_dt, today_end_dt,
     ).await?;
     let submissions = fetch_submissions(
-        db, &student_ids_raw, &tenant_ids, &today_start_utc, &today_end_utc,
+        db, &student_ids_raw, &tenant_ids, today_start_dt, today_end_dt,
     ).await?;
     let enrollments = fetch_enrollments(db, &student_ids_raw, &tenant_ids).await?;
 
@@ -312,10 +312,10 @@ pub async fn send_parent_digest(db: &PgPool) -> Result<DigestResult, AppError> {
             {
                 Ok(()) => {
                     // Update last_sent_at
-                    let _ = sqlx::query!(
+                    let _ = sqlx::query(
                         "UPDATE parent_digest_settings SET last_sent_at = NOW() WHERE id = $1",
-                        setting.id
                     )
+                    .bind(setting.id)
                     .execute(db)
                     .await;
                     result.sent += 1;
@@ -355,58 +355,58 @@ async fn fetch_lessons_completed(
     db: &PgPool,
     student_ids: &[Uuid],
     tenant_ids: &[Uuid],
-    day_start: &str,
-    day_end: &str,
+    day_start: chrono::DateTime<Utc>,
+    day_end: chrono::DateTime<Utc>,
 ) -> Result<Vec<LessonCompleted>, AppError> {
-    sqlx::query_as!(
-        LessonCompleted,
+    let rows: Vec<LessonCompleted> = sqlx::query_as::<_, LessonCompleted>(
         r#"
         SELECT user_id
         FROM lesson_progress
         WHERE
-            user_id    = ANY($1)
-            AND tenant_id  = ANY($2)
+            user_id    = ANY($1::uuid[])
+            AND tenant_id  = ANY($2::uuid[])
             AND completed  = true
             AND completed_at BETWEEN $3::timestamptz AND $4::timestamptz
         LIMIT 5000
         "#,
-        student_ids as &[Uuid],
-        tenant_ids as &[Uuid],
-        day_start,
-        day_end,
     )
+    .bind(student_ids)
+    .bind(tenant_ids)
+    .bind(day_start)
+    .bind(day_end)
     .fetch_all(db)
     .await
-    .map_err(|e| AppError::internal(format!("Gagal mengambil lesson_progress: {e}")))
+    .map_err(|e| AppError::internal(format!("Gagal mengambil lesson_progress: {e}")))?;
+    Ok(rows)
 }
 
 async fn fetch_submissions(
     db: &PgPool,
     student_ids: &[Uuid],
     tenant_ids: &[Uuid],
-    day_start: &str,
-    day_end: &str,
+    day_start: chrono::DateTime<Utc>,
+    day_end: chrono::DateTime<Utc>,
 ) -> Result<Vec<SubmissionRow>, AppError> {
-    sqlx::query_as!(
-        SubmissionRow,
+    let rows: Vec<SubmissionRow> = sqlx::query_as::<_, SubmissionRow>(
         r#"
         SELECT student_id
         FROM assignment_submissions
         WHERE
-            student_id = ANY($1)
-            AND tenant_id  = ANY($2)
-            AND status     IN ('submitted', 'graded')
+            student_id = ANY($1::uuid[])
+            AND tenant_id  = ANY($2::uuid[])
+            AND status     IN ('SUBMITTED', 'GRADED')
             AND submitted_at BETWEEN $3::timestamptz AND $4::timestamptz
         LIMIT 5000
         "#,
-        student_ids as &[Uuid],
-        tenant_ids as &[Uuid],
-        day_start,
-        day_end,
     )
+    .bind(student_ids)
+    .bind(tenant_ids)
+    .bind(day_start)
+    .bind(day_end)
     .fetch_all(db)
     .await
-    .map_err(|e| AppError::internal(format!("Gagal mengambil assignment_submissions: {e}")))
+    .map_err(|e| AppError::internal(format!("Gagal mengambil submissions: {e}")))?;
+    Ok(rows)
 }
 
 async fn fetch_enrollments(
@@ -414,17 +414,16 @@ async fn fetch_enrollments(
     student_ids: &[Uuid],
     tenant_ids: &[Uuid],
 ) -> Result<Vec<EnrollmentRow>, AppError> {
-    sqlx::query_as!(
-        EnrollmentRow,
+    sqlx::query_as::<_, EnrollmentRow>(
         r#"
         SELECT id, user_id AS student_id
         FROM enrollments
         WHERE user_id = ANY($1) AND tenant_id = ANY($2)
         LIMIT 10000
         "#,
-        student_ids as &[Uuid],
-        tenant_ids as &[Uuid]
     )
+    .bind(student_ids)
+    .bind(tenant_ids)
     .fetch_all(db)
     .await
     .map_err(|e| AppError::internal(format!("Gagal mengambil enrollments: {e}")))
@@ -438,17 +437,19 @@ async fn fetch_attendance(
     if enrollment_ids.is_empty() {
         return Ok(std::collections::HashMap::new());
     }
-    let rows: Vec<AttendanceRow> = sqlx::query_as!(
-        AttendanceRow,
+    let parsed_date = chrono::NaiveDate::parse_from_str(date_str, "%Y-%m-%d")
+        .map_err(|e| AppError::internal(format!("Tanggal tidak valid: {e}")))?;
+
+    let rows: Vec<AttendanceRow> = sqlx::query_as::<_, AttendanceRow>(
         r#"
-        SELECT enrollment_id, status
+        SELECT enrollment_id, status::text AS status
         FROM attendance_records
-        WHERE enrollment_id = ANY($1) AND date = $2::date
+        WHERE enrollment_id = ANY($1) AND date = $2
         LIMIT 10000
         "#,
-        enrollment_ids as &[Uuid],
-        date_str
     )
+    .bind(enrollment_ids)
+    .bind(parsed_date)
     .fetch_all(db)
     .await
     .map_err(|e| AppError::internal(format!("Gagal mengambil attendance_records: {e}")))?;

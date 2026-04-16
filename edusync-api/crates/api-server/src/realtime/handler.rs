@@ -34,7 +34,7 @@
 //!    and server-side heartbeats.
 //! 4. On disconnect: presence untracks, relay tasks cancelled, counter decremented.
 
-use std::collections::{HashMap, HashSet};
+use std::collections::HashMap;
 use std::sync::Arc;
 use std::time::Duration;
 
@@ -126,10 +126,10 @@ pub async fn ws_handler(
     ws: WebSocketUpgrade,
     Query(params): Query<WsConnectQuery>,
     vil_ctx: ServiceCtx,
-) -> impl IntoResponse {
-    let state = vil_ctx.state::<Arc<AppState>>().clone();
-    let hub = vil_ctx.state::<WsHub>().clone();
-    ws.on_upgrade(move |socket| handle_socket(socket, state, hub, params.token))
+) -> HandlerResult<impl IntoResponse> {
+    let state = vil_ctx.state::<Arc<AppState>>()?.clone();
+    let hub = vil_ctx.state::<Arc<WsHub>>()?.clone();
+    Ok(ws.on_upgrade(move |socket| handle_socket(socket, state, hub, params.token)))
 }
 
 // ── Socket handler ─────────────────────────────────────────────────────────────
@@ -137,7 +137,7 @@ pub async fn ws_handler(
 async fn handle_socket(
     socket: WebSocket,
     state: Arc<AppState>,
-    hub: WsHub,
+    hub: Arc<WsHub>,
     token: Option<String>,
 ) {
     // ── 1. Optional JWT authentication ────────────────────────────────────────
@@ -199,7 +199,6 @@ async fn handle_socket(
     }
 
     let mut joined: HashMap<String, ChannelHandle> = HashMap::new();
-    let mut tracked_channels: HashSet<String> = HashSet::new();
     let mut heartbeat = interval(HEARTBEAT_INTERVAL);
     heartbeat.tick().await; // discard the immediate first tick
 
@@ -283,11 +282,6 @@ async fn handle_socket(
                             Ok(ClientMessage::Leave { channel }) => {
                                 if let Some(handle) = joined.remove(&channel) {
                                     handle.relay.abort();
-                                    if tracked_channels.remove(&channel) {
-                                        if let Some(uid) = user_id.as_deref() {
-                                            hub.untrack(&channel, uid);
-                                        }
-                                    }
                                     tracing::debug!(channel, "Klien keluar dari channel");
                                     send_msg!(WsMessage::system(&channel, "CLOSED"));
                                 }
@@ -318,20 +312,9 @@ async fn handle_socket(
                                     send_msg!(WsMessage::error(
                                         "Bergabunglah ke channel terlebih dahulu sebelum melacak kehadiran"
                                     ));
-                                } else if let Some(uid) = user_id.as_deref() {
-                                    let data = payload.unwrap_or_else(|| {
-                                        serde_json::Value::Object(serde_json::Map::new())
-                                    });
-                                    hub.track(&channel, uid, data);
-                                    // Broadcast updated presence state to all subscribers.
-                                    let state_map = hub.presence_state(&channel);
-                                    let state_json = serde_json::to_value(&state_map)
-                                        .unwrap_or(serde_json::Value::Null);
-                                    let sync_msg = WsMessage::presence_sync(&channel, state_json);
-                                    if let Ok(json) = serde_json::to_string(&sync_msg) {
-                                        hub.broadcast(&channel, json);
-                                    }
-                                    tracked_channels.insert(channel);
+                                } else if user_id.is_some() {
+                                    drop(payload);
+                                    send_msg!(WsMessage::system(&channel, "PRESENCE_UNSUPPORTED"));
                                 } else {
                                     send_msg!(WsMessage::error(
                                         "Autentikasi diperlukan untuk melacak kehadiran"
@@ -340,17 +323,8 @@ async fn handle_socket(
                             }
 
                             Ok(ClientMessage::Untrack { channel }) => {
-                                if let Some(uid) = user_id.as_deref() {
-                                    hub.untrack(&channel, uid);
-                                    tracked_channels.remove(&channel);
-                                    // Broadcast updated presence state.
-                                    let state_map = hub.presence_state(&channel);
-                                    let state_json = serde_json::to_value(&state_map)
-                                        .unwrap_or(serde_json::Value::Null);
-                                    let sync_msg = WsMessage::presence_sync(&channel, state_json);
-                                    if let Ok(json) = serde_json::to_string(&sync_msg) {
-                                        hub.broadcast(&channel, json);
-                                    }
+                                if user_id.is_some() {
+                                    send_msg!(WsMessage::system(&channel, "PRESENCE_UNSUPPORTED"));
                                 }
                             }
                         }
@@ -375,12 +349,6 @@ async fn handle_socket(
     }
 
     // ── 5. Cleanup on disconnect ──────────────────────────────────────────────
-    if let Some(uid) = user_id.as_deref() {
-        for channel in &tracked_channels {
-            hub.untrack(channel, uid);
-        }
-    }
-
     for (channel, handle) in joined {
         handle.relay.abort();
         tracing::debug!(channel, "Relay task dibatalkan saat koneksi ditutup");
@@ -402,13 +370,13 @@ async fn handle_socket(
 /// so the main loop can re-serialise it uniformly.  When deserialisation fails
 /// the raw string is forwarded as a generic `broadcast` WsMessage.
 async fn relay_hub(
-    mut rx: tokio::sync::broadcast::Receiver<String>,
+    mut rx: tokio::sync::mpsc::UnboundedReceiver<String>,
     relay_tx: mpsc::Sender<WsMessage>,
     channel: String,
 ) {
     loop {
         match rx.recv().await {
-            Ok(json_str) => {
+            Some(json_str) => {
                 // Try to parse as WsMessage; fall back to a plain broadcast wrapper.
                 let msg = serde_json::from_str::<WsMessage>(&json_str).unwrap_or_else(|_| {
                     WsMessage {
@@ -424,16 +392,7 @@ async fn relay_hub(
                     break; // Main task has shut down — exit relay.
                 }
             }
-            Err(tokio::sync::broadcast::error::RecvError::Lagged(n)) => {
-                tracing::warn!(
-                    missed = n,
-                    "Relay task tertinggal — beberapa pesan broadcast dilewati"
-                );
-                // Receiver is auto-advanced; continue.
-            }
-            Err(tokio::sync::broadcast::error::RecvError::Closed) => {
-                break; // Broadcast channel dropped — nothing more to relay.
-            }
+            None => break,
         }
     }
 }

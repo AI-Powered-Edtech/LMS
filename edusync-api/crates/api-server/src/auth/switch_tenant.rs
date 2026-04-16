@@ -1,3 +1,4 @@
+use crate::extractors::IntoVilError;
 use std::sync::Arc;
 
 use axum::http::HeaderMap;
@@ -9,6 +10,16 @@ use crate::state::AppState;
 
 use super::token::verify_refresh_token_with_session_secret;
 use super::types::{AuthResponse, SwitchTenantRequest, TenantMembershipPayload, UserPayload};
+
+#[derive(sqlx::FromRow)]
+struct MembershipRow {
+    role: String,
+    tenant_id: Uuid,
+    created_at: chrono::DateTime<chrono::Utc>,
+    tenant_name: String,
+    tenant_slug: String,
+    tenant_logo: Option<String>,
+}
 
 pub async fn switch_tenant_handler(
     svc: ServiceCtx,
@@ -22,42 +33,42 @@ pub async fn switch_tenant_handler(
         .get("authorization")
         .and_then(|v| v.to_str().ok())
         .and_then(|v| v.strip_prefix("Bearer "))
-        .ok_or_else(|| VilError::from(AuthError::InvalidToken))?;
+        .ok_or_else(|| AuthError::InvalidToken)
+        .map_err(IntoVilError::into_vil_error)?;
 
-    let access_claims = verify_access_token(token, &state.jwt_secret).map_err(VilError::from)?;
+    let access_claims = verify_access_token(token, &state.jwt_secret).map_err(IntoVilError::into_vil_error)?;
     let user_id: Uuid = access_claims
         .sub
         .parse()
-        .map_err(|_| VilError::from(AuthError::InvalidToken))?;
+        .map_err(|_| AuthError::InvalidToken)
+        .map_err(IntoVilError::into_vil_error)?;
 
     let refresh_claims = verify_refresh_token_with_session_secret(&state, &body.refresh_token)
-        .map_err(VilError::from)?;
+        .map_err(IntoVilError::into_vil_error)?;
     if refresh_claims.sub != user_id.to_string() {
-        return Err(VilError::from(AuthError::InvalidToken));
+        return Err(AuthError::InvalidToken.into_vil_error());
     }
 
-    let user = sqlx::query!(
-        "SELECT email FROM public.users WHERE id = $1",
-        user_id
-    )
+    let user_email: String = sqlx::query_scalar("SELECT email FROM public.users WHERE id = $1")
+        .bind(user_id)
     .fetch_optional(&state.db)
     .await
-    .map_err(|e| VilError::from(AuthError::Database(e.to_string())))?
+    .map_err(|e| AuthError::Database(e).into_vil_error())?
     .ok_or_else(|| VilError::unauthorized("Pengguna tidak ditemukan"))?;
 
-    let memberships_rows = sqlx::query!(
-        r#"SELECT ur.role::text as "role!", ur.tenant_id, ur.created_at,
+    let memberships_rows: Vec<MembershipRow> = sqlx::query_as::<_, MembershipRow>(
+        r#"SELECT ur.role::text as role, ur.tenant_id, ur.created_at,
                   t.name as tenant_name, t.slug as tenant_slug,
                   NULL::text as tenant_logo
            FROM public.user_roles ur
            JOIN public.tenants t ON t.id = ur.tenant_id
            WHERE ur.user_id = $1
            ORDER BY ur.created_at ASC"#,
-        user_id
     )
+    .bind(user_id)
     .fetch_all(&state.db)
     .await
-    .map_err(|e| VilError::from(AuthError::Database(e.to_string())))?;
+    .map_err(|e| AuthError::Database(e).into_vil_error())?;
 
     if memberships_rows.is_empty() {
         return Err(VilError::unauthorized("Pengguna belum terdaftar pada tenant mana pun"));
@@ -73,11 +84,7 @@ pub async fn switch_tenant_handler(
             role: m.role.to_lowercase(),
             status: "active".to_string(),
             is_active: true,
-            joined_at: Some(
-                m.created_at
-                    .format(&time::format_description::well_known::Rfc3339)
-                    .unwrap_or_default(),
-            ),
+            joined_at: Some(m.created_at.to_rfc3339()),
         })
         .collect();
 
@@ -88,15 +95,15 @@ pub async fn switch_tenant_handler(
 
     let active_role = membership.role.clone();
 
-    let _ = sqlx::query!(
+    let _ = sqlx::query(
         r#"INSERT INTO public.profiles (id, email, first_name, last_name, tenant_id, created_at, updated_at)
            VALUES ($1, $2, '', '', $3, now(), now())
            ON CONFLICT (id) DO UPDATE
            SET tenant_id = EXCLUDED.tenant_id, updated_at = now()"#,
-        user_id,
-        user.email,
-        body.tenant_id
     )
+    .bind(user_id)
+    .bind(&user_email)
+    .bind(body.tenant_id)
     .execute(&state.db)
     .await;
 
@@ -104,14 +111,14 @@ pub async fn switch_tenant_handler(
         &state.db,
         &body.refresh_token,
         user_id,
-        &user.email,
+        &user_email,
         &active_role,
         Some(body.tenant_id),
         true,
         &state.jwt_secret,
     )
     .await
-    .map_err(VilError::from)?;
+    .map_err(IntoVilError::into_vil_error)?;
 
     Ok(VilResponse::ok(AuthResponse {
         access_token: tokens.access_token,
@@ -120,7 +127,7 @@ pub async fn switch_tenant_handler(
         refresh_token: tokens.refresh_token,
         user: UserPayload {
             id: user_id,
-            email: user.email,
+            email: user_email,
             role: active_role,
             tenant_id: Some(body.tenant_id),
         },

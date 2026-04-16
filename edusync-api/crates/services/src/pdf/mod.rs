@@ -27,7 +27,7 @@ pub struct GenerateCertificateRequest {
 
 #[derive(sqlx::FromRow)]
 struct EnrollmentCertRow {
-    student_name: String,
+    student_name: Option<String>,
     course_name: String,
     completed_at: Option<chrono::DateTime<chrono::Utc>>,
     tenant_name: String,
@@ -54,8 +54,7 @@ pub async fn generate_pdf_for_enrollment(
     req: GenerateCertificateRequest,
 ) -> Result<(Vec<u8>, String), AppError> {
     // Ambil data enrollment + kursus + profil + tenant
-    let row = sqlx::query_as!(
-        EnrollmentCertRow,
+    let row = sqlx::query_as::<_, EnrollmentCertRow>(
         r#"
         SELECT
             p.full_name    AS student_name,
@@ -63,16 +62,17 @@ pub async fn generate_pdf_for_enrollment(
             e.completed_at,
             t.name         AS tenant_name,
             e.user_id
-        FROM enrollments e
-        JOIN profiles p ON p.id = e.user_id
-        JOIN courses  c ON c.id = e.course_id
-        JOIN tenants  t ON t.id = e.tenant_id
+        FROM public.enrollments e
+        JOIN public.profiles p ON p.id = e.user_id
+        JOIN public.classes cls ON cls.id = e.class_id
+        JOIN public.courses c ON c.id = cls.course_id
+        JOIN public.tenants t ON t.id = e.tenant_id
         WHERE e.id        = $1
           AND e.tenant_id = $2
         "#,
-        req.course_enrollment_id,
-        tenant_id,
     )
+    .bind(req.course_enrollment_id)
+    .bind(tenant_id)
     .fetch_optional(db)
     .await
     .map_err(|e| AppError::Internal(format!("Gagal mengambil data enrollment: {e}")))?
@@ -101,7 +101,7 @@ pub async fn generate_pdf_for_enrollment(
     );
 
     let cert_data = CertificateData {
-        student_name: row.student_name,
+        student_name: row.student_name.unwrap_or_default(),
         course_name: row.course_name,
         completion_date,
         certificate_number: cert_number.clone(),

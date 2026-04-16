@@ -1,38 +1,39 @@
+use crate::extractors::IntoVilError;
 use std::sync::Arc;
-use axum::http::StatusCode;
 use edusync_auth::{AuthError, password::hash_password, session::revoke_all_user_sessions};
 use vil_server::prelude::{ServiceCtx, ShmSlice, VilResponse, VilError, HandlerResult};
 use crate::state::AppState;
 use super::types::{ResetPasswordRequest, UpdatePasswordRequest};
+use uuid::Uuid;
 
 pub async fn reset_password_handler(
     svc: ServiceCtx,
     body: ShmSlice,
-) -> HandlerResult<VilResponse<StatusCode>> {
+) -> HandlerResult<VilResponse<serde_json::Value>> {
     let state = svc.state::<Arc<AppState>>()?.clone();
     let body: ResetPasswordRequest = body.json().map_err(|e| VilError::bad_request(e.to_string()))?;
 
     // Always 200 — prevent email enumeration
-    let user_id_opt: Option<uuid::Uuid> = sqlx::query_scalar!(
-        "SELECT id FROM public.users WHERE email = $1",
-        body.email
-    )
+    let user_id_opt: Option<Uuid> =
+        sqlx::query_scalar("SELECT id FROM public.users WHERE email = $1")
+            .bind(&body.email)
     .fetch_optional(&state.db)
     .await
     .ok()
     .unwrap_or(None);
 
     if let Some(user_id) = user_id_opt {
-        let token = uuid::Uuid::new_v4().to_string();
+        let token = Uuid::new_v4().to_string();
         let token_hash = sha256_hex(&token);
-        // time::OffsetDateTime — sqlx uses time crate for TIMESTAMPTZ
-        let expires_at = time::OffsetDateTime::now_utc() + time::Duration::hours(1);
+        let expires_at = chrono::Utc::now() + chrono::Duration::hours(1);
 
-        let _ = sqlx::query!(
+        let _ = sqlx::query(
             r#"INSERT INTO public.password_reset_tokens (user_id, token_hash, expires_at)
                VALUES ($1, $2, $3)"#,
-            user_id, token_hash, expires_at
         )
+        .bind(user_id)
+        .bind(token_hash)
+        .bind(expires_at)
         .execute(&state.db)
         .await;
 
@@ -41,61 +42,59 @@ pub async fn reset_password_handler(
         tracing::info!(email = %body.email, reset_url = %reset_url, "Password reset requested");
     }
 
-    Ok(VilResponse::ok(StatusCode::OK))
+    Ok(VilResponse::ok(serde_json::json!({ "ok": true })))
 }
 
 pub async fn update_password_handler(
     svc: ServiceCtx,
     body: ShmSlice,
-) -> HandlerResult<VilResponse<StatusCode>> {
+) -> HandlerResult<VilResponse<serde_json::Value>> {
     let state = svc.state::<Arc<AppState>>()?.clone();
     let body: UpdatePasswordRequest = body.json().map_err(|e| VilError::bad_request(e.to_string()))?;
 
     if body.password.len() < 8 {
-        return Err(VilError::from(AuthError::WeakPassword));
+        return Err(AuthError::WeakPassword.into_vil_error());
     }
 
     let token_hash = sha256_hex(&body.token);
-    let now = time::OffsetDateTime::now_utc();
+    let now = chrono::Utc::now();
 
-    let row = sqlx::query!(
+    let user_id: Uuid = sqlx::query_scalar::<_, Uuid>(
         r#"SELECT user_id FROM public.password_reset_tokens
            WHERE token_hash = $1 AND expires_at > $2 AND used_at IS NULL"#,
-        token_hash, now
     )
+    .bind(&token_hash)
+    .bind(now)
     .fetch_optional(&state.db)
     .await
-    .map_err(|e| VilError::from(AuthError::Database(e.to_string())))?
-    .ok_or_else(|| VilError::from(AuthError::InvalidToken))?;
+    .map_err(|e| AuthError::Database(e).into_vil_error())?
+    .ok_or_else(|| AuthError::InvalidToken.into_vil_error())?;
 
-    let new_hash = hash_password(&body.password).map_err(VilError::from)?;
+    let new_hash = hash_password(&body.password).map_err(IntoVilError::into_vil_error)?;
 
     let mut tx = state.db.begin().await
-        .map_err(|e| VilError::from(AuthError::Database(e.to_string())))?;
+        .map_err(|e| AuthError::Database(e).into_vil_error())?;
 
-    sqlx::query!(
-        "UPDATE public.users SET encrypted_password = $1, updated_at = now() WHERE id = $2",
-        new_hash, row.user_id
-    )
+    sqlx::query("UPDATE public.users SET encrypted_password = $1, updated_at = now() WHERE id = $2")
+    .bind(&new_hash)
+    .bind(user_id)
     .execute(&mut *tx)
     .await
-    .map_err(|e| VilError::from(AuthError::Database(e.to_string())))?;
+    .map_err(|e| AuthError::Database(e).into_vil_error())?;
 
-    sqlx::query!(
-        "UPDATE public.password_reset_tokens SET used_at = now() WHERE token_hash = $1",
-        token_hash
-    )
+    sqlx::query("UPDATE public.password_reset_tokens SET used_at = now() WHERE token_hash = $1")
+    .bind(&token_hash)
     .execute(&mut *tx)
     .await
-    .map_err(|e| VilError::from(AuthError::Database(e.to_string())))?;
+    .map_err(|e| AuthError::Database(e).into_vil_error())?;
 
     tx.commit().await
-        .map_err(|e| VilError::from(AuthError::Database(e.to_string())))?;
+        .map_err(|e| AuthError::Database(e).into_vil_error())?;
 
-    revoke_all_user_sessions(&state.db, row.user_id).await
-        .map_err(VilError::from)?;
+    revoke_all_user_sessions(&state.db, user_id).await
+        .map_err(IntoVilError::into_vil_error)?;
 
-    Ok(VilResponse::ok(StatusCode::OK))
+    Ok(VilResponse::ok(serde_json::json!({ "ok": true })))
 }
 
 fn sha256_hex(input: &str) -> String {

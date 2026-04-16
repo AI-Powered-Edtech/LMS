@@ -1,3 +1,4 @@
+use crate::extractors::IntoVilError;
 use std::sync::Arc;
 use uuid::Uuid;
 use edusync_auth::session::refresh_session;
@@ -7,6 +8,16 @@ use super::token::verify_refresh_token_with_session_secret;
 use super::types::{AuthResponse, RefreshRequest, TenantMembershipPayload, UserPayload};
 use super::tenant_selection::{select_active_role, select_active_tenant};
 
+#[derive(sqlx::FromRow)]
+struct MembershipRow {
+    role: String,
+    tenant_id: Uuid,
+    created_at: chrono::DateTime<chrono::Utc>,
+    tenant_name: String,
+    tenant_slug: String,
+    tenant_logo: Option<String>,
+}
+
 pub async fn refresh_handler(
     svc: ServiceCtx,
     body: ShmSlice,
@@ -15,17 +26,15 @@ pub async fn refresh_handler(
     let body: RefreshRequest = body.json().map_err(|e| VilError::bad_request(e.to_string()))?;
 
     let claims = verify_refresh_token_with_session_secret(&state, &body.refresh_token)
-        .map_err(VilError::from)?;
+        .map_err(IntoVilError::into_vil_error)?;
     let user_id: Uuid = claims
         .sub
         .parse()
         .map_err(|_| VilError::unauthorized("Token tidak valid"))?;
 
     // Load current user data
-    let user = sqlx::query!(
-        "SELECT email FROM public.users WHERE id = $1",
-        user_id
-    )
+    let user_email: String = sqlx::query_scalar("SELECT email FROM public.users WHERE id = $1")
+    .bind(user_id)
     .fetch_optional(&state.db)
     .await
     .map_err(|e| {
@@ -34,16 +43,16 @@ pub async fn refresh_handler(
     })?
     .ok_or_else(|| VilError::unauthorized("Pengguna tidak ditemukan"))?;
 
-    let memberships_rows = sqlx::query!(
-        r#"SELECT ur.role::text as "role!", ur.tenant_id, ur.created_at,
+    let memberships_rows: Vec<MembershipRow> = sqlx::query_as::<_, MembershipRow>(
+        r#"SELECT ur.role::text as role, ur.tenant_id, ur.created_at,
                   t.name as tenant_name, t.slug as tenant_slug,
                   NULL::text as tenant_logo
            FROM public.user_roles ur
            JOIN public.tenants t ON t.id = ur.tenant_id
            WHERE ur.user_id = $1
            ORDER BY ur.created_at ASC"#,
-        user_id
     )
+    .bind(user_id)
     .fetch_all(&state.db)
     .await
     .map_err(|e| {
@@ -65,18 +74,13 @@ pub async fn refresh_handler(
             role: m.role.to_lowercase(),
             status: "active".to_string(),
             is_active: true,
-            joined_at: Some(
-                m.created_at
-                    .format(&time::format_description::well_known::Rfc3339)
-                    .unwrap_or_default(),
-            ),
+            joined_at: Some(m.created_at.to_rfc3339()),
         })
         .collect();
 
-    let profile_tenant_id: Option<Uuid> = sqlx::query_scalar!(
-        "SELECT tenant_id FROM public.profiles WHERE id = $1",
-        user_id
-    )
+    let profile_tenant_id: Option<Uuid> =
+        sqlx::query_scalar("SELECT tenant_id FROM public.profiles WHERE id = $1")
+            .bind(user_id)
     .fetch_optional(&state.db)
     .await
     .map_err(|e| {
@@ -89,21 +93,19 @@ pub async fn refresh_handler(
     let active_role = select_active_role(active_tenant_id, &memberships);
 
     if profile_tenant_id != Some(active_tenant_id) {
-        let _ = sqlx::query!(
-            r#"UPDATE public.profiles SET tenant_id = $1, updated_at = now() WHERE id = $2"#,
-            active_tenant_id,
-            user_id
-        )
-        .execute(&state.db)
-        .await;
+        let _ = sqlx::query(r#"UPDATE public.profiles SET tenant_id = $1, updated_at = now() WHERE id = $2"#)
+            .bind(active_tenant_id)
+            .bind(user_id)
+            .execute(&state.db)
+            .await;
     }
 
     let tokens = refresh_session(
-        &state.db, &body.refresh_token, user_id, &user.email,
+        &state.db, &body.refresh_token, user_id, &user_email,
         &active_role, Some(active_tenant_id), true, &state.jwt_secret,
     )
     .await
-    .map_err(VilError::from)?;
+    .map_err(IntoVilError::into_vil_error)?;
 
     Ok(VilResponse::ok(AuthResponse {
         access_token: tokens.access_token,
@@ -112,7 +114,7 @@ pub async fn refresh_handler(
         refresh_token: tokens.refresh_token,
         user: UserPayload {
             id: user_id,
-            email: user.email,
+            email: user_email,
             role: active_role,
             tenant_id: Some(active_tenant_id),
         },

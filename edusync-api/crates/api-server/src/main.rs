@@ -163,11 +163,10 @@ async fn main() -> anyhow::Result<()> {
     let state_arc: Arc<AppState> = Arc::new(app_state);
 
     // ── Wave 1D: VIL Scheduler replaces manual tokio::time::interval cron ────
-    let scheduler = cron::build_scheduler(state_arc.db.clone());
-    scheduler.start();
+    let _scheduler = cron::build_scheduler(state_arc.db.clone());
 
     // ── Wave 1D: WsHub replaces manual RoomManager ───────────────────────────
-    let ws_hub = WsHub::new();
+    let ws_hub = Arc::new(WsHub::new());
 
     // ── Start pg_notify listener — forwards NOTIFY to WsHub ──────────────────
     start_pg_listener(state_arc.db.clone(), ws_hub.clone());
@@ -311,7 +310,6 @@ async fn main() -> anyhow::Result<()> {
         .port(port)
         .profile(&vil_profile)
         .observer(observer_enabled)
-        .extension(state_arc)
         .service(health_service)
         .service(auth_service)
         .service(course_service)

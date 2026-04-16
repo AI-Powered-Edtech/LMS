@@ -253,7 +253,7 @@ pub async fn get_transcoding_status(
 /// 5. Update database dengan status dan URLs
 pub async fn run_transcoding_worker(
     db: &PgPool,
-    s3_client: &vil_storage_s3::S3Client,
+    s3_client: &vil_conn_s3::S3Connector,
     max_jobs: i32,
 ) -> Result<u32, anyhow::Error> {
     tracing::info!("Starting transcoding worker");
@@ -290,7 +290,7 @@ pub async fn run_transcoding_worker(
 /// Actual ffmpeg transcoding implementation
 async fn process_video_transcoding(
     db: &PgPool,
-    s3_client: &vil_storage_s3::S3Client,
+    s3_client: &vil_conn_s3::S3Connector,
     job: &VideoTranscodingJob,
 ) -> Result<(), anyhow::Error> {
     // Update status to processing

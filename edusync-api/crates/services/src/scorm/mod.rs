@@ -411,7 +411,7 @@ pub async fn upsert_scorm_lesson_resource(
     let resource_id = Uuid::new_v4();
 
     // ON CONFLICT on (lesson_id, type) to update if a SCORM resource already exists
-    sqlx::query!(
+    sqlx::query_scalar::<_, Uuid>(
         r#"
         INSERT INTO public.lesson_resources (
             id,
@@ -423,7 +423,7 @@ pub async fn upsert_scorm_lesson_resource(
             scorm_manifest_json,
             created_at
         ) VALUES (
-            $1, $2, $3, 'scorm', $4, $5, $6, NOW()
+            $1, $2, $3, 'SCORM', $4, $5, $6, NOW()
         )
         ON CONFLICT (lesson_id, type) DO UPDATE
         SET
@@ -433,15 +433,14 @@ pub async fn upsert_scorm_lesson_resource(
             updated_at          = NOW()
         RETURNING id
         "#,
-        resource_id,
-        lesson_id,
-        tenant_id,
-        title,
-        storage_path,
-        manifest_json
     )
+    .bind(resource_id)
+    .bind(lesson_id)
+    .bind(tenant_id)
+    .bind(title)
+    .bind(storage_path)
+    .bind(manifest_json)
     .fetch_one(db)
     .await
-    .map(|r| r.id)
-    .map_err(|e| ScormError::Database(e.to_string()))
+    .map_err(|e: sqlx::Error| ScormError::Database(e.to_string()))
 }

@@ -62,6 +62,17 @@ struct LessonAggregate {
 /// Number of events read per batch.
 const BATCH_SIZE: i64 = 500;
 
+#[derive(sqlx::FromRow)]
+struct ProgressEventRow {
+    id: i64,
+    tenant_id: Uuid,
+    user_id: Uuid,
+    lesson_id: Uuid,
+    event_type: String,
+    position: Option<f64>,
+    client_timestamp_ms: i64,
+}
+
 // ─── Public processor ─────────────────────────────────────────────────────────
 
 /// Process one batch of unprocessed progress events.
@@ -78,13 +89,12 @@ const BATCH_SIZE: i64 = 500;
 /// Returns 0 (without error) if the lock is already held by another invocation.
 pub async fn process_progress_batch(db: &PgPool) -> Result<usize, ProgressProcessorError> {
     // ── 1. Acquire advisory lock ─────────────────────────────────────────────
-    let lock_acquired: bool = sqlx::query_scalar!(
-        r#"SELECT pg_try_advisory_lock(hashtext('progress_events'))"#
+    let lock_acquired: bool = sqlx::query_scalar(
+        r#"SELECT pg_try_advisory_lock(hashtext('progress_events'))"#,
     )
     .fetch_one(db)
     .await
-    .map_err(|e| ProgressProcessorError::Database(e.to_string()))?
-    .unwrap_or(false);
+    .map_err(|e| ProgressProcessorError::Database(e.to_string()))?;
 
     if !lock_acquired {
         tracing::debug!("progress_processor: prosesor lain sedang berjalan, lewati batch ini");
@@ -94,7 +104,7 @@ pub async fn process_progress_batch(db: &PgPool) -> Result<usize, ProgressProces
     let result = process_inner(db).await;
 
     // ── 6. Always release advisory lock ──────────────────────────────────────
-    let _ = sqlx::query!("SELECT pg_advisory_unlock(hashtext('progress_events'))")
+    let _ = sqlx::query("SELECT pg_advisory_unlock(hashtext('progress_events'))")
         .execute(db)
         .await;
 
@@ -103,7 +113,7 @@ pub async fn process_progress_batch(db: &PgPool) -> Result<usize, ProgressProces
 
 async fn process_inner(db: &PgPool) -> Result<usize, ProgressProcessorError> {
     // ── 2. SELECT unprocessed events ─────────────────────────────────────────
-    let rows = sqlx::query!(
+    let rows: Vec<ProgressEventRow> = sqlx::query_as::<_, ProgressEventRow>(
         r#"
         SELECT
             id,
@@ -119,8 +129,8 @@ async fn process_inner(db: &PgPool) -> Result<usize, ProgressProcessorError> {
         LIMIT $1
         FOR UPDATE SKIP LOCKED
         "#,
-        BATCH_SIZE
     )
+    .bind(BATCH_SIZE)
     .fetch_all(db)
     .await
     .map_err(|e| ProgressProcessorError::Database(e.to_string()))?;
@@ -198,7 +208,7 @@ async fn process_inner(db: &PgPool) -> Result<usize, ProgressProcessorError> {
                 .unwrap_or_else(chrono::Utc::now);
 
         if let Some(quiz_score) = agg.latest_quiz_score {
-            sqlx::query!(
+            sqlx::query(
                 r#"
                 INSERT INTO public.student_lesson_signals (
                     tenant_id,
@@ -230,18 +240,18 @@ async fn process_inner(db: &PgPool) -> Result<usize, ProgressProcessorError> {
                     ),
                     updated_at        = NOW()
                 "#,
-                agg.tenant_id,
-                agg.user_id,
-                agg.lesson_id,
-                agg.max_position,
-                last_accessed_at,
-                quiz_score
             )
+            .bind(agg.tenant_id)
+            .bind(agg.user_id)
+            .bind(agg.lesson_id)
+            .bind(agg.max_position)
+            .bind(last_accessed_at)
+            .bind(quiz_score)
             .execute(&mut *tx)
             .await
             .map_err(|e| ProgressProcessorError::Database(e.to_string()))?;
         } else {
-            sqlx::query!(
+            sqlx::query(
                 r#"
                 INSERT INTO public.student_lesson_signals (
                     tenant_id,
@@ -267,12 +277,12 @@ async fn process_inner(db: &PgPool) -> Result<usize, ProgressProcessorError> {
                     ),
                     updated_at       = NOW()
                 "#,
-                agg.tenant_id,
-                agg.user_id,
-                agg.lesson_id,
-                agg.max_position,
-                last_accessed_at
             )
+            .bind(agg.tenant_id)
+            .bind(agg.user_id)
+            .bind(agg.lesson_id)
+            .bind(agg.max_position)
+            .bind(last_accessed_at)
             .execute(&mut *tx)
             .await
             .map_err(|e| ProgressProcessorError::Database(e.to_string()))?;
@@ -280,14 +290,14 @@ async fn process_inner(db: &PgPool) -> Result<usize, ProgressProcessorError> {
     }
 
     // ── 5. Mark events as processed ──────────────────────────────────────────
-    sqlx::query!(
+    sqlx::query(
         r#"
         UPDATE public.progress_events
         SET processed = true
         WHERE id = ANY($1)
         "#,
-        &event_ids
     )
+    .bind(&event_ids[..])
     .execute(&mut *tx)
     .await
     .map_err(|e| ProgressProcessorError::Database(e.to_string()))?;

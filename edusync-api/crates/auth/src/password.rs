@@ -45,13 +45,11 @@ pub async fn maybe_rehash(
     if current_hash.starts_with("$2b$") || current_hash.starts_with("$2a$") {
         let new_hash = hash_password(plain)?;
 
-        sqlx::query!(
-            "UPDATE public.users SET encrypted_password = $1, updated_at = now() WHERE id = $2",
-            new_hash,
-            user_id
-        )
-        .execute(pool)
-        .await?;
+        sqlx::query("UPDATE public.users SET encrypted_password = $1, updated_at = now() WHERE id = $2")
+            .bind(new_hash)
+            .bind(user_id)
+            .execute(pool)
+            .await?;
     }
 
     Ok(())

@@ -54,7 +54,7 @@ const RETRY_DELAY: Duration = Duration::from_secs(5);
 ///
 /// The task never returns normally; it retries indefinitely on failure with
 /// a 5-second back-off.  It is designed to run for the lifetime of the process.
-pub fn start_pg_listener(db: PgPool, hub: WsHub) {
+pub fn start_pg_listener(db: PgPool, hub: std::sync::Arc<WsHub>) {
     tokio::spawn(async move {
         loop {
             match run_listener(&db, &hub).await {
@@ -81,7 +81,7 @@ pub fn start_pg_listener(db: PgPool, hub: WsHub) {
 async fn run_listener(db: &PgPool, hub: &WsHub) -> Result<(), sqlx::Error> {
     let mut listener = PgListener::connect_with(db).await?;
 
-    listener.listen_all(PG_CHANNELS).await?;
+    listener.listen_all(PG_CHANNELS.iter().copied()).await?;
 
     tracing::info!(
         channels = ?PG_CHANNELS,

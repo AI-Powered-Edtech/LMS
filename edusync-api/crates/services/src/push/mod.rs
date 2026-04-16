@@ -13,6 +13,7 @@
 
 pub mod types;
 
+use ring::signature::KeyPair;
 use sqlx::PgPool;
 use uuid::Uuid;
 
@@ -39,15 +40,14 @@ pub async fn send_push_to_user(
     payload: PushPayload,
 ) -> Result<usize, AppError> {
     // Ambil semua subscription aktif milik user
-    let subscriptions: Vec<PushSubscription> = sqlx::query_as!(
-        PushSubscription,
+    let subscriptions: Vec<PushSubscription> = sqlx::query_as::<_, PushSubscription>(
         r#"
         SELECT id, user_id, endpoint, p256dh, auth
         FROM push_subscriptions
         WHERE user_id = $1
         "#,
-        user_id
     )
+    .bind(user_id)
     .fetch_all(db)
     .await
     .map_err(|e| AppError::internal(format!("Gagal mengambil push subscriptions: {e}")))?;
@@ -100,12 +100,10 @@ pub async fn send_push_to_user(
 
     // Hapus subscription kadaluarsa
     if !expired_ids.is_empty() {
-        let _ = sqlx::query!(
-            "DELETE FROM push_subscriptions WHERE id = ANY($1)",
-            &expired_ids as &[Uuid]
-        )
-        .execute(db)
-        .await;
+        let _ = sqlx::query("DELETE FROM push_subscriptions WHERE id = ANY($1)")
+            .bind(&expired_ids[..])
+            .execute(db)
+            .await;
         tracing::info!(
             count = expired_ids.len(),
             "[send_push] Subscription kadaluarsa dihapus"
