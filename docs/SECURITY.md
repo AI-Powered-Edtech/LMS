@@ -119,6 +119,59 @@ add_header Referrer-Policy "strict-origin-when-cross-origin" always;
 add_header Content-Security-Policy "default-src 'self'; ..." always;
 ```
 
+## Content Security Policy
+
+CSP untuk frontend EduSync di-enforce **via HTTP header** (bukan `<meta>` tag) melalui
+file `public/_headers` (Cloudflare Pages / Netlify / Vercel static hosting honor this
+file saat deploy). Hal ini penting karena:
+
+- `frame-ancestors` hanya valid di HTTP response header, tidak di meta tag.
+- Menghapus meta CSP dari `index.html` memastikan production **tidak** ter-ship
+  `'unsafe-eval'` (yang tadinya ada di meta untuk akomodasi Vite dev/HMR).
+- Di dev mode, Vite otomatis meng-inject CSP permissif untuk HMR + React Refresh,
+  jadi tidak perlu meta tag manual.
+
+### Production directives (ringkasan)
+
+| Directive         | Sources                                                                                                 |
+| ----------------- | ------------------------------------------------------------------------------------------------------- |
+| `default-src`     | `'self'` `data:` `blob:`                                                                                |
+| `script-src`      | `'self'` `'sha256-<bootstrap>'` `https://js.sentry-cdn.com` (NO `unsafe-eval`, NO `unsafe-inline`)      |
+| `style-src`       | `'self'` `'unsafe-inline'` `https://fonts.googleapis.com` (Tailwind butuh `unsafe-inline`)              |
+| `img-src`         | `'self'` `data:` `blob:` `https://api.dicebear.com` `https://*.r2.cloudflarestorage.com` `https://cdn.edusync.dev` |
+| `connect-src`     | `'self'` `https://sentry.io` `https://*.sentry.io` `https://*.r2.cloudflarestorage.com` `https://cdn.edusync.dev` `wss:` |
+| `font-src`        | `'self'` `https://fonts.gstatic.com`                                                                    |
+| `media-src`       | `'self'` `blob:` `https://www.youtube.com` `https://www.youtube-nocookie.com` `https://cdn.edusync.dev` |
+| `frame-src`       | `'self'` `https://www.youtube.com` `https://www.youtube-nocookie.com`                                   |
+| `frame-ancestors` | `'none'` (block embedding / clickjacking)                                                               |
+| `base-uri`        | `'self'`                                                                                                |
+| `form-action`     | `'self'`                                                                                                |
+| `object-src`      | `'none'`                                                                                                |
+
+### Dev vs Production
+
+- **Dev (Vite server):** no meta CSP, Vite auto-injects permissive CSP for HMR.
+  Jangan tambahkan `http://localhost:*` ke production `_headers` — production hanya
+  menghubungi domain nyata.
+- **Production (CDN/static hosting):** `public/_headers` di-deploy dan CDN mengirim
+  CSP sebagai HTTP response header. Tidak ada `unsafe-eval` sama sekali.
+
+### Changing the CSP
+
+Jika menambah origin baru (mis. vendor analytics / image host baru), update hanya
+`public/_headers`. Jangan menambahkan kembali `<meta http-equiv="Content-Security-Policy">`
+ke `index.html` — itu akan mengacaukan dev mode dan bisa menghidupkan ulang
+`unsafe-eval` di production.
+
+`script-src` menggunakan sha256 hash untuk inline bootstrap script di `index.html`
+(async font swap + dark mode detection). Jika script itu diubah, re-compute
+hash-nya dan update `public/_headers`:
+
+```bash
+python3 -c "import hashlib,base64; \
+  print('sha256-' + base64.b64encode(hashlib.sha256(open('/tmp/bootstrap.js','rb').read()).digest()).decode())"
+```
+
 ## Storage Security
 
 - All storage endpoints require a valid JWT (`Authorization: Bearer`)

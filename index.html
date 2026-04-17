@@ -11,16 +11,10 @@
       content="EduSync LMS — Sistem Manajemen Pembelajaran untuk sekolah Indonesia"
     />
     <!--
-      CSP meta tag: fallback untuk environment tanpa HTTP header (CDN/hosting statis).
-      DEV MODE: Relaxed CSP to allow Vite HMR, React Refresh, and dynamic imports.
-      PRODUCTION: Strict CSP without unsafe-eval set via HTTP headers (_headers file).
-      NOTE: api.qrserver.com and chart.googleapis.com REMOVED (no longer used).
-      WARNING: inline scripts require hash in production CSP (no unsafe-inline).
+      CSP is enforced via HTTP header in production (public/_headers, Cloudflare Pages).
+      In Vite dev mode, Vite auto-injects a permissive CSP for HMR, so no meta tag is needed.
+      Removing the meta here avoids shipping `unsafe-eval` to production clients.
     -->
-    <meta
-      http-equiv="Content-Security-Policy"
-      content="default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://js.sentry-cdn.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; img-src 'self' data: blob: https://*.supabase.co https://api.dicebear.com https://*.cloudfront.net http://localhost:9000 https://cdn.edusync.dev https://*.r2.cloudflarestorage.com; connect-src 'self' https://*.supabase.co wss://*.supabase.co https://fonts.googleapis.com https://sentry.io https://*.vercel.app ws://localhost:* http://localhost:* http://localhost:9000 https://cdn.edusync.dev https://*.r2.cloudflarestorage.com; font-src 'self' https://fonts.gstatic.com; media-src 'self' https://www.youtube.com https://www.youtube-nocookie.com http://localhost:9000 https://cdn.edusync.dev; frame-src 'self' https://www.youtube.com https://www.youtube-nocookie.com; frame-ancestors 'none'; base-uri 'self'; form-action 'self'; object-src 'none';"
-    />
     <link rel="icon" type="image/svg+xml" href="/icons/favicon.svg" />
 
     <!-- ⚡ Perf: Preconnect to external origins (domain agnostic) -->
