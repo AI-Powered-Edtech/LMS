@@ -1,0 +1,25 @@
+// Rename this file to `assetlinks.json` (drop the `.template` suffix) after
+// filling in the two placeholders below:
+//
+//   {{APP_PACKAGE}}        -> Android application ID, e.g. "id.edusync.lms"
+//   {{SHA256_FINGERPRINT}} -> Upper-case SHA-256 fingerprint of the Play-managed
+//                             app signing key (copy from
+//                             Play Console > Setup > App signing).
+//                             Format: "AA:BB:CC:...:ZZ" (64 hex chars, 32 pairs)
+//
+// The production file MUST be valid JSON — remove these leading // comments
+// before deploying. It must be served from
+//   https://<your-domain>/.well-known/assetlinks.json
+// over HTTPS with Content-Type: application/json.
+//
+// See docs/TWA.md for the full setup and verification steps.
+[
+  {
+    "relation": ["delegate_permission/common.handle_all_urls"],
+    "target": {
+      "namespace": "android_app",
+      "package_name": "{{APP_PACKAGE}}",
+      "sha256_cert_fingerprints": ["{{SHA256_FINGERPRINT}}"]
+    }
+  }
+]
