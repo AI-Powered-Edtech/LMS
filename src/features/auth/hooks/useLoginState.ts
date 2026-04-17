@@ -231,7 +231,7 @@ export function useLoginState(postAuthRedirect?: string | null) {
             setError(translateAuthError(err.message))
           }
         } catch (e: unknown) {
-          setError(e instanceof Error ? e.message : String(e))
+          setError(translateAuthError(e instanceof Error ? e.message : String(e)))
         } finally {
           setSubmitting(false)
         }

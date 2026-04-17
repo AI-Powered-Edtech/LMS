@@ -1,5 +1,5 @@
-- [ ] Login email+password tidak lagi gagal dengan error generik “Failed to fetch” pada environment yang dikonfigurasi dengan benar
-- [ ] Saat server tidak dapat dijangkau, UI menampilkan pesan error yang ramah dan tombol Masuk kembali aktif
-- [ ] Bagian “Demo Access” tidak overlap pada lebar 320px dan 375px
-- [ ] Bagian “Demo Access” tetap rapi pada lebar 768px, 1024px, dan 1440px
-- [ ] Test terkait login & demo access lulus di CI/local
+- [x] Login email+password tidak lagi gagal dengan error generik “Failed to fetch” pada environment yang dikonfigurasi dengan benar
+- [x] Saat server tidak dapat dijangkau, UI menampilkan pesan error yang ramah dan tombol Masuk kembali aktif
+- [x] Bagian “Demo Access” tidak overlap pada lebar 320px dan 375px
+- [x] Bagian “Demo Access” tetap rapi pada lebar 768px, 1024px, dan 1440px
+- [x] Test terkait login & demo access lulus di CI/local

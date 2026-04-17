@@ -55,4 +55,43 @@ test.describe("Login Flow", () => {
     const placeholder = await passwordField.getAttribute("placeholder");
     expect(placeholder).toContain("•");
   });
+
+  test("should show friendly error when login request fails", async ({ page }) => {
+    await page.route("**/api/v1/auth/login", (route) => route.abort());
+    await page.goto("/");
+    await page.waitForLoadState("networkidle");
+
+    await page.getByTestId("login-email-input").fill("teacher@edusync.dev");
+    await page.getByTestId("login-password-input").fill("password123");
+    await page.getByTestId("login-submit-button").click();
+
+    await expect(page.getByRole("alert")).toContainText("Gagal terhubung ke server");
+  });
+
+  test("demo access emails should not overflow their buttons", async ({ page }) => {
+    await page.goto("/");
+    await page.waitForLoadState("networkidle");
+
+    const buttons = [
+      page.getByRole("button", { name: /Siswa Demo/i }),
+      page.getByRole("button", { name: /Guru Demo/i }),
+      page.getByRole("button", { name: /Admin Demo/i }),
+    ];
+
+    for (const button of buttons) {
+      const email = button.locator("div").nth(1);
+      const buttonBox = await button.boundingBox();
+      const emailBox = await email.boundingBox();
+
+      expect(buttonBox).toBeTruthy();
+      expect(emailBox).toBeTruthy();
+
+      if (!buttonBox || !emailBox) continue;
+
+      expect(emailBox.x).toBeGreaterThanOrEqual(buttonBox.x - 1);
+      expect(emailBox.y).toBeGreaterThanOrEqual(buttonBox.y - 1);
+      expect(emailBox.x + emailBox.width).toBeLessThanOrEqual(buttonBox.x + buttonBox.width + 1);
+      expect(emailBox.y + emailBox.height).toBeLessThanOrEqual(buttonBox.y + buttonBox.height + 1);
+    }
+  });
 });
