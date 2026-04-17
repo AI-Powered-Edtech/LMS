@@ -133,5 +133,14 @@
     "*.{json,md,yml}": [
       "prettier --write"
     ]
-  }
+  },
+  "bundlesize": [
+    { "path": "./dist/assets/index-*.js", "maxSize": "105 kB" },
+    { "path": "./dist/assets/vendor-react-*.js", "maxSize": "90 kB" },
+    { "path": "./dist/assets/vendor-query-*.js", "maxSize": "30 kB" },
+    { "path": "./dist/assets/vendor-motion-*.js", "maxSize": "50 kB" },
+    { "path": "./dist/assets/vendor-lucide-*.js", "maxSize": "20 kB" },
+    { "path": "./dist/assets/vendor-sentry-*.js", "maxSize": "120 kB" },
+    { "path": "./dist/assets/*.css", "maxSize": "50 kB" }
+  ]
 }
