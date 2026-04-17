@@ -30,12 +30,14 @@ import { validateEnv } from './config/env.schema'
 import { normalizeLegacyHashUrl, sanitizeRedirectTarget } from './features/auth/utils/authFlow'
 import { useToast } from './hooks/useToast'
 import { initApiClient } from './services/api'
+import { getVilHttpBaseUrl } from './services/api/baseUrl'
 import { setAuthProvider } from './services/auth'
 import { createVilAuthProvider } from './services/auth/vilAuthProvider'
 import { setRealtimeProvider } from './services/realtime'
 import { createVilRealtimeProvider } from './services/realtime/vilRealtimeProvider'
 import { setStorageProvider } from './services/storage'
 import { createVilStorageProvider } from './services/storage/vilStorageProvider'
+import { setupDevMocks } from './mocks/devMock'
 import { initSentry } from './utils/sentry'
 import { reportWebVitals } from './utils/webVitals'
 
@@ -44,9 +46,11 @@ validateEnv()
 
 initApiClient()
 
-const vilApiUrl = import.meta.env.VITE_API_URL || ''
+setupDevMocks()
+
+const vilApiUrl = getVilHttpBaseUrl()
 setAuthProvider(createVilAuthProvider(vilApiUrl))
-setRealtimeProvider(createVilRealtimeProvider(vilApiUrl))
+setRealtimeProvider(createVilRealtimeProvider())
 setStorageProvider(createVilStorageProvider(vilApiUrl))
 
 // Initialise Sentry before rendering so errors during boot are captured

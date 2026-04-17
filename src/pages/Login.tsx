@@ -57,7 +57,7 @@ export function Login() {
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-900 via-blue-950 to-slate-900 p-4">
-      <div className="w-full max-w-md">
+      <div className="w-full max-w-md md:max-w-lg">
         {/* Logo */}
         <div className="text-center mb-8">
           <div className="text-5xl mb-3">📚</div>
@@ -72,12 +72,12 @@ export function Login() {
                 <p className="text-xs font-semibold uppercase tracking-[0.2em] text-emerald-200/80">
                   Demo Access
                 </p>
-                <p className="mt-1 text-sm text-emerald-50">
+                <p className="mt-1 text-sm leading-relaxed text-emerald-50">
                   Gunakan akun demo agar browser agent bisa langsung menguji dashboard tanpa signup
                   atau Google OAuth.
                 </p>
               </div>
-              <div className="grid gap-2 sm:grid-cols-3">
+              <div className="grid grid-cols-1 gap-2 sm:grid-cols-2 md:grid-cols-3">
                 {demoAccounts.map((account) => (
                   <button
                     key={account.key}
@@ -86,12 +86,15 @@ export function Login() {
                     onClick={() => {
                       if (fillAccount) void fillAccount(account.key)
                     }}
-                    className="rounded-xl border border-white/10 bg-white/5 px-3 py-3 text-left transition-colors hover:bg-white/10 disabled:opacity-50"
+                    className="min-w-0 rounded-xl border border-white/10 bg-white/5 px-3 py-3 text-left transition-colors hover:bg-white/10 disabled:opacity-50"
                   >
-                    <div className="text-sm font-semibold text-white">
-                      {account.icon} {account.label}
+                    <div className="flex min-w-0 items-center gap-2 text-sm font-semibold text-white">
+                      <span className="shrink-0">{account.icon}</span>
+                      <span className="min-w-0">{account.label}</span>
                     </div>
-                    <div className="mt-1 text-xs text-emerald-100/70">{account.email}</div>
+                    <div className="mt-1 min-w-0 break-all text-xs leading-snug text-emerald-100/70">
+                      {account.email}
+                    </div>
                   </button>
                 ))}
               </div>
@@ -288,29 +291,7 @@ export function Login() {
           </div>
         )}
 
-        {/* Dev quick login */}
-        {import.meta.env.DEV && step !== 3 && (
-          <div className="mt-4 p-4 bg-yellow-500/5 border border-yellow-500/10 rounded-xl text-center">
-            <p className="text-yellow-400/60 text-xs mb-2 uppercase tracking-wider font-medium">
-              Dev Quick Login
-            </p>
-            <div className="flex gap-2 justify-center">
-              {(['student', 'teacher', 'admin'] as const).map((r) => (
-                <button
-                  key={r}
-                  type="button"
-                  disabled={submitting}
-                  onClick={() => {
-                    if (fillAccount) void fillAccount(r)
-                  }}
-                  className="px-3 py-1.5 bg-white/5 hover:bg-white/10 text-white/50 rounded-lg text-xs font-medium transition-colors border border-white/5 disabled:opacity-50"
-                >
-                  {r === 'student' ? '🎓' : r === 'teacher' ? '👩‍🏫' : '🛡️'} {r}
-                </button>
-              ))}
-            </div>
-          </div>
-        )}
+
 
         {authStatus === 'callback_processing' && (
           <p className="mt-4 text-center text-xs text-blue-200/70">

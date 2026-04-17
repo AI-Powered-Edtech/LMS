@@ -109,6 +109,7 @@
     "knip": "^6.3.0",
     "lint-staged": "^16.4.0",
     "madge": "^8.0.0",
+    "msw": "^2.13.4",
     "prettier": "^3.8.1",
     "rollup-plugin-visualizer": "^7.0.1",
     "storybook": "^10.3.4",
@@ -135,12 +136,33 @@
     ]
   },
   "bundlesize": [
-    { "path": "./dist/assets/index-*.js", "maxSize": "105 kB" },
-    { "path": "./dist/assets/vendor-react-*.js", "maxSize": "90 kB" },
-    { "path": "./dist/assets/vendor-query-*.js", "maxSize": "30 kB" },
-    { "path": "./dist/assets/vendor-motion-*.js", "maxSize": "50 kB" },
-    { "path": "./dist/assets/vendor-lucide-*.js", "maxSize": "20 kB" },
-    { "path": "./dist/assets/vendor-sentry-*.js", "maxSize": "120 kB" },
-    { "path": "./dist/assets/*.css", "maxSize": "50 kB" }
+    {
+      "path": "./dist/assets/index-*.js",
+      "maxSize": "105 kB"
+    },
+    {
+      "path": "./dist/assets/vendor-react-*.js",
+      "maxSize": "90 kB"
+    },
+    {
+      "path": "./dist/assets/vendor-query-*.js",
+      "maxSize": "30 kB"
+    },
+    {
+      "path": "./dist/assets/vendor-motion-*.js",
+      "maxSize": "50 kB"
+    },
+    {
+      "path": "./dist/assets/vendor-lucide-*.js",
+      "maxSize": "20 kB"
+    },
+    {
+      "path": "./dist/assets/vendor-sentry-*.js",
+      "maxSize": "120 kB"
+    },
+    {
+      "path": "./dist/assets/*.css",
+      "maxSize": "50 kB"
+    }
   ]
 }
