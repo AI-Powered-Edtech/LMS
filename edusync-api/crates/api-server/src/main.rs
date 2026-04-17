@@ -62,6 +62,7 @@ use storage::handlers::{
 async fn main() -> anyhow::Result<()> {
     dotenv().ok();
     observability::init_tracing();
+    let _sentry_guard = observability::init_sentry();
 
     let database_url = std::env::var("DATABASE_URL").expect("DATABASE_URL must be set");
     let jwt_secret = std::env::var("JWT_SECRET").context("JWT_SECRET harus diset")?;
@@ -101,7 +102,6 @@ async fn main() -> anyhow::Result<()> {
         .max_connections(50)
         .connect(&database_url)
         .await?;
-    let _sentry = observability::init_sentry();
 
     let brute_force = edusync_middleware::brute_force::BruteForceTracker::new();
 
