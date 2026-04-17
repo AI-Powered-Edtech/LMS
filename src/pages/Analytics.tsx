@@ -1,6 +1,5 @@
 import {
   Activity,
-  AlertCircle,
   AlertTriangle,
   Award,
   BarChart3,
@@ -10,9 +9,8 @@ import {
   RefreshCw,
   Sparkles,
   Users,
-  WifiOff,
 } from 'lucide-react'
-import { useNavigate } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 
 import { AnalyticsCharts } from '@/features/analytics/components/AnalyticsCharts'
 import { AnalyticsStudentTable } from '@/features/analytics/components/AnalyticsStudentTable'
@@ -137,17 +135,31 @@ export function Analytics() {
           <p className="text-slate-500">Memuat data agregasi dari warehouse...</p>
         </div>
       ) : errorMessage ? (
-        <div className="p-6 bg-red-50 text-red-600 rounded-xl border border-red-100 flex items-start gap-4">
-          {errorMessage.includes('Koneksi') || errorMessage.includes('internet') ? (
-            <WifiOff className="w-6 h-6 shrink-0" />
-          ) : errorMessage.includes('akses') || errorMessage.includes('akses') ? (
-            <AlertCircle className="w-6 h-6 shrink-0" />
-          ) : (
-            <AlertTriangle className="w-6 h-6 shrink-0" />
-          )}
-          <div>
-            <h3 className="font-bold">Gagal memuat analitik</h3>
-            <p className="text-sm mt-1">{errorMessage}</p>
+        <div className="flex-1 w-full flex flex-col items-center justify-center p-12 text-slate-500 dark:text-slate-400">
+          <div className="w-16 h-16 rounded-full bg-red-50 dark:bg-red-900/20 flex items-center justify-center mb-4">
+            <AlertTriangle className="w-8 h-8 text-red-500" />
+          </div>
+          <p className="text-lg font-semibold text-slate-800 dark:text-slate-200 mb-2">
+            Gagal memuat analitik
+          </p>
+          <p className="text-sm text-center max-w-md mb-6">{errorMessage}</p>
+          <div className="flex flex-wrap items-center justify-center gap-3">
+            <button
+              onClick={handleManualRefresh}
+              disabled={refreshMutation.isPending || !selectedCourseId}
+              className="flex items-center gap-2 px-4 py-2.5 rounded-xl font-medium text-white bg-indigo-600 hover:bg-indigo-700 transition-all shadow-sm disabled:opacity-50"
+            >
+              <RefreshCw
+                className={cn('w-4 h-4', refreshMutation.isPending && 'animate-spin')}
+              />
+              Coba Lagi
+            </button>
+            <Link
+              to="/app/teacher/dashboard"
+              className="flex items-center gap-2 px-4 py-2.5 rounded-xl font-medium text-slate-700 dark:text-slate-200 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-700 transition-all shadow-sm"
+            >
+              Kembali ke Dashboard
+            </Link>
           </div>
         </div>
       ) : !data ? (

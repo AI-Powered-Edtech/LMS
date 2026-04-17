@@ -1,8 +1,10 @@
 import {
+  AlertTriangle,
   ArrowUpDown,
   BarChart3,
   BookOpen,
   Loader2,
+  RefreshCw,
   Search,
   ShieldAlert,
   Trophy,
@@ -14,7 +16,8 @@ import {
  * Shows a table of all quizzes across the school with metrics,
  * plus a recent anti-cheat audit log.
  */
-import { useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
+import { Link } from 'react-router-dom'
 
 import { useAuth } from '@/contexts/AuthContext'
 import {
@@ -55,29 +58,28 @@ export function AdminQuizOverview() {
   // ⚡ Perf: Debounce search input to avoid re-filtering on every keystroke
   const debouncedSearch = useDebounce(searchQuery, 300)
 
-  useEffect(() => {
+  const fetchData = useCallback(async () => {
     if (!tenantId) return
-
-    const fetchData = async () => {
-      setIsLoading(true)
-      setError(null)
-      try {
-        const [quizData, auditData] = await Promise.all([
-          getSchoolQuizOverview(tenantId),
-          getAntiCheatAuditLog(tenantId, 50),
-        ])
-        setQuizzes(quizData)
-        setAuditLog(auditData)
-      } catch (err) {
-        if (import.meta.env.DEV) logger.error('Admin quiz overview error:', err)
-        setError('Gagal memuat data kuis')
-      } finally {
-        setIsLoading(false)
-      }
+    setIsLoading(true)
+    setError(null)
+    try {
+      const [quizData, auditData] = await Promise.all([
+        getSchoolQuizOverview(tenantId),
+        getAntiCheatAuditLog(tenantId, 50),
+      ])
+      setQuizzes(quizData)
+      setAuditLog(auditData)
+    } catch (err) {
+      if (import.meta.env.DEV) logger.error('Admin quiz overview error:', err)
+      setError('Gagal memuat data kuis')
+    } finally {
+      setIsLoading(false)
     }
-
-    void fetchData()
   }, [tenantId])
+
+  useEffect(() => {
+    void fetchData()
+  }, [fetchData])
 
   const handleSort = (key: SortKey) => {
     if (sortKey === key) {
@@ -141,6 +143,40 @@ export function AdminQuizOverview() {
         <div className="flex items-center justify-center py-20">
           <Loader2 className="w-8 h-8 animate-spin text-blue-600" />
           <span className="ml-3 text-slate-600 font-medium">Memuat data kuis...</span>
+        </div>
+      </div>
+    )
+  }
+
+  if (error) {
+    return (
+      <div className="max-w-6xl mx-auto px-4 md:px-6 lg:px-8 py-8">
+        <div className="flex-1 w-full flex flex-col items-center justify-center p-12 text-slate-500 dark:text-slate-400">
+          <div className="w-16 h-16 rounded-full bg-red-50 dark:bg-red-900/20 flex items-center justify-center mb-4">
+            <AlertTriangle className="w-8 h-8 text-red-500" />
+          </div>
+          <p className="text-lg font-semibold text-slate-800 dark:text-slate-200 mb-2">
+            {error}
+          </p>
+          <p className="text-sm text-center max-w-md mb-6">
+            Terjadi masalah saat memuat ikhtisar kuis sekolah. Periksa koneksi Anda atau coba
+            lagi dalam beberapa saat.
+          </p>
+          <div className="flex flex-wrap items-center justify-center gap-3">
+            <button
+              onClick={() => void fetchData()}
+              className="flex items-center gap-2 px-4 py-2.5 rounded-xl font-medium text-white bg-blue-600 hover:bg-blue-700 transition-all shadow-sm"
+            >
+              <RefreshCw className="w-4 h-4" />
+              Coba Lagi
+            </button>
+            <Link
+              to="/app/admin/quiz-manager"
+              className="flex items-center gap-2 px-4 py-2.5 rounded-xl font-medium text-slate-700 dark:text-slate-200 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-700 transition-all shadow-sm"
+            >
+              Kembali ke Quiz Manager
+            </Link>
+          </div>
         </div>
       </div>
     )
@@ -233,12 +269,6 @@ export function AdminQuizOverview() {
           )}
         </button>
       </div>
-
-      {error && (
-        <div className="bg-red-50 border border-red-200 rounded-xl p-4 text-center mb-4">
-          <p className="text-red-600">{error}</p>
-        </div>
-      )}
 
       {/* Quiz Table Tab */}
       {activeTab === 'quizzes' && (
