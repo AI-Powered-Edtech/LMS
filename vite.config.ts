@@ -173,7 +173,7 @@ export default defineConfig(({ mode }) => {
       // Do not modify — file watching is disabled to prevent flickering during agent edits.
       hmr: process.env.DISABLE_HMR !== 'true',
       watch: {
-        ignored: ['**/node_modules/**', '**/.pnpm-store/**', '**/.git/**'],
+        ignored: ['**/node_modules/**', '**/.pnpm-store/**', '**/.git/**', '**/edusync-api/**'],
       },
     },
     build: {
