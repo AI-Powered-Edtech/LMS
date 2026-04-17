@@ -1,0 +1,155 @@
+{
+  "persona": "student",
+  "totals": {
+    "steps": 16,
+    "stepsWithConsoleErrors": 0,
+    "stepsWithPageErrors": 0,
+    "stepsEmpty": 0
+  },
+  "results": [
+    {
+      "step": "dashboard",
+      "path": "/#/app/student/dashboard",
+      "consoleErrors": [],
+      "pageErrors": [],
+      "hasMain": true,
+      "visibleText": "Langsung ke konten utama\nLewati ke konten utama\nHalaman dimuat: Pilih Ruang Kerja | EduSync LMS\nLangsung ke konten utama\nE\nEduSync\nRuang Belajar\nSosial & Info\nGamifikasi\nPengaturan\nKeluar\nCari...\n⌘K\n0\nLv 1\n0 XP\n\n🌅 Selamat pagi\n\nAndi!\n\nSiap untuk melanjutkan petualangan belajarmu hari ini?\n\n0\nLv 1\n0 XP\n\nMulai belajar untuk kumpulkan XP pertamamu!\n\nLanjutkan Belajar\nBelum ada materi\n\nGabung ke kela",
+      "screenshot": "tests/qa/reports/student-dashboard.png"
+    },
+    {
+      "step": "courses",
+      "path": "/#/app/student/courses",
+      "consoleErrors": [],
+      "pageErrors": [],
+      "hasMain": true,
+      "visibleText": "Langsung ke konten utama\nLewati ke konten utama\nHalaman dimuat: Dasbor | EduSync LMS\nLangsung ke konten utama\nE\nEduSync\nRuang Belajar\nSosial & Info\nGamifikasi\nPengaturan\nKeluar\nCari...\n⌘K\n0\nLv 1\n0 XP\nE\nEduSync",
+      "screenshot": "tests/qa/reports/student-courses.png"
+    },
+    {
+      "step": "quizzes",
+      "path": "/#/app/student/quizzes",
+      "consoleErrors": [],
+      "pageErrors": [],
+      "hasMain": true,
+      "visibleText": "Langsung ke konten utama\nLewati ke konten utama\nHalaman dimuat: Lesson Viewer | EduSync LMS\nLangsung ke konten utama\nE\nEduSync\nRuang Belajar\nSosial & Info\nGamifikasi\nPengaturan\nKeluar\nCari...\n⌘K\n0\nLv 1\n0 XP\nKuis & Evaluasi\n\nUji pemahaman Anda dengan kuis interaktif\n\n0\n\nTOTAL KUIS\n\n0\n\nSELESAI\n\n0%\n\nRATA-RATA\n\n0\n\nPOIN TOTAL\n\nSemua Kelas\nTersedia\nSelesai\nBelum ada kuis yang tersedia\n\nKuis dari pengaja",
+      "screenshot": "tests/qa/reports/student-quizzes.png"
+    },
+    {
+      "step": "assignments",
+      "path": "/#/app/student/assignments",
+      "consoleErrors": [],
+      "pageErrors": [],
+      "hasMain": true,
+      "visibleText": "Langsung ke konten utama\nLewati ke konten utama\nHalaman dimuat: Modul Kuis | EduSync LMS\nLangsung ke konten utama\nE\nEduSync\nRuang Belajar\nSosial & Info\nGamifikasi\nPengaturan\nKeluar\nCari...\n⌘K\n0\nLv 1\n0 XP\nTugas Kelas\n\nLihat detail tugas, submit attempt, dan pantau hasil penilaian Anda.\n\nSemua\n0\nAktif\n0\nDikumpulkan\n0\nDinilai\n0\nSemua Jenis\nIndividu\nKelompok\nTidak ada tugas ditemukan\n\nCoba ubah filter",
+      "screenshot": "tests/qa/reports/student-assignments.png"
+    },
+    {
+      "step": "grades",
+      "path": "/#/app/student/grades",
+      "consoleErrors": [],
+      "pageErrors": [],
+      "hasMain": true,
+      "visibleText": "Langsung ke konten utama\nLewati ke konten utama\nHalaman dimuat: Tugas | EduSync LMS\nLangsung ke konten utama\nE\nEduSync\nRuang Belajar\nSosial & Info\nGamifikasi\nPengaturan\nKeluar\nCari...\n⌘K\n0\nLv 1\n0 XP\nNilai Kursus Saya\n-- Pilih Kursus --\n\nPilih kursus untuk melihat nilai kamu\n\nSimulasi Nilai (What-If Grades)\n\nMasukkan nilai \"andaikan\" untuk melihat proyeksi nilai akhirmu.\n\nNilai Saat Ini\n\n0.0\n/ 100\n",
+      "screenshot": "tests/qa/reports/student-grades.png"
+    },
+    {
+      "step": "gamification",
+      "path": "/#/app/student/gamification",
+      "consoleErrors": [],
+      "pageErrors": [],
+      "hasMain": true,
+      "visibleText": "Langsung ke konten utama\nLewati ke konten utama\nHalaman dimuat: Nilai | EduSync LMS\nLangsung ke konten utama\nE\nEduSync\nRuang Belajar\nSosial & Info\nGamifikasi\nPengaturan\nKeluar\nCari...\n⌘K\n0\nLv 1\n0 XP\nPrestasi & Permainan\n\nLihat pencapaian, sertifikat, dan mainkan kuis.\n\nPapan Peringkat\n\nPeringkat siswa, XP, dan liga gamifikasi.\n\nSertifikat\n\nGaleri sertifikat kelulusan dan pencapaian.",
+      "screenshot": "tests/qa/reports/student-gamification.png"
+    },
+    {
+      "step": "leaderboard",
+      "path": "/#/app/student/leaderboard",
+      "consoleErrors": [],
+      "pageErrors": [],
+      "hasMain": true,
+      "visibleText": "Langsung ke konten utama\nLewati ke konten utama\nHalaman dimuat: Nilai | EduSync LMS\nLangsung ke konten utama\nE\nEduSync\nRuang Belajar\nSosial & Info\nGamifikasi\nPengaturan\nKeluar\nCari...\n⌘K\n0\nLv 1\n0 XP\nPapan Peringkat\nMingguan\nBulanan\nSepanjang Waktu\nXP\nStreak\nBelum ada peringkat\n\nKerjakan pelajaran dan kuis untuk mendapatkan XP!",
+      "screenshot": "tests/qa/reports/student-leaderboard.png"
+    },
+    {
+      "step": "certificates",
+      "path": "/#/app/student/certificates",
+      "consoleErrors": [],
+      "pageErrors": [],
+      "hasMain": true,
+      "visibleText": "Langsung ke konten utama\nLewati ke konten utama\nHalaman dimuat: Papan Peringkat | EduSync LMS\nLangsung ke konten utama\nE\nEduSync\nRuang Belajar\nSosial & Info\nGamifikasi\nPengaturan\nKeluar\nCari...\n⌘K\n0\nLv 1\n0 XP\nSertifikat Saya\n\nPortofolio digital yang memvalidasi pencapaian akademik Anda.\n\nSertifikat\nBelum ada sertifikat\n\nSelesaikan kursus untuk mendapatkan sertifikat penyelesaian. Sertifikat akan t",
+      "screenshot": "tests/qa/reports/student-certificates.png"
+    },
+    {
+      "step": "attendance",
+      "path": "/#/app/student/attendance",
+      "consoleErrors": [],
+      "pageErrors": [],
+      "hasMain": true,
+      "visibleText": "Langsung ke konten utama\nLewati ke konten utama\nHalaman dimuat: Sertifikat | EduSync LMS\nLangsung ke konten utama\nE\nEduSync\nRuang Belajar\nSosial & Info\nGamifikasi\nPengaturan\nKeluar\nCari...\n⌘K\n0\nLv 1\n0 XP\nRekap Kehadiran\n\nRiwayat kehadiran kamu berdasarkan data scan guru.\n\nKEHADIRAN\n\n0%\n\n0 pertemuan\n\nHADIR\n\n0\n\npertemuan\n\nSAKIT\n\n0\n\npertemuan\n\nALPHA\n\n0\n\npertemuan\n\nRiwayat Pertemuan\nBelum ada data keh",
+      "screenshot": "tests/qa/reports/student-attendance.png"
+    },
+    {
+      "step": "peer-reviews",
+      "path": "/#/app/student/peer-reviews",
+      "consoleErrors": [],
+      "pageErrors": [],
+      "hasMain": true,
+      "visibleText": "Langsung ke konten utama\nLewati ke konten utama\nHalaman dimuat: Kehadiran Siswa | EduSync LMS\nLangsung ke konten utama\nE\nEduSync\nRuang Belajar\nSosial & Info\nGamifikasi\nPengaturan\nKeluar\nCari...\n⌘K\n0\nLv 1\n0 XP\nPeer Review\n\nTugas penilaian sejawat yang diberikan kepada Anda\n\nTidak ada tugas peer review saat ini\n\nTugas peer review akan muncul di sini ketika guru mengaktifkannya.",
+      "screenshot": "tests/qa/reports/student-peer-reviews.png"
+    },
+    {
+      "step": "profile",
+      "path": "/#/profile",
+      "consoleErrors": [],
+      "pageErrors": [],
+      "hasMain": true,
+      "visibleText": "Langsung ke konten utama\nLewati ke konten utama\nHalaman dimuat: Kehadiran Siswa | EduSync LMS\nLangsung ke konten utama\nE\nEduSync\nRuang Belajar\nSosial & Info\nGamifikasi\nPengaturan\nKeluar\nCari...\n⌘K\n0\nLv 1\n0 XP\nProfil Pengguna\nAndi Student\nSiswa\nstudent@edusync.dev\nInformasi Profil\n\nPerbarui nama tampilan Anda\n\nAndi Student\n\nstudent@edusync.dev\n\nAvatar dibuat otomatis berdasarkan akun Anda\n\nNama Dep",
+      "screenshot": "tests/qa/reports/student-profile.png"
+    },
+    {
+      "step": "settings",
+      "path": "/#/settings",
+      "consoleErrors": [],
+      "pageErrors": [],
+      "hasMain": true,
+      "visibleText": "Langsung ke konten utama\nLewati ke konten utama\nHalaman dimuat: Profil | EduSync LMS\nLangsung ke konten utama\nE\nEduSync\nRuang Belajar\nSosial & Info\nGamifikasi\nPengaturan\nKeluar\nCari...\n⌘K\n0\nLv 1\n0 XP\nPengaturan\n\nKelola preferensi akun, notifikasi, dan tampilan aplikasi.\n\nAkun & Profil\nNotifikasi\nKeamanan\nTampilan\nBahasa & Wilayah\nAksesibilitas\nInformasi Akun\n\nPerbarui informasi dasar akun Anda.\n\nU",
+      "screenshot": "tests/qa/reports/student-settings.png"
+    },
+    {
+      "step": "notifications",
+      "path": "/#/notifications",
+      "consoleErrors": [],
+      "pageErrors": [],
+      "hasMain": true,
+      "visibleText": "Langsung ke konten utama\nLewati ke konten utama\nHalaman dimuat: Pengaturan | EduSync LMS\nLangsung ke konten utama\nE\nEduSync\nRuang Belajar\nSosial & Info\nGamifikasi\nPengaturan\nKeluar\nCari...\n⌘K\n0\nLv 1\n0 XP\nNotifikasi\n\nSemua sudah dibaca\n\nSemua\nBelum Dibaca\nPengumuman\nNilai\nTugas\nKuis\nLencana\nDiskusi\nSistem\n\nTidak ada notifikasi baru\n\nNotifikasi terbaru akan muncul di sini.\n\nPengaturan Notifikasi",
+      "screenshot": "tests/qa/reports/student-notifications.png"
+    },
+    {
+      "step": "calendar",
+      "path": "/#/calendar",
+      "consoleErrors": [],
+      "pageErrors": [],
+      "hasMain": true,
+      "visibleText": "Langsung ke konten utama\nLewati ke konten utama\nHalaman dimuat: Notifikasi | EduSync LMS\nLangsung ke konten utama\nE\nEduSync\nRuang Belajar\nSosial & Info\nGamifikasi\nPengaturan\nKeluar\nCari...\n⌘K\n0\nLv 1\n0 XP\nJadwal & Kalender\n\nKelola tugas, ujian, dan acara penting Anda dalam satu tempat.\n\nBulan\nAgenda\nTambah\nApril 2026\nHari Ini\nMIN\nSEN\nSEL\nRAB\nKAM\nJUM\nSAB\n1\n2\n3\n4\n5\n6\n7\n8\n9\n10\n11\n12\n13\n14\n15\n16\n17\n18\n",
+      "screenshot": "tests/qa/reports/student-calendar.png"
+    },
+    {
+      "step": "announcements",
+      "path": "/#/announcements",
+      "consoleErrors": [],
+      "pageErrors": [],
+      "hasMain": true,
+      "visibleText": "Langsung ke konten utama\nLewati ke konten utama\nHalaman dimuat: Kalender | EduSync LMS\nLangsung ke konten utama\nE\nEduSync\nRuang Belajar\nSosial & Info\nGamifikasi\nPengaturan\nKeluar\nCari...\n⌘K\n0\nLv 1\n0 XP\nPengumuman\n\nInformasi penting, jadwal, dan pembaruan dari sekolah.\n\nSemua\nBelum Dibaca\nDisematkan\nTidak ada pengumuman\n\nBelum ada pengumuman baru yang sesuai dengan filter atau pencarian Anda.",
+      "screenshot": "tests/qa/reports/student-announcements.png"
+    },
+    {
+      "step": "forum",
+      "path": "/#/forum",
+      "consoleErrors": [],
+      "pageErrors": [],
+      "hasMain": true,
+      "visibleText": "Langsung ke konten utama\nLewati ke konten utama\nHalaman dimuat: Pengumuman | EduSync LMS\nLangsung ke konten utama\nE\nEduSync\nRuang Belajar\nSosial & Info\nGamifikasi\nPengaturan\nKeluar\nCari...\n⌘K\n0\nLv 1\n0 XP\nRuang Diskusi\nBeta\n\nTanya, jawab, dan belajar bersama komunitas. Dapatkan Knowledge Points (KP)!\n\n0\nKP SAYA\nAKTIF\nSemua\nMatematika\nFisika\nKimia\nBiologi\nPemrograman\nUmum\nMatematika\nFisika\nKimia\nBio",
+      "screenshot": "tests/qa/reports/student-forum.png"
+    }
+  ]
+}

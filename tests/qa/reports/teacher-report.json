@@ -1,0 +1,254 @@
+{
+  "persona": "teacher",
+  "totals": {
+    "steps": 27,
+    "stepsWithConsoleErrors": 0,
+    "stepsWithPageErrors": 0,
+    "stepsEmpty": 0
+  },
+  "results": [
+    {
+      "step": "dashboard",
+      "path": "/#/app/teacher/dashboard",
+      "consoleErrors": [],
+      "pageErrors": [],
+      "hasMain": false,
+      "visibleText": "Langsung ke konten utama\nLewati ke konten utama\nLangsung ke konten utama\nE\nEduSync\nKELAS AKTIF\nPilih kelas\nPusat Mengajar\nSosial & Info\nGamifikasi\nPengaturan\nKeluar\nCari...\n⌘K\nGuru\nE\nEduSync",
+      "screenshot": "tests/qa/reports/teacher-dashboard.png"
+    },
+    {
+      "step": "courses",
+      "path": "/#/app/teacher/courses",
+      "consoleErrors": [],
+      "pageErrors": [],
+      "hasMain": true,
+      "visibleText": "Langsung ke konten utama\nLewati ke konten utama\nHalaman dimuat: Dasbor Guru | EduSync LMS\nLangsung ke konten utama\nE\nEduSync\nKELAS AKTIF\nPilih kelas\nPusat Mengajar\nSosial & Info\nGamifikasi\nPengaturan\nKeluar\nCari...\n⌘K\nGuru\nKelola Materi\n\nSusun kurikulum, modul pembelajaran, dan kuis interaktif untuk siswa Anda.\n\nBuat Materi Baru\nMulai Petualangan Anda\n\nAnda belum memiliki materi. Mari buat materi ",
+      "screenshot": "tests/qa/reports/teacher-courses.png"
+    },
+    {
+      "step": "course-builder",
+      "path": "/#/app/teacher/course-builder",
+      "consoleErrors": [],
+      "pageErrors": [],
+      "hasMain": true,
+      "visibleText": "Langsung ke konten utama\nLewati ke konten utama\nHalaman dimuat: EduSync\nLangsung ke konten utama\nE\nEduSync\nKELAS AKTIF\nPilih kelas\nPusat Mengajar\nSosial & Info\nGamifikasi\nPengaturan\nKeluar\nCari...\n⌘K\nGuru\nE\nEduSync",
+      "screenshot": "tests/qa/reports/teacher-course-builder.png"
+    },
+    {
+      "step": "gradebook",
+      "path": "/#/app/teacher/gradebook",
+      "consoleErrors": [],
+      "pageErrors": [],
+      "hasMain": true,
+      "visibleText": "Langsung ke konten utama\nLewati ke konten utama\nHalaman dimuat: Pembuat Kursus | EduSync LMS\nLangsung ke konten utama\nE\nEduSync\nKELAS AKTIF\nPilih kelas\nPusat Mengajar\nSosial & Info\nGamifikasi\nPengaturan\nKeluar\nCari...\n⌘K\nGuru\nBuku Nilai Tugas\n\nKelola pengiriman tugas dan berikan penilaian kepada siswa.\n\nBelum Ada Tugas\n\nBuat tugas pertama Anda di Course Builder.",
+      "screenshot": "tests/qa/reports/teacher-gradebook.png"
+    },
+    {
+      "step": "quiz-manager",
+      "path": "/#/app/teacher/quiz-manager",
+      "consoleErrors": [],
+      "pageErrors": [],
+      "hasMain": true,
+      "visibleText": "Langsung ke konten utama\nLewati ke konten utama\nHalaman dimuat: Buku Nilai Tugas | EduSync LMS\nLangsung ke konten utama\nE\nEduSync\nKELAS AKTIF\nPilih kelas\nPusat Mengajar\nSosial & Info\nGamifikasi\nPengaturan\nKeluar\nCari...\n⌘K\nGuru\nManajemen Kuis\n\nPilih kelas terlebih dahulu\n\nGunakan sidebar untuk memilih kelas aktif.",
+      "screenshot": "tests/qa/reports/teacher-quiz-manager.png"
+    },
+    {
+      "step": "quiz-gradebook",
+      "path": "/#/app/teacher/quiz-gradebook",
+      "consoleErrors": [],
+      "pageErrors": [],
+      "hasMain": true,
+      "visibleText": "Langsung ke konten utama\nLewati ke konten utama\nHalaman dimuat: Manajemen Kuis | EduSync LMS\nLangsung ke konten utama\nE\nEduSync\nKELAS AKTIF\nPilih kelas\nPusat Mengajar\nSosial & Info\nGamifikasi\nPengaturan\nKeluar\nCari...\n⌘K\nGuru\nBuku Nilai Kuis\n\nRekap nilai assignment kuis per kelas\n\nEkspor CSV\nRefresh\nPILIH KELAS\n-- Pilih kelas --\nPILIH ASSIGNMENT\n-- Pilih assignment kuis --\nPilih kelas dan assignme",
+      "screenshot": "tests/qa/reports/teacher-quiz-gradebook.png"
+    },
+    {
+      "step": "assignment-gradebook",
+      "path": "/#/app/teacher/assignment-gradebook",
+      "consoleErrors": [],
+      "pageErrors": [],
+      "hasMain": true,
+      "visibleText": "Langsung ke konten utama\nLewati ke konten utama\nHalaman dimuat: Buku Nilai Tugas | EduSync LMS\nLangsung ke konten utama\nE\nEduSync\nKELAS AKTIF\nPilih kelas\nPusat Mengajar\nSosial & Info\nGamifikasi\nPengaturan\nKeluar\nCari...\n⌘K\nGuru\nBuku Nilai Tugas\n\nKelola pengiriman tugas dan berikan penilaian kepada siswa.\n\nBelum Ada Tugas\n\nBuat tugas pertama Anda di Course Builder.",
+      "screenshot": "tests/qa/reports/teacher-assignment-gradebook.png"
+    },
+    {
+      "step": "question-bank",
+      "path": "/#/app/teacher/question-bank",
+      "consoleErrors": [],
+      "pageErrors": [],
+      "hasMain": true,
+      "visibleText": "Langsung ke konten utama\nLewati ke konten utama\nHalaman dimuat: Buku Nilai Tugas | EduSync LMS\nLangsung ke konten utama\nE\nEduSync\nKELAS AKTIF\nPilih kelas\nPusat Mengajar\nSosial & Info\nGamifikasi\nPengaturan\nKeluar\nCari...\n⌘K\nGuru\nBank Soal\n\nKelola koleksi soal untuk kuis dan ujian.\n\nBuat Soal Baru\nExport / Import Soal\nExport Soal\nImport Soal\n\nFormat: JSON. File export dapat di-import ke instance Edu",
+      "screenshot": "tests/qa/reports/teacher-question-bank.png"
+    },
+    {
+      "step": "classes",
+      "path": "/#/app/teacher/classes",
+      "consoleErrors": [],
+      "pageErrors": [],
+      "hasMain": true,
+      "visibleText": "Langsung ke konten utama\nLewati ke konten utama\nHalaman dimuat: Bank Soal | EduSync LMS\nLangsung ke konten utama\nE\nEduSync\nKELAS AKTIF\nPilih kelas\nPusat Mengajar\nSosial & Info\nGamifikasi\nPengaturan\nKeluar\nCari...\n⌘K\nGuru\nManajemen Kelas\n\nKelola kelas, lihat siswa, dan atur pengaturan kelas Anda\n\nBuat Kelas Baru\nBelum ada kelas\n\nKlik \"Buat Kelas Baru\" untuk memulai\n\nPilih kelas untuk melihat detail",
+      "screenshot": "tests/qa/reports/teacher-classes.png"
+    },
+    {
+      "step": "analytics",
+      "path": "/#/app/teacher/analytics",
+      "consoleErrors": [],
+      "pageErrors": [],
+      "hasMain": true,
+      "visibleText": "Langsung ke konten utama\nLewati ke konten utama\nHalaman dimuat: Manajemen Kelas | EduSync LMS\nLangsung ke konten utama\nE\nEduSync\nKELAS AKTIF\nPilih kelas\nPusat Mengajar\nSosial & Info\nGamifikasi\nPengaturan\nKeluar\nCari...\n⌘K\nGuru\nMesin Analitik Pembelajaran\n\nPantau perkembangan komprehensif siswa menggunakan data teragregasi.\n\nTidak ada kursus\nBuat Kursus\nPerbarui\nDetail Analitik\nAI Insight\n\nPilih ku",
+      "screenshot": "tests/qa/reports/teacher-analytics.png"
+    },
+    {
+      "step": "course-analytics",
+      "path": "/#/app/teacher/course-analytics",
+      "consoleErrors": [],
+      "pageErrors": [],
+      "hasMain": true,
+      "visibleText": "Langsung ke konten utama\nLewati ke konten utama\nHalaman dimuat: Analitik | EduSync LMS\nLangsung ke konten utama\nE\nEduSync\nKELAS AKTIF\nPilih kelas\nPusat Mengajar\nSosial & Info\nGamifikasi\nPengaturan\nKeluar\nCari...\n⌘K\nGuru\nKursus tidak ditemukan\n\nParameter courseId tidak tersedia. Silakan akses halaman ini dari menu Analitik.\n\nKembali",
+      "screenshot": "tests/qa/reports/teacher-course-analytics.png"
+    },
+    {
+      "step": "dashboards",
+      "path": "/#/app/teacher/dashboards",
+      "consoleErrors": [],
+      "pageErrors": [],
+      "hasMain": true,
+      "visibleText": "Langsung ke konten utama\nLewati ke konten utama\nHalaman dimuat: Analitik Kursus | EduSync LMS\nLangsung ke konten utama\nE\nEduSync\nKELAS AKTIF\nPilih kelas\nPusat Mengajar\nSosial & Info\nGamifikasi\nPengaturan\nKeluar\nCari...\n⌘K\nGuru\nDashboard Kustom\n\nKelola tampilan analitik kustom untuk kelasmu\n\nDaftar Dashboard\n\n0 dashboard tersimpan\n\nBuat Dashboard\n\nBelum ada dashboard\n\nBuat dashboard kustom pertamam",
+      "screenshot": "tests/qa/reports/teacher-dashboards.png"
+    },
+    {
+      "step": "creator",
+      "path": "/#/app/teacher/creator",
+      "consoleErrors": [],
+      "pageErrors": [],
+      "hasMain": true,
+      "visibleText": "Langsung ke konten utama\nLewati ke konten utama\nHalaman dimuat: Dasbor | EduSync LMS\nLangsung ke konten utama\nE\nEduSync\nKELAS AKTIF\nPilih kelas\nPusat Mengajar\nSosial & Info\nGamifikasi\nPengaturan\nKeluar\nCari...\n⌘K\nGuru\nGenerator Kursus & Kuis AI\n\nUnggah dokumen atau materi — AI akan otomatis membuat soal sesuai level Bloom.\n\nKreator AI: Otomatisasi pembuatan konten dari materi yang ada. Mendukung P",
+      "screenshot": "tests/qa/reports/teacher-creator.png"
+    },
+    {
+      "step": "leaderboard",
+      "path": "/#/app/teacher/leaderboard",
+      "consoleErrors": [],
+      "pageErrors": [],
+      "hasMain": true,
+      "visibleText": "Langsung ke konten utama\nLewati ke konten utama\nHalaman dimuat: Kreator AI | EduSync LMS\nLangsung ke konten utama\nE\nEduSync\nKELAS AKTIF\nPilih kelas\nPusat Mengajar\nSosial & Info\nGamifikasi\nPengaturan\nKeluar\nCari...\n⌘K\nGuru\nPapan Peringkat\nMingguan\nBulanan\nSepanjang Waktu\nXP\nStreak\nBelum ada peringkat\n\nKerjakan pelajaran dan kuis untuk mendapatkan XP!",
+      "screenshot": "tests/qa/reports/teacher-leaderboard.png"
+    },
+    {
+      "step": "moderation",
+      "path": "/#/app/teacher/moderation",
+      "consoleErrors": [],
+      "pageErrors": [],
+      "hasMain": true,
+      "visibleText": "Langsung ke konten utama\nLewati ke konten utama\nHalaman dimuat: Papan Peringkat | EduSync LMS\nLangsung ke konten utama\nE\nEduSync\nKELAS AKTIF\nPilih kelas\nPusat Mengajar\nSosial & Info\nGamifikasi\nPengaturan\nKeluar\nCari...\n⌘K\nGuru\nKembali\nModerasi Konten\n\nTinjau laporan pengguna dan ambil tindakan terhadap konten yang melanggar.\n\nPerlu Tinjauan\nSelesai\nSemua\nTidak ada laporan\n\nSemua aman terkendali!",
+      "screenshot": "tests/qa/reports/teacher-moderation.png"
+    },
+    {
+      "step": "struggle",
+      "path": "/#/app/teacher/struggle",
+      "consoleErrors": [],
+      "pageErrors": [],
+      "hasMain": true,
+      "visibleText": "Langsung ke konten utama\nLewati ke konten utama\nHalaman dimuat: Dasbor Moderasi | EduSync LMS\nLangsung ke konten utama\nE\nEduSync\nKELAS AKTIF\nPilih kelas\nPusat Mengajar\nSosial & Info\nGamifikasi\nPengaturan\nKeluar\nCari...\n⌘K\nGuru\nDeteksi Kesulitan Belajar\n\nPantau siswa yang membutuhkan bantuan ekstra berdasarkan sinyal belajar mereka.\n\nKonfigurasi Deteksi\n\n0\n\nTotal alert aktif\n\n0\n\nStatus darurat\n\n0\n\n",
+      "screenshot": "tests/qa/reports/teacher-struggle.png"
+    },
+    {
+      "step": "lesson-monitor",
+      "path": "/#/app/teacher/lesson-monitor",
+      "consoleErrors": [],
+      "pageErrors": [],
+      "hasMain": true,
+      "visibleText": "Langsung ke konten utama\nLewati ke konten utama\nHalaman dimuat: Deteksi Kesulitan Belajar | EduSync LMS\nLangsung ke konten utama\nE\nEduSync\nKELAS AKTIF\nPilih kelas\nPusat Mengajar\nSosial & Info\nGamifikasi\nPengaturan\nKeluar\nCari...\n⌘K\nGuru\nMonitor Pelajaran\n\nPantau progress siswa secara real-time dan berikan bantuan tepat waktu\n\nLIVE\nPilih Kursus\nPilih kursus untuk memantau...\nPilih Kursus\n\nPilih kur",
+      "screenshot": "tests/qa/reports/teacher-lesson-monitor.png"
+    },
+    {
+      "step": "scan-attendance",
+      "path": "/#/app/teacher/scan-attendance",
+      "consoleErrors": [],
+      "pageErrors": [],
+      "hasMain": true,
+      "visibleText": "Langsung ke konten utama\nLewati ke konten utama\nHalaman dimuat: Monitor Pelajaran | EduSync LMS\nLangsung ke konten utama\nE\nEduSync\nKELAS AKTIF\nPilih kelas\nPusat Mengajar\nSosial & Info\nGamifikasi\nPengaturan\nKeluar\nCari...\n⌘K\nGuru\nScan Buku Absensi\n\nOtomatisasi pencatatan kehadiran dengan memindai buku absensi kelas menggunakan AI.\n\nPilih Kelas\n-- Pilih kelas (opsional) --\nPindai Buku Absensi\n\nArahk",
+      "screenshot": "tests/qa/reports/teacher-scan-attendance.png"
+    },
+    {
+      "step": "documents",
+      "path": "/#/app/teacher/documents",
+      "consoleErrors": [],
+      "pageErrors": [],
+      "hasMain": true,
+      "visibleText": "Langsung ke konten utama\nLewati ke konten utama\nHalaman dimuat: Pindai Kehadiran | EduSync LMS\nLangsung ke konten utama\nE\nEduSync\nKELAS AKTIF\nPilih kelas\nPusat Mengajar\nSosial & Info\nGamifikasi\nPengaturan\nKeluar\nCari...\n⌘K\nGuru\nSurat & Dokumen\n\n0 dokumen tersimpan\n\nUnggah Dokumen\nSemua Kategori\nSurat Masuk\nSurat Keluar\nSK\nPengumuman\nRapor\nUmum\n\nSurat Masuk\n\n0\n\nSurat Keluar\n\n0\n\nSK\n\n0\n\nPengumuman\n\n0",
+      "screenshot": "tests/qa/reports/teacher-documents.png"
+    },
+    {
+      "step": "adaptive-paths",
+      "path": "/#/app/teacher/adaptive-paths",
+      "consoleErrors": [],
+      "pageErrors": [],
+      "hasMain": true,
+      "visibleText": "Langsung ke konten utama\nLewati ke konten utama\nHalaman dimuat: Manajemen Dokumen | EduSync LMS\nLangsung ke konten utama\nE\nEduSync\nKELAS AKTIF\nPilih kelas\nPusat Mengajar\nSosial & Info\nGamifikasi\nPengaturan\nKeluar\nCari...\n⌘K\nGuru\nJalur Adaptif\n\nKonfigurasikan aturan pembelajaran adaptif berdasarkan performa siswa\n\nPILIH KURSUS\n-- Pilih kursus --\n\nTidak ada kursus tersedia. Buat kursus terlebih dahu",
+      "screenshot": "tests/qa/reports/teacher-adaptive-paths.png"
+    },
+    {
+      "step": "profile",
+      "path": "/#/profile",
+      "consoleErrors": [],
+      "pageErrors": [],
+      "hasMain": true,
+      "visibleText": "Langsung ke konten utama\nLewati ke konten utama\nHalaman dimuat: Jalur Adaptif | EduSync LMS\nLangsung ke konten utama\nE\nEduSync\nKELAS AKTIF\nPilih kelas\nPusat Mengajar\nSosial & Info\nGamifikasi\nPengaturan\nKeluar\nCari...\n⌘K\nGuru\nProfil Pengguna\nBu Siti Teacher\nGuru\nteacher@edusync.dev\nInformasi Profil\n\nPerbarui nama tampilan Anda\n\nBu Siti Teacher\n\nteacher@edusync.dev\n\nAvatar dibuat otomatis berdasarka",
+      "screenshot": "tests/qa/reports/teacher-profile.png"
+    },
+    {
+      "step": "settings",
+      "path": "/#/settings",
+      "consoleErrors": [],
+      "pageErrors": [],
+      "hasMain": true,
+      "visibleText": "Langsung ke konten utama\nLewati ke konten utama\nHalaman dimuat: Profil | EduSync LMS\nLangsung ke konten utama\nE\nEduSync\nKELAS AKTIF\nPilih kelas\nPusat Mengajar\nSosial & Info\nGamifikasi\nPengaturan\nKeluar\nCari...\n⌘K\nGuru\nE\nEduSync",
+      "screenshot": "tests/qa/reports/teacher-settings.png"
+    },
+    {
+      "step": "notifications",
+      "path": "/#/notifications",
+      "consoleErrors": [],
+      "pageErrors": [],
+      "hasMain": true,
+      "visibleText": "Langsung ke konten utama\nLewati ke konten utama\nHalaman dimuat: Profil | EduSync LMS\nLangsung ke konten utama\nE\nEduSync\nKELAS AKTIF\nPilih kelas\nPusat Mengajar\nSosial & Info\nGamifikasi\nPengaturan\nKeluar\nCari...\n⌘K\nGuru\nE\nEduSync",
+      "screenshot": "tests/qa/reports/teacher-notifications.png"
+    },
+    {
+      "step": "calendar",
+      "path": "/#/calendar",
+      "consoleErrors": [],
+      "pageErrors": [],
+      "hasMain": true,
+      "visibleText": "Langsung ke konten utama\nLewati ke konten utama\nHalaman dimuat: Notifikasi | EduSync LMS\nLangsung ke konten utama\nE\nEduSync\nKELAS AKTIF\nPilih kelas\nPusat Mengajar\nSosial & Info\nGamifikasi\nPengaturan\nKeluar\nCari...\n⌘K\nGuru\nJadwal & Kalender\n\nKelola tugas, ujian, dan acara penting Anda dalam satu tempat.\n\nBulan\nAgenda\nTambah\nApril 2026\nHari Ini\nMIN\nSEN\nSEL\nRAB\nKAM\nJUM\nSAB\n1\n2\n3\n4\n5\n6\n7\n8\n9\n10\n11\n12\n",
+      "screenshot": "tests/qa/reports/teacher-calendar.png"
+    },
+    {
+      "step": "announcements",
+      "path": "/#/announcements",
+      "consoleErrors": [],
+      "pageErrors": [],
+      "hasMain": true,
+      "visibleText": "Langsung ke konten utama\nLewati ke konten utama\nHalaman dimuat: Kalender | EduSync LMS\nLangsung ke konten utama\nE\nEduSync\nKELAS AKTIF\nPilih kelas\nPusat Mengajar\nSosial & Info\nGamifikasi\nPengaturan\nKeluar\nCari...\n⌘K\nGuru\nPengumuman\n\nInformasi penting, jadwal, dan pembaruan dari sekolah.\n\nBuat Pengumuman\nSemua\nBelum Dibaca\nDisematkan\nTidak ada pengumuman\n\nBelum ada pengumuman baru yang sesuai dengan",
+      "screenshot": "tests/qa/reports/teacher-announcements.png"
+    },
+    {
+      "step": "forum",
+      "path": "/#/forum",
+      "consoleErrors": [],
+      "pageErrors": [],
+      "hasMain": true,
+      "visibleText": "Langsung ke konten utama\nLewati ke konten utama\nHalaman dimuat: Pengumuman | EduSync LMS\nLangsung ke konten utama\nE\nEduSync\nKELAS AKTIF\nPilih kelas\nPusat Mengajar\nSosial & Info\nGamifikasi\nPengaturan\nKeluar\nCari...\n⌘K\nGuru\nE\nEduSync",
+      "screenshot": "tests/qa/reports/teacher-forum.png"
+    },
+    {
+      "step": "directory",
+      "path": "/#/directory",
+      "consoleErrors": [],
+      "pageErrors": [],
+      "hasMain": true,
+      "visibleText": "Langsung ke konten utama\nLewati ke konten utama\nHalaman dimuat: Forum | EduSync LMS\nLangsung ke konten utama\nE\nEduSync\nKELAS AKTIF\nPilih kelas\nPusat Mengajar\nSosial & Info\nGamifikasi\nPengaturan\nKeluar\nCari...\n⌘K\nGuru\nDirektori Modul\n\nDaftar seluruh halaman dan fitur tambahan yang tersedia untuk peran Anda.\n\nProfil Pengguna\n\nKelola informasi akun dan preferensi.\n\nPengaturan\n\nKonfigurasi aplikasi da",
+      "screenshot": "tests/qa/reports/teacher-directory.png"
+    }
+  ]
+}

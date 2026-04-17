@@ -1,0 +1,10 @@
+[
+  {
+    "relation": ["delegate_permission/common.handle_all_urls"],
+    "target": {
+      "namespace": "android_app",
+      "package_name": "id.edusync.lms",
+      "sha256_cert_fingerprints": ["B8:B4:7F:E5:B3:71:EA:5A:CF:3F:5A:1B:2F:96:BC:19:08:D1:2B:BE:5F:FA:DB:AF:1F:DF:4F:29:50:82:7E:92"]
+    }
+  }
+]

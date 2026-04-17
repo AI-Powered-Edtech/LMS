@@ -1,7 +1,7 @@
-import { usePageTitle } from '@/hooks/usePageTitle'
+import { usePageTitle } from "@/hooks/usePageTitle";
 
 export function PrivacyPolicy() {
-  usePageTitle('Kebijakan Privasi')
+  usePageTitle("Kebijakan Privasi");
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-900 dark:to-slate-800 py-12 px-4">
@@ -12,27 +12,21 @@ export function PrivacyPolicy() {
             <h1 className="text-3xl font-bold text-slate-900 dark:text-white mb-2">
               Kebijakan Privasi
             </h1>
-            <p className="text-slate-500 dark:text-slate-400">Terakhir diperbarui: April 2026</p>
+            <p className="text-slate-500 dark:text-slate-400">
+              Terakhir diperbarui: April 2026
+            </p>
           </div>
 
           <div className="prose prose-slate dark:prose-invert max-w-none space-y-6">
-            <div className="bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-xl p-4">
-              <p className="text-amber-800 dark:text-amber-200 font-medium text-center">
-                ⚠️ DRAFT - Halaman ini masih dalam tahap pengembangan.
-              </p>
-              <p className="text-amber-700 dark:text-amber-300 text-sm text-center mt-2">
-                Konten lengkap akan segera tersedia.
-              </p>
-            </div>
-
             <section>
               <h2 className="text-xl font-bold text-slate-900 dark:text-white mb-3">
                 1. Pendahuluan
               </h2>
               <p className="text-slate-600 dark:text-slate-300">
-                EduSync sangat memperhatikan privasi pengguna. Kebijakan Privasi ini menjelaskan
-                bagaimana kami mengumpulkan, menggunakan, mengungkapkan, dan mengamankan informasi
-                pribadi Anda saat menggunakan layanan kami.
+                EduSync sangat memperhatikan privasi pengguna. Kebijakan Privasi
+                ini menjelaskan bagaimana kami mengumpulkan, menggunakan,
+                mengungkapkan, dan mengamankan informasi pribadi Anda saat
+                menggunakan layanan kami.
               </p>
             </section>
 
@@ -41,7 +35,8 @@ export function PrivacyPolicy() {
                 2. Informasi yang Kami Kumpulkan
               </h2>
               <p className="text-slate-600 dark:text-slate-300">
-                Kami mengumpulkan informasi yang Anda berikan secara langsung, seperti:
+                Kami mengumpulkan informasi yang Anda berikan secara langsung,
+                seperti:
               </p>
               <ul className="list-disc pl-6 space-y-2 text-slate-600 dark:text-slate-300 mt-2">
                 <li>Nama dan informasi profil</li>
@@ -71,9 +66,9 @@ export function PrivacyPolicy() {
                 4. Keamanan Data
               </h2>
               <p className="text-slate-600 dark:text-slate-300">
-                Kami menggunakan langkah-langkah keamanan yang sesuai untuk melindungi informasi
-                pribadi Anda, termasuk enkripsi data, akses terbatas, dan pemantauan keamanan
-                berkala.
+                Kami menggunakan langkah-langkah keamanan yang sesuai untuk
+                melindungi informasi pribadi Anda, termasuk enkripsi data, akses
+                terbatas, dan pemantauan keamanan berkala.
               </p>
             </section>
 
@@ -82,9 +77,9 @@ export function PrivacyPolicy() {
                 5. Hak Pengguna
               </h2>
               <p className="text-slate-600 dark:text-slate-300">
-                Anda memiliki hak untuk mengakses, memperbaiki, atau menghapus data pribadi Anda.
-                Untuk menggunakan hak ini, silakan hubungi kami melalui pengaturan akun atau email
-                dukungan.
+                Anda memiliki hak untuk mengakses, memperbaiki, atau menghapus
+                data pribadi Anda. Untuk menggunakan hak ini, silakan hubungi
+                kami melalui pengaturan akun atau email dukungan.
               </p>
             </section>
 
@@ -93,18 +88,48 @@ export function PrivacyPolicy() {
                 6. Perubahan Kebijakan
               </h2>
               <p className="text-slate-600 dark:text-slate-300">
-                Kami dapat memperbarui kebijakan privasi ini sewaktu-waktu. Perubahan signifikan
-                akan diinformasikan melalui email atau notifikasi dalam aplikasi.
+                Kami dapat memperbarui kebijakan privasi ini sewaktu-waktu.
+                Perubahan signifikan akan diinformasikan melalui email atau
+                notifikasi dalam aplikasi.
               </p>
             </section>
 
             <section>
               <h2 className="text-xl font-bold text-slate-900 dark:text-white mb-3">
-                7. Hubungi Kami
+                7. Kepatuhan UU Perlindungan Data Pribadi (UU PDP)
               </h2>
               <p className="text-slate-600 dark:text-slate-300">
-                Jika Anda memiliki pertanyaan tentang kebijakan privasi ini, silakan hubungi tim
-                dukungan EduSync.
+                Sesuai dengan Undang-Undang Pelindungan Data Pribadi (UU PDP)
+                yang berlaku di Indonesia, EduSync telah menunjuk Data
+                Protection Officer (DPO) untuk memastikan kepatuhan terhadap
+                regulasi privasi. Anda berhak untuk meminta salinan data
+                pribadi, mengajukan penghapusan (Right to Erasure), atau menarik
+                persetujuan pemrosesan data kapan saja.
+              </p>
+            </section>
+
+            <section>
+              <h2 className="text-xl font-bold text-slate-900 dark:text-white mb-3">
+                8. Hubungi Kami & DPO
+              </h2>
+              <p className="text-slate-600 dark:text-slate-300">
+                Jika Anda memiliki pertanyaan tentang kebijakan privasi ini atau
+                ingin menggunakan hak Anda berdasarkan UU PDP, silakan hubungi
+                Data Protection Officer kami melalui email di{" "}
+                <a
+                  href="mailto:dpo@edusync.id"
+                  className="text-blue-600 dark:text-blue-400 hover:underline"
+                >
+                  dpo@edusync.id
+                </a>{" "}
+                atau tim dukungan kami di{" "}
+                <a
+                  href="mailto:support@edusync.id"
+                  className="text-blue-600 dark:text-blue-400 hover:underline"
+                >
+                  support@edusync.id
+                </a>
+                .
               </p>
             </section>
           </div>
@@ -117,5 +142,5 @@ export function PrivacyPolicy() {
         </div>
       </div>
     </div>
-  )
+  );
 }
