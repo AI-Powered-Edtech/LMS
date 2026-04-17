@@ -114,13 +114,14 @@ export function GradingModal({ submission, assignment, tenantId, onClose }: Grad
                 </h4>
 
                 <div className="space-y-2">
-                  <label className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase flex justify-between">
+                  <label htmlFor="score-input" className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase flex justify-between">
                     Skor (0 - {assignment?.max_points})
                     <span className="text-blue-600">
                       {score} / {assignment?.max_points}
                     </span>
                   </label>
                   <input
+                    id="score-input"
                     type="number"
                     min="0"
                     max={assignment?.max_points}
@@ -131,10 +132,11 @@ export function GradingModal({ submission, assignment, tenantId, onClose }: Grad
                 </div>
 
                 <div className="space-y-2">
-                  <label className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
+                  <label htmlFor="feedback-input" className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
                     Umpan Balik (Feedback)
                   </label>
                   <textarea
+                    id="feedback-input"
                     value={feedback}
                     onChange={(e) => setFeedback(e.target.value)}
                     rows={8}
