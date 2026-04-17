@@ -291,29 +291,7 @@ export function Login() {
           </div>
         )}
 
-        {/* Dev quick login */}
-        {import.meta.env.DEV && step !== 3 && (
-          <div className="mt-4 p-4 bg-yellow-500/5 border border-yellow-500/10 rounded-xl text-center">
-            <p className="text-yellow-400/60 text-xs mb-2 uppercase tracking-wider font-medium">
-              Dev Quick Login
-            </p>
-            <div className="flex gap-2 justify-center">
-              {(['student', 'teacher', 'admin'] as const).map((r) => (
-                <button
-                  key={r}
-                  type="button"
-                  disabled={submitting}
-                  onClick={() => {
-                    if (fillAccount) void fillAccount(r)
-                  }}
-                  className="px-3 py-1.5 bg-white/5 hover:bg-white/10 text-white/50 rounded-lg text-xs font-medium transition-colors border border-white/5 disabled:opacity-50"
-                >
-                  {r === 'student' ? '🎓' : r === 'teacher' ? '👩‍🏫' : '🛡️'} {r}
-                </button>
-              ))}
-            </div>
-          </div>
-        )}
+
 
         {authStatus === 'callback_processing' && (
           <p className="mt-4 text-center text-xs text-blue-200/70">
