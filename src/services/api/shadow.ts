@@ -1,5 +1,7 @@
 import { readVilSession } from '@/services/auth/vilSession'
 
+import { getVilHttpBaseUrl } from './baseUrl'
+
 type JsonRecord = Record<string, unknown>
 
 type DivergenceSeverity = 'info' | 'warn' | 'error'
@@ -47,7 +49,7 @@ interface DivergenceEventPayload {
   sampled_shadow_payload?: unknown
 }
 
-const DEFAULT_BASE_URL = import.meta.env.VITE_API_URL || ''
+const DEFAULT_BASE_URL = getVilHttpBaseUrl()
 const SHADOW_MODE = import.meta.env.VITE_VIL_SHADOW_MODE || 'off'
 const SHADOW_SAMPLE_RATE = Number(import.meta.env.VITE_VIL_SHADOW_SAMPLE_RATE || '1')
 const INCLUDE_PAYLOAD = import.meta.env.VITE_VIL_SHADOW_INCLUDE_PAYLOAD === 'true'

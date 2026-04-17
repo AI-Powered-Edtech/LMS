@@ -231,7 +231,10 @@ export const quizGradingService = {
 
 export const antiCheatService = {
   async recordEvent(request: RecordEventRequest) {
-    return client.rpc<RecordEventResponse>("quiz.anticheat-event", request);
+    return client.rpc<RecordEventResponse>(
+      "quiz.anticheat-event",
+      request as unknown as Record<string, unknown>
+    );
   },
 
   async getReport(attemptId: string) {
@@ -273,7 +276,7 @@ export const quizTimerService = {
 
 export const xpService = {
   async awardXp(request: AwardXpRequest) {
-    return client.rpc<AwardXpResponse>("xp.award", request);
+    return client.rpc<AwardXpResponse>("xp.award", request as unknown as Record<string, unknown>);
   },
 
   async getUserXp(userId: string) {
@@ -326,33 +329,4 @@ export const itemAnalysisService = {
       question_id: questionId,
     });
   },
-};
-
-// ─── Re-export for convenience ────────────────────────────────────────────
-
-export type {
-  GradeableQuestion,
-  StudentAnswer,
-  QuestionGradeResult,
-  AttemptGradeResult,
-  RecordEventRequest,
-  RecordEventResponse,
-  AntiCheatEvent,
-  AntiCheatReport,
-  StartAttemptResponse,
-  PauseAttemptResponse,
-  ResumeAttemptResponse,
-  TimeRemainingResponse,
-  UserXpInfo,
-  AwardXpRequest,
-  AwardXpResponse,
-  LeaderboardEntry,
-  XpTransaction,
-  AssignmentGrade,
-  StudentGrade,
-  GradeDistribution,
-  ClassStatistics,
-  GradebookResponse,
-  ItemStatistics,
-  QuizItemAnalysis,
 };

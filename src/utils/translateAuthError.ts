@@ -6,6 +6,17 @@ export const translateAuthError = (message: string): string => {
 
   const msg = message.toLowerCase()
 
+  if (
+    msg.includes('failed to fetch') ||
+    msg.includes('networkerror') ||
+    msg.includes('load failed') ||
+    msg.includes('cors') ||
+    msg.includes('cross-origin') ||
+    msg.includes('mixed content')
+  ) {
+    return 'Gagal terhubung ke server. Periksa koneksi Anda atau coba beberapa saat lagi.'
+  }
+
   if (msg.includes('invalid login credentials') || msg.includes('invalid_credentials')) {
     return 'Email atau kata sandi salah. Silakan coba lagi.'
   }
