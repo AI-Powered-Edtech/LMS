@@ -249,7 +249,8 @@ export function AttemptDetailModal({
           </div>
           <button
             onClick={onClose}
-            className="p-2 hover:bg-slate-100 rounded-xl transition-colors text-slate-400 hover:text-slate-600"
+            className="p-2 hover:bg-slate-100 rounded-xl transition-colors text-slate-400 hover:text-slate-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-500"
+            aria-label="Tutup"
           >
             <X className="w-5 h-5" />
           </button>
