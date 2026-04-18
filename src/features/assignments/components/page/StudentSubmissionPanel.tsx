@@ -15,6 +15,7 @@ import type { ChangeEvent, RefObject } from 'react'
 import { EmptyState } from '@/components/ui'
 import type { AssignmentUiState } from '@/features/assignments/types'
 import { cn } from '@/utils/cn'
+import { sanitizeUrl } from '@/utils/sanitize'
 
 import { getStatusBadge } from './assignmentPageUtils'
 
@@ -346,7 +347,7 @@ export function StudentSubmissionPanel({
                   {attempt.text && <p className="whitespace-pre-wrap">{attempt.text}</p>}
                   {attempt.fileUrl && (
                     <a
-                      href={attempt.fileUrl}
+                      href={sanitizeUrl(attempt.fileUrl)}
                       target="_blank"
                       rel="noreferrer"
                       className="inline-flex items-center gap-2 text-blue-600 dark:text-blue-400 font-medium hover:underline"
@@ -357,7 +358,7 @@ export function StudentSubmissionPanel({
                   )}
                   {attempt.linkUrl && (
                     <a
-                      href={attempt.linkUrl}
+                      href={sanitizeUrl(attempt.linkUrl)}
                       target="_blank"
                       rel="noreferrer"
                       className="inline-flex items-center gap-2 text-blue-600 dark:text-blue-400 font-medium hover:underline"
