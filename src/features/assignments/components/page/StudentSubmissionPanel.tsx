@@ -353,6 +353,7 @@ export function StudentSubmissionPanel({
                     >
                       <Paperclip className="w-4 h-4" />
                       {attempt.fileName || 'Lihat lampiran'}
+                      <span className="sr-only">(buka di tab baru)</span>
                     </a>
                   )}
                   {attempt.linkUrl && (
@@ -364,6 +365,7 @@ export function StudentSubmissionPanel({
                     >
                       <ExternalLink className="w-4 h-4" />
                       {attempt.linkUrl}
+                      <span className="sr-only">(buka di tab baru)</span>
                     </a>
                   )}
                   {attempt.feedback && (
