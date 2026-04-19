@@ -7,78 +7,98 @@ import {
   Plus,
   RefreshCw,
   Users,
-} from 'lucide-react'
-import { motion } from 'motion/react'
-import { useState } from 'react'
-import { Link } from 'react-router-dom'
+} from "lucide-react";
+import { motion } from "motion/react";
+import { useState } from "react";
+import { Link } from "react-router-dom";
 
-import { EmptyState, useToast } from '@/components/ui'
-import { cn } from '@/utils/cn'
+import { EmptyState, useToast } from "@/components/ui";
+import { cn } from "@/utils/cn";
 
-import { TeacherGroupEntry } from '../../api/groupAssignmentService'
-import { useTeacherGroups, useUpdateGroupSettings } from '../../hooks/useGroupAssignments'
-import { CreateGroupModal } from './CreateGroupModal'
-import { GradeGroupModal } from './GradeGroupModal'
-import { GroupMonitorModal } from './GroupMonitorModal'
-import { type GroupSettings, GroupSettingsTab } from './GroupSettingsTab'
+import { TeacherGroupEntry } from "../../api/groupAssignmentService";
+import {
+  useTeacherGroups,
+  useUpdateGroupSettings,
+} from "../../hooks/useGroupAssignments";
+import { CreateGroupModal } from "./CreateGroupModal";
+import { GradeGroupModal } from "./GradeGroupModal";
+import { GroupMonitorModal } from "./GroupMonitorModal";
+import { type GroupSettings, GroupSettingsTab } from "./GroupSettingsTab";
 
 interface Props {
-  assignmentId: string
+  assignmentId: string;
 }
 
-function statusLabel(status: TeacherGroupEntry['submission_status']) {
+function statusLabel(status: TeacherGroupEntry["submission_status"]) {
   switch (status) {
-    case 'graded':
+    case "graded":
       return {
-        label: 'Dinilai',
-        cls: 'bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400',
-      }
-    case 'submitted':
+        label: "Dinilai",
+        cls: "bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400",
+      };
+    case "submitted":
       return {
-        label: 'Diserahkan',
-        cls: 'bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400',
-      }
-    case 'draft':
+        label: "Diserahkan",
+        cls: "bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400",
+      };
+    case "draft":
       return {
-        label: 'Draft',
-        cls: 'bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-400',
-      }
+        label: "Draft",
+        cls: "bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-400",
+      };
     default:
       return {
-        label: 'Belum Mulai',
-        cls: 'bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-400',
-      }
+        label: "Belum Mulai",
+        cls: "bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-400",
+      };
   }
 }
 
 export function TeacherGroupView({ assignmentId }: Props) {
-  const addToast = useToast((s) => s.addToast)
-  const [teacherTab, setTeacherTab] = useState('overview')
-  const [gradingGroup, setGradingGroup] = useState<TeacherGroupEntry | null>(null)
-  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false)
-  const [monitoringGroup, setMonitoringGroup] = useState<TeacherGroupEntry | null>(null)
+  const addToast = useToast((s) => s.addToast);
+  const [teacherTab, setTeacherTab] = useState("overview");
+  const [gradingGroup, setGradingGroup] = useState<TeacherGroupEntry | null>(
+    null,
+  );
+  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+  const [monitoringGroup, setMonitoringGroup] =
+    useState<TeacherGroupEntry | null>(null);
 
-  const { data: groups = [], isLoading, isError, refetch } = useTeacherGroups(assignmentId)
-  const updateSettingsMutation = useUpdateGroupSettings(assignmentId)
+  const {
+    data: groups = [],
+    isLoading,
+    isError,
+    refetch,
+  } = useTeacherGroups(assignmentId);
+  const updateSettingsMutation = useUpdateGroupSettings(assignmentId);
 
   const handleSaveSettings = (settings: GroupSettings) => {
     updateSettingsMutation.mutate(settings, {
       onSuccess: () =>
-        addToast({ type: 'success', message: 'Pengaturan kelompok berhasil disimpan.' }),
-      onError: () => addToast({ type: 'error', message: 'Gagal menyimpan pengaturan. Coba lagi.' }),
-    })
-  }
+        addToast({
+          type: "success",
+          message: "Pengaturan kelompok berhasil disimpan.",
+        }),
+      onError: () =>
+        addToast({
+          type: "error",
+          message: "Gagal menyimpan pengaturan. Coba lagi.",
+        }),
+    });
+  };
 
   const handleSyncGCR = () => {
     addToast({
-      type: 'info',
-      message: 'Sinkronisasi Google Classroom belum tersedia. Fitur ini sedang dalam pengembangan.',
-    })
-  }
+      type: "info",
+      message:
+        "Sinkronisasi Google Classroom belum tersedia. Fitur ini sedang dalam pengembangan.",
+    });
+  };
 
   const submittedCount = groups.filter(
-    (g) => g.submission_status === 'submitted' || g.submission_status === 'graded'
-  ).length
+    (g) =>
+      g.submission_status === "submitted" || g.submission_status === "graded",
+  ).length;
 
   if (isLoading) {
     return (
@@ -86,13 +106,15 @@ export function TeacherGroupView({ assignmentId }: Props) {
         <Loader2 className="w-5 h-5 animate-spin" />
         <span>Memuat data kelompok...</span>
       </div>
-    )
+    );
   }
 
   if (isError) {
     return (
       <div className="max-w-6xl mx-auto py-16 text-center text-slate-500 dark:text-slate-400">
-        <p className="font-medium">Terjadi kesalahan saat memuat data kelompok.</p>
+        <p className="font-medium">
+          Terjadi kesalahan saat memuat data kelompok.
+        </p>
         <button
           onClick={() => void refetch()}
           className="mt-4 text-sm text-indigo-600 dark:text-indigo-400 font-bold hover:underline"
@@ -100,7 +122,7 @@ export function TeacherGroupView({ assignmentId }: Props) {
           Coba lagi
         </button>
       </div>
-    )
+    );
   }
 
   return (
@@ -121,7 +143,8 @@ export function TeacherGroupView({ assignmentId }: Props) {
             </h1>
           </div>
           <p className="text-slate-500 dark:text-slate-400 mt-2 ml-12">
-            Pantau kolaborasi siswa, atur kelompok, dan sinkronisasi dengan Google Classroom.
+            Pantau kolaborasi siswa, atur kelompok, dan sinkronisasi dengan
+            Google Classroom.
           </p>
         </div>
         <div className="flex gap-3">
@@ -144,18 +167,22 @@ export function TeacherGroupView({ assignmentId }: Props) {
 
       {/* Tabs */}
       <div className="flex gap-4 border-b border-slate-200 dark:border-slate-700">
-        {(['overview', 'groups', 'settings'] as const).map((tab) => (
+        {(["overview", "groups", "settings"] as const).map((tab) => (
           <button
             key={tab}
             onClick={() => setTeacherTab(tab)}
             className={cn(
-              'pb-4 px-2 text-sm font-bold transition-colors relative',
+              "pb-4 px-2 text-sm font-bold transition-colors relative",
               teacherTab === tab
-                ? 'text-indigo-600 dark:text-indigo-400'
-                : 'text-slate-500 hover:text-slate-700 dark:hover:text-slate-300'
+                ? "text-indigo-600 dark:text-indigo-400"
+                : "text-slate-500 hover:text-slate-700 dark:hover:text-slate-300",
             )}
           >
-            {tab === 'overview' ? 'Ringkasan' : tab === 'groups' ? 'Daftar Kelompok' : 'Pengaturan'}
+            {tab === "overview"
+              ? "Ringkasan"
+              : tab === "groups"
+                ? "Daftar Kelompok"
+                : "Pengaturan"}
             {teacherTab === tab && (
               <motion.div
                 layoutId="teacherTab"
@@ -167,7 +194,7 @@ export function TeacherGroupView({ assignmentId }: Props) {
       </div>
 
       {/* Overview Tab */}
-      {teacherTab === 'overview' && (
+      {teacherTab === "overview" && (
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           <div className="bg-white dark:bg-slate-800 p-6 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-sm col-span-1 md:col-span-2">
             <h3 className="text-lg font-bold text-slate-900 dark:text-slate-100 mb-4">
@@ -182,7 +209,7 @@ export function TeacherGroupView({ assignmentId }: Props) {
             ) : (
               <div className="space-y-3">
                 {groups.map((group) => {
-                  const { label, cls } = statusLabel(group.submission_status)
+                  const { label, cls } = statusLabel(group.submission_status);
                   return (
                     <div
                       key={group.group_id}
@@ -201,22 +228,31 @@ export function TeacherGroupView({ assignmentId }: Props) {
                           </p>
                         </div>
                       </div>
-                      <span className={cn('px-2.5 py-1 text-xs font-bold rounded-full', cls)}>
+                      <span
+                        className={cn(
+                          "px-2.5 py-1 text-xs font-bold rounded-full",
+                          cls,
+                        )}
+                      >
                         {label}
                       </span>
                     </div>
-                  )
+                  );
                 })}
               </div>
             )}
           </div>
 
           <div className="bg-white dark:bg-slate-800 p-6 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-sm">
-            <h3 className="text-lg font-bold text-slate-900 dark:text-slate-100 mb-4">Statistik</h3>
+            <h3 className="text-lg font-bold text-slate-900 dark:text-slate-100 mb-4">
+              Statistik
+            </h3>
             <div className="space-y-4">
               <div>
                 <div className="flex justify-between text-sm mb-1">
-                  <span className="text-slate-500 dark:text-slate-400">Selesai</span>
+                  <span className="text-slate-500 dark:text-slate-400">
+                    Selesai
+                  </span>
                   <span className="font-bold text-slate-700 dark:text-slate-300">
                     {submittedCount}/{groups.length} Kelompok
                   </span>
@@ -226,24 +262,40 @@ export function TeacherGroupView({ assignmentId }: Props) {
                     className="h-full bg-emerald-500 rounded-full transition-all"
                     style={{
                       width:
-                        groups.length > 0 ? `${(submittedCount / groups.length) * 100}%` : '0%',
+                        groups.length > 0
+                          ? `${(submittedCount / groups.length) * 100}%`
+                          : "0%",
                     }}
                   />
                 </div>
               </div>
               <div className="pt-2 space-y-2">
-                {(['graded', 'submitted', 'draft', 'not_started'] as const).map((s) => {
-                  const count = groups.filter((g) => g.submission_status === s).length
-                  const { label, cls } = statusLabel(s)
-                  return (
-                    <div key={s} className="flex items-center justify-between text-sm">
-                      <span className={cn('px-2 py-0.5 rounded-full text-xs font-bold', cls)}>
-                        {label}
-                      </span>
-                      <span className="font-bold text-slate-700 dark:text-slate-300">{count}</span>
-                    </div>
-                  )
-                })}
+                {(["graded", "submitted", "draft", "not_started"] as const).map(
+                  (s) => {
+                    const count = groups.filter(
+                      (g) => g.submission_status === s,
+                    ).length;
+                    const { label, cls } = statusLabel(s);
+                    return (
+                      <div
+                        key={s}
+                        className="flex items-center justify-between text-sm"
+                      >
+                        <span
+                          className={cn(
+                            "px-2 py-0.5 rounded-full text-xs font-bold",
+                            cls,
+                          )}
+                        >
+                          {label}
+                        </span>
+                        <span className="font-bold text-slate-700 dark:text-slate-300">
+                          {count}
+                        </span>
+                      </div>
+                    );
+                  },
+                )}
               </div>
             </div>
           </div>
@@ -251,12 +303,12 @@ export function TeacherGroupView({ assignmentId }: Props) {
       )}
 
       {/* Groups Tab */}
-      {teacherTab === 'groups' && (
+      {teacherTab === "groups" && (
         <div>
           {groups.length > 0 ? (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {groups.map((group) => {
-                const { label, cls } = statusLabel(group.submission_status)
+                const { label, cls } = statusLabel(group.submission_status);
                 return (
                   <div
                     key={group.group_id}
@@ -268,7 +320,10 @@ export function TeacherGroupView({ assignmentId }: Props) {
                           {group.group_name}
                         </h3>
                         <span
-                          className={cn('px-2.5 py-1 text-xs font-bold rounded-full shrink-0', cls)}
+                          className={cn(
+                            "px-2.5 py-1 text-xs font-bold rounded-full shrink-0",
+                            cls,
+                          )}
                         >
                           {label}
                         </span>
@@ -277,7 +332,7 @@ export function TeacherGroupView({ assignmentId }: Props) {
                         {group.member_count} anggota
                       </p>
                       <div className="flex -space-x-2">
-                        {group.members.slice(0, 5).map((member) => (
+                        {(group.members || []).slice(0, 5).map((member) => (
                           <div
                             key={member.user_id}
                             title={member.display_name}
@@ -286,22 +341,23 @@ export function TeacherGroupView({ assignmentId }: Props) {
                             {member.display_name.charAt(0).toUpperCase()}
                           </div>
                         ))}
-                        {group.members.length > 5 && (
+                        {(group.members || []).length > 5 && (
                           <div className="w-8 h-8 rounded-full border-2 border-white dark:border-slate-800 bg-slate-100 dark:bg-slate-700 flex items-center justify-center text-slate-500 dark:text-slate-400 text-xs font-bold">
-                            +{group.members.length - 5}
+                            +{(group.members || []).length - 5}
                           </div>
                         )}
                       </div>
                     </div>
                     <div className="p-5 bg-slate-50 dark:bg-slate-900/50 flex-1">
-                      {group.submission_status === 'graded' && group.grade !== null && (
-                        <div className="mb-4 flex items-center gap-2 text-sm">
-                          <CheckCircle2 className="w-4 h-4 text-emerald-500" />
-                          <span className="font-bold text-slate-700 dark:text-slate-300">
-                            Nilai: {group.grade}
-                          </span>
-                        </div>
-                      )}
+                      {group.submission_status === "graded" &&
+                        group.grade !== null && (
+                          <div className="mb-4 flex items-center gap-2 text-sm">
+                            <CheckCircle2 className="w-4 h-4 text-emerald-500" />
+                            <span className="font-bold text-slate-700 dark:text-slate-300">
+                              Nilai: {group.grade}
+                            </span>
+                          </div>
+                        )}
                       <div className="flex gap-2">
                         <button
                           onClick={() => setMonitoringGroup(group)}
@@ -312,8 +368,8 @@ export function TeacherGroupView({ assignmentId }: Props) {
                         <button
                           onClick={() => setGradingGroup(group)}
                           disabled={
-                            group.submission_status === 'not_started' ||
-                            group.submission_status === 'draft'
+                            group.submission_status === "not_started" ||
+                            group.submission_status === "draft"
                           }
                           className="flex-1 py-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 text-sm font-bold rounded-xl transition-colors flex items-center justify-center gap-2 disabled:opacity-40 disabled:cursor-not-allowed"
                         >
@@ -322,7 +378,7 @@ export function TeacherGroupView({ assignmentId }: Props) {
                       </div>
                     </div>
                   </div>
-                )
+                );
               })}
             </div>
           ) : (
@@ -332,7 +388,8 @@ export function TeacherGroupView({ assignmentId }: Props) {
                 Belum ada kelompok
               </h3>
               <p className="text-slate-500 dark:text-slate-400 max-w-md mx-auto mb-6">
-                Buat kelompok baru atau sinkronisasi dari Google Classroom untuk memulai.
+                Buat kelompok baru atau sinkronisasi dari Google Classroom untuk
+                memulai.
               </p>
               <button
                 onClick={() => setIsCreateModalOpen(true)}
@@ -347,7 +404,9 @@ export function TeacherGroupView({ assignmentId }: Props) {
       )}
 
       {/* Settings Tab */}
-      {teacherTab === 'settings' && <GroupSettingsTab onSave={handleSaveSettings} />}
+      {teacherTab === "settings" && (
+        <GroupSettingsTab onSave={handleSaveSettings} />
+      )}
 
       {gradingGroup && (
         <GradeGroupModal
@@ -358,12 +417,18 @@ export function TeacherGroupView({ assignmentId }: Props) {
       )}
 
       {isCreateModalOpen && (
-        <CreateGroupModal assignmentId={assignmentId} onClose={() => setIsCreateModalOpen(false)} />
+        <CreateGroupModal
+          assignmentId={assignmentId}
+          onClose={() => setIsCreateModalOpen(false)}
+        />
       )}
 
       {monitoringGroup && (
-        <GroupMonitorModal group={monitoringGroup} onClose={() => setMonitoringGroup(null)} />
+        <GroupMonitorModal
+          group={monitoringGroup}
+          onClose={() => setMonitoringGroup(null)}
+        />
       )}
     </div>
-  )
+  );
 }

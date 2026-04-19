@@ -6,7 +6,7 @@ use uuid::Uuid;
 use edusync_auth::{AuthError, verify_access_token};
 use vil_server::prelude::{ServiceCtx, ShmSlice, VilResponse, VilError, HandlerResult};
 use crate::state::AppState;
-use super::types::{OnboardStudentRequest, EnrollStudentRequest, CreateTenantRequest, AcceptInvitationRequest};
+use super::types::{OnboardStudentRequest, EnrollStudentRequest, CreateTenantRequest, AcceptInvitationRequest, Validatable};
 use super::types::{AuthResponse, TenantMembershipPayload, UserPayload};
 use edusync_auth::{password::hash_password, session::create_session};
 
@@ -105,7 +105,7 @@ pub async fn accept_invitation_handler(
         .ok_or_else(|| AuthError::Unauthorized)
         .map_err(IntoVilError::into_vil_error)?;
 
-    let claims = verify_access_token(token_str, &state.jwt_secret)
+    let claims = verify_access_token(token_str)
         .map_err(IntoVilError::into_vil_error)?;
     let user_id: Uuid = claims
         .sub
@@ -269,7 +269,7 @@ pub async fn enroll_student_handler(
         .ok_or_else(|| AuthError::InvalidToken)
         .map_err(IntoVilError::into_vil_error)?;
 
-    let claims = verify_access_token(token, &state.jwt_secret)
+    let claims = verify_access_token(token)
         .map_err(IntoVilError::into_vil_error)?;
     let user_id: Uuid = claims
         .sub
@@ -321,12 +321,7 @@ pub async fn onboard_student_handler(
     let state = svc.state::<Arc<AppState>>()?.clone();
     let body: OnboardStudentRequest = body.json().map_err(|e| VilError::bad_request(e.to_string()))?;
 
-    if !body.email.contains('@') {
-        return Err(AuthError::InvalidEmail.into_vil_error());
-    }
-    if body.password.len() < 8 {
-        return Err(AuthError::WeakPassword.into_vil_error());
-    }
+    body.validate().map_err(|e| VilError::bad_request(e))?;
 
     // Find class
     let class: ClassRow = sqlx::query_as::<_, ClassRow>(
@@ -420,7 +415,7 @@ pub async fn onboard_student_handler(
 
     let tokens = create_session(
         &state.db, user_id, &body.email, "STUDENT",
-        Some(class.tenant_id), false, &state.jwt_secret,
+        Some(class.tenant_id), false,
     ).await.map_err(IntoVilError::into_vil_error)?;
 
     let tenant_info: TenantInfoRow = sqlx::query_as::<_, TenantInfoRow>(
@@ -461,6 +456,8 @@ pub async fn create_tenant_handler(
     let state = svc.state::<Arc<AppState>>()?.clone();
     let body: CreateTenantRequest = body.json().map_err(|e| VilError::bad_request(e.to_string()))?;
 
+    body.validate().map_err(|e| VilError::bad_request(e))?;
+
     let token = headers
         .get("authorization")
         .and_then(|v| v.to_str().ok())
@@ -468,7 +465,7 @@ pub async fn create_tenant_handler(
         .ok_or_else(|| AuthError::InvalidToken)
         .map_err(IntoVilError::into_vil_error)?;
 
-    let claims = verify_access_token(token, &state.jwt_secret)
+    let claims = verify_access_token(token)
         .map_err(IntoVilError::into_vil_error)?;
     let user_id: Uuid = claims
         .sub

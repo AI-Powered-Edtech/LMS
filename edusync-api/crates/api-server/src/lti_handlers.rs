@@ -72,7 +72,6 @@ pub async fn lti_launch_handler(
     let state = svc.state::<Arc<AppState>>()?;
     let ctx = LaunchContext {
         db: Arc::new(state.db.clone()),
-        jwt_secret: state.jwt_secret.clone(),
     };
 
     let resp = handle_launch(ctx, form)

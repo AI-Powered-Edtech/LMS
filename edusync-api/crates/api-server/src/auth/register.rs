@@ -4,7 +4,7 @@ use uuid::Uuid;
 use edusync_auth::{password::hash_password, session::create_session};
 use vil_server::prelude::{ServiceCtx, ShmSlice, VilResponse, VilError, HandlerResult};
 use crate::state::AppState;
-use super::types::{AuthResponse, RegisterRequest, UserPayload};
+use super::types::{AuthResponse, RegisterRequest, UserPayload, Validatable};
 
 pub async fn register_handler(
     svc: ServiceCtx,
@@ -13,27 +13,7 @@ pub async fn register_handler(
     let state = svc.state::<Arc<AppState>>()?.clone();
     let body: RegisterRequest = body.json().map_err(|e| VilError::bad_request(e.to_string()))?;
 
-    // Basic email validation: must have non-empty local part, '@', and domain with '.'
-    let email_trimmed = body.email.trim();
-    if email_trimmed.is_empty() {
-        return Err(VilError::bad_request("Format email tidak valid"));
-    }
-    let mut email_parts = email_trimmed.splitn(2, '@');
-    let local = email_parts.next().unwrap_or("");
-    let domain = email_parts.next().unwrap_or("");
-    if local.is_empty() || !domain.contains('.') {
-        return Err(VilError::bad_request("Format email tidak valid"));
-    }
-    if body.password.len() < 8 {
-        return Err(VilError::bad_request("Password terlalu lemah (minimal 8 karakter)"));
-    }
-    // Max length guards to prevent oversized inputs reaching the DB
-    if body.email.len() > 254 {
-        return Err(VilError::bad_request("Format email tidak valid"));
-    }
-    if body.password.len() > 128 {
-        return Err(VilError::bad_request("Password terlalu lemah (minimal 8 karakter)"));
-    }
+    body.validate().map_err(|e| VilError::bad_request(e))?;
 
     let mut tx = state.db.begin().await.map_err(|e| {
         tracing::error!(error = ?e, "DB error beginning transaction");
@@ -134,7 +114,7 @@ pub async fn register_handler(
         VilError::internal("Terjadi kesalahan pada database")
     })?;
 
-    let tokens = create_session(&state.db, user_id, &body.email, &role, tenant_id, false, &state.jwt_secret)
+    let tokens = create_session(&state.db, user_id, &body.email, &role, tenant_id, false)
         .await
         .map_err(IntoVilError::into_vil_error)?;
 

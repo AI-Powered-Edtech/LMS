@@ -7,28 +7,28 @@
 // data anak mereka sendiri.
 // ==========================================================================
 
-import { readVilSession } from '@/services/auth/vilSession'
-import { db } from '@/services/db'
-import { logger } from '@/utils/logger'
+import { readVilSession } from "@/services/auth/vilSession";
+import { db } from "@/services/db";
+import { logger } from "@/utils/logger";
 
-import type { AvailableReportMonth, ParentMonthlyReport } from '../types'
+import type { AvailableReportMonth, ParentMonthlyReport } from "../types";
 
 // ── Indonesian Month Names ──────────────────────────────────────
 
 const ID_MONTHS = [
-  'Januari',
-  'Februari',
-  'Maret',
-  'April',
-  'Mei',
-  'Juni',
-  'Juli',
-  'Agustus',
-  'September',
-  'Oktober',
-  'November',
-  'Desember',
-]
+  "Januari",
+  "Februari",
+  "Maret",
+  "April",
+  "Mei",
+  "Juni",
+  "Juli",
+  "Agustus",
+  "September",
+  "Oktober",
+  "November",
+  "Desember",
+];
 
 // ── Get Monthly Report ──────────────────────────────────────────
 
@@ -40,32 +40,33 @@ export async function getMonthlyReport(
   studentId: string,
   month: number,
   year: number,
-  tenantId: string
+  tenantId: string,
 ): Promise<ParentMonthlyReport> {
-  const apiUrl = import.meta.env.VITE_API_URL ?? ''
-  const token = readVilSession()?.access_token
+  const apiUrl = import.meta.env.VITE_API_URL ?? "";
+  const token = readVilSession()?.access_token;
 
   const response = await fetch(`${apiUrl}/api/v1/pdf/parent-report`, {
-    method: 'POST',
+    method: "POST",
     headers: {
-      'Content-Type': 'application/json',
+      "Content-Type": "application/json",
       ...(token ? { Authorization: `Bearer ${token}` } : {}),
     },
     body: JSON.stringify({ studentId, month, year, tenantId }),
-  })
+  });
 
   if (!response.ok) {
-    if (import.meta.env.DEV) logger.error('[reportApi] getMonthlyReport error:', response.status)
-    throw new Error('Gagal memuat laporan. Silakan coba lagi.')
+    if (import.meta.env.DEV)
+      logger.error("[reportApi] getMonthlyReport error:", response.status);
+    throw new Error("Gagal memuat laporan. Silakan coba lagi.");
   }
 
-  const data = await response.json()
+  const data = await response.json();
 
   if (!data?.reportData) {
-    throw new Error('Data laporan tidak ditemukan.')
+    throw new Error("Data laporan tidak ditemukan.");
   }
 
-  return data.reportData as ParentMonthlyReport
+  return data.reportData as ParentMonthlyReport;
 }
 
 // ── Get Available Report Months ─────────────────────────────────
@@ -77,99 +78,107 @@ export async function getMonthlyReport(
  */
 export async function getAvailableReportMonths(
   studentId: string,
-  tenantId: string
+  tenantId: string,
 ): Promise<AvailableReportMonth[]> {
   // Ambil tanggal completion pelajaran per bulan
   // lesson_progress menggunakan user_id (bukan student_id)
   const { data: lessonData, error: lessonError } = await db
-    .from('lesson_progress')
-    .select('completed_at')
-    .eq('user_id', studentId)
-    .eq('tenant_id', tenantId)
-    .eq('completed', true)
-    .not('completed_at', 'is', null)
-    .order('completed_at', { ascending: false })
-    .limit(200)
+    .from<Array<{ lesson_id: string; completed: boolean; completed_at?: string }>>("lesson_progress")
+    .select("completed_at")
+    .eq("user_id", studentId)
+    .eq("tenant_id", tenantId)
+    .eq("completed", true)
+    .not("completed_at", "is", null)
+    .order("completed_at", { ascending: false })
+    .limit(200);
 
   if (lessonError) {
     if (import.meta.env.DEV)
-      logger.error('[reportApi] getAvailableReportMonths lesson error:', lessonError)
+      logger.error(
+        "[reportApi] getAvailableReportMonths lesson error:",
+        lessonError,
+      );
   }
 
   // Ambil juga dari attendance_records sebagai fallback
   // attendance_records tidak memiliki student_id — join via enrollment_id
   const { data: enrollments } = await db
-    .from('enrollments')
-    .select('id')
-    .eq('student_id', studentId)
-    .eq('tenant_id', tenantId)
+    .from<Array<{ id: string; class_id: string; student_id: string; status: string; joined_at: string }>>("enrollments")
+    .select("id")
+    .eq("student_id", studentId)
+    .eq("tenant_id", tenantId);
 
-  const enrollmentIds = (enrollments ?? []).map((e: Record<string, unknown>) => e.id as string)
+  const enrollmentIds = (
+    (enrollments as Array<Record<string, unknown>>) ?? []
+  ).map((e: Record<string, unknown>) => e.id as string);
 
-  let attendanceData: Record<string, unknown>[] = []
-  let attendanceError: unknown = null
+  let attendanceData: Record<string, unknown>[] = [];
+  let attendanceError: unknown = null;
 
   if (enrollmentIds.length > 0) {
     const { data: attData, error: attError } = await db
-      .from('attendance_records')
-      .select('date')
-      .in('enrollment_id', enrollmentIds)
-      .order('date', { ascending: false })
-      .limit(200)
-    attendanceData = (attData ?? []) as Record<string, unknown>[]
-    attendanceError = attError
+      .from<any>("attendance_records")
+      .select("date")
+      .in("enrollment_id", enrollmentIds)
+      .order("date", { ascending: false })
+      .limit(200);
+    attendanceData = (attData ?? []) as Record<string, unknown>[];
+    attendanceError = attError;
   }
 
   if (attendanceError) {
     if (import.meta.env.DEV)
-      logger.error('[reportApi] getAvailableReportMonths attendance error:', attendanceError)
+      logger.error(
+        "[reportApi] getAvailableReportMonths attendance error:",
+        attendanceError,
+      );
   }
 
   // Kumpulkan semua bulan unik dari kedua sumber
-  const monthSet = new Set<string>()
+  const monthSet = new Set<string>();
 
   for (const row of (lessonData ?? []) as Record<string, unknown>[]) {
-    const date = new Date(row.completed_at as string)
+    const date = new Date(row.completed_at as string);
     if (!isNaN(date.getTime())) {
-      monthSet.add(`${date.getFullYear()}-${date.getMonth() + 1}`)
+      monthSet.add(`${date.getFullYear()}-${date.getMonth() + 1}`);
     }
   }
 
   for (const row of (attendanceData ?? []) as Record<string, unknown>[]) {
-    const date = new Date(row.date as string)
+    const date = new Date(row.date as string);
     if (!isNaN(date.getTime())) {
-      monthSet.add(`${date.getFullYear()}-${date.getMonth() + 1}`)
+      monthSet.add(`${date.getFullYear()}-${date.getMonth() + 1}`);
     }
   }
 
   // Jika tidak ada data sama sekali, kembalikan bulan ini dan 2 bulan lalu sebagai default
   if (monthSet.size === 0) {
-    const now = new Date()
+    const now = new Date();
     for (let i = 0; i < 3; i++) {
-      const d = new Date(now.getFullYear(), now.getMonth() - i, 1)
-      monthSet.add(`${d.getFullYear()}-${d.getMonth() + 1}`)
+      const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+      monthSet.add(`${d.getFullYear()}-${d.getMonth() + 1}`);
     }
   }
 
   // Convert ke array dan sort descending
   const months: AvailableReportMonth[] = Array.from(monthSet)
     .map((key) => {
-      const [yearStr, monthStr] = key.split('-')
-      const y = parseInt(yearStr, 10)
-      const m = parseInt(monthStr, 10)
-      const monthName = `${ID_MONTHS[m - 1]} ${y}`
+      const [yearStr, monthStr] = key.split("-");
+      const y = parseInt(yearStr, 10);
+      const m = parseInt(monthStr, 10);
+      const monthName = `${ID_MONTHS[m - 1]} ${y}`;
       return {
         month: m,
         year: y,
         month_name: monthName,
         label: monthName,
-      }
+      };
     })
     .sort((a, b) => {
-      if (b.year !== a.year) return b.year - a.year
-      return b.month - a.month
+      if (b.year !== a.year) return b.year - a.year;
+      return b.month - a.month;
     })
-    .slice(0, 12) // Maksimal 12 bulan terakhir
+    .slice(0, 12); // Maksimal 12 bulan terakhir
 
-  return months
+  return months;
 }

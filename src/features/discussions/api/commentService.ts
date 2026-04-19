@@ -1,13 +1,13 @@
-import { db } from '@/services/db'
-import { validate } from '@/shared/lib/validate'
-import { DiscussionPostRowSchema } from '@/shared/schemas'
+import { db } from "@/services/db";
+import { validate } from "@/shared/lib/validate";
+import { DiscussionPostRowSchema } from "@/shared/schemas";
 
 export interface CommentData {
-  id: string
-  author: string
-  text: string
-  time: string
-  author_id?: string
+  id: string;
+  author: string;
+  text: string;
+  time: string;
+  author_id?: string;
 }
 
 export const commentService = {
@@ -16,7 +16,7 @@ export const commentService = {
    */
   async fetchComments(_threadId: string): Promise<CommentData[]> {
     // Fake implementation since DB doesn't support assignment comments yet
-    return []
+    return [];
   },
 
   /**
@@ -26,20 +26,20 @@ export const commentService = {
   async addComment(
     threadId: string,
     authorId: string,
-    text: string
+    text: string,
   ): Promise<{ id: string; created_at: string }> {
     const { data, error } = await db
-      .from('discussion_posts')
+      .from<any>("discussion_posts")
       .insert({
         thread_id: threadId,
         author_id: authorId,
         content: text,
       })
-      .select('id, created_at')
-      .single()
+      .select("id, created_at")
+      .single();
 
-    if (error) throw error
-    validate(DiscussionPostRowSchema, data, 'commentService.addComment')
-    return data
+    if (error) throw error;
+    validate(DiscussionPostRowSchema, data, "commentService.addComment");
+    return data as { id: string; created_at: string };
   },
-}
+};

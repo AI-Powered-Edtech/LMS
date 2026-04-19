@@ -13,3 +13,4 @@ pub(crate) mod tenant_selection;
 pub mod tenant_rpcs;
 pub mod types;
 pub mod verify_email;
+pub mod session;

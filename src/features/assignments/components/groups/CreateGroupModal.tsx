@@ -1,112 +1,131 @@
-import { Loader2, Plus, Trash2, UserPlus, Users, X } from 'lucide-react'
-import { motion } from 'motion/react'
-import { useCallback, useState } from 'react'
+import { Loader2, Plus, Trash2, UserPlus, Users, X } from "lucide-react";
+import { motion } from "motion/react";
+import { useCallback, useState } from "react";
 
-import { useToast } from '@/components/ui'
-import { cn } from '@/utils/cn'
+import { useToast } from "@/components/ui";
+import { cn } from "@/utils/cn";
 
-import { CreateGroupInput } from '../../api/groupAssignmentService'
-import { useEligibleStudents } from '../../hooks/useEligibleStudents'
-import { useCreateGroups } from '../../hooks/useGroupAssignments'
+import { CreateGroupInput } from "../../api/groupAssignmentService";
+import { useEligibleStudents } from "../../hooks/useEligibleStudents";
+import { useCreateGroups } from "../../hooks/useGroupAssignments";
 
 interface Props {
-  assignmentId: string
-  onClose: () => void
+  assignmentId: string;
+  onClose: () => void;
 }
 
 interface GroupDraft {
-  name: string
-  member_ids: string[]
+  name: string;
+  member_ids: string[];
 }
 
 export function CreateGroupModal({ assignmentId, onClose }: Props) {
-  const addToast = useToast((s) => s.addToast)
-  const { data: students = [], isLoading: loadingStudents } = useEligibleStudents(
-    assignmentId,
-    true
-  )
-  const createMutation = useCreateGroups(assignmentId)
+  const addToast = useToast((s) => s.addToast);
+  const { data: students = [], isLoading: loadingStudents } =
+    useEligibleStudents(assignmentId, true);
+  const createMutation = useCreateGroups(assignmentId);
 
-  const [groups, setGroups] = useState<GroupDraft[]>([{ name: 'Kelompok 1', member_ids: [] }])
+  const [groups, setGroups] = useState<GroupDraft[]>([
+    { name: "Kelompok 1", member_ids: [] },
+  ]);
 
   // Students already picked in any draft group
-  const assignedInDraft = new Set(groups.flatMap((g) => g.member_ids))
+  const assignedInDraft = new Set(groups.flatMap((g) => g.member_ids));
 
   // Available = enrolled + not already in an existing group + not picked in current draft
   const availableStudents = students.filter(
-    (s) => !s.already_assigned && !assignedInDraft.has(s.user_id)
-  )
+    (s) => !s.already_assigned && !assignedInDraft.has(s.user_id),
+  );
 
   const addGroup = useCallback(() => {
-    setGroups((prev) => [...prev, { name: `Kelompok ${prev.length + 1}`, member_ids: [] }])
-  }, [])
+    setGroups((prev) => [
+      ...prev,
+      { name: `Kelompok ${prev.length + 1}`, member_ids: [] },
+    ]);
+  }, []);
 
   const removeGroup = useCallback((index: number) => {
-    setGroups((prev) => prev.filter((_, i) => i !== index))
-  }, [])
+    setGroups((prev) => prev.filter((_, i) => i !== index));
+  }, []);
 
   const updateGroupName = useCallback((index: number, name: string) => {
-    setGroups((prev) => prev.map((g, i) => (i === index ? { ...g, name } : g)))
-  }, [])
+    setGroups((prev) => prev.map((g, i) => (i === index ? { ...g, name } : g)));
+  }, []);
 
   const addMemberToGroup = useCallback((groupIndex: number, userId: string) => {
     setGroups((prev) =>
-      prev.map((g, i) => (i === groupIndex ? { ...g, member_ids: [...g.member_ids, userId] } : g))
-    )
-  }, [])
-
-  const removeMemberFromGroup = useCallback((groupIndex: number, userId: string) => {
-    setGroups((prev) =>
       prev.map((g, i) =>
-        i === groupIndex ? { ...g, member_ids: g.member_ids.filter((id) => id !== userId) } : g
-      )
-    )
-  }, [])
+        i === groupIndex ? { ...g, member_ids: [...g.member_ids, userId] } : g,
+      ),
+    );
+  }, []);
+
+  const removeMemberFromGroup = useCallback(
+    (groupIndex: number, userId: string) => {
+      setGroups((prev) =>
+        prev.map((g, i) =>
+          i === groupIndex
+            ? { ...g, member_ids: g.member_ids.filter((id) => id !== userId) }
+            : g,
+        ),
+      );
+    },
+    [],
+  );
 
   const getStudentName = useCallback(
     (userId: string) => {
-      const s = students.find((st) => st.user_id === userId)
-      return s?.full_name ?? 'Tanpa Nama'
+      const s = students.find((st) => st.user_id === userId);
+      return s?.display_name ?? "Tanpa Nama";
     },
-    [students]
-  )
+    [students],
+  );
 
   const handleSubmit = async () => {
     // Validate
-    const emptyNames = groups.some((g) => !g.name.trim())
+    const emptyNames = groups.some((g) => !g.name.trim());
     if (emptyNames) {
-      addToast({ type: 'error', message: 'Semua kelompok harus memiliki nama.' })
-      return
+      addToast({
+        type: "error",
+        message: "Semua kelompok harus memiliki nama.",
+      });
+      return;
     }
 
-    const emptyGroups = groups.some((g) => g.member_ids.length === 0)
+    const emptyGroups = groups.some((g) => g.member_ids.length === 0);
     if (emptyGroups) {
-      addToast({ type: 'error', message: 'Semua kelompok harus memiliki minimal 1 anggota.' })
-      return
+      addToast({
+        type: "error",
+        message: "Semua kelompok harus memiliki minimal 1 anggota.",
+      });
+      return;
     }
 
     const payload: CreateGroupInput[] = groups.map((g) => ({
       name: g.name.trim(),
       member_ids: g.member_ids,
-    }))
+    }));
 
     try {
-      await createMutation.mutateAsync(payload)
+      await createMutation.mutateAsync(payload);
       addToast({
-        type: 'success',
+        type: "success",
         message: `${groups.length} kelompok berhasil dibuat.`,
-      })
-      onClose()
+      });
+      onClose();
     } catch {
-      addToast({ type: 'error', message: 'Gagal membuat kelompok. Coba lagi.' })
+      addToast({
+        type: "error",
+        message: "Gagal membuat kelompok. Coba lagi.",
+      });
     }
-  }
+  };
 
   return (
     <div
       role="presentation"
       className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-sm"
-      onKeyDown={(e) => e.key === 'Escape' && onClose()}
+      onKeyDown={(e) => e.key === "Escape" && onClose()}
     >
       <motion.div
         initial={{ opacity: 0, scale: 0.95 }}
@@ -158,7 +177,7 @@ export function CreateGroupModal({ assignmentId, onClose }: Props) {
               <div className="text-sm text-slate-500 dark:text-slate-400">
                 <span className="font-bold text-slate-700 dark:text-slate-300">
                   {availableStudents.length}
-                </span>{' '}
+                </span>{" "}
                 siswa belum ditambahkan ke kelompok
               </div>
 
@@ -223,13 +242,13 @@ export function CreateGroupModal({ assignmentId, onClose }: Props) {
                         value=""
                         onChange={(e) => {
                           if (e.target.value) {
-                            addMemberToGroup(gi, e.target.value)
+                            addMemberToGroup(gi, e.target.value);
                           }
                         }}
                         className={cn(
-                          'w-full px-3 py-2 bg-white dark:bg-slate-800 border border-dashed border-slate-300 dark:border-slate-600',
-                          'rounded-xl text-sm text-slate-500 dark:text-slate-400',
-                          'focus:outline-none focus:ring-2 focus:ring-indigo-500 cursor-pointer'
+                          "w-full px-3 py-2 bg-white dark:bg-slate-800 border border-dashed border-slate-300 dark:border-slate-600",
+                          "rounded-xl text-sm text-slate-500 dark:text-slate-400",
+                          "focus:outline-none focus:ring-2 focus:ring-indigo-500 cursor-pointer",
                         )}
                       >
                         <option value="">
@@ -237,7 +256,7 @@ export function CreateGroupModal({ assignmentId, onClose }: Props) {
                         </option>
                         {availableStudents.map((s) => (
                           <option key={s.user_id} value={s.user_id}>
-                            {s.full_name}
+                            {s?.display_name}
                           </option>
                         ))}
                       </select>
@@ -276,14 +295,20 @@ export function CreateGroupModal({ assignmentId, onClose }: Props) {
           </button>
           <button
             onClick={() => void handleSubmit()}
-            disabled={createMutation.isPending || groups.length === 0 || students.length === 0}
+            disabled={
+              createMutation.isPending ||
+              groups.length === 0 ||
+              students.length === 0
+            }
             className="flex-1 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-xl transition-colors disabled:opacity-70 flex items-center justify-center gap-2"
           >
-            {createMutation.isPending && <Loader2 className="w-4 h-4 animate-spin" />}
+            {createMutation.isPending && (
+              <Loader2 className="w-4 h-4 animate-spin" />
+            )}
             Buat {groups.length} Kelompok
           </button>
         </div>
       </motion.div>
     </div>
-  )
+  );
 }

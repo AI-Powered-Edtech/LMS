@@ -1,6 +1,8 @@
 use edusync_middleware::brute_force::BruteForceTracker;
 use sqlx::PgPool;
 
+use crate::cache::CacheClient;
+
 #[derive(Clone)]
 pub struct ShadowRuntimeConfig {
     pub enabled: bool,
@@ -28,8 +30,6 @@ pub struct SmtpConfig {
 #[derive(Clone)]
 pub struct AppState {
     pub db: PgPool,
-    pub jwt_secret: String,
-    pub jwt_refresh_secret: String,
     pub brute_force: BruteForceTracker,
     pub shadow: ShadowRuntimeConfig,
 
@@ -64,4 +64,7 @@ pub struct AppState {
     /// Public base URL for serving stored objects. Set via S3_PUBLIC_URL.
     /// Used to generate public download links without signed URLs.
     pub s3_public_url: Option<String>,
+
+    /// Redis cache client for session and data caching.
+    pub cache: Option<CacheClient>,
 }

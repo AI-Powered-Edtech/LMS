@@ -102,7 +102,7 @@ pub async fn refresh_handler(
 
     let tokens = refresh_session(
         &state.db, &body.refresh_token, user_id, &user_email,
-        &active_role, Some(active_tenant_id), true, &state.jwt_secret,
+        &active_role, Some(active_tenant_id), true,
     )
     .await
     .map_err(IntoVilError::into_vil_error)?;

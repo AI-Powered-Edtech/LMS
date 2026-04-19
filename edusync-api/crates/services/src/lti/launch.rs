@@ -525,7 +525,6 @@ pub async fn handle_launch(
         &user.role,
         Some(user.tenant_id),
         false, // MFA not applicable for LTI guest
-        &ctx.jwt_secret,
     )
     .map_err(|e| VilError::internal(format!("Gagal membuat sesi: {e}")))?;
 

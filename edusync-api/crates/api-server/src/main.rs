@@ -1,5 +1,6 @@
 mod ai_handlers;
 mod auth;
+mod cache;
 mod courses;
 mod cron;
 mod data_plane;
@@ -18,6 +19,9 @@ use health::{health_handler, ready_handler};
 use realtime::{handler::ws_handler, pg_notify::start_pg_listener, WsHub};
 use sqlx::postgres::PgPoolOptions;
 use state::{AppState, ShadowRuntimeConfig, SmtpConfig};
+use cache::CacheClient;
+use edusync_auth::init_rsa_keys;
+use base64::Engine;
 use std::sync::Arc;
 use vil_server::prelude::{delete, get, post, put, Method, ServiceProcess, VilApp};
 use anyhow::{bail, Context};
@@ -35,6 +39,7 @@ use auth::register::register_handler;
 use auth::reset_password::{reset_password_handler, update_password_handler};
 use auth::signout::signout_handler;
 use auth::switch_tenant::switch_tenant_handler;
+use auth::session::{list_sessions_handler, revoke_session_handler};
 use auth::tenant_rpcs::{
     accept_invitation_handler, create_tenant_handler, enroll_student_handler,
     lookup_class_handler, onboard_student_handler, validate_invitation_handler,
@@ -65,16 +70,22 @@ async fn main() -> anyhow::Result<()> {
     let _sentry_guard = observability::init_sentry();
 
     let database_url = std::env::var("DATABASE_URL").expect("DATABASE_URL must be set");
-    let jwt_secret = std::env::var("JWT_SECRET").context("JWT_SECRET harus diset")?;
-    if jwt_secret.trim().len() < 32 {
-        bail!("JWT_SECRET terlalu pendek (minimal 32 karakter)");
-    }
-
-    let jwt_refresh_secret =
-        std::env::var("JWT_REFRESH_SECRET").context("JWT_REFRESH_SECRET harus diset")?;
-    if jwt_refresh_secret.trim().len() < 32 {
-        bail!("JWT_REFRESH_SECRET terlalu pendek (minimal 32 karakter)");
-    }
+    
+    let jwt_rsa_private_key = std::env::var("JWT_RSA_PRIVATE_KEY").context("JWT_RSA_PRIVATE_KEY harus diset")?;
+    let jwt_rsa_public_key = std::env::var("JWT_RSA_PUBLIC_KEY").context("JWT_RSA_PUBLIC_KEY harus diset")?;
+    
+    let private_key_pem = String::from_utf8(
+        base64::engine::general_purpose::STANDARD.decode(&jwt_rsa_private_key)
+            .map_err(|e| anyhow::anyhow!("Invalid base64 in private key: {}", e))?
+    ).map_err(|e| anyhow::anyhow!("Invalid UTF-8 in private key: {}", e))?;
+    
+    let public_key_pem = String::from_utf8(
+        base64::engine::general_purpose::STANDARD.decode(&jwt_rsa_public_key)
+            .map_err(|e| anyhow::anyhow!("Invalid base64 in public key: {}", e))?
+    ).map_err(|e| anyhow::anyhow!("Invalid UTF-8 in public key: {}", e))?;
+    
+    init_rsa_keys(private_key_pem.as_bytes(), public_key_pem.as_bytes())
+        .map_err(|e| anyhow::anyhow!("Failed to initialize RSA keys: {}", e))?;
 
     let port = std::env::var("PORT")
         .ok()
@@ -140,10 +151,26 @@ async fn main() -> anyhow::Result<()> {
     let s3_bucket = std::env::var("S3_BUCKET").unwrap_or_else(|_| "edusync".to_string());
     let s3_public_url = std::env::var("S3_PUBLIC_URL").ok();
 
+    let redis_url = std::env::var("REDIS_URL").ok();
+    let cache = match redis_url {
+        Some(url) => match CacheClient::new(&url).await {
+            Ok(client) => {
+                tracing::info!("Redis cache initialized");
+                Some(client)
+            }
+            Err(e) => {
+                tracing::warn!("Failed to initialize Redis cache: {} — caching disabled", e);
+                None
+            }
+        },
+        None => {
+            tracing::warn!("REDIS_URL not set — caching disabled");
+            None
+        }
+    };
+
     let app_state = AppState {
         db,
-        jwt_secret,
-        jwt_refresh_secret,
         brute_force,
         shadow: ShadowRuntimeConfig {
             enabled: shadow_enabled,
@@ -158,6 +185,7 @@ async fn main() -> anyhow::Result<()> {
         s3_endpoint,
         s3_bucket,
         s3_public_url,
+        cache,
     };
 
     let state_arc: Arc<AppState> = Arc::new(app_state);
@@ -195,6 +223,9 @@ async fn main() -> anyhow::Result<()> {
         .endpoint(Method::POST, "/update-password", post(update_password_handler))
         // Email verification
         .endpoint(Method::POST, "/verify", post(verify_email_handler))
+        // Sessions
+        .endpoint(Method::GET, "/sessions", get(list_sessions_handler))
+        .endpoint(Method::POST, "/sessions/revoke", post(revoke_session_handler))
         // OAuth
         .endpoint(Method::GET, "/login/google", get(oauth_google_init_handler))
         .endpoint(Method::GET, "/callback/google", get(oauth_google_callback_handler))

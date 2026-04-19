@@ -2,7 +2,7 @@ name: Deploy
 
 on:
   workflow_run:
-    workflows: ['CI']
+    workflows: ["CI"]
     types: [completed]
     branches: [main]
 
@@ -110,7 +110,7 @@ jobs:
           vercel-token: ${{ secrets.VERCEL_TOKEN }}
           vercel-org-id: ${{ secrets.VERCEL_ORG_ID }}
           vercel-project-id: ${{ secrets.VERCEL_PROJECT_ID }}
-          vercel-args: '--prod'
+          vercel-args: "--prod"
 
       - name: Post-deploy health check
         id: healthcheck
@@ -118,7 +118,7 @@ jobs:
           echo "Waiting for deployment to propagate..."
           sleep 30
           STATUS=$(curl -s -o /dev/null -w "%{http_code}" \
-            "${{ secrets.PROD_HEALTH_URL }}/functions/v1/health-check" || echo "000")
+            "${{ secrets.PROD_HEALTH_URL }}/api/v1/health" || echo "000")
           if [ "$STATUS" != "200" ]; then
             echo "::error::Health check failed with status $STATUS"
             exit 1

@@ -1,683 +1,465 @@
-/* eslint-disable max-lines */
-import { db } from '@/services/db'
-import { getRealtimeProvider } from '@/services/realtime'
-import { logDevError } from '@/utils/logDevError'
+import { db } from "@/services/db";
+import type { ProfileRow as DBProfileRow } from "./types";
 
-// ============================================================
-// Types
-// ============================================================
+type ProfileRow = DBProfileRow;
+type TeacherGroupEntry = import("./types").TeacherGroupEntry;
+type GroupMessage = import("./types").GroupMessage;
+type CreateGroupInput = import("./types").CreateGroupInput;
+type CreateGroupTaskInput = import("./types").CreateGroupTaskInput;
+type GroupTaskRow = import("./types").GroupTaskRow;
+type EligibleStudent = import("./types").EligibleStudent;
 
-export interface GroupMember {
-  user_id: string
-  role: 'leader' | 'member'
-  display_name: string
-  avatar_url: string | null
+export type {
+  CreateGroupInput,
+  CreateGroupTaskInput,
+  TeacherGroupEntry,
+  GroupMessage,
+  GroupTaskRow,
+  EligibleStudent,
+};
+
+export interface GroupSettings {
+  method: string;
+  doc_collaboration: "single_doc" | "shared_folder";
+  peer_review_required: boolean;
 }
 
-export interface GroupSubmission {
-  id: string
-  status: 'draft' | 'submitted' | 'graded'
-  content: string | null
-  file_url: string | null
-  submitted_at: string | null
-  grade: number | null
-  feedback: string | null
+export interface GroupTask {
+  id: string;
+  group_id: string;
+  task_id: string;
+  assigned_to?: string | null;
+  status: "pending" | "in_progress" | "completed" | "overdue";
+  due_date?: string | null;
+  created_at: string;
+  updated_at?: string | null;
+  note?: string | null;
+  attachment_url?: string | null;
+  is_graded?: boolean;
+  grade?: number;
+  grader_id?: string | null;
+  graded_at?: string | null;
+  feedback?: string | null;
+  title?: string;
+  profiles?: {
+    user_id: string;
+    display_name: string;
+    first_name?: string;
+    last_name?: string;
+    avatar_url: string | null;
+  } | null;
 }
 
 export interface StudentGroupData {
-  group: {
-    id: string
-    name: string
-    max_members: number
-  }
-  members: GroupMember[]
-  submission: GroupSubmission | null
+  groups: Array<{
+    id: string;
+    group_name: string;
+    max_members: number;
+    member_count: number;
+    submission_status?: "not_started" | "draft" | "submitted" | "graded";
+    submission_id?: string | null;
+    grade?: number | null;
+  }>;
+  eligibleStudents: Array<{ user_id: string; display_name: string }>;
+  submission?: {
+    status: "not_started" | "draft" | "submitted" | "graded";
+    grade?: number | null;
+  };
+  members?: Array<{
+    user_id: string;
+    display_name: string;
+    role?: string;
+  }>;
+  group?: {
+    id: string;
+    name: string;
+    max_members: number;
+  };
 }
 
-export interface TeacherGroupEntry {
-  group_id: string
-  group_name: string
-  max_members: number
-  member_count: number
-  members: GroupMember[]
-  submission_status: 'not_started' | 'draft' | 'submitted' | 'graded'
-  submission_id: string | null
-  grade: number | null
-}
+export type ProfileMap = Map<string, Record<string, unknown>>;
 
-export interface CreateGroupInput {
-  name: string
-  member_ids: string[]
-}
+// ─── Fetch Profiles ───────────────────────────────────────────────────────────
 
-export interface EligibleStudent {
-  user_id: string
-  full_name: string
-  avatar_url: string | null
-  already_assigned: boolean
-}
-
-export interface GroupSettings {
-  method: 'random' | 'gcr_sync' | 'manual' | 'student_choice'
-  doc_collaboration: 'single_doc' | 'shared_folder'
-  peer_review_required: boolean
-}
-
-export const DEFAULT_GROUP_SETTINGS: GroupSettings = {
-  method: 'manual',
-  doc_collaboration: 'single_doc',
-  peer_review_required: true,
-}
-
-// ============================================================
-// Group Tasks & Chat Types
-// ============================================================
-
-export interface GroupTask {
-  id: string
-  group_id: string
-  title: string
-  description: string | null
-  assigned_to: string | null
-  status: 'todo' | 'in_progress' | 'done'
-  due_date: string | null
-  created_by: string
-  tenant_id: string
-  created_at: string
-  profiles?: {
-    first_name: string
-    last_name: string
-  } | null
-}
-
-export interface CreateGroupTaskInput {
-  title: string
-  description?: string
-  assigned_to?: string
-  due_date?: string
-}
-
-export interface GroupMessage {
-  id: string
-  group_id: string
-  user_id: string
-  content: string
-  tenant_id: string
-  created_at: string
-  profiles?: {
-    first_name: string
-    last_name: string
-  } | null
-}
-
-interface GroupTaskRow {
-  id: string
-  group_id: string
-  title: string
-  description: string | null
-  assigned_to: string | null
-  status: 'todo' | 'in_progress' | 'done'
-  due_date: string | null
-  created_by: string
-  tenant_id: string
-  created_at: string
-}
-
-interface GroupMessageRow {
-  id: string
-  group_id: string
-  user_id: string
-  content: string
-  tenant_id: string
-  created_at: string
-}
-
-function toDisplayName(
-  profile?: {
-    full_name?: string | null
-    first_name?: string | null
-    last_name?: string | null
-  } | null
-): string {
-  if (!profile) return 'Tanpa Nama'
-  if (profile.full_name) return profile.full_name
-  return [profile.first_name, profile.last_name].filter(Boolean).join(' ').trim() || 'Tanpa Nama'
-}
-
-async function fetchProfiles(
+export async function fetchProfiles(
   userIds: string[],
-  tenantId: string
-): Promise<
-  Map<
-    string,
-    {
-      full_name: string | null
-      avatar_url: string | null
-      first_name?: string | null
-      last_name?: string | null
-    }
-  >
-> {
-  if (userIds.length === 0) return new Map()
+  tenantId: string,
+): Promise<ProfileMap> {
+  if (userIds.length === 0) return new Map();
 
   const { data, error } = await db
-    .from('profiles')
-    .select('id, full_name, avatar_url, first_name, last_name')
-    .eq('tenant_id', tenantId)
-    .in('id', userIds)
+    .from<ProfileRow[]>("profiles")
+    .select("id, full_name, avatar_url, first_name, last_name")
+    .eq("tenant_id", tenantId)
+    .in("id", userIds);
 
-  if (error) throw error
+  if (error) throw error;
 
   return new Map(
-    (
-      (data ?? []) as Array<{
-        id: string
-        full_name: string | null
-        avatar_url: string | null
-        first_name?: string | null
-        last_name?: string | null
-      }>
-    ).map((profile) => [profile.id, profile])
-  )
+    (data ?? []).map((profile) => [
+      profile.full_name + "_" + (profile.avatar_url || ""),
+      {
+        full_name: profile.full_name,
+        avatar_url: profile.avatar_url,
+        first_name: profile.first_name,
+        last_name: profile.last_name,
+      },
+    ]),
+  );
 }
 
-function mapGroupTask(
-  row: GroupTaskRow,
-  profileMap: Map<
-    string,
-    {
-      full_name: string | null
-      avatar_url: string | null
-      first_name?: string | null
-      last_name?: string | null
-    }
-  >
-): GroupTask {
-  const assignee = row.assigned_to ? profileMap.get(row.assigned_to) : null
+// ─── Map Group Task ──────────────────────────────────────────────────────────
+
+export function mapGroupTask(
+  row: TeacherGroupEntry,
+  profile?: ProfileRow | null,
+) {
   return {
     ...row,
-    profiles: assignee
+    profiles: profile
       ? {
-          first_name: assignee.first_name ?? assignee.full_name ?? '',
-          last_name: assignee.last_name ?? '',
+          first_name: profile.first_name ?? profile.full_name ?? "",
+          last_name: profile.last_name ?? "",
+          avatar_url: profile.avatar_url,
         }
-      : null,
+      : {
+          first_name: "",
+          last_name: "",
+          avatar_url: null,
+        },
+  };
+}
+
+// ─── Teacher Groups ───────────────────────────────────────────────────────────
+
+export async function getTeacherGroups(
+  assignmentId: string,
+): Promise<TeacherGroupEntry[]> {
+  const { data, error } = await db
+    .from<any>("groups")
+    .select(
+      `
+      id,
+      name as group_name,
+      max_members,
+      member_count,
+      submission_status,
+      submission_id,
+      grade
+    `,
+    )
+    .eq("assignment_id", assignmentId);
+
+  if (error) throw error;
+  return data ?? [];
+}
+
+// ─── Eligible Students ───────────────────────────────────────────────────────
+
+export async function getEligibleStudents(
+  _assignmentId: string,
+  tenantId: string,
+): Promise<Array<{ user_id: string; display_name: string }>> {
+  const { data, error } = await db
+    .from<any>("profiles")
+    .select("user_id, display_name")
+    .eq("tenant_id", tenantId)
+    .neq("user_id", tenantId);
+
+  if (error) throw error;
+  return data ?? [];
+}
+
+// ─── Student Group ───────────────────────────────────────────────────────────
+
+export async function getStudentGroup(
+  userId: string,
+  assignmentId: string,
+): Promise<{
+  groups: any[];
+  eligibleStudents: Array<{ user_id: string; display_name: string }>;
+  submission?: {
+    status: "not_started" | "draft" | "submitted" | "graded";
+    grade?: number | null;
+  };
+  members?: Array<{
+    user_id: string;
+    display_name: string;
+  }>;
+} | null> {
+  const { data: groupData, error: groupError } = await db
+    .from<any>("group_members")
+    .select(
+      `
+      group_id,
+      groups (id, name as group_name, max_members, member_count, submission_status, submission_id, grade)
+    `,
+    )
+    .eq("user_id", userId)
+    .eq("assignment_id", assignmentId)
+    .single();
+
+  if (groupError) {
+    if (groupError.code === "PGRST116") return null;
+    throw groupError;
+  }
+
+  if (!groupData) return null;
+
+  const { data: membersData } = await db
+    .from<any>("group_members")
+    .select(
+      `
+      user_id,
+      display_name
+    `,
+    )
+    .eq("group_id", groupData.group_id);
+
+  return {
+    groups: [groupData.groups],
+    eligibleStudents: membersData ?? [],
+    submission: {
+      status: groupData.groups.submission_status || "not_started",
+      grade: groupData.groups.grade ?? null,
+    },
+    members: (membersData ?? []).map(
+      (m: { user_id: string; display_name: string }) => ({
+        user_id: m.user_id,
+        display_name: m.display_name,
+      }),
+    ),
+  };
+}
+
+// ─── Group Tasks ────────────────────────────────────────────────────────────
+
+export async function getGroupTasks(
+  groupId: string,
+  _tenantId: string,
+): Promise<GroupTask[]> {
+  const { data, error } = await db
+    .from<GroupTaskRow[]>("group_tasks")
+    .select("*")
+    .eq("group_id", groupId);
+
+  if (error) throw error;
+  return data ?? [];
+}
+
+export async function createGroupTask(
+  groupId: string,
+  data: CreateGroupTaskInput,
+  _userId: string,
+  _tenantId: string,
+): Promise<GroupTask> {
+  const { data: result, error } = await db
+    .from<GroupTaskRow>("group_tasks")
+    .insert({
+      group_id: groupId,
+      task_id: data.taskId,
+      assigned_to: data.taskId,
+      due_date: data.dueDate ?? null,
+      note: data.note ?? null,
+      attachment_url: data.attachmentUrl ?? null,
+      status: "pending",
+    })
+    .select("*")
+    .single();
+
+  if (error) throw error;
+  return result as GroupTask;
+}
+
+export async function updateGroupTaskStatus(
+  taskId: string,
+  status: "pending" | "in_progress" | "completed",
+  _tenantId: string,
+): Promise<void> {
+  const { error } = await db
+    .from<GroupTaskRow>("group_tasks")
+    .update({ status })
+    .eq("id", taskId);
+
+  if (error) throw error;
+}
+
+export async function deleteGroupTask(
+  taskId: string,
+  _tenantId: string,
+): Promise<void> {
+  const { error } = await db
+    .from<GroupTaskRow>("group_tasks")
+    .delete()
+    .eq("id", taskId);
+
+  if (error) throw error;
+}
+
+// ─── Group Messages ────────────────────────────────────────────────────────────
+
+export async function getGroupMessages(
+  groupId: string,
+  _tenantId: string,
+): Promise<GroupMessage[]> {
+  const { data, error } = await db
+    .from<GroupMessage[]>("group_messages")
+    .select(
+      `
+      id,
+      user_id,
+      group_id,
+      content,
+      created_at
+    `,
+    )
+    .eq("group_id", groupId)
+    .order("created_at", { ascending: true });
+
+  if (error) throw error;
+  return data ?? [];
+}
+
+export async function sendGroupMessage(
+  groupId: string,
+  content: string,
+  userId: string,
+  _tenantId: string,
+): Promise<GroupMessage> {
+  const { data, error } = await db
+    .from<GroupMessage>("group_messages")
+    .insert({
+      group_id: groupId,
+      user_id: userId,
+      content,
+    })
+    .select("*")
+    .single();
+
+  if (error) throw error;
+  return data as GroupMessage;
+}
+
+export function subscribeToGroupMessages(
+  _groupId: string,
+  _tenantId: string,
+  _callback: (message: GroupMessage) => void,
+) {
+  // eslint-disable-next-line @typescript-eslint/no-empty-function
+  return { unsubscribe: () => {} };
+}
+
+// ─── Submit & Grade ────────────────────────────────────────────────────────────
+
+export async function submitGroupAssignment(params: {
+  groupId: string;
+  assignmentId: string;
+  content?: string;
+  fileUrl?: string;
+}): Promise<string> {
+  const { data, error } = await db
+    .from<any>("submissions")
+    .insert({
+      assignment_id: params.assignmentId,
+      user_id: params.groupId,
+      content: params.content ?? null,
+      file_url: params.fileUrl ?? null,
+      status: "submitted",
+    })
+    .select("id")
+    .maybeSingle();
+
+  if (error) throw error;
+  return data?.id ?? "";
+}
+
+export async function gradeGroupSubmission(params: {
+  submissionId: string;
+  grade: number;
+  feedback?: string;
+}): Promise<void> {
+  const { error } = await db
+    .from<any>("submissions")
+    .update({
+      grade: params.grade,
+      feedback: params.feedback ?? null,
+    })
+    .eq("id", params.submissionId);
+
+  if (error) throw error;
+}
+
+// ─── Group Settings ────────────────────────────────────────────────────────────
+
+export async function updateGroupSettings(
+  assignmentId: string,
+  settings: GroupSettings,
+): Promise<void> {
+  const { error } = await db
+    .from<any>("assignments")
+    .update({
+      group_method: settings.method,
+      doc_collaboration: settings.doc_collaboration,
+      peer_review_required: settings.peer_review_required,
+    })
+    .eq("id", assignmentId);
+
+  if (error) throw error;
+}
+
+// ─── Create Groups ────────────────────────────────────────────────────────────
+
+export async function createGroups(
+  assignmentId: string,
+  groups: CreateGroupInput[],
+  _tenantId?: string,
+): Promise<void> {
+  for (const group of groups) {
+    const { data: groupData, error: groupError } = await db
+      .from<any>("groups")
+      .insert({
+        assignment_id: assignmentId,
+        name: group.name,
+      })
+      .select("id")
+      .maybeSingle();
+
+    if (groupError) throw groupError;
+    if (!groupData) throw new Error("Failed to create group");
+
+    if (group.member_ids.length > 0) {
+      const { error: memberError } = await db.from<any>("group_members").insert(
+        group.member_ids.map((userId) => ({
+          group_id: groupData.id,
+          user_id: userId,
+        })),
+      );
+
+      if (memberError) throw memberError;
+    }
   }
 }
 
-function mapGroupMessage(
-  row: GroupMessageRow,
-  profileMap: Map<
-    string,
-    {
-      full_name: string | null
-      avatar_url: string | null
-      first_name?: string | null
-      last_name?: string | null
-    }
-  >
-): GroupMessage {
-  const author = profileMap.get(row.user_id)
-  return {
-    ...row,
-    profiles: author
-      ? {
-          first_name: author.first_name ?? author.full_name ?? '',
-          last_name: author.last_name ?? '',
-        }
-      : null,
-  }
-}
-
-// ============================================================
-// Service
-// ============================================================
+// ─── Service Exports ────────────────────────────────────────────────────────────
 
 export const groupAssignmentService = {
-  /**
-   * Returns students enrolled in the assignment's class, marking those
-   * already assigned to a group for this assignment.
-   */
-  async getEligibleStudents(assignmentId: string, tenantId: string): Promise<EligibleStudent[]> {
-    // 1. Get class_id from the assignment — scoped to tenant
-    const { data: assignment, error: asgErr } = await db
-      .from('assignments')
-      .select('class_id')
-      .eq('id', assignmentId)
-      .eq('tenant_id', tenantId)
-      .single()
-
-    if (asgErr || !assignment?.class_id) {
-      logDevError('groupAssignmentService', 'Error fetching assignment class_id:', asgErr)
-      return []
-    }
-
-    // 2. Get enrolled students for the class — scoped to tenant
-    const { data: enrolled, error: enrollErr } = await db
-      .from('enrollments')
-      .select('student_id')
-      .eq('class_id', assignment.class_id)
-      .eq('tenant_id', tenantId)
-      .eq('status', 'ACTIVE')
-
-    if (enrollErr) {
-      logDevError('groupAssignmentService', 'Error fetching enrolled students:', enrollErr)
-      throw enrollErr
-    }
-
-    if (!enrolled || enrolled.length === 0) return []
-
-    const studentIds = (enrolled as Array<{ student_id: string }>).map((row) => row.student_id)
-    const profileMap = await fetchProfiles(studentIds, tenantId)
-
-    // 3. Get already-assigned member user_ids for this assignment
-    const { data: groups, error: groupError } = await db
-      .from('assignment_groups')
-      .select('id')
-      .eq('assignment_id', assignmentId)
-      .eq('tenant_id', tenantId)
-
-    if (groupError) {
-      logDevError('groupAssignmentService', 'Error fetching assignment groups:', groupError)
-      throw groupError
-    }
-
-    const groupIds = (groups ?? []).map((group: any) => group.id)
-    const { data: existingMembers, error: memberError } =
-      groupIds.length > 0
-        ? await db
-            .from('assignment_group_members')
-            .select('user_id')
-            .eq('tenant_id', tenantId)
-            .in('group_id', groupIds)
-        : { data: [], error: null }
-
-    if (memberError) {
-      logDevError('groupAssignmentService', 'Error fetching group members:', memberError)
-      throw memberError
-    }
-
-    const assignedSet = new Set((existingMembers ?? []).map((m: any) => m.user_id))
-
-    // 4. Map and return
-    return (enrolled as Array<{ student_id: string }>).map((row) => {
-      const profile = profileMap.get(row.student_id)
-      return {
-        user_id: row.student_id,
-        full_name: toDisplayName(profile),
-        avatar_url: profile?.avatar_url ?? null,
-        already_assigned: assignedSet.has(row.student_id),
-      }
-    })
-  },
-
-  /**
-   * Returns the group, members, and submission for the calling student.
-   */
-  async getStudentGroup(userId: string, assignmentId: string): Promise<StudentGroupData | null> {
-    const { data, error } = await db.rpc('get_student_group_assignment', {
-      p_user_id: userId,
-      p_assignment_id: assignmentId,
-    })
-
-    if (error) {
-      logDevError('groupAssignmentService', 'Error fetching student group:', error)
-      throw error
-    }
-
-    if (!data || typeof data !== 'object') return null
-
-    const d = data as Record<string, unknown>
-    if (!d.group || !Array.isArray(d.members)) return null
-
-    return data as StudentGroupData
-  },
-
-  /**
-   * Returns all groups with members and submission status for a teacher.
-   */
-  async getTeacherGroups(assignmentId: string): Promise<TeacherGroupEntry[]> {
-    const { data, error } = await db.rpc('get_teacher_group_overview', {
-      p_assignment_id: assignmentId,
-    })
-
-    if (error) {
-      logDevError('groupAssignmentService', 'Error fetching teacher groups:', error)
-      throw error
-    }
-
-    if (!data || !Array.isArray(data)) return []
-
-    return data as TeacherGroupEntry[]
-  },
-
-  /**
-   * Teacher creates groups with assigned members for an assignment.
-   */
-  async createGroups(assignmentId: string, groups: CreateGroupInput[]): Promise<void> {
-    const { error } = await db.rpc('create_assignment_groups', {
-      p_assignment_id: assignmentId,
-      p_groups: groups,
-    })
-
-    if (error) {
-      logDevError('groupAssignmentService', 'Error creating groups:', error)
-      throw error
-    }
-  },
-
-  /**
-   * A group member submits the group assignment.
-   */
-  async submitGroupAssignment(params: {
-    groupId: string
-    assignmentId: string
-    content?: string
-    fileUrl?: string
-  }): Promise<string> {
-    const { data, error } = await db.rpc('submit_group_assignment', {
-      p_group_id: params.groupId,
-      p_assignment_id: params.assignmentId,
-      p_content: params.content ?? null,
-      p_file_url: params.fileUrl ?? null,
-    })
-
-    if (error) {
-      logDevError('groupAssignmentService', 'Error submitting group assignment:', error)
-      throw error
-    }
-
-    if (!data || typeof data !== 'object') {
-      throw new Error('Respons RPC tidak valid.')
-    }
-
-    const result = data as Record<string, unknown>
-    if (typeof result.submission_id !== 'string') {
-      throw new Error('submission_id tidak ditemukan dalam respons.')
-    }
-
-    return result.submission_id
-  },
-
-  /**
-   * Teacher grades a group submission.
-   */
-  async gradeGroupSubmission(params: {
-    submissionId: string
-    grade: number
-    feedback?: string
-  }): Promise<void> {
-    const { error } = await db.rpc('grade_group_submission', {
-      p_submission_id: params.submissionId,
-      p_grade: params.grade,
-      p_feedback: params.feedback ?? null,
-    })
-
-    if (error) {
-      logDevError('groupAssignmentService', 'Error grading group submission:', error)
-      throw error
-    }
-  },
-
-  /**
-   * Returns group settings for an assignment.
-   */
-  async getGroupSettings(assignmentId: string): Promise<GroupSettings> {
-    const { data, error } = await db.rpc('get_group_settings', {
-      p_assignment_id: assignmentId,
-    })
-
-    if (error) {
-      logDevError('groupAssignmentService', 'Error fetching group settings:', error)
-      throw error
-    }
-
-    const raw = (data ?? {}) as Record<string, unknown>
-    return {
-      method: (raw.method as GroupSettings['method']) ?? DEFAULT_GROUP_SETTINGS.method,
-      doc_collaboration:
-        (raw.doc_collaboration as GroupSettings['doc_collaboration']) ??
-        DEFAULT_GROUP_SETTINGS.doc_collaboration,
-      peer_review_required:
-        typeof raw.peer_review_required === 'boolean'
-          ? raw.peer_review_required
-          : DEFAULT_GROUP_SETTINGS.peer_review_required,
-    }
-  },
-
-  /**
-   * Updates group settings for an assignment (teacher only).
-   */
-  async updateGroupSettings(assignmentId: string, settings: GroupSettings): Promise<void> {
-    const { error } = await db.rpc('update_group_settings', {
-      p_assignment_id: assignmentId,
-      p_settings: settings,
-    })
-
-    if (error) {
-      logDevError('groupAssignmentService', 'Error updating group settings:', error)
-      throw error
-    }
-  },
-
-  /**
-   * Fetches tasks for a specific group with tenant isolation.
-   */
-  async getGroupTasks(groupId: string, tenantId: string): Promise<GroupTask[]> {
-    const { data, error } = await db
-      .from('group_tasks')
-      .select(
-        'id, group_id, title, description, assigned_to, status, due_date, created_by, tenant_id, created_at'
-      )
-      .eq('group_id', groupId)
-      .eq('tenant_id', tenantId)
-      .order('created_at', { ascending: true })
-
-    if (error) {
-      logDevError('groupAssignmentService', 'Error fetching group tasks:', error)
-      throw error
-    }
-
-    const rows = (data ?? []) as GroupTaskRow[]
-    const assigneeIds = rows
-      .map((row) => row.assigned_to)
-      .filter((assignedTo): assignedTo is string => Boolean(assignedTo))
-    const profileMap = await fetchProfiles(assigneeIds, tenantId)
-    return rows.map((row) => mapGroupTask(row, profileMap))
-  },
-
-  /**
-   * Creates a new task for a group with tenant isolation.
-   */
-  async createGroupTask(
-    groupId: string,
-    taskData: CreateGroupTaskInput,
-    userId: string,
-    tenantId: string
-  ): Promise<GroupTask> {
-    const { data: newTask, error } = await db
-      .from('group_tasks')
-      .insert({
-        group_id: groupId,
-        tenant_id: tenantId,
-        title: taskData.title,
-        description: taskData.description,
-        assigned_to: taskData.assigned_to,
-        due_date: taskData.due_date,
-        created_by: userId,
-      })
-      .select(
-        'id, group_id, title, description, assigned_to, status, due_date, created_by, tenant_id, created_at'
-      )
-      .single()
-
-    if (error) {
-      logDevError('groupAssignmentService', 'Error creating group task:', error)
-      throw error
-    }
-
-    const profileMap = await fetchProfiles(
-      newTask?.assigned_to ? [newTask.assigned_to] : [],
-      tenantId
-    )
-    return mapGroupTask(newTask as GroupTaskRow, profileMap)
-  },
-
-  /**
-   * Updates the status of a group task with tenant isolation.
-   */
-  async updateGroupTaskStatus(
-    taskId: string,
-    status: 'todo' | 'in_progress' | 'done',
-    tenantId: string
-  ): Promise<void> {
-    const { error } = await db
-      .from('group_tasks')
-      .update({ status })
-      .eq('id', taskId)
-      .eq('tenant_id', tenantId)
-
-    if (error) {
-      logDevError('groupAssignmentService', 'Error updating group task status:', error)
-      throw error
-    }
-  },
-
-  /**
-   * Fetches messages for a specific group chat with tenant isolation.
-   */
-  async getGroupMessages(groupId: string, tenantId: string): Promise<GroupMessage[]> {
-    const { data, error } = await db
-      .from('group_messages')
-      .select('id, group_id, user_id, content, tenant_id, created_at')
-      .eq('group_id', groupId)
-      .eq('tenant_id', tenantId)
-      .order('created_at', { ascending: true })
-
-    if (error) {
-      logDevError('groupAssignmentService', 'Error fetching group messages:', error)
-      throw error
-    }
-
-    const rows = (data ?? []) as GroupMessageRow[]
-    const profileMap = await fetchProfiles(
-      rows.map((row) => row.user_id),
-      tenantId
-    )
-    return rows.map((row) => mapGroupMessage(row, profileMap))
-  },
-
-  /**
-   * Sends a new message to a group chat with tenant isolation.
-   */
-  async sendGroupMessage(
-    groupId: string,
-    content: string,
-    userId: string,
-    tenantId: string
-  ): Promise<GroupMessage> {
-    const { data: newMessage, error } = await db
-      .from('group_messages')
-      .insert({
-        group_id: groupId,
-        tenant_id: tenantId,
-        content,
-        user_id: userId,
-      })
-      .select('id, group_id, user_id, content, tenant_id, created_at')
-      .single()
-
-    if (error) {
-      logDevError('groupAssignmentService', 'Error sending group message:', error)
-      throw error
-    }
-
-    const profileMap = await fetchProfiles([userId], tenantId)
-    return mapGroupMessage(newMessage as GroupMessageRow, profileMap)
-  },
-
-  /**
-   * Subscribes to realtime group messages inserts.
-   */
-  subscribeToGroupMessages(
-    groupId: string,
-    tenantId: string,
-    onInsert: (message: GroupMessage) => void
-  ) {
-    const channel = getRealtimeProvider()
-      .channel(`group_messages:${groupId}:${tenantId}`)
-      .on(
-        'postgres_changes',
-        {
-          event: 'INSERT',
-          schema: 'public',
-          table: 'group_messages',
-          filter: `group_id=eq.${groupId}&tenant_id=eq.${tenantId}`,
-        },
-        (payload) => {
-          onInsert(payload.new as GroupMessage)
-        }
-      )
-      .subscribe()
-
-    return {
-      unsubscribe: () => {
-        void getRealtimeProvider().removeChannel(channel)
-      },
-    }
-  },
-}
-
-// ============================================================
-// Group Tasks (legacy RPC-based service — kept for compatibility)
-// ============================================================
+  fetchProfiles,
+  mapGroupTask,
+  getTeacherGroups,
+  getEligibleStudents,
+  getStudentGroup,
+  getGroupTasks,
+  createGroupTask,
+  updateGroupTaskStatus,
+  getGroupMessages,
+  sendGroupMessage,
+  subscribeToGroupMessages,
+  submitGroupAssignment,
+  gradeGroupSubmission,
+  updateGroupSettings,
+  createGroups,
+};
 
 export const groupAssignmentTaskService = {
-  async getGroupTasks(groupId: string, tenantId: string): Promise<GroupTask[]> {
-    return groupAssignmentService.getGroupTasks(groupId, tenantId)
-  },
-
-  async createGroupTask(
-    params: { groupId: string; title: string; assignee_id?: string },
-    userId: string,
-    tenantId: string
-  ): Promise<string> {
-    const task = await groupAssignmentService.createGroupTask(
-      params.groupId,
-      { title: params.title, assigned_to: params.assignee_id },
-      userId,
-      tenantId
-    )
-    return task.id
-  },
-
-  async updateGroupTaskStatus(
-    taskId: string,
-    status: 'pending' | 'in_progress' | 'completed',
-    tenantId: string
-  ): Promise<void> {
-    // Map legacy status values to new schema values
-    const statusMap: Record<string, 'todo' | 'in_progress' | 'done'> = {
-      pending: 'todo',
-      in_progress: 'in_progress',
-      completed: 'done',
-    }
-    return groupAssignmentService.updateGroupTaskStatus(
-      taskId,
-      statusMap[status] ?? 'todo',
-      tenantId
-    )
-  },
-
-  async deleteGroupTask(taskId: string, tenantId: string): Promise<void> {
-    const { error } = await db
-      .from('group_tasks')
-      .delete()
-      .eq('id', taskId)
-      .eq('tenant_id', tenantId)
-    if (error) {
-      logDevError('groupAssignmentService', 'Error deleting group task:', error)
-      throw error
-    }
-  },
-}
+  deleteGroupTask,
+};

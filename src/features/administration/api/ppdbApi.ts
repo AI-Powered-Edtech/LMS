@@ -4,8 +4,8 @@
  * Semua query menggunakan db client dengan RLS.
  * Tenant isolation dilakukan via RLS policy + auto_set_tenant_id trigger.
  */
-import { db } from '@/services/db'
-import { logger } from '@/utils/logger'
+import { db } from "@/services/db";
+import { logger } from "@/utils/logger";
 
 import type {
   PPDBPeriod,
@@ -15,7 +15,7 @@ import type {
   PPDBRegistrationFilter,
   PPDBRegistrationStatus,
   PPDBSummary,
-} from '../types/ppdb'
+} from "../types/ppdb";
 
 // ---------------------------------------------------------------------------
 // Helper: ambil tenant_id dari profil user saat ini
@@ -24,12 +24,18 @@ import type {
 async function getMyTenantId(): Promise<string | null> {
   const {
     data: { user },
-  } = await db.auth.getUser()
-  if (!user) return null
+  } = await db.auth.getUser();
+  if (!user) return null;
 
-  const { data } = await db.from('profiles').select('tenant_id').eq('id', user.id).single()
+  const { data } = (await db
+    .from<
+      Array<{ id: string; full_name: string | null; email: string | null }>
+    >("profiles")
+    .select("tenant_id")
+    .eq("id", user.id)
+    .single()) as { data: { tenant_id: string } | null; error: Error | null };
 
-  return data?.tenant_id ?? null
+  return data?.tenant_id ?? null;
 }
 
 // ---------------------------------------------------------------------------
@@ -38,26 +44,32 @@ async function getMyTenantId(): Promise<string | null> {
 
 /** Ambil semua periode PPDB tenant */
 export async function fetchPPDBPeriods(): Promise<PPDBPeriod[]> {
-  const { data, error } = await db
-    .from('ppdb_periods')
-    .select('*')
-    .order('created_at', { ascending: false })
+  const { data, error } = (await db
+    .from<any>("ppdb_periods")
+    .select("*")
+    .order("created_at", { ascending: false })) as {
+    data: PPDBPeriod[];
+    error: Error | null;
+  };
 
   if (error) {
-    if (import.meta.env.DEV) logger.warn('fetchPPDBPeriods error:', error.message)
-    return []
+    if (import.meta.env.DEV)
+      logger.warn("fetchPPDBPeriods error:", error.message);
+    return [];
   }
 
-  return (data ?? []) as PPDBPeriod[]
+  return data ?? [];
 }
 
 /** Buat periode baru */
-export async function createPPDBPeriod(input: PPDBPeriodInput): Promise<PPDBPeriod | null> {
-  const tenantId = await getMyTenantId()
-  if (!tenantId) throw new Error('Tidak dapat menentukan tenant')
+export async function createPPDBPeriod(
+  input: PPDBPeriodInput,
+): Promise<PPDBPeriod | null> {
+  const tenantId = await getMyTenantId();
+  if (!tenantId) throw new Error("Tidak dapat menentukan tenant");
 
   const { data, error } = await db
-    .from('ppdb_periods')
+    .from<any>("ppdb_periods")
     .insert({
       tenant_id: tenantId,
       academic_year: input.academic_year,
@@ -65,85 +77,89 @@ export async function createPPDBPeriod(input: PPDBPeriodInput): Promise<PPDBPeri
       start_date: input.start_date,
       end_date: input.end_date,
       quota: input.quota,
-      status: 'draft' as PPDBPeriodStatus,
+      status: "draft" as PPDBPeriodStatus,
     })
-    .select()
-    .single()
+    .select("*")
+    .single();
 
-  if (error) throw new Error(error.message)
-  return data as PPDBPeriod
-}
+  if (!data) return null;
 
-/** Update status periode */
-export async function updatePeriodStatus(
-  periodId: string,
-  status: PPDBPeriodStatus
-): Promise<void> {
-  const { error } = await db.from('ppdb_periods').update({ status }).eq('id', periodId)
-
-  if (error) throw new Error(error.message)
-}
-
-/** Update periode */
-export async function updatePPDBPeriod(
-  periodId: string,
-  input: Partial<PPDBPeriodInput>
-): Promise<void> {
-  const { error } = await db.from('ppdb_periods').update(input).eq('id', periodId)
-
-  if (error) throw new Error(error.message)
+  if (error) throw new Error(error.message);
+  return data;
 }
 
 // ---------------------------------------------------------------------------
 // Pendaftar (Registrations)
 // ---------------------------------------------------------------------------
 
+/** Update status periode */
+export async function updatePeriodStatus(
+  periodId: string,
+  status: PPDBPeriodStatus,
+): Promise<void> {
+  const { error } = await db
+    .from<any>("ppdb_periods")
+    .update({ status })
+    .eq("id", periodId);
+
+  if (error) throw new Error(error.message);
+}
+
 /** Ambil daftar pendaftar dengan filter, pagination */
 export async function fetchRegistrations(
   periodId: string,
-  filter: PPDBRegistrationFilter
+  filter: PPDBRegistrationFilter,
 ): Promise<{ data: PPDBRegistration[]; count: number }> {
-  const from = (filter.page - 1) * filter.pageSize
-  const to = from + filter.pageSize - 1
+  const from = (filter.page - 1) * filter.pageSize;
+  const to = from + filter.pageSize - 1;
 
   let query = db
-    .from('ppdb_registrations')
-    .select('*', { count: 'exact' })
-    .eq('period_id', periodId)
-    .order('created_at', { ascending: false })
-    .range(from, to)
+    .from<any>("ppdb_registrations")
+    .select("*", { count: "exact" })
+    .eq("period_id", periodId)
+    .order("created_at", { ascending: false })
+    .range(from, to);
 
-  if (filter.status !== 'all') {
-    query = query.eq('status', filter.status)
+  if (filter.status !== "all") {
+    query = query.eq("status", filter.status);
   }
 
   if (filter.search.trim()) {
     query = query.or(
-      `student_name.ilike.%${filter.search.trim()}%,registration_number.ilike.%${filter.search.trim()}%,parent_name.ilike.%${filter.search.trim()}%`
-    )
+      `student_name.ilike.%${filter.search.trim()}%,registration_number.ilike.%${filter.search.trim()}%,parent_name.ilike.%${filter.search.trim()}%`,
+    );
   }
 
-  const { data, error, count } = await query
+  const { data, error, count } = await query;
 
   if (error) {
-    if (import.meta.env.DEV) logger.warn('fetchRegistrations error:', error.message)
-    return { data: [], count: 0 }
+    if (import.meta.env.DEV)
+      logger.warn("fetchRegistrations error:", error.message);
+    return { data: [], count: 0 };
   }
 
-  return { data: (data ?? []) as PPDBRegistration[], count: count ?? 0 }
+  return { data: (data ?? []) as PPDBRegistration[], count: count ?? 0 };
 }
 
 /** Ambil ringkasan statistik pendaftar */
 export async function fetchPPDBSummary(periodId: string): Promise<PPDBSummary> {
-  const { data: period } = await db.from('ppdb_periods').select('quota').eq('id', periodId).single()
+  const { data: period } = (await db
+    .from<any>("ppdb_periods")
+    .select("*")
+    .eq("id", periodId)
+    .single()) as { data: { quota: number } | null; error: Error | null };
 
-  const { data, error } = await db
-    .from('ppdb_registrations')
-    .select('status')
-    .eq('period_id', periodId)
+  const { data, error } = (await db
+    .from<any>("ppdb_registrations")
+    .select("status")
+    .eq("period_id", periodId)) as {
+    data: Array<{ status: string }>;
+    error: Error | null;
+  };
 
   if (error) {
-    if (import.meta.env.DEV) logger.warn('fetchPPDBSummary error:', error.message)
+    if (import.meta.env.DEV)
+      logger.warn("fetchPPDBSummary error:", error.message);
     return {
       total: 0,
       quota: period?.quota ?? 0,
@@ -152,98 +168,98 @@ export async function fetchPPDBSummary(periodId: string): Promise<PPDBSummary> {
       pending: 0,
       reviewed: 0,
       waitlisted: 0,
-    }
+    };
   }
 
-  const regs = data ?? []
+  const regs = data ?? [];
   return {
     total: regs.length,
     quota: period?.quota ?? 0,
-    accepted: regs.filter((r: any) => r.status === 'accepted').length,
-    rejected: regs.filter((r: any) => r.status === 'rejected').length,
-    pending: regs.filter((r: any) => r.status === 'pending').length,
-    reviewed: regs.filter((r: any) => r.status === 'reviewed').length,
-    waitlisted: regs.filter((r: any) => r.status === 'waitlisted').length,
-  }
+    accepted: regs.filter((r) => r.status === "accepted").length,
+    rejected: regs.filter((r) => r.status === "rejected").length,
+    pending: regs.filter((r) => r.status === "pending").length,
+    reviewed: regs.filter((r) => r.status === "reviewed").length,
+    waitlisted: regs.filter((r) => r.status === "waitlisted").length,
+  };
 }
 
 /** Update status satu pendaftar */
 export async function updateRegistrationStatus(
   registrationId: string,
   status: PPDBRegistrationStatus,
-  notes?: string
+  notes?: string,
 ): Promise<void> {
   const {
     data: { user },
-  } = await db.auth.getUser()
+  } = await db.auth.getUser();
 
   const updatePayload: Record<string, unknown> = {
     status,
     reviewed_by: user?.id ?? null,
     reviewed_at: new Date().toISOString(),
-  }
+  };
   if (notes !== undefined) {
-    updatePayload.notes = notes
+    updatePayload.notes = notes;
   }
 
   const { error } = await db
-    .from('ppdb_registrations')
+    .from<any>("ppdb_registrations")
     .update(updatePayload)
-    .eq('id', registrationId)
+    .eq("id", registrationId);
 
-  if (error) throw new Error(error.message)
+  if (error) throw new Error(error.message);
 }
 
 /** Bulk update status beberapa pendaftar */
 export async function bulkUpdateRegistrationStatus(
   registrationIds: string[],
-  status: PPDBRegistrationStatus
+  status: PPDBRegistrationStatus,
 ): Promise<void> {
   const {
     data: { user },
-  } = await db.auth.getUser()
+  } = await db.auth.getUser();
 
   const { error } = await db
-    .from('ppdb_registrations')
+    .from<any>("ppdb_registrations")
     .update({
       status,
       reviewed_by: user?.id ?? null,
       reviewed_at: new Date().toISOString(),
     })
-    .in('id', registrationIds)
+    .in("id", registrationIds);
 
-  if (error) throw new Error(error.message)
+  if (error) throw new Error(error.message);
 }
 
 /** Buat pendaftar baru (admin manual entry) */
 export async function createRegistration(
   periodId: string,
   input: {
-    student_name: string
-    birth_date: string
-    gender: 'L' | 'P'
-    previous_school?: string
-    parent_name: string
-    parent_phone: string
-    parent_email?: string
-    address?: string
-  }
+    student_name: string;
+    birth_date: string;
+    gender: "L" | "P";
+    previous_school?: string;
+    parent_name: string;
+    parent_phone: string;
+    parent_email?: string;
+    address?: string;
+  },
 ): Promise<PPDBRegistration | null> {
-  const tenantId = await getMyTenantId()
-  if (!tenantId) throw new Error('Tidak dapat menentukan tenant')
+  const tenantId = await getMyTenantId();
+  if (!tenantId) throw new Error("Tidak dapat menentukan tenant");
 
   // Generate registration number
   const { count } = await db
-    .from('ppdb_registrations')
-    .select('id', { count: 'exact', head: true })
-    .eq('period_id', periodId)
+    .from<any>("ppdb_registrations")
+    .select("id", { count: "exact", head: true })
+    .eq("period_id", periodId);
 
-  const year = new Date().getFullYear()
-  const seq = String((count ?? 0) + 1).padStart(4, '0')
-  const registrationNumber = `PPDB-${year}-${seq}`
+  const year = new Date().getFullYear();
+  const seq = String((count ?? 0) + 1).padStart(4, "0");
+  const registrationNumber = `PPDB-${year}-${seq}`;
 
   const { data, error } = await db
-    .from('ppdb_registrations')
+    .from<any>("ppdb_registrations")
     .insert({
       tenant_id: tenantId,
       period_id: periodId,
@@ -257,11 +273,12 @@ export async function createRegistration(
       parent_email: input.parent_email ?? null,
       address: input.address ?? null,
       documents: {},
-      status: 'pending' as PPDBRegistrationStatus,
+      status: "pending" as PPDBRegistrationStatus,
     })
-    .select()
-    .single()
+    .select("*")
+    .single();
 
-  if (error) throw new Error(error.message)
-  return data as PPDBRegistration
+  if (!data) return null;
+  if (error) throw new Error(error.message);
+  return data as PPDBRegistration;
 }

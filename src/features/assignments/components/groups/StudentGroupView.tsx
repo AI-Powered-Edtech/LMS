@@ -1,12 +1,19 @@
-import { ArrowLeft, CheckCircle2, CheckSquare, FileText, FileUp, Users } from 'lucide-react'
-import { AnimatePresence } from 'motion/react'
-import { useState } from 'react'
-import { Link } from 'react-router-dom'
+import {
+  ArrowLeft,
+  CheckCircle2,
+  CheckSquare,
+  FileText,
+  FileUp,
+  Users,
+} from "lucide-react";
+import { AnimatePresence } from "motion/react";
+import { useState } from "react";
+import { Link } from "react-router-dom";
 
-import { useToast } from '@/components/ui'
-import { useAuth } from '@/contexts/AuthContext'
-import { useUndoableAction } from '@/hooks/useUndoableAction'
-import { cn } from '@/utils/cn'
+import { useToast } from "@/components/ui";
+import { useAuth } from "@/contexts/AuthContext";
+import { useUndoableAction } from "@/hooks/useUndoableAction";
+import { cn } from "@/utils/cn";
 
 import {
   useCreateGroupTask,
@@ -17,101 +24,123 @@ import {
   useStudentGroup,
   useSubmitGroupAssignment,
   useUpdateGroupTaskStatus,
-} from '../../hooks/useGroupAssignments'
-import { GroupChatPanel } from './GroupChatPanel'
-import { GroupTasksTab } from './GroupTasksTab'
-import { SubmitGroupModal } from './SubmitGroupModal'
+} from "../../hooks/useGroupAssignments";
+import { GroupChatPanel } from "./GroupChatPanel";
+import { GroupTasksTab } from "./GroupTasksTab";
+import { SubmitGroupModal } from "./SubmitGroupModal";
 
 interface Props {
-  assignmentId: string
+  assignmentId: string;
 }
 
 export function StudentGroupView({ assignmentId }: Props) {
-  const { user } = useAuth()
-  const addToast = useToast((s) => s.addToast)
+  const { user } = useAuth();
+  const addToast = useToast((s) => s.addToast);
 
-  const [activeTab, setActiveTab] = useState('workspace')
-  const [isSubmitting, setIsSubmitting] = useState(false)
-  const [newMessage, setNewMessage] = useState('')
-  const [newTaskTitle, setNewTaskTitle] = useState('')
+  const [activeTab, setActiveTab] = useState("workspace");
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [newMessage, setNewMessage] = useState("");
+  const [newTaskTitle, setNewTaskTitle] = useState("");
 
-  const { data: groupData, isLoading, isError } = useStudentGroup(assignmentId)
-  const groupId = groupData?.group?.id
+  const { data: groupData, isLoading, isError } = useStudentGroup(assignmentId);
+  const input = { groupId: groupData?.group?.id };
 
-  const { data: tasks = [] } = useGroupTasks(groupId)
-  const { data: chat = [] } = useGroupMessages(groupId)
+  const { data: tasks = [] } = useGroupTasks(input.groupId);
+  const { data: chat = [] } = useGroupMessages(input.groupId);
 
-  const createGroupTask = useCreateGroupTask(groupId ?? '')
-  const updateTaskStatus = useUpdateGroupTaskStatus(groupId ?? '')
-  const deleteGroupTask = useDeleteGroupTask(groupId ?? '')
-  const sendGroupMessage = useSendGroupMessage(groupId ?? '')
-  const submitMutation = useSubmitGroupAssignment(assignmentId)
+  const createGroupTask = useCreateGroupTask(input.groupId ?? "");
+  const updateTaskStatus = useUpdateGroupTaskStatus(input.groupId ?? "");
+  const deleteGroupTask = useDeleteGroupTask(input.groupId ?? "");
+  const sendGroupMessage = useSendGroupMessage(input.groupId ?? "");
+  const submitMutation = useSubmitGroupAssignment(assignmentId);
 
   const { execute: executeDeleteTask } = useUndoableAction({
-    message: 'Tugas akan dihapus.',
+    message: "Tugas akan dihapus.",
     delay: 5000,
     onExecute: async () => {
-      if (!pendingDeleteTaskId) return
+      if (!pendingDeleteTaskId) return;
       deleteGroupTask.mutate(pendingDeleteTaskId, {
-        onError: () => addToast({ type: 'error', message: 'Gagal menghapus tugas.' }),
-      })
-      setPendingDeleteTaskId(null)
+        onError: () =>
+          addToast({ type: "error", message: "Gagal menghapus tugas." }),
+      });
+      setPendingDeleteTaskId(null);
     },
-  })
+  });
 
-  const [pendingDeleteTaskId, setPendingDeleteTaskId] = useState<string | null>(null)
+  const [pendingDeleteTaskId, setPendingDeleteTaskId] = useState<string | null>(
+    null,
+  );
 
   const handleDeleteTask = (id: string, _title: string) => {
-    setPendingDeleteTaskId(id)
-    executeDeleteTask()
-  }
+    setPendingDeleteTaskId(id);
+    executeDeleteTask();
+  };
 
   const handleSendMessage = () => {
-    if (!newMessage.trim() || !groupId) return
+    if (!newMessage.trim() || !input.groupId) return;
     sendGroupMessage.mutate(newMessage, {
-      onSuccess: () => setNewMessage(''),
-      onError: () => addToast({ type: 'error', message: 'Gagal mengirim pesan' }),
-    })
-  }
+      onSuccess: () => setNewMessage(""),
+      onError: () =>
+        addToast({ type: "error", message: "Gagal mengirim pesan" }),
+    });
+  };
 
   const handleAddTask = () => {
-    if (!newTaskTitle.trim() || !groupId) return
+    if (!newTaskTitle.trim() || !input.groupId) return;
     createGroupTask.mutate(
-      { title: newTaskTitle },
+      { groupId: input.groupId, note: newTaskTitle },
       {
-        onSuccess: () => setNewTaskTitle(''),
-        onError: () => addToast({ type: 'error', message: 'Gagal menambahkan tugas' }),
-      }
-    )
-  }
+        onSuccess: () => setNewTaskTitle(""),
+        onError: () =>
+          addToast({ type: "error", message: "Gagal menambahkan tugas" }),
+      },
+    );
+  };
 
   const toggleTaskStatus = (id: string, currentStatus: string) => {
-    if (!groupId) return
+    if (!input.groupId) return;
     const nextStatus =
-      currentStatus === 'todo' ? 'in_progress' : currentStatus === 'in_progress' ? 'done' : 'todo'
+      currentStatus === "pending"
+        ? "in_progress"
+        : currentStatus === "in_progress"
+          ? "completed"
+          : "pending";
 
     updateTaskStatus.mutate(
-      { taskId: id, status: nextStatus as 'todo' | 'in_progress' | 'done' },
       {
-        onError: () => addToast({ type: 'error', message: 'Gagal mengubah status tugas' }),
-      }
-    )
-  }
+        taskId: id,
+        status: nextStatus as "pending" | "in_progress" | "completed",
+      },
+      {
+        onError: () =>
+          addToast({ type: "error", message: "Gagal mengubah status tugas" }),
+      },
+    );
+  };
 
   const handleConfirmSubmit = async () => {
-    if (!groupData?.group?.id) return
+    if (!groupData?.group?.id) return;
     try {
-      await submitMutation.mutateAsync({ groupId: groupData.group.id })
-      setIsSubmitting(false)
-      addToast({ type: 'success', message: 'Tugas kelompok berhasil diserahkan.' })
+      await submitMutation.mutateAsync({
+        groupId: groupData.group!.id,
+      });
+      setIsSubmitting(false);
+      addToast({
+        type: "success",
+        message: "Tugas kelompok berhasil diserahkan.",
+      });
     } catch {
-      addToast({ type: 'error', message: 'Gagal menyerahkan tugas. Coba lagi.' })
+      addToast({
+        type: "error",
+        message: "Gagal menyerahkan tugas. Coba lagi.",
+      });
     }
-  }
+  };
 
-  const submission = groupData?.submission
-  const alreadySubmitted = submission?.status === 'submitted' || submission?.status === 'graded'
-  const members = groupData?.members ?? []
+  const submission = groupData?.submission;
+  const alreadySubmitted =
+    submission?.status === "submitted" || submission?.status === "graded";
+  const members = groupData?.members ?? [];
 
   if (isLoading) {
     return (
@@ -122,15 +151,17 @@ export function StudentGroupView({ assignmentId }: Props) {
           <div className="bg-white dark:bg-slate-800 rounded-3xl border border-slate-200 dark:border-slate-700 h-96" />
         </div>
       </div>
-    )
+    );
   }
 
   if (isError) {
     return (
       <div className="max-w-6xl mx-auto py-16 text-center text-slate-500 dark:text-slate-400">
-        <p className="font-medium">Terjadi kesalahan saat memuat data kelompok.</p>
+        <p className="font-medium">
+          Terjadi kesalahan saat memuat data kelompok.
+        </p>
       </div>
-    )
+    );
   }
 
   if (!groupData) {
@@ -143,8 +174,8 @@ export function StudentGroupView({ assignmentId }: Props) {
           Belum ada kelompok
         </h3>
         <p className="text-slate-500 dark:text-slate-400 max-w-sm">
-          Anda belum ditempatkan ke grup untuk tugas ini. Hubungi guru Anda untuk informasi lebih
-          lanjut.
+          Anda belum ditempatkan ke grup untuk tugas ini. Hubungi guru Anda
+          untuk informasi lebih lanjut.
         </p>
         <Link
           to="/assignments"
@@ -154,7 +185,7 @@ export function StudentGroupView({ assignmentId }: Props) {
           Kembali ke Tugas
         </Link>
       </div>
-    )
+    );
   }
 
   return (
@@ -176,19 +207,19 @@ export function StudentGroupView({ assignmentId }: Props) {
               </span>
             </div>
             <h1 className="text-2xl sm:text-3xl font-bold text-slate-900 dark:text-slate-100 mb-1">
-              {groupData.group.name}
+              {groupData.group!.name}
             </h1>
             <p className="text-slate-500 dark:text-slate-400 text-sm">
-              {members.length} dari {groupData.group.max_members} anggota
+              {members.length} dari {groupData.group!.max_members} anggota
             </p>
             {submission && (
               <div className="mt-3">
-                {submission.status === 'graded' && submission.grade !== null ? (
+                {submission.status === "graded" && submission.grade !== null ? (
                   <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400 text-xs font-bold rounded-full">
                     <CheckCircle2 className="w-3.5 h-3.5" />
                     Dinilai — Nilai: {submission.grade}
                   </span>
-                ) : submission.status === 'submitted' ? (
+                ) : submission.status === "submitted" ? (
                   <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400 text-xs font-bold rounded-full">
                     <CheckCircle2 className="w-3.5 h-3.5" />
                     Sudah Diserahkan
@@ -218,18 +249,18 @@ export function StudentGroupView({ assignmentId }: Props) {
           {/* Tab bar */}
           <div className="flex gap-2 bg-white dark:bg-slate-800 p-1.5 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-sm overflow-x-auto hide-scrollbar">
             {[
-              { id: 'workspace', icon: FileText, label: 'Ruang Kerja' },
-              { id: 'tasks', icon: CheckSquare, label: 'Pembagian Tugas' },
-              { id: 'peer_review', icon: Users, label: 'Penilaian Sejawat' },
+              { id: "workspace", icon: FileText, label: "Ruang Kerja" },
+              { id: "tasks", icon: CheckSquare, label: "Pembagian Tugas" },
+              { id: "peer_review", icon: Users, label: "Penilaian Sejawat" },
             ].map((tab) => (
               <button
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id)}
                 className={cn(
-                  'flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-bold transition-all whitespace-nowrap',
+                  "flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-bold transition-all whitespace-nowrap",
                   activeTab === tab.id
-                    ? 'bg-indigo-50 dark:bg-indigo-900/20 text-indigo-700 dark:text-indigo-300 shadow-sm'
-                    : 'text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-700 hover:text-slate-900 dark:hover:text-slate-200'
+                    ? "bg-indigo-50 dark:bg-indigo-900/20 text-indigo-700 dark:text-indigo-300 shadow-sm"
+                    : "text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-700 hover:text-slate-900 dark:hover:text-slate-200",
                 )}
               >
                 <tab.icon className="w-4 h-4" />
@@ -240,7 +271,7 @@ export function StudentGroupView({ assignmentId }: Props) {
 
           {/* Tab panels */}
           <div className="bg-white dark:bg-slate-800 rounded-3xl border border-slate-200 dark:border-slate-700 shadow-sm overflow-hidden min-h-[500px] flex flex-col">
-            {activeTab === 'workspace' && (
+            {activeTab === "workspace" && (
               <div className="p-6 flex flex-col flex-1">
                 <div className="flex items-center justify-between mb-6">
                   <h3 className="text-lg font-bold text-slate-900 dark:text-slate-100">
@@ -258,13 +289,14 @@ export function StudentGroupView({ assignmentId }: Props) {
                     Belum ada dokumen
                   </h4>
                   <p className="text-sm text-slate-500 dark:text-slate-400">
-                    Dokumen kolaborasi akan tersedia setelah tugas kelompok dibuat oleh guru.
+                    Dokumen kolaborasi akan tersedia setelah tugas kelompok
+                    dibuat oleh guru.
                   </p>
                 </div>
               </div>
             )}
 
-            {activeTab === 'tasks' && (
+            {activeTab === "tasks" && (
               <GroupTasksTab
                 tasks={tasks}
                 newTaskTitle={newTaskTitle}
@@ -275,14 +307,15 @@ export function StudentGroupView({ assignmentId }: Props) {
               />
             )}
 
-            {activeTab === 'peer_review' && (
+            {activeTab === "peer_review" && (
               <div className="p-6 flex flex-col flex-1">
                 <div className="mb-6">
                   <h3 className="text-lg font-bold text-slate-900 dark:text-slate-100">
                     Penilaian Sejawat
                   </h3>
                   <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">
-                    Nilai kontribusi anggota kelompok Anda. Penilaian ini bersifat rahasia.
+                    Nilai kontribusi anggota kelompok Anda. Penilaian ini
+                    bersifat rahasia.
                   </p>
                 </div>
                 {members.length > 0 ? (
@@ -302,7 +335,7 @@ export function StudentGroupView({ assignmentId }: Props) {
                               <p className="font-bold text-sm text-slate-800 dark:text-slate-200">
                                 {member.display_name}
                               </p>
-                              {member.role === 'leader' && (
+                              {member.role === "leader" && (
                                 <span className="text-[10px] text-indigo-500 font-bold uppercase">
                                   Ketua
                                 </span>
@@ -347,11 +380,15 @@ export function StudentGroupView({ assignmentId }: Props) {
                     <p className="text-sm font-bold text-slate-800 dark:text-slate-200 truncate">
                       {member.display_name}
                       {member.user_id === user?.id && (
-                        <span className="ml-1 text-[10px] text-slate-400">(Anda)</span>
+                        <span className="ml-1 text-[10px] text-slate-400">
+                          (Anda)
+                        </span>
                       )}
                     </p>
-                    {member.role === 'leader' && (
-                      <p className="text-[10px] text-indigo-500 font-bold uppercase">Ketua</p>
+                    {member.role === "leader" && (
+                      <p className="text-[10px] text-indigo-500 font-bold uppercase">
+                        Ketua
+                      </p>
                     )}
                   </div>
                 </div>
@@ -361,7 +398,7 @@ export function StudentGroupView({ assignmentId }: Props) {
 
           <GroupChatPanel
             chat={chat}
-            myUserId={user?.id ?? ''}
+            myUserId={user?.id ?? ""}
             newMessage={newMessage}
             onMessageChange={setNewMessage}
             onSend={handleSendMessage}
@@ -379,5 +416,5 @@ export function StudentGroupView({ assignmentId }: Props) {
         )}
       </AnimatePresence>
     </div>
-  )
+  );
 }

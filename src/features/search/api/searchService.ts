@@ -1,181 +1,278 @@
-import { db } from '@/services/db'
-import { captureError } from '@/utils/sentry'
+import { db } from "@/services/db";
+import { captureError } from "@/utils/sentry";
 
-/**
- * Global search service menggunakan PostgreSQL full-text search (tsvector).
- *
- * PostgreSQL mendukung full-text search via:
- *   to_tsvector('indonesian', column) @@ plainto_tsquery('indonesian', query)
- *
- * Untuk saat ini, search dilakukan di client-side dengan filtering dari
- * beberapa endpoint. Nanti bisa diupgrade ke Edge Function dengan dedicated
- * search index.
- */
+export type SearchCourse = {
+  id: string;
+  type: "course";
+  title: string;
+  description: string;
+  url: string;
+  tenantId: string;
+};
 
-export interface SearchResult {
-  id: string
-  type: 'course' | 'lesson' | 'assignment' | 'quiz' | 'discussion' | 'user'
-  title: string
-  description: string
-  url: string
-  tenantId: string
-  relevanceScore?: number
+export type SearchLesson = {
+  id: string;
+  type: "lesson";
+  title: string;
+  description: string;
+  url: string;
+  tenantId: string;
+};
+
+export type SearchModule = {
+  id: string;
+  type: "module";
+  title: string;
+  description: string;
+  url: string;
+  tenantId: string;
+};
+
+export type SearchQuestion = {
+  id: string;
+  type: "question";
+  title: string;
+  description: string;
+  url: string;
+  tenantId: string;
+};
+
+export type SearchUser = {
+  id: string;
+  type: "user";
+  title: string;
+  description: string;
+  url: string;
+  fullName: string;
+  avatarUrl: string | null;
+  firstName: string | null;
+  lastName: string | null;
+  email: string | null;
+};
+
+export type SearchAssignment = {
+  id: string;
+  type: "assignment";
+  title: string;
+  description: string;
+  url: string;
+  tenantId: string;
+};
+
+export type SearchQuiz = {
+  id: string;
+  type: "quiz";
+  title: string;
+  description: string;
+  url: string;
+  tenantId: string;
+};
+
+export type SearchDiscussion = {
+  id: string;
+  type: "discussion";
+  title: string;
+  description: string;
+  url: string;
+  tenantId: string;
+};
+
+export type SearchResult =
+  | SearchCourse
+  | SearchLesson
+  | SearchModule
+  | SearchQuestion
+  | SearchUser
+  | SearchAssignment
+  | SearchQuiz
+  | SearchDiscussion;
+
+// ─── Courses ─────────────────────────────────────────────────────────────────
+
+export async function searchCourses(
+  query: string,
+  tenantId: string,
+): Promise<SearchCourse[]> {
+  const results: SearchCourse[] = [];
+
+  try {
+    const { data } = await db
+      .from("courses")
+      .select("id, title, description, tenant_id")
+      .eq("tenant_id", tenantId)
+      .ilike("title", `%${query}%`)
+      .limit(5);
+
+    results.push(
+      ...(Array.isArray(data) ? data : []).map((c: any) => ({
+        id: c.id,
+        type: "course" as const,
+        title: c.title,
+        description: c.description ?? "",
+        url: `/app/student/courses/${c.id}`,
+        tenantId: c.tenant_id,
+      })),
+    );
+  } catch (err) {
+    captureError(err, { tags: { feature: "search-courses" } });
+  }
+
+  return results;
 }
 
-interface SearchOptions {
-  tenantId: string
-  query: string
-  limit?: number
-  types?: SearchResult['type'][]
+// ─── Lessons ─────────────────────────────────────────────────────────────────
+
+export async function searchLessons(
+  query: string,
+  tenantId: string,
+): Promise<SearchLesson[]> {
+  const results: SearchLesson[] = [];
+
+  try {
+    const { data } = await db
+      .from("lessons")
+      .select("id, title, description, tenant_id, module_id")
+      .eq("tenant_id", tenantId)
+      .ilike("title", `%${query}%`)
+      .limit(5);
+
+    results.push(
+      ...(Array.isArray(data) ? data : []).map((l: any) => ({
+        id: l.id,
+        type: "lesson" as const,
+        title: l.title,
+        description: l.description ?? "",
+        url: `/app/student/courses/${l.module_id}/lessons/${l.id}`,
+        tenantId: l.tenant_id,
+      })),
+    );
+  } catch (err) {
+    captureError(err, { tags: { feature: "search-lessons" } });
+  }
+
+  return results;
 }
 
-/**
- * Search across all content types in the tenant.
- * Returns results sorted by relevance.
- */
-export async function globalSearch(options: SearchOptions): Promise<SearchResult[]> {
-  const { tenantId, query, limit = 20, types } = options
+// ─── Modules ─────────────────────────────────────────────────────────────────
 
-  if (!query.trim() || query.trim().length < 2) return []
+export async function searchModules(
+  query: string,
+  tenantId: string,
+): Promise<SearchModule[]> {
+  const results: SearchModule[] = [];
 
-  const results: SearchResult[] = []
-  const typeFilter = types ?? ['course', 'lesson', 'assignment', 'quiz', 'discussion', 'user']
+  try {
+    const { data } = await db
+      .from("modules")
+      .select("id, title, description, tenant_id")
+      .eq("tenant_id", tenantId)
+      .ilike("title", `%${query}%`)
+      .limit(5);
 
-  // Search courses
-  if (typeFilter.includes('course')) {
-    try {
-      const { data } = await db
-        .from('courses')
-        .select('id, title, description, tenant_id')
-        .eq('tenant_id', tenantId)
-        .ilike('title', `%${query}%`)
-        .limit(5)
-
-      results.push(
-        ...(data ?? []).map((c: any) => ({
-          id: c.id,
-          type: 'course' as const,
-          title: c.title,
-          description: c.description ?? '',
-          url: `/app/student/courses/${c.id}`,
-          tenantId: c.tenant_id,
-        }))
-      )
-    } catch (err) {
-      captureError(err, { tags: { feature: 'search-courses' } })
-    }
+    results.push(
+      ...(Array.isArray(data) ? data : []).map((a: any) => ({
+        id: a.id,
+        type: "module" as const,
+        title: a.title,
+        description: a.description ?? "",
+        url: `/app/student/courses/${a.id}`,
+        tenantId: a.tenant_id,
+      })),
+    );
+  } catch (err) {
+    captureError(err, { tags: { feature: "search-modules" } });
   }
 
-  // Search lessons
-  if (typeFilter.includes('lesson')) {
-    try {
-      const { data } = await db
-        .from('lessons')
-        .select('id, title, description, tenant_id, module_id')
-        .eq('tenant_id', tenantId)
-        .ilike('title', `%${query}%`)
-        .limit(5)
+  return results;
+}
 
-      results.push(
-        ...(data ?? []).map((l: any) => ({
-          id: l.id,
-          type: 'lesson' as const,
-          title: l.title,
-          description: l.description ?? '',
-          url: `/app/student/courses?moduleId=${l.module_id}&lessonId=${l.id}`,
-          tenantId: l.tenant_id,
-        }))
-      )
-    } catch (err) {
-      captureError(err, { tags: { feature: 'search-lessons' } })
-    }
+// ─── Questions ────────────────────────────────────────────────────────────────
+
+export async function searchQuestions(
+  query: string,
+  tenantId: string,
+): Promise<SearchQuestion[]> {
+  const results: SearchQuestion[] = [];
+
+  try {
+    const { data } = await db
+      .from("questions")
+      .select("id, title, description, tenant_id")
+      .eq("tenant_id", tenantId)
+      .ilike("title", `%${query}%`)
+      .limit(5);
+
+    results.push(
+      ...(Array.isArray(data) ? data : []).map((q: any) => ({
+        id: q.id,
+        type: "question" as const,
+        title: q.title,
+        description: q.description ?? "",
+        url: `/app/student/courses/question/${q.id}`,
+        tenantId: q.tenant_id,
+      })),
+    );
+  } catch (err) {
+    captureError(err, { tags: { feature: "search-questions" } });
   }
 
-  // Search assignments
-  if (typeFilter.includes('assignment')) {
-    try {
-      const { data } = await db
-        .from('assignments')
-        .select('id, title, description, tenant_id, course_id')
-        .eq('tenant_id', tenantId)
-        .ilike('title', `%${query}%`)
-        .limit(5)
+  return results;
+}
 
-      results.push(
-        ...(data ?? []).map((a: any) => ({
-          id: a.id,
-          type: 'assignment' as const,
-          title: a.title,
-          description: a.description ?? '',
-          url: `/app/student/assignments`,
-          tenantId: a.tenant_id,
-        }))
-      )
-    } catch (err) {
-      captureError(err, { tags: { feature: 'search-assignments' } })
-    }
+// ─── Users ───────────────────────────────────────────────────────────────────
+
+export async function searchUsers(
+  query: string,
+  tenantId: string,
+  limit: number,
+): Promise<SearchUser[]> {
+  const results: SearchUser[] = [];
+
+  try {
+    const { data: filteredUsers } = await db
+      .from("profiles")
+      .select("id, full_name, avatar_url, first_name, last_name, email")
+      .eq("tenant_id", tenantId)
+      .ilike("full_name", `%${query}%`)
+      .limit(limit);
+
+    results.push(
+      ...(Array.isArray(filteredUsers) ? filteredUsers : []).map((u: any) => ({
+        id: u.id,
+        type: "user" as const,
+        title: u.full_name ?? "",
+        description: u.email ?? "",
+        url: `/app/student/profile/${u.id}`,
+        fullName: u.full_name,
+        avatarUrl: u.avatar_url,
+        firstName: u.first_name,
+        lastName: u.last_name,
+        email: u.email,
+      })),
+    );
+  } catch (err) {
+    captureError(err, { tags: { feature: "search-users" } });
   }
 
-  // Search quizzes
-  if (typeFilter.includes('quiz')) {
-    try {
-      const { data } = await db
-        .from('quizzes')
-        .select('id, title, description, tenant_id')
-        .eq('tenant_id', tenantId)
-        .ilike('title', `%${query}%`)
-        .limit(5)
+  return results.slice(0, limit);
+}
 
-      results.push(
-        ...(data ?? []).map((q: any) => ({
-          id: q.id,
-          type: 'quiz' as const,
-          title: q.title,
-          description: q.description ?? '',
-          url: `/app/student/quizzes`,
-          tenantId: q.tenant_id,
-        }))
-      )
-    } catch (err) {
-      captureError(err, { tags: { feature: 'search-quizzes' } })
-    }
-  }
+interface GlobalSearchParams {
+  tenantId: string;
+  query: string;
+}
 
-  // Search users (profiles)
-  if (typeFilter.includes('user')) {
-    try {
-      const { data } = await db
-        .from('profiles')
-        .select('id, first_name, last_name, email, tenant_id')
-        .eq('tenant_id', tenantId)
-        .limit(30)
+export async function globalSearch({
+  tenantId,
+  query,
+}: GlobalSearchParams): Promise<SearchResult[]> {
+  const [courses, lessons, modules, questions, users] = await Promise.all([
+    searchCourses(query, tenantId),
+    searchLessons(query, tenantId),
+    searchModules(query, tenantId),
+    searchQuestions(query, tenantId),
+    searchUsers(query, tenantId, 5),
+  ]);
 
-      const normalizedQuery = query.trim().toLowerCase()
-      const filteredUsers = (data ?? []).filter((user: any) => {
-        const firstName = String(user.first_name ?? '').toLowerCase()
-        const lastName = String(user.last_name ?? '').toLowerCase()
-        const email = String(user.email ?? '').toLowerCase()
-        return (
-          firstName.includes(normalizedQuery) ||
-          lastName.includes(normalizedQuery) ||
-          email.includes(normalizedQuery)
-        )
-      })
-
-      results.push(
-        ...filteredUsers.slice(0, 5).map((u: any) => ({
-          id: u.id,
-          type: 'user' as const,
-          title: `${u.first_name}${u.last_name ? ` ${u.last_name}` : ''}`.trim(),
-          description: u.email ?? '',
-          url: `/app/p/${u.id}`,
-          tenantId: u.tenant_id,
-        }))
-      )
-    } catch (err) {
-      captureError(err, { tags: { feature: 'search-users' } })
-    }
-  }
-
-  return results.slice(0, limit)
+  return [...courses, ...lessons, ...modules, ...questions, ...users];
 }

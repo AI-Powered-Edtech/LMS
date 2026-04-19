@@ -4,7 +4,7 @@ use uuid::Uuid;
 use edusync_auth::{password::{verify_password, maybe_rehash}, session::create_session};
 use vil_server::prelude::{ServiceCtx, ShmSlice, VilResponse, VilError, HandlerResult};
 use crate::state::AppState;
-use super::types::{LoginRequest, AuthResponse, TenantMembershipPayload, UserPayload};
+use super::types::{LoginRequest, AuthResponse, TenantMembershipPayload, UserPayload, Validatable};
 use super::tenant_selection::{select_active_role, select_active_tenant};
 
 #[derive(sqlx::FromRow)]
@@ -32,6 +32,8 @@ pub async fn login_handler(
 ) -> HandlerResult<VilResponse<AuthResponse>> {
     let state = svc.state::<Arc<AppState>>()?.clone();
     let body: LoginRequest = body.json().map_err(|e| VilError::bad_request(e.to_string()))?;
+
+    body.validate().map_err(|e| VilError::bad_request(e))?;
 
     // Brute force check before any DB query
     if state.brute_force.is_locked(&body.email) {
@@ -165,7 +167,6 @@ pub async fn login_handler(
         &active_role,
         Some(active_tenant_id),
         !mfa_enrolled,  // mfa_verified = true if no MFA enrolled
-        &state.jwt_secret,
     )
     .await
     .map_err(IntoVilError::into_vil_error)?;

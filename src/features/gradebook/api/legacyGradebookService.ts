@@ -1,35 +1,35 @@
-import { db } from '@/services/db'
+import { db } from "@/services/db";
 
-export type GradeStatus = 'ungraded' | 'graded' | 'needs_revision'
+export type GradeStatus = "ungraded" | "graded" | "needs_revision";
 
 export interface GradebookAssignment {
-  id: string
-  title: string
-  type: 'quiz' | 'assignment' | 'project' | 'exam' | 'presentation' | 'offline'
-  maxScore: number
-  date: string
+  id: string;
+  title: string;
+  type: "quiz" | "assignment" | "project" | "exam" | "presentation" | "offline";
+  maxScore: number;
+  date: string;
 }
 
 export interface GradeEntry {
-  score: number | null
-  status: GradeStatus
-  feedback?: string
-  source?: 'assignment' | 'quiz'
+  score: number | null;
+  status: GradeStatus;
+  feedback?: string;
+  source?: "assignment" | "quiz";
 }
 
-export type GradeData = Record<string, Record<string, GradeEntry>>
+export type GradeData = Record<string, Record<string, GradeEntry>>;
 
 export interface GradebookStudent {
-  id: string
-  name: string
-  nis: string
-  avatarSeed?: string
+  id: string;
+  name: string;
+  nis: string;
+  avatarSeed?: string;
 }
 
 export interface GradebookData {
-  assignments: GradebookAssignment[]
-  students: GradebookStudent[]
-  grades: GradeData
+  assignments: GradebookAssignment[];
+  students: GradebookStudent[];
+  grades: GradeData;
 }
 
 export const gradebookService = {
@@ -38,12 +38,15 @@ export const gradebookService = {
    * @param tenantId - Required for multi-tenant isolation (EduSync Constitution Rule #3)
    * @param submissionsPage - Zero-indexed page for submissions (50 per page). Defaults to 0.
    */
-  async fetchGradebook(tenantId: string, submissionsPage = 0): Promise<GradebookData> {
-    if (!tenantId) throw new Error('tenantId is required for fetchGradebook')
+  async fetchGradebook(
+    tenantId: string,
+    submissionsPage = 0,
+  ): Promise<GradebookData> {
+    if (!tenantId) throw new Error("tenantId is required for fetchGradebook");
 
-    const SUBMISSIONS_PAGE_SIZE = 50
-    const submissionsFrom = submissionsPage * SUBMISSIONS_PAGE_SIZE
-    const submissionsTo = submissionsFrom + SUBMISSIONS_PAGE_SIZE - 1
+    const SUBMISSIONS_PAGE_SIZE = 50;
+    const submissionsFrom = submissionsPage * SUBMISSIONS_PAGE_SIZE;
+    const submissionsTo = submissionsFrom + SUBMISSIONS_PAGE_SIZE - 1;
 
     // PARALLELIZE ALL FOUR QUERIES to cut load time by ~75%
     const [
@@ -53,82 +56,122 @@ export const gradebookService = {
       { data: quizAttempts },
     ] = await Promise.all([
       db
-        .from('assignments')
-        .select('id, title, due_date, created_at, tenant_id')
-        .eq('tenant_id', tenantId)
-        .order('created_at', { ascending: false })
+        .from<any>("assignments")
+        .select("id, title, due_date, created_at, tenant_id")
+        .eq("tenant_id", tenantId)
+        .order("created_at", { ascending: false })
         .limit(500),
       db
-        .from('assignment_submissions')
-        .select('id, assignment_id, student_id, status, score, feedback')
-        .eq('tenant_id', tenantId)
-        .order('submitted_at', { ascending: false })
+        .from<any>("assignment_submissions")
+        .select("id, assignment_id, student_id, status, score, feedback")
+        .eq("tenant_id", tenantId)
+        .order("submitted_at", { ascending: false })
         .range(submissionsFrom, submissionsTo),
       // Server-side student filtering via RPC — avoids fetching non-student profiles
       // and eliminates the PostgREST 400 error from !inner join on user_roles.
-      db.rpc('get_gradebook_students', { p_tenant_id: tenantId }),
+      db.rpc("get_gradebook_students", { p_tenant_id: tenantId }),
       // Graceful fallback: if quiz_attempts_v2 table does not exist, return empty array
       (async () => {
         try {
           return await db
-            .from('quiz_attempts_v2')
-            .select('id, quiz_id, student_id, score, status, tenant_id')
-            .eq('tenant_id', tenantId)
-            .eq('status', 'GRADED')
-            .limit(500)
+            .from<any>("quiz_attempts_v2")
+            .select("id, quiz_id, student_id, score, status, tenant_id")
+            .eq("tenant_id", tenantId)
+            .eq("status", "GRADED")
+            .limit(500);
         } catch {
-          return { data: [] }
+          return { data: [] };
         }
       })(),
-    ])
+    ]);
 
-    const assignments: GradebookAssignment[] = (assignmentsData ?? []).map((a: any) => ({
+    const assignments: GradebookAssignment[] = (
+      (assignmentsData ?? []) as Array<{
+        id: string;
+        title: string;
+        due_date: string;
+      }>
+    ).map((a) => ({
       id: a.id,
       title: a.title,
-      type: 'assignment' as const,
+      type: "assignment" as const,
       maxScore: 100,
       date: a.due_date
-        ? new Date(a.due_date).toLocaleDateString('id-ID', { day: 'numeric', month: 'short' })
-        : '',
-    }))
+        ? new Date(a.due_date).toLocaleDateString("id-ID", {
+            day: "numeric",
+            month: "short",
+          })
+        : "",
+    }));
 
     // Build grade map from submissions
-    const grades: GradeData = {}
+    const grades: GradeData = {};
     if (submissionsData) {
-      submissionsData.forEach((sub: any) => {
-        if (!grades[sub.student_id]) grades[sub.student_id] = {}
+      (
+        submissionsData as Array<{
+          student_id: string;
+          assignment_id: string;
+          score: number | null;
+          status: string;
+          feedback: string | null;
+        }>
+      ).forEach((sub) => {
+        if (!grades[sub.student_id]) grades[sub.student_id] = {};
 
-        grades[sub.student_id][sub.assignment_id] = {
+        grades[sub?.student_id ?? ""] = grades[sub?.student_id ?? ""] || {};
+        grades[sub?.student_id ?? ""][sub?.assignment_id ?? ""] = {
           score: sub.score ?? null,
-          status: (sub.status as GradeStatus) || 'ungraded',
+          status: (sub.status as GradeStatus) || "ungraded",
           feedback: sub.feedback ?? undefined,
-          source: 'assignment',
-        }
-      })
+          source: "assignment",
+        };
+      });
     }
 
-    const students: GradebookStudent[] = (profilesData ?? []).map(
-      (p: { id: string; first_name: string; last_name: string; email: string }) => ({
+    const students: GradebookStudent[] = (
+      Array.isArray(profilesData) ? profilesData : []
+    ).map(
+      (p: {
+        id: string;
+        first_name: string;
+        last_name: string;
+        email: string;
+      }) => ({
         id: p.id,
         name: `${p.first_name} ${p.last_name}`.trim() || p.email,
-        nis: p.email.split('@')[0],
-      })
-    )
+        nis: p.email.split("@")[0],
+      }),
+    );
 
     // Merge quiz results into grades - quizzes appear as assignments in gradebook
-    if (quizAttempts && quizAttempts.length > 0) {
-      quizAttempts.forEach((attempt: any) => {
-        if (!grades[attempt.student_id]) grades[attempt.student_id] = {}
+    if (
+      quizAttempts &&
+      (
+        quizAttempts as Array<{
+          student_id: string;
+          quiz_id: string;
+          score: number;
+        }>
+      ).length > 0
+    ) {
+      (
+        quizAttempts as Array<{
+          student_id: string;
+          quiz_id: string;
+          score: number;
+        }>
+      ).forEach((attempt) => {
+        if (!grades[attempt.student_id]) grades[attempt.student_id] = {};
         grades[attempt.student_id][attempt.quiz_id] = {
           score: attempt.score,
-          status: 'graded',
+          status: "graded",
           feedback: undefined,
-          source: 'quiz',
-        }
-      })
+          source: "quiz",
+        };
+      });
     }
 
-    return { assignments, students, grades }
+    return { assignments, students, grades };
   },
 
   /**
@@ -145,25 +188,25 @@ export const gradebookService = {
     studentId: string,
     score: number,
     feedback: string | undefined,
-    tenantId: string
+    tenantId: string,
   ): Promise<void> {
-    if (!tenantId) throw new Error('tenantId is required for submitGrade')
+    if (!tenantId) throw new Error("tenantId is required for submitGrade");
 
     // Use direct DB update with RLS - more reliable than edge function
     const { error } = await db
-      .from('assignment_submissions')
+      .from<any>("assignment_submissions")
       .update({
         score,
         feedback,
-        status: 'graded',
+        status: "graded",
         graded_at: new Date().toISOString(),
       })
       .match({
         assignment_id: assignmentId,
         student_id: studentId,
         tenant_id: tenantId,
-      })
+      });
 
-    if (error) throw error
+    if (error) throw error;
   },
-}
+};

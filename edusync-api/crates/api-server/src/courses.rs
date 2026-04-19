@@ -58,7 +58,7 @@ pub struct CourseModuleWithLessons {
     pub lessons: Vec<CourseLessonSummary>,
 }
 
-#[derive(Serialize)]
+#[derive(Serialize, Clone)]
 pub struct CourseLessonSummary {
     pub id: Uuid,
     pub duration_minutes: Option<i32>,
@@ -320,19 +320,39 @@ pub async fn get_course_modules_handler(
     .await
     .map_err(from_sqlx_error)?;
 
-    let lessons = sqlx::query_as::<_, Lesson>(
-        r#"SELECT id, module_id, title, content, "order" AS "order", tenant_id, created_at, updated_at, type AS lesson_type, passing_score, is_published, duration_minutes
-           FROM public.lessons
-           WHERE tenant_id = $1 AND module_id IN (
-             SELECT id FROM public.course_modules WHERE tenant_id = $1 AND course_id = $2
-           )
-           ORDER BY "order" ASC"#,
-    )
-    .bind(ctx.tenant_id)
-    .bind(course_id)
-    .fetch_all(&state.db)
-    .await
-    .map_err(from_sqlx_error)?;
+    let module_ids: Vec<Uuid> = modules
+        .iter()
+        .map(|row| row.get("id"))
+        .collect();
+
+    let lessons = if module_ids.is_empty() {
+        Vec::new()
+    } else {
+        sqlx::query_as::<_, Lesson>(
+            r#"SELECT id, module_id, title, content, "order" AS "order", tenant_id, created_at, updated_at, type AS lesson_type, passing_score, is_published, duration_minutes
+               FROM public.lessons
+               WHERE tenant_id = $1 AND module_id = ANY($2)
+               ORDER BY "order" ASC"#,
+        )
+        .bind(ctx.tenant_id)
+        .bind(&module_ids)
+        .fetch_all(&state.db)
+        .await
+        .map_err(from_sqlx_error)?
+    };
+
+    // Build a map of module_id to lessons for efficient lookup
+    use std::collections::HashMap;
+    let lessons_by_module: HashMap<Uuid, Vec<CourseLessonSummary>> = lessons
+        .into_iter()
+        .fold(HashMap::new(), |mut map, lesson| {
+            let summary = CourseLessonSummary {
+                id: lesson.id,
+                duration_minutes: lesson.duration_minutes,
+            };
+            map.entry(lesson.module_id).or_default().push(summary);
+            map
+        });
 
     let data = modules
         .into_iter()
@@ -343,14 +363,7 @@ pub async fn get_course_modules_handler(
                 title: module.try_get("title").unwrap_or_default(),
                 order: module.try_get("order").unwrap_or_default(),
                 course_id: module.try_get("course_id").unwrap_or(course_id),
-                lessons: lessons
-                    .iter()
-                    .filter(|lesson| lesson.module_id == module_id)
-                    .map(|lesson| CourseLessonSummary {
-                        id: lesson.id,
-                        duration_minutes: lesson.duration_minutes,
-                    })
-                    .collect(),
+                lessons: lessons_by_module.get(&module_id).cloned().unwrap_or_else(|| Vec::new()),
             }
         })
         .collect();

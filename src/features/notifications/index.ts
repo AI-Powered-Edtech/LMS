@@ -5,36 +5,42 @@
 // Types
 export type {
   AdminNotificationType,
+  DigestChannel,
+  DigestSettings,
   Notification,
   NotificationPreferences,
   NotificationType,
-} from './types'
+} from "./types";
 
 // API
-export * from './api/notificationApi'
+export * from "./api/notificationApi";
 
 // Hooks — primary enhanced hooks
 export {
   notificationKeys,
   useNotificationPreferences,
   useNotifications,
-} from './hooks/useNotifications'
+} from "./hooks/useNotifications";
 
 // Admin Notification hooks
-export type { UseAdminNotificationsReturn } from './hooks/useAdminNotifications'
+export type { UseAdminNotificationsReturn } from "./hooks/useAdminNotifications";
 export {
   ADMIN_NOTIFICATION_TYPES,
   adminNotificationKeys,
   useAdminNotifications,
-} from './hooks/useAdminNotifications'
+} from "./hooks/useAdminNotifications";
 
 // Push subscription hook
-export type { UsePushSubscriptionReturn } from './hooks/usePushSubscription'
-export { usePushSubscription } from './hooks/usePushSubscription'
+export type { UsePushSubscriptionReturn } from "./hooks/usePushSubscription";
+export { usePushSubscription } from "./hooks/usePushSubscription";
 
 // Legacy query hooks (used by NotificationCenter, Header, Creator, Assignments)
 // Note: useNotifications is NOT re-exported from notificationQueries to avoid conflict
-export { useMarkAllAsRead, useMarkAsRead, useSendNotification } from './queries/notificationQueries'
+export {
+  useMarkAllAsRead,
+  useMarkAsRead,
+  useSendNotification,
+} from "./queries/notificationQueries";
 
 // Local (localStorage-backed) notification preferences hook
 export type {
@@ -43,19 +49,19 @@ export type {
   NotificationPrefsMap,
   NotificationPrefType,
   UseNotificationPreferencesLocalReturn,
-} from './hooks/useNotificationPreferences'
+} from "./hooks/useNotificationPreferences";
 export {
   DEFAULT_PREFS,
   PREF_TYPE_LABELS,
   useNotificationPreferencesLocal,
-} from './hooks/useNotificationPreferences'
+} from "./hooks/useNotificationPreferences";
 
 // Notification formatter utilities
 export type {
   DateGroup,
   FormattedNotification,
   NotificationMeta,
-} from './utils/notificationFormatter'
+} from "./utils/notificationFormatter";
 export {
   formatEventNotification,
   formatNotificationMessage,
@@ -63,12 +69,12 @@ export {
   NOTIFICATION_TYPE_COLOR,
   NOTIFICATION_TYPE_LABEL,
   relativeTime,
-} from './utils/notificationFormatter'
+} from "./utils/notificationFormatter";
 
 // Components
-export { AdminNotificationBell } from './components/AdminNotificationBell'
-export { NotificationBell } from './components/NotificationBell'
-export { NotificationCenter } from './components/NotificationCenter'
-export { NotificationPanel } from './components/NotificationPanel'
-export { NotificationPreferencesPanel } from './components/NotificationPreferencesPanel'
-export { PushPermissionPrompt } from './components/PushPermissionPrompt'
+export { AdminNotificationBell } from "./components/AdminNotificationBell";
+export { NotificationBell } from "./components/NotificationBell";
+export { NotificationCenter } from "./components/NotificationCenter";
+export { NotificationPanel } from "./components/NotificationPanel";
+export { NotificationPreferencesPanel } from "./components/NotificationPreferencesPanel";
+export { PushPermissionPrompt } from "./components/PushPermissionPrompt";

@@ -1,71 +1,108 @@
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
-import { db } from '@/services/db'
-import { createQueryKeys } from '@/shared/lib/queryKeys'
-import { GC, STALE } from '@/utils/queryConstants'
+import { db } from "@/services/db";
+import { STALE } from "@/utils/queryConstants";
 
-import type { OnboardingProgress } from '../types'
+import type { OnboardingProgress } from "../types";
+import { onboardingKeys } from "./onboardingKeys";
 
-const base = createQueryKeys('onboarding')
+// ─── Query Hooks ────────────────────────────────────────────────────────────
 
-const onboardingKeys = {
-  ...base,
-  progress: (tenantId: string, userId: string) =>
-    [...base.all(tenantId), 'progress', userId] as const,
-}
-
-/**
- * React Query hook for onboarding progress.
- * Onboarding steps don't change after completion — use STATIC stale time.
- */
 export function useOnboardingProgress(tenantId: string, userId: string) {
   return useQuery({
     queryKey: onboardingKeys.progress(tenantId, userId),
-    queryFn: async (): Promise<OnboardingProgress | null> => {
-      const { data } = await db
-        .from('onboarding_progress')
-        .select('id, tenant_id, user_id, steps_completed, completed_at')
-        .eq('tenant_id', tenantId)
-        .eq('user_id', userId)
-        .maybeSingle()
-      return data as OnboardingProgress | null
-    },
-    enabled: !!tenantId && !!userId,
-    staleTime: STALE.STATIC,
-    gcTime: GC.LONG,
-  })
+    queryFn: () => fetchOnboardingProgress(tenantId, userId),
+    staleTime: STALE.DYNAMIC,
+  });
 }
 
-/**
- * Mutation hook for updating onboarding step completion.
- */
+async function fetchOnboardingProgress(
+  tenantId: string,
+  userId: string,
+): Promise<OnboardingProgress | null> {
+  const { data, error } = await db
+    .from("onboarding_progress")
+    .select("*")
+    .eq("tenant_id", tenantId)
+    .eq("user_id", userId)
+    .maybeSingle();
+
+  if (error) {
+    console.warn(
+      "[onboardingQueries] Failed to fetch progress:",
+      error.message,
+    );
+    return null;
+  }
+
+  return data as OnboardingProgress;
+}
+
+// ─── Mutation Hooks ────────────────────────────────────────────────────────
+
 export function useUpdateOnboardingProgress(tenantId: string, userId: string) {
-  const queryClient = useQueryClient()
+  const queryClient = useQueryClient();
+
   return useMutation({
-    mutationFn: async ({
+    mutationFn: ({
       progressId,
       stepsCompleted,
     }: {
-      progressId: string
-      stepsCompleted: Record<string, boolean>
-    }): Promise<OnboardingProgress> => {
-      const allDone = Object.values(stepsCompleted).every(Boolean)
-      const { data, error } = await db
-        .from('onboarding_progress')
-        .update({
-          steps_completed: stepsCompleted,
-          completed_at: allDone ? new Date().toISOString() : null,
-        })
-        .eq('id', progressId)
-        .select()
-        .single()
-      if (error) throw error
-      return data as OnboardingProgress
-    },
+      progressId: string;
+      stepsCompleted: Record<string, boolean>;
+    }) => updateOnboardingProgress(progressId, stepsCompleted),
     onSuccess: () => {
       void queryClient.invalidateQueries({
         queryKey: onboardingKeys.progress(tenantId, userId),
-      })
+      });
     },
-  })
+  });
+}
+
+async function updateOnboardingProgress(
+  progressId: string,
+  stepsCompleted: Record<string, boolean>,
+): Promise<OnboardingProgress> {
+  const allDone = Object.values(stepsCompleted).every(Boolean);
+  const { data, error } = await db
+    .from("onboarding_progress")
+    .update({
+      steps_completed: stepsCompleted,
+      completed_at: allDone ? new Date().toISOString() : null,
+    })
+    .eq("id", progressId)
+    .select("*")
+    .single();
+
+  if (error) throw error;
+  if (!data) {
+    throw new Error("Failed to update onboarding progress");
+  }
+
+  return data as OnboardingProgress;
+}
+
+// ─── Mark Onboarding Step Complete ────────────────────────────────────────────
+
+export async function markOnboardingStepComplete(
+  progressId: string,
+  stepsCompleted: Record<string, boolean>,
+): Promise<OnboardingProgress> {
+  const allDone = Object.values(stepsCompleted).every(Boolean);
+  const { data, error } = await db
+    .from("onboarding_progress")
+    .update({
+      steps_completed: stepsCompleted,
+      completed_at: allDone ? new Date().toISOString() : null,
+    })
+    .eq("id", progressId)
+    .select("*")
+    .single();
+
+  if (error) throw error;
+  if (!data) {
+    throw new Error("Failed to update onboarding progress");
+  }
+
+  return data as OnboardingProgress;
 }

@@ -19,7 +19,7 @@ pub async fn ensure_profile_handler(
         .ok_or_else(|| AuthError::InvalidToken)
         .map_err(IntoVilError::into_vil_error)?;
 
-    let claims = verify_access_token(token, &state.jwt_secret)
+    let claims = verify_access_token(token)
         .map_err(IntoVilError::into_vil_error)?;
     let user_id: Uuid = claims
         .sub

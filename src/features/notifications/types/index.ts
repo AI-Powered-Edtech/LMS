@@ -3,62 +3,76 @@
  */
 
 export type NotificationType =
-  | 'grade_posted'
-  | 'assignment_due'
-  | 'quiz_available'
-  | 'quiz_result'
-  | 'announcement'
-  | 'course_enrolled'
-  | 'badge_earned'
-  | 'discussion_reply'
-  | 'message_received'
-  | 'system'
+  | "grade_posted"
+  | "assignment_due"
+  | "quiz_available"
+  | "quiz_result"
+  | "announcement"
+  | "course_enrolled"
+  | "badge_earned"
+  | "discussion_reply"
+  | "message_received"
+  | "system"
   // Legacy types kept for backward compatibility with existing data
-  | 'grade'
+  | "grade"
   // Admin-specific notification types
-  | 'invitation_accepted'
-  | 'moderation_report'
-  | 'sync_failure'
-  | 'system_alert'
-  | 'user_joined'
+  | "invitation_accepted"
+  | "moderation_report"
+  | "sync_failure"
+  | "system_alert"
+  | "user_joined";
 
 /** Admin-specific notification event types */
 export type AdminNotificationType =
-  | 'invitation_accepted'
-  | 'moderation_report'
-  | 'sync_failure'
-  | 'system_alert'
-  | 'user_joined'
+  | "invitation_accepted"
+  | "moderation_report"
+  | "sync_failure"
+  | "system_alert"
+  | "user_joined";
 
 export interface Notification {
   /** Arbitrary metadata for batching and enrichment */
-  metadata?: Record<string, unknown>
-  id: string
-  tenant_id: string
-  user_id: string
-  actor_id: string | null
-  type: NotificationType
-  title: string
+  metadata?: Record<string, unknown>;
+  id: string;
+  tenant_id: string;
+  user_id: string;
+  actor_id: string | null;
+  type: NotificationType;
+  title: string;
   /** Message text — maps to baseline 'message' column */
-  message: string
-  is_read: boolean
-  created_at: string
+  message: string;
+  is_read: boolean;
+  created_at: string;
   /** Navigation link — used by NotificationCenter */
-  link: string | null
+  link: string | null;
   actor?: {
-    full_name: string
-    avatar_url: string | null
-  }
+    full_name: string;
+    avatar_url: string | null;
+  };
 }
 
 export interface NotificationPreferences {
-  id: string
-  tenant_id: string
-  user_id: string
-  email_enabled: boolean
-  push_enabled: boolean
-  quiet_hours_start: string | null
-  quiet_hours_end: string | null
-  disabled_types: NotificationType[]
-  push_subscription: unknown | null
+  id: string;
+  tenant_id: string;
+  user_id: string;
+  email_enabled: boolean;
+  push_enabled: boolean;
+  quiet_hours_start: string | null;
+  quiet_hours_end: string | null;
+  disabled_types: NotificationType[];
+  push_subscription: unknown | null;
+}
+
+export type DigestChannel = "inapp" | "whatsapp" | "email";
+
+export interface DigestSettings {
+  id?: string;
+  user_id: string;
+  tenant_id: string;
+  digest_enabled: boolean;
+  digest_time: string;
+  channel: DigestChannel;
+  last_sent_at: string | null;
+  created_at?: string;
+  updated_at?: string;
 }

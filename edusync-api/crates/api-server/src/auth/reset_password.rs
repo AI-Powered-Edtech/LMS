@@ -3,7 +3,7 @@ use std::sync::Arc;
 use edusync_auth::{AuthError, password::hash_password, session::revoke_all_user_sessions};
 use vil_server::prelude::{ServiceCtx, ShmSlice, VilResponse, VilError, HandlerResult};
 use crate::state::AppState;
-use super::types::{ResetPasswordRequest, UpdatePasswordRequest};
+use super::types::{ResetPasswordRequest, UpdatePasswordRequest, Validatable};
 use uuid::Uuid;
 
 pub async fn reset_password_handler(
@@ -12,6 +12,8 @@ pub async fn reset_password_handler(
 ) -> HandlerResult<VilResponse<serde_json::Value>> {
     let state = svc.state::<Arc<AppState>>()?.clone();
     let body: ResetPasswordRequest = body.json().map_err(|e| VilError::bad_request(e.to_string()))?;
+
+    body.validate().map_err(|e| VilError::bad_request(e))?;
 
     // Always 200 — prevent email enumeration
     let user_id_opt: Option<Uuid> =

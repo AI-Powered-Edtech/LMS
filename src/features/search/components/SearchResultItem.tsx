@@ -1,28 +1,32 @@
-import { Award, BookOpen, FileText, MessageSquare, Users } from 'lucide-react'
+import { Award, BookOpen, FileText, MessageSquare, Users } from "lucide-react";
 
-import type { SearchResult } from '../api/searchService'
+import type { SearchResult } from "../api/searchService";
 
-const typeIcons: Record<SearchResult['type'], React.ReactNode> = {
+const typeIcons: Record<SearchResult["type"], React.ReactNode> = {
   course: <BookOpen className="w-4 h-4" />,
   lesson: <FileText className="w-4 h-4" />,
+  module: <BookOpen className="w-4 h-4" />,
+  question: <MessageSquare className="w-4 h-4" />,
   assignment: <FileText className="w-4 h-4" />,
   quiz: <Award className="w-4 h-4" />,
   discussion: <MessageSquare className="w-4 h-4" />,
   user: <Users className="w-4 h-4" />,
-}
+};
 
-const typeLabels: Record<SearchResult['type'], string> = {
-  course: 'Kursus',
-  lesson: 'Pelajaran',
-  assignment: 'Tugas',
-  quiz: 'Kuis',
-  discussion: 'Diskusi',
-  user: 'Pengguna',
-}
+const typeLabels: Record<SearchResult["type"], string> = {
+  course: "Kursus",
+  lesson: "Pelajaran",
+  module: "Modul",
+  question: "Pertanyaan",
+  assignment: "Tugas",
+  quiz: "Kuis",
+  discussion: "Diskusi",
+  user: "Pengguna",
+};
 
 interface SearchResultItemProps {
-  result: SearchResult
-  onSelect: () => void
+  result: SearchResult;
+  onSelect: () => void;
 }
 
 /**
@@ -39,7 +43,9 @@ export function SearchResultItem({ result, onSelect }: SearchResultItemProps) {
         {typeIcons[result.type]}
       </div>
       <div className="flex-1 min-w-0">
-        <p className="font-medium text-slate-900 dark:text-white truncate">{result.title}</p>
+        <p className="font-medium text-slate-900 dark:text-white truncate">
+          {result.title}
+        </p>
         {result.description && (
           <p className="text-sm text-slate-500 dark:text-slate-400 truncate mt-0.5">
             {result.description}
@@ -50,5 +56,5 @@ export function SearchResultItem({ result, onSelect }: SearchResultItemProps) {
         {typeLabels[result.type]}
       </span>
     </button>
-  )
+  );
 }

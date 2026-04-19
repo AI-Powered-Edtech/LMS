@@ -1,41 +1,41 @@
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useEffect, useState } from "react";
 
-import { useAuth } from '@/contexts/AuthContext'
-import { db } from '@/services/db'
-import { logger } from '@/utils/logger'
+import { useAuth } from "@/contexts/AuthContext";
+import { db } from "@/services/db";
+import { logger } from "@/utils/logger";
 
 export interface TeacherOnboardingState {
-  id: string | null
-  current_step: number
-  completed_steps: number[]
-  is_completed: boolean
-  dismissed: boolean
-  created_class_id: string | null
-  created_class_join_code: string | null
-  created_course_id: string | null
+  id: string | null;
+  current_step: number;
+  completed_steps: number[];
+  is_completed: boolean;
+  dismissed: boolean;
+  created_class_id: string | null;
+  created_class_join_code: string | null;
+  created_course_id: string | null;
 }
 
 export interface UseTeacherOnboardingReturn {
-  isVisible: boolean
-  currentStep: number
-  totalSteps: number
-  completedSteps: number[]
-  createdClassId: string | null
-  createdClassJoinCode: string | null
-  createdCourseId: string | null
-  isLoading: boolean
-  nextStep: () => Promise<void>
-  prevStep: () => void
-  completeStep: (stepNumber: number) => Promise<void>
-  completeOnboarding: () => Promise<void>
-  dismissForever: () => Promise<void>
-  saveClassResult: (classId: string, joinCode: string) => Promise<void>
-  saveCourseResult: (courseId: string) => Promise<void>
+  isVisible: boolean;
+  currentStep: number;
+  totalSteps: number;
+  completedSteps: number[];
+  createdClassId: string | null;
+  createdClassJoinCode: string | null;
+  createdCourseId: string | null;
+  isLoading: boolean;
+  nextStep: () => Promise<void>;
+  prevStep: () => void;
+  completeStep: (stepNumber: number) => Promise<void>;
+  completeOnboarding: () => Promise<void>;
+  dismissForever: () => Promise<void>;
+  saveClassResult: (classId: string, joinCode: string) => Promise<void>;
+  saveCourseResult: (courseId: string) => Promise<void>;
 }
 
-const TOTAL_STEPS = 5
-const LS_DISMISS_KEY = 'edusync_teacher_onboarding_dismissed'
-const LS_COMPLETED_KEY = 'edusync_teacher_onboarding_completed'
+const TOTAL_STEPS = 5;
+const LS_DISMISS_KEY = "edusync_teacher_onboarding_dismissed";
+const LS_COMPLETED_KEY = "edusync_teacher_onboarding_completed";
 
 /**
  * Manages teacher onboarding wizard state.
@@ -43,8 +43,8 @@ const LS_COMPLETED_KEY = 'edusync_teacher_onboarding_completed'
  * - Persists progress to `teacher_onboarding_progress` table with localStorage fallback
  */
 export function useTeacherOnboarding(): UseTeacherOnboardingReturn {
-  const { user, tenantId, role } = useAuth()
-  const [isLoading, setIsLoading] = useState(true)
+  const { user, tenantId, role } = useAuth();
+  const [isLoading, setIsLoading] = useState(true);
   const [state, setState] = useState<TeacherOnboardingState>({
     id: null,
     current_step: 1,
@@ -54,84 +54,88 @@ export function useTeacherOnboarding(): UseTeacherOnboardingReturn {
     created_class_id: null,
     created_class_join_code: null,
     created_course_id: null,
-  })
+  });
 
   // Load onboarding progress from DB
   useEffect(() => {
-    if (!user || !tenantId || role !== 'teacher') {
-      setIsLoading(false)
-      return
+    if (!user || !tenantId || role !== "teacher") {
+      setIsLoading(false);
+      return;
     }
 
     // Quick local check — if already dismissed or completed, skip DB fetch
     if (
-      localStorage.getItem(LS_DISMISS_KEY) === '1' ||
-      localStorage.getItem(LS_COMPLETED_KEY) === '1'
+      localStorage.getItem(LS_DISMISS_KEY) === "1" ||
+      localStorage.getItem(LS_COMPLETED_KEY) === "1"
     ) {
-      setState((prev) => ({ ...prev, dismissed: true }))
-      setIsLoading(false)
-      return
+      setState((prev) => ({ ...prev, dismissed: true }));
+      setIsLoading(false);
+      return;
     }
 
-    let cancelled = false
+    let cancelled = false;
 
     async function loadProgress() {
       try {
         const { data, error } = await db
-          .from('teacher_onboarding_progress')
+          .from<any>("teacher_onboarding_progress")
           .select(
-            'id, current_step, completed_steps, is_completed, dismissed, created_class_id, created_class_join_code, created_course_id'
+            "id, current_step, completed_steps, is_completed, dismissed, created_class_id, created_class_join_code, created_course_id",
           )
-          .eq('user_id', user!.id)
-          .eq('tenant_id', tenantId!)
-          .maybeSingle()
+          .eq("user_id", user!.id)
+          .eq("tenant_id", tenantId!)
+          .maybeSingle();
 
-        if (cancelled) return
+        if (cancelled) return;
 
         if (error) {
           // Table may not exist yet in local dev — silently skip
-          logger.warn('[useTeacherOnboarding] DB fetch error:', error.message)
-          setIsLoading(false)
-          return
+          logger.warn("[useTeacherOnboarding] DB fetch error:", error.message);
+          setIsLoading(false);
+          return;
         }
 
         if (data) {
-          if (data.is_completed || data.dismissed) {
+          const onboardingData = data as TeacherOnboardingState;
+          if (onboardingData.is_completed || onboardingData.dismissed) {
             // Sync local storage to avoid future DB queries
-            if (data.dismissed) localStorage.setItem(LS_DISMISS_KEY, '1')
-            if (data.is_completed) localStorage.setItem(LS_COMPLETED_KEY, '1')
+            if (onboardingData.dismissed)
+              localStorage.setItem(LS_DISMISS_KEY, "1");
+            if (onboardingData.is_completed)
+              localStorage.setItem(LS_COMPLETED_KEY, "1");
           }
           setState({
-            id: data.id,
-            current_step: data.current_step ?? 1,
-            completed_steps: data.completed_steps ?? [],
-            is_completed: data.is_completed ?? false,
-            dismissed: data.dismissed ?? false,
-            created_class_id: data.created_class_id ?? null,
-            created_class_join_code: data.created_class_join_code ?? null,
-            created_course_id: data.created_course_id ?? null,
-          })
+            id: onboardingData.id,
+            current_step: onboardingData.current_step ?? 1,
+            completed_steps: onboardingData.completed_steps ?? [],
+            is_completed: onboardingData.is_completed ?? false,
+            dismissed: onboardingData.dismissed ?? false,
+            created_class_id: onboardingData.created_class_id ?? null,
+            created_class_join_code:
+              onboardingData.created_class_join_code ?? null,
+            created_course_id: onboardingData.created_course_id ?? null,
+          });
         }
         // If no row exists → first time user, default state already shows wizard
       } catch (err) {
         if (!cancelled) {
-          logger.warn('[useTeacherOnboarding] Unexpected error:', err)
+          logger.warn("[useTeacherOnboarding] Unexpected error:", err);
         }
       } finally {
-        if (!cancelled) setIsLoading(false)
+        if (!cancelled) setIsLoading(false);
       }
     }
 
-    void loadProgress()
+    void loadProgress();
     return () => {
-      cancelled = true
-    }
-  }, [user, tenantId, role])
+      cancelled = true;
+    };
+  }, [user, tenantId, role]);
 
   /** Upsert progress to DB */
   const persistProgress = useCallback(
     async (updates: Partial<TeacherOnboardingState>) => {
-      if (!user || !tenantId) return
+      if (!user || !tenantId) return;
 
       const payload = {
         user_id: user.id,
@@ -144,74 +148,74 @@ export function useTeacherOnboarding(): UseTeacherOnboardingReturn {
         created_class_join_code: state.created_class_join_code,
         created_course_id: state.created_course_id,
         ...updates,
-      }
+      };
 
       try {
         const { data, error } = await db
-          .from('teacher_onboarding_progress')
-          .upsert(payload, { onConflict: 'user_id,tenant_id' })
-          .select('id')
-          .maybeSingle()
+          .from<any>("teacher_onboarding_progress")
+          .upsert(payload, { onConflict: "user_id,tenant_id" })
+          .select("id")
+          .maybeSingle();
 
         if (error) {
-          logger.warn('[useTeacherOnboarding] DB upsert error:', error.message)
-          return
+          logger.warn("[useTeacherOnboarding] DB upsert error:", error.message);
+          return;
         }
-        if (data?.id && !state.id) {
-          setState((prev) => ({ ...prev, id: data.id }))
+        if ((data as { id: string })?.id && !state.id) {
+          setState((prev) => ({ ...prev, id: (data as { id: string }).id }));
         }
       } catch (err) {
-        logger.warn('[useTeacherOnboarding] Unexpected persist error:', err)
+        logger.warn("[useTeacherOnboarding] Unexpected persist error:", err);
       }
     },
-    [user, tenantId, state]
-  )
+    [user, tenantId, state],
+  );
 
   const nextStep = useCallback(async () => {
-    const newStep = Math.min(state.current_step + 1, TOTAL_STEPS)
-    setState((prev) => ({ ...prev, current_step: newStep }))
-    await persistProgress({ current_step: newStep })
-  }, [state.current_step, persistProgress])
+    const newStep = Math.min(state.current_step + 1, TOTAL_STEPS);
+    setState((prev) => ({ ...prev, current_step: newStep }));
+    await persistProgress({ current_step: newStep });
+  }, [state.current_step, persistProgress]);
 
   const prevStep = useCallback(() => {
-    const newStep = Math.max(state.current_step - 1, 1)
-    setState((prev) => ({ ...prev, current_step: newStep }))
+    const newStep = Math.max(state.current_step - 1, 1);
+    setState((prev) => ({ ...prev, current_step: newStep }));
     // No need to await for going back
-    void persistProgress({ current_step: newStep })
-  }, [state.current_step, persistProgress])
+    void persistProgress({ current_step: newStep });
+  }, [state.current_step, persistProgress]);
 
   const completeStep = useCallback(
     async (stepNumber: number) => {
       const newCompleted = state.completed_steps.includes(stepNumber)
         ? state.completed_steps
-        : [...state.completed_steps, stepNumber]
-      setState((prev) => ({ ...prev, completed_steps: newCompleted }))
-      await persistProgress({ completed_steps: newCompleted })
+        : [...state.completed_steps, stepNumber];
+      setState((prev) => ({ ...prev, completed_steps: newCompleted }));
+      await persistProgress({ completed_steps: newCompleted });
     },
-    [state.completed_steps, persistProgress]
-  )
+    [state.completed_steps, persistProgress],
+  );
 
   const completeOnboarding = useCallback(async () => {
-    const allSteps = Array.from({ length: TOTAL_STEPS }, (_, i) => i + 1)
+    const allSteps = Array.from({ length: TOTAL_STEPS }, (_, i) => i + 1);
     setState((prev) => ({
       ...prev,
       is_completed: true,
       completed_steps: allSteps,
       current_step: TOTAL_STEPS,
-    }))
-    localStorage.setItem(LS_COMPLETED_KEY, '1')
+    }));
+    localStorage.setItem(LS_COMPLETED_KEY, "1");
     await persistProgress({
       is_completed: true,
       completed_steps: allSteps,
       current_step: TOTAL_STEPS,
-    })
-  }, [persistProgress])
+    });
+  }, [persistProgress]);
 
   const dismissForever = useCallback(async () => {
-    setState((prev) => ({ ...prev, dismissed: true }))
-    localStorage.setItem(LS_DISMISS_KEY, '1')
-    await persistProgress({ dismissed: true })
-  }, [persistProgress])
+    setState((prev) => ({ ...prev, dismissed: true }));
+    localStorage.setItem(LS_DISMISS_KEY, "1");
+    await persistProgress({ dismissed: true });
+  }, [persistProgress]);
 
   const saveClassResult = useCallback(
     async (classId: string, joinCode: string) => {
@@ -219,28 +223,31 @@ export function useTeacherOnboarding(): UseTeacherOnboardingReturn {
         ...prev,
         created_class_id: classId,
         created_class_join_code: joinCode,
-      }))
-      await persistProgress({ created_class_id: classId, created_class_join_code: joinCode })
+      }));
+      await persistProgress({
+        created_class_id: classId,
+        created_class_join_code: joinCode,
+      });
     },
-    [persistProgress]
-  )
+    [persistProgress],
+  );
 
   const saveCourseResult = useCallback(
     async (courseId: string) => {
-      setState((prev) => ({ ...prev, created_course_id: courseId }))
-      await persistProgress({ created_course_id: courseId })
+      setState((prev) => ({ ...prev, created_course_id: courseId }));
+      await persistProgress({ created_course_id: courseId });
     },
-    [persistProgress]
-  )
+    [persistProgress],
+  );
 
   // isVisible: only for teachers, not dismissed, not completed, not still loading
   const isVisible =
     !isLoading &&
-    role === 'teacher' &&
+    role === "teacher" &&
     !state.dismissed &&
     !state.is_completed &&
     !!user &&
-    !!tenantId
+    !!tenantId;
 
   return {
     isVisible,
@@ -258,5 +265,5 @@ export function useTeacherOnboarding(): UseTeacherOnboardingReturn {
     dismissForever,
     saveClassResult,
     saveCourseResult,
-  }
+  };
 }
