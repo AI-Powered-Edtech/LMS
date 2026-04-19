@@ -36,7 +36,7 @@ pub async fn switch_tenant_handler(
         .ok_or_else(|| AuthError::InvalidToken)
         .map_err(IntoVilError::into_vil_error)?;
 
-    let access_claims = verify_access_token(token, &state.jwt_secret).map_err(IntoVilError::into_vil_error)?;
+    let access_claims = verify_access_token(token).map_err(IntoVilError::into_vil_error)?;
     let user_id: Uuid = access_claims
         .sub
         .parse()
@@ -115,7 +115,6 @@ pub async fn switch_tenant_handler(
         &active_role,
         Some(body.tenant_id),
         true,
-        &state.jwt_secret,
     )
     .await
     .map_err(IntoVilError::into_vil_error)?;

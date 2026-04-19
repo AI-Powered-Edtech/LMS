@@ -1,21 +1,24 @@
-import React from 'react'
-import { Link, Navigate, useLocation } from 'react-router-dom'
+import React from "react";
+import { Link, Navigate, useLocation } from "react-router-dom";
 
-import { useAuth } from '@/contexts/AuthContext'
-import { LoginForm } from '@/features/auth/components/LoginForm'
-import { RegisterStep1, RegisterStep2 } from '@/features/auth/components/RegisterForm'
-import { useLoginState } from '@/features/auth/hooks/useLoginState'
-import { usePageTitle } from '@/hooks/usePageTitle'
-import { cn } from '@/utils/cn'
+import { useAuth } from "@/contexts/AuthContext";
+import { LoginForm } from "@/features/auth/components/LoginForm";
+import {
+  RegisterStep1,
+  RegisterStep2,
+} from "@/features/auth/components/RegisterForm";
+import { useLoginState } from "@/features/auth/hooks/useLoginState";
+import { usePageTitle } from "@/hooks/usePageTitle";
+import { cn } from "@/utils/cn";
 
 export function Login() {
-  usePageTitle('Masuk')
-  const location = useLocation()
-  const { authError, authStatus, clearAuthError } = useAuth()
-  const fromState = location.state?.from
+  usePageTitle("Masuk");
+  const location = useLocation();
+  const { authError, authStatus, clearAuthError } = useAuth();
+  const fromState = location.state?.from;
   const from = fromState
-    ? `${fromState.pathname || ''}${fromState.search || ''}${fromState.hash || ''}`
-    : '/'
+    ? `${fromState.pathname || ""}${fromState.search || ""}${fromState.hash || ""}`
+    : "/";
   const {
     user,
     loading,
@@ -43,26 +46,28 @@ export function Login() {
     fillAccount,
     switchMode,
     setMode,
-  } = useLoginState(from)
+  } = useLoginState(from);
 
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-900 via-blue-950 to-slate-900">
         <div className="w-10 h-10 border-2 border-white/20 border-t-blue-400 rounded-full animate-spin" />
       </div>
-    )
+    );
   }
 
-  if (user) return <Navigate to={from} replace />
+  if (user) return <Navigate to={from} replace />;
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-900 via-blue-950 to-slate-900 p-4">
-      <div className="w-full max-w-md md:max-w-lg">
+      <div className="w-full max-w-md">
         {/* Logo */}
         <div className="text-center mb-8">
           <div className="text-5xl mb-3">📚</div>
           <h1 className="text-3xl font-bold text-white">EduSync</h1>
-          <p className="text-blue-300/70 text-sm mt-1">Sistem Manajemen Pembelajaran</p>
+          <p className="text-blue-300/70 text-sm mt-1">
+            Sistem Manajemen Pembelajaran
+          </p>
         </div>
 
         <div className="bg-white/5 backdrop-blur border border-white/10 rounded-2xl p-8 shadow-2xl">
@@ -72,34 +77,34 @@ export function Login() {
                 <p className="text-xs font-semibold uppercase tracking-[0.2em] text-emerald-200/80">
                   Demo Access
                 </p>
-                <p className="mt-1 text-sm leading-relaxed text-emerald-50">
-                  Gunakan akun demo agar browser agent bisa langsung menguji dashboard tanpa signup
-                  atau Google OAuth.
+                <p className="mt-1 text-sm text-emerald-50">
+                  Gunakan akun demo agar browser agent bisa langsung menguji
+                  dashboard tanpa signup atau Google OAuth.
                 </p>
               </div>
-              <div className="grid grid-cols-1 gap-2 sm:grid-cols-2 md:grid-cols-3">
+              <div className="grid gap-2 sm:grid-cols-3">
                 {demoAccounts.map((account) => (
                   <button
                     key={account.key}
                     type="button"
                     disabled={submitting}
                     onClick={() => {
-                      if (fillAccount) void fillAccount(account.key)
+                      if (fillAccount) void fillAccount(account.key);
                     }}
-                    className="min-w-0 rounded-xl border border-white/10 bg-white/5 px-3 py-3 text-left transition-colors hover:bg-white/10 disabled:opacity-50"
+                    className="rounded-xl border border-white/10 bg-white/5 px-3 py-3 text-left transition-colors hover:bg-white/10 disabled:opacity-50"
                   >
-                    <div className="flex min-w-0 items-center gap-2 text-sm font-semibold text-white">
-                      <span className="shrink-0">{account.icon}</span>
-                      <span className="min-w-0">{account.label}</span>
+                    <div className="text-sm font-semibold text-white">
+                      {account.icon} {account.label}
                     </div>
-                    <div className="mt-1 min-w-0 break-all text-xs leading-snug text-emerald-100/70">
+                    <div className="mt-1 text-xs text-emerald-100/70">
                       {account.email}
                     </div>
                   </button>
                 ))}
               </div>
               <p className="mt-3 text-center text-xs text-emerald-100/60">
-                Signup publik di environment demo dibatasi. Gunakan tombol di atas untuk QA.
+                Signup publik di environment demo dibatasi. Gunakan tombol di
+                atas untuk QA.
               </p>
             </div>
           )}
@@ -111,7 +116,10 @@ export function Login() {
                 🎉 Anda diundang ke {inviteInfo.tenant_name}
               </p>
               <p className="text-white/50 text-xs mt-1">
-                Peran: <span className="text-blue-300 font-medium">{inviteInfo.role}</span>
+                Peran:{" "}
+                <span className="text-blue-300 font-medium">
+                  {inviteInfo.role}
+                </span>
               </p>
             </div>
           )}
@@ -120,18 +128,20 @@ export function Login() {
           {step === 3 ? (
             <div className="text-center py-4">
               <div className="text-5xl mb-4">✅</div>
-              <h2 className="text-white font-bold text-xl mb-2">Akun berhasil dibuat!</h2>
+              <h2 className="text-white font-bold text-xl mb-2">
+                Akun berhasil dibuat!
+              </h2>
               <p className="text-white/50 text-sm leading-relaxed mb-6">
-                Silakan periksa email Anda untuk verifikasi.{' '}
+                Silakan periksa email Anda untuk verifikasi.{" "}
                 {classInfo
                   ? `Anda akan otomatis tergabung ke kelas "${classInfo.class_name}" setelah login.`
-                  : 'Administrator akan mengaktifkan akses Anda.'}
+                  : "Administrator akan mengaktifkan akses Anda."}
               </p>
               <button
                 type="button"
                 onClick={() => {
-                  setStep(1)
-                  setMode('login')
+                  setStep(1);
+                  setMode("login");
                 }}
                 className="w-full bg-blue-600 hover:bg-blue-700 text-white rounded-xl py-3 font-semibold transition-colors"
               >
@@ -144,26 +154,26 @@ export function Login() {
               <div className="flex bg-white/5 rounded-xl p-1 mb-6">
                 <button
                   type="button"
-                  onClick={() => switchMode('login')}
-                  aria-pressed={mode === 'login'}
+                  onClick={() => switchMode("login")}
+                  aria-pressed={mode === "login"}
                   className={cn(
-                    'flex-1 py-2 rounded-lg text-sm font-semibold transition-all',
-                    mode === 'login'
-                      ? 'bg-blue-600 text-white shadow'
-                      : 'text-white/50 hover:text-white'
+                    "flex-1 py-2 rounded-lg text-sm font-semibold transition-all",
+                    mode === "login"
+                      ? "bg-blue-600 text-white shadow"
+                      : "text-white/50 hover:text-white",
                   )}
                 >
                   Masuk
                 </button>
                 <button
                   type="button"
-                  onClick={() => switchMode('register')}
-                  aria-pressed={mode === 'register'}
+                  onClick={() => switchMode("register")}
+                  aria-pressed={mode === "register"}
                   className={cn(
-                    'flex-1 py-2 rounded-lg text-sm font-semibold transition-all',
-                    mode === 'register'
-                      ? 'bg-blue-600 text-white shadow'
-                      : 'text-white/50 hover:text-white'
+                    "flex-1 py-2 rounded-lg text-sm font-semibold transition-all",
+                    mode === "register"
+                      ? "bg-blue-600 text-white shadow"
+                      : "text-white/50 hover:text-white",
                   )}
                 >
                   Daftar
@@ -171,14 +181,16 @@ export function Login() {
               </div>
 
               {/* Step indicator for register */}
-              {mode === 'register' && !inviteToken && (
+              {mode === "register" && !inviteToken && (
                 <div className="flex items-center gap-2 mb-6">
                   {[1, 2].map((s) => (
                     <React.Fragment key={s}>
                       <div
                         className={cn(
-                          'w-6 h-6 rounded-full text-xs font-bold flex items-center justify-center transition-all',
-                          step >= s ? 'bg-blue-600 text-white' : 'bg-white/10 text-white/30'
+                          "w-6 h-6 rounded-full text-xs font-bold flex items-center justify-center transition-all",
+                          step >= s
+                            ? "bg-blue-600 text-white"
+                            : "bg-white/10 text-white/30",
                         )}
                       >
                         {s}
@@ -186,21 +198,21 @@ export function Login() {
                       {s < 2 && (
                         <div
                           className={cn(
-                            'flex-1 h-0.5 rounded transition-all',
-                            step > s ? 'bg-blue-600' : 'bg-white/10'
+                            "flex-1 h-0.5 rounded transition-all",
+                            step > s ? "bg-blue-600" : "bg-white/10",
                           )}
                         />
                       )}
                     </React.Fragment>
                   ))}
                   <span className="text-white/40 text-xs ml-1">
-                    {step === 1 ? 'Informasi Akun' : 'Kode Kelas (Opsional)'}
+                    {step === 1 ? "Informasi Akun" : "Kode Kelas (Opsional)"}
                   </span>
                 </div>
               )}
 
               {/* Google OAuth Button */}
-              {(mode === 'login' || (mode === 'register' && step === 1)) && (
+              {(mode === "login" || (mode === "register" && step === 1)) && (
                 <>
                   <button
                     onClick={handleGoogleAuth}
@@ -228,29 +240,31 @@ export function Login() {
                   </button>
                   <div className="flex items-center gap-3 mb-4">
                     <div className="flex-1 h-px bg-white/10" />
-                    <span className="text-white/30 text-xs">atau dengan email</span>
+                    <span className="text-white/30 text-xs">
+                      atau dengan email
+                    </span>
                     <div className="flex-1 h-px bg-white/10" />
                   </div>
                 </>
               )}
 
-              {mode === 'login' && (
+              {mode === "login" && (
                 <LoginForm
                   loginForm={loginForm}
-                  error={error || authError || ''}
+                  error={error || authError || ""}
                   setError={(value) => {
-                    clearAuthError()
-                    setError(value)
+                    clearAuthError();
+                    setError(value);
                   }}
                   submitting={submitting}
                   onSubmit={handleSignIn}
                 />
               )}
 
-              {mode === 'register' && step === 1 && (
+              {mode === "register" && step === 1 && (
                 <RegisterStep1
                   registerForm={registerForm}
-                  error={error || authError || ''}
+                  error={error || authError || ""}
                   submitting={submitting}
                   inviteToken={inviteToken}
                   inviteInfo={inviteInfo}
@@ -258,7 +272,7 @@ export function Login() {
                 />
               )}
 
-              {mode === 'register' && step === 2 && (
+              {mode === "register" && step === 2 && (
                 <RegisterStep2
                   joinCode={joinCode}
                   setJoinCode={setJoinCode}
@@ -285,17 +299,18 @@ export function Login() {
               <span className="text-base">👨‍👩‍👧</span>
               <span>
                 Daftar sebagai Orang Tua Siswa
-                <span className="ml-1 opacity-0 group-hover:opacity-100 transition-opacity">→</span>
+                <span className="ml-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                  →
+                </span>
               </span>
             </Link>
           </div>
         )}
 
-
-
-        {authStatus === 'callback_processing' && (
+        {authStatus === "callback_processing" && (
           <p className="mt-4 text-center text-xs text-blue-200/70">
-            Sesi login sedang diproses. Jika Anda baru kembali dari Google, tunggu beberapa saat.
+            Sesi login sedang diproses. Jika Anda baru kembali dari Google,
+            tunggu beberapa saat.
           </p>
         )}
 
@@ -321,5 +336,5 @@ export function Login() {
         </div>
       </div>
     </div>
-  )
+  );
 }

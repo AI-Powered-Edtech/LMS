@@ -1,94 +1,115 @@
-import { Award, BarChart2, BookOpen, TrendingUp } from 'lucide-react'
-import { useEffect, useState } from 'react'
-import { useParams } from 'react-router-dom'
+import { Award, BarChart2, BookOpen, TrendingUp } from "lucide-react";
+import { useEffect, useState } from "react";
+import { useParams } from "react-router-dom";
 
-import { Breadcrumb, OptimizedImage } from '@/components/ui'
-import { useAuth } from '@/contexts/AuthContext'
-import { progressService, StudentProgressData } from '@/features/progress/api/progressService'
-import { ProgressSkeleton } from '@/features/progress/components/ProgressSkeleton'
-import { usePageTitle } from '@/hooks/usePageTitle'
-import { cn } from '@/utils/cn'
-import { logger } from '@/utils/logger'
+import { Breadcrumb, OptimizedImage } from "@/components/ui";
+import { useAuth } from "@/contexts/AuthContext";
+import {
+  progressService,
+  StudentProgressData,
+} from "@/features/progress/api/progressService";
+import { ProgressSkeleton } from "@/features/progress/components/ProgressSkeleton";
+import { usePageTitle } from "@/hooks/usePageTitle";
+import { cn } from "@/utils/cn";
+import { logger } from "@/utils/logger";
 
 export function StudentProgress() {
-  usePageTitle('Progres Siswa')
-  const { studentId } = useParams()
-  const { tenantId } = useAuth()
-  const [data, setData] = useState<StudentProgressData | null>(null)
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
+  usePageTitle("Progres Siswa");
+  const { studentId } = useParams();
+  const { tenantId } = useAuth();
+  const [data, setData] = useState<StudentProgressData | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     async function loadProgress() {
-      if (!studentId || studentId === 'overview') {
+      if (!studentId || studentId === "overview") {
         // 'overview' is a nav placeholder — no real studentId selected yet
-        setLoading(false)
-        return
+        setLoading(false);
+        return;
       }
 
       if (!tenantId) {
-        setError('Tidak dapat memuat data: tenant tidak ditemukan.')
-        setLoading(false)
-        return
+        setError("Tidak dapat memuat data: tenant tidak ditemukan.");
+        setLoading(false);
+        return;
       }
 
-      setLoading(true)
+      setLoading(true);
       try {
         // High performance consolidation: 6 queries -> 1 RPC call
-        const progressData = await progressService.getStudentProgressBundle(studentId, tenantId!)
-        setData(progressData)
+        const progressData = await progressService.getStudentProgressBundle(
+          studentId,
+          tenantId!,
+        );
+        setData(progressData);
       } catch (err: unknown) {
-        if (import.meta.env.DEV) logger.error('Failed to load student progress', err)
-        setError('Gagal memuat progres siswa')
+        if (import.meta.env.DEV)
+          logger.error("Failed to load student progress", err);
+        setError("Gagal memuat progres siswa");
       } finally {
-        setLoading(false)
+        setLoading(false);
       }
     }
 
-    void loadProgress()
-  }, [studentId, tenantId])
+    void loadProgress();
+  }, [studentId, tenantId]);
 
   if (loading) {
-    return <ProgressSkeleton />
+    return <ProgressSkeleton />;
   }
 
   // No student selected yet (nav points to /overview as placeholder)
-  if (!studentId || studentId === 'overview') {
+  if (!studentId || studentId === "overview") {
     return (
       <div className="flex-1 w-full flex flex-col items-center justify-center p-12 text-slate-500 dark:text-slate-400">
         <TrendingUp className="w-12 h-12 mb-4 text-slate-300 dark:text-slate-600" />
-        <p className="text-lg font-medium text-slate-700 dark:text-slate-300 mb-2">Progres Siswa</p>
+        <p className="text-lg font-medium text-slate-700 dark:text-slate-300 mb-2">
+          Progres Siswa
+        </p>
         <p className="text-sm text-center">
-          Pilih siswa dari halaman{' '}
-          <a href="/app/admin/users" className="text-blue-600 dark:text-blue-400 underline">
+          Pilih siswa dari halaman{" "}
+          <a
+            href="/app/admin/users"
+            className="text-blue-600 dark:text-blue-400 underline"
+          >
             Manajemen Pengguna
-          </a>{' '}
+          </a>{" "}
           untuk melihat progres belajar mereka.
         </p>
       </div>
-    )
+    );
   }
 
   if (error || !data) {
     return (
       <div className="flex-1 w-full flex flex-col items-center justify-center p-12 text-slate-500 dark:text-slate-400">
-        <p className="text-red-500 font-bold mb-2">{error || 'Data tidak ditemukan'}</p>
+        <p className="text-red-500 font-bold mb-2">
+          {error || "Data tidak ditemukan"}
+        </p>
       </div>
-    )
+    );
   }
 
-  const { profile, totalXP, completedLessonsCount, quizAttempts, achievements, courseProgress } =
-    data
-  const studentName = profile?.full_name || 'Siswa Tanpa Nama'
+  const {
+    profile,
+    totalXP,
+    completedLessonsCount,
+    quizAttempts,
+    achievements,
+    courseProgress,
+  } = data;
+  const studentName = profile?.full_name || "Siswa Tanpa Nama";
   const avatarUrl =
-    profile?.avatar_url || `https://api.dicebear.com/7.x/avataaars/svg?seed=${studentName}`
+    profile?.avatar_url ||
+    `https://api.dicebear.com/7.x/avataaars/svg?seed=${studentName}`;
 
   return (
     <div className="max-w-6xl mx-auto space-y-8 pb-12">
       <Breadcrumb
         items={[
-          { label: 'Dashboard', href: '/app/teacher/dashboard' },
-          { label: 'Kemajuan Siswa' },
+          { label: "Dashboard", href: "/app/teacher/dashboard" },
+          { label: "Kemajuan Siswa" },
         ]}
         className="mb-2"
       />
@@ -104,7 +125,9 @@ export function StudentProgress() {
           <h1 className="text-3xl font-bold text-slate-900 dark:text-slate-100 tracking-tight">
             {studentName}
           </h1>
-          <p className="text-slate-500 dark:text-slate-400">Progres Belajar & Pencapaian</p>
+          <p className="text-slate-500 dark:text-slate-400">
+            Progres Belajar & Pencapaian
+          </p>
         </div>
       </div>
 
@@ -130,7 +153,9 @@ export function StudentProgress() {
             <p className="text-sm font-bold text-slate-500 dark:text-slate-400 uppercase">
               Total XP
             </p>
-            <p className="text-2xl font-black text-slate-900 dark:text-slate-100">{totalXP}</p>
+            <p className="text-2xl font-black text-slate-900 dark:text-slate-100">
+              {totalXP}
+            </p>
           </div>
         </div>
         <div className="bg-white dark:bg-slate-800 p-6 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-sm flex items-center gap-4">
@@ -165,21 +190,23 @@ export function StudentProgress() {
               >
                 <div className="flex justify-between items-center mb-2">
                   <h3 className="font-bold text-slate-800 dark:text-slate-200">
-                    {cp.courses?.title || 'Kursus Tidak Terdaftar'}
+                    {cp.courses?.title || "Kursus Tidak Terdaftar"}
                   </h3>
-                  <span className="text-sm font-bold text-blue-600">{cp.percentage}%</span>
+                  <span className="text-sm font-bold text-blue-600">
+                    {cp.percentage}%
+                  </span>
                 </div>
                 <div
                   role="progressbar"
                   aria-valuenow={cp.percentage}
                   aria-valuemin={0}
                   aria-valuemax={100}
-                  aria-label={`Progres ${cp.courses?.title || 'Kursus'}: ${cp.percentage}%`}
+                  aria-label={`Progres ${cp.courses?.title || "Kursus"}: ${cp.percentage}%`}
                   className="w-full bg-slate-200 rounded-full h-2.5 mb-2 overflow-hidden"
                 >
                   <div
                     className="bg-blue-600 h-2.5 rounded-full transition-all duration-500"
-                    style={{ width: `${Math.min(cp.percentage, 100)}%` }}
+                    style={{ width: `${Math.min(cp.percentage ?? 0, 100)}%` }}
                   ></div>
                 </div>
                 <div className="flex justify-between text-xs text-slate-500 dark:text-slate-400">
@@ -188,8 +215,10 @@ export function StudentProgress() {
                   </span>
                   {cp.last_activity_at && (
                     <span>
-                      Aktivitas terakhir:{' '}
-                      {new Date(cp.last_activity_at).toLocaleDateString('id-ID')}
+                      Aktivitas terakhir:{" "}
+                      {new Date(cp.last_activity_at).toLocaleDateString(
+                        "id-ID",
+                      )}
                     </span>
                   )}
                 </div>
@@ -211,7 +240,7 @@ export function StudentProgress() {
               </p>
             ) : (
               quizAttempts.map((attempt) => {
-                const isPassed = attempt.score >= 70
+                const isPassed = attempt.score >= 70;
                 return (
                   <div
                     key={attempt.id}
@@ -220,22 +249,28 @@ export function StudentProgress() {
                     <div>
                       {/* FIXED: Display quiz title if available, or shortened UUID instead of raw UUID */}
                       <p className="font-bold text-slate-800 dark:text-slate-200">
-                        Kuis: {'Kuis #' + attempt.quiz_id.slice(0, 8)}
+                        Kuis: {"Kuis #" + attempt.quiz_id.slice(0, 8)}
                       </p>
                       <p className="text-xs text-slate-500 dark:text-slate-400">
-                        {new Date(attempt.created_at).toLocaleDateString('id-ID')}
+                        {attempt.created_at
+                          ? new Date(attempt.created_at).toLocaleDateString(
+                              "id-ID",
+                            )
+                          : "-"}
                       </p>
                     </div>
                     <span
                       className={cn(
-                        'font-bold px-3 py-1 rounded-full text-sm',
-                        isPassed ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'
+                        "font-bold px-3 py-1 rounded-full text-sm",
+                        isPassed
+                          ? "bg-green-100 text-green-700"
+                          : "bg-red-100 text-red-700",
                       )}
                     >
                       Nilai: {attempt.score}
                     </span>
                   </div>
-                )
+                );
               })
             )}
           </div>
@@ -257,13 +292,17 @@ export function StudentProgress() {
                   className="p-4 bg-amber-50 border border-amber-100 rounded-2xl text-center"
                 >
                   <div className="text-3xl mb-2">
-                    {ach.badges?.icon === 'crown' ? '👑' : ach.badges?.icon === 'zap' ? '⚡' : '🎯'}
+                    {ach.badges?.icon === "crown"
+                      ? "👑"
+                      : ach.badges?.icon === "zap"
+                        ? "⚡"
+                        : "🎯"}
                   </div>
                   <p className="font-bold text-slate-800 dark:text-slate-200 text-sm">
-                    {ach.badges?.name || 'Badge'}
+                    {ach.badges?.name || "Badge"}
                   </p>
                   <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
-                    {new Date(ach.earned_at).toLocaleDateString('id-ID')}
+                    {new Date(ach.earned_at).toLocaleDateString("id-ID")}
                   </p>
                 </div>
               ))
@@ -272,5 +311,5 @@ export function StudentProgress() {
         </div>
       </div>
     </div>
-  )
+  );
 }

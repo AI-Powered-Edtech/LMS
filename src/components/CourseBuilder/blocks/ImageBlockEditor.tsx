@@ -1,136 +1,152 @@
-import { ImagePlus, Loader2 } from 'lucide-react'
-import { useCallback, useRef, useState } from 'react'
+import { ImagePlus, Loader2 } from "lucide-react";
+import { useCallback, useRef, useState } from "react";
 
-import { OptimizedImage } from '@/components/ui'
-import { useAuth } from '@/contexts/AuthContext'
-import { useBuilder } from '@/contexts/BuilderContext'
-import { storageService } from '@/features/storage'
+import { OptimizedImage } from "@/components/ui";
+import { useAuth } from "@/contexts/AuthContext";
+import { useBuilder } from "@/contexts/BuilderContext";
+import { storageService } from "@/features/storage";
 
 interface ImageBlockEditorProps {
-  blockId: string
+  blockId: string;
 }
 
-const MAX_IMAGE_SIZE = 5 * 1024 * 1024 // 5MB
-const ALLOWED_IMAGE_TYPES = ['image/jpeg', 'image/png', 'image/webp', 'image/gif']
+const MAX_IMAGE_SIZE = 5 * 1024 * 1024; // 5MB
+const ALLOWED_IMAGE_TYPES = [
+  "image/jpeg",
+  "image/png",
+  "image/webp",
+  "image/gif",
+];
 
 export function ImageBlockEditor({ blockId }: ImageBlockEditorProps) {
-  const { state, actions } = useBuilder()
-  const { user, tenantId: authTenantId } = useAuth()
-  const [isUploading, setIsUploading] = useState(false)
-  const [previewUrl, setPreviewUrl] = useState<string | null>(null)
-  const [error, setError] = useState<string | null>(null)
-  const [isDragOver, setIsDragOver] = useState(false)
-  const inputRef = useRef<HTMLInputElement>(null)
+  const { state, actions } = useBuilder();
+  const { user, tenantId } = useAuth();
+  const [isUploading, setIsUploading] = useState(false);
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  const [isDragOver, setIsDragOver] = useState(false);
+  const inputRef = useRef<HTMLInputElement>(null);
 
-  const block = state.activeLesson?.blocks.find((b) => b.id === blockId)
+  const block = state.activeLesson?.blocks.find((b) => b.id === blockId);
 
   /* eslint-disable react-hooks/exhaustive-deps */
   const handleFile = useCallback(
     async (file: File) => {
       if (!state.courseId || !state.activeLesson) {
-        setError('Kursus atau materi belum dimuat')
-        return
+        setError("Kursus atau materi belum dimuat");
+        return;
       }
 
-      setError(null)
+      setError(null);
 
       // Validate file type
       if (!ALLOWED_IMAGE_TYPES.includes(file.type)) {
-        setError('Format gambar tidak valid. Gunakan JPG, PNG, WebP, atau GIF.')
-        return
+        setError(
+          "Format gambar tidak valid. Gunakan JPG, PNG, WebP, atau GIF.",
+        );
+        return;
       }
 
       // Validate file size
       if (file.size > MAX_IMAGE_SIZE) {
-        setError('Ukuran gambar maksimal 5MB.')
-        return
+        setError("Ukuran gambar maksimal 5MB.");
+        return;
       }
 
       // Show preview
-      const objectUrl = URL.createObjectURL(file)
-      setPreviewUrl(objectUrl)
-      setIsUploading(true)
+      const objectUrl = URL.createObjectURL(file);
+      setPreviewUrl(objectUrl);
+      setIsUploading(true);
 
       try {
         const result = await storageService.uploadFile(file, {
-          tenantId: authTenantId || '',
           courseId: state.courseId,
           lessonId: state.activeLesson.id,
           blockId: blockId,
-          bucket: 'course-images',
-          uploadedBy: user?.id || '',
-        })
+          bucket: "course-images",
+          uploadedBy: user?.id || "",
+          tenantId: tenantId ?? "",
+          objectPath: `${state.courseId}/${state.activeLesson.id}/${blockId}/${file.name}`,
+        });
 
         actions.updateBlock(blockId, {
           url: result.publicUrl,
-        })
+        });
         // Note: storage_object_id will be added to DomainBlock type later if needed
 
         // Release preview URL after successful upload
-        URL.revokeObjectURL(objectUrl)
-        setPreviewUrl(null)
+        URL.revokeObjectURL(objectUrl);
+        setPreviewUrl(null);
       } catch (err) {
         // Release preview URL on error
-        URL.revokeObjectURL(objectUrl)
-        setPreviewUrl(null)
-        setError(err instanceof Error ? err.message : 'Gagal mengunggah gambar.')
+        URL.revokeObjectURL(objectUrl);
+        setPreviewUrl(null);
+        setError(
+          err instanceof Error ? err.message : "Gagal mengunggah gambar.",
+        );
       } finally {
-        setIsUploading(false)
+        setIsUploading(false);
       }
     },
-    [state.courseId, state.activeLesson, blockId, user?.id, actions]
-  )
+    [state.courseId, state.activeLesson, blockId, user?.id, actions],
+  );
   /* eslint-enable react-hooks/exhaustive-deps */
 
   const handleDelete = async () => {
-    if (!confirm('Hapus gambar ini? File akan dihapus permanen dari penyimpanan.')) return
-    const storageObjectId = (block as unknown as { storage_object_id?: string })?.storage_object_id
+    if (
+      !confirm("Hapus gambar ini? File akan dihapus permanen dari penyimpanan.")
+    )
+      return;
+    const storageObjectId = (block as unknown as { storage_object_id?: string })
+      ?.storage_object_id;
 
     if (storageObjectId) {
       try {
-        await storageService.deleteFile(storageObjectId)
+        await storageService.deleteFile(storageObjectId);
       } catch (err) {
-        setError(err instanceof Error ? err.message : 'Gagal menghapus gambar.')
-        return
+        setError(
+          err instanceof Error ? err.message : "Gagal menghapus gambar.",
+        );
+        return;
       }
     }
 
-    actions.updateBlock(blockId, { url: null })
-  }
+    actions.updateBlock(blockId, { url: null });
+  };
 
   const handleReplace = () => {
-    inputRef.current?.click()
-  }
+    inputRef.current?.click();
+  };
 
   const handleDragOver = (e: React.DragEvent) => {
-    e.preventDefault()
-    setIsDragOver(true)
-  }
+    e.preventDefault();
+    setIsDragOver(true);
+  };
 
   const handleDragLeave = (e: React.DragEvent) => {
-    e.preventDefault()
-    setIsDragOver(false)
-  }
+    e.preventDefault();
+    setIsDragOver(false);
+  };
 
   const handleDrop = (e: React.DragEvent) => {
-    e.preventDefault()
-    setIsDragOver(false)
-    const file = e.dataTransfer.files[0]
+    e.preventDefault();
+    setIsDragOver(false);
+    const file = e.dataTransfer.files[0];
     if (file) {
-      void handleFile(file)
+      void handleFile(file);
     }
-  }
+  };
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0]
+    const file = e.target.files?.[0];
     if (file) {
-      void handleFile(file)
+      void handleFile(file);
     }
-  }
+  };
 
-  if (!block) return null
+  if (!block) return null;
 
-  const blockUrl = block.url
+  const blockUrl = block.url;
 
   // Uploaded state - show image preview
   if (blockUrl) {
@@ -139,7 +155,7 @@ export function ImageBlockEditor({ blockId }: ImageBlockEditorProps) {
         <div className="relative rounded-xl overflow-hidden border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800">
           <OptimizedImage
             src={blockUrl}
-            alt={block.title || 'Gambar'}
+            alt={block.title || "Gambar"}
             className="w-full max-h-[400px] object-contain"
           />
         </div>
@@ -171,7 +187,7 @@ export function ImageBlockEditor({ blockId }: ImageBlockEditorProps) {
           </p>
         )}
       </div>
-    )
+    );
   }
 
   // Empty state / Uploading state
@@ -185,15 +201,15 @@ export function ImageBlockEditor({ blockId }: ImageBlockEditorProps) {
         role="button"
         tabIndex={0}
         onKeyDown={(e) => {
-          if (e.key === 'Enter' || e.key === ' ') {
-            e.preventDefault()
-            if (!isUploading) inputRef.current?.click()
+          if (e.key === "Enter" || e.key === " ") {
+            e.preventDefault();
+            if (!isUploading) inputRef.current?.click();
           }
         }}
         className={`
           relative flex flex-col items-center justify-center py-12 rounded-xl border-2 border-dashed cursor-pointer transition-all
-          ${isDragOver ? 'border-blue-400 dark:border-blue-600 bg-blue-50 dark:bg-blue-900/30' : 'border-slate-300 dark:border-slate-600 hover:border-slate-400 dark:hover:border-slate-500 bg-slate-50 dark:bg-slate-800/30'}
-          ${isUploading ? 'pointer-events-none' : ''}
+          ${isDragOver ? "border-blue-400 dark:border-blue-600 bg-blue-50 dark:bg-blue-900/30" : "border-slate-300 dark:border-slate-600 hover:border-slate-400 dark:hover:border-slate-500 bg-slate-50 dark:bg-slate-800/30"}
+          ${isUploading ? "pointer-events-none" : ""}
         `}
       >
         <input
@@ -215,7 +231,9 @@ export function ImageBlockEditor({ blockId }: ImageBlockEditorProps) {
               />
             )}
             <Loader2 className="w-8 h-8 text-blue-600 dark:text-blue-400 animate-spin mb-2" />
-            <p className="text-sm text-slate-600 dark:text-slate-400">Mengunggah...</p>
+            <p className="text-sm text-slate-600 dark:text-slate-400">
+              Mengunggah...
+            </p>
           </>
         ) : (
           <>
@@ -238,5 +256,5 @@ export function ImageBlockEditor({ blockId }: ImageBlockEditorProps) {
         </p>
       )}
     </div>
-  )
+  );
 }

@@ -41,7 +41,7 @@ pub async fn mfa_enroll_handler(
     let body: MfaEnrollRequest = body.json().map_err(|e| VilError::bad_request(e.to_string()))?;
 
     let token = extract_bearer(&headers)?;
-    let claims = verify_access_token(token, &state.jwt_secret)
+    let claims = verify_access_token(token)
         .map_err(IntoVilError::into_vil_error)?;
     let user_id: Uuid = claims
         .sub
@@ -105,7 +105,7 @@ pub async fn mfa_verify_handler(
     let body: MfaVerifyRequest = body.json().map_err(|e| VilError::bad_request(e.to_string()))?;
 
     let token = extract_bearer(&headers)?;
-    let claims = verify_access_token(token, &state.jwt_secret)
+    let claims = verify_access_token(token)
         .map_err(IntoVilError::into_vil_error)?;
     let user_id: Uuid = claims
         .sub
@@ -160,7 +160,7 @@ pub async fn mfa_unenroll_handler(
     let state = svc.state::<Arc<AppState>>()?.clone();
 
     let token = extract_bearer(&headers)?;
-    let claims = verify_access_token(token, &state.jwt_secret)
+    let claims = verify_access_token(token)
         .map_err(IntoVilError::into_vil_error)?;
     let user_id: Uuid = claims
         .sub

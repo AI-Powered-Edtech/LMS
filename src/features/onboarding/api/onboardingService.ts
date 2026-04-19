@@ -1,5 +1,5 @@
-import { db } from '@/services/db'
-import { logger } from '@/utils/logger'
+import { db } from "@/services/db";
+import { logger } from "@/utils/logger";
 
 /**
  * Onboarding Progress Service
@@ -21,28 +21,39 @@ export const onboardingService = {
    * Mengembalikan array langkah yang sudah selesai dalam format
    * { step, completed_at }[] agar kompatibel dengan pemanggil lama.
    */
-  async getProgress(userId: string): Promise<Array<{ step: string; completed_at: string }>> {
+  async getProgress(
+    userId: string,
+  ): Promise<Array<{ step: string; completed_at: string }>> {
     const { data, error } = await db
-      .from('onboarding_progress')
-      .select('steps_completed, completed_at')
-      .eq('user_id', userId)
-      .maybeSingle()
+      .from<any>("onboarding_progress")
+      .select("steps_completed, completed_at")
+      .eq("user_id", userId)
+      .maybeSingle();
 
     if (error) {
       if (import.meta.env.DEV)
-        logger.warn('[onboardingService] onboarding_progress unavailable:', error.message)
-      return []
+        logger.warn(
+          "[onboardingService] onboarding_progress unavailable:",
+          error.message,
+        );
+      return [];
     }
-    if (!data) return []
+    const row = data as {
+      steps_completed?: Record<string, { done?: boolean; at?: string }>;
+      completed_at?: string;
+    } | null;
+    if (!row) return [];
 
-    // Transformasi JSONB steps_completed → array [{ step, completed_at }]
-    const steps = (data.steps_completed ?? {}) as Record<string, { done?: boolean; at?: string }>
+    const steps = (row.steps_completed ?? {}) as Record<
+      string,
+      { done?: boolean; at?: string }
+    >;
     return Object.entries(steps)
       .filter(([, v]) => v?.done)
       .map(([step, v]) => ({
         step,
-        completed_at: v.at ?? data.completed_at ?? new Date().toISOString(),
-      }))
+        completed_at: v.at ?? row.completed_at ?? new Date().toISOString(),
+      }));
   },
 
   /**
@@ -51,12 +62,16 @@ export const onboardingService = {
    * Parameter userId dan tenantId dipertahankan untuk kompatibilitas signature,
    * tetapi auth context di RPC yang dipakai untuk menentukan user.
    */
-  async completeStep(_userId: string, _tenantId: string, step: string): Promise<void> {
-    const { error } = await db.rpc('complete_onboarding_step', {
+  async completeStep(
+    _userId: string,
+    _tenantId: string,
+    step: string,
+  ): Promise<void> {
+    const { error } = await db.rpc("complete_onboarding_step", {
       p_step_name: step,
       p_metadata: {},
-    })
-    if (error) throw error
+    });
+    if (error) throw error;
   },
 
   /**
@@ -64,24 +79,33 @@ export const onboardingService = {
    */
   async getAll(tenantId: string): Promise<
     Array<{
-      id: string
-      user_id: string
-      tenant_id: string
-      steps_completed: Record<string, unknown>
-      completed_at: string | null
+      id: string;
+      user_id: string;
+      tenant_id: string;
+      steps_completed: Record<string, unknown>;
+      completed_at: string | null;
     }>
   > {
     const { data, error } = await db
-      .from('onboarding_progress')
-      .select('id, user_id, steps_completed, completed_at, tenant_id')
-      .eq('tenant_id', tenantId)
+      .from<any>("onboarding_progress")
+      .select("id, user_id, steps_completed, completed_at, tenant_id")
+      .eq("tenant_id", tenantId);
 
     if (error) {
       if (import.meta.env.DEV)
-        logger.warn('[onboardingService] onboarding_progress unavailable:', error.message)
-      return []
+        logger.warn(
+          "[onboardingService] onboarding_progress unavailable:",
+          error.message,
+        );
+      return [];
     }
-    return data ?? []
+    return (data ?? []) as Array<{
+      id: string;
+      user_id: string;
+      tenant_id: string;
+      steps_completed: Record<string, unknown>;
+      completed_at: string | null;
+    }>;
   },
 
   /**
@@ -89,11 +113,15 @@ export const onboardingService = {
    * Menggunakan RPC complete_onboarding_step agar tidak menimpa langkah lain
    * yang sudah tersimpan di JSONB.
    */
-  async upsert(payload: { user_id: string; tenant_id: string; step: string }): Promise<void> {
-    const { error } = await db.rpc('complete_onboarding_step', {
+  async upsert(payload: {
+    user_id: string;
+    tenant_id: string;
+    step: string;
+  }): Promise<void> {
+    const { error } = await db.rpc("complete_onboarding_step", {
       p_step_name: payload.step,
       p_metadata: {},
-    })
-    if (error) throw error
+    });
+    if (error) throw error;
   },
-}
+};

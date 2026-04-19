@@ -1,86 +1,118 @@
-import { db } from '@/services/db'
-import { mapBlock } from '@/shared/types/blockMappers'
-import { DomainBlock } from '@/shared/types/blockTypes'
+import { db } from "@/services/db";
+import { mapBlock } from "@/shared/types/blockMappers";
+import { DomainBlock } from "@/shared/types/blockTypes";
 
 /**
  * Block Service for Course Builder (refactored)
  */
 export const builderBlockService = {
-  async fetchLessonBlocks(lessonId: string, tenantId: string): Promise<DomainBlock[]> {
+  async fetchLessonBlocks(
+    lessonId: string,
+    tenantId: string,
+  ): Promise<DomainBlock[]> {
     const { data, error } = await db
-      .from('lesson_resources')
-      .select('id, lesson_id, tenant_id, order_index, type, url, title, content, metadata')
-      .eq('lesson_id', lessonId)
-      .eq('tenant_id', tenantId)
-      .order('order_index', { ascending: true })
+      .from<any>("lesson_resources")
+      .select(
+        "id, lesson_id, tenant_id, order_index, type, url, title, content, metadata",
+      )
+      .eq("lesson_id", lessonId)
+      .eq("tenant_id", tenantId)
+      .order("order_index", { ascending: true });
 
-    if (error) throw new Error(error.message)
-    return (data || []).map(mapBlock)
+    if (error) throw new Error(error.message);
+    return (
+      (data || []) as Array<{
+        id: string;
+        lesson_id: string;
+        tenant_id: string;
+        order_index: number;
+        type: string;
+        url: string | null;
+        title: string | null;
+        content: string | null;
+        metadata: Record<string, unknown> | null;
+      }>
+    ).map(mapBlock);
   },
 
-  async createBlock(lessonId: string, type: string, tenantId: string): Promise<DomainBlock> {
+  async createBlock(
+    lessonId: string,
+    type: string,
+    tenantId: string,
+  ): Promise<DomainBlock> {
     // Get next order_index using MAX+1 to avoid race conditions with COUNT pattern
     const { data: maxRow } = await db
-      .from('lesson_resources')
-      .select('order_index')
-      .eq('lesson_id', lessonId)
-      .eq('tenant_id', tenantId)
-      .order('order_index', { ascending: false })
+      .from<any>("lesson_resources")
+      .select("order_index")
+      .eq("lesson_id", lessonId)
+      .eq("tenant_id", tenantId)
+      .order("order_index", { ascending: false })
       .limit(1)
-      .maybeSingle()
+      .maybeSingle();
 
-    const nextOrderIndex = (maxRow?.order_index ?? -1) + 1
+    const nextOrderIndex =
+      ((maxRow as { order_index?: number } | null)?.order_index ?? -1) + 1;
 
     const { data, error } = await db
-      .from('lesson_resources')
+      .from<any>("lesson_resources")
       .insert({
         lesson_id: lessonId,
         type,
         order_index: nextOrderIndex,
         tenant_id: tenantId,
       })
-      .select('id, lesson_id, tenant_id, order_index, type, url, title, content, metadata')
-      .single()
+      .select(
+        "id, lesson_id, tenant_id, order_index, type, url, title, content, metadata",
+      )
+      .single();
 
-    if (error) throw new Error(error.message)
-    return mapBlock(data)
+    if (error) throw new Error(error.message);
+    return mapBlock(data);
   },
 
-  async updateBlock(blockId: string, tenantId: string, data: Partial<DomainBlock>): Promise<void> {
-    const dbUpdate: Record<string, unknown> = {}
-    if (data.title !== undefined) dbUpdate.title = data.title
-    if (data.url !== undefined) dbUpdate.url = data.url
-    if (data.content !== undefined) dbUpdate.content = data.content
-    if (data.metadata !== undefined) dbUpdate.metadata = data.metadata
-    if (data.orderIndex !== undefined) dbUpdate.order_index = data.orderIndex
+  async updateBlock(
+    blockId: string,
+    tenantId: string,
+    data: Partial<DomainBlock>,
+  ): Promise<void> {
+    const dbUpdate: Record<string, unknown> = {};
+    if (data.title !== undefined) dbUpdate.title = data.title;
+    if (data.url !== undefined) dbUpdate.url = data.url;
+    if (data.content !== undefined) dbUpdate.content = data.content;
+    if (data.metadata !== undefined) dbUpdate.metadata = data.metadata;
+    if (data.orderIndex !== undefined) dbUpdate.order_index = data.orderIndex;
 
     const { error } = await db
-      .from('lesson_resources')
+      .from<any>("lesson_resources")
       .update(dbUpdate)
-      .eq('id', blockId)
-      .eq('tenant_id', tenantId)
+      .eq("id", blockId)
+      .eq("tenant_id", tenantId);
 
-    if (error) throw new Error(error.message)
+    if (error) throw new Error(error.message);
   },
 
   async deleteBlock(blockId: string, tenantId: string): Promise<void> {
     const { error } = await db
-      .from('lesson_resources')
+      .from<any>("lesson_resources")
       .delete()
-      .eq('id', blockId)
-      .eq('tenant_id', tenantId)
+      .eq("id", blockId)
+      .eq("tenant_id", tenantId);
 
-    if (error) throw new Error(error.message)
+    if (error) throw new Error(error.message);
   },
 
-  async reorderBlocks(lessonId: string, blockIds: string[], tenantId: string): Promise<void> {
+  async reorderBlocks(
+    lessonId: string,
+    blockIds: string[],
+    tenantId: string,
+  ): Promise<void> {
     // Optimized RPC call using WITH ORDINALITY
-    const { error } = await db.rpc('rpc_reorder_lesson_resources', {
+    const { error } = await db.rpc("rpc_reorder_lesson_resources", {
       p_lesson_id: lessonId,
       p_resource_ids: blockIds,
       p_tenant_id: tenantId,
-    })
+    });
 
-    if (error) throw new Error(error.message)
+    if (error) throw new Error(error.message);
   },
-}
+};

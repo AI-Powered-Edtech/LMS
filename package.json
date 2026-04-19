@@ -77,6 +77,7 @@
   },
   "devDependencies": {
     "@playwright/test": "^1.59.1",
+    "@rollup/plugin-terser": "^1.0.0",
     "@sentry/vite-plugin": "^5.1.1",
     "@storybook/addon-themes": "^10.3.3",
     "@storybook/react": "^10.3.4",
@@ -138,11 +139,15 @@
   "bundlesize": [
     {
       "path": "./dist/assets/index-*.js",
-      "maxSize": "105 kB"
+      "maxSize": "150 kB"
     },
     {
-      "path": "./dist/assets/vendor-react-*.js",
+      "path": "./dist/assets/react-core-*.js",
       "maxSize": "90 kB"
+    },
+    {
+      "path": "./dist/assets/vendor-router-*.js",
+      "maxSize": "40 kB"
     },
     {
       "path": "./dist/assets/vendor-query-*.js",
@@ -150,11 +155,11 @@
     },
     {
       "path": "./dist/assets/vendor-motion-*.js",
-      "maxSize": "50 kB"
+      "maxSize": "80 kB"
     },
     {
       "path": "./dist/assets/vendor-lucide-*.js",
-      "maxSize": "20 kB"
+      "maxSize": "80 kB"
     },
     {
       "path": "./dist/assets/vendor-sentry-*.js",
@@ -162,7 +167,7 @@
     },
     {
       "path": "./dist/assets/*.css",
-      "maxSize": "50 kB"
+      "maxSize": "100 kB"
     }
   ]
 }

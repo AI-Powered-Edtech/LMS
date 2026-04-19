@@ -142,7 +142,7 @@ async fn handle_socket(
 ) {
     // ── 1. Optional JWT authentication ────────────────────────────────────────
     let (user_id, _tenant_id): (Option<String>, Option<String>) = match token.as_deref() {
-        Some(tok) => match verify_access_token(tok, &state.jwt_secret) {
+        Some(tok) => match verify_access_token(tok) {
             Ok(claims) => {
                 tracing::debug!(
                     user_id = %claims.sub,

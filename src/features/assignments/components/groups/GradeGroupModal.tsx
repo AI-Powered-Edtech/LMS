@@ -1,59 +1,74 @@
-import { Loader2 } from 'lucide-react'
-import { motion } from 'motion/react'
-import { useState } from 'react'
+import { Loader2 } from "lucide-react";
+import { motion } from "motion/react";
+import { useState } from "react";
 
-import { useToast } from '@/components/ui'
+import { useToast } from "@/components/ui";
 
-import { TeacherGroupEntry } from '../../api/groupAssignmentService'
-import { useGradeGroupSubmission } from '../../hooks/useGroupAssignments'
+import { type TeacherGroupEntry } from "../../api/groupAssignmentService";
+import { useGradeGroupSubmission } from "../../hooks/useGroupAssignments";
 
 interface Props {
-  group: TeacherGroupEntry
-  assignmentId: string
-  onClose: () => void
+  group: TeacherGroupEntry;
+  assignmentId: string;
+  onClose: () => void;
 }
 
 export function GradeGroupModal({ group, assignmentId, onClose }: Props) {
-  const addToast = useToast((s) => s.addToast)
-  const gradeMutation = useGradeGroupSubmission(assignmentId)
-  const [grade, setGrade] = useState<string>(group.grade !== null ? String(group.grade) : '')
-  const [feedback, setFeedback] = useState('')
+  const localGroup = group as TeacherGroupEntry;
+  const addToast = useToast((s) => s.addToast);
+  const gradeMutation = useGradeGroupSubmission(assignmentId);
+  const [grade, setGrade] = useState<string>(
+    localGroup.grade !== null ? String(localGroup.grade) : "",
+  );
+  const [feedback, setFeedback] = useState("");
 
   const handleSubmit = async () => {
-    const numGrade = parseFloat(grade)
+    const numGrade = parseFloat(grade);
     if (isNaN(numGrade) || numGrade < 0 || numGrade > 100) {
-      addToast({ type: 'error', message: 'Nilai harus antara 0 dan 100.' })
-      return
+      addToast({ type: "error", message: "Nilai harus antara 0 dan 100." });
+      return;
     }
 
-    if (group.submission_status !== 'submitted' && group.submission_status !== 'graded') {
-      addToast({ type: 'error', message: 'Kelompok ini belum menyerahkan tugas.' })
-      return
+    if (
+      localGroup.submission_status !== "submitted" &&
+      localGroup.submission_status !== "graded"
+    ) {
+      addToast({
+        type: "error",
+        message: "Kelompok ini belum menyerahkan tugas.",
+      });
+      return;
     }
 
-    if (!group.submission_id) {
-      addToast({ type: 'error', message: 'ID pengumpulan tidak ditemukan untuk kelompok ini.' })
-      return
+    if (!localGroup.submission_id) {
+      addToast({
+        type: "error",
+        message: "ID pengumpulan tidak ditemukan untuk kelompok ini.",
+      });
+      return;
     }
 
     try {
       await gradeMutation.mutateAsync({
-        submissionId: group.submission_id,
+        submissionId: group.submission_id ?? "",
         grade: numGrade,
         feedback: feedback || undefined,
-      })
-      addToast({ type: 'success', message: `Kelompok ${group.group_name} berhasil dinilai.` })
-      onClose()
+      });
+      addToast({
+        type: "success",
+        message: `Kelompok ${group.group_name} berhasil dinilai.`,
+      });
+      onClose();
     } catch {
-      addToast({ type: 'error', message: 'Gagal menyimpan nilai. Coba lagi.' })
+      addToast({ type: "error", message: "Gagal menyimpan nilai. Coba lagi." });
     }
-  }
+  };
 
   return (
     <div
       role="presentation"
       className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-sm"
-      onKeyDown={(e) => e.key === 'Escape' && onClose()}
+      onKeyDown={(e) => e.key === "Escape" && onClose()}
     >
       <motion.div
         initial={{ opacity: 0, scale: 0.95 }}
@@ -65,10 +80,10 @@ export function GradeGroupModal({ group, assignmentId, onClose }: Props) {
         className="bg-white dark:bg-slate-800 rounded-3xl shadow-xl w-full max-w-md p-6"
       >
         <h2 className="text-xl font-bold text-slate-900 dark:text-slate-100 mb-1">
-          Beri Nilai: {group.group_name}
+          Beri Nilai: {localGroup.group_name}
         </h2>
         <p className="text-sm text-slate-500 dark:text-slate-400 mb-6">
-          {group.member_count} anggota
+          {localGroup.member_count} anggota
         </p>
 
         <div className="space-y-4">
@@ -120,11 +135,13 @@ export function GradeGroupModal({ group, assignmentId, onClose }: Props) {
             disabled={gradeMutation.isPending || !grade}
             className="flex-1 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-xl transition-colors disabled:opacity-70 flex items-center justify-center gap-2"
           >
-            {gradeMutation.isPending && <Loader2 className="w-4 h-4 animate-spin" />}
+            {gradeMutation.isPending && (
+              <Loader2 className="w-4 h-4 animate-spin" />
+            )}
             Simpan Nilai
           </button>
         </div>
       </motion.div>
     </div>
-  )
+  );
 }

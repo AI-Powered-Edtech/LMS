@@ -1,47 +1,59 @@
-import { CheckCircle2, Clock, Loader2, MessageSquare, Users, X } from 'lucide-react'
-import { motion } from 'motion/react'
+import {
+  CheckCircle2,
+  Clock,
+  Loader2,
+  MessageSquare,
+  Users,
+  X,
+} from "lucide-react";
+import { motion } from "motion/react";
 
-import { cn } from '@/utils/cn'
+import { cn } from "@/utils/cn";
 
-import { TeacherGroupEntry } from '../../api/groupAssignmentService'
-import { useGroupMessages, useGroupTasks } from '../../hooks/useGroupAssignments'
+import { type TeacherGroupEntry } from "../../api/groupAssignmentService";
+import {
+  useGroupMessages,
+  useGroupTasks,
+} from "../../hooks/useGroupAssignments";
 
 interface Props {
-  group: TeacherGroupEntry
-  onClose: () => void
+  group: TeacherGroupEntry;
+  onClose: () => void;
 }
 
 function statusLabel(status: string) {
   switch (status) {
-    case 'done':
+    case "completed":
       return {
-        label: 'Selesai',
-        cls: 'bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400',
-      }
-    case 'in_progress':
+        label: "Selesai",
+        cls: "bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400",
+      };
+    case "in_progress":
       return {
-        label: 'Dikerjakan',
-        cls: 'bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-400',
-      }
+        label: "Dikerjakan",
+        cls: "bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-400",
+      };
     default:
       return {
-        label: 'Belum',
-        cls: 'bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-400',
-      }
+        label: "Belum",
+        cls: "bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-400",
+      };
   }
 }
 
 export function GroupMonitorModal({ group, onClose }: Props) {
-  const { data: tasks = [], isLoading: tasksLoading } = useGroupTasks(group.group_id)
-  const { data: messages = [], isLoading: messagesLoading } = useGroupMessages(group.group_id)
+  const groupId = group.group_id;
+  const { data: tasks = [], isLoading: tasksLoading } = useGroupTasks(groupId);
+  const { data: messages = [], isLoading: messagesLoading } =
+    useGroupMessages(groupId);
 
-  const completedTasks = tasks.filter((t) => t.status === 'done').length
+  const completedTasks = tasks.filter((t) => t.status === "completed").length;
 
   return (
     <div
       role="presentation"
       className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-sm"
-      onKeyDown={(e) => e.key === 'Escape' && onClose()}
+      onKeyDown={(e) => e.key === "Escape" && onClose()}
     >
       <motion.div
         initial={{ opacity: 0, scale: 0.95 }}
@@ -60,10 +72,10 @@ export function GroupMonitorModal({ group, onClose }: Props) {
               {group.group_name}
             </h2>
             <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">
-              {group.member_count} anggota &middot;{' '}
+              {group.member_count} anggota &middot;{" "}
               {tasks.length > 0
                 ? `${completedTasks}/${tasks.length} sub-tugas selesai`
-                : 'Belum ada sub-tugas'}
+                : "Belum ada sub-tugas"}
             </p>
           </div>
           <button
@@ -83,7 +95,7 @@ export function GroupMonitorModal({ group, onClose }: Props) {
               <Users className="w-4 h-4" /> Anggota
             </h3>
             <div className="flex flex-wrap gap-2">
-              {group.members.map((m) => (
+              {(group.members || []).map((m) => (
                 <div
                   key={m.user_id}
                   className="flex items-center gap-2 px-3 py-1.5 bg-slate-50 dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-700"
@@ -94,8 +106,10 @@ export function GroupMonitorModal({ group, onClose }: Props) {
                   <span className="text-sm font-medium text-slate-800 dark:text-slate-200">
                     {m.display_name}
                   </span>
-                  {m.role === 'leader' && (
-                    <span className="text-[10px] font-bold text-indigo-500 uppercase">Ketua</span>
+                  {m.role === "leader" && (
+                    <span className="text-[10px] font-bold text-indigo-500 uppercase">
+                      Ketua
+                    </span>
                   )}
                 </div>
               ))}
@@ -119,34 +133,40 @@ export function GroupMonitorModal({ group, onClose }: Props) {
             ) : (
               <div className="space-y-2">
                 {tasks.map((task) => {
-                  const { label, cls } = statusLabel(task.status)
+                  const { label, cls } = statusLabel(task.status);
                   return (
                     <div
                       key={task.id}
                       className="flex items-center justify-between p-3 bg-slate-50 dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-700"
                     >
                       <div className="flex items-center gap-2">
-                        {task.status === 'done' ? (
+                        {task.status === "completed" ? (
                           <CheckCircle2 className="w-4 h-4 text-emerald-500 shrink-0" />
-                        ) : task.status === 'in_progress' ? (
+                        ) : task.status === "in_progress" ? (
                           <Clock className="w-4 h-4 text-amber-500 shrink-0" />
                         ) : (
                           <div className="w-4 h-4 rounded border-2 border-slate-300 dark:border-slate-600 shrink-0" />
                         )}
                         <span
                           className={cn(
-                            'text-sm font-medium',
-                            task.status === 'done' && 'line-through text-slate-400'
+                            "text-sm font-medium",
+                            task.status === "completed" &&
+                              "line-through text-slate-400",
                           )}
                         >
-                          {task.title}
+                          {task.note || "Tugas"}
                         </span>
                       </div>
-                      <span className={cn('text-xs font-bold px-2 py-0.5 rounded-full', cls)}>
+                      <span
+                        className={cn(
+                          "text-xs font-bold px-2 py-0.5 rounded-full",
+                          cls,
+                        )}
+                      >
                         {label}
                       </span>
                     </div>
-                  )
+                  );
                 })}
               </div>
             )}
@@ -163,7 +183,9 @@ export function GroupMonitorModal({ group, onClose }: Props) {
                 <span className="text-sm">Memuat...</span>
               </div>
             ) : messages.length === 0 ? (
-              <p className="text-sm text-slate-500 dark:text-slate-400 italic">Belum ada pesan.</p>
+              <p className="text-sm text-slate-500 dark:text-slate-400 italic">
+                Belum ada pesan.
+              </p>
             ) : (
               <div className="space-y-2 max-h-40 overflow-y-auto">
                 {messages.slice(-5).map((msg) => (
@@ -172,11 +194,11 @@ export function GroupMonitorModal({ group, onClose }: Props) {
                     className="p-3 bg-slate-50 dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-700"
                   >
                     <p className="text-xs font-bold text-indigo-600 dark:text-indigo-400 mb-1">
-                      {msg.profiles
-                        ? `${msg.profiles.first_name} ${msg.profiles.last_name}`
-                        : 'Anggota'}
+                      {msg.profiles?.[0]?.display_name || "Anggota"}
                     </p>
-                    <p className="text-sm text-slate-700 dark:text-slate-300">{msg.content}</p>
+                    <p className="text-sm text-slate-700 dark:text-slate-300">
+                      {msg.content}
+                    </p>
                   </div>
                 ))}
               </div>
@@ -195,5 +217,5 @@ export function GroupMonitorModal({ group, onClose }: Props) {
         </div>
       </motion.div>
     </div>
-  )
+  );
 }

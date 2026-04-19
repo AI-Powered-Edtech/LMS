@@ -1,96 +1,106 @@
-import { useQuery } from '@tanstack/react-query'
-import { AlertCircle, Calendar, CheckCircle, Clock, XCircle } from 'lucide-react'
-import { useMemo } from 'react'
+import { useQuery } from "@tanstack/react-query";
+import {
+  AlertCircle,
+  Calendar,
+  CheckCircle,
+  Clock,
+  XCircle,
+} from "lucide-react";
+import { useMemo } from "react";
 
-import { EmptyState } from '@/components/ui'
-import { useAuth } from '@/contexts/AuthContext'
-import { ProgressSkeleton } from '@/features/progress/components/ProgressSkeleton'
-import { usePageTitle } from '@/hooks/usePageTitle'
-import { db } from '@/services/db'
+import { EmptyState } from "@/components/ui";
+import { useAuth } from "@/contexts/AuthContext";
+import { ProgressSkeleton } from "@/features/progress/components/ProgressSkeleton";
+import { usePageTitle } from "@/hooks/usePageTitle";
+import { db } from "@/services/db";
 
 const STATUS_CONFIG = {
   hadir: {
-    label: 'Hadir',
-    color: 'text-green-600 dark:text-green-400',
-    bg: 'bg-green-50 dark:bg-green-900/20',
-    border: 'border-green-100 dark:border-green-800',
+    label: "Hadir",
+    color: "text-green-600 dark:text-green-400",
+    bg: "bg-green-50 dark:bg-green-900/20",
+    border: "border-green-100 dark:border-green-800",
     icon: CheckCircle,
   },
   sakit: {
-    label: 'Sakit',
-    color: 'text-yellow-600 dark:text-yellow-400',
-    bg: 'bg-yellow-50 dark:bg-yellow-900/20',
-    border: 'border-yellow-100 dark:border-yellow-800',
+    label: "Sakit",
+    color: "text-yellow-600 dark:text-yellow-400",
+    bg: "bg-yellow-50 dark:bg-yellow-900/20",
+    border: "border-yellow-100 dark:border-yellow-800",
     icon: AlertCircle,
   },
   izin: {
-    label: 'Izin',
-    color: 'text-blue-600 dark:text-blue-400',
-    bg: 'bg-blue-50 dark:bg-blue-900/20',
-    border: 'border-blue-100 dark:border-blue-800',
+    label: "Izin",
+    color: "text-blue-600 dark:text-blue-400",
+    bg: "bg-blue-50 dark:bg-blue-900/20",
+    border: "border-blue-100 dark:border-blue-800",
     icon: Clock,
   },
   alpha: {
-    label: 'Alpha',
-    color: 'text-red-600 dark:text-red-400',
-    bg: 'bg-red-50 dark:bg-red-900/20',
-    border: 'border-red-100 dark:border-red-800',
+    label: "Alpha",
+    color: "text-red-600 dark:text-red-400",
+    bg: "bg-red-50 dark:bg-red-900/20",
+    border: "border-red-100 dark:border-red-800",
     icon: XCircle,
   },
-}
+};
 
 export function StudentAttendance() {
-  usePageTitle('Kehadiran Siswa')
-  const { user, tenantId } = useAuth()
+  usePageTitle("Kehadiran Siswa");
+  const { user, tenantId } = useAuth();
 
   // Query attendance records via enrollment (which links student → class).
   // attendance_records.enrollment_id → enrollments.id → enrollments.student_id = user.id
   const { data: records = [], isLoading } = useQuery({
-    queryKey: ['student-attendance', user?.id, tenantId],
+    queryKey: ["student-attendance", user?.id, tenantId],
     queryFn: async () => {
       // First get the student's enrollment IDs for this tenant
       const { data: enrollments, error: enrollError } = await db
-        .from('enrollments')
-        .select('id, class_id, classes(name)')
-        .eq('tenant_id', tenantId!)
-        .eq('student_id', user!.id)
-        .eq('status', 'ACTIVE')
+        .from("enrollments")
+        .select("id, class_id, classes(name)")
+        .eq("tenant_id", tenantId!)
+        .eq("student_id", user!.id)
+        .eq("status", "ACTIVE");
 
-      if (enrollError) throw enrollError
-      if (!enrollments || enrollments.length === 0) return []
+      if (enrollError) throw enrollError;
+      if (!enrollments || (enrollments as Array<{ id: string }>).length === 0)
+        return [];
 
-      const enrollmentIds = enrollments.map((e: any) => e.id)
+      const enrollmentIds = (enrollments as Array<{ id: string }>).map(
+        (e) => e.id,
+      );
 
       const { data, error } = await db
-        .from('attendance_records')
-        .select('id, date, scan_date, status, enrollment_id')
-        .eq('tenant_id', tenantId!)
-        .in('enrollment_id', enrollmentIds)
-        .order('date', { ascending: false })
-        .limit(60)
+        .from("attendance_records")
+        .select("id, date, scan_date, status, enrollment_id")
+        .eq("tenant_id", tenantId!)
+        .in("enrollment_id", enrollmentIds)
+        .order("date", { ascending: false })
+        .limit(60);
 
-      if (error) throw error
+      if (error) throw error;
 
       // Merge class name from the enrollment lookup
       const enrollmentMap = new Map(
         (
           enrollments as unknown as Array<{
-            id: string
-            class_id: string
-            classes: { name: string } | null
+            id: string;
+            class_id: string;
+            classes: { name: string } | null;
           }>
-        ).map((enr) => [enr.id, enr.classes?.name ?? ''])
-      )
-      return (data ?? []).map((r: any) => ({
+        ).map((enr) => [enr.id, enr.classes?.name ?? ""]),
+      );
+      return ((data ?? []) as Array<{ enrollment_id: string }>).map((r) => ({
         ...r,
-        // Use scan_date if available, fallback to date
-        scan_date: (r as { scan_date?: string | null }).scan_date ?? (r as { date?: string }).date,
+        scan_date:
+          (r as { scan_date?: string | null }).scan_date ??
+          (r as { date?: string }).date,
         class_id: null,
-        classes: { name: enrollmentMap.get(r.enrollment_id) ?? '' },
-      }))
+        classes: { name: enrollmentMap.get(r.enrollment_id) ?? "" },
+      }));
     },
     enabled: !!tenantId && !!user,
-  })
+  });
 
   // Records are already filtered by student_id in the query above.
   // No name-based filtering — eliminates risk of leaking other students' data.
@@ -100,49 +110,54 @@ export function StudentAttendance() {
   const { myRecords, totalHadir, totalAlpha, totalSakit } = useMemo(() => {
     const recordsList = (records || []) as unknown as Array<
       Record<string, unknown> & {
-        id: string
-        scan_date: string
-        status: string
-        classes?: { name: string } | { name: string }[]
+        id: string;
+        scan_date: string;
+        status: string;
+        classes?: { name: string } | { name: string }[];
       }
-    >
+    >;
 
     return recordsList.reduce(
       (acc, r) => {
-        const status = r.status as string
-        if (!status) return acc
+        const status = r.status as string;
+        if (!status) return acc;
 
         acc.myRecords.push({
           id: r.id,
           date: r.scan_date,
-          className: (Array.isArray(r.classes) ? r.classes[0]?.name : r.classes?.name) ?? 'Kelas',
+          className:
+            (Array.isArray(r.classes) ? r.classes[0]?.name : r.classes?.name) ??
+            "Kelas",
           status,
-        })
+        });
 
-        if (status === 'hadir') acc.totalHadir++
-        else if (status === 'alpha') acc.totalAlpha++
-        else if (status === 'sakit') acc.totalSakit++
+        if (status === "hadir") acc.totalHadir++;
+        else if (status === "alpha") acc.totalAlpha++;
+        else if (status === "sakit") acc.totalSakit++;
 
-        return acc
+        return acc;
       },
       {
         myRecords: [] as Array<{
-          id: string
-          date: string
-          className: string
-          status: string
+          id: string;
+          date: string;
+          className: string;
+          status: string;
         }>,
         totalHadir: 0,
         totalAlpha: 0,
         totalSakit: 0,
-      }
-    )
-  }, [records])
+      },
+    );
+  }, [records]);
 
-  const pct = myRecords.length > 0 ? Math.round((totalHadir / myRecords.length) * 100) : 0
+  const pct =
+    myRecords.length > 0
+      ? Math.round((totalHadir / myRecords.length) * 100)
+      : 0;
 
   if (isLoading) {
-    return <ProgressSkeleton />
+    return <ProgressSkeleton />;
   }
 
   return (
@@ -162,43 +177,49 @@ export function StudentAttendance() {
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
           {[
             {
-              label: 'Kehadiran',
+              label: "Kehadiran",
               value: `${pct}%`,
               sub: `${totalHadir} pertemuan`,
-              color: 'bg-green-600 text-white',
+              color: "bg-green-600 text-white",
             },
             {
-              label: 'Hadir',
+              label: "Hadir",
               value: totalHadir,
-              sub: 'pertemuan',
-              color: 'bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700',
+              sub: "pertemuan",
+              color:
+                "bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700",
             },
             {
-              label: 'Sakit',
+              label: "Sakit",
               value: totalSakit,
-              sub: 'pertemuan',
-              color: 'bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700',
+              sub: "pertemuan",
+              color:
+                "bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700",
             },
             {
-              label: 'Alpha',
+              label: "Alpha",
               value: totalAlpha,
-              sub: 'pertemuan',
-              color: 'bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700',
+              sub: "pertemuan",
+              color:
+                "bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700",
             },
           ].map((s) => (
-            <div key={s.label} className={`rounded-2xl p-4 shadow-sm ${s.color}`}>
+            <div
+              key={s.label}
+              className={`rounded-2xl p-4 shadow-sm ${s.color}`}
+            >
               <p
-                className={`text-xs font-bold uppercase tracking-wider mb-1 ${s.color.includes('green-600') ? 'text-green-100' : 'text-slate-500 dark:text-slate-400'}`}
+                className={`text-xs font-bold uppercase tracking-wider mb-1 ${s.color.includes("green-600") ? "text-green-100" : "text-slate-500 dark:text-slate-400"}`}
               >
                 {s.label}
               </p>
               <p
-                className={`text-3xl font-black ${s.color.includes('green-600') ? 'text-white' : 'text-slate-800 dark:text-slate-200'}`}
+                className={`text-3xl font-black ${s.color.includes("green-600") ? "text-white" : "text-slate-800 dark:text-slate-200"}`}
               >
                 {s.value}
               </p>
               <p
-                className={`text-xs mt-0.5 ${s.color.includes('green-600') ? 'text-green-100' : 'text-slate-400'}`}
+                className={`text-xs mt-0.5 ${s.color.includes("green-600") ? "text-green-100" : "text-slate-400"}`}
               >
                 {s.sub}
               </p>
@@ -209,7 +230,9 @@ export function StudentAttendance() {
         {/* Records list */}
         <div className="bg-white dark:bg-slate-800 rounded-3xl border border-slate-200 dark:border-slate-700 shadow-sm overflow-hidden">
           <div className="p-4 border-b border-slate-100 dark:border-slate-700 bg-slate-50/50">
-            <h2 className="font-bold text-slate-800 dark:text-slate-200">Riwayat Pertemuan</h2>
+            <h2 className="font-bold text-slate-800 dark:text-slate-200">
+              Riwayat Pertemuan
+            </h2>
           </div>
           {isLoading ? (
             <div className="p-8 space-y-3">
@@ -232,8 +255,9 @@ export function StudentAttendance() {
             <div className="divide-y divide-slate-100 dark:divide-slate-700">
               {myRecords.map((r) => {
                 const cfg =
-                  STATUS_CONFIG[r.status as keyof typeof STATUS_CONFIG] ?? STATUS_CONFIG.hadir
-                const Icon = cfg.icon
+                  STATUS_CONFIG[r.status as keyof typeof STATUS_CONFIG] ??
+                  STATUS_CONFIG.hadir;
+                const Icon = cfg.icon;
                 return (
                   <div
                     key={r.id}
@@ -244,11 +268,11 @@ export function StudentAttendance() {
                         {r.className}
                       </p>
                       <p className="text-xs text-slate-400">
-                        {new Date(r.date).toLocaleDateString('id-ID', {
-                          weekday: 'long',
-                          day: 'numeric',
-                          month: 'long',
-                          year: 'numeric',
+                        {new Date(r.date).toLocaleDateString("id-ID", {
+                          weekday: "long",
+                          day: "numeric",
+                          month: "long",
+                          year: "numeric",
                         })}
                       </p>
                     </div>
@@ -259,12 +283,12 @@ export function StudentAttendance() {
                       {cfg.label}
                     </span>
                   </div>
-                )
+                );
               })}
             </div>
           )}
         </div>
       </div>
     </div>
-  )
+  );
 }

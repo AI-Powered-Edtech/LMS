@@ -1,102 +1,138 @@
-import { db } from '@/services/db'
-import { logger } from '@/utils/logger'
+import { db } from "@/services/db";
+import { logger } from "@/utils/logger";
 
-export interface StudentProgressData {
-  profile: {
-    id: string
-    full_name: string
-    avatar_url: string
-  } | null
-  totalXP: number
-  completedLessonsCount: number
-  quizAttempts: {
-    id: string
-    quiz_id: string
-    score: number
-    created_at: string
-  }[]
-  achievements: {
-    id: string
-    earned_at: string
-    badges: {
-      name: string
-      icon: string | null
-    } | null
-  }[]
-  courseProgress: {
-    id: string
-    course_id: string
-    total_lessons: number
-    completed_lessons: number
-    percentage: number
-    last_activity_type: string | null
-    last_activity_at: string | null
-    courses: {
-      title: string
-    } | null
-  }[]
+import type {
+  StudentProgressData,
+  ProfileData,
+  QuizAttemptData,
+  Achievement,
+  AchievementItem,
+  CourseProgressItem,
+} from "./types";
+
+export type { StudentProgressData } from "./types";
+
+interface ProgressBundleRaw {
+  profile: { total_xp: number } | null;
+  total_xp: number;
+  completed_lessons_count: number;
+  quiz_attempts: Array<{ quiz_id: string; score: number }>;
+  achievements: Array<{
+    id: string;
+    earned_at: string;
+    name: string;
+    icon: string;
+  }>;
+  course_progress: Array<{
+    id: string;
+    course_id: string;
+    total_lessons: number;
+    completed_lessons: number;
+  }>;
 }
+
 export const progressService = {
   async getStudentProgressBundle(
     studentId: string,
-    _tenantId: string
+    _tenantId: string,
   ): Promise<StudentProgressData> {
     try {
-      const { data, error } = await db.rpc('get_student_progress_bundle', {
-        p_student_id: studentId,
-      })
+      const { data, error } = await db.rpc<ProgressBundleRaw | null>(
+        "get_student_progress_bundle",
+        {
+          p_student_id: studentId,
+        },
+      );
 
-      if (error) throw error
-
-      // Map database snake_case result to frontend camelCase if necessary,
-      // but the RPC was designed to match the interface as much as possible.
-      // Note: The interface uses camelCase, database uses snake_case.
-      return {
-        profile: data.profile,
-        totalXP: data.total_xp,
-        completedLessonsCount: data.completed_lessons_count,
-        quizAttempts: data.quiz_attempts || [],
-        achievements: (data.achievements || []).map(
-          (a: { id: string; earned_at: string; name: string; icon: string }) => ({
-            id: a.id,
-            earned_at: a.earned_at,
-            badges: {
-              name: a.name,
-              icon: a.icon,
-            },
-          })
-        ),
-        courseProgress: (data.course_progress || []).map(
-          (cp: {
-            id: string
-            course_id: string
-            total_lessons: number
-            completed_lessons: number
-            percentage: number
-            last_activity_type: string
-            last_activity_at: string
-            title: string
-          }) => ({
-            id: cp.id,
-            course_id: cp.course_id,
-            total_lessons: cp.total_lessons,
-            completed_lessons: cp.completed_lessons,
-            percentage: cp.percentage,
-            last_activity_type: cp.last_activity_type,
-            last_activity_at: cp.last_activity_at,
-            courses: {
-              title: cp.title,
-            },
-          })
-        ),
+      if (error) throw error;
+      if (!data) {
+        return {
+          profile: null,
+          totalXP: 0,
+          completedLessonsCount: 0,
+          quizAttempts: [],
+          achievements: [],
+          courseProgress: [],
+        };
       }
+
+      const profile: ProfileData | null = data.profile
+        ? { total_xp: data.profile.total_xp }
+        : null;
+      const quizAttempts: QuizAttemptData[] = (data.quiz_attempts || []).map(
+        (q, index) => ({
+          id: `quiz-${index}`,
+          quiz_id: q.quiz_id,
+          score: q.score,
+        }),
+      );
+      const achievements: Achievement[] = (data.achievements || []).map(
+        (a: AchievementItem) => ({
+          id: a.id,
+          earned_at: a.earned_at,
+          badges: {
+            name: a.name,
+            icon: a.icon,
+          },
+        }),
+      );
+      const courseProgress: CourseProgressItem[] = (
+        data.course_progress || []
+      ).map((cp) => ({
+        id: cp.id,
+        course_id: cp.course_id,
+        total_lessons: cp.total_lessons,
+        completed_lessons: cp.completed_lessons,
+        percentage:
+          cp.total_lessons > 0
+            ? Math.round((cp.completed_lessons / cp.total_lessons) * 100)
+            : 0,
+      }));
+
+      return {
+        profile,
+        totalXP: data.total_xp ?? 0,
+        completedLessonsCount: data.completed_lessons_count ?? 0,
+        quizAttempts,
+        achievements,
+        courseProgress,
+      };
     } catch (error) {
-      if (import.meta.env.DEV) logger.error('Error fetching student progress bundle:', error)
-      throw error
+      if (import.meta.env.DEV)
+        logger.error("Error fetching student progress bundle:", error);
+      throw error;
     }
   },
   // Keep individual method for now but getStudentProgressBundle is preferred
-  async getStudentProgress(studentId: string, tenantId: string): Promise<StudentProgressData> {
-    return this.getStudentProgressBundle(studentId, tenantId)
+  async getStudentProgress(
+    studentId: string,
+    _tenantId: string,
+  ): Promise<StudentProgressData> {
+    try {
+      const { data, error } = await db.rpc<StudentProgressData>(
+        "get_student_progress",
+        {
+          p_student_id: studentId,
+        },
+      );
+
+      if (error) throw error;
+      if (!data) {
+        return {
+          profile: null,
+          totalXP: 0,
+          completedLessonsCount: 0,
+          quizAttempts: [],
+          achievements: [],
+          courseProgress: [],
+        } as StudentProgressData;
+      }
+
+      return data;
+    } catch (error) {
+      if (import.meta.env.DEV)
+        logger.error("Error fetching student progress:", error);
+      throw error;
+    }
   },
-}
+};

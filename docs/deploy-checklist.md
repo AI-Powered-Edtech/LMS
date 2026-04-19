@@ -1,162 +1,38 @@
-# EduSync LMS — Deploy Checklist
+# EduSync Deployment Checklist (VIL/Rust Architecture)
 
-## Overview
+## 1. Environment Variables
 
-Follow this checklist for every production deployment. Steps marked [REQUIRED] must be completed before merging to main.
+- [ ] `DATABASE_URL` is set and points to pgBouncer or direct Postgres (must include `postgres://` or `postgresql://`).
+- [ ] `JWT_SECRET` is set to a secure random string (min 32 chars).
+- [ ] `JWT_REFRESH_SECRET` is set to a secure random string (min 32 chars).
+- [ ] `S3_ENDPOINT`, `S3_ACCESS_KEY_ID`, `S3_SECRET_ACCESS_KEY`, `S3_BUCKET` are configured for storage.
+- [ ] `SMTP_HOST`, `SMTP_PORT`, `SMTP_USERNAME`, `SMTP_PASSWORD`, `SMTP_FROM_EMAIL` are configured for transactional emails.
+- [ ] `VAPID_PRIVATE_KEY` and `VAPID_PUBLIC_KEY` are set for push notifications.
+- [ ] `GROQ_API_KEY` is set for AI features.
+- [ ] `VIL_PROFILE` is set to `prod`.
+- [ ] `RUST_LOG` is set to `warn` or `error`.
+- [ ] `ENABLE_OBSERVER` is `false` (or unset) unless explicitly needed.
 
----
+## 2. Infrastructure
 
-## Pre-Deploy Checklist
+- [ ] PostgreSQL 16 is running with `pgvector` extension.
+- [ ] pgBouncer is running and configured in transaction mode (recommended for production).
+- [ ] MinIO or Cloudflare R2 is running and accessible.
+- [ ] EduSync API Server (Rust) is running.
 
-### Code Quality [REQUIRED]
+## 3. Application Settings & Reverse Proxy
 
-- [ ] All CI checks passing on the PR: typecheck, lint, unit tests, E2E tests
-- [ ] No `console.log` or `console.debug` in production code paths (use `logger` utility or remove)
-- [ ] Environment variables are synchronized with `.env.example` and set in Vercel/production
-- [ ] No hardcoded user IDs, tenant IDs, or credentials in changed files
-- [ ] `SELECT *` not introduced in any new query
-- [ ] New tables have RLS enabled and `tenant_id` column
-- [ ] New RPCs have `auth.uid() IS NOT NULL` guard and `SET search_path TO 'public'`
+- [ ] CORS origins are correctly configured in the Rust backend to match the frontend domains.
+- [ ] Nginx is configured as a reverse proxy with HTTPS (TLS/SSL) pointing to the Rust backend (default port 8080).
+- [ ] Security headers (HSTS, X-Frame-Options, CSP) are configured in Nginx.
+- [ ] WebSocket endpoint `/ws` is properly proxied in Nginx (requires `proxy_set_header Upgrade $http_upgrade; proxy_set_header Connection "upgrade";`).
 
-### Bundle Size [REQUIRED]
+## 4. Post-Deployment Validation
 
-- [ ] Run `pnpm analyze` and verify total bundle is within budget (< 500 kB gzipped for main chunk)
-- [ ] No new heavy dependency added without a `docs/dependency-decisions.md` entry
-- [ ] Code splitting in place for any new route or large feature module
+- [ ] Health check endpoint `/api/v1/health` returns HTTP 200.
+- [ ] Database schema is initialized (`edusync-api/schema/baseline.sql` + migrations applied).
+- [ ] Core workflows (login, register, course creation) are functioning correctly.
+- [ ] WebSocket connections can be established for real-time features.
+- [ ] S3/MinIO file uploads and presigned URLs are working.
 
-### Database Migrations [REQUIRED]
-
-- [ ] All new migrations are in `supabase/migrations/` with sequential timestamps
-- [ ] Migrations reviewed for: irreversibility, data loss risk, long-running locks
-- [ ] Destructive migrations (DROP, ALTER TYPE) have been tested on a staging clone first
-- [ ] `docs/DATABASE.md` updated to reflect schema changes
-
-### Documentation [REQUIRED]
-
-- [ ] `CHANGELOG.md` updated with the changes in this PR
-- [ ] Relevant `docs/` files updated if architecture or behavior changed
-- [ ] New feature modules have a `README.md` inside `src/features/[module]/`
-
----
-
-## Deploy Steps
-
-1. **Merge PR to main** — requires at least 1 approved review
-2. **CI runs automatically** — GitHub Actions runs: typecheck → lint → unit tests → build
-3. **Vercel deploys automatically** — triggered on push to `main`, deploys to production
-4. **Run migrations** — if this release includes schema changes:
-   ```bash
-   supabase db push --linked --project-ref [production-project-ref]
-   ```
-   > Run migrations AFTER deploy if they are backward-compatible (additive). Run BEFORE deploy if the old code cannot run against the new schema.
-5. **Smoke test** — see section below
-6. **Monitor Sentry** — watch for new errors for 15 minutes post-deploy
-
----
-
-## Post-Deploy Smoke Test
-
-Run these checks immediately after each production deploy:
-
-### Manual smoke test (5 minutes)
-
-1. Open https://app.edusync.id in a private browser window
-2. **Login:** log in as `student@edusync.dev` — verify dashboard loads without errors
-3. **Dashboard:** confirm course list renders, no spinner stuck
-4. **Quiz submit:** navigate to a lesson with a quiz, complete and submit it — verify score saves
-5. **Teacher view:** log in as `teacher@edusync.dev`, open gradebook — verify student scores visible
-6. **Admin view:** log in as `admin@edusync.dev`, open analytics — verify charts render
-
-### Automated health check
-
-The deploy workflow runs a health check automatically:
-
-```bash
-curl -f "$PROD_URL/functions/v1/health-check"
-```
-
-If this returns non-200, the deploy workflow fails, triggers an **auto-rollback** via Vercel CLI, and alerts the team.
-
----
-
-## Rollback Procedure
-
-### Option A: Revert via Vercel (fastest, no code change)
-
-1. Go to Vercel Dashboard → Deployments
-2. Find the last known-good deployment
-3. Click "..." → "Promote to Production"
-4. Verify smoke test passes
-
-### Option B: Revert via Git
-
-```bash
-git revert [failing-commit-sha]
-git push origin main
-```
-
-This triggers a new CI run and deploy. Do NOT use `git push --force` on main.
-
-### Option C: Migration rollback (if schema change caused the issue)
-
-Run the down migration manually in Supabase SQL Editor or via CLI:
-
-```bash
-supabase db reset --linked  # WARNING: destroys all data — only on staging
-```
-
-For production, write a compensating migration:
-
-```sql
--- Example: revert a column addition
-ALTER TABLE courses DROP COLUMN IF EXISTS new_column;
-```
-
-Apply it as a new migration file with a later timestamp.
-
----
-
-## Monitoring Post-Deploy
-
-| Check                    | Tool             | Action if abnormal                        |
-| ------------------------ | ---------------- | ----------------------------------------- |
-| Error rate spike         | Sentry           | Investigate top errors, consider rollback |
-| Health endpoint          | Vercel + CI      | Triggers automatic alert                  |
-| DB query latency         | Supabase Reports | Check for missing indexes or bad queries  |
-| Edge Function error rate | Supabase Logs    | Check Deno logs for unhandled exceptions  |
-| Build bundle size        | `pnpm analyze`   | File issue if > budget                    |
-
-<!-- Phase 5 Feature Cross-Reference -->
-
-## Feature Module Cross-Reference
-
-EduSync LMS terdiri dari 24 feature module yang saling terintegrasi:
-
-| Feature         | Domain         | Deskripsi                                                                                                                  |
-| --------------- | -------------- | -------------------------------------------------------------------------------------------------------------------------- |
-| administration  | Admin          | Administrasi — Manajemen tenant, konfigurasi modul sekolah, sinkronisasi data                                              |
-| ai-tutor        | Learning       | AI Tutor — Asisten belajar berbasis AI yang memberikan penjelasan personal kepada siswa                                    |
-| analytics       | Analytics      | Analitik — Dashboard analitik komprehensif untuk guru dan admin                                                            |
-| announcements   | Communication  | Pengumuman — Sistem pengumuman sekolah                                                                                     |
-| assignments     | Assessment     | Tugas — Manajemen tugas dari pembuatan hingga penilaian                                                                    |
-| calendar        | Academic       | Kalender — Kalender akademik terintegrasi dengan jadwal pelajaran, ujian, deadline tugas, dan kegiatan sekolah             |
-| classroom       | Academic       | Kelas — Manajemen kelas virtual dan fisik                                                                                  |
-| courses         | Academic       | Kursus — Core learning module                                                                                              |
-| dashboards      | Analytics      | Dashboard — Dashboard kustom dengan widget builder                                                                         |
-| discussions     | Communication  | Diskusi — Forum diskusi per kursus                                                                                         |
-| gamification    | Engagement     | Gamifikasi — Sistem gamifikasi lengkap: XP, badge, level, streak counter, dan leaderboard                                  |
-| gradebook       | Assessment     | Buku Nilai — Buku nilai digital untuk guru                                                                                 |
-| guidance        | Admin          | Panduan — Sistem panduan in-app (tooltip, walkthrough, banner, checkpoint)                                                 |
-| lessons         | Learning       | Pelajaran — Konten pelajaran dengan block-based editor                                                                     |
-| moderation      | Admin          | Moderasi — Moderasi konten user-generated (diskusi, komentar)                                                              |
-| notifications   | Communication  | Notifikasi — Sistem notifikasi real-time dengan bell icon dan panel                                                        |
-| onboarding      | Admin          | Onboarding — Wizard onboarding untuk pengguna baru                                                                         |
-| progress        | Learning       | Kemajuan Belajar — Tracking progress belajar siswa secara granular per kursus, modul, dan pelajaran                        |
-| question-bank   | Assessment     | Bank Soal — Repositori soal yang bisa digunakan ulang di berbagai kuis                                                     |
-| quizzes         | Assessment     | Kuis — Sistem kuis komprehensif dengan timer, anti-cheat, autosave, review mode, dan analitik hasil per soal               |
-| recommendations | Learning       | Rekomendasi — Engine rekomendasi konten berdasarkan progress, performa, dan pola belajar siswa                             |
-| reports         | Analytics      | Laporan — Generator laporan akademik, keuangan (SPP), PPDB, dan custom                                                     |
-| storage         | Infrastructure | Penyimpanan — Manajemen file dan media untuk materi pembelajaran                                                           |
-| struggle        | Analytics      | Deteksi Kesulitan — Deteksi otomatis siswa yang kesulitan berdasarkan pola belajar, waktu per soal, dan penurunan performa |
-
-Setiap feature module mengikuti arsitektur standar dengan folder: api/, queries/, hooks/, types/, components/, dan **tests**/. Semua feature mendukung dark mode dan skeleton loading screens.
+_(Note: Supabase RLS and PostgREST are no longer used. Do not attempt to run `supabase db push` or rely on Supabase Edge Functions.)_

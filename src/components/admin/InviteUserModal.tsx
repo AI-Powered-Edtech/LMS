@@ -1,127 +1,144 @@
-import { valibotResolver } from '@hookform/resolvers/valibot'
-import React, { useState } from 'react'
-import { useForm } from 'react-hook-form'
-import * as v from 'valibot'
+import { valibotResolver } from "@hookform/resolvers/valibot";
+import React, { useState } from "react";
+import { useForm } from "react-hook-form";
+import * as v from "valibot";
 
-import { useToast } from '@/hooks/useToast'
-import { db } from '@/services/db'
-import { logger } from '@/utils/logger'
+import { useToast } from "@/hooks/useToast";
+import { db } from "@/services/db";
+import { logger } from "@/utils/logger";
 
-import { useAuth } from '../../contexts/AuthContext'
-import { FormField } from '../ui/FormField'
+import { useAuth } from "../../contexts/AuthContext";
+import { FormField } from "../ui/FormField";
 
 const InviteUserSchema = v.object({
-  email: v.pipe(v.string(), v.email('Email tidak valid')),
-  role: v.picklist(['STUDENT', 'TEACHER', 'ADMIN']),
-})
-type InviteUserData = v.InferOutput<typeof InviteUserSchema>
-type InviteRole = InviteUserData['role']
+  email: v.pipe(v.string(), v.email("Email tidak valid")),
+  role: v.picklist(["STUDENT", "TEACHER", "ADMIN"]),
+});
+type InviteUserData = v.InferOutput<typeof InviteUserSchema>;
+type InviteRole = InviteUserData["role"];
 
 interface InviteUserModalProps {
-  isOpen: boolean
-  onClose: () => void
-  onSuccess?: () => void
+  isOpen: boolean;
+  onClose: () => void;
+  onSuccess?: () => void;
 }
 
-export function InviteUserModal({ isOpen, onClose, onSuccess }: InviteUserModalProps) {
-  const { user, tenantId, activeTenant } = useAuth()
-  const addToast = useToast((s) => s.addToast)
-  const { control, handleSubmit, reset, watch, setValue } = useForm<InviteUserData>({
-    resolver: valibotResolver(InviteUserSchema),
-    defaultValues: { email: '', role: 'STUDENT' },
-  })
+export function InviteUserModal({
+  isOpen,
+  onClose,
+  onSuccess,
+}: InviteUserModalProps) {
+  const { user, tenantId, activeTenant } = useAuth();
+  const addToast = useToast((s) => s.addToast);
+  const { control, handleSubmit, reset, watch, setValue } =
+    useForm<InviteUserData>({
+      resolver: valibotResolver(InviteUserSchema),
+      defaultValues: { email: "", role: "STUDENT" },
+    });
 
-  const email = watch('email')
-  const role = watch('role')
+  const email = watch("email");
+  const role = watch("role");
 
-  const [loading, setLoading] = useState(false)
-  const [error, setError] = useState('')
-  const [inviteLink, setInviteLink] = useState('')
-  const [copied, setCopied] = useState(false)
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
+  const [inviteLink, setInviteLink] = useState("");
+  const [copied, setCopied] = useState(false);
 
-  if (!isOpen) return null
+  if (!isOpen) return null;
 
   const onSubmit = async (data: InviteUserData) => {
-    setError('')
-    setInviteLink('')
-    setLoading(true)
+    setError("");
+    setInviteLink("");
+    setLoading(true);
 
     try {
       if (!tenantId || !user) {
-        setError('Tenant atau user tidak ditemukan.')
-        return
+        setError("Tenant atau user tidak ditemukan.");
+        return;
       }
 
       const { data: insertData, error: insertError } = await db
-        .from('tenant_invitations')
+        .from("tenant_invitations")
         .insert({
           tenant_id: tenantId,
           email: data.email.toLowerCase().trim(),
           role: data.role,
           invited_by: user.id,
         })
-        .select('token')
-        .single()
+        .select("token")
+        .single();
 
       if (insertError) {
-        if (insertError.code === '23505') {
-          setError('Email ini sudah diundang dan masih pending.')
+        if (insertError.code === "23505") {
+          setError("Email ini sudah diundang dan masih pending.");
         } else {
-          setError(insertError.message)
+          setError(insertError.message);
         }
-        return
+        return;
       }
 
-      const link = `${window.location.origin}/login?invite=${insertData.token}`
-      setInviteLink(link)
-      reset({ email: data.email, role: data.role })
-      onSuccess?.()
+      const link = `${window.location.origin}/login?invite=${(insertData as { token: string }).token}`;
+      setInviteLink(link);
+      reset({ email: data.email, role: data.role });
+      onSuccess?.();
     } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : 'Gagal mengirim undangan.')
+      setError(err instanceof Error ? err.message : "Gagal mengirim undangan.");
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }
+  };
 
   const copyLink = async () => {
     try {
       if (navigator.clipboard) {
-        await navigator.clipboard.writeText(inviteLink)
+        await navigator.clipboard.writeText(inviteLink);
       } else {
         // Fallback for non-HTTPS contexts
-        const textarea = document.createElement('textarea')
-        textarea.value = inviteLink
-        textarea.style.position = 'fixed'
-        textarea.style.opacity = '0'
-        document.body.appendChild(textarea)
-        textarea.select()
-        document.execCommand('copy')
-        document.body.removeChild(textarea)
+        const textarea = document.createElement("textarea");
+        textarea.value = inviteLink;
+        textarea.style.position = "fixed";
+        textarea.style.opacity = "0";
+        document.body.appendChild(textarea);
+        textarea.select();
+        document.execCommand("copy");
+        document.body.removeChild(textarea);
       }
-      setCopied(true)
-      setTimeout(() => setCopied(false), 2000)
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
     } catch {
-      if (import.meta.env.DEV) logger.warn('[InviteUserModal] Clipboard write failed')
-      addToast({ type: 'info', message: 'Salin tautan secara manual dari kolom di atas.' })
+      if (import.meta.env.DEV)
+        logger.warn("[InviteUserModal] Clipboard write failed");
+      addToast({
+        type: "info",
+        message: "Salin tautan secara manual dari kolom di atas.",
+      });
     }
-  }
+  };
 
   const handleClose = () => {
-    reset({ email: '', role: 'STUDENT' })
-    setError('')
-    setInviteLink('')
-    onClose()
-  }
+    reset({ email: "", role: "STUDENT" });
+    setError("");
+    setInviteLink("");
+    onClose();
+  };
 
   return (
     <div role="presentation" style={styles.overlay} onClick={handleClose}>
-      <div role="presentation" style={styles.modal} onClick={(e) => e.stopPropagation()}>
+      <div
+        role="presentation"
+        style={styles.modal}
+        onClick={(e) => e.stopPropagation()}
+      >
         <div style={styles.header}>
           <h2 style={styles.title}>📨 Undang Pengguna Baru</h2>
           <p style={styles.subtitle}>
-            Ke <strong>{activeTenant?.name ?? 'tenant'}</strong>
+            Ke <strong>{activeTenant?.name ?? "tenant"}</strong>
           </p>
-          <button style={styles.closeBtn} onClick={handleClose} aria-label="Tutup modal">
+          <button
+            style={styles.closeBtn}
+            onClick={handleClose}
+            aria-label="Tutup modal"
+          >
             ✕
           </button>
         </div>
@@ -130,17 +147,19 @@ export function InviteUserModal({ isOpen, onClose, onSuccess }: InviteUserModalP
           <div style={styles.successSection}>
             <p style={styles.successIcon}>✅</p>
             <p style={styles.successText}>
-              Undangan berhasil dibuat untuk <strong>{email}</strong> sebagai{' '}
+              Undangan berhasil dibuat untuk <strong>{email}</strong> sebagai{" "}
               <strong>{role}</strong>
             </p>
             <p style={styles.linkLabel}>Link Pendaftaran:</p>
             <div style={styles.linkBox}>
               <code style={styles.linkCode}>{inviteLink}</code>
               <button style={styles.copyBtn} onClick={copyLink}>
-                {copied ? '✅ Tersalin!' : '📋 Salin Link'}
+                {copied ? "✅ Tersalin!" : "📋 Salin Link"}
               </button>
             </div>
-            <p style={styles.linkHint}>Kirimkan link ini ke pengguna. Berlaku selama 7 hari.</p>
+            <p style={styles.linkHint}>
+              Kirimkan link ini ke pengguna. Berlaku selama 7 hari.
+            </p>
             <button style={styles.doneBtn} onClick={handleClose}>
               Selesai
             </button>
@@ -154,23 +173,28 @@ export function InviteUserModal({ isOpen, onClose, onSuccess }: InviteUserModalP
                 label="Email"
                 labelClassName="text-slate-300"
               >
-                <input type="email" style={styles.input} placeholder="user@example.com" autoFocus />
+                <input
+                  type="email"
+                  style={styles.input}
+                  placeholder="user@example.com"
+                  autoFocus
+                />
               </FormField>
             </div>
 
             <div style={styles.field}>
               <p style={styles.label}>Peran</p>
               <div style={styles.roleGrid}>
-                {(['STUDENT', 'TEACHER', 'ADMIN'] as InviteRole[]).map((r) => (
+                {(["STUDENT", "TEACHER", "ADMIN"] as InviteRole[]).map((r) => (
                   <button
                     key={r}
                     type="button"
                     style={role === r ? styles.roleActive : styles.roleBtn}
-                    onClick={() => setValue('role', r)}
+                    onClick={() => setValue("role", r)}
                   >
-                    {r === 'STUDENT' && '🎓 '}
-                    {r === 'TEACHER' && '👩‍🏫 '}
-                    {r === 'ADMIN' && '🛡️ '}
+                    {r === "STUDENT" && "🎓 "}
+                    {r === "TEACHER" && "👩‍🏫 "}
+                    {r === "ADMIN" && "🛡️ "}
                     {r}
                   </button>
                 ))}
@@ -180,175 +204,175 @@ export function InviteUserModal({ isOpen, onClose, onSuccess }: InviteUserModalP
             {error && <div style={styles.error}>{error}</div>}
 
             <button type="submit" style={styles.submitBtn} disabled={loading}>
-              {loading ? 'Membuat undangan...' : 'Buat Undangan'}
+              {loading ? "Membuat undangan..." : "Buat Undangan"}
             </button>
           </form>
         )}
       </div>
     </div>
-  )
+  );
 }
 
 const styles: Record<string, React.CSSProperties> = {
   overlay: {
-    position: 'fixed',
+    position: "fixed",
     inset: 0,
-    background: 'rgba(0,0,0,0.6)',
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
+    background: "rgba(0,0,0,0.6)",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
     zIndex: 9999,
-    padding: '1rem',
+    padding: "1rem",
   },
   modal: {
-    background: '#1e293b',
-    borderRadius: '1rem',
-    padding: '2rem',
-    width: '100%',
-    maxWidth: '480px',
-    boxShadow: '0 25px 50px rgba(0,0,0,0.5)',
-    border: '1px solid rgba(255,255,255,0.1)',
-    position: 'relative',
+    background: "#1e293b",
+    borderRadius: "1rem",
+    padding: "2rem",
+    width: "100%",
+    maxWidth: "480px",
+    boxShadow: "0 25px 50px rgba(0,0,0,0.5)",
+    border: "1px solid rgba(255,255,255,0.1)",
+    position: "relative",
   },
   header: {
-    marginBottom: '1.5rem',
+    marginBottom: "1.5rem",
   },
   title: {
-    color: '#f1f5f9',
-    fontSize: '1.25rem',
+    color: "#f1f5f9",
+    fontSize: "1.25rem",
     fontWeight: 700,
-    margin: '0 0 0.25rem',
+    margin: "0 0 0.25rem",
   },
   subtitle: {
-    color: '#94a3b8',
-    fontSize: '0.8rem',
+    color: "#94a3b8",
+    fontSize: "0.8rem",
     margin: 0,
   },
   closeBtn: {
-    position: 'absolute',
-    top: '1rem',
-    right: '1rem',
-    background: 'none',
-    border: 'none',
-    color: '#94a3b8',
-    fontSize: '1.25rem',
-    cursor: 'pointer',
+    position: "absolute",
+    top: "1rem",
+    right: "1rem",
+    background: "none",
+    border: "none",
+    color: "#94a3b8",
+    fontSize: "1.25rem",
+    cursor: "pointer",
   },
-  form: { display: 'flex', flexDirection: 'column' as const, gap: '1.25rem' },
-  field: { display: 'flex', flexDirection: 'column' as const, gap: '0.375rem' },
-  label: { color: '#cbd5e1', fontSize: '0.8rem', fontWeight: 500 },
+  form: { display: "flex", flexDirection: "column" as const, gap: "1.25rem" },
+  field: { display: "flex", flexDirection: "column" as const, gap: "0.375rem" },
+  label: { color: "#cbd5e1", fontSize: "0.8rem", fontWeight: 500 },
   input: {
-    padding: '0.75rem',
-    borderRadius: '0.5rem',
-    border: '1px solid rgba(255,255,255,0.15)',
-    background: '#0f172a',
-    color: '#f1f5f9',
-    fontSize: '0.9rem',
-    outline: 'none',
+    padding: "0.75rem",
+    borderRadius: "0.5rem",
+    border: "1px solid rgba(255,255,255,0.15)",
+    background: "#0f172a",
+    color: "#f1f5f9",
+    fontSize: "0.9rem",
+    outline: "none",
   },
   roleGrid: {
-    display: 'flex',
-    gap: '0.5rem',
+    display: "flex",
+    gap: "0.5rem",
   },
   roleBtn: {
     flex: 1,
-    padding: '0.625rem',
-    borderRadius: '0.5rem',
-    border: '1px solid rgba(255,255,255,0.12)',
-    background: 'rgba(255,255,255,0.03)',
-    color: '#94a3b8',
-    fontSize: '0.8rem',
-    cursor: 'pointer',
+    padding: "0.625rem",
+    borderRadius: "0.5rem",
+    border: "1px solid rgba(255,255,255,0.12)",
+    background: "rgba(255,255,255,0.03)",
+    color: "#94a3b8",
+    fontSize: "0.8rem",
+    cursor: "pointer",
     fontWeight: 500,
   },
   roleActive: {
     flex: 1,
-    padding: '0.625rem',
-    borderRadius: '0.5rem',
-    border: '1px solid #3b82f6',
-    background: 'rgba(59,130,246,0.15)',
-    color: '#60a5fa',
-    fontSize: '0.8rem',
-    cursor: 'pointer',
+    padding: "0.625rem",
+    borderRadius: "0.5rem",
+    border: "1px solid #3b82f6",
+    background: "rgba(59,130,246,0.15)",
+    color: "#60a5fa",
+    fontSize: "0.8rem",
+    cursor: "pointer",
     fontWeight: 600,
   },
   error: {
-    background: 'rgba(239,68,68,0.15)',
-    color: '#fca5a5',
-    padding: '0.75rem',
-    borderRadius: '0.5rem',
-    fontSize: '0.8rem',
-    border: '1px solid rgba(239,68,68,0.3)',
+    background: "rgba(239,68,68,0.15)",
+    color: "#fca5a5",
+    padding: "0.75rem",
+    borderRadius: "0.5rem",
+    fontSize: "0.8rem",
+    border: "1px solid rgba(239,68,68,0.3)",
   },
   submitBtn: {
-    padding: '0.875rem',
-    borderRadius: '0.5rem',
-    border: 'none',
-    background: 'linear-gradient(135deg, #3b82f6, #8b5cf6)',
-    color: '#fff',
+    padding: "0.875rem",
+    borderRadius: "0.5rem",
+    border: "none",
+    background: "linear-gradient(135deg, #3b82f6, #8b5cf6)",
+    color: "#fff",
     fontWeight: 600,
-    fontSize: '0.95rem',
-    cursor: 'pointer',
+    fontSize: "0.95rem",
+    cursor: "pointer",
   },
   successSection: {
-    textAlign: 'center' as const,
+    textAlign: "center" as const,
   },
-  successIcon: { fontSize: '2.5rem', margin: '0 0 0.75rem' },
+  successIcon: { fontSize: "2.5rem", margin: "0 0 0.75rem" },
   successText: {
-    color: '#86efac',
-    fontSize: '0.9rem',
+    color: "#86efac",
+    fontSize: "0.9rem",
     lineHeight: 1.6,
-    margin: '0 0 1.25rem',
+    margin: "0 0 1.25rem",
   },
   linkLabel: {
-    color: '#94a3b8',
-    fontSize: '0.75rem',
-    textTransform: 'uppercase' as const,
-    letterSpacing: '0.05em',
-    margin: '0 0 0.5rem',
-    textAlign: 'left' as const,
+    color: "#94a3b8",
+    fontSize: "0.75rem",
+    textTransform: "uppercase" as const,
+    letterSpacing: "0.05em",
+    margin: "0 0 0.5rem",
+    textAlign: "left" as const,
   },
   linkBox: {
-    display: 'flex',
-    gap: '0.5rem',
-    marginBottom: '0.5rem',
+    display: "flex",
+    gap: "0.5rem",
+    marginBottom: "0.5rem",
   },
   linkCode: {
     flex: 1,
-    padding: '0.625rem',
-    background: '#0f172a',
-    borderRadius: '0.375rem',
-    color: '#60a5fa',
-    fontSize: '0.7rem',
-    overflowX: 'auto' as const,
-    whiteSpace: 'nowrap' as const,
-    border: '1px solid rgba(255,255,255,0.1)',
+    padding: "0.625rem",
+    background: "#0f172a",
+    borderRadius: "0.375rem",
+    color: "#60a5fa",
+    fontSize: "0.7rem",
+    overflowX: "auto" as const,
+    whiteSpace: "nowrap" as const,
+    border: "1px solid rgba(255,255,255,0.1)",
   },
   copyBtn: {
-    padding: '0.625rem 0.75rem',
-    borderRadius: '0.375rem',
-    border: '1px solid rgba(255,255,255,0.15)',
-    background: 'rgba(255,255,255,0.05)',
-    color: '#cbd5e1',
-    fontSize: '0.8rem',
-    cursor: 'pointer',
-    whiteSpace: 'nowrap' as const,
+    padding: "0.625rem 0.75rem",
+    borderRadius: "0.375rem",
+    border: "1px solid rgba(255,255,255,0.15)",
+    background: "rgba(255,255,255,0.05)",
+    color: "#cbd5e1",
+    fontSize: "0.8rem",
+    cursor: "pointer",
+    whiteSpace: "nowrap" as const,
   },
   linkHint: {
-    color: '#64748b',
-    fontSize: '0.7rem',
-    margin: '0 0 1.25rem',
-    textAlign: 'left' as const,
+    color: "#64748b",
+    fontSize: "0.7rem",
+    margin: "0 0 1.25rem",
+    textAlign: "left" as const,
   },
   doneBtn: {
-    width: '100%',
-    padding: '0.75rem',
-    borderRadius: '0.5rem',
-    border: 'none',
-    background: 'linear-gradient(135deg, #3b82f6, #8b5cf6)',
-    color: '#fff',
+    width: "100%",
+    padding: "0.75rem",
+    borderRadius: "0.5rem",
+    border: "none",
+    background: "linear-gradient(135deg, #3b82f6, #8b5cf6)",
+    color: "#fff",
     fontWeight: 600,
-    fontSize: '0.9rem',
-    cursor: 'pointer',
+    fontSize: "0.9rem",
+    cursor: "pointer",
   },
-}
+};

@@ -1,17 +1,17 @@
-import { CheckCircle2, CheckSquare, Clock, Plus, Trash2 } from 'lucide-react'
+import { CheckCircle2, CheckSquare, Clock, Plus, Trash2 } from "lucide-react";
 
-import { EmptyState } from '@/components/ui'
-import { cn } from '@/utils/cn'
+import { EmptyState } from "@/components/ui";
+import { cn } from "@/utils/cn";
 
-import { GroupTask } from '../../api/groupAssignmentService'
+import { GroupTask } from "../../api/groupAssignmentService";
 
 interface Props {
-  tasks: GroupTask[]
-  newTaskTitle: string
-  onToggleStatus: (id: string, currentStatus: string) => void
-  onTaskTitleChange: (title: string) => void
-  onAddTask: () => void
-  onDeleteTask?: (id: string, title: string) => void
+  tasks: GroupTask[];
+  newTaskTitle: string;
+  onToggleStatus: (id: string, currentStatus: string) => void;
+  onTaskTitleChange: (title: string) => void;
+  onAddTask: () => void;
+  onDeleteTask?: (id: string, title: string) => void;
 }
 
 export function GroupTasksTab({
@@ -22,7 +22,7 @@ export function GroupTasksTab({
   onAddTask,
   onDeleteTask,
 }: Props) {
-  const completedCount = tasks.filter((t) => t.status === 'done').length
+  const completedCount = tasks.filter((t) => t.status === "completed").length;
 
   return (
     <div className="p-6 flex flex-col flex-1">
@@ -50,19 +50,19 @@ export function GroupTasksTab({
               <div className="flex items-center gap-4">
                 <button
                   onClick={() => onToggleStatus(task.id, task.status)}
-                  aria-label={`Ubah status: ${task.title}`}
+                  aria-label={`Ubah status: ${task.note || "Tugas"}`}
                   className={cn(
-                    'w-6 h-6 rounded flex items-center justify-center border transition-colors',
-                    task.status === 'done'
-                      ? 'bg-emerald-500 border-emerald-500 text-white'
-                      : task.status === 'in_progress'
-                        ? 'bg-amber-100 dark:bg-amber-900/30 border-amber-300 dark:border-amber-700 text-amber-600'
-                        : 'bg-slate-50 dark:bg-slate-900 border-slate-300 dark:border-slate-600 text-transparent hover:border-indigo-400'
+                    "w-6 h-6 rounded flex items-center justify-center border transition-colors",
+                    task.status === "completed"
+                      ? "bg-emerald-500 border-emerald-500 text-white"
+                      : task.status === "in_progress"
+                        ? "bg-amber-100 dark:bg-amber-900/30 border-amber-300 dark:border-amber-700 text-amber-600"
+                        : "bg-slate-50 dark:bg-slate-900 border-slate-300 dark:border-slate-600 text-transparent hover:border-indigo-400",
                   )}
                 >
-                  {task.status === 'done' ? (
+                  {task.status === "completed" ? (
                     <CheckCircle2 className="w-4 h-4" />
-                  ) : task.status === 'in_progress' ? (
+                  ) : task.status === "in_progress" ? (
                     <Clock className="w-4 h-4" />
                   ) : (
                     <CheckCircle2 className="w-4 h-4 opacity-0 group-hover:opacity-20 text-indigo-600" />
@@ -71,27 +71,27 @@ export function GroupTasksTab({
                 <div>
                   <p
                     className={cn(
-                      'font-bold text-sm transition-colors',
-                      task.status === 'done'
-                        ? 'text-slate-400 line-through'
-                        : 'text-slate-800 dark:text-slate-200'
+                      "font-bold text-sm transition-colors",
+                      task.status === "completed"
+                        ? "text-slate-400 line-through"
+                        : "text-slate-800 dark:text-slate-200",
                     )}
                   >
-                    {task.title}
+                    {task.note || "Tugas"}
                   </p>
                   <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
-                    Penanggung Jawab:{' '}
+                    Penanggung Jawab:{" "}
                     {task.profiles
                       ? `${task.profiles.first_name} ${task.profiles.last_name}`
-                      : 'Belum ditugaskan'}
+                      : "Belum ditugaskan"}
                   </p>
                 </div>
               </div>
               {onDeleteTask && (
                 <button
                   type="button"
-                  aria-label={`Hapus tugas: ${task.title}`}
-                  onClick={() => onDeleteTask(task.id, task.title)}
+                  aria-label={`Hapus tugas: ${task.note || "Tugas"}`}
+                  onClick={() => onDeleteTask(task.id, task.note || "Tugas")}
                   className="p-2 text-slate-400 hover:text-red-500 dark:hover:text-red-400 transition-colors opacity-0 group-hover:opacity-100"
                 >
                   <Trash2 className="w-4 h-4" />
@@ -107,7 +107,7 @@ export function GroupTasksTab({
             type="text"
             value={newTaskTitle}
             onChange={(e) => onTaskTitleChange(e.target.value)}
-            onKeyDown={(e) => e.key === 'Enter' && onAddTask()}
+            onKeyDown={(e) => e.key === "Enter" && onAddTask()}
             placeholder="Tambah sub-tugas baru..."
             className="flex-1 px-4 py-2.5 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-600 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 text-sm text-slate-900 dark:text-slate-100"
           />
@@ -122,5 +122,5 @@ export function GroupTasksTab({
         </div>
       </div>
     </div>
-  )
+  );
 }

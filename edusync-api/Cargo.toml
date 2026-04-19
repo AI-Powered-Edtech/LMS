@@ -48,3 +48,4 @@ csv = "1"
 vil_conn_s3 = { path = "crates/vil_conn_s3" }
 vil_ws = "0.2"
 vil_server_auth = "0.2"
+redis = { version = "1", features = ["tokio-comp", "connection-manager", "json"] }

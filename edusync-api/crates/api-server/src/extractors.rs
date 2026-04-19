@@ -14,7 +14,6 @@ use crate::state::AppState;
 
 fn extract_tenant_context(
     parts: &Parts,
-    jwt_secret: &str,
 ) -> Result<TenantContext, AuthError> {
     let auth_value = parts
         .headers
@@ -26,7 +25,7 @@ fn extract_tenant_context(
         .strip_prefix("Bearer ")
         .ok_or(AuthError::Unauthorized)?;
 
-    let claims = verify_access_token(token, jwt_secret)?;
+    let claims = verify_access_token(token)?;
 
     let user_id = claims
         .sub
@@ -107,7 +106,7 @@ where
             Extension::from_request_parts(parts, _state)
                 .await
                 .map_err(|_| VilError::unauthorized("Tidak terautentikasi"))?;
-        extract_tenant_context(parts, &state.jwt_secret)
+        extract_tenant_context(parts)
             .map(AuthedRequest)
             .map_err(IntoVilError::into_vil_error)
     }
@@ -155,7 +154,7 @@ where
             Extension::from_request_parts(parts, _state)
                 .await
                 .map_err(|_| VilError::unauthorized("Tidak terautentikasi"))?;
-        extract_tenant_context(parts, &state.jwt_secret)
+        extract_tenant_context(parts)
             .map(RbacGuard)
             .map_err(IntoVilError::into_vil_error)
     }

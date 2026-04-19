@@ -8,171 +8,185 @@ import {
   Plus,
   Receipt,
   Search,
-} from 'lucide-react'
-import { motion } from 'motion/react'
-import { useEffect, useMemo, useState } from 'react'
+} from "lucide-react";
+import { motion } from "motion/react";
+import { useEffect, useMemo, useState } from "react";
 
-import { EmptyState } from '@/components/ui'
-import { useToast } from '@/components/ui/Toast'
-import { useAuth } from '@/contexts/AuthContext'
-import { useDebounce } from '@/hooks/useDebounce'
-import { usePageTitle } from '@/hooks/usePageTitle'
-import { db } from '@/services/db'
-import { cn } from '@/utils/cn'
+import { EmptyState } from "@/components/ui";
+import { useToast } from "@/components/ui/Toast";
+import { useAuth } from "@/contexts/AuthContext";
+import { useDebounce } from "@/hooks/useDebounce";
+import { usePageTitle } from "@/hooks/usePageTitle";
+import { db } from "@/services/db";
+import { cn } from "@/utils/cn";
 
 // --- UTILS ---
 const formatCurrency = (amount: number) => {
-  return new Intl.NumberFormat('id-ID', {
-    style: 'currency',
-    currency: 'IDR',
+  return new Intl.NumberFormat("id-ID", {
+    style: "currency",
+    currency: "IDR",
     minimumFractionDigits: 0,
-  }).format(amount)
-}
+  }).format(amount);
+};
 
 const formatDate = (dateString: string) => {
-  return new Date(dateString).toLocaleDateString('id-ID', {
-    year: 'numeric',
-    month: 'short',
-    day: 'numeric',
-  })
-}
+  return new Date(dateString).toLocaleDateString("id-ID", {
+    year: "numeric",
+    month: "short",
+    day: "numeric",
+  });
+};
 
 const getStatusLabel = (status: string) => {
   switch (status) {
-    case 'paid':
-      return 'Lunas'
-    case 'open':
-      return 'Menunggu'
-    case 'draft':
-      return 'Draf'
-    case 'uncollectible':
-      return 'Gagal'
-    case 'void':
-      return 'Batal'
+    case "paid":
+      return "Lunas";
+    case "open":
+      return "Menunggu";
+    case "draft":
+      return "Draf";
+    case "uncollectible":
+      return "Gagal";
+    case "void":
+      return "Batal";
     default:
-      return status.charAt(0).toUpperCase() + status.slice(1)
+      return status.charAt(0).toUpperCase() + status.slice(1);
   }
-}
+};
 
 const getStatusColor = (status: string) => {
   switch (status) {
-    case 'paid':
-      return 'bg-emerald-100 text-emerald-700 dark:bg-emerald-500/10 dark:text-emerald-400'
-    case 'open':
-      return 'bg-amber-100 text-amber-700 dark:bg-amber-500/10 dark:text-amber-400'
-    case 'draft':
-      return 'bg-slate-100 text-slate-700 dark:bg-slate-500/10 dark:text-slate-400'
+    case "paid":
+      return "bg-emerald-100 text-emerald-700 dark:bg-emerald-500/10 dark:text-emerald-400";
+    case "open":
+      return "bg-amber-100 text-amber-700 dark:bg-amber-500/10 dark:text-amber-400";
+    case "draft":
+      return "bg-slate-100 text-slate-700 dark:bg-slate-500/10 dark:text-slate-400";
     default:
-      return 'bg-red-100 text-red-700 dark:bg-red-500/10 dark:text-red-400'
+      return "bg-red-100 text-red-700 dark:bg-red-500/10 dark:text-red-400";
   }
-}
+};
 
 const getStatusIcon = (status: string) => {
   switch (status) {
-    case 'paid':
-      return <CheckCircle className="w-3.5 h-3.5" />
-    case 'open':
-      return <Clock className="w-3.5 h-3.5" />
+    case "paid":
+      return <CheckCircle className="w-3.5 h-3.5" />;
+    case "open":
+      return <Clock className="w-3.5 h-3.5" />;
     default:
-      return <AlertCircle className="w-3.5 h-3.5" />
+      return <AlertCircle className="w-3.5 h-3.5" />;
   }
-}
+};
 
 interface Invoice {
-  id: string
-  amount_due: number
-  amount_paid: number
-  status: string
-  due_date: string
-  created_at: string
+  id: string;
+  amount_due: number;
+  amount_paid: number;
+  status: string;
+  due_date: string;
+  created_at: string;
 }
 
 interface Subscription {
-  id: string
-  status: string
-  current_period_end: string
-  plan: { name: string; price: number }
+  id: string;
+  status: string;
+  current_period_end: string;
+  plan: { name: string; price: number };
 }
 
 export function BillingDashboard() {
-  usePageTitle('Tagihan & Pembayaran')
-  const { tenantId } = useAuth()
-  const { addToast } = useToast()
+  usePageTitle("Tagihan & Pembayaran");
+  const { tenantId } = useAuth();
+  const { addToast } = useToast();
 
-  const [invoices, setInvoices] = useState<Invoice[]>([])
-  const [subscription, setSubscription] = useState<Subscription | null>(null)
-  const [loading, setLoading] = useState(true)
-  const [searchQuery, setSearchQuery] = useState('')
-  const [page, setPage] = useState(0)
-  const PAGE_SIZE = 20
+  const [invoices, setInvoices] = useState<Invoice[]>([]);
+  const [subscription, setSubscription] = useState<Subscription | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [page, setPage] = useState(0);
+  const PAGE_SIZE = 20;
 
   // ⚡ Perf: Debounce search input to avoid re-filtering on every keystroke
-  const debouncedSearch = useDebounce(searchQuery, 300)
+  const debouncedSearch = useDebounce(searchQuery, 300);
 
   useEffect(() => {
     async function fetchData() {
-      if (!tenantId) return
-      setLoading(true)
+      if (!tenantId) return;
+      setLoading(true);
 
       try {
         const { data: invData, error: invErr } = await db
-          .from('invoices')
-          .select('id, amount_due, amount_paid, status, due_date, created_at')
-          .eq('tenant_id', tenantId)
-          .order('created_at', { ascending: false })
-          .range(page * PAGE_SIZE, (page + 1) * PAGE_SIZE - 1)
+          .from("invoices")
+          .select("id, amount_due, amount_paid, status, due_date, created_at")
+          .eq("tenant_id", tenantId)
+          .order("created_at", { ascending: false })
+          .range(page * PAGE_SIZE, (page + 1) * PAGE_SIZE - 1);
 
-        if (invErr) throw invErr
+        if (invErr) throw invErr;
 
         const { data: subData, error: subErr } = await db
-          .from('tenant_subscriptions')
+          .from("tenant_subscriptions")
           .select(`id, status, current_period_end, plan_id`)
-          .eq('tenant_id', tenantId)
-          .maybeSingle()
+          .eq("tenant_id", tenantId)
+          .maybeSingle();
 
         // If no sub, that's fine (trial or free)
-        if (subErr) throw subErr
+        if (subErr) throw subErr;
 
         if (subData) {
+          const subDataTyped = subData as { plan_id: string };
           const { data: planData } = await db
-            .from('billing_plans')
-            .select('id, name, price')
-            .eq('id', subData.plan_id)
-            .maybeSingle()
-          setSubscription({ ...subData, plan: planData || { name: 'Unknown', price: 0 } })
+            .from("billing_plans")
+            .select("id, name, price")
+            .eq("id", subDataTyped.plan_id)
+            .maybeSingle();
+          const planDataTyped = planData as {
+            name: string;
+            price: number;
+          } | null;
+          setSubscription({
+            id: (subData as { id: string }).id,
+            status: (subData as { status: string }).status,
+            current_period_end: (subData as { current_period_end: string })
+              .current_period_end,
+            plan: planDataTyped || { name: "Unknown", price: 0 },
+          });
         }
 
-        setInvoices(invData || [])
+        setInvoices((invData ?? []) as Invoice[]);
       } catch {
-        addToast({ type: 'error', message: 'Gagal memuat data tagihan' })
+        addToast({ type: "error", message: "Gagal memuat data tagihan" });
       } finally {
-        setLoading(false)
+        setLoading(false);
       }
     }
-    void fetchData()
-  }, [tenantId, addToast, page, PAGE_SIZE])
+    void fetchData();
+  }, [tenantId, addToast, page, PAGE_SIZE]);
 
   // ⚡ Perf: Memoize filteredInvoices — was recomputed on every render without useMemo
   const filteredInvoices = useMemo(
-    () => invoices.filter((inv) => inv.id.toLowerCase().includes(debouncedSearch.toLowerCase())),
-    [invoices, debouncedSearch]
-  )
+    () =>
+      invoices.filter((inv) =>
+        inv.id.toLowerCase().includes(debouncedSearch.toLowerCase()),
+      ),
+    [invoices, debouncedSearch],
+  );
 
   // ⚡ Perf: Memoize unpaidTotal — was recomputed on every render without useMemo
   const unpaidTotal = useMemo(
     () =>
       invoices
-        .filter((i) => i.status === 'open')
+        .filter((i) => i.status === "open")
         .reduce((sum, inv) => sum + inv.amount_due - inv.amount_paid, 0),
-    [invoices]
-  )
+    [invoices],
+  );
 
   if (loading) {
     return (
       <div className="flex justify-center items-center h-64">
         <Loader2 className="w-8 h-8 animate-spin text-blue-600" />
       </div>
-    )
+    );
   }
 
   return (
@@ -191,7 +205,10 @@ export function BillingDashboard() {
         <div className="flex items-center gap-3">
           <button
             onClick={() =>
-              addToast({ type: 'warning', message: 'Fitur metode pembayaran dalam pengembangan.' })
+              addToast({
+                type: "warning",
+                message: "Fitur metode pembayaran dalam pengembangan.",
+              })
             }
             disabled
             className="flex items-center justify-center gap-2 px-4 py-2 bg-slate-300 text-slate-500 text-sm font-medium rounded-xl transition-colors shadow-sm cursor-not-allowed"
@@ -216,9 +233,11 @@ export function BillingDashboard() {
               <CreditCard className="w-5 h-5" />
             </div>
             <div>
-              <p className="text-sm font-medium text-slate-500 dark:text-slate-400">Paket Aktif</p>
+              <p className="text-sm font-medium text-slate-500 dark:text-slate-400">
+                Paket Aktif
+              </p>
               <h3 className="text-lg font-bold text-slate-900 dark:text-white">
-                {subscription ? subscription.plan.name : 'Gratis'}
+                {subscription ? subscription.plan.name : "Gratis"}
               </h3>
             </div>
           </div>
@@ -230,10 +249,10 @@ export function BillingDashboard() {
               <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
                 {subscription
                   ? `Perpanjangan: ${formatDate(subscription.current_period_end)}`
-                  : 'Tanpa batas waktu'}
+                  : "Tanpa batas waktu"}
               </p>
             </div>
-            {subscription && subscription.status === 'active' && (
+            {subscription && subscription.status === "active" && (
               <span className="px-2.5 py-1 rounded-full text-xs font-medium bg-emerald-100 text-emerald-700 dark:bg-emerald-500/10 dark:text-emerald-400">
                 Aktif
               </span>
@@ -257,7 +276,9 @@ export function BillingDashboard() {
               <p className="text-sm font-medium text-slate-500 dark:text-slate-400">
                 Total Belum Dibayar
               </p>
-              <h3 className="text-lg font-bold text-slate-900 dark:text-white">Tagihan Aktif</h3>
+              <h3 className="text-lg font-bold text-slate-900 dark:text-white">
+                Tagihan Aktif
+              </h3>
             </div>
           </div>
           <div className="flex items-end justify-between">
@@ -276,7 +297,9 @@ export function BillingDashboard() {
       {/* Invoices List */}
       <div className="bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-sm overflow-hidden">
         <div className="p-6 border-b border-slate-200 dark:border-slate-700 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-          <h2 className="text-lg font-bold text-slate-900 dark:text-white">Riwayat Tagihan</h2>
+          <h2 className="text-lg font-bold text-slate-900 dark:text-white">
+            Riwayat Tagihan
+          </h2>
           <div className="relative">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
             <input
@@ -345,8 +368,8 @@ export function BillingDashboard() {
                     <td className="px-6 py-4">
                       <span
                         className={cn(
-                          'inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium',
-                          getStatusColor(inv.status)
+                          "inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium",
+                          getStatusColor(inv.status),
                         )}
                       >
                         {getStatusIcon(inv.status)}
@@ -371,7 +394,9 @@ export function BillingDashboard() {
 
         {/* Pagination */}
         <div className="flex items-center justify-between px-6 py-4 border-t border-slate-200 dark:border-slate-700">
-          <p className="text-sm text-slate-500 dark:text-slate-400">Halaman {page + 1}</p>
+          <p className="text-sm text-slate-500 dark:text-slate-400">
+            Halaman {page + 1}
+          </p>
           <div className="flex items-center gap-2">
             <button
               onClick={() => setPage((p) => Math.max(0, p - 1))}
@@ -391,5 +416,5 @@ export function BillingDashboard() {
         </div>
       </div>
     </div>
-  )
+  );
 }

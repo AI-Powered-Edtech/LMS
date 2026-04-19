@@ -1,4 +1,4 @@
-version: '3.8'
+version: "3.8"
 
 services:
   db:
@@ -28,6 +28,9 @@ services:
     environment:
       MINIO_ROOT_USER: admin
       MINIO_ROOT_PASSWORD: password123
+      JWT_SECRET: your-super-secret-jwt-key-min-32-chars
+      JWT_REFRESH_SECRET: your-refresh-secret-key-min-32-chars
+      JWT_REFRESH_SECRET: your-refresh-secret-key-min-32-chars
     command: server /data --console-address ":9001"
     volumes:
       - minio-data:/data

@@ -1,4 +1,4 @@
-import { logger } from '@/utils/logger'
+import { logger } from "@/utils/logger";
 
 // ─────────────────────────────────────────────────────────────────────────────
 // VIL WebSocket Realtime Provider
@@ -16,54 +16,53 @@ import type {
   RealtimeChannelOptions,
   RealtimeChannelStatus,
   RealtimeProvider,
-} from './types'
+} from "./types";
 
 // ─── Konfigurasi ──────────────────────────────────────────────────────────────
 
 const WS_URL =
   import.meta.env.VITE_WS_URL ||
-  (typeof window !== 'undefined'
-    ? `${window.location.protocol === 'https:' ? 'wss:' : 'ws:'}//${window.location.host}/ws`
-    : '')
-const MAX_RETRIES = 10
-const BACKOFF_BASE_MS = 1000
-const BACKOFF_MAX_MS = 30000
+  (typeof window !== "undefined"
+    ? `${window.location.protocol === "https:" ? "wss:" : "ws:"}//${window.location.host}/ws`
+    : "");
+const MAX_RETRIES = 10;
+const BACKOFF_BASE_MS = 1000;
+const BACKOFF_MAX_MS = 30000;
 
-const IS_DEV = import.meta.env.DEV
+const IS_DEV = import.meta.env.DEV;
 
 // ─── Tipe pesan protokol WebSocket ───────────────────────────────────────────
 
 interface ClientJoinMessage {
-  type: 'join'
-  channel: string
+  type: "join";
+  channel: string;
 }
 
 interface ClientLeaveMessage {
-  type: 'leave'
-  channel: string
+  type: "leave";
+  channel: string;
 }
 
 interface ClientBroadcastMessage {
-  type: 'broadcast'
-  channel: string
-  event: string
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  payload: any
+  type: "broadcast";
+  channel: string;
+  event: string;
+  payload: unknown;
 }
 
 interface ClientTrackMessage {
-  type: 'track'
-  channel: string
-  payload: Record<string, unknown>
+  type: "track";
+  channel: string;
+  payload: Record<string, unknown>;
 }
 
 interface ClientUntrackMessage {
-  type: 'untrack'
-  channel: string
+  type: "untrack";
+  channel: string;
 }
 
 interface ClientPingMessage {
-  type: 'ping'
+  type: "ping";
 }
 
 type ClientMessage =
@@ -72,54 +71,50 @@ type ClientMessage =
   | ClientBroadcastMessage
   | ClientTrackMessage
   | ClientUntrackMessage
-  | ClientPingMessage
+  | ClientPingMessage;
 
 // ─── Tipe pesan dari server ───────────────────────────────────────────────────
 
 interface ServerSystemMessage {
-  type: 'system'
-  channel: string
-  event: 'SUBSCRIBED' | 'CLOSED'
+  type: "system";
+  channel: string;
+  event: "SUBSCRIBED" | "CLOSED";
 }
 
 interface ServerBroadcastMessage {
-  type: 'broadcast'
-  channel: string
-  event: string
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  payload: any
+  type: "broadcast";
+  channel: string;
+  event: string;
+  payload: unknown;
 }
 
 interface ServerPresenceSyncMessage {
-  type: 'presence_sync'
-  channel: string
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  state: Record<string, any[]>
+  type: "presence_sync";
+  channel: string;
+  state: Record<string, unknown[]>;
 }
 
 interface ServerPostgresChangesMessage {
-  type: 'postgres_changes'
-  channel: string
+  type: "postgres_changes";
+  channel: string;
   payload: {
-    eventType: 'INSERT' | 'UPDATE' | 'DELETE'
-    table: string
-    schema?: string
-    commit_timestamp?: string
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    new: Record<string, any>
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    old: Record<string, any>
-    errors?: string[] | null
-  }
+    eventType: "INSERT" | "UPDATE" | "DELETE";
+    table: string;
+    schema?: string;
+    commit_timestamp?: string;
+    new: Record<string, unknown>;
+    old: Record<string, unknown>;
+    errors?: string[] | null;
+  };
 }
 
 interface ServerPongMessage {
-  type: 'pong'
+  type: "pong";
 }
 
 interface ServerErrorMessage {
-  type: 'error'
-  message: string
+  type: "error";
+  message: string;
 }
 
 type ServerMessage =
@@ -128,140 +123,165 @@ type ServerMessage =
   | ServerPresenceSyncMessage
   | ServerPostgresChangesMessage
   | ServerPongMessage
-  | ServerErrorMessage
+  | ServerErrorMessage;
 
 // ─── Handler terdaftar di saluran ─────────────────────────────────────────────
 
 type PostgresChangesHandler = {
-  kind: 'postgres_changes'
-  filter: PostgresChangesFilter
-  callback: (payload: PostgresChangesPayload) => void
-}
+  kind: "postgres_changes";
+  filter: PostgresChangesFilter;
+  callback: (payload: PostgresChangesPayload) => void;
+};
 
 type BroadcastHandler = {
-  kind: 'broadcast'
-  event: string
-  callback: (payload: { payload: unknown }) => void
-}
+  kind: "broadcast";
+  event: string;
+  callback: (payload: { payload: unknown }) => void;
+};
 
 type PresenceHandler = {
-  kind: 'presence'
-  event: 'sync' | 'join' | 'leave'
-  callback: (payload?: unknown) => void
-}
+  kind: "presence";
+  event: "sync" | "join" | "leave";
+  callback: (payload?: unknown) => void;
+};
 
-type ChannelHandler = PostgresChangesHandler | BroadcastHandler | PresenceHandler
+type ChannelHandler =
+  | PostgresChangesHandler
+  | BroadcastHandler
+  | PresenceHandler;
 
 // ─── Implementasi saluran ─────────────────────────────────────────────────────
 
 class VilChannel implements AppRealtimeChannel {
-  private handlers: ChannelHandler[] = []
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  private presenceState_: Record<string, any[]> = {}
-  private subscribeCallback?: (status: RealtimeChannelStatus, err?: Error) => void
-  private trackedPayload?: Record<string, unknown>
+  private handlers: ChannelHandler[] = [];
+  private presenceState_: Record<string, unknown[]> = {};
+  private subscribeCallback?: (
+    status: RealtimeChannelStatus,
+    err?: Error,
+  ) => void;
+  private trackedPayload?: Record<string, unknown>;
 
   constructor(
     readonly name: string,
-    private readonly sendRaw: (msg: ClientMessage) => void
+    private readonly sendRaw: (msg: ClientMessage) => void,
   ) {}
 
   // ─── Implementasi AppRealtimeChannel ───────────────────────────────────────
 
   on(
-    type: 'postgres_changes',
+    type: "postgres_changes",
     filter: PostgresChangesFilter,
-    callback: (payload: PostgresChangesPayload) => void
-  ): this
+    callback: (payload: PostgresChangesPayload) => void,
+  ): this;
   on(
-    type: 'broadcast',
+    type: "broadcast",
     filter: { event: string },
-    callback: (payload: { payload: unknown }) => void
-  ): this
+    callback: (payload: { payload: unknown }) => void,
+  ): this;
   on(
-    type: 'presence',
-    filter: { event: 'sync' | 'join' | 'leave' },
-    callback: (payload?: unknown) => void
-  ): this
+    type: "presence",
+    filter: { event: "sync" | "join" | "leave" },
+    callback: (payload?: unknown) => void,
+  ): this;
   on(
-    type: 'postgres_changes' | 'broadcast' | 'presence',
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    filter: any,
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    callback: any
+    type: "postgres_changes" | "broadcast" | "presence",
+    filter:
+      | PostgresChangesFilter
+      | { event: string }
+      | { event: "sync" | "join" | "leave" },
+    callback:
+      | ((payload: PostgresChangesPayload) => void)
+      | ((payload: { payload: unknown }) => void)
+      | ((payload?: unknown) => void),
   ): this {
-    if (type === 'postgres_changes') {
-      this.handlers.push({ kind: 'postgres_changes', filter, callback })
-    } else if (type === 'broadcast') {
-      this.handlers.push({ kind: 'broadcast', event: filter.event, callback })
-    } else if (type === 'presence') {
-      this.handlers.push({ kind: 'presence', event: filter.event, callback })
+    if (type === "postgres_changes") {
+      this.handlers.push({
+        kind: "postgres_changes",
+        filter: filter as PostgresChangesFilter,
+        callback: callback as (payload: PostgresChangesPayload) => void,
+      });
+    } else if (type === "broadcast") {
+      this.handlers.push({
+        kind: "broadcast",
+        event: (filter as { event: string }).event,
+        callback: callback as (payload: { payload: unknown }) => void,
+      });
+    } else if (type === "presence") {
+      this.handlers.push({
+        kind: "presence",
+        event: (filter as { event: "sync" | "join" | "leave" }).event,
+        callback: callback as (payload?: unknown) => void,
+      });
     }
-    return this
+    return this;
   }
 
-  subscribe(callback?: (status: RealtimeChannelStatus, err?: Error) => void): this {
-    this.subscribeCallback = callback
+  subscribe(
+    callback?: (status: RealtimeChannelStatus, err?: Error) => void,
+  ): this {
+    this.subscribeCallback = callback;
     // Kirim pesan join ke server
-    this.sendRaw({ type: 'join', channel: this.name })
+    this.sendRaw({ type: "join", channel: this.name });
     if (IS_DEV) {
-      logger.debug(`[VilRealtime] Bergabung ke saluran: ${this.name}`)
+      logger.debug(`[VilRealtime] Bergabung ke saluran: ${this.name}`);
     }
-    return this
+    return this;
   }
 
-  async unsubscribe(): Promise<'ok' | 'timed out' | 'error'> {
+  async unsubscribe(): Promise<"ok" | "timed out" | "error"> {
     try {
-      this.sendRaw({ type: 'leave', channel: this.name })
+      this.sendRaw({ type: "leave", channel: this.name });
       if (IS_DEV) {
-        logger.debug(`[VilRealtime] Meninggalkan saluran: ${this.name}`)
+        logger.debug(`[VilRealtime] Meninggalkan saluran: ${this.name}`);
       }
-      return 'ok'
+      return "ok";
     } catch {
-      return 'error'
+      return "error";
     }
   }
 
   async send(payload: {
-    type: string
-    event: string
-    payload: unknown
-  }): Promise<'ok' | 'timed out' | 'error'> {
+    type: string;
+    event: string;
+    payload: unknown;
+  }): Promise<"ok" | "timed out" | "error"> {
     try {
       this.sendRaw({
-        type: 'broadcast',
+        type: "broadcast",
         channel: this.name,
         event: payload.event,
         payload: payload.payload,
-      })
-      return 'ok'
+      });
+      return "ok";
     } catch {
-      return 'error'
+      return "error";
     }
   }
 
-  async track(payload: Record<string, unknown>): Promise<'ok' | 'timed out' | 'error'> {
+  async track(
+    payload: Record<string, unknown>,
+  ): Promise<"ok" | "timed out" | "error"> {
     try {
-      this.trackedPayload = payload
-      this.sendRaw({ type: 'track', channel: this.name, payload })
-      return 'ok'
+      this.trackedPayload = payload;
+      this.sendRaw({ type: "track", channel: this.name, payload });
+      return "ok";
     } catch {
-      return 'error'
+      return "error";
     }
   }
 
-  async untrack(): Promise<'ok' | 'timed out' | 'error'> {
+  async untrack(): Promise<"ok" | "timed out" | "error"> {
     try {
-      this.trackedPayload = undefined
-      this.sendRaw({ type: 'untrack', channel: this.name })
-      return 'ok'
+      this.trackedPayload = undefined;
+      this.sendRaw({ type: "untrack", channel: this.name });
+      return "ok";
     } catch {
-      return 'error'
+      return "error";
     }
   }
 
   presenceState<T = Record<string, unknown>>(): Record<string, T[]> {
-    return this.presenceState_ as Record<string, T[]>
+    return this.presenceState_ as Record<string, T[]>;
   }
 
   // ─── Digunakan oleh koneksi WebSocket induk ───────────────────────────────
@@ -271,12 +291,18 @@ class VilChannel implements AppRealtimeChannel {
    * Re-join saluran dan re-track presence jika ada.
    */
   rejoin(): void {
-    this.sendRaw({ type: 'join', channel: this.name })
+    this.sendRaw({ type: "join", channel: this.name });
     if (this.trackedPayload) {
-      this.sendRaw({ type: 'track', channel: this.name, payload: this.trackedPayload })
+      this.sendRaw({
+        type: "track",
+        channel: this.name,
+        payload: this.trackedPayload,
+      });
     }
     if (IS_DEV) {
-      logger.debug(`[VilRealtime] Re-join saluran setelah koneksi ulang: ${this.name}`)
+      logger.debug(
+        `[VilRealtime] Re-join saluran setelah koneksi ulang: ${this.name}`,
+      );
     }
   }
 
@@ -285,117 +311,120 @@ class VilChannel implements AppRealtimeChannel {
    */
   handleIncoming(msg: ServerMessage): void {
     switch (msg.type) {
-      case 'system':
-        this.handleSystem(msg)
-        break
-      case 'broadcast':
-        this.handleBroadcast(msg)
-        break
-      case 'postgres_changes':
-        this.handlePostgresChanges(msg)
-        break
-      case 'presence_sync':
-        this.handlePresenceSync(msg)
-        break
-      case 'pong':
-      case 'error':
+      case "system":
+        this.handleSystem(msg);
+        break;
+      case "broadcast":
+        this.handleBroadcast(msg);
+        break;
+      case "postgres_changes":
+        this.handlePostgresChanges(msg);
+        break;
+      case "presence_sync":
+        this.handlePresenceSync(msg);
+        break;
+      case "pong":
+      case "error":
         // Ditangani di tingkat koneksi
-        break
+        break;
     }
   }
 
   private handleSystem(msg: ServerSystemMessage): void {
-    if (msg.event === 'SUBSCRIBED') {
+    if (msg.event === "SUBSCRIBED") {
       if (IS_DEV) {
-        logger.debug(`[VilRealtime] Saluran berhasil berlangganan: ${this.name}`)
+        logger.debug(
+          `[VilRealtime] Saluran berhasil berlangganan: ${this.name}`,
+        );
       }
-      this.subscribeCallback?.('SUBSCRIBED')
-    } else if (msg.event === 'CLOSED') {
+      this.subscribeCallback?.("SUBSCRIBED");
+    } else if (msg.event === "CLOSED") {
       if (IS_DEV) {
-        logger.debug(`[VilRealtime] Saluran ditutup oleh server: ${this.name}`)
+        logger.debug(`[VilRealtime] Saluran ditutup oleh server: ${this.name}`);
       }
-      this.subscribeCallback?.('CLOSED')
+      this.subscribeCallback?.("CLOSED");
     }
   }
 
   private handleBroadcast(msg: ServerBroadcastMessage): void {
     for (const handler of this.handlers) {
-      if (handler.kind === 'broadcast' && handler.event === msg.event) {
-        handler.callback({ payload: msg.payload })
+      if (handler.kind === "broadcast" && handler.event === msg.event) {
+        handler.callback({ payload: msg.payload });
       }
     }
   }
 
   private handlePostgresChanges(msg: ServerPostgresChangesMessage): void {
     const incomingPayload: PostgresChangesPayload = {
-      schema: msg.payload.schema ?? 'public',
+      schema: msg.payload.schema ?? "public",
       table: msg.payload.table,
-      commit_timestamp: msg.payload.commit_timestamp ?? new Date().toISOString(),
+      commit_timestamp:
+        msg.payload.commit_timestamp ?? new Date().toISOString(),
       eventType: msg.payload.eventType,
       new: msg.payload.new,
       old: msg.payload.old,
       errors: msg.payload.errors ?? null,
-    }
+    };
 
     for (const handler of this.handlers) {
-      if (handler.kind !== 'postgres_changes') continue
+      if (handler.kind !== "postgres_changes") continue;
 
-      const f = handler.filter
+      const f = handler.filter;
 
       // Cocokkan tabel
-      if (f.table !== '*' && f.table !== incomingPayload.table) continue
+      if (f.table !== "*" && f.table !== incomingPayload.table) continue;
 
       // Cocokkan event (INSERT/UPDATE/DELETE atau wildcard *)
-      if (f.event !== '*' && f.event !== incomingPayload.eventType) continue
+      if (f.event !== "*" && f.event !== incomingPayload.eventType) continue;
 
       // Cocokkan skema
-      if (f.schema !== incomingPayload.schema) continue
+      if (f.schema !== incomingPayload.schema) continue;
 
-      handler.callback(incomingPayload)
+      handler.callback(incomingPayload);
     }
   }
 
   private handlePresenceSync(msg: ServerPresenceSyncMessage): void {
-    const prevState = this.presenceState_
-    this.presenceState_ = msg.state
+    const prevState = this.presenceState_;
+    this.presenceState_ = msg.state;
 
     // Panggil handler 'sync' dengan state terbaru
     for (const handler of this.handlers) {
-      if (handler.kind === 'presence' && handler.event === 'sync') {
-        handler.callback(msg.state)
+      if (handler.kind === "presence" && handler.event === "sync") {
+        handler.callback(msg.state);
       }
     }
 
     // Hitung join dan leave berdasarkan perubahan state
-    const prevKeys = new Set(Object.keys(prevState))
-    const newKeys = new Set(Object.keys(msg.state))
+    const prevKeys = new Set(Object.keys(prevState));
+    const newKeys = new Set(Object.keys(msg.state));
 
-    const joined: Record<string, unknown[]> = {}
-    const left: Record<string, unknown[]> = {}
+    const joined: Record<string, unknown[]> = {};
+    const left: Record<string, unknown[]> = {};
 
     for (const key of newKeys) {
       if (!prevKeys.has(key)) {
-        joined[key] = msg.state[key]
+        joined[key] = msg.state[key];
       }
     }
     for (const key of prevKeys) {
       if (!newKeys.has(key)) {
-        left[key] = prevState[key]
+        left[key] = prevState[key];
       }
     }
 
     if (Object.keys(joined).length > 0) {
       for (const handler of this.handlers) {
-        if (handler.kind === 'presence' && handler.event === 'join') {
-          handler.callback({ joins: joined, leaves: {} })
+        if (handler.kind === "presence" && handler.event === "join") {
+          handler.callback({ joins: joined, leaves: {} });
         }
       }
     }
 
     if (Object.keys(left).length > 0) {
       for (const handler of this.handlers) {
-        if (handler.kind === 'presence' && handler.event === 'leave') {
-          handler.callback({ joins: {}, leaves: left })
+        if (handler.kind === "presence" && handler.event === "leave") {
+          handler.callback({ joins: {}, leaves: left });
         }
       }
     }
@@ -406,35 +435,37 @@ class VilChannel implements AppRealtimeChannel {
 
 function calcBackoff(attempt: number): number {
   // attempt 0 → 1000ms, attempt 1 → 2000ms, ..., max 30000ms
-  return Math.min(BACKOFF_BASE_MS * Math.pow(2, attempt), BACKOFF_MAX_MS)
+  return Math.min(BACKOFF_BASE_MS * Math.pow(2, attempt), BACKOFF_MAX_MS);
 }
 
 // ─── Manajemen koneksi WebSocket ──────────────────────────────────────────────
 
 interface WsConnection {
-  ws: WebSocket | null
-  channels: Map<string, VilChannel>
-  retryAttempt: number
-  retryTimer: ReturnType<typeof setTimeout> | null
-  destroyed: boolean
-  pingInterval: ReturnType<typeof setInterval> | null
+  ws: WebSocket | null;
+  channels: Map<string, VilChannel>;
+  retryAttempt: number;
+  retryTimer: ReturnType<typeof setTimeout> | null;
+  destroyed: boolean;
+  pingInterval: ReturnType<typeof setInterval> | null;
 }
 
 function getToken(): string | null {
   // Baca JWT dari localStorage (mendukung kunci legacy dan kunci VIL)
   try {
-    const raw = localStorage.getItem('sb-access-token') ?? localStorage.getItem('access_token')
-    if (raw) return raw
+    const raw =
+      localStorage.getItem("sb-access-token") ??
+      localStorage.getItem("access_token");
+    if (raw) return raw;
 
     // Coba ambil dari sesi legacy yang tersimpan (format: sb-{ref}-auth-token)
     for (let i = 0; i < localStorage.length; i++) {
-      const key = localStorage.key(i)
-      if (key && key.includes('-auth-token')) {
-        const val = localStorage.getItem(key)
+      const key = localStorage.key(i);
+      if (key && key.includes("-auth-token")) {
+        const val = localStorage.getItem(key);
         if (val) {
           try {
-            const parsed = JSON.parse(val) as { access_token?: string }
-            if (parsed.access_token) return parsed.access_token
+            const parsed = JSON.parse(val) as { access_token?: string };
+            if (parsed.access_token) return parsed.access_token;
           } catch {
             // Abaikan kesalahan parse
           }
@@ -444,110 +475,116 @@ function getToken(): string | null {
   } catch {
     // Abaikan jika localStorage tidak tersedia
   }
-  return null
+  return null;
 }
 
 function buildWsUrl(baseUrl: string): string {
-  const token = getToken()
-  if (!token) return baseUrl
-  const sep = baseUrl.includes('?') ? '&' : '?'
-  return `${baseUrl}${sep}token=${encodeURIComponent(token)}`
+  const token = getToken();
+  if (!token) return baseUrl;
+  const sep = baseUrl.includes("?") ? "&" : "?";
+  return `${baseUrl}${sep}token=${encodeURIComponent(token)}`;
 }
 
-function createConnection(conn: WsConnection, baseUrl: string, onReady?: () => void): void {
-  if (conn.destroyed) return
+function createConnection(
+  conn: WsConnection,
+  baseUrl: string,
+  onReady?: () => void,
+): void {
+  if (conn.destroyed) return;
 
-  const url = buildWsUrl(baseUrl)
+  const url = buildWsUrl(baseUrl);
 
   if (IS_DEV) {
     logger.debug(
-      `[VilRealtime] Menghubungkan ke WebSocket: ${baseUrl} (percobaan: ${conn.retryAttempt})`
-    )
+      `[VilRealtime] Menghubungkan ke WebSocket: ${baseUrl} (percobaan: ${conn.retryAttempt})`,
+    );
   }
 
-  const ws = new WebSocket(url)
-  conn.ws = ws
+  const ws = new WebSocket(url);
+  conn.ws = ws;
 
   ws.onopen = () => {
     if (conn.destroyed) {
-      ws.close()
-      return
+      ws.close();
+      return;
     }
-    conn.retryAttempt = 0
+    conn.retryAttempt = 0;
     if (IS_DEV) {
-      logger.debug('[VilRealtime] Koneksi WebSocket berhasil')
+      logger.debug("[VilRealtime] Koneksi WebSocket berhasil");
     }
 
     // Mulai interval ping untuk menjaga koneksi tetap hidup
-    if (conn.pingInterval) clearInterval(conn.pingInterval)
+    if (conn.pingInterval) clearInterval(conn.pingInterval);
     conn.pingInterval = setInterval(() => {
       if (ws.readyState === WebSocket.OPEN) {
-        sendMessage(ws, { type: 'ping' })
+        sendMessage(ws, { type: "ping" });
       }
-    }, 30000)
+    }, 30000);
 
     // Re-join semua saluran yang sudah berlangganan
     for (const channel of conn.channels.values()) {
-      channel.rejoin()
+      channel.rejoin();
     }
 
     // Flush pesan yang diantrekan sebelum koneksi siap
-    onReady?.()
-  }
+    onReady?.();
+  };
 
   ws.onmessage = (event) => {
-    if (conn.destroyed) return
-    let msg: ServerMessage
+    if (conn.destroyed) return;
+    let msg: ServerMessage;
     try {
-      msg = JSON.parse(event.data as string) as ServerMessage
+      msg = JSON.parse(event.data as string) as ServerMessage;
     } catch {
       if (IS_DEV) {
-        logger.warn('[VilRealtime] Gagal mengurai pesan JSON:', event.data)
+        logger.warn("[VilRealtime] Gagal mengurai pesan JSON:", event.data);
       }
-      return
+      return;
     }
 
-    if (IS_DEV && msg.type !== 'pong') {
-      logger.debug('[VilRealtime] Pesan masuk:', msg)
+    if (IS_DEV && msg.type !== "pong") {
+      logger.debug("[VilRealtime] Pesan masuk:", msg);
     }
 
-    if (msg.type === 'pong') return
+    if (msg.type === "pong") return;
 
-    if (msg.type === 'error') {
-      logger.error('[VilRealtime] Error dari server:', msg.message)
-      return
+    if (msg.type === "error") {
+      logger.error("[VilRealtime] Error dari server:", msg.message);
+      return;
     }
 
     // Rutekan pesan ke saluran yang tepat
-    if ('channel' in msg && msg.channel) {
-      const channel = conn.channels.get(msg.channel)
+    if ("channel" in msg && msg.channel) {
+      const channel = conn.channels.get(msg.channel);
       if (channel) {
-        channel.handleIncoming(msg)
+        channel.handleIncoming(msg);
       } else if (IS_DEV) {
-        logger.debug(`[VilRealtime] Pesan untuk saluran tidak dikenal: ${msg.channel}`)
+        logger.debug(
+          `[VilRealtime] Pesan untuk saluran tidak dikenal: ${msg.channel}`,
+        );
       }
     }
-  }
+  };
 
   ws.onerror = (event) => {
     if (IS_DEV) {
-      logger.warn('[VilRealtime] Kesalahan WebSocket:', event)
+      logger.warn("[VilRealtime] Kesalahan WebSocket:", event);
     }
-  }
+  };
 
   ws.onclose = (event) => {
-    if (conn.destroyed) return
-    conn.ws = null
+    if (conn.destroyed) return;
+    conn.ws = null;
 
     if (conn.pingInterval) {
-      clearInterval(conn.pingInterval)
-      conn.pingInterval = null
+      clearInterval(conn.pingInterval);
+      conn.pingInterval = null;
     }
 
     if (IS_DEV) {
       logger.warn(
-        `[VilRealtime] Koneksi terputus (kode: ${event.code}). Mencoba ulang dalam ${calcBackoff(conn.retryAttempt)}ms...`
-      )
+        `[VilRealtime] Koneksi terputus (kode: ${event.code}). Mencoba ulang dalam ${calcBackoff(conn.retryAttempt)}ms...`,
+      );
     }
 
     // Beritahu semua saluran bahwa koneksi terputus
@@ -555,39 +592,39 @@ function createConnection(conn: WsConnection, baseUrl: string, onReady?: () => v
       // Panggil subscribeCallback dengan CHANNEL_ERROR agar consumer hooks
       // dapat merespons pemutusan koneksi
       channel.handleIncoming({
-        type: 'system',
+        type: "system",
         channel: channel.name,
-        event: 'CLOSED',
-      })
+        event: "CLOSED",
+      });
     }
 
     // Jadwalkan rekoneksi jika belum melebihi batas percobaan
     if (conn.retryAttempt < MAX_RETRIES) {
-      const delay = calcBackoff(conn.retryAttempt)
-      conn.retryAttempt += 1
+      const delay = calcBackoff(conn.retryAttempt);
+      conn.retryAttempt += 1;
       conn.retryTimer = setTimeout(() => {
         if (!conn.destroyed) {
-          createConnection(conn, baseUrl, onReady)
+          createConnection(conn, baseUrl, onReady);
         }
-      }, delay)
+      }, delay);
     } else {
       logger.error(
-        `[VilRealtime] Melebihi batas percobaan koneksi ulang (${MAX_RETRIES}). Berhenti mencoba ulang.`
-      )
+        `[VilRealtime] Melebihi batas percobaan koneksi ulang (${MAX_RETRIES}). Berhenti mencoba ulang.`,
+      );
     }
-  }
+  };
 }
 
 function sendMessage(ws: WebSocket, msg: ClientMessage): void {
   if (ws.readyState === WebSocket.OPEN) {
-    ws.send(JSON.stringify(msg))
+    ws.send(JSON.stringify(msg));
   }
 }
 
 // ─── Factory createVilRealtimeProvider ───────────────────────────────────────
 
 export function createVilRealtimeProvider(baseUrl?: string): RealtimeProvider {
-  const wsBaseUrl = baseUrl ?? WS_URL
+  const wsBaseUrl = baseUrl ?? WS_URL;
 
   // Status koneksi bersama untuk semua saluran
   const conn: WsConnection = {
@@ -597,73 +634,78 @@ export function createVilRealtimeProvider(baseUrl?: string): RealtimeProvider {
     retryTimer: null,
     destroyed: false,
     pingInterval: null,
-  }
+  };
 
   // Fungsi kirim yang aman — mengantre pesan jika WS belum terbuka
-  const pendingMessages: ClientMessage[] = []
+  const pendingMessages: ClientMessage[] = [];
 
   function flushPending(): void {
-    if (!conn.ws || conn.ws.readyState !== WebSocket.OPEN) return
+    if (!conn.ws || conn.ws.readyState !== WebSocket.OPEN) return;
     while (pendingMessages.length > 0) {
-      const msg = pendingMessages.shift()
-      if (msg) sendMessage(conn.ws, msg)
+      const msg = pendingMessages.shift();
+      if (msg) sendMessage(conn.ws, msg);
     }
   }
 
   function safeSend(msg: ClientMessage): void {
     if (conn.ws && conn.ws.readyState === WebSocket.OPEN) {
-      sendMessage(conn.ws, msg)
+      sendMessage(conn.ws, msg);
     } else {
       // Simpan pesan dalam antrian — akan dikirim saat koneksi berhasil
-      pendingMessages.push(msg)
+      pendingMessages.push(msg);
     }
   }
 
   // Mulai koneksi WebSocket saat provider dibuat.
   // flushPending() dipanggil dari dalam ws.onopen di createConnection
   // setelah re-join semua saluran selesai.
-  createConnection(conn, wsBaseUrl, flushPending)
+  createConnection(conn, wsBaseUrl, flushPending);
 
   return {
-    channel(name: string, _options?: RealtimeChannelOptions): AppRealtimeChannel {
+    channel(
+      name: string,
+      _options?: RealtimeChannelOptions,
+    ): AppRealtimeChannel {
       // Kembalikan saluran yang sudah ada jika nama sama
-      const existing = conn.channels.get(name)
-      if (existing) return existing
+      const existing = conn.channels.get(name);
+      if (existing) return existing;
 
-      const ch = new VilChannel(name, safeSend)
-      conn.channels.set(name, ch)
-      return ch
+      const ch = new VilChannel(name, safeSend);
+      conn.channels.set(name, ch);
+      return ch;
     },
 
-    async removeChannel(channel: AppRealtimeChannel): Promise<'ok' | 'timed out' | 'error'> {
-      const ch = channel as VilChannel
-      conn.channels.delete(ch.name)
-      return ch.unsubscribe()
+    async removeChannel(
+      channel: AppRealtimeChannel,
+    ): Promise<"ok" | "timed out" | "error"> {
+      const ch = channel as VilChannel;
+      conn.channels.delete(ch.name);
+      return ch.unsubscribe();
     },
 
-    async removeAllChannels(): Promise<Array<'ok' | 'timed out' | 'error'>> {
-      const results: Array<'ok' | 'timed out' | 'error'> = []
+    async removeAllChannels(): Promise<Array<"ok" | "timed out" | "error">> {
+      const results: Array<"ok" | "timed out" | "error"> = [];
       for (const channel of conn.channels.values()) {
-        results.push(await channel.unsubscribe())
+        results.push(await channel.unsubscribe());
       }
-      conn.channels.clear()
+      conn.channels.clear();
 
       // Tutup koneksi WebSocket
-      conn.destroyed = true
+      conn.destroyed = true;
       if (conn.retryTimer) {
-        clearTimeout(conn.retryTimer)
-        conn.retryTimer = null
+        clearTimeout(conn.retryTimer);
+        conn.retryTimer = null;
       }
       if (conn.pingInterval) {
-        clearInterval(conn.pingInterval)
-        conn.pingInterval = null
+        clearInterval(conn.pingInterval);
+        conn.pingInterval = null;
       }
       if (conn.ws) {
-        conn.ws.close()
-        conn.ws = null
+        conn.ws.close();
+        conn.ws = null;
       }
 
-      return results
+      return results;
     },
-  }
+  };
 }
