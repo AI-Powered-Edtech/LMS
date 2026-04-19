@@ -31,10 +31,6 @@ export function computeXPToNextLevel(totalXP: number): {
   return { current, needed, pct }
 }
 
-export function calculateTotalXP(transactions: { xp_amount: number }[]): number {
-  return transactions.reduce((sum, t) => sum + (t.xp_amount || 0), 0)
-}
-
 // Calculate current streak from sorted completion dates (most recent first)
 // A streak is maintained if completions exist on consecutive calendar days
 export function calculateStreak(completions: { completed_at: string }[]): {
@@ -89,21 +85,6 @@ export function calculateStreak(completions: { completed_at: string }[]): {
   longest = longestRun
 
   return { current, longest }
-}
-
-// Engagement segment based on weekly XP earned
-// Matches SQL logic in course_stats refresh
-export function getEngagementSegment(weeklyXP: number): 'high' | 'medium' | 'low' | 'at_risk' {
-  if (weeklyXP >= 500) return 'high'
-  if (weeklyXP >= 200) return 'medium'
-  if (weeklyXP >= 50) return 'low'
-  return 'at_risk'
-}
-
-// Simple progress percentage
-export function calculateProgress(completedLessons: number, totalLessons: number): number {
-  if (totalLessons === 0) return 0
-  return Math.min(100, Math.round((completedLessons / totalLessons) * 100))
 }
 
 // Client-side leaderboard ranking (for display ordering)

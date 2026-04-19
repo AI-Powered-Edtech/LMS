@@ -311,20 +311,6 @@ export async function getPendingCount(): Promise<number> {
 }
 
 // ---------------------------------------------------------------------------
-// IndexedDB availability check
-// ---------------------------------------------------------------------------
-
-/** Returns true if IndexedDB is available in the current environment. */
-/** @internal Reserved for future use */
-export function isIndexedDBAvailable(): boolean {
-  try {
-    return typeof indexedDB !== 'undefined' && indexedDB !== null
-  } catch {
-    return false
-  }
-}
-
-// ---------------------------------------------------------------------------
 // Encrypted quiz answers — data sensitif dienkripsi sebelum disimpan
 // ---------------------------------------------------------------------------
 
