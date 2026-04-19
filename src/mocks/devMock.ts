@@ -74,7 +74,14 @@ export function setupDevMocks() {
     }
 
     // Mock API requests for the dashboard
-    if (url.includes('/api/v1/data') || url.includes('/api/v1/courses') || url.includes('/api/v1/')) {
+    if (url.includes('/api/v1/courses')) {
+      return new Response(JSON.stringify({ courses: [], count: 0 }), {
+        status: 200,
+        headers: { 'Content-Type': 'application/json' },
+      })
+    }
+
+    if (url.includes('/api/v1/data') || url.includes('/api/v1/')) {
       // Just return empty array for data to prevent crashes
       return new Response(JSON.stringify([]), {
         status: 200,
