@@ -1,4 +1,4 @@
-/* eslint-disable max-lines */
+ 
 import { getApiBackend, getApiClient } from '@/services/api'
 import { buildRequestHeaders, createRequestId, runShadowComparison } from '@/services/api/shadow'
 import { readVilSession } from '@/services/auth/vilSession'

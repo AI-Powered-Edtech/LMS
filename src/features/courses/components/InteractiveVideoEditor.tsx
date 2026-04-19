@@ -66,7 +66,7 @@ export function InteractiveVideoEditor({
       if (!tenantId) return
       try {
         const data = await getTeacherQuizzes(tenantId)
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+         
         setQuizzes(data.map((q: any) => ({ id: String(q.id ?? ''), title: String(q.title ?? '') })))
       } catch (err) {
         logger.error('Failed to load quizzes', err)

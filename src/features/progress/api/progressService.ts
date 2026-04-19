@@ -2,12 +2,12 @@ import { db } from "@/services/db";
 import { logger } from "@/utils/logger";
 
 import type {
-  StudentProgressData,
-  ProfileData,
-  QuizAttemptData,
   Achievement,
   AchievementItem,
   CourseProgressItem,
+  ProfileData,
+  QuizAttemptData,
+  StudentProgressData,
 } from "./types";
 
 export type { StudentProgressData } from "./types";

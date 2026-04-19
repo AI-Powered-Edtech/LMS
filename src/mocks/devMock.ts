@@ -1,5 +1,5 @@
 export function setupDevMocks() {
-  if (!import.meta.env.DEV) return
+  if (!import.meta.env.DEV || navigator.webdriver) return
 
   const originalFetch = window.fetch
 

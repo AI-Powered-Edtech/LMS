@@ -1,6 +1,6 @@
 import { db } from "@/services/db";
-import { logger } from "@/utils/logger";
 import { logDevError } from "@/utils/logDevError";
+import { logger } from "@/utils/logger";
 
 import type { DigestChannel, DigestSettings } from "../types";
 export type { DigestChannel };
