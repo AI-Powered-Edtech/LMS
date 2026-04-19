@@ -1,4 +1,4 @@
-/* eslint-disable max-lines */
+ 
 import { db } from "@/services/db";
 import { logger } from "@/utils/logger";
 import { captureError } from "@/utils/sentry";

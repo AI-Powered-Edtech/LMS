@@ -57,6 +57,7 @@ test.describe("Login Flow", () => {
   });
 
   test("should show friendly error when login request fails", async ({ page }) => {
+    await page.route("**/api/v1/health", (route) => route.fulfill({ status: 200 }));
     await page.route("**/api/v1/auth/login", (route) => route.abort());
     await page.goto("/");
     await page.waitForLoadState("networkidle");

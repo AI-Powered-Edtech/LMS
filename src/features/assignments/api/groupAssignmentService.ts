@@ -1,4 +1,5 @@
 import { db } from "@/services/db";
+
 import type { ProfileRow as DBProfileRow } from "./types";
 
 type ProfileRow = DBProfileRow;
@@ -12,10 +13,10 @@ type EligibleStudent = import("./types").EligibleStudent;
 export type {
   CreateGroupInput,
   CreateGroupTaskInput,
-  TeacherGroupEntry,
+  EligibleStudent,
   GroupMessage,
   GroupTaskRow,
-  EligibleStudent,
+  TeacherGroupEntry,
 };
 
 export interface GroupSettings {
@@ -345,7 +346,7 @@ export function subscribeToGroupMessages(
   _tenantId: string,
   _callback: (message: GroupMessage) => void,
 ) {
-  // eslint-disable-next-line @typescript-eslint/no-empty-function
+   
   return { unsubscribe: () => {} };
 }
 

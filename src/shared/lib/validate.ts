@@ -31,7 +31,7 @@ export function validate(
   schema: v.GenericSchema,
   data: unknown,
   label?: string
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+   
 ): Record<string, any>
 export function validate(schema: v.GenericSchema, data: unknown, label?: string): unknown {
   const result = v.safeParse(schema, data)
@@ -58,7 +58,7 @@ export function validateArray(
   schema: v.GenericSchema,
   data: unknown[],
   label?: string
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+   
 ): Record<string, any>[]
 export function validateArray(schema: v.GenericSchema, data: unknown[], label?: string): unknown[] {
   if (isDev) {

@@ -1,4 +1,4 @@
-/* eslint-disable max-lines */
+ 
 import Papa from "papaparse";
 
 import { db } from "@/services/db";
