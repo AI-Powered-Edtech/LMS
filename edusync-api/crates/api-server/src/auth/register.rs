@@ -10,7 +10,7 @@ pub async fn register_handler(
     svc: ServiceCtx,
     body: ShmSlice,
 ) -> HandlerResult<VilResponse<AuthResponse>> {
-    let state = svc.state::<Arc<AppState>>()?.clone();
+    let state = svc.state::<AppState>().map(|s| Arc::new(s.clone()))?;
     let body: RegisterRequest = body.json().map_err(|e| VilError::bad_request(e.to_string()))?;
 
     body.validate().map_err(|e| VilError::bad_request(e))?;
@@ -43,8 +43,8 @@ pub async fn register_handler(
 
     // Insert into auth.users for FK compatibility — non-fatal (profiles is source of truth)
     if let Err(e) = sqlx::query(
-        r#"INSERT INTO auth.users (id, email, encrypted_password, created_at, updated_at, aud, role, is_sso_user, is_anonymous)
-           VALUES ($1, $2, $3, now(), now(), 'authenticated', 'authenticated', false, false)
+        r#"INSERT INTO auth.users (id, email, encrypted_password, created_at, updated_at, aud, role)
+           VALUES ($1, $2, $3, now(), now(), 'authenticated', 'authenticated')
            ON CONFLICT (id) DO UPDATE SET email = EXCLUDED.email, updated_at = NOW()"#
     )
     .bind(user_id)
@@ -71,8 +71,8 @@ pub async fn register_handler(
     })?;
 
     sqlx::query(
-        r#"INSERT INTO public.profiles (id, email, first_name, last_name, created_at, updated_at)
-           VALUES ($1, $2, $3, $4, now(), now())
+        r#"INSERT INTO public.profiles (id, email, first_name, last_name, tenant_id, created_at, updated_at)
+           VALUES ($1, $2, $3, $4, '00000000-0000-0000-0000-000000000001'::uuid, now(), now())
            ON CONFLICT (id) DO UPDATE SET updated_at = now()"#,
     )
     .bind(user_id)

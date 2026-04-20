@@ -29,7 +29,6 @@ import { AppProviders } from './app/providers'
 import { validateEnv } from './config/env.schema'
 import { normalizeLegacyHashUrl, sanitizeRedirectTarget } from './features/auth/utils/authFlow'
 import { useToast } from './hooks/useToast'
-import { setupDevMocks } from './mocks/devMock'
 import { initApiClient } from './services/api'
 import { getVilHttpBaseUrl } from './services/api/baseUrl'
 import { setAuthProvider } from './services/auth'
@@ -45,8 +44,6 @@ import { reportWebVitals } from './utils/webVitals'
 validateEnv()
 
 initApiClient()
-
-setupDevMocks()
 
 const vilApiUrl = getVilHttpBaseUrl()
 setAuthProvider(createVilAuthProvider(vilApiUrl))

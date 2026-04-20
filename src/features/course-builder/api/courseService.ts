@@ -31,7 +31,7 @@ export const builderCourseService = {
       .eq('tenant_id', tenantId)
       .limit(1)
 
-    const course = courses?.[0]
+    const course = (courses as any[])?.[0]
 
     if (courseErr || !course) {
       console.error('Course fetch error:', courseErr, 'Course:', course);

@@ -10,7 +10,7 @@ pub async fn reset_password_handler(
     svc: ServiceCtx,
     body: ShmSlice,
 ) -> HandlerResult<VilResponse<serde_json::Value>> {
-    let state = svc.state::<Arc<AppState>>()?.clone();
+    let state = svc.state::<AppState>().map(|s| Arc::new(s.clone()))?;
     let body: ResetPasswordRequest = body.json().map_err(|e| VilError::bad_request(e.to_string()))?;
 
     body.validate().map_err(|e| VilError::bad_request(e))?;
@@ -51,7 +51,7 @@ pub async fn update_password_handler(
     svc: ServiceCtx,
     body: ShmSlice,
 ) -> HandlerResult<VilResponse<serde_json::Value>> {
-    let state = svc.state::<Arc<AppState>>()?.clone();
+    let state = svc.state::<AppState>().map(|s| Arc::new(s.clone()))?;
     let body: UpdatePasswordRequest = body.json().map_err(|e| VilError::bad_request(e.to_string()))?;
 
     if body.password.len() < 8 {

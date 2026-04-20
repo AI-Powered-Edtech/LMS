@@ -26,7 +26,7 @@ pub async fn switch_tenant_handler(
     headers: HeaderMap,
     body: ShmSlice,
 ) -> HandlerResult<VilResponse<AuthResponse>> {
-    let state = svc.state::<Arc<AppState>>()?.clone();
+    let state = svc.state::<AppState>().map(|s| Arc::new(s.clone()))?;
     let body: SwitchTenantRequest = body.json().map_err(|e| VilError::bad_request(e.to_string()))?;
 
     let token = headers

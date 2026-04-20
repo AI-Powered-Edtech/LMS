@@ -233,12 +233,15 @@ export default defineConfig(({ mode }) => {
         },
       },
       hmr: process.env.DISABLE_HMR !== "true",
+      port: 5173,
+      host: true,
       watch: {
         ignored: [
           "**/node_modules/**",
           "**/.pnpm-store/**",
           "**/.git/**",
           "**/.claude/**",
+          "**/edusync-api/**",
         ],
       },
     },

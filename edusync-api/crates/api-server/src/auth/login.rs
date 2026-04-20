@@ -30,7 +30,7 @@ pub async fn login_handler(
     svc: ServiceCtx,
     body: ShmSlice,
 ) -> HandlerResult<VilResponse<AuthResponse>> {
-    let state = svc.state::<Arc<AppState>>()?.clone();
+    let state = svc.state::<AppState>().map(|s| Arc::new(s.clone()))?;
     let body: LoginRequest = body.json().map_err(|e| VilError::bad_request(e.to_string()))?;
 
     body.validate().map_err(|e| VilError::bad_request(e))?;

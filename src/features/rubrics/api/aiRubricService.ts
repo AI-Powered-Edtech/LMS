@@ -1,4 +1,5 @@
-import { db } from '@/services/db'
+import { getVilHttpBaseUrl } from '@/services/api/baseUrl'
+import { getDbClient } from '@/services/db'
 
 import type { RubricInsert } from '../types'
 
@@ -28,7 +29,7 @@ export const aiRubricService = {
   ): Promise<RubricInsert> {
     const {
       data: { session },
-    } = await db.auth.getSession()
+    } = await getDbClient().auth.getSession()
     if (!session) throw new Error('Tidak terautentikasi')
 
     const prompt = `Buat rubrik penilaian untuk tugas berikut dalam Bahasa Indonesia.
@@ -58,7 +59,7 @@ Kembalikan HANYA JSON (tanpa teks lain):
 }`
 
     const response = await fetch(
-      `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/generate-ai-content`,
+      `${getVilHttpBaseUrl()}/functions/v1/generate-ai-content`,
       {
         method: 'POST',
         headers: {
@@ -81,7 +82,7 @@ Kembalikan HANYA JSON (tanpa teks lain):
       data = await response.json()
     }
 
-    // The generate-ai-content function returns a mock — parse content if it's a string
+    // Parse the response content
     let rubricData: AIRubricData = {}
     try {
       if (typeof data.content === 'string') {
@@ -89,7 +90,7 @@ Kembalikan HANYA JSON (tanpa teks lain):
       } else if (data.criteria) {
         rubricData = data as AIRubricData
       } else {
-        // Fallback: build a sensible rubric from the mock response
+        // Fallback: build a sensible rubric from the response
         rubricData = buildFallbackRubric(assignmentTitle)
       }
     } catch {
