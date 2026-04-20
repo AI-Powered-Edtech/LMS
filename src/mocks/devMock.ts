@@ -16,6 +16,7 @@ export function setupDevMocks() {
     if (url.includes('/api/v1/auth/login')) {
       const body = init?.body ? JSON.parse(init.body as string) : {}
       const role = body.email.split('@')[0]
+      localStorage.setItem('mock_role', role)
       return new Response(
         JSON.stringify({
           access_token: 'mock-token-123',
@@ -32,21 +33,22 @@ export function setupDevMocks() {
     }
 
     if (url.includes('/api/v1/auth/bootstrap')) {
+      const isStudent = localStorage.getItem('mock_role') === 'student';
       return new Response(
         JSON.stringify({
           profile: {
-            id: 'mock-id',
-            first_name: 'Dev',
-            last_name: 'User',
+            id: isStudent ? 'mock-student-id' : 'mock-id',
+            first_name: isStudent ? 'Demo' : 'Dev',
+            last_name: isStudent ? 'Student' : 'User',
             avatar_url: null,
-            email: 'dev@edusync.dev',
+            email: isStudent ? 'student@edusync.dev' : 'dev@edusync.dev',
           },
           memberships: [
             {
               tenant_id: 'mock-tenant-id',
               tenant_name: 'Mock School',
               tenant_slug: 'mock-school',
-              role: 'teacher',
+              role: isStudent ? 'student' : 'teacher',
               status: 'active',
               is_active: true,
               joined_at: new Date().toISOString(),
@@ -81,7 +83,7 @@ export function setupDevMocks() {
         id: 'mock-course',
         title: 'Mock Course',
         description: 'This is a mock course',
-        status: 'draft',
+        status: 'published',
         created_at: new Date().toISOString(),
         updated_at: new Date().toISOString(),
         tenant_id: 'mock-tenant-id'
@@ -92,8 +94,41 @@ export function setupDevMocks() {
       });
     }
 
+    if (url.match(/\/api\/v1\/courses\/[a-zA-Z0-9-]+\/modules/)) {
+      const moduleData = {
+        id: 'mock-module-1',
+        course_id: 'mock-course',
+        title: 'Pengantar Biologi',
+        description: 'Bab pertama',
+        order: 1,
+        status: 'published',
+        tenant_id: 'mock-tenant-id',
+        lessons: [
+          {
+            id: 'mock-lesson-1',
+            title: 'Apa itu Sel?',
+            duration_minutes: 5,
+            order: 1
+          }
+        ]
+      };
+      return new Response(JSON.stringify([moduleData]), {
+        status: 200,
+        headers: { 'Content-Type': 'application/json' }
+      });
+    }
+
     if (url.includes('/api/v1/data/course_modules')) {
-      return new Response(JSON.stringify({ data: [] }), {
+      const moduleData = {
+        id: 'mock-module-1',
+        course_id: 'mock-course',
+        title: 'Pengantar Biologi',
+        description: 'Bab pertama',
+        order_index: 1,
+        status: 'published',
+        tenant_id: 'mock-tenant-id'
+      };
+      return new Response(JSON.stringify({ data: [moduleData] }), {
         status: 200,
         headers: { 'Content-Type': 'application/json' }
       });
@@ -124,8 +159,36 @@ export function setupDevMocks() {
       });
     }
 
+    if (url.match(/\/api\/v1\/modules\/[a-zA-Z0-9-]+\/lessons/)) {
+      const lessonData = {
+        id: 'mock-lesson-1',
+        module_id: 'mock-module-1',
+        title: 'Apa itu Sel?',
+        content: '<p>Sel adalah unit terkecil dari kehidupan.</p>',
+        type: 'content',
+        order_index: 1,
+        status: 'published',
+        tenant_id: 'mock-tenant-id'
+      };
+      return new Response(JSON.stringify([lessonData]), {
+        status: 200,
+        headers: { 'Content-Type': 'application/json' }
+      });
+    }
+
     if (url.includes('/api/v1/data/lessons')) {
-      return new Response(JSON.stringify({ data: [] }), {
+      const lessonData = {
+        id: 'mock-lesson-1',
+        module_id: 'mock-module-1',
+        title: 'Apa itu Sel?',
+        content: '<p>Sel adalah unit terkecil dari kehidupan.</p>',
+        type: 'content',
+        order: 1,
+        is_published: true,
+        duration_minutes: 5,
+        tenant_id: 'mock-tenant-id'
+      };
+      return new Response(JSON.stringify({ data: [lessonData] }), {
         status: 200,
         headers: { 'Content-Type': 'application/json' }
       });
@@ -145,6 +208,17 @@ export function setupDevMocks() {
           { status: 201, headers: { 'Content-Type': 'application/json' } }
         )
       }
+      
+      const courseData = {
+        id: 'mock-course',
+        title: 'Mock Course',
+        description: 'This is a mock course',
+        status: 'published',
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+        tenant_id: 'mock-tenant-id'
+      };
+
       if (url.match(/\/(api|rest)\/v1\/courses\/[a-zA-Z0-9-]+$/) || url.includes('id=eq.')) {
         console.log('MOCK INTERCEPTED COURSE GET:', url);
         // Handle Supabase .single() which expects a single object when fetching by ID
@@ -157,22 +231,12 @@ export function setupDevMocks() {
           }
         }
         
-        const courseData = {
-          id: url.includes('id=eq.') ? url.match(/id=eq\.([^&]+)/)?.[1] || 'mock-course' : url.split('/').pop(),
-          title: 'Mock Course',
-          description: 'This is a mock course',
-          status: 'draft',
-          created_at: new Date().toISOString(),
-          updated_at: new Date().toISOString(),
-          tenant_id: 'mock-tenant-id'
-        };
-        
         return new Response(
           JSON.stringify((url.includes('id=eq.') && !isSingle) ? [courseData] : courseData),
           { status: 200, headers: { 'Content-Type': 'application/json' } }
         )
       }
-      return new Response(JSON.stringify({ courses: [], count: 0 }), {
+      return new Response(JSON.stringify({ courses: [courseData], count: 1 }), {
         status: 200,
         headers: { 'Content-Type': 'application/json' },
       })
@@ -180,6 +244,60 @@ export function setupDevMocks() {
     
     if (url.includes('/rest/v1/course_modules')) {
       return new Response(JSON.stringify([]), { status: 200, headers: { 'Content-Type': 'application/json' } })
+    }
+
+    if (url.includes('/api/v1/data/quiz_attempts_v2')) {
+      const body = init?.body ? JSON.parse(init.body as string) : {};
+      const attemptData = {
+        id: 'mock-attempt-1',
+        quiz_id: 'mock-quiz-1',
+        student_id: 'mock-student-id',
+        tenant_id: 'mock-tenant-id',
+        status: 'IN_PROGRESS',
+        question_manifest: ['mock-question-1']
+      };
+      const responseData = body.single ? attemptData : [attemptData];
+      return new Response(JSON.stringify({ data: responseData }), {
+        status: 200,
+        headers: { 'Content-Type': 'application/json' }
+      });
+    }
+
+    if (url.includes('/api/v1/data/quiz_attempt_questions_v2')) {
+      return new Response(JSON.stringify({ data: [] }), {
+        status: 200,
+        headers: { 'Content-Type': 'application/json' }
+      });
+    }
+
+    if (url.includes('/api/v1/data/quiz_questions')) {
+      const body = init?.body ? JSON.parse(init.body as string) : {};
+      const questionData = {
+        id: 'mock-question-1',
+        quiz_id: 'mock-quiz-1',
+        text: 'Apa fungsi utama mitokondria pada sel hewan?',
+        question_type: 'MCQ',
+        points: 10,
+        tenant_id: 'mock-tenant-id'
+      };
+      const responseData = body.single ? questionData : [questionData];
+      return new Response(JSON.stringify({ data: responseData }), {
+        status: 200,
+        headers: { 'Content-Type': 'application/json' }
+      });
+    }
+
+    if (url.includes('/api/v1/data/quiz_options')) {
+      const optionsData = [
+        { id: 'opt-1', question_id: 'mock-question-1', text: 'Respirasi seluler', tenant_id: 'mock-tenant-id' },
+        { id: 'opt-2', question_id: 'mock-question-1', text: 'Sintesis protein', tenant_id: 'mock-tenant-id' },
+        { id: 'opt-3', question_id: 'mock-question-1', text: 'Fotosintesis', tenant_id: 'mock-tenant-id' },
+        { id: 'opt-4', question_id: 'mock-question-1', text: 'Pencernaan intraseluler', tenant_id: 'mock-tenant-id' }
+      ];
+      return new Response(JSON.stringify({ data: optionsData }), {
+        status: 200,
+        headers: { 'Content-Type': 'application/json' }
+      });
     }
 
     if (url.includes('/api/v1/data/classes')) {
@@ -204,6 +322,23 @@ export function setupDevMocks() {
       });
     }
 
+    if (url.includes('/api/v1/data/quiz_assignments')) {
+      const assignmentData = {
+        id: 'mock-quiz-assignment-1',
+        quiz_id: 'mock-quiz-1',
+        class_id: 'mock-class-1',
+        status: 'active',
+        available_from: new Date().toISOString(),
+        due_at: new Date(Date.now() + 86400000).toISOString(),
+        max_attempts: 1,
+        tenant_id: 'mock-tenant-id'
+      };
+      return new Response(JSON.stringify({ data: [assignmentData] }), {
+        status: 200,
+        headers: { 'Content-Type': 'application/json' }
+      });
+    }
+
     if (url.includes('/api/v1/data/quizzes')) {
       const body = init?.body ? JSON.parse(init.body as string) : {};
       if (body.action === 'insert') {
@@ -213,7 +348,7 @@ export function setupDevMocks() {
           created_at: new Date().toISOString()
         }] }), { status: 201, headers: { 'Content-Type': 'application/json' } });
       }
-      return new Response(JSON.stringify({ data: [{
+      const quizData = {
         id: 'mock-quiz-1',
         title: 'Kuis Struktur Sel',
         status: 'published',
@@ -225,14 +360,37 @@ export function setupDevMocks() {
         created_at: new Date().toISOString(),
         updated_at: new Date().toISOString(),
         tenant_id: 'mock-tenant-id'
-      }] }), {
+      };
+      const responseData = body.single ? quizData : [quizData];
+      return new Response(JSON.stringify({ data: responseData }), {
         status: 200,
         headers: { 'Content-Type': 'application/json' }
       });
     }
 
-    if (url.includes('/api/v1/data/enrollments')) {
-      return new Response(JSON.stringify({ data: [], count: 0 }), {
+    if (url.includes('/api/v1/data/course_enrollments') || url.includes('/api/v1/data/enrollments')) {
+      const courseData = {
+        id: 'mock-course',
+        title: 'Mock Course',
+        description: 'This is a mock course',
+        status: 'published',
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+        tenant_id: 'mock-tenant-id'
+      };
+      const enrollmentData = {
+        id: 'mock-enrollment',
+        student_id: 'mock-student-id',
+        user_id: 'mock-student-id',
+        class_id: 'mock-class-1',
+        course_id: 'mock-course',
+        status: 'ACTIVE',
+        enrolled_at: new Date().toISOString(),
+        joined_at: new Date().toISOString(),
+        course: courseData,
+        courses: courseData
+      };
+      return new Response(JSON.stringify({ data: [enrollmentData] }), {
         status: 200,
         headers: { 'Content-Type': 'application/json' }
       });
@@ -260,6 +418,33 @@ export function setupDevMocks() {
         created_by: 'mock-teacher-id',
         author: { full_name: 'Demo Teacher', avatar_url: null }
       }] }), {
+        status: 200,
+        headers: { 'Content-Type': 'application/json' }
+      });
+    }
+
+    if (url.includes('/api/v1/rpc/v1_start_quiz_attempt')) {
+      const attemptData = {
+        attempt_id: 'mock-attempt-1',
+        version: 1,
+        expires_at: new Date(Date.now() + 3600000).toISOString()
+      };
+      return new Response(JSON.stringify({ data: attemptData }), {
+        status: 200,
+        headers: { 'Content-Type': 'application/json' }
+      });
+    }
+
+    if (url.includes('/api/v1/rpc/v1_submit_quiz_attempt')) {
+      const resultData = {
+        score: 100,
+        passed: true,
+        correct_count: 10,
+        total_questions: 10,
+        points_earned: 100,
+        total_points: 100
+      };
+      return new Response(JSON.stringify({ data: resultData }), {
         status: 200,
         headers: { 'Content-Type': 'application/json' }
       });
