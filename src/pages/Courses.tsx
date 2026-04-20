@@ -129,9 +129,9 @@ export const Courses: React.FC = () => {
       }
 
       setIsModalOpen(false)
-      void navigate(
-        `${getPath('/app/teacher/course-builder', '/app/admin/course-builder')}?courseId=${newCourse.id}`
-      )
+      const targetPath = `${getPath('/app/teacher/course-builder', '/app/admin/course-builder')}?courseId=${newCourse.id}`
+      console.log('Navigating to targetPath:', targetPath)
+      void navigate(targetPath)
     } catch (err: unknown) {
       if (import.meta.env.DEV) logger.error('Failed to create course:', err)
       addToast({

@@ -101,6 +101,7 @@ function CourseBuilderPage() {
   }
 
   if (state.error) {
+    console.error('BUILDER ERROR:', state.error);
     return (
       <div className="flex items-center justify-center h-[80vh]">
         <div className="text-center">
