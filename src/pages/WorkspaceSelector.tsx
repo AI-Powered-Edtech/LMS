@@ -1,4 +1,5 @@
-import { Loader2, LogOut } from 'lucide-react'
+import { ArrowRight, Building, Loader2, LogOut } from 'lucide-react'
+import { motion } from 'motion/react'
 import React, { useEffect, useState } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
 
@@ -8,7 +9,6 @@ import { consumePostAuthRedirect, peekPostAuthRedirect } from '@/features/auth/u
 import { usePageTitle } from '@/hooks/usePageTitle'
 
 import { useAuth } from '../contexts/AuthContext'
-import { MembershipList } from '../features/onboarding/components/MembershipList'
 import { OnboardingLayout } from '../features/onboarding/components/OnboardingLayout'
 import { RolePickerStep } from '../features/onboarding/components/RolePickerStep'
 import { SchoolCreateForm } from '../features/onboarding/components/SchoolCreateForm'
@@ -169,7 +169,7 @@ export function WorkspaceSelector() {
 
   if (loading) {
     return (
-      <div className="flex h-screen items-center justify-center bg-slate-900">
+      <div className="flex h-screen items-center justify-center bg-slate-50 dark:bg-slate-950">
         <Loader2 className="h-8 w-8 animate-spin text-blue-500" />
       </div>
     )
@@ -243,10 +243,82 @@ export function WorkspaceSelector() {
   // EXISTING USER: Has memberships → pick workspace
   // ════════════════════════════════════════════════════════════════════════════
   return (
-    <MembershipList
-      memberships={memberships}
-      onSelectTenant={setActiveTenant}
-      onSignOut={handleSignOut}
-    />
+    <div className="flex min-h-screen flex-col items-center justify-center bg-slate-50 p-6 font-sans dark:bg-slate-950">
+      <div className="w-full max-w-md">
+        <motion.div
+          initial={{ opacity: 0, y: -20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5, ease: 'easeOut' }}
+          className="mb-8"
+        >
+          <h1 className="mb-2 text-2xl font-semibold tracking-tight text-slate-900 dark:text-white">
+            Pilih Ruang Kerja
+          </h1>
+          <p className="text-sm text-slate-500 dark:text-slate-400">
+            Pilih organisasi sekolah untuk melanjutkan
+          </p>
+        </motion.div>
+
+        <motion.div
+          className="flex flex-col gap-3"
+          initial="hidden"
+          animate="visible"
+          variants={{
+            hidden: {},
+            visible: {
+              transition: {
+                staggerChildren: 0.05,
+              },
+            },
+          }}
+        >
+          {memberships.map((membership) => (
+            <motion.button
+              key={membership.tenant_id}
+              onClick={() => void setActiveTenant(membership.tenant_id)}
+              variants={{
+                hidden: { opacity: 0, y: 10 },
+                visible: { opacity: 1, y: 0 },
+              }}
+              whileHover={{ scale: 1.01 }}
+              whileTap={{ scale: 0.99 }}
+              className="group relative flex w-full items-center justify-between overflow-hidden rounded-xl border border-slate-200 bg-white p-4 text-left transition-all hover:border-blue-500 hover:shadow-sm dark:border-slate-800 dark:bg-slate-900 dark:hover:border-blue-500/50"
+            >
+              <div className="z-10 flex items-center gap-4">
+                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-slate-100 text-slate-500 transition-colors group-hover:bg-blue-50 group-hover:text-blue-600 dark:bg-slate-800 dark:text-slate-400 dark:group-hover:bg-blue-500/10 dark:group-hover:text-blue-400">
+                  <Building className="h-5 w-5" />
+                </div>
+                <div>
+                  <h3 className="text-sm font-medium text-slate-900 transition-colors group-hover:text-blue-600 dark:text-slate-100 dark:group-hover:text-blue-400">
+                    {membership.tenant_name}
+                  </h3>
+                  <p className="mt-0.5 text-xs capitalize text-slate-500 dark:text-slate-500">
+                    Peran: {membership.role}
+                  </p>
+                </div>
+              </div>
+              <div className="z-10 text-slate-400 transition-colors group-hover:text-blue-500 dark:text-slate-600 dark:group-hover:text-blue-400">
+                <ArrowRight className="h-4 w-4" />
+              </div>
+            </motion.button>
+          ))}
+        </motion.div>
+
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 0.3, duration: 0.5 }}
+          className="mt-8 flex justify-center border-t border-slate-200 pt-6 dark:border-slate-800"
+        >
+          <button
+            onClick={handleSignOut}
+            className="flex items-center gap-2 text-xs font-medium text-slate-500 transition-colors hover:text-slate-800 dark:text-slate-500 dark:hover:text-slate-300"
+          >
+            <LogOut className="h-3.5 w-3.5" />
+            Keluar dari akun
+          </button>
+        </motion.div>
+      </div>
+    </div>
   )
 }
