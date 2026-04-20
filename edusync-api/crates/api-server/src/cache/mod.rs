@@ -1,4 +1,5 @@
 use redis::{aio::ConnectionManager, Client};
+use redis::AsyncCommands;
 use serde::{de::DeserializeOwned, Serialize};
 use std::sync::Arc;
 use std::time::Duration;
@@ -20,29 +21,30 @@ impl CacheClient {
     }
 
     pub async fn get<T: DeserializeOwned>(&self, key: &str) -> anyhow::Result<Option<T>> {
-        let value: Option<String> = self.conn.get(key).await?;
-        match value {
-            Some(v) => {
-                let deserialized: T = serde_json::from_str(&v)?;
-                Ok(Some(deserialized))
-            }
-            None => Ok(None),
+        let mut conn = self.conn.clone();
+        let value: Option<String> = conn.get(key).await?;
+        if let Some(v) = value {
+            return Ok(Some(serde_json::from_str(&v)?));
         }
+        Ok(None)
     }
 
     pub async fn set<T: Serialize>(&self, key: &str, value: &T, ttl: Duration) -> anyhow::Result<()> {
+        let mut conn = self.conn.clone();
         let serialized = serde_json::to_string(value)?;
-        self.conn.set_ex(key, serialized, ttl.as_secs() as u64).await?;
+        let _: () = conn.set_ex(key, serialized, ttl.as_secs() as u64).await?;
         Ok(())
     }
 
     pub async fn delete(&self, key: &str) -> anyhow::Result<()> {
-        self.conn.del(key).await?;
+        let mut conn = self.conn.clone();
+        let _: () = conn.del(key).await?;
         Ok(())
     }
 
     pub async fn exists(&self, key: &str) -> bool {
-        self.conn.exists(key).await.unwrap_or(false)
+        let mut conn = self.conn.clone();
+        conn.exists(key).await.unwrap_or(false)
     }
 }
 

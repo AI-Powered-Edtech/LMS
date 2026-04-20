@@ -229,7 +229,7 @@ export function InteractiveVideoEditor({
                   Unggah video langsung ke EduSync
                 </p>
                 <p className="text-xs text-blue-700 dark:text-blue-300 leading-relaxed">
-                  Video akan disimpan di Supabase Storage. Setelah selesai, URL video akan otomatis
+                  Video akan disimpan di VIL Storage. Setelah selesai, URL video akan otomatis
                   diisi ke kolom URL di atas.
                 </p>
               </div>

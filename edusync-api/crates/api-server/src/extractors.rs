@@ -102,7 +102,7 @@ where
     type Rejection = VilError;
 
     async fn from_request_parts(parts: &mut Parts, _state: &S) -> Result<Self, Self::Rejection> {
-        let Extension(state): Extension<Arc<AppState>> =
+        let Extension(state): Extension<Arc<Arc<AppState>>> =
             Extension::from_request_parts(parts, _state)
                 .await
                 .map_err(|_| VilError::unauthorized("Tidak terautentikasi"))?;
@@ -150,7 +150,7 @@ where
     type Rejection = VilError;
 
     async fn from_request_parts(parts: &mut Parts, _state: &S) -> Result<Self, Self::Rejection> {
-        let Extension(state): Extension<Arc<AppState>> =
+        let Extension(state): Extension<Arc<Arc<AppState>>> =
             Extension::from_request_parts(parts, _state)
                 .await
                 .map_err(|_| VilError::unauthorized("Tidak terautentikasi"))?;

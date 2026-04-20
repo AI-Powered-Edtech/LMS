@@ -10,7 +10,7 @@ pub async fn verify_email_handler(
     svc: ServiceCtx,
     body: ShmSlice,
 ) -> HandlerResult<VilResponse<serde_json::Value>> {
-    let state = svc.state::<Arc<AppState>>()?.clone();
+    let state = svc.state::<AppState>().map(|s| Arc::new(s.clone()))?;
     let body: VerifyEmailRequest = body.json().map_err(|e| VilError::bad_request(e.to_string()))?;
 
     // token_hash is SHA-256 of the confirmation_token stored in public.users

@@ -182,11 +182,6 @@ class VilBucketClient implements StorageBucketClient {
       const resultPath = json.path ?? path
       const result: StorageUploadResponse = { data: { path: resultPath }, error: null }
 
-      // Dual-write: also upload to legacy provider (fire-and-forget)
-      if (DUAL_WRITE) {
-        this._dualWriteToSupabase(path, file, options)
-      }
-
       return result
     } catch (e) {
       if (IS_DEV) logger.warn('[VilStorage] upload error:', e)
@@ -255,11 +250,6 @@ class VilBucketClient implements StorageBucketClient {
         }
       }
 
-      // Dual-write: also upload to legacy provider (fire-and-forget)
-      if (DUAL_WRITE) {
-        this._dualWriteToSupabase(path, file, options)
-      }
-
       return { data: { path }, error: null }
     } catch (e) {
       if (IS_DEV) logger.warn('[VilStorage] presigned upload error:', e)
@@ -312,11 +302,6 @@ class VilBucketClient implements StorageBucketClient {
 
       const json = (await resp.json()) as { deleted?: string[] }
       const deleted = (json.deleted ?? paths).map((name) => ({ name }))
-
-      if (DUAL_WRITE) {
-        // Also remove from legacy provider (fire-and-forget)
-        this._dualRemoveFromSupabase(paths)
-      }
 
       return { data: deleted, error: null }
     } catch (e) {
@@ -416,25 +401,6 @@ class VilBucketClient implements StorageBucketClient {
       if (IS_DEV) logger.warn('[VilStorage] list error:', e)
       return { data: null, error: networkError() }
     }
-  }
-
-  // -------------------------------------------------------------------------
-  // Private: dual-write helpers (fire-and-forget)
-  // -------------------------------------------------------------------------
-
-  // Dual-write to secondary storage removed — VIL S3 is now the sole storage backend.
-  // These stubs are kept so call-sites inside DUAL_WRITE guards compile without change.
-
-  private _dualWriteToSupabase(
-    _path: string,
-    _file: File | Blob | ArrayBuffer | FormData | ReadableStream,
-    _options?: StorageUploadOptions
-  ): void {
-    // no-op: secondary storage decommissioned
-  }
-
-  private _dualRemoveFromSupabase(_paths: string[]): void {
-    // no-op: secondary storage decommissioned
   }
 }
 

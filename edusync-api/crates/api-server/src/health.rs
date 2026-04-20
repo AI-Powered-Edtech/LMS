@@ -6,7 +6,7 @@ use vil_server::prelude::*;
 use crate::state::AppState;
 
 pub async fn health_handler(ctx: ServiceCtx) -> HandlerResult<VilResponse<serde_json::Value>> {
-    let state = ctx.state::<Arc<AppState>>()?;
+    let state = ctx.state::<AppState>().map(|s| std::sync::Arc::new(s.clone()))?;
     let db_ok = sqlx::query_scalar::<_, i32>("SELECT 1")
         .fetch_one(&state.db)
         .await

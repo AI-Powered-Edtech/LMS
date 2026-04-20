@@ -37,7 +37,7 @@ pub async fn mfa_enroll_handler(
     headers: HeaderMap,
     body: ShmSlice,
 ) -> HandlerResult<VilResponse<MfaEnrollResponse>> {
-    let state = svc.state::<Arc<AppState>>()?.clone();
+    let state = svc.state::<AppState>().map(|s| Arc::new(s.clone()))?;
     let body: MfaEnrollRequest = body.json().map_err(|e| VilError::bad_request(e.to_string()))?;
 
     let token = extract_bearer(&headers)?;
@@ -101,7 +101,7 @@ pub async fn mfa_verify_handler(
     headers: HeaderMap,
     body: ShmSlice,
 ) -> HandlerResult<VilResponse<serde_json::Value>> {
-    let state = svc.state::<Arc<AppState>>()?.clone();
+    let state = svc.state::<AppState>().map(|s| Arc::new(s.clone()))?;
     let body: MfaVerifyRequest = body.json().map_err(|e| VilError::bad_request(e.to_string()))?;
 
     let token = extract_bearer(&headers)?;
@@ -157,7 +157,7 @@ pub async fn mfa_unenroll_handler(
     svc: ServiceCtx,
     headers: HeaderMap,
 ) -> HandlerResult<VilResponse<serde_json::Value>> {
-    let state = svc.state::<Arc<AppState>>()?.clone();
+    let state = svc.state::<AppState>().map(|s| Arc::new(s.clone()))?;
 
     let token = extract_bearer(&headers)?;
     let claims = verify_access_token(token)
