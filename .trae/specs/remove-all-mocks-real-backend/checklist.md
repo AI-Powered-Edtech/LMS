@@ -1,7 +1,7 @@
 - [ ] Folder `src/mocks` dan seluruh isinya telah terhapus.
 - [ ] Inisialisasi MSW (mock worker) telah dihapus dari aplikasi.
 - [ ] Dependensi `msw` hilang dari `package.json`.
-- [ ] Aplikasi berjalan 100% menggunakan backend Supabase/VIL tanpa peringatan terkait MSW di console.
+- [ ] Aplikasi berjalan 100% menggunakan backend VIL Rust tanpa peringatan terkait MSW di console dan tanpa koneksi ke Supabase.
 - [ ] Akun Guru Demo dan Siswa Demo riil telah didaftarkan di *real backend*.
 - [ ] Akun Guru Demo berhasil login dan mempublikasikan kursus/materi, tugas, dan kuis.
 - [ ] Akun Siswa Demo berhasil melihat, mengakses, dan mengerjakan tugas/kuis buatan Guru Demo.
