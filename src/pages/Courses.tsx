@@ -1,4 +1,4 @@
-import { BookOpen, Clock, Layers, Loader2, Plus, RefreshCw, Search, Users } from 'lucide-react'
+import { BookOpen, ChevronDown, Clock, FileText, Layers, LayoutList, Loader2, Plus, RefreshCw, Search, Users } from 'lucide-react'
 import { AnimatePresence, motion } from 'motion/react'
 import { useEffect, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
@@ -49,6 +49,8 @@ export const Courses: React.FC = () => {
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [newTitle, setNewTitle] = useState('')
   const [newDescription, setNewDescription] = useState('')
+  const [newSubject, setNewSubject] = useState('')
+  const [newLevel, setNewLevel] = useState('')
   const [isCreating, setIsCreating] = useState(false)
 
   // Assign Class Modal State
@@ -117,6 +119,8 @@ export const Courses: React.FC = () => {
       const newCourse = await courseService.createCourse({
         title: newTitle.trim(),
         description: newDescription.trim() || null,
+        subject: newSubject.trim() || null,
+        level: newLevel.trim() || null,
         tenant_id: activeTenant.id,
         created_by: user.id,
       })
@@ -125,9 +129,9 @@ export const Courses: React.FC = () => {
       }
 
       setIsModalOpen(false)
-      void navigate(
-        `${getPath('/app/teacher/course-builder', '/app/admin/course-builder')}?courseId=${newCourse.id}`
-      )
+      const targetPath = `${getPath('/app/teacher/course-builder', '/app/admin/course-builder')}?courseId=${newCourse.id}`
+      console.log('Navigating to targetPath:', targetPath)
+      void navigate(targetPath)
     } catch (err: unknown) {
       if (import.meta.env.DEV) logger.error('Failed to create course:', err)
       addToast({
@@ -142,6 +146,8 @@ export const Courses: React.FC = () => {
   const openModal = () => {
     setNewTitle('')
     setNewDescription('')
+    setNewSubject('')
+    setNewLevel('')
     setIsModalOpen(true)
   }
 
@@ -298,68 +304,132 @@ export const Courses: React.FC = () => {
               role="dialog"
               aria-modal="true"
               aria-label="Buat Materi Baru"
-              className="bg-white dark:bg-gray-800 rounded-3xl w-full max-w-[min(28rem,calc(100vw-2rem))] p-6 md:p-8 shadow-2xl border border-gray-100 dark:border-gray-700 overflow-hidden relative"
+              className="bg-white dark:bg-gray-800 rounded-[2rem] w-full max-w-2xl p-0 shadow-2xl border border-gray-100 dark:border-gray-700 overflow-hidden relative flex flex-col max-h-[90vh]"
             >
-              <div className="absolute top-0 left-0 w-full h-1.5 bg-gradient-to-r from-indigo-500 to-purple-600" />
+              <div className="absolute top-0 left-0 w-full h-2 bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500" />
 
-              <h2 className="text-2xl font-black mb-6 bg-clip-text text-transparent bg-gradient-to-r from-indigo-600 to-purple-600">
-                Buat Materi Baru
-              </h2>
+              <div className="px-8 pt-8 pb-6 border-b border-gray-100 dark:border-gray-700/50">
+                <div className="flex items-center gap-4 mb-2">
+                  <div className="p-3 bg-indigo-50 dark:bg-indigo-500/10 rounded-2xl text-indigo-600 dark:text-indigo-400">
+                    <BookOpen className="w-6 h-6" />
+                  </div>
+                  <div>
+                    <h2 className="text-2xl font-extrabold text-gray-900 dark:text-white tracking-tight">
+                      Buat Materi Baru
+                    </h2>
+                    <p className="text-sm text-gray-500 dark:text-gray-400 mt-1 font-medium">
+                      Lengkapi detail di bawah untuk memulai penyusunan materi.
+                    </p>
+                  </div>
+                </div>
+              </div>
 
-              <form onSubmit={handleCreateCourse}>
-                <div className="mb-5">
-                  <label className="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-2 ml-1">
-                    Judul Materi <span className="text-red-500">*</span>
-                  </label>
-                  {/* M-4: maxLength prevents over-long titles from hitting DB constraint */}
-                  <input
-                    type="text"
-                    required
-                    maxLength={255}
-                    value={newTitle}
-                    onChange={(e) => setNewTitle(e.target.value)}
-                    className="w-full px-4 py-3 border border-gray-200 dark:border-gray-600 rounded-xl bg-gray-50 dark:bg-gray-700/50 text-gray-900 dark:text-gray-100 focus:ring-4 focus:ring-indigo-500/20 focus:border-indigo-500 outline-none transition-all font-medium text-base"
-                    placeholder="Contoh: Dasar-dasar Design Thinking"
-                    autoFocus
-                  />
-                </div>
-                <div className="mb-8">
-                  <label className="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-2 ml-1">
-                    Deskripsi Singkat
-                  </label>
-                  <textarea
-                    rows={3}
-                    value={newDescription}
-                    onChange={(e) => setNewDescription(e.target.value)}
-                    className="w-full px-4 py-3 border border-gray-200 dark:border-gray-600 rounded-xl bg-gray-50 dark:bg-gray-700/50 text-gray-900 dark:text-gray-100 focus:ring-4 focus:ring-indigo-500/20 focus:border-indigo-500 outline-none transition-all font-medium resize-none"
-                    placeholder="Opsional: Jelaskan apa yang akan dipelajari siswa..."
-                  />
-                </div>
-                <div className="flex gap-3">
-                  <button
-                    type="button"
-                    onClick={() => setIsModalOpen(false)}
-                    className="flex-1 px-6 py-3 text-gray-600 dark:text-gray-400 font-bold hover:bg-gray-100 dark:hover:bg-gray-700 rounded-xl transition-colors"
-                    disabled={isCreating}
-                  >
-                    Batal
-                  </button>
-                  <button
-                    type="submit"
-                    disabled={isCreating || !newTitle.trim()}
-                    className="flex-[2] flex items-center justify-center px-6 py-3 bg-indigo-600 text-white rounded-xl font-bold hover:bg-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-lg shadow-indigo-500/20 active:scale-95"
-                  >
-                    {isCreating ? (
-                      <>
-                        <Loader2 className="w-5 h-5 mr-2 animate-spin" />
-                        Menyimpan...
-                      </>
-                    ) : (
-                      'Buat & Mulai Edit'
-                    )}
-                  </button>
-                </div>
-              </form>
+              <div className="overflow-y-auto px-8 py-6 custom-scrollbar">
+                <form id="create-course-form" onSubmit={handleCreateCourse} className="space-y-6">
+                  {/* Judul Materi */}
+                  <div>
+                    <label className="flex items-center gap-2 text-sm font-bold text-gray-700 dark:text-gray-300 mb-2">
+                      <FileText className="w-4 h-4 text-gray-400" />
+                      Judul Materi <span className="text-red-500">*</span>
+                    </label>
+                    <input
+                      type="text"
+                      required
+                      maxLength={255}
+                      value={newTitle}
+                      onChange={(e) => setNewTitle(e.target.value)}
+                      className="w-full px-4 py-3.5 border border-gray-200 dark:border-gray-600/80 rounded-xl bg-gray-50/50 dark:bg-gray-700/30 text-gray-900 dark:text-white focus:bg-white dark:focus:bg-gray-700 focus:ring-4 focus:ring-indigo-500/20 focus:border-indigo-500 outline-none transition-all font-medium text-base shadow-sm"
+                      placeholder="Contoh: Dasar-dasar Design Thinking"
+                      autoFocus
+                    />
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    {/* Mata Pelajaran */}
+                    <div>
+                      <label className="flex items-center gap-2 text-sm font-bold text-gray-700 dark:text-gray-300 mb-2">
+                        <BookOpen className="w-4 h-4 text-gray-400" />
+                        Mata Pelajaran
+                      </label>
+                      <div className="relative">
+                        <input
+                          type="text"
+                          maxLength={100}
+                          value={newSubject}
+                          onChange={(e) => setNewSubject(e.target.value)}
+                          className="w-full pl-4 pr-10 py-3.5 border border-gray-200 dark:border-gray-600/80 rounded-xl bg-gray-50/50 dark:bg-gray-700/30 text-gray-900 dark:text-white focus:bg-white dark:focus:bg-gray-700 focus:ring-4 focus:ring-indigo-500/20 focus:border-indigo-500 outline-none transition-all font-medium shadow-sm"
+                          placeholder="Contoh: Seni Rupa"
+                        />
+                        <ChevronDown className="absolute right-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
+                      </div>
+                    </div>
+
+                    {/* Tingkat / Level */}
+                    <div>
+                      <label className="flex items-center gap-2 text-sm font-bold text-gray-700 dark:text-gray-300 mb-2">
+                        <LayoutList className="w-4 h-4 text-gray-400" />
+                        Tingkat / Kelas
+                      </label>
+                      <div className="relative">
+                        <select
+                          value={newLevel}
+                          onChange={(e) => setNewLevel(e.target.value)}
+                          className="w-full pl-4 pr-10 py-3.5 border border-gray-200 dark:border-gray-600/80 rounded-xl bg-gray-50/50 dark:bg-gray-700/30 text-gray-900 dark:text-white focus:bg-white dark:focus:bg-gray-700 focus:ring-4 focus:ring-indigo-500/20 focus:border-indigo-500 outline-none transition-all font-medium appearance-none shadow-sm cursor-pointer"
+                        >
+                          <option value="">Pilih Tingkat...</option>
+                          <option value="SD / Sederajat">SD / Sederajat</option>
+                          <option value="SMP / Sederajat">SMP / Sederajat</option>
+                          <option value="SMA / SMK / Sederajat">SMA / SMK / Sederajat</option>
+                          <option value="Perguruan Tinggi">Perguruan Tinggi</option>
+                          <option value="Umum / Profesional">Umum / Profesional</option>
+                        </select>
+                        <ChevronDown className="absolute right-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Deskripsi */}
+                  <div>
+                    <label className="flex items-center gap-2 text-sm font-bold text-gray-700 dark:text-gray-300 mb-2">
+                      <FileText className="w-4 h-4 text-gray-400" />
+                      Deskripsi Singkat
+                    </label>
+                    <textarea
+                      rows={3}
+                      value={newDescription}
+                      onChange={(e) => setNewDescription(e.target.value)}
+                      className="w-full px-4 py-3.5 border border-gray-200 dark:border-gray-600/80 rounded-xl bg-gray-50/50 dark:bg-gray-700/30 text-gray-900 dark:text-white focus:bg-white dark:focus:bg-gray-700 focus:ring-4 focus:ring-indigo-500/20 focus:border-indigo-500 outline-none transition-all font-medium resize-none shadow-sm"
+                      placeholder="Opsional: Jelaskan apa yang akan dipelajari siswa dalam materi ini..."
+                    />
+                  </div>
+                </form>
+              </div>
+
+              <div className="px-8 py-5 border-t border-gray-100 dark:border-gray-700/50 bg-gray-50/50 dark:bg-gray-800/50 flex gap-3 justify-end items-center mt-auto">
+                <button
+                  type="button"
+                  onClick={() => setIsModalOpen(false)}
+                  className="px-6 py-2.5 text-gray-600 dark:text-gray-300 font-bold hover:bg-gray-200 dark:hover:bg-gray-700 rounded-xl transition-colors"
+                  disabled={isCreating}
+                >
+                  Batal
+                </button>
+                <button
+                  type="submit"
+                  form="create-course-form"
+                  disabled={isCreating || !newTitle.trim()}
+                  className="flex items-center justify-center px-8 py-2.5 bg-indigo-600 text-white rounded-xl font-bold hover:bg-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-lg shadow-indigo-500/20 active:scale-95"
+                >
+                  {isCreating ? (
+                    <>
+                      <Loader2 className="w-5 h-5 mr-2 animate-spin" />
+                      Menyimpan...
+                    </>
+                  ) : (
+                    'Buat & Mulai Edit'
+                  )}
+                </button>
+              </div>
             </motion.div>
           </div>
         )}

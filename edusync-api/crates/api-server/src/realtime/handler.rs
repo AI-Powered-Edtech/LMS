@@ -127,7 +127,7 @@ pub async fn ws_handler(
     Query(params): Query<WsConnectQuery>,
     vil_ctx: ServiceCtx,
 ) -> HandlerResult<impl IntoResponse> {
-    let state = vil_ctx.state::<Arc<AppState>>()?.clone();
+    let state = vil_ctx.state::<AppState>().map(|s| std::sync::Arc::new(s.clone()))?.clone();
     let hub = vil_ctx.state::<Arc<WsHub>>()?.clone();
     Ok(ws.on_upgrade(move |socket| handle_socket(socket, state, hub, params.token)))
 }

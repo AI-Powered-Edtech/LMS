@@ -188,7 +188,7 @@ async fn main() -> anyhow::Result<()> {
         cache,
     };
 
-    let state_arc: Arc<AppState> = Arc::new(app_state);
+    let state_arc: Arc<AppState> = Arc::new(app_state.clone());
 
     // ── Wave 1D: VIL Scheduler replaces manual tokio::time::interval cron ────
     let _scheduler = cron::build_scheduler(state_arc.db.clone());
@@ -205,7 +205,7 @@ async fn main() -> anyhow::Result<()> {
         .prefix("/api/v1")
         .endpoint(Method::GET, "/health", get(health_handler))
         .endpoint(Method::GET, "/ready", get(ready_handler))
-        .extension(Arc::clone(&state_arc));
+        .state(app_state.clone());
 
     let auth_service = ServiceProcess::new("auth")
         .prefix("/api/v1/auth")
@@ -240,7 +240,7 @@ async fn main() -> anyhow::Result<()> {
         .endpoint(Method::POST, "/enroll", post(enroll_student_handler))
         .endpoint(Method::POST, "/onboard-student", post(onboard_student_handler))
         .endpoint(Method::POST, "/create-tenant", post(create_tenant_handler))
-        .extension(Arc::clone(&state_arc));
+        .state(app_state.clone());
 
     let course_service = ServiceProcess::new("courses")
         .prefix("/api/v1")
@@ -250,13 +250,13 @@ async fn main() -> anyhow::Result<()> {
         .endpoint(Method::PUT, "/courses/:id", put(update_course_handler))
         .endpoint(Method::DELETE, "/courses/:id", delete(delete_course_handler))
         .endpoint(Method::GET, "/courses/:id/modules", get(get_course_modules_handler))
-        .extension(Arc::clone(&state_arc));
+        .state(app_state.clone());
 
     let data_service = ServiceProcess::new("data")
         .prefix("/api/v1")
         .endpoint(Method::POST, "/data/:table", post(query_table_handler))
         .endpoint(Method::POST, "/rpc/:name", post(rpc_proxy_handler))
-        .extension(Arc::clone(&state_arc));
+        .state(app_state.clone());
 
     let observability_service = ServiceProcess::new("observability")
         .prefix("/api/v1/internal")
@@ -270,7 +270,7 @@ async fn main() -> anyhow::Result<()> {
             "/divergence-events",
             post(observability::divergence_event_handler),
         )
-        .extension(Arc::clone(&state_arc));
+        .state(app_state.clone());
 
     // ── Phase 3A: AI services ─────────────────────────────────────────────────
     let ai_service = ServiceProcess::new("ai")
@@ -279,7 +279,7 @@ async fn main() -> anyhow::Result<()> {
         .endpoint(Method::POST, "/tutor", post(tutor_chat_handler))
         .endpoint(Method::POST, "/generate-content", post(generate_content_handler))
         .endpoint(Method::POST, "/generate-quiz", post(generate_quiz_handler))
-        .extension(Arc::clone(&state_arc));
+        .state(app_state.clone());
 
     // ── Phase 3B: LTI 1.3 ────────────────────────────────────────────────────
     let lti_service = ServiceProcess::new("lti")
@@ -287,7 +287,7 @@ async fn main() -> anyhow::Result<()> {
         .endpoint(Method::GET, "/jwks", get(lti_jwks_handler))
         .endpoint(Method::GET, "/oidc-login", get(lti_oidc_login_handler))
         .endpoint(Method::POST, "/launch", post(lti_launch_handler))
-        .extension(Arc::clone(&state_arc));
+        .state(app_state.clone());
 
     // ── Phase 3C: Notifications ───────────────────────────────────────────────
     let notification_service = ServiceProcess::new("notifications")
@@ -298,7 +298,7 @@ async fn main() -> anyhow::Result<()> {
         .endpoint(Method::POST, "/whatsapp/send-otp", post(send_otp_handler))
         .endpoint(Method::POST, "/whatsapp/verify-otp", post(verify_otp_handler))
         .endpoint(Method::POST, "/pdf/certificate", post(generate_pdf_handler))
-        .extension(Arc::clone(&state_arc));
+        .state(app_state.clone());
 
     // ── Phase 3D: Processing ──────────────────────────────────────────────────
     let processing_service = ServiceProcess::new("processing")
@@ -307,13 +307,13 @@ async fn main() -> anyhow::Result<()> {
         .endpoint(Method::GET, "/quiz/:quiz_id/load", get(load_quiz_handler))
         .endpoint(Method::POST, "/scorm/extract", post(extract_scorm_handler))
         .endpoint(Method::POST, "/import/users", post(import_users_handler))
-        .extension(Arc::clone(&state_arc));
+        .state(app_state.clone());
 
     // ── Wave 1D: WebSocket realtime service — WsHub injected ─────────────────
     let ws_service = ServiceProcess::new("realtime")
         .prefix("/ws")
-        .endpoint(Method::GET, "", get(ws_handler))
-        .extension(Arc::clone(&state_arc))
+        .endpoint(Method::GET, "/", get(ws_handler))
+        .state(app_state.clone())
         .extension(ws_hub.clone());
 
     // ── Wave 1D: S3-compatible object storage — vil_conn_s3 ────────────────
@@ -335,7 +335,7 @@ async fn main() -> anyhow::Result<()> {
             "/migration-status",
             get(migration_status_handler),
         )
-        .extension(Arc::clone(&state_arc));
+        .state(app_state.clone());
 
     VilApp::new("edusync-api")
         .port(port)

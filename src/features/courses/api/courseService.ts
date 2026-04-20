@@ -1,4 +1,4 @@
-/* eslint-disable max-lines */
+ 
 import { getApiBackend, getApiClient } from '@/services/api'
 import { buildRequestHeaders, createRequestId, runShadowComparison } from '@/services/api/shadow'
 import { readVilSession } from '@/services/auth/vilSession'
@@ -49,7 +49,7 @@ async function requestVil<T>(
   return (await response.json()) as T
 }
 
-async function fetchSupabaseCoursesShadow(
+async function fetchCoursesShadow(
   tenantId: string,
   page: number,
   limit: number,
@@ -86,7 +86,7 @@ async function fetchSupabaseCoursesShadow(
   }
 }
 
-async function fetchSupabaseCourseModulesShadow(
+async function fetchCourseModulesShadow(
   courseId: string,
   tenantId: string
 ): Promise<
@@ -181,7 +181,7 @@ export const courseService = {
           requestId,
           primaryResult: { data: { courses, count: result.count } },
           shadowRequest: async () => ({
-            data: await fetchSupabaseCoursesShadow(shadowTenantId, page, limit, search, ids),
+            data: await fetchCoursesShadow(shadowTenantId, page, limit, search, ids),
           }),
         })
       }
@@ -440,7 +440,7 @@ export const courseService = {
         requestId,
         primaryResult: { data: result },
         shadowRequest: async () => ({
-          data: await fetchSupabaseCourseModulesShadow(courseId, tenantId),
+          data: await fetchCourseModulesShadow(courseId, tenantId),
         }),
       })
 

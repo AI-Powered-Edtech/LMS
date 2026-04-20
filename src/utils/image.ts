@@ -3,7 +3,7 @@
  * Provides helpers for storage image transformation.
  */
 
-interface SupabaseTransformOptions {
+interface ImageTransformOptions {
   width?: number
   height?: number
   resize?: 'cover' | 'contain' | 'fill'
@@ -16,7 +16,7 @@ interface SupabaseTransformOptions {
  * @param url - Original public URL
  * @param options - Transformation options
  */
-export function getOptimizedImageUrl(url: string, options: SupabaseTransformOptions = {}): string {
+export function getOptimizedImageUrl(url: string, options: ImageTransformOptions = {}): string {
   if (!url || !url.includes('.db.co/storage/v1/object/public/')) {
     return url
   }

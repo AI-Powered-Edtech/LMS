@@ -64,7 +64,7 @@ pub async fn validate_invitation_handler(
     svc: ServiceCtx,
     Query(params): Query<ValidateInvitationQuery>,
 ) -> HandlerResult<VilResponse<InvitationInfo>> {
-    let state = svc.state::<Arc<AppState>>()?.clone();
+    let state = svc.state::<AppState>().map(|s| Arc::new(s.clone()))?;
 
     let row: ValidateInvitationRow = sqlx::query_as::<_, ValidateInvitationRow>(
         r#"SELECT i.email, i.role::text as role, i.tenant_id, t.name as tenant_name
@@ -94,7 +94,7 @@ pub async fn accept_invitation_handler(
     headers: HeaderMap,
     body: ShmSlice,
 ) -> HandlerResult<VilResponse<serde_json::Value>> {
-    let state = svc.state::<Arc<AppState>>()?.clone();
+    let state = svc.state::<AppState>().map(|s| Arc::new(s.clone()))?;
     let body: AcceptInvitationRequest = body.json().map_err(|e| VilError::bad_request(e.to_string()))?;
 
     // Verify JWT
@@ -231,7 +231,7 @@ pub async fn lookup_class_handler(
     svc: ServiceCtx,
     Query(params): Query<LookupClassQuery>,
 ) -> HandlerResult<VilResponse<ClassInfo>> {
-    let state = svc.state::<Arc<AppState>>()?.clone();
+    let state = svc.state::<AppState>().map(|s| Arc::new(s.clone()))?;
 
     let class: ClassInfoRow = sqlx::query_as::<_, ClassInfoRow>(
         r#"SELECT c.id, c.name, c.tenant_id, t.name as tenant_name
@@ -259,7 +259,7 @@ pub async fn enroll_student_handler(
     headers: HeaderMap,
     body: ShmSlice,
 ) -> HandlerResult<VilResponse<serde_json::Value>> {
-    let state = svc.state::<Arc<AppState>>()?.clone();
+    let state = svc.state::<AppState>().map(|s| Arc::new(s.clone()))?;
     let body: EnrollStudentRequest = body.json().map_err(|e| VilError::bad_request(e.to_string()))?;
 
     let token = headers
@@ -318,7 +318,7 @@ pub async fn onboard_student_handler(
     svc: ServiceCtx,
     body: ShmSlice,
 ) -> HandlerResult<VilResponse<AuthResponse>> {
-    let state = svc.state::<Arc<AppState>>()?.clone();
+    let state = svc.state::<AppState>().map(|s| Arc::new(s.clone()))?;
     let body: OnboardStudentRequest = body.json().map_err(|e| VilError::bad_request(e.to_string()))?;
 
     body.validate().map_err(|e| VilError::bad_request(e))?;
@@ -354,8 +354,8 @@ pub async fn onboard_student_handler(
 
     // Insert into auth.users FIRST — public.profiles.id FK references auth.users.id
     sqlx::query(
-        r#"INSERT INTO auth.users (id, email, encrypted_password, created_at, updated_at, aud, role, is_sso_user, is_anonymous)
-           VALUES ($1, $2, $3, now(), now(), 'authenticated', 'authenticated', false, false)
+        r#"INSERT INTO auth.users (id, email, encrypted_password, created_at, updated_at, aud, role)
+           VALUES ($1, $2, $3, now(), now(), 'authenticated', 'authenticated')
            ON CONFLICT (id) DO NOTHING"#
     )
     .bind(user_id)
@@ -453,7 +453,7 @@ pub async fn create_tenant_handler(
     headers: HeaderMap,
     body: ShmSlice,
 ) -> HandlerResult<VilResponse<serde_json::Value>> {
-    let state = svc.state::<Arc<AppState>>()?.clone();
+    let state = svc.state::<AppState>().map(|s| Arc::new(s.clone()))?;
     let body: CreateTenantRequest = body.json().map_err(|e| VilError::bad_request(e.to_string()))?;
 
     body.validate().map_err(|e| VilError::bad_request(e))?;

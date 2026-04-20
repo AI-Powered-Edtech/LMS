@@ -8,7 +8,7 @@ pub async fn signout_handler(
     svc: ServiceCtx,
     body: ShmSlice,
 ) -> HandlerResult<VilResponse<serde_json::Value>> {
-    let state = svc.state::<Arc<AppState>>()?.clone();
+    let state = svc.state::<AppState>().map(|s| Arc::new(s.clone()))?;
     let body: SignoutRequest = body.json().map_err(|e| VilError::bad_request(e.to_string()))?;
 
     if let Some(token) = body.refresh_token {

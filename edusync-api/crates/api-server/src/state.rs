@@ -21,7 +21,7 @@ pub struct SmtpConfig {
 
 /// Central application state shared across all request handlers.
 ///
-/// Access in handlers: `let state = ctx.state::<Arc<AppState>>()?;`
+/// Access in handlers: `let state = ctx.state::<AppState>().map(|s| std::sync::Arc::new(s.clone()))?;`
 /// Injection in main.rs: `ServiceProcess::new(...).extension(Arc::new(app_state))`
 ///
 /// All `Option<String>` fields are `None` when the corresponding environment

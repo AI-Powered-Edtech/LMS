@@ -1,7 +1,6 @@
+import type { FileUploadResult, UploadOptions } from "@/features/storage/types";
 import { db } from "@/services/db";
 import { getStorageProvider } from "@/services/storage";
-
-import type { FileUploadResult, UploadOptions } from "@/features/storage/types";
 
 export const storageService = {
   /**

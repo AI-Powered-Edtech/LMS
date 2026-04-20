@@ -88,7 +88,7 @@ function getTargetRolesForModule(slug: string): ("teacher" | "student")[] {
 /**
  * Parse backend error and return user-friendly error
  */
-function parseSupabaseError(error: unknown): AdministrationError {
+function parseError(error: unknown): AdministrationError {
   const errorMessage = error instanceof Error ? error.message : String(error);
 
   if (
@@ -235,7 +235,7 @@ export const administrationService = {
           "Tenant modules unavailable, caller will use defaults:",
           error instanceof Error ? error.message : error,
         );
-      throw parseSupabaseError(error);
+      throw parseError(error);
     }
   },
 
@@ -260,7 +260,7 @@ export const administrationService = {
     } catch (error) {
       if (import.meta.env.DEV)
         logger.error("Error toggling tenant module:", error);
-      throw parseSupabaseError(error);
+      throw parseError(error);
     }
   },
 

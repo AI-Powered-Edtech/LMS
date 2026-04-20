@@ -1,5 +1,6 @@
-import { describe, expect, it, vi, beforeEach } from "vitest";
-import { setAuthProvider, getAuthProvider } from "@/services/auth/authProvider";
+import { beforeEach,describe, expect, it, vi } from "vitest";
+
+import { getAuthProvider,setAuthProvider } from "@/services/auth/authProvider";
 import type {
   AuthProvider,
   AuthSession,

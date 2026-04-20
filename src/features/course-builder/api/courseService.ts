@@ -24,14 +24,19 @@ export const builderCourseService = {
     course: DomainCourse
     modules: DomainModule[]
   }> {
-    const { data: course, error: courseErr } = await db
+    const { data: courses, error: courseErr } = await db
       .from('courses')
       .select('id, title, description, status, created_at, updated_at, tenant_id')
       .eq('id', courseId)
       .eq('tenant_id', tenantId)
-      .single()
+      .limit(1)
 
-    if (courseErr || !course) throw new Error('Materi tidak ditemukan')
+    const course = (courses as any[])?.[0]
+
+    if (courseErr || !course) {
+      console.error('Course fetch error:', courseErr, 'Course:', course);
+      throw new Error('Materi tidak ditemukan')
+    }
 
     const { data: modules, error: modErr } = await db
       .from('course_modules')

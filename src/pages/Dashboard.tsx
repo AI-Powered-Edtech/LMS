@@ -16,7 +16,7 @@ import {
   ContinueLearning,
   GamificationWidgets,
   LeaderboardPreview,
-  MyClassesSection,
+  StudentProgressHero,
   UpcomingAssignments,
   WelcomeCard,
 } from '@/features/dashboards/components/sections'
@@ -144,15 +144,37 @@ export function Dashboard() {
         animate="visible"
         className="max-w-7xl mx-auto w-full space-y-6"
       >
-        <motion.div variants={itemVariants}>
-          <WelcomeCard
-            userName={userName}
-            role={role}
-            impersonatedStudent={impersonatedStudent}
-            onNavigateBack={handleNavigateBack}
-            xp={xp}
-          />
-        </motion.div>
+        {role === 'student' ? (
+          <motion.div variants={itemVariants}>
+            <StudentProgressHero
+              userName={userName}
+              impersonatedStudent={impersonatedStudent}
+              onNavigateBack={handleNavigateBack}
+              xp={xp}
+              dailyGoal={dailyGoal}
+              assignments={assignments || []}
+              classrooms={classrooms}
+              loadingAssignments={assignmentsLoading}
+              onJoinClass={openJoinModal}
+            />
+          </motion.div>
+        ) : (
+          <>
+            <motion.div variants={itemVariants}>
+              <WelcomeCard
+                userName={userName}
+                role={role}
+                impersonatedStudent={impersonatedStudent}
+                onNavigateBack={handleNavigateBack}
+                xp={xp}
+              />
+            </motion.div>
+
+            <motion.div variants={itemVariants}>
+              <UpcomingAssignments assignments={assignments || []} loading={assignmentsLoading} />
+            </motion.div>
+          </>
+        )}
 
         {role === 'student' && (
           <motion.div variants={itemVariants}>
@@ -161,16 +183,6 @@ export function Dashboard() {
               loading={loadingCourses}
               onJoinClass={openJoinModal}
             />
-          </motion.div>
-        )}
-
-        <motion.div variants={itemVariants}>
-          <UpcomingAssignments assignments={assignments || []} loading={assignmentsLoading} />
-        </motion.div>
-
-        {role === 'student' && (
-          <motion.div variants={itemVariants}>
-            <MyClassesSection classrooms={classrooms} onJoinClass={openJoinModal} />
           </motion.div>
         )}
 

@@ -10,7 +10,7 @@ pub async fn ensure_profile_handler(
     svc: ServiceCtx,
     headers: HeaderMap,
 ) -> HandlerResult<VilResponse<serde_json::Value>> {
-    let state = svc.state::<Arc<AppState>>()?.clone();
+    let state = svc.state::<AppState>().map(|s| Arc::new(s.clone()))?;
 
     let token = headers
         .get("authorization")
