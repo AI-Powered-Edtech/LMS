@@ -1,7 +1,7 @@
-- [ ] Halaman Login (`src/pages/Login.tsx`) memberikan kesan pertama yang premium dengan komposisi visual yang kuat dan *copy* yang relevan.
-- [ ] Halaman Pemilihan Ruang Kerja (`src/pages/WorkspaceSelector.tsx`) tampil lebih intuitif dan estetis (bebas *clutter* dan *cards* berlebihan).
-- [ ] Dashboard Guru (`src/pages/TeacherDashboard.tsx`) telah didesain ulang dengan hierarki UI yang modern dan fungsional untuk tugas manajerial dan penilaian.
-- [ ] Dashboard Siswa (`src/pages/Dashboard.tsx`) telah didesain ulang dan menonjolkan progres belajar serta tugas mendesak dengan *engagement* visual yang lebih baik.
-- [ ] Dashboard Admin (`src/pages/admin/AdministrationDashboard.tsx`) telah diperbarui untuk efisiensi pemantauan dan utilitas operasional yang maksimal.
-- [ ] Animasi dan transisi (motion) telah ditambahkan dengan elegan tanpa mengorbankan kecepatan dan *responsiveness* (khususnya *hover*, *reveal*, dan *scroll-linked*).
-- [ ] Tipografi dan spasi (whitespace) digunakan secara optimal untuk menciptakan pengalaman visual yang premium dan mudah dipindai di setiap halaman.
+- [x] Halaman Login (`src/pages/Login.tsx`) memberikan kesan pertama yang premium dengan komposisi visual yang kuat dan *copy* yang relevan.
+- [x] Halaman Pemilihan Ruang Kerja (`src/pages/WorkspaceSelector.tsx`) tampil lebih intuitif dan estetis (bebas *clutter* dan *cards* berlebihan).
+- [x] Dashboard Guru (`src/pages/TeacherDashboard.tsx`) telah didesain ulang dengan hierarki UI yang modern dan fungsional untuk tugas manajerial dan penilaian.
+- [x] Dashboard Siswa (`src/pages/Dashboard.tsx`) telah didesain ulang dan menonjolkan progres belajar serta tugas mendesak dengan *engagement* visual yang lebih baik.
+- [x] Dashboard Admin (`src/pages/admin/AdministrationDashboard.tsx`) telah diperbarui untuk efisiensi pemantauan dan utilitas operasional yang maksimal.
+- [x] Animasi dan transisi (motion) telah ditambahkan dengan elegan tanpa mengorbankan kecepatan dan *responsiveness* (khususnya *hover*, *reveal*, dan *scroll-linked*).
+- [x] Tipografi dan spasi (whitespace) digunakan secara optimal untuk menciptakan pengalaman visual yang premium dan mudah dipindai di setiap halaman.
