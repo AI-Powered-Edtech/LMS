@@ -22,7 +22,7 @@ pub async fn refresh_handler(
     svc: ServiceCtx,
     body: ShmSlice,
 ) -> HandlerResult<VilResponse<AuthResponse>> {
-    let state = svc.state::<Arc<AppState>>()?.clone();
+    let state = svc.state::<AppState>().map(|s| Arc::new(s.clone()))?;
     let body: RefreshRequest = body.json().map_err(|e| VilError::bad_request(e.to_string()))?;
 
     let claims = verify_refresh_token_with_session_secret(&state, &body.refresh_token)

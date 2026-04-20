@@ -8,10 +8,6 @@ import { object, optional, parse, string } from 'valibot'
  * Optional vars degrade gracefully (features disabled).
  */
 const envSchema = object({
-  // ── Optional (legacy — decommissioned in Phase 6) ────────────────────────
-  VITE_SUPABASE_URL: optional(string()),
-  VITE_SUPABASE_ANON_KEY: optional(string()),
-
   // ── Optional ────────────────────────────────────────────
   VITE_API_BACKEND: optional(string()),
   VITE_API_URL: optional(string()),
@@ -34,8 +30,6 @@ export type AppEnv = InferOutput<typeof envSchema>
 export function validateEnv(): AppEnv {
   try {
     return parse(envSchema, {
-      VITE_SUPABASE_URL: import.meta.env.VITE_SUPABASE_URL,
-      VITE_SUPABASE_ANON_KEY: import.meta.env.VITE_SUPABASE_ANON_KEY,
       VITE_API_BACKEND: import.meta.env.VITE_API_BACKEND,
       VITE_API_URL: import.meta.env.VITE_API_URL,
       VITE_VIL_SHADOW_MODE: import.meta.env.VITE_VIL_SHADOW_MODE,

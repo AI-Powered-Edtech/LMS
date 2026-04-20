@@ -37,7 +37,6 @@ import { setRealtimeProvider } from './services/realtime'
 import { createVilRealtimeProvider } from './services/realtime/vilRealtimeProvider'
 import { setStorageProvider } from './services/storage'
 import { createVilStorageProvider } from './services/storage/vilStorageProvider'
-import { setupDevMocks } from './mocks/devMock'
 import { initSentry } from './utils/sentry'
 import { reportWebVitals } from './utils/webVitals'
 
@@ -45,8 +44,6 @@ import { reportWebVitals } from './utils/webVitals'
 validateEnv()
 
 initApiClient()
-
-setupDevMocks()
 
 const vilApiUrl = getVilHttpBaseUrl()
 setAuthProvider(createVilAuthProvider(vilApiUrl))

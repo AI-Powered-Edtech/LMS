@@ -66,7 +66,7 @@ test.describe("Login Flow", () => {
     // Check main elements
     await expect(page.getByPlaceholder("kamu@email.com")).toBeVisible();
     await expect(page.locator('input[type="password"]')).toBeVisible();
-    await expect(page.getByRole("button", { name: "Masuk" })).toBeVisible();
+    await expect(page.getByRole("button", { name: "Masuk", exact: true }).first()).toBeVisible();
     await expect(page.getByRole("button", { name: "Daftar" })).toBeVisible();
   });
 
@@ -112,11 +112,8 @@ test.describe("Login Flow", () => {
     if (devButtonExists) {
       await devButtons.first().click();
 
-      // Email field should be filled with demo credentials
-      const emailValue = await page
-        .getByPlaceholder("kamu@email.com")
-        .inputValue();
-      expect(emailValue).toContain("@edusync.dev");
+      // Should navigate to dashboard or workspace-selector
+      await page.waitForURL("**/{dashboard,workspace-selector}**");
     }
   });
 });

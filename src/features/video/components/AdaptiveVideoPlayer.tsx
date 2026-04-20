@@ -62,7 +62,7 @@ export function AdaptiveVideoPlayer({
 }: AdaptiveVideoPlayerProps) {
   const internalRef = useRef<HTMLVideoElement>(null)
   const videoRef = externalRef ?? internalRef
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+   
   const hlsRef = useRef<any>(null)
   const [isHlsActive, setIsHlsActive] = useState(false)
   const [qualities, setQualities] = useState<string[]>([])

@@ -63,7 +63,7 @@ pub async fn bootstrap_handler(
     svc: ServiceCtx,
     headers: HeaderMap,
 ) -> HandlerResult<VilResponse<BootstrapResponse>> {
-    let state = svc.state::<Arc<AppState>>()?.clone();
+    let state = svc.state::<AppState>().map(|s| Arc::new(s.clone()))?;
 
     let request_id = request_id_from_headers(&headers);
     let token = headers

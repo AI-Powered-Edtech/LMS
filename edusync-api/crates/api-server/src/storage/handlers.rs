@@ -120,7 +120,7 @@ pub async fn upload_handler(
     Query(query): Query<UploadQuery>,
     mut multipart: Multipart,
 ) -> HandlerResult<VilResponse<UploadResponse>> {
-    let state = vil_ctx.state::<Arc<AppState>>()?;
+    let state = vil_ctx.state::<AppState>().map(|s| std::sync::Arc::new(s.clone()))?;
     let s3 = require_s3(state.as_ref()).await?;
 
     // Validate bucket.
@@ -210,7 +210,7 @@ pub async fn download_handler(
     vil_ctx: ServiceCtx,
     Path((bucket, path)): Path<(String, String)>,
 ) -> HandlerResult<impl IntoResponse> {
-    let state = vil_ctx.state::<Arc<AppState>>()?;
+    let state = vil_ctx.state::<AppState>().map(|s| std::sync::Arc::new(s.clone()))?;
 
     let s3 = match create_s3_client(state.as_ref()).await {
         Some(c) => c,
@@ -278,7 +278,7 @@ pub async fn remove_handler(
     Path(bucket): Path<String>,
     body: ShmSlice,
 ) -> HandlerResult<VilResponse<serde_json::Value>> {
-    let state = ctx.state::<Arc<AppState>>()?;
+    let state = ctx.state::<AppState>().map(|s| std::sync::Arc::new(s.clone()))?;
     let s3 = require_s3(state.as_ref()).await?;
     let body: RemoveRequest =
         body.json().map_err(|e| VilError::bad_request(e.to_string()))?;
@@ -340,7 +340,7 @@ pub async fn public_url_handler(
     vil_ctx: ServiceCtx,
     Path((bucket, path)): Path<(String, String)>,
 ) -> HandlerResult<VilResponse<PublicUrlResponse>> {
-    let state = vil_ctx.state::<Arc<AppState>>()?;
+    let state = vil_ctx.state::<AppState>().map(|s| std::sync::Arc::new(s.clone()))?;
 
     if !state.s3_endpoint.is_some() {
         return Err(VilError::service_unavailable(
@@ -389,7 +389,7 @@ pub async fn create_signed_url_handler(
     ctx: ServiceCtx,
     body: ShmSlice,
 ) -> HandlerResult<VilResponse<SignedUrlResponse>> {
-    let state = ctx.state::<Arc<AppState>>()?;
+    let state = ctx.state::<AppState>().map(|s| std::sync::Arc::new(s.clone()))?;
     let s3 = require_s3(state.as_ref()).await?;
     let body: SignedUrlRequest =
         body.json().map_err(|e| VilError::bad_request(e.to_string()))?;
@@ -444,7 +444,7 @@ pub async fn presign_upload_handler(
     ctx: ServiceCtx,
     body: ShmSlice,
 ) -> HandlerResult<VilResponse<PresignUploadResponse>> {
-    let state = ctx.state::<Arc<AppState>>()?;
+    let state = ctx.state::<AppState>().map(|s| std::sync::Arc::new(s.clone()))?;
     let s3 = require_s3(state.as_ref()).await?;
     let body: PresignUploadRequest =
         body.json().map_err(|e| VilError::bad_request(e.to_string()))?;
@@ -496,8 +496,8 @@ pub async fn list_handler(
     Path(bucket): Path<String>,
     Query(params): Query<ListParams>,
 ) -> HandlerResult<VilResponse<serde_json::Value>> {
-    let state = vil_ctx.state::<Arc<AppState>>()?;
-    let s3 = require_s3(state).await?;
+    let state = vil_ctx.state::<AppState>().map(|s| std::sync::Arc::new(s.clone()))?;
+    let s3 = require_s3(&state).await?;
 
     if !validate_bucket(&bucket) {
         return Err(VilError::bad_request("Nama bucket não válido"));
@@ -559,7 +559,7 @@ pub async fn migration_status_handler(
     AuthedRequest(_auth): AuthedRequest,
     vil_ctx: ServiceCtx,
 ) -> HandlerResult<VilResponse<MigrationStatusResponse>> {
-    let state = vil_ctx.state::<Arc<AppState>>()?;
+    let state = vil_ctx.state::<AppState>().map(|s| std::sync::Arc::new(s.clone()))?;
     let storage_configured = state.s3_endpoint.is_some();
     let bucket = if storage_configured {
         Some(state.s3_bucket.clone())
