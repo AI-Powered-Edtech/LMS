@@ -43,6 +43,8 @@ export function useQuizPageState() {
     isLoading: isLoadingQuizzes,
     refetch: refetchQuizzes,
   } = useStudentQuizAssignments(tenantId ?? undefined)
+  
+  console.log('STUDENT QUIZZES DATA:', quizzes);
   const {
     data: quizAttempts = [],
     isLoading: isLoadingAttempts,
