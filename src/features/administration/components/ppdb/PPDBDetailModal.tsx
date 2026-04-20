@@ -1,6 +1,8 @@
 import { FileText, Loader2, X } from 'lucide-react'
 import { useState } from 'react'
 
+import { sanitizeUrl } from '@/utils/sanitize'
+
 import type { PPDBRegistration, PPDBRegistrationStatus } from '../../types/ppdb'
 
 const ID_MONTHS = [
@@ -149,7 +151,7 @@ export function PPDBDetailModal({ registration, onClose, onStatusChange }: PPDBD
                 {docEntries.map(([key, url]) => (
                   <a
                     key={key}
-                    href={url}
+                    href={sanitizeUrl(url)}
                     target="_blank"
                     rel="noopener noreferrer"
                     className="flex items-center gap-2 text-sm text-blue-600 dark:text-blue-400 hover:underline"
