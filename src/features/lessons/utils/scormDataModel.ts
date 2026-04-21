@@ -6,7 +6,14 @@
 // Extracted from scormApiBridge.ts for modularity.
 // ==========================================================================
 
-import type { ScormCommitPayload } from './scormApiBridge'
+export interface ScormCommitPayload {
+  cmiData: Record<string, string>
+  scoreRaw: number | null
+  scoreMax: number | null
+  lessonStatus: string
+  totalTimeSeconds: number
+  suspendData: string | null
+}
 
 // ── CMI Data Store ─────────────────────────────────────────────
 

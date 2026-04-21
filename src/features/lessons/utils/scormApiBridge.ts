@@ -19,17 +19,9 @@ import {
   getScorm2004Diagnostic,
   getScorm2004ErrorString,
 } from './scormErrorHandler'
+import type { ScormCommitPayload } from './scormDataModel'
 
 // ── Types ──────────────────────────────────────────────────────
-
-export interface ScormCommitPayload {
-  cmiData: Record<string, string>
-  scoreRaw: number | null
-  scoreMax: number | null
-  lessonStatus: string
-  totalTimeSeconds: number
-  suspendData: string | null
-}
 
 export interface ScormBridgeOptions {
   version: '1.2' | '2004'
