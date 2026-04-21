@@ -119,14 +119,17 @@ export function useBlockActions(
 
       const previousBlocks = state.activeLesson.blocks
 
+      // Bolt: Use Map for O(1) lookup instead of O(n) find()
+      const blockMap = new Map(state.activeLesson.blocks.map((b) => [b.id, b]))
+
       const reordered = blockIds
-        .map((id) => state.activeLesson!.blocks.find((b) => b.id === id))
+        .map((id) => blockMap.get(id))
         .filter(Boolean)
         .map((b, idx) => ({ ...b!, orderIndex: idx }))
       dispatch({ type: 'SET_BLOCKS', blocks: reordered as DomainBlock[] })
 
       try {
-        await builderBlockService.reorderBlocks(state.activeLesson!.id, blockIds, tenantId!)
+        await builderBlockService.reorderBlocks(state.activeLesson.id, blockIds, tenantId!)
       } catch (error: unknown) {
         if (import.meta.env.DEV) logger.error('Failed to reorder blocks', error)
         dispatch({ type: 'SET_BLOCKS', blocks: previousBlocks })

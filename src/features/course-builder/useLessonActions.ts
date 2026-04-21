@@ -92,13 +92,18 @@ export function useLessonActions(
   const reorderLessons = useCallback(
     async (lessonIds: string[]) => {
       const previousModules = state.modules
+      // Bolt: Use Set for O(1) membership check instead of O(n) array includes
+      const lessonIdsSet = new Set(lessonIds)
 
       const updatedModules = state.modules.map((m) => {
-        const isTargetModule = m.lessons.some((l) => lessonIds.includes(l.id))
+        const isTargetModule = m.lessons.some((l) => lessonIdsSet.has(l.id))
         if (!isTargetModule) return m
 
+        // Bolt: Use Map for O(1) lookup instead of O(n) find()
+        const lessonMap = new Map(m.lessons.map((l) => [l.id, l]))
+
         const newLessons = lessonIds
-          .map((id) => m.lessons.find((l) => l.id === id))
+          .map((id) => lessonMap.get(id))
           .filter(Boolean)
           .map((l, idx) => ({ ...l!, orderIndex: idx }))
 
@@ -107,7 +112,7 @@ export function useLessonActions(
 
       dispatch({ type: 'SET_MODULES', modules: updatedModules })
 
-      const targetMod = state.modules.find((m) => m.lessons.some((l) => lessonIds.includes(l.id)))
+      const targetMod = state.modules.find((m) => m.lessons.some((l) => lessonIdsSet.has(l.id)))
       if (targetMod && tenantId) {
         try {
           await builderLessonService.reorderLessons(targetMod.id, lessonIds, tenantId)
