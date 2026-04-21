@@ -18,8 +18,3 @@ export const staggerItem: Variants = {
     transition: { duration: 0.3, ease: 'easeOut' },
   },
 }
-
-export const fadeIn: Variants = {
-  hidden: { opacity: 0 },
-  show: { opacity: 1, transition: { duration: 0.2 } },
-}
