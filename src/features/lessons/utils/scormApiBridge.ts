@@ -1,5 +1,6 @@
 import { logger } from '@/utils/logger'
 
+import type { ScormCommitPayload } from './scormDataModel'
 // ==========================================================================
 // SCORM API Bridge — scormApiBridge.ts
 //
@@ -19,8 +20,6 @@ import {
   getScorm2004Diagnostic,
   getScorm2004ErrorString,
 } from './scormErrorHandler'
-
-import type { ScormCommitPayload } from './scormDataModel'
 export type { ScormCommitPayload }
 
 // ── Types ──────────────────────────────────────────────────────
