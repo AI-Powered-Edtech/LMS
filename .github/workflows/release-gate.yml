@@ -373,10 +373,13 @@ jobs:
           EOF
 
           MISSING=0
+          RELEASE_DIR="artifacts/release/${{ github.run_id }}"
+          EVENT_NAME="${{ github.event_name }}"
+
           # coverage-summary dan security-summary selalu wajib (jalan di semua event)
           for file in \
-            artifacts/release/$ github.run_id /coverage-summary.json \
-            artifacts/release/$ github.run_id /security-summary.md; do
+            "${RELEASE_DIR}/coverage-summary.json" \
+            "${RELEASE_DIR}/security-summary.md"; do
             if [ ! -f "$file" ]; then
               echo "::error::Missing required artifact: $file"
               MISSING=1
@@ -384,12 +387,12 @@ jobs:
           done
 
           # E2E persona summary dan Lighthouse hanya diwajibkan saat push ke main (deploy)
-          if [ "$ github.event_name " != "pull_request" ]; then
-            if [ ! -f "artifacts/release/$ github.run_id /persona-summary.json" ]; then
+          if [ "$EVENT_NAME" != "pull_request" ]; then
+            if [ ! -f "${RELEASE_DIR}/persona-summary.json" ]; then
               echo "::error::Missing required artifact: persona-summary.json"
               MISSING=1
             fi
-            if ! find artifacts/release/$ github.run_id /lighthouse -type f -name '*.json' | grep -q .; then
+            if ! find "${RELEASE_DIR}/lighthouse" -type f -name '*.json' 2>/dev/null | grep -q .; then
               echo "::error::Missing Lighthouse JSON artifacts"
               MISSING=1
             fi
