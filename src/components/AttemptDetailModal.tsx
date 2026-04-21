@@ -387,7 +387,7 @@ export function AttemptDetailModal({
                               onChange={(e) =>
                                 setGradingScores((prev) => ({
                                   ...prev,
-                                  [answer.question_id]: parseFloat(e.target.value),
+                                  [answer.question_id]: e.target.value,
                                 }))
                               }
                               placeholder="0"
