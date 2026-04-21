@@ -19,7 +19,9 @@ import {
   getScorm2004Diagnostic,
   getScorm2004ErrorString,
 } from './scormErrorHandler'
+
 import type { ScormCommitPayload } from './scormDataModel'
+export type { ScormCommitPayload }
 
 // ── Types ──────────────────────────────────────────────────────
 
