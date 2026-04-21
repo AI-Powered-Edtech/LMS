@@ -481,7 +481,7 @@ export function ParentRegisterPage() {
 
                   {/* Phone Input */}
                   <div className="mb-4">
-                    <label className="block text-white/60 text-xs font-medium mb-1.5 uppercase tracking-wide">
+                    <label htmlFor="phone" className="block text-white/60 text-xs font-medium mb-1.5 uppercase tracking-wide">
                       Nomor HP
                     </label>
                     <div className="flex gap-2">
@@ -490,6 +490,7 @@ export function ParentRegisterPage() {
                         +62
                       </div>
                       <input
+                        id="phone"
                         type="tel"
                         inputMode="numeric"
                         placeholder="8xx-xxxx-xxxx"
@@ -641,10 +642,11 @@ export function ParentRegisterPage() {
 
                   {/* Nama Lengkap */}
                   <div className="mb-4">
-                    <label className="block text-white/60 text-xs font-medium mb-1.5 uppercase tracking-wide">
+                    <label htmlFor="fullName" className="block text-white/60 text-xs font-medium mb-1.5 uppercase tracking-wide">
                       Nama Lengkap <span className="text-red-400">*</span>
                     </label>
                     <input
+                      id="fullName"
                       type="text"
                       placeholder="Masukkan nama lengkap Anda"
                       value={profile.fullName}
@@ -659,11 +661,12 @@ export function ParentRegisterPage() {
 
                   {/* Email (opsional) */}
                   <div className="mb-4">
-                    <label className="block text-white/60 text-xs font-medium mb-1.5 uppercase tracking-wide">
+                    <label htmlFor="email" className="block text-white/60 text-xs font-medium mb-1.5 uppercase tracking-wide">
                       Email{' '}
                       <span className="text-white/30 normal-case font-normal">(opsional)</span>
                     </label>
                     <input
+                      id="email"
                       type="email"
                       inputMode="email"
                       placeholder="email@contoh.com"
