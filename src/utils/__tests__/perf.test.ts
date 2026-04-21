@@ -1,6 +1,7 @@
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
-import { perfMark, perfMeasure, perfMeasureFrom, PERF } from '../perf'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
+
 import { logger } from '../logger'
+import { PERF, perfMark, perfMeasure, perfMeasureFrom } from '../perf'
 
 vi.mock('../logger', () => ({
   logger: {
