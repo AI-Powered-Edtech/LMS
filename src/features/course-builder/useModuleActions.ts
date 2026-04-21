@@ -85,9 +85,12 @@ export function useModuleActions(
 
       const previousModules = state.modules
 
+      // Bolt: Use Map for O(1) lookup instead of O(n) find()
+      const moduleMap = new Map(state.modules.map((m) => [m.id, m]))
+
       const reordered = moduleIds
         .map((id, idx) => {
-          const mod = state.modules.find((m) => m.id === id)
+          const mod = moduleMap.get(id)
           if (!mod) return null
           return { ...mod, orderIndex: idx }
         })
