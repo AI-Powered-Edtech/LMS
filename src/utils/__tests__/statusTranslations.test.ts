@@ -1,14 +1,15 @@
-import { describe, it, expect } from 'vitest'
+import { describe, expect, it } from 'vitest'
+
 import {
-  translateCourseStatus,
   translateAssignmentStatus,
-  translateQuizStatus,
-  translateInvitationStatus,
-  translateQuizAttemptStatus,
-  translateLessonType,
   translateContentType,
-  translateEventType,
+  translateCourseStatus,
   translateDbError,
+  translateEventType,
+  translateInvitationStatus,
+  translateLessonType,
+  translateQuizAttemptStatus,
+  translateQuizStatus,
 } from '../statusTranslations'
 
 describe('statusTranslations', () => {
