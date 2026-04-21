@@ -376,26 +376,26 @@ export function AttemptDetailModal({
                           className="text-xs font-medium text-slate-500 uppercase tracking-wide shrink-0"
                         >
                           Nilai
+                          <div className="flex items-center gap-2 mt-1">
+                            <input
+                              id={`score-input-${answer.question_id}`}
+                              type="number"
+                              min={0}
+                              max={answer.max_points}
+                              step="0.5"
+                              value={gradingScores[answer.question_id] ?? ''}
+                              onChange={(e) =>
+                                setGradingScores((prev) => ({
+                                  ...prev,
+                                  [answer.question_id]: parseFloat(e.target.value),
+                                }))
+                              }
+                              placeholder="0"
+                              className="w-20 px-3 py-1.5 bg-slate-50 border border-slate-200 rounded-lg text-sm text-center focus:ring-2 focus:ring-blue-500 outline-none"
+                            />
+                            <span className="text-sm text-slate-400">/ {answer.max_points}</span>
+                          </div>
                         </label>
-                        <div className="flex items-center gap-2">
-                          <input
-                            id={`score-input-${answer.question_id}`}
-                            type="number"
-                            min={0}
-                            max={answer.max_points}
-                            step="0.5"
-                            value={gradingScores[answer.question_id] ?? ''}
-                            onChange={(e) =>
-                              setGradingScores((prev) => ({
-                                ...prev,
-                                [answer.question_id]: e.target.value,
-                              }))
-                            }
-                            placeholder="0"
-                            className="w-20 px-3 py-1.5 bg-slate-50 border border-slate-200 rounded-lg text-sm text-center focus:ring-2 focus:ring-blue-500 outline-none"
-                          />
-                          <span className="text-sm text-slate-400">/ {answer.max_points}</span>
-                        </div>
                       </div>
 
                       {/* Feedback textarea */}
