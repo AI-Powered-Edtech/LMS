@@ -26,7 +26,7 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: 24
+          node-version: 20
           cache: pnpm
 
       - name: Install dependencies
@@ -64,6 +64,8 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 45
     needs: build-quality
+    # Hanya jalan saat push ke main (deploy to staging). Skip di PR karena butuh VITE_API_URL staging.
+    if: github.event_name != 'pull_request'
 
     steps:
       - name: Checkout
@@ -72,7 +74,7 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: 24
+          node-version: 20
 
       - name: Setup pnpm
         uses: pnpm/action-setup@v4
@@ -176,6 +178,8 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 20
     needs: build-quality
+    # Hanya jalan saat push ke main (deploy to staging). Skip di PR karena butuh VITE_API_URL staging.
+    if: github.event_name != 'pull_request'
 
     steps:
       - name: Checkout
@@ -187,7 +191,7 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: 24
+          node-version: 20
           cache: pnpm
 
       - name: Install dependencies
@@ -255,7 +259,7 @@ jobs:
           fetch-depth: 0
 
       - name: TruffleHog OSS Secret Scan
-        uses: trufflesecurity/trufflehog@main
+        uses: trufflesecurity/trufflehog@v3.88.35
         with:
           path: .
           base: ${{ github.event.repository.default_branch }}
@@ -369,19 +373,31 @@ jobs:
           EOF
 
           MISSING=0
+          RELEASE_DIR="artifacts/release/${{ github.run_id }}"
+          EVENT_NAME="${{ github.event_name }}"
+
+          # coverage-summary dan security-summary selalu wajib (jalan di semua event)
           for file in \
-            artifacts/release/${{ github.run_id }}/coverage-summary.json \
-            artifacts/release/${{ github.run_id }}/security-summary.md \
-            artifacts/release/${{ github.run_id }}/persona-summary.json; do
+            "${RELEASE_DIR}/coverage-summary.json" \
+            "${RELEASE_DIR}/security-summary.md"; do
             if [ ! -f "$file" ]; then
               echo "::error::Missing required artifact: $file"
               MISSING=1
             fi
           done
 
-          if ! find artifacts/release/${{ github.run_id }}/lighthouse -type f -name '*.json' | grep -q .; then
-            echo "::error::Missing Lighthouse JSON artifacts"
-            MISSING=1
+          # E2E persona summary dan Lighthouse hanya diwajibkan saat push ke main (deploy)
+          if [ "$EVENT_NAME" != "pull_request" ]; then
+            if [ ! -f "${RELEASE_DIR}/persona-summary.json" ]; then
+              echo "::error::Missing required artifact: persona-summary.json"
+              MISSING=1
+            fi
+            if ! find "${RELEASE_DIR}/lighthouse" -type f -name '*.json' 2>/dev/null | grep -q .; then
+              echo "::error::Missing Lighthouse JSON artifacts"
+              MISSING=1
+            fi
+          else
+            echo "Pull request event — skipping E2E/Lighthouse artifact requirements."
           fi
 
           if [ "$MISSING" -ne 0 ]; then

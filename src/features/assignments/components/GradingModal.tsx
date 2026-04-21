@@ -5,6 +5,7 @@ import { useCallback, useState } from 'react'
 import { useToast } from '@/components/ui'
 import type { Assignment, AssignmentSubmission } from '@/features/assignments/api/assignmentService'
 import { assignmentService } from '@/features/assignments/api/assignmentService'
+import { sanitizeUrl } from '@/utils/sanitize'
 
 interface GradingModalProps {
   submission: AssignmentSubmission | null
@@ -95,7 +96,7 @@ export function GradingModal({ submission, assignment, tenantId, onClose }: Grad
                 </div>
                 {submission.file_url && (
                   <a
-                    href={submission.file_url}
+                    href={sanitizeUrl(submission.file_url)}
                     target="_blank"
                     rel="noreferrer"
                     className="flex items-center gap-2 p-3 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors"
@@ -104,6 +105,7 @@ export function GradingModal({ submission, assignment, tenantId, onClose }: Grad
                     <span className="text-sm text-slate-700 dark:text-slate-300 font-medium">
                       Lihat File Lampiran
                     </span>
+                    <span className="sr-only">(buka di tab baru)</span>
                   </a>
                 )}
               </div>
@@ -114,13 +116,14 @@ export function GradingModal({ submission, assignment, tenantId, onClose }: Grad
                 </h4>
 
                 <div className="space-y-2">
-                  <label className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase flex justify-between">
+                  <label htmlFor="score-input" className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase flex justify-between">
                     Skor (0 - {assignment?.max_points})
                     <span className="text-blue-600">
                       {score} / {assignment?.max_points}
                     </span>
                   </label>
                   <input
+                    id="score-input"
                     type="number"
                     min="0"
                     max={assignment?.max_points}
@@ -131,10 +134,11 @@ export function GradingModal({ submission, assignment, tenantId, onClose }: Grad
                 </div>
 
                 <div className="space-y-2">
-                  <label className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
+                  <label htmlFor="feedback-input" className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
                     Umpan Balik (Feedback)
                   </label>
                   <textarea
+                    id="feedback-input"
                     value={feedback}
                     onChange={(e) => setFeedback(e.target.value)}
                     rows={8}

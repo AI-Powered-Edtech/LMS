@@ -15,6 +15,7 @@ import type { ChangeEvent, RefObject } from 'react'
 import { EmptyState } from '@/components/ui'
 import type { AssignmentUiState } from '@/features/assignments/types'
 import { cn } from '@/utils/cn'
+import { sanitizeUrl } from '@/utils/sanitize'
 
 import { getStatusBadge } from './assignmentPageUtils'
 
@@ -346,24 +347,26 @@ export function StudentSubmissionPanel({
                   {attempt.text && <p className="whitespace-pre-wrap">{attempt.text}</p>}
                   {attempt.fileUrl && (
                     <a
-                      href={attempt.fileUrl}
+                      href={sanitizeUrl(attempt.fileUrl)}
                       target="_blank"
                       rel="noreferrer"
                       className="inline-flex items-center gap-2 text-blue-600 dark:text-blue-400 font-medium hover:underline"
                     >
                       <Paperclip className="w-4 h-4" />
                       {attempt.fileName || 'Lihat lampiran'}
+                      <span className="sr-only">(buka di tab baru)</span>
                     </a>
                   )}
                   {attempt.linkUrl && (
                     <a
-                      href={attempt.linkUrl}
+                      href={sanitizeUrl(attempt.linkUrl)}
                       target="_blank"
                       rel="noreferrer"
                       className="inline-flex items-center gap-2 text-blue-600 dark:text-blue-400 font-medium hover:underline"
                     >
                       <ExternalLink className="w-4 h-4" />
                       {attempt.linkUrl}
+                      <span className="sr-only">(buka di tab baru)</span>
                     </a>
                   )}
                   {attempt.feedback && (
