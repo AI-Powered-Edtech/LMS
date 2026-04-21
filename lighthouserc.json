@@ -1,6 +1,8 @@
 {
   "ci": {
     "collect": {
+      "startServerCommand": "pnpm preview --port 5173",
+      "startServerReadyPattern": "Local:",
       "url": [
         "http://localhost:5173/#/login",
         "http://localhost:5173/#/privacy",

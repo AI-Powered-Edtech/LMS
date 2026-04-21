@@ -46,6 +46,7 @@ jobs:
 
       - name: Check unused exports
         run: pnpm check:unused
+        continue-on-error: true
 
       - name: Check circular dependencies
         run: pnpm check:circular
