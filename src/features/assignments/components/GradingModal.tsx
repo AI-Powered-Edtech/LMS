@@ -5,6 +5,7 @@ import { useCallback, useState } from 'react'
 import { useToast } from '@/components/ui'
 import type { Assignment, AssignmentSubmission } from '@/features/assignments/api/assignmentService'
 import { assignmentService } from '@/features/assignments/api/assignmentService'
+import { sanitizeUrl } from '@/utils/sanitize'
 
 interface GradingModalProps {
   submission: AssignmentSubmission | null
@@ -95,7 +96,7 @@ export function GradingModal({ submission, assignment, tenantId, onClose }: Grad
                 </div>
                 {submission.file_url && (
                   <a
-                    href={submission.file_url}
+                    href={sanitizeUrl(submission.file_url)}
                     target="_blank"
                     rel="noreferrer"
                     className="flex items-center gap-2 p-3 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors"
