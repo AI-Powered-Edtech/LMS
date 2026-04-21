@@ -100,11 +100,16 @@ export function CalendarSidebar({
                     )}
                   </div>
                   {(event.type === 'assignment' || event.type === 'exam') && (
-                    <button onClick={() => onToggleCompletion(event.id)} className="shrink-0">
+                    <button
+                      onClick={() => onToggleCompletion(event.id)}
+                      className="shrink-0 rounded-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 transition-shadow"
+                      aria-label={event.completed ? 'Batalkan selesai' : 'Tandai selesai'}
+                      title={event.completed ? 'Batalkan selesai' : 'Tandai selesai'}
+                    >
                       {event.completed ? (
                         <CheckCircle2 className="w-5 h-5 text-emerald-500" />
                       ) : (
-                        <Circle className="w-5 h-5 text-slate-300 dark:text-slate-600" />
+                        <Circle className="w-5 h-5 text-slate-300 dark:text-slate-600 hover:text-slate-400 dark:hover:text-slate-500 transition-colors" />
                       )}
                     </button>
                   )}
