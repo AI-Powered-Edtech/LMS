@@ -479,7 +479,6 @@ function DocumentRow({ doc, onDelete }: DocumentRowProps) {
           onClick={() => onDelete(doc.id)}
           className="p-1.5 rounded-lg text-slate-500 hover:bg-red-50 dark:hover:bg-red-900/20 hover:text-red-600 dark:hover:text-red-400 transition-colors"
           title="Hapus"
-          aria-label="Hapus"
         >
           <Trash2 className="w-4 h-4" />
         </button>
