@@ -1,11 +1,9 @@
 {
   "ignore": [
-    "src/utils/sentry.ts",
     "src/**/*.tsx",
     "src/components/**/*.ts",
     "src/features/**/*.ts",
     "src/hooks/**/*.ts",
-    "src/pages/**/*.ts",
     "src/services/**/*.ts",
     "src/utils/**/*.ts",
     "src/shared/lib/validate.ts",
@@ -19,7 +17,6 @@
   ],
   "ignoreExportsUsedInFile": true,
   "ignoreDependencies": [
-    "@sentry/react",
     "dompurify",
     "@storybook/addon-themes",
     "@storybook/react-vite",
@@ -30,8 +27,7 @@
     "fake-indexeddb",
     "jest-axe",
     "lint-staged",
-    "vite-plugin-compression2",
-    "@playwright/test"
+    "vite-plugin-compression2"
   ],
   "ignoreBinaries": [
     "puter",
