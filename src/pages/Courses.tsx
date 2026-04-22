@@ -1,6 +1,6 @@
 import { BookOpen, ChevronDown, Clock, FileText, Layers, LayoutList, Loader2, Plus, RefreshCw, Search, Users } from 'lucide-react'
 import { AnimatePresence, motion } from 'motion/react'
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 
 import { AssignCourseModal } from '@/components/Classroom/AssignCourseModal'
@@ -76,7 +76,8 @@ export const Courses: React.FC = () => {
   const { data, fetchNextPage, hasNextPage, isFetchingNextPage, isLoading, isError, refetch } =
     useInfiniteCoursesQuery(debouncedSearch)
 
-  const courses = data?.pages.flatMap((p) => p.courses) ?? []
+  // ⚡ Bolt: Memoize flattened courses to prevent recreating array on every render
+  const courses = useMemo(() => data?.pages.flatMap((p) => p.courses) ?? [], [data?.pages])
 
   // Sentinel for IntersectionObserver — triggers loading the next page
   const sentinelRef = useRef<HTMLDivElement>(null)
@@ -102,13 +103,17 @@ export const Courses: React.FC = () => {
 
   // Server-side search covers title. Client-side filter covers description
   // (the service only does ilike on title, so we locally filter description as well)
-  const filteredCourses = debouncedSearch
-    ? courses.filter(
-        (c) =>
-          c.title.toLowerCase().includes(debouncedSearch.toLowerCase()) ||
-          (c.description ?? '').toLowerCase().includes(debouncedSearch.toLowerCase())
-      )
-    : courses
+  // ⚡ Bolt: Memoize filtered courses and extract toLowerCase() to prevent O(N) operations and re-renders on every render
+  const filteredCourses = useMemo(() => {
+    if (!debouncedSearch) return courses
+
+    const lowerSearch = debouncedSearch.toLowerCase()
+    return courses.filter(
+      (c) =>
+        c.title.toLowerCase().includes(lowerSearch) ||
+        (c.description ?? '').toLowerCase().includes(lowerSearch)
+    )
+  }, [courses, debouncedSearch])
 
   const handleCreateCourse = async (e: React.FormEvent) => {
     e.preventDefault()
