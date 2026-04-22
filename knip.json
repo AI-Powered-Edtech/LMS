@@ -1,0 +1,43 @@
+{
+  "ignore": [
+    "src/utils/sentry.ts",
+    "src/**/*.tsx",
+    "src/components/**/*.ts",
+    "src/features/**/*.ts",
+    "src/hooks/**/*.ts",
+    "src/pages/**/*.ts",
+    "src/services/**/*.ts",
+    "src/utils/**/*.ts",
+    "src/shared/lib/validate.ts",
+    "src/shared/schemas/index.ts",
+    "src/shared/schemas/forms.ts",
+    "**/*.mjs",
+    "**/*.js",
+    "tests/**/*",
+    "playwright.qa.config.ts",
+    "src/styles/tokens.css"
+  ],
+  "ignoreExportsUsedInFile": true,
+  "ignoreDependencies": [
+    "@sentry/react",
+    "dompurify",
+    "@storybook/addon-themes",
+    "@storybook/react-vite",
+    "@testing-library/user-event",
+    "@types/jest-axe",
+    "cors",
+    "express",
+    "fake-indexeddb",
+    "jest-axe",
+    "lint-staged",
+    "vite-plugin-compression2",
+    "@playwright/test"
+  ],
+  "ignoreBinaries": [
+    "puter",
+    "chromatic",
+    "k6",
+    "lhci",
+    "lighthouse"
+  ]
+}
