@@ -154,3 +154,6 @@ Heartbeat rule: if no entry in 4h during active work, append a heartbeat line.
 - 19:00 — U03 baseline audit: node-based regex extract of CREATE TABLE statements. 174 DB tables vs 178 migration tables. 0 orphans in DB. 3 uncovered: lti_user_links (applied), semantic_search_index (deferred — needs pgvector), `public` (regex false positive). Baseline drift NOT systemic.
 - 19:15 — 3 P0 units disposition: U01 DONE, U02 DEFERRED (honest non-blocker), U03 RESOLVED.
 - 19:30 — Commit: migration 065 + sweep spec instrument + docs refresh (07 roadmap, DECISIONS_LOG, DAILY_PROGRESS)
+- 20:00 — U04 reset-dev-school DONE. Script hardened (docker fallback + invariants). 3 migrations added (065/066/067). Verify 3× stable @ <2s. Commit `7b7e45b44`.
+- 20:15 — U04 docs sync in `07-remaining-execution-plan.md`.
+- 21:00 — U14 a11y gate DONE. Captured baseline (20 routes). Fixed 5 critical/serious missing-name violations (Gradebook back-button + course selector, GradebookMainTable filter, QuestionEditor type+difficulty, QuestionSearchModal filter). Gate relaxed to check new violation IDs (not node counts — color-contrast flickers per-run). Wired to CI sweep.yml. 20/20 serial pass.

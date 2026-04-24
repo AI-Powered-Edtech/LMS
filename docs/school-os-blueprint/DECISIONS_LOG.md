@@ -91,3 +91,12 @@ Actions taken:
 - `semantic_search_index` deferred: lms-db-1 uses `postgres:16-alpine` without pgvector. Either swap to `pgvector/pgvector:pg16` image, or keep deferred until U25 (semantic search) kicks off.
 
 Baseline is substantially complete. Point-in-time gaps (gradebook, semesters, onboarding_progress, tenant_subscriptions) were addressed via migrations 037, 064, 065. No systematic rebuild of baseline.sql needed.
+
+## 2026-04-24 — U04 (reset-dev-school) — RESOLVED
+
+Actions:
+- `reset-dev-school.sh`: added host-psql-OR-docker-exec fallback (CI has psql; local dev runs through `lms-db-1` container)
+- Post-reset invariants enforced: tenant count=1, siswa ≥100, user_roles ≥10 → script exits non-zero on drift
+- Migration 066: `app_role` enum was missing `PRINCIPAL` + `PARENT` (present in profile/user_roles usage but not in migration 046 enum)
+- Migration 067: `auto_add_modules_for_tenant()` trigger was not idempotent — BEFORE trigger fires on INSERT ATTEMPT even with outer ON CONFLICT DO NOTHING, causing UNIQUE violation on re-seed. Fixed with `ON CONFLICT (tenant_id, module_id) DO NOTHING` inside trigger body.
+- `dev_seed.sql` fixes: `courses.instructor_id → created_by`, `announcements.author_id → created_by`, `announcements.body → content` — real schema drift vs seed assumption
