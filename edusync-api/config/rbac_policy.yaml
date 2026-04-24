@@ -1,0 +1,119 @@
+# RBAC policy matrix — source-of-truth per ADR-001
+#
+# Format:
+#   <http_method> <path_pattern>:
+#     roles: [<role1>, <role2>, ...]    # ANY match allows
+#     scope: self | rombel | tenant | foundation | public
+#
+# Roles use app_role enum values (lowercase for readability; middleware
+# normalizes case-insensitive). Scopes:
+#   - public:      no auth required
+#   - self:        user can only access own resource (user_id/profile_id match)
+#   - rombel:      user must be wali_kelas/teacher of target resource's rombel
+#   - tenant:      user must be member of target tenant (default)
+#   - foundation:  yayasan/pengawas cross-tenant view
+#
+# NOTE: paths use {param} style. Middleware matches against actual route
+# templates registered in main.rs.
+
+version: 1
+
+policies:
+  # ─── Public ──────────────────────────────────────────────────────────────
+  POST /auth/register:                 { roles: [public],  scope: public }
+  POST /auth/login:                    { roles: [public],  scope: public }
+  POST /auth/refresh:                  { roles: [public],  scope: public }
+  POST /auth/reset-password:           { roles: [public],  scope: public }
+  GET  /health:                        { roles: [public],  scope: public }
+  GET  /ready:                         { roles: [public],  scope: public }
+  POST /webhooks/midtrans:             { roles: [public],  scope: public }
+
+  # ─── Profile / self-service ──────────────────────────────────────────────
+  GET  /auth/bootstrap:                { roles: [student, parent, teacher, wali_kelas, wakasek, guru_bk, tu, principal, admin, yayasan, pengawas], scope: self }
+  POST /auth/signout:                  { roles: [student, parent, teacher, wali_kelas, wakasek, guru_bk, tu, principal, admin], scope: self }
+  POST /auth/switch-tenant:            { roles: [teacher, wali_kelas, wakasek, guru_bk, tu, principal, admin], scope: self }
+  POST /auth/update-password:          { roles: [student, parent, teacher, wali_kelas, wakasek, guru_bk, tu, principal, admin], scope: self }
+  GET  /auth/sessions:                 { roles: [student, parent, teacher, wali_kelas, wakasek, guru_bk, tu, principal, admin], scope: self }
+  POST /auth/mfa/enroll:               { roles: [teacher, wali_kelas, wakasek, guru_bk, tu, principal, admin], scope: self }
+
+  # ─── Courses ─────────────────────────────────────────────────────────────
+  GET  /courses:                       { roles: [student, parent, teacher, wali_kelas, wakasek, guru_bk, tu, principal, admin], scope: tenant }
+  GET  /courses/{id}:                  { roles: [student, parent, teacher, wali_kelas, wakasek, guru_bk, tu, principal, admin], scope: tenant }
+  POST /courses:                       { roles: [teacher, wakasek, admin], scope: tenant }
+  PUT  /courses/{id}:                  { roles: [teacher, wakasek, admin], scope: tenant }
+  DELETE /courses/{id}:                { roles: [teacher, admin], scope: tenant }
+
+  # ─── Assessment / Quiz ───────────────────────────────────────────────────
+  POST /rpc/v1_start_quiz_attempt:     { roles: [student], scope: self }
+  POST /rpc/v1_submit_quiz_attempt:    { roles: [student], scope: self }
+  POST /rpc/grade_attempt_question:    { roles: [teacher, wali_kelas, admin], scope: rombel }
+
+  # ─── Gradebook ───────────────────────────────────────────────────────────
+  POST /data/gradebook_entries:        { roles: [teacher, wali_kelas, admin], scope: rombel }
+  GET  /data/gradebook_entries:        { roles: [student, parent, teacher, wali_kelas, admin, principal], scope: self }
+
+  # ─── Attendance ──────────────────────────────────────────────────────────
+  POST /rpc/bulk_record_attendance:    { roles: [teacher, wali_kelas, admin], scope: rombel }
+  GET  /data/attendance_records:       { roles: [student, parent, teacher, wali_kelas, wakasek, admin, principal], scope: self }
+
+  # ─── Rombel / Academic ───────────────────────────────────────────────────
+  GET  /data/rombel:                   { roles: [teacher, wali_kelas, wakasek, guru_bk, tu, principal, admin], scope: tenant }
+  POST /data/rombel:                   { roles: [wakasek, tu, admin], scope: tenant }
+  GET  /data/subjects:                 { roles: [teacher, wali_kelas, wakasek, tu, principal, admin, student], scope: tenant }
+  POST /data/subjects:                 { roles: [wakasek, admin], scope: tenant }
+  GET  /data/academic_years:           { roles: [teacher, wali_kelas, wakasek, tu, principal, admin], scope: tenant }
+  POST /data/academic_years:           { roles: [wakasek, tu, admin], scope: tenant }
+
+  # ─── BK (counseling) ─────────────────────────────────────────────────────
+  GET  /data/counseling_notes:         { roles: [guru_bk, principal, admin], scope: tenant }
+  POST /data/counseling_notes:         { roles: [guru_bk, admin], scope: self }
+
+  # ─── Finance / Invoices ──────────────────────────────────────────────────
+  GET  /data/invoices:                 { roles: [parent, tu, admin, principal], scope: self }
+  POST /data/invoices:                 { roles: [tu, admin], scope: tenant }
+  POST /payment/create:                { roles: [parent, student], scope: self }
+  GET  /data/bos_expenses:             { roles: [tu, admin, principal], scope: tenant }
+  POST /data/bos_expenses:             { roles: [tu, admin], scope: tenant }
+
+  # ─── PPDB ────────────────────────────────────────────────────────────────
+  GET  /data/ppdb_periods:             { roles: [tu, admin, principal, wakasek], scope: tenant }
+  POST /data/ppdb_periods:             { roles: [tu, admin], scope: tenant }
+  GET  /data/ppdb_registrations:       { roles: [tu, admin, wakasek], scope: tenant }
+
+  # ─── Rapor ───────────────────────────────────────────────────────────────
+  POST /pdf/rapor/{id}:                { roles: [wali_kelas, teacher, admin, principal], scope: rombel }
+  POST /pdf/executive-report:          { roles: [principal, admin, yayasan], scope: tenant }
+  POST /pdf/parent-report:             { roles: [parent], scope: self }
+
+  # ─── AI ──────────────────────────────────────────────────────────────────
+  POST /ai/tutor/stream:               { roles: [student, teacher, wali_kelas], scope: self }
+  POST /ai/embeddings:                 { roles: [teacher, wali_kelas, admin], scope: tenant }
+  POST /rpc/generate_content:          { roles: [teacher, wali_kelas, wakasek, admin], scope: tenant }
+  POST /rpc/generate_quiz:             { roles: [teacher, wali_kelas, admin], scope: tenant }
+  POST /rpc/grade_essay:               { roles: [teacher, wali_kelas, admin], scope: rombel }
+
+  # ─── Admin-only (tenant settings, users, feature flags, LTI) ─────────────
+  GET  /data/tenant_modules:           { roles: [admin, principal], scope: tenant }
+  POST /data/tenant_modules:           { roles: [admin], scope: tenant }
+  GET  /data/feature_flags:            { roles: [admin, principal], scope: tenant }
+  POST /data/feature_flags:            { roles: [admin], scope: tenant }
+  GET  /data/users:                    { roles: [admin, tu, principal], scope: tenant }
+  POST /data/lti_platform_registrations: { roles: [admin], scope: tenant }
+  GET  /data/audit_logs:               { roles: [admin, principal, yayasan], scope: tenant }
+  GET  /data/system_health:            { roles: [admin, principal], scope: tenant }
+
+  # ─── Principal / Executive ───────────────────────────────────────────────
+  GET  /data/principal_insights:       { roles: [principal, admin, yayasan], scope: tenant }
+  POST /rpc/get_executive_overview:    { roles: [principal, admin, yayasan], scope: tenant }
+  POST /rpc/get_principal_overview_cached: { roles: [principal, admin, yayasan], scope: tenant }
+
+  # ─── Foundation (yayasan / pengawas) — cross-tenant read-only ────────────
+  GET  /foundation/overview:           { roles: [yayasan, pengawas], scope: foundation }
+
+# Wildcard fallback: any route not explicitly listed denies by default.
+default:
+  deny_unmatched: true
+
+# Rollout: middleware logs "would deny" for unmatched routes in shadow mode
+# before actually denying. Flip `shadow_mode` to `false` to enable enforcement.
+shadow_mode: true

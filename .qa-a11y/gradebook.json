@@ -1,0 +1,14 @@
+{
+  "route": "gradebook",
+  "url": "http://localhost:5173/#/app/admin/gradebook",
+  "violations": [
+    {
+      "id": "color-contrast",
+      "impact": "serious",
+      "description": "Ensure the contrast between foreground and background colors meets WCAG 2 AA minimum contrast ratio thresholds",
+      "nodes": 15
+    }
+  ],
+  "passCount": 33,
+  "capturedAt": "2026-04-24T16:37:17.174Z"
+}
