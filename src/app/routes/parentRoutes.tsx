@@ -6,7 +6,7 @@ import { lazy } from 'react'
 import { Outlet, Route } from 'react-router-dom'
 
 import { RoleGuard } from '../../components/guards/RoleGuard'
-import { SurveyRespondPage } from '../lazyPages'
+import { SurveyRespondPage, ParentPortal } from '../lazyPages'
 import { S } from './utils'
 
 // Lazy imports
@@ -144,6 +144,16 @@ export function ParentRoutes() {
         element={
           <S feature="Laporan Bulanan">
             <MonthlyReportPage />
+          </S>
+        }
+      />
+
+      {/* Halaman Portal Keuangan / Tagihan */}
+      <Route
+        path="tagihan"
+        element={
+          <S feature="Portal Tagihan">
+            <ParentPortal />
           </S>
         }
       />

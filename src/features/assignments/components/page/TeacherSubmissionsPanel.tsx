@@ -83,9 +83,7 @@ export function TeacherSubmissionsPanel({
                     sub.status === 'late') &&
                     tenantId &&
                     isQueueRow &&
-                    sub.submission_id && (
-                      <PlagiarismCheckButton submissionId={sub.submission_id} tenantId={tenantId} />
-                    )}
+                    sub.submission_id && null}
                   {isGraded ? (
                     <span className="font-bold text-emerald-600 dark:text-emerald-400">
                       {displayGrade}/{assignment.maxGrade}

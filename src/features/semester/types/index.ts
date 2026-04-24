@@ -2,7 +2,7 @@ export interface Semester {
   id: string
   tenant_id: string
   name: string
-  academic_year: string
+  academic_year_id: string
   term: 1 | 2
   start_date: string
   end_date: string
@@ -29,7 +29,7 @@ export interface ReportCardData {
 
 export interface SemesterFormData {
   name: string
-  academic_year: string
+  academic_year_id: string
   term: 1 | 2
   start_date: string
   end_date: string

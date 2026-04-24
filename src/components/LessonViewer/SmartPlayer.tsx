@@ -184,12 +184,13 @@ export function SmartPlayer({
                 <X className="w-5 h-5" />
               </button>
 
-              <AITutorPanel
+              {/* P1 fix: Hide AI Tutor streaming UI as backend is orphan */}
+              {/* <AITutorPanel
                 lessonId={lesson.id}
                 lessonTitle={lesson.title}
                 courseId={courseId}
                 onClose={toggleTutor}
-              />
+              /> */}
             </motion.aside>
           )}
         </AnimatePresence>

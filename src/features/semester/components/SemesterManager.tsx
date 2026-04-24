@@ -1,5 +1,6 @@
 import { Calendar, Clock, Edit2, Loader2, Plus } from 'lucide-react'
 import { useState } from 'react'
+import { useAcademicYears } from '@/features/academic-year/queries/useAcademicYears'
 
 import {
   Badge,
@@ -39,15 +40,17 @@ const statusColors: Record<string, string> = {
 
 function SemesterForm({
   initial,
+  academicYearsOptions,
   onSubmit,
   onCancel,
 }: {
   initial?: Semester
+  academicYearsOptions: { value: string; label: string }[]
   onSubmit: (data: SemesterFormData) => void
   onCancel: () => void
 }) {
   const [name, setName] = useState(initial?.name ?? '')
-  const [academicYear, setAcademicYear] = useState(initial?.academic_year ?? '')
+  const [academicYear, setAcademicYear] = useState(initial?.academic_year_id ?? '')
   const [term, setTerm] = useState<string>(initial?.term?.toString() ?? '1')
   const [startDate, setStartDate] = useState(initial?.start_date ?? '')
   const [endDate, setEndDate] = useState(initial?.end_date ?? '')
@@ -56,7 +59,7 @@ function SemesterForm({
     e.preventDefault()
     onSubmit({
       name,
-      academic_year: academicYear,
+      academic_year_id: academicYear,
       term: parseInt(term) as 1 | 2,
       start_date: startDate,
       end_date: endDate,
@@ -85,10 +88,10 @@ function SemesterForm({
         <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
           Tahun Ajaran
         </label>
-        <Input
+        <Select
           value={academicYear}
           onChange={(e) => setAcademicYear(e.target.value)}
-          placeholder="2025/2026"
+          options={academicYearsOptions}
           required
         />
       </div>
@@ -139,6 +142,8 @@ function SemesterForm({
 
 export function SemesterManager() {
   const { data: semesters, isLoading } = useSemesters()
+  const { query: ayQuery } = useAcademicYears()
+  const academicYearsOptions = ayQuery.data?.map((ay: any) => ({ value: ay.id, label: ay.name })) ?? []
   const createMutation = useCreateSemester()
   const updateMutation = useUpdateSemester()
   const closeMutation = useCloseSemester()
@@ -252,7 +257,7 @@ export function SemesterManager() {
                   {semesters?.map((semester) => (
                     <tr key={semester.id} className="border-b dark:border-gray-700">
                       <td className="py-3 px-2 font-medium dark:text-gray-200">{semester.name}</td>
-                      <td className="py-3 px-2 dark:text-gray-300">{semester.academic_year}</td>
+                      <td className="py-3 px-2 dark:text-gray-300">{ayQuery.data?.find((ay: any) => ay.id === semester.academic_year_id)?.name ?? semester.academic_year_id}</td>
                       <td className="py-3 px-2 dark:text-gray-300">
                         <div className="flex items-center gap-1">
                           <Clock className="h-3 w-3" />
@@ -314,6 +319,7 @@ export function SemesterManager() {
         <ModalBody>
           <SemesterForm
             initial={editing ?? undefined}
+            academicYearsOptions={academicYearsOptions}
             onSubmit={editing ? handleUpdate : handleCreate}
             onCancel={handleModalClose}
           />

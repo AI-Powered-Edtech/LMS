@@ -40,7 +40,7 @@ export function TeacherRoutes() {
     <Route
       path="teacher"
       element={
-        <RoleGuard allowedRoles={['teacher']}>
+        <RoleGuard allowedRoles={['teacher', 'wali_kelas', 'guru_bk']}>
           <Outlet />
         </RoleGuard>
       }

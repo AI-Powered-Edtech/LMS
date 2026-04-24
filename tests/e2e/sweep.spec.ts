@@ -1,6 +1,6 @@
 import { test, expect, type Page } from '@playwright/test'
-import fs from 'node:fs'
-import path from 'node:path'
+import * as fs from 'node:fs'
+import * as path from 'node:path'
 
 /**
  * Real-backend screen sweep.
@@ -17,6 +17,12 @@ const CREDENTIALS = {
   admin: { email: 'admin@edusync.dev', password: 'password123' },
   teacher: { email: 'teacher@edusync.dev', password: 'password123' },
   student: { email: 'student@edusync.dev', password: 'password123' },
+  admin_nusantara: { email: 'admin@nusantara.dev', password: 'password123' },
+  principal_nusantara: { email: 'kepsek@nusantara.dev', password: 'password123' },
+  teacher1_nusantara: { email: 'guru1@nusantara.dev', password: 'password123' },
+  teacher2_nusantara: { email: 'guru2@nusantara.dev', password: 'password123' },
+  student1_nusantara: { email: 'siswa1@nusantara.dev', password: 'password123' },
+  student2_nusantara: { email: 'siswa2@nusantara.dev', password: 'password123' },
 } as const
 
 type Persona = keyof typeof CREDENTIALS
@@ -107,6 +113,12 @@ const PERSONA_ROUTES: Record<Persona, string[]> = {
   admin: [...ADMIN_ROUTES.map((r) => `admin/${r}`), ...SHARED_ROUTES.map((r) => `${r}`)],
   teacher: [...TEACHER_ROUTES.map((r) => `teacher/${r}`), ...SHARED_ROUTES.map((r) => `${r}`)],
   student: [...STUDENT_ROUTES.map((r) => `student/${r}`), ...SHARED_ROUTES.map((r) => `${r}`)],
+  admin_nusantara: [...ADMIN_ROUTES.map((r) => `admin/${r}`), ...SHARED_ROUTES.map((r) => `${r}`)],
+  principal_nusantara: [...ADMIN_ROUTES.map((r) => `admin/${r}`), ...SHARED_ROUTES.map((r) => `${r}`)],
+  teacher1_nusantara: [...TEACHER_ROUTES.map((r) => `teacher/${r}`), ...SHARED_ROUTES.map((r) => `${r}`)],
+  teacher2_nusantara: [...TEACHER_ROUTES.map((r) => `teacher/${r}`), ...SHARED_ROUTES.map((r) => `${r}`)],
+  student1_nusantara: [...STUDENT_ROUTES.map((r) => `student/${r}`), ...SHARED_ROUTES.map((r) => `${r}`)],
+  student2_nusantara: [...STUDENT_ROUTES.map((r) => `student/${r}`), ...SHARED_ROUTES.map((r) => `${r}`)],
 }
 
 interface RouteResult {

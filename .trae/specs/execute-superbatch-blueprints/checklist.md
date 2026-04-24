@@ -1,0 +1,9 @@
+- [x] Backend berhasil di-rebuild dan migration 037 diterapkan tanpa error.
+- [x] React dup-key pada teacher dashboard telah diperbaiki.
+- [x] Orphan audit selesai dan tidak ada lagi kode frontend yang mengambang.
+- [x] Dual-path Rust handlers dihapus.
+- [x] CI workflow Playwright sweep berhasil dijalankan.
+- [x] Aksesibilitas top-20 screens memenuhi standar.
+- [x] Dev School Seeding berhasil dibuat dan E2E sweep meliputi 9 persona.
+- [x] Fase 1 Academic Foundation terimplementasi dan diuji dengan baik.
+- [x] Seluruh target fase dalam roadmap telah diselesaikan sesuai prioritas.

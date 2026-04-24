@@ -73,7 +73,7 @@ export function ReportGenerator({ open, onClose }: ReportGeneratorProps) {
     reportType: 'monthly',
     month: now.getMonth() + 1,
     year: now.getFullYear(),
-    formats: ['pdf'],
+    formats: ['csv'],
   })
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -135,15 +135,8 @@ export function ReportGenerator({ open, onClose }: ReportGeneratorProps) {
       }
 
       if (wantPDF) {
-        // Navigate to print-friendly preview page
-        const params = new URLSearchParams({
-          type: state.reportType,
-          month: String(state.month),
-          year: String(state.year),
-        })
-        onClose()
-        void navigate(`/app/principal/report?${params.toString()}`)
-        return
+        // P1 fix: Hide PDF Export as backend is orphan
+        throw new Error('PDF export is currently unavailable')
       }
 
       // CSV only: close modal after download
@@ -246,12 +239,14 @@ export function ReportGenerator({ open, onClose }: ReportGeneratorProps) {
             <div className="flex gap-3">
               {(
                 [
+                  /* P1 fix: Hide PDF Export as backend is orphan
                   {
                     value: 'pdf' as ReportFormat,
                     label: 'PDF',
                     icon: '📄',
                     desc: 'Cetak / simpan PDF',
                   },
+                  */
                   {
                     value: 'csv' as ReportFormat,
                     label: 'Excel/CSV',

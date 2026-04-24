@@ -9,7 +9,18 @@ interface AuthUser {
   email?: string
 }
 
-export type Role = 'teacher' | 'student' | 'admin' | 'parent' | 'principal'
+export type Role =
+  | 'admin'
+  | 'principal'
+  | 'wakasek'
+  | 'teacher'
+  | 'wali_kelas'
+  | 'guru_bk'
+  | 'tu'
+  | 'student'
+  | 'parent'
+  | 'yayasan'
+  | 'pengawas'
 
 export interface Permissions {
   canCreateCourse: boolean
@@ -95,7 +106,7 @@ const rolePermissions: Record<Role, Permissions> = {
     canViewChildGrades: false,
     canViewChildAttendance: false,
     canViewExecutiveDashboard: false,
-    canGenerateReports: false,
+    canGenerateReports: true,
     canConfigurePrincipalSettings: false,
   },
   admin: {
@@ -108,9 +119,9 @@ const rolePermissions: Record<Role, Permissions> = {
     canMessageTeacher: false,
     canViewChildGrades: false,
     canViewChildAttendance: false,
-    canViewExecutiveDashboard: false,
-    canGenerateReports: false,
-    canConfigurePrincipalSettings: false,
+    canViewExecutiveDashboard: true,
+    canGenerateReports: true,
+    canConfigurePrincipalSettings: true,
   },
   parent: {
     canCreateCourse: false,
@@ -139,6 +150,90 @@ const rolePermissions: Record<Role, Permissions> = {
     canViewExecutiveDashboard: true,
     canGenerateReports: true,
     canConfigurePrincipalSettings: true,
+  },
+  wakasek: {
+    canCreateCourse: true,
+    canManageUsers: false,
+    canViewAnalytics: true,
+    canTakeExams: false,
+    canScheduleExams: true,
+    canViewOwnChildProgress: false,
+    canMessageTeacher: false,
+    canViewChildGrades: false,
+    canViewChildAttendance: false,
+    canViewExecutiveDashboard: true,
+    canGenerateReports: true,
+    canConfigurePrincipalSettings: false,
+  },
+  wali_kelas: {
+    canCreateCourse: false,
+    canManageUsers: false,
+    canViewAnalytics: true,
+    canTakeExams: false,
+    canScheduleExams: false,
+    canViewOwnChildProgress: false,
+    canMessageTeacher: false,
+    canViewChildGrades: true,
+    canViewChildAttendance: true,
+    canViewExecutiveDashboard: false,
+    canGenerateReports: true,
+    canConfigurePrincipalSettings: false,
+  },
+  guru_bk: {
+    canCreateCourse: false,
+    canManageUsers: false,
+    canViewAnalytics: true,
+    canTakeExams: false,
+    canScheduleExams: false,
+    canViewOwnChildProgress: false,
+    canMessageTeacher: false,
+    canViewChildGrades: false,
+    canViewChildAttendance: true,
+    canViewExecutiveDashboard: false,
+    canGenerateReports: true,
+    canConfigurePrincipalSettings: false,
+  },
+  tu: {
+    canCreateCourse: false,
+    canManageUsers: true,
+    canViewAnalytics: true,
+    canTakeExams: false,
+    canScheduleExams: false,
+    canViewOwnChildProgress: false,
+    canMessageTeacher: false,
+    canViewChildGrades: false,
+    canViewChildAttendance: true,
+    canViewExecutiveDashboard: false,
+    canGenerateReports: true,
+    canConfigurePrincipalSettings: false,
+  },
+  yayasan: {
+    canCreateCourse: false,
+    canManageUsers: false,
+    canViewAnalytics: true,
+    canTakeExams: false,
+    canScheduleExams: false,
+    canViewOwnChildProgress: false,
+    canMessageTeacher: false,
+    canViewChildGrades: false,
+    canViewChildAttendance: false,
+    canViewExecutiveDashboard: true,
+    canGenerateReports: true,
+    canConfigurePrincipalSettings: false,
+  },
+  pengawas: {
+    canCreateCourse: false,
+    canManageUsers: false,
+    canViewAnalytics: true,
+    canTakeExams: false,
+    canScheduleExams: false,
+    canViewOwnChildProgress: false,
+    canMessageTeacher: false,
+    canViewChildGrades: false,
+    canViewChildAttendance: false,
+    canViewExecutiveDashboard: true,
+    canGenerateReports: true,
+    canConfigurePrincipalSettings: false,
   },
 }
 

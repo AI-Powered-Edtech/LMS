@@ -191,9 +191,10 @@ export function TeacherDashboard() {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-100 dark:divide-slate-800/50">
-                  {classrooms.map((classroom) => (
+                  {classrooms.map((classroom, idx) => (
                     <tr 
-                      key={classroom.id} 
+                      // P1 fix: append idx to prevent React dup-key warning
+                      key={`${classroom.id}-${idx}`} 
                       className="group hover:bg-slate-50/50 dark:hover:bg-slate-800/20 transition-colors"
                     >
                       <td className="px-4 py-3 font-medium text-slate-900 dark:text-white">

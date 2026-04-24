@@ -2,6 +2,7 @@ import { Navigate, Outlet, Route } from 'react-router-dom'
 
 import { RoleGuard } from '../../components/guards/RoleGuard'
 import {
+  AcademicYearPage,
   AdaptivePathsPage,
   AdminAnalyticsDashboard,
   AdministrationDashboard,
@@ -44,7 +45,7 @@ export function AdminRoutes() {
     <Route
       path="admin"
       element={
-        <RoleGuard allowedRoles={['admin']}>
+        <RoleGuard allowedRoles={['admin', 'wakasek', 'tu', 'yayasan', 'pengawas']}>
           <Outlet />
         </RoleGuard>
       }
@@ -272,7 +273,15 @@ export function AdminRoutes() {
         }
       />
       <Route
-        path="semester"
+          path="academic-years"
+          element={
+            <S>
+              <AcademicYearPage />
+            </S>
+          }
+        />
+        <Route
+          path="semester"
         element={
           <S>
             <SemesterPage />

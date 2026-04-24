@@ -370,26 +370,8 @@ export function ReportPreview() {
     setError(null)
 
     try {
-      const apiUrl = import.meta.env.VITE_API_URL ?? ''
-      const token = readVilSession()?.access_token
-
-      const response = await fetch(`${apiUrl}/api/v1/pdf/executive-report`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          ...(token ? { Authorization: `Bearer ${token}` } : {}),
-        },
-        body: JSON.stringify({ tenantId, reportType, month, year }),
-      })
-
-      if (!response.ok) throw new Error(`HTTP ${response.status}`)
-      const data = await response.json()
-
-      if (data?.reportData) {
-        setReportData(data.reportData as ExecutiveReportData)
-      } else {
-        throw new Error('Data laporan tidak ditemukan')
-      }
+      // P1 fix: Hide PDF Export as backend is orphan
+      throw new Error('PDF export is currently unavailable');
     } catch (err) {
       const msg = err instanceof Error ? err.message : 'Terjadi kesalahan tidak diketahui'
       setError(msg)

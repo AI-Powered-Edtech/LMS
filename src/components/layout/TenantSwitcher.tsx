@@ -14,6 +14,12 @@ const ROLE_LABEL: Record<Role, string> = {
   admin: 'Admin',
   parent: 'Ortu',
   principal: 'Kepsek',
+  wakasek: 'Wakasek',
+  wali_kelas: 'Wali Kelas',
+  guru_bk: 'Guru BK',
+  tu: 'Tata Usaha',
+  yayasan: 'Yayasan',
+  pengawas: 'Pengawas',
 }
 
 // ============================================================

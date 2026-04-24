@@ -76,9 +76,15 @@ export const Header = memo(function Header({ onMenuClick }: HeaderProps) {
   const roleLabels: Record<Role, string> = {
     student: 'Siswa',
     teacher: 'Guru',
-    admin: 'Administrator',
+    admin: 'Admin',
     parent: 'Orang Tua',
     principal: 'Kepala Sekolah',
+    wakasek: 'Wakasek',
+    wali_kelas: 'Wali Kelas',
+    guru_bk: 'Guru BK',
+    tu: 'Tata Usaha',
+    yayasan: 'Yayasan',
+    pengawas: 'Pengawas',
   }
 
   const isStudent = role === 'student'

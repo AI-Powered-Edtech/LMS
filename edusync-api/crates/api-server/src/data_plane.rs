@@ -100,6 +100,15 @@ const ALLOWED_TABLES: &[&str] = &[
     "tenant_modules",
     "user_badges",
     "user_points",
+    "academic_years",
+    "grade_levels",
+    "rombels",
+    "rombel_members",
+    "subjects",
+    "curriculum_items",
+    "timetable_slots",
+    "student_dossiers",
+    "staff_dossiers",
 ];
 
 const ALLOWED_RPCS: &[&str] = &[

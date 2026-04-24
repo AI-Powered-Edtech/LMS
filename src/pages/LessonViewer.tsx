@@ -312,11 +312,12 @@ export function LessonViewer() {
                       id="panel-ai-tutor"
                       aria-labelledby="tab-ai-tutor"
                     >
-                      <AITutorPanel
+                      {/* P1 fix: Hide AI Tutor streaming UI as backend is orphan */}
+                      {/* <AITutorPanel
                         lessonId={s.state.lesson.id}
                         lessonTitle={s.state.lesson.title}
                         courseId={s.courseId}
-                      />
+                      /> */}
                     </motion.div>
                   )}
               </AnimatePresence>

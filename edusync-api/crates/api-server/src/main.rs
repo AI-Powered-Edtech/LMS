@@ -16,6 +16,8 @@ mod realtime;
 mod state;
 mod storage;
 mod stub_handlers;
+mod payment_handlers;
+mod rapor_handlers;
 mod tenant_invites;
 mod tenant_admin;
 
@@ -453,6 +455,18 @@ async fn main() -> anyhow::Result<()> {
         .endpoint(Method::POST, "/scorm/runtime", post(scorm_runtime_stub_handler))
         .state(app_state.clone());
 
+    let payment_service = ServiceProcess::new("payments")
+        .prefix("/api/v1/payments")
+        .endpoint(Method::POST, "/webhook", post(payment_handlers::midtrans_webhook))
+        .endpoint(Method::POST, "/create", post(payment_handlers::create_payment))
+        .state(app_state.clone());
+
+    let rapor_service = ServiceProcess::new("rapor")
+        .prefix("/api/v1/rapor")
+        .endpoint(Method::POST, "/generate/:student_id", post(rapor_handlers::generate_rapor))
+        .endpoint(Method::POST, "/sign/:rapor_id", post(rapor_handlers::sign_rapor))
+        .state(app_state.clone());
+
     VilApp::new("edusync-api")
         .port(port)
         .profile(&vil_profile)
@@ -473,6 +487,8 @@ async fn main() -> anyhow::Result<()> {
         .service(ws_service)
         .service(storage_service)
         .service(stub_service)
+        .service(payment_service)
+        .service(rapor_service)
         .run()
         .await;
 

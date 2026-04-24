@@ -115,6 +115,10 @@ export const EnrollPage = withErrorBoundary(
   lazy(() => import('../pages/EnrollPage').then((m) => ({ default: m.EnrollPage }))),
   'Bergabung ke Kelas'
 )
+export const ParentPortal = withErrorBoundary(
+  lazy(() => import('../pages/ParentPortal').then((m) => ({ default: m.ParentPortal }))),
+  'Portal Orang Tua'
+)
 
 // ============================================================
 // Teacher pages
@@ -305,6 +309,7 @@ export const PPDBDashboard = withErrorBoundary(
   lazy(() => import('../pages/admin/PPDBDashboard').then((m) => ({ default: m.PPDBDashboard }))),
   'Dasbor PPDB'
 )
+export const AcademicYearPage = lazy(() => import('../pages/admin/AcademicYearPage'))
 export const AdministrationDashboard = withErrorBoundary(
   lazy(() =>
     import('../pages/admin/AdministrationDashboard').then((m) => ({

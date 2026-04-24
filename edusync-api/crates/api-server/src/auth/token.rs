@@ -13,33 +13,85 @@ mod tests {
     use sqlx::postgres::PgPoolOptions;
     use uuid::Uuid;
 
-    use crate::state::{cache::CacheClient, AppState, ShadowRuntimeConfig, SmtpConfig};
+    use crate::state::{AppState, ShadowRuntimeConfig, SmtpConfig};
+    use crate::cache::CacheClient;
     use edusync_auth::jwt::{init_rsa_keys, issue_refresh_token};
     use edusync_middleware::brute_force::BruteForceTracker;
 
     use super::verify_refresh_token_with_session_secret;
 
-    const TEST_PRIVATE_KEY: &[u8] = r#"-----BEGIN RSA PRIVATE KEY-----
-MIIEowIBAAKCAQEAx2v7c+1RrVZo4a8GtvhtPHL8c8F5uG9lM/3qK7G+tvhtPHL8c8F5uG9lM/3qK7
-G+tvhtPHL8c8F5uG9lM/3qK7G+tvhtPHL8c8F5uG9lM/3qK7G+tvhtPHL8c8F5u
-G9lM/3qK7G+tvhtPHL8c8F5uG9lM/3qK7G+tvhtPHL8c8F5uG9lM/3qK7G+tvhtPH
-L8c8F5uG9lM/3qK7G+tvhtPHL8c8F5uG9lM/3qK7G+tvhtPHL8c8F5uG9lM/3qK7G
-+tvhtPHL8c8F5uG9lM/3qK7G+tvhtPHL8c8F5uG9lM/3qK7G+tvhtPHL8c8F5uG9lM/3qK7
------END RSA PRIVATE KEY-----"#
-        .as_bytes();
+    const TEST_PRIVATE_KEY: &[u8] = r#"-----BEGIN PRIVATE KEY-----
+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
+5CfBwyBd+CBZTk/Q9QgLeL//xkQe
+-----END PRIVATE KEY-----
+"#.as_bytes();
 
     const TEST_PUBLIC_KEY: &[u8] = r#"-----BEGIN PUBLIC KEY-----
-MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAx2v7c+1RrVZo4a8GtvhtPHL8
-c8F5uG9lM/3qK7G+tvhtPHL8c8F5uG9lM/3qK7G+tvhtPHL8c8F5uG9lM/3qK7G+tvhtP
-HL8c8F5uG9lM/3qK7G+tvhtPHL8c8F5uG9lM/3qK7G+tvhtPHL8c8F5uG9lM/3qK7G+tv
-htPHL8c8F5uG9lM/3qK7G+tvhtPHL8c8F5uG9lM/3qK7G+tvhtPHL8c8F5uG9lM/3qK7G+tv
-htPHL8c8F5uG9lM/3qK7G+tvhtPHL8c8F5uG9lM/3qK7G+tvhtPHL8c8F5uG9lM/3qK7G+tv
-htPHL8c8F5uG9lM/3qK7G+tvhtPHL8c8F5uG9lM/3qK7G+tvhtPHL8c8F5uG9lM/3qK7A QAB
------END PUBLIC KEY-----"#
-        .as_bytes();
+MIICIjANBgkqhkiG9w0BAQEFAAOCAg8AMIICCgKCAgEA69VjJ8tf+LblcBZSCuEq
+paGexAcHM+X/29H68D2w8EeYLY66sNNMP1JQgWo2GaYAWY6GP4LyOI9qdpX1LAg6
+W45MmqmIhVAv9bkHdZVBvN8Zh2muZzUvlesk6tupirzE3rtplBE8vQw5HRYWKkWy
+JEirCwYFjDe+p6W2xKUUFHJvtiihxKHa2wt06FGUABkEM0WthmEAQs4aiGxJynae
+TmQp9UY/vljrc66Mnc9QXhkWgjTOGteqnkTTz3EvzEMfM/cJpjtg45YhF2WBaIKO
+qDAUQnzxyhkpS47wX/nQZpxxkG/VYDNvzMra0HbZFnK1rT7By29/Yl9WjKvNBsNO
+hYBekaudBYda2ZDqSK9gXlesuYFSxN8mZkH642GIsFqqIlysxO27m7h5WW2FAE20
+6CkjbTbgsR3G3EIso9aIas/LI4fjeBVz+2/XIAbh2hiGt8RYAMruUkeid6iS/Djk
+8PxK+qTd/0NnweFG+Q7NQq+twsqzYOg5vIbnGHRj9yJRaCmSX+zjVEukaqIs5Kcw
++8tFl6HTj8Tv88qA0jfyx2IUpIGDpa6D58sizhQKH4zufkMfMbI18VV7B0xu0UKy
+J4lAzCzJXeMDALmrI4xA07EMIfusF7knw4UKw+aGbgBNt2+4GJBcWMLHXNAMaFri
+hHKV+xm3XhLS+WzWahrfcgUCAwEAAQ==
+-----END PUBLIC KEY-----
+"#.as_bytes();
 
-    #[test]
-    fn refresh_token_verified_with_rsa_keys() {
+    #[tokio::test]
+    async fn refresh_token_verified_with_rsa_keys() {
         init_rsa_keys(TEST_PRIVATE_KEY, TEST_PUBLIC_KEY).expect("should init keys");
 
         let db = PgPoolOptions::new()

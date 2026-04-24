@@ -6,10 +6,10 @@ export async function fetchSemesters(tenantId: string): Promise<Semester[]> {
   const { data, error } = await db
     .from('semesters')
     .select(
-      'id, tenant_id, name, academic_year, term, start_date, end_date, status, created_at, updated_at'
+      'id, tenant_id, name, academic_year_id, term, start_date, end_date, status, created_at, updated_at'
     )
     .eq('tenant_id', tenantId)
-    .order('academic_year', { ascending: false })
+    .order('academic_year_id', { ascending: false })
     .order('term', { ascending: false })
 
   if (error) throw error
@@ -20,7 +20,7 @@ export async function fetchSemesterById(id: string, tenantId: string): Promise<S
   const { data, error } = await db
     .from('semesters')
     .select(
-      'id, tenant_id, name, academic_year, term, start_date, end_date, status, created_at, updated_at'
+      'id, tenant_id, name, academic_year_id, term, start_date, end_date, status, created_at, updated_at'
     )
     .eq('id', id)
     .eq('tenant_id', tenantId)
@@ -39,14 +39,14 @@ export async function createSemester(
     .insert({
       tenant_id: tenantId,
       name: formData.name,
-      academic_year: formData.academic_year,
+      academic_year_id: formData.academic_year_id,
       term: formData.term,
       start_date: formData.start_date,
       end_date: formData.end_date,
       status: formData.status ?? 'draft',
     })
     .select(
-      'id, tenant_id, name, academic_year, term, start_date, end_date, status, created_at, updated_at'
+      'id, tenant_id, name, academic_year_id, term, start_date, end_date, status, created_at, updated_at'
     )
     .single()
 
@@ -68,7 +68,7 @@ export async function updateSemester(
     .eq('id', id)
     .eq('tenant_id', tenantId)
     .select(
-      'id, tenant_id, name, academic_year, term, start_date, end_date, status, created_at, updated_at'
+      'id, tenant_id, name, academic_year_id, term, start_date, end_date, status, created_at, updated_at'
     )
     .single()
 
@@ -86,7 +86,7 @@ export async function closeSemester(id: string, tenantId: string): Promise<Semes
     .eq('id', id)
     .eq('tenant_id', tenantId)
     .select(
-      'id, tenant_id, name, academic_year, term, start_date, end_date, status, created_at, updated_at'
+      'id, tenant_id, name, academic_year_id, term, start_date, end_date, status, created_at, updated_at'
     )
     .single()
 
