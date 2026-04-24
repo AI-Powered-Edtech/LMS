@@ -1,8 +1,29 @@
 # 02 — Inventory Modul Existing
 
-Peta modul yang sudah ada di codebase `/home/emp/Downloads/LMS`, dengan status completeness. Dibuat dari systematic scan pada 2026-04-24 (sweep real-backend).
+Peta modul yang sudah ada di codebase `/home/emp/Downloads/LMS`. Disusun 2026-04-24, terakhir update setelah superbatch cloud-agent + operator hardening.
 
-**Total**: 42 domain, ~210 FE page/component, ~15 handler Rust wired, ~100+ RPC Postgres, ~80 tabel DB.
+**Total** (post-superbatch): **55+ domain** (13 baru dari migrasi 039-064), ~240 FE page/component, ~20 handler Rust wired (termasuk `midtrans_webhook`, `ai_tutor_real`, `report_real`, `embeddings_handler`, `events_worker` bin), ~100+ RPC Postgres, ~100+ tabel DB (schema expanded dengan academic foundation + Kurmer + finance + PPDB + AI).
+
+## Modul baru dari superbatch (2026-04-24)
+
+Ringkasan tambahan, untuk detail lihat roadmap fase 1-6 yang tercentang:
+
+| Domain | Migrasi | FE surface | Rust handler | Status |
+|---|---|---|---|---|
+| Academic Foundation | 039-045 | AcademicYears, GradeLevels, RombelManagement, Subjects, Timetable, StudentDossier, StaffDossier pages | — | Schema + FE CRUD ✓, wiring partial |
+| RBAC 10-role matrix | 046 | — | — | Schema ✓, middleware enforcement belum lengkap |
+| Kurmer Assessment | 047-051 | AKM stimuli, P5 projects pages | — | Schema ✓ |
+| Event bus outbox | 052 | — | `bin/events_worker.rs` | Worker compiles & runs; subscribers belum lengkap |
+| Rapor Kurmer | 053, 062 | Rapor, RaporPrint pages | `report_real.rs` | Real endpoint mounted; PDF rendering masih browser-print |
+| Finance Midtrans | 054 | ParentPortal (billing view) | `midtrans_webhook.rs` (SHA512 verify) | Webhook ✓; `create_payment` snap token masih stub (real Midtrans call belum) |
+| BOS expense | 055 | BosTracking page | — | Schema + UI ✓, laporan generator belum |
+| PPDB extended | 056 | PpdbJalur page | — | Schema + jalur CRUD ✓, flow lengkap belum |
+| Integrations | 057 | Integrations page, Dapodik CSV FE export | — | CSV export (FE) ✓, async job processor belum |
+| AI infra | 058 | AuthoringAssist, SpeedGraderAi, LessonAiTutor, ParentDigest, PrincipalInsights | `ai_tutor_real.rs`, `embeddings_handler.rs` | Komponen + endpoints ✓, integrasi ke existing pages partial |
+| Audit + rate limit | 059, 061 | — | 12 audit triggers | Schema + triggers ✓, middleware enforcement belum |
+| Counseling/BK + parent links + sikap | 060 | Counseling, ParentLinks pages | — | Schema + UI ✓ |
+| Rombel attendance | 063 | RombelAttendance page (H/S/I/A per-day) | — | Schema + UI ✓, event integration belum |
+| Stub tables | 064 | — | — | `onboarding_progress`, `tenant_subscriptions(+plan_id)` fill baseline gap |
 
 ## Legend
 
