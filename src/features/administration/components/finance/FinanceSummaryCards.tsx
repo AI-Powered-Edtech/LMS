@@ -1,5 +1,6 @@
 import { CheckCircle2, Clock, TrendingUp, Wallet } from 'lucide-react'
 
+import { formatCurrency as formatRupiah } from '@/shared/utils/format-id'
 import { cn } from '@/utils/cn'
 
 import type { FinanceOverview } from '../../types/finance'
@@ -36,16 +37,6 @@ function OverviewCard({ icon, iconBg, label, value, subLabel, loading }: Overvie
       </div>
     </div>
   )
-}
-
-const IDR = new Intl.NumberFormat('id-ID', {
-  style: 'currency',
-  currency: 'IDR',
-  maximumFractionDigits: 0,
-})
-
-function formatRupiah(amount: number): string {
-  return IDR.format(amount)
 }
 
 interface FinanceSummaryCardsProps {

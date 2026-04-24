@@ -3,6 +3,7 @@ import { motion } from 'motion/react'
 import { useEffect, useState } from 'react'
 
 import type { StudentQuizAssignment } from '@/features/quizzes'
+import { formatDateTime } from '@/shared/utils/format-id'
 import { cn } from '@/utils/cn'
 import { getCachedQuiz } from '@/utils/offlineStorage'
 
@@ -97,9 +98,7 @@ export function QuizCard({
           <p
             className={cn('text-xs font-bold mb-3', isExpired ? 'text-red-500' : 'text-amber-600')}
           >
-            Tenggat:{' '}
-            {availableUntil.toLocaleDateString('id-ID', { month: 'short', day: 'numeric' })}{' '}
-            {availableUntil.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' })}
+            Tenggat: {formatDateTime(availableUntil)}
           </p>
         )}
 

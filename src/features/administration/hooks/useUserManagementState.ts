@@ -11,6 +11,7 @@ import {
 } from '@/features/administration/api/adminUserService'
 import { useDebounce } from '@/hooks/useDebounce'
 import { useToast } from '@/hooks/useToast'
+import { formatDate as formatDateId } from '@/shared/utils/format-id'
 import { logger } from '@/utils/logger'
 
 type Tab = 'users' | 'invitations'
@@ -132,8 +133,7 @@ export function useUserManagementState() {
   }
 
   const formatDate = (dateStr: string | null) => {
-    if (!dateStr) return '—'
-    return new Date(dateStr).toLocaleDateString('id-ID', {
+    return formatDateId(dateStr, {
       day: 'numeric',
       month: 'short',
       year: 'numeric',

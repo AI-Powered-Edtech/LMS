@@ -4,17 +4,13 @@
  * Kolom: Nama Siswa, Email, Bulan, Keterangan, Jumlah (Rp), Status, Tanggal Bayar, Dibuat
  */
 
+import { formatCurrency } from '@/shared/utils/format-id'
+
 import type { InvoiceRecord } from '../types/finance'
 
 // ---------------------------------------------------------------------------
 // Helpers
 // ---------------------------------------------------------------------------
-
-const IDR = new Intl.NumberFormat('id-ID', {
-  style: 'currency',
-  currency: 'IDR',
-  maximumFractionDigits: 0,
-})
 
 const ID_MONTHS = [
   'Jan',
@@ -97,7 +93,7 @@ export function exportFinanceToCSV(invoices: InvoiceRecord[]): void {
       inv.student_email ?? '',
       formatMonthYear(inv.month_year) || formatDateWIB(inv.created_at),
       inv.description ?? 'SPP',
-      IDR.format(inv.amount_due),
+      formatCurrency(inv.amount_due),
       normalizeStatus(inv.status),
       formatDateWIB(inv.paid_at),
       formatDateWIB(inv.created_at),

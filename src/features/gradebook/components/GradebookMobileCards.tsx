@@ -16,6 +16,7 @@ import { ChevronDown, ChevronUp, Edit2, Save, User, X } from 'lucide-react'
 import { AnimatePresence, motion } from 'motion/react'
 import { useState } from 'react'
 
+import { formatDate as formatDateId } from '@/shared/utils/format-id'
 import { cn } from '@/utils/cn'
 
 import type { GradebookEntry } from '../types'
@@ -74,12 +75,8 @@ function getTypeLabel(type: string): string {
 
 function formatDate(dateStr?: string): string {
   if (!dateStr) return ''
-  try {
-    const date = new Date(dateStr)
-    return date.toLocaleDateString('id-ID', { day: 'numeric', month: 'short' })
-  } catch {
-    return ''
-  }
+  const out = formatDateId(dateStr, { day: 'numeric', month: 'short' })
+  return out === '—' ? '' : out
 }
 
 // ─── Student Card Component ───────────────────────────────────────────────────
