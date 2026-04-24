@@ -1,48 +1,63 @@
 import { HubView } from '@/components/HubView'
 import { useAuth } from '@/contexts/AuthContext'
 import { useStudentXPProfile } from '@/features/gamification/queries/gamificationQueries'
+import { ModuleId, useModuleConfig } from '@/hooks/useModuleConfig'
 import { usePageTitle } from '@/hooks/usePageTitle'
 import { navigationItems } from '@/shared/config/navigation'
 
+/**
+ * Pakai `activeRole` (per-tenant role yang dipakai RoleGuard & Sidebar),
+ * bukan `role` (global primary role). `role` bisa balik ke 'student' saat
+ * array roles kosong karena `getPrimaryRole` default ke 'student' -> hub
+ * jadi kosong untuk guru. activeRole selalu mengikuti membership aktif.
+ */
+function useHubItems(location: 'teaching-hub' | 'social-hub' | 'gamification-hub' | 'admin-hub') {
+  const { activeRole } = useAuth()
+  const { isModuleEnabled } = useModuleConfig()
+
+  return navigationItems.filter((item) => {
+    if (item.location !== location) return false
+    if (!activeRole) return false
+    if (!item.roles.includes(activeRole)) return false
+    if (item.moduleId && !isModuleEnabled(item.moduleId as ModuleId)) return false
+    return true
+  })
+}
+
 export function TeachingHub() {
   usePageTitle('Pusat Mengajar')
-  const { role } = useAuth()
-
-  const items = navigationItems.filter(
-    (item) => item.location === 'teaching-hub' && item.roles.includes(role)
-  )
+  const items = useHubItems('teaching-hub')
 
   return (
     <HubView
       title="Ruang Mengajar"
       description="Kelola kelas, nilai, dan absensi siswa."
       items={items}
+      emptyTitle="Belum ada alat mengajar yang aktif"
+      emptyDescription="Menu mengajar (Manajemen Materi, Buku Nilai, Kuis, dll.) akan muncul di sini setelah admin mengaktifkan modulnya dan Anda terdaftar sebagai guru di kelas aktif. Pilih kelas di sidebar atau hubungi admin sekolah jika menu seharusnya tersedia."
     />
   )
 }
 
 export function SocialHub() {
-  const { role } = useAuth()
-
-  const items = navigationItems.filter(
-    (item) => item.location === 'social-hub' && item.roles.includes(role)
-  )
+  usePageTitle('Sosial & Informasi')
+  const items = useHubItems('social-hub')
 
   return (
     <HubView
       title="Sosial & Informasi"
       description="Forum diskusi, jadwal, dan pengumuman sekolah."
       items={items}
+      emptyTitle="Belum ada kanal sosial yang aktif"
+      emptyDescription="Forum, Jadwal, dan Pengumuman akan muncul di sini setelah admin mengaktifkan modul Forum/Calendar/Announcements. Belum ada data yang di-seed — aktifkan modulnya dari pengaturan tenant terlebih dahulu."
     />
   )
 }
 
 export function GamificationHub() {
-  const { role } = useAuth()
-
-  const items = navigationItems.filter(
-    (item) => item.location === 'gamification-hub' && item.roles.includes(role)
-  )
+  usePageTitle('Prestasi & Permainan')
+  const { activeRole } = useAuth()
+  const items = useHubItems('gamification-hub')
 
   return (
     <div className="max-w-6xl mx-auto space-y-8 pb-12 px-4 md:px-6 lg:px-8">
@@ -56,10 +71,20 @@ export function GamificationHub() {
       </div>
 
       {/* XP Summary Card - only for students */}
-      {role === 'student' && <GamificationSummary />}
+      {activeRole === 'student' && <GamificationSummary />}
 
       {/* Navigation items */}
-      <HubView title="" description="" items={items} />
+      <HubView
+        title=""
+        description=""
+        items={items}
+        emptyTitle="Belum ada fitur gamifikasi yang aktif"
+        emptyDescription={
+          activeRole === 'teacher'
+            ? 'Papan peringkat kelas akan muncul di sini setelah ada siswa yang aktif di kelas Anda. Tidak ada data yang di-seed — data muncul organik dari aktivitas siswa.'
+            : 'Papan peringkat dan sertifikat muncul di sini setelah Anda mulai mengerjakan materi dan kuis. Belum ada XP atau pencapaian yang di-seed.'
+        }
+      />
     </div>
   )
 }
@@ -178,17 +203,16 @@ function GamificationSummary() {
 }
 
 export function AdminHub() {
-  const { role } = useAuth()
-
-  const items = navigationItems.filter(
-    (item) => item.location === 'admin-hub' && item.roles.includes(role)
-  )
+  usePageTitle('Administrasi Sekolah')
+  const items = useHubItems('admin-hub')
 
   return (
     <HubView
       title="Administrasi Sekolah"
       description="Kelola keuangan, PPDB, dan dokumen administrasi."
       items={items}
+      emptyTitle="Belum ada modul administrasi yang aktif"
+      emptyDescription="Menu administrasi sekolah (Keuangan, PPDB, Dokumen, dll.) akan muncul setelah admin mengaktifkan modul terkait."
     />
   )
 }

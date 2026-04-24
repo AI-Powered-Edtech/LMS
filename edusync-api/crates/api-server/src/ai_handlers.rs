@@ -32,7 +32,7 @@ pub async fn grade_essay_handler(
     svc: ServiceCtx,
     body: ShmSlice,
 ) -> HandlerResult<impl IntoResponse> {
-    let state = svc.state::<Arc<AppState>>()?;
+    let state = svc.state::<AppState>()?;
     let payload: GradeEssayRequest = body
         .json()
         .map_err(|e| VilError::bad_request(e.to_string()))?;
@@ -65,7 +65,7 @@ pub async fn tutor_chat_handler(
     svc: ServiceCtx,
     body: ShmSlice,
 ) -> HandlerResult<impl IntoResponse> {
-    let state = svc.state::<Arc<AppState>>()?;
+    let state = svc.state::<AppState>()?;
     let payload: TutorChatRequest = body
         .json()
         .map_err(|e| VilError::bad_request(e.to_string()))?;
@@ -90,7 +90,7 @@ pub async fn generate_content_handler(
     svc: ServiceCtx,
     body: ShmSlice,
 ) -> HandlerResult<impl IntoResponse> {
-    let state = svc.state::<Arc<AppState>>()?;
+    let state = svc.state::<AppState>()?;
     let payload: GenerateContentRequest = body
         .json()
         .map_err(|e| VilError::bad_request(e.to_string()))?;
@@ -124,7 +124,7 @@ pub async fn generate_quiz_handler(
     svc: ServiceCtx,
     body: ShmSlice,
 ) -> HandlerResult<impl IntoResponse> {
-    let state = svc.state::<Arc<AppState>>()?;
+    let state = svc.state::<AppState>()?;
     let payload: GenerateQuizRequest = body
         .json()
         .map_err(|e| VilError::bad_request(e.to_string()))?;

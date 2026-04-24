@@ -91,6 +91,63 @@ pub async fn register_handler(
         VilError::internal("Terjadi kesalahan pada database")
     })?;
 
+    // ------------------------------------------------------------
+    // Tenant assignment (Opsi B migrasi 025).
+    // Logika baru berdasarkan body.role + body.invite_code:
+    //   role='teacher' + invite_code -> redeem_tenant_invite RPC
+    //   role='teacher' (no invite)   -> provision_personal_tenant RPC
+    //   role='student' / None        -> biarkan default (seed tenant),
+    //                                    student akan join via class/invite terpisah.
+    // RPC ditulis SECURITY DEFINER, jadi tidak butuh JWT tenant_id saat register.
+    // ------------------------------------------------------------
+    let role_lc = body
+        .role
+        .as_deref()
+        .map(str::to_lowercase)
+        .unwrap_or_default();
+    let is_teacher_signup = role_lc == "teacher";
+
+    if is_teacher_signup {
+        if let Some(code) = body.invite_code.as_deref().filter(|c| !c.trim().is_empty()) {
+            // Redeem invite -> RPC mengembalikan { tenant_id, role }.
+            let rpc = sqlx::query_scalar::<_, serde_json::Value>(
+                "SELECT public.redeem_tenant_invite($1, $2)",
+            )
+            .bind(code)
+            .bind(user_id)
+            .fetch_one(&state.db)
+            .await
+            .map_err(|e| {
+                tracing::error!(error = ?e, "RPC redeem_tenant_invite gagal");
+                VilError::bad_request(
+                    "Kode undangan tidak valid, sudah dipakai, atau kedaluwarsa.",
+                )
+            })?;
+            tracing::info!(user_id = %user_id, result = ?rpc, "redeem_tenant_invite OK");
+        } else {
+            // Provision personal tenant -> RPC mengembalikan { tenant_id, created }.
+            let display_name = if full_name.trim().is_empty() {
+                body.email.clone()
+            } else {
+                full_name.clone()
+            };
+            let rpc = sqlx::query_scalar::<_, serde_json::Value>(
+                "SELECT public.provision_personal_tenant($1, $2)",
+            )
+            .bind(user_id)
+            .bind(&display_name)
+            .fetch_one(&state.db)
+            .await
+            .map_err(|e| {
+                tracing::error!(error = ?e, "RPC provision_personal_tenant gagal");
+                VilError::internal(
+                    "Gagal menyiapkan ruang kerja pribadi. Silakan coba lagi.",
+                )
+            })?;
+            tracing::info!(user_id = %user_id, result = ?rpc, "provision_personal_tenant OK");
+        }
+    }
+
     let role: String = sqlx::query_scalar(
         "SELECT role::text FROM public.user_roles WHERE user_id = $1 LIMIT 1",
     )

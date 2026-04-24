@@ -11,7 +11,7 @@ export function SidebarSkeleton() {
         <div className="w-8 h-8 rounded-xl bg-blue-600 flex items-center justify-center">
           <span className="text-white font-bold text-lg">E</span>
         </div>
-        <h1 className="text-xl font-bold text-slate-900 dark:text-white tracking-tight">EduSync</h1>
+        <span className="text-xl font-bold text-slate-900 dark:text-white tracking-tight">EduSync</span>
       </div>
 
       {/* Nav skeleton items */}

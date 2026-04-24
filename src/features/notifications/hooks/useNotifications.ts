@@ -107,7 +107,12 @@ export function useNotifications(): UseNotificationsReturn {
     return () => {
       void getRealtimeProvider().removeChannel(channel);
     };
-  }, [tenantId, user, queryClient, queryKey]);
+    // WHY primitive deps: `queryKey` and `user` are fresh references every render.
+    // Including them here causes unsubscribe+resubscribe on every render → setQueryData →
+    // rerender → loop → "Maximum update depth exceeded" + VilRealtime channel thrash.
+    // queryClient is stable. tenantId + user.id are primitives.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [tenantId, user?.id, queryClient]);
 
   // UX FIX: Optimistic updates give instant feedback before server confirms.
   // Without this, clicking "mark as read" has a visible delay waiting for refetch.

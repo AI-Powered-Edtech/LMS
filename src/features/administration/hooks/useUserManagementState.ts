@@ -59,7 +59,7 @@ export function useUserManagementState() {
           setHasMore(false)
         }
       } catch (err) {
-        if (import.meta.env.DEV) logger.error('Failed to fetch users:', err)
+        if (import.meta.env.DEV) logger.warn('Failed to fetch users:', err)
         addToast({ type: 'error', message: 'Gagal memuat daftar pengguna.' })
       } finally {
         setLoading(false)

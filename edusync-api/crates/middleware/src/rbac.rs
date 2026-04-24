@@ -1,11 +1,21 @@
 /// Role hierarchy — higher index = more privilege.
 /// Unknown roles never pass permission checks.
-const ROLE_ORDER: &[&str] = &["student", "parent", "teacher", "principal", "admin"];
+// P3.5: `reviewer` disisipkan di atas teacher tapi di bawah principal/admin,
+// sehingga reviewer bisa lolos require("reviewer") tanpa harus admin penuh.
+const ROLE_ORDER: &[&str] = &[
+    "student",
+    "parent",
+    "teacher",
+    "reviewer",
+    "principal",
+    "admin",
+];
 
 pub mod roles {
     pub const STUDENT: &str = "student";
     pub const PARENT: &str = "parent";
     pub const TEACHER: &str = "teacher";
+    pub const REVIEWER: &str = "reviewer";
     pub const PRINCIPAL: &str = "principal";
     pub const ADMIN: &str = "admin";
 }

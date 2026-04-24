@@ -36,7 +36,7 @@ export function Sidebar() {
         <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center shadow-sm">
           <span className="text-white font-bold text-lg">E</span>
         </div>
-        <h1 className="text-xl font-bold text-slate-900 dark:text-white tracking-tight">EduSync</h1>
+        <span className="text-xl font-bold text-slate-900 dark:text-white tracking-tight">EduSync</span>
       </div>
 
       {/* Classroom switcher — hanya untuk teacher */}

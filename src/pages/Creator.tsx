@@ -412,8 +412,11 @@ export function Creator(): React.JSX.Element {
       {/* Page Header */}
       <div className="flex items-start justify-between">
         <div>
-          <h1 className="text-3xl font-bold text-slate-900 dark:text-slate-100 tracking-tight">
+          <h1 className="text-3xl font-bold text-slate-900 dark:text-slate-100 tracking-tight flex items-center gap-3">
             Generator Kursus & Kuis AI
+            <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-indigo-100 text-indigo-700 dark:bg-indigo-900/30 dark:text-indigo-300">
+              Beta
+            </span>
           </h1>
           <p className="text-slate-500 dark:text-slate-400 mt-2">
             Unggah dokumen atau materi — AI akan otomatis membuat soal sesuai level Bloom.

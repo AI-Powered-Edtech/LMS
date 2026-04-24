@@ -102,8 +102,11 @@ export async function fetchTenantCourseStats(
 
   if (error) {
     if (import.meta.env.DEV)
-      logger.error("Failed to get tenant analytics overview:", error);
-    throw new Error("Gagal memuat ringkasan analitik. Silakan coba lagi.");
+      logger.warn(
+        "course_stats unavailable for tenant overview:",
+        error.message ?? error,
+      );
+    return [];
   }
 
   return (data as CourseStatsRow[]) || [];
@@ -154,8 +157,8 @@ export async function fetchCourseEngagement(
   };
   if (error) {
     if (import.meta.env.DEV)
-      logger.error("Failed to get course engagement stats:", error);
-    throw new Error("Gagal memuat data engagement kursus. Silakan coba lagi.");
+      logger.warn("get_course_engagement unavailable:", error.message ?? error);
+    return [];
   }
   return (data || []).map(
     (r: {
@@ -200,8 +203,8 @@ export async function fetchActivityTimeline(
 
   if (error) {
     if (import.meta.env.DEV)
-      logger.error("Failed to get activity timeline:", error);
-    throw new Error("Gagal memuat timeline aktivitas. Silakan coba lagi.");
+      logger.warn("get_activity_timeline unavailable:", error.message ?? error);
+    return [];
   }
 
   const dataArray = (

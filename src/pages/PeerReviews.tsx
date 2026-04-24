@@ -2,8 +2,10 @@ import { Users2 } from 'lucide-react'
 
 import { useAuth } from '@/contexts/AuthContext'
 import { PeerReviewList } from '@/features/peer-review'
+import { usePageTitle } from '@/hooks/usePageTitle'
 
 export function PeerReviews() {
+  usePageTitle('Peer Review')
   const { user, tenantId } = useAuth()
 
   if (!user || !tenantId) return null

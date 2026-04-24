@@ -14,7 +14,6 @@ import { ErrorBoundary } from './components/ui/ErrorBoundary'
 import { ToastContainer } from './components/ui/Toast'
 import { AuthProvider } from './contexts/AuthContext'
 import { ThemeProvider } from './contexts/ThemeContext'
-import { SkipToContent } from './features/accessibility'
 import { setupPrefetchListeners } from './utils/prefetch'
 
 const OfflineIndicator = lazy(() =>
@@ -43,7 +42,10 @@ export default function App() {
           <ThemeProvider>
             <AuthProvider>
               <Router>
-                <SkipToContent />
+                {/* Skip-to-content links are rendered per role layout
+                    (AppShell / AdminLayout / ParentLayout / PrincipalLayout)
+                    so they can be positioned correctly inside each shell.
+                    Rendering a global one here caused duplicate skip links. */}
                 <ToastContainer />
                 <OfflineIndicator />
                 <PWAUpdateToast />

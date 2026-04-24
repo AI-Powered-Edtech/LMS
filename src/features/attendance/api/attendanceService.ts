@@ -23,28 +23,45 @@ export const attendanceService = {
   /** Fetch enrolled students for a class */
   // FIXED: Added tenantId parameter to enforce tenant scoping on enrollments query
   async fetchClassStudents(classId: string, tenantId: string): Promise<ClassStudent[]> {
-    const { data, error } = await db
+    // VIL generic data API does not support Supabase-style nested relational
+    // selects (`profiles!fk(full_name)`). Fetch enrollments first, then hydrate
+    // full names from `profiles` with a second query.
+    const { data: enrollmentsRaw, error } = await db
       .from('enrollments')
-      .select('student_id, profiles!enrollments_student_id_fkey(full_name)')
+      .select('student_id')
       .eq('class_id', classId)
-      // FIXED: Scope enrollment query to tenant to prevent cross-tenant data access
+      // Scope enrollment query to tenant to prevent cross-tenant data access.
       .eq('tenant_id', tenantId)
       .eq('status', 'ACTIVE')
-      .order('profiles(full_name)')
 
     if (error) throw error
 
-    return (
-      (data ?? []) as unknown as Array<{
-        student_id: string
-        profiles: { full_name: string } | { full_name: string }[]
-      }>
-    ).map((row) => ({
+    const enrollments = (enrollmentsRaw ?? []) as Array<{ student_id: string }>
+    const studentIds = Array.from(
+      new Set(enrollments.map((e) => e.student_id).filter(Boolean)),
+    )
+
+    let nameById = new Map<string, string>()
+    if (studentIds.length > 0) {
+      const { data: profilesRaw, error: profilesError } = await db
+        .from('profiles')
+        .select('id, full_name')
+        .in('id', studentIds)
+      if (profilesError) throw profilesError
+      nameById = new Map(
+        ((profilesRaw ?? []) as Array<{ id: string; full_name: string | null }>).map(
+          (p) => [p.id, p.full_name ?? 'Siswa'],
+        ),
+      )
+    }
+
+    const students: ClassStudent[] = enrollments.map((row) => ({
       student_id: row.student_id,
-      full_name: Array.isArray(row.profiles)
-        ? (row.profiles[0]?.full_name ?? 'Siswa')
-        : (row.profiles?.full_name ?? 'Siswa'),
+      full_name: nameById.get(row.student_id) ?? 'Siswa',
     }))
+    // Sort alphabetically by full_name (was previously handled by the server).
+    students.sort((a, b) => a.full_name.localeCompare(b.full_name))
+    return students
   },
 
   /** Fetch attendance records for a class */
@@ -53,10 +70,13 @@ export const attendanceService = {
     classId: string,
     limit = 30
   ): Promise<AttendanceRecord[]> {
+    // VIL generic data API does not support Supabase-style nested relational
+    // selects (`classes(name)`). Fetch attendance records first, then hydrate
+    // class name separately (only one class here, so a single lookup suffices).
     const { data, error } = await db
       .from('attendance_records')
       .select(
-        'id, tenant_id, class_id, scan_date, scanned_by, present_count, absent_count, sick_count, permit_count, details, created_at, classes(name)'
+        'id, tenant_id, class_id, scan_date, scanned_by, present_count, absent_count, sick_count, permit_count, details, created_at'
       )
       .eq('tenant_id', tenantId)
       .eq('class_id', classId)
@@ -64,7 +84,21 @@ export const attendanceService = {
       .limit(limit)
 
     if (error) throw error
-    return (data ?? []) as unknown as AttendanceRecord[]
+    const records = (data ?? []) as Array<Record<string, unknown>>
+    if (records.length === 0) return [] as unknown as AttendanceRecord[]
+
+    const { data: classRow } = await db
+      .from('classes')
+      .select('id, name')
+      .eq('id', classId)
+      .eq('tenant_id', tenantId)
+      .maybeSingle()
+    const className = (classRow as { name?: string } | null)?.name ?? ''
+
+    return records.map((r) => ({
+      ...r,
+      classes: { name: className },
+    })) as unknown as AttendanceRecord[]
   },
 
   /** Fetch today's attendance record for a class (if exists) */

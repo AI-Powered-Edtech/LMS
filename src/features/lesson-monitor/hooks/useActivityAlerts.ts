@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useCallback, useMemo, useState } from 'react'
 
 import type { StudentActivityData } from '../types'
 
@@ -12,20 +12,34 @@ export interface ActivityAlert {
   timestamp: Date
 }
 
+/**
+ * Derive activity alerts from student activity data.
+ *
+ * NOTE: uses `useMemo` (not `useEffect + setState`) to avoid infinite
+ * re-render loops when the caller passes a fresh array reference on every
+ * render (e.g. `data?.studentActivity ?? []`). An earlier version set state
+ * inside an effect whose dep was the array reference itself, which caused
+ * setState → re-render → new `[]` → dep-changed → setState forever.
+ *
+ * Dismissals are tracked separately as a Set of alert ids so that dismissing
+ * an alert does not re-trigger derivation.
+ */
 export function useActivityAlerts(studentActivity: StudentActivityData[]) {
-  const [alerts, setAlerts] = useState<ActivityAlert[]>([])
+  const [dismissedIds, setDismissedIds] = useState<Set<string>>(() => new Set())
 
-  useEffect(() => {
-    const newAlerts: ActivityAlert[] = []
+  const allAlerts = useMemo<ActivityAlert[]>(() => {
+    // Use a single `now` per derivation so values stay stable across this pass.
+    const now = new Date()
+    const result: ActivityAlert[] = []
 
-    studentActivity.forEach((student) => {
-      const now = new Date()
+    for (const student of studentActivity) {
       const lastActivity = new Date(student.lastActivity)
-      const minutesSinceActivity = (now.getTime() - lastActivity.getTime()) / (1000 * 60)
+      const minutesSinceActivity =
+        (now.getTime() - lastActivity.getTime()) / (1000 * 60)
 
-      // Alert if student has been inactive for more than 5 minutes
+      // Alert if student has been inactive for more than 5 minutes.
       if (minutesSinceActivity > 5 && student.status === 'inactive') {
-        newAlerts.push({
+        result.push({
           id: `inactive-${student.studentId}`,
           studentId: student.studentId,
           studentName: student.studentName,
@@ -36,9 +50,9 @@ export function useActivityAlerts(studentActivity: StudentActivityData[]) {
         })
       }
 
-      // Alert if student seems stuck (low progress, been active but not progressing)
+      // Alert if student seems stuck (low progress but has been active).
       if (student.status === 'active' && student.progress < 30 && student.timeSpent > 10) {
-        newAlerts.push({
+        result.push({
           id: `stuck-${student.studentId}`,
           studentId: student.studentId,
           studentName: student.studentName,
@@ -49,14 +63,14 @@ export function useActivityAlerts(studentActivity: StudentActivityData[]) {
         })
       }
 
-      // Alert if student is progressing very slowly
+      // Alert if student is progressing very slowly.
       if (
         student.status === 'active' &&
         student.progress > 0 &&
         student.timeSpent > 20 &&
         student.progress / student.timeSpent < 1
       ) {
-        newAlerts.push({
+        result.push({
           id: `slow-${student.studentId}`,
           studentId: student.studentId,
           studentName: student.studentName,
@@ -66,25 +80,46 @@ export function useActivityAlerts(studentActivity: StudentActivityData[]) {
           timestamp: now,
         })
       }
-    })
+    }
 
-    setAlerts(newAlerts)
+    return result
   }, [studentActivity])
 
-  const dismissAlert = (alertId: string) => {
-    setAlerts((prev) => prev.filter((alert) => alert.id !== alertId))
-  }
+  const alerts = useMemo(
+    () => allAlerts.filter((a) => !dismissedIds.has(a.id)),
+    [allAlerts, dismissedIds],
+  )
 
-  const getAlertsBySeverity = (severity: ActivityAlert['severity']) => {
-    return alerts.filter((alert) => alert.severity === severity)
-  }
+  const dismissAlert = useCallback((alertId: string) => {
+    setDismissedIds((prev) => {
+      if (prev.has(alertId)) return prev
+      const next = new Set(prev)
+      next.add(alertId)
+      return next
+    })
+  }, [])
+
+  const getAlertsBySeverity = useCallback(
+    (severity: ActivityAlert['severity']) =>
+      alerts.filter((alert) => alert.severity === severity),
+    [alerts],
+  )
 
   return {
     alerts,
     dismissAlert,
     getAlertsBySeverity,
-    highPriorityAlerts: getAlertsBySeverity('high'),
-    mediumPriorityAlerts: getAlertsBySeverity('medium'),
-    lowPriorityAlerts: getAlertsBySeverity('low'),
+    highPriorityAlerts: useMemo(
+      () => alerts.filter((a) => a.severity === 'high'),
+      [alerts],
+    ),
+    mediumPriorityAlerts: useMemo(
+      () => alerts.filter((a) => a.severity === 'medium'),
+      [alerts],
+    ),
+    lowPriorityAlerts: useMemo(
+      () => alerts.filter((a) => a.severity === 'low'),
+      [alerts],
+    ),
   }
 }

@@ -15,9 +15,11 @@ import { usePageTitle } from '@/hooks/usePageTitle'
  * Wrapped by BuilderProvider in the exported CourseBuilder component.
  */
 function CourseBuilderPage() {
+  // P1 fix: set title di awal agar tidak flicker dari halaman sebelumnya
+  usePageTitle('Pembuat Kursus')
   const [searchParams] = useSearchParams()
   const navigate = useNavigate()
-  const { role } = useAuth()
+  const { activeRole } = useAuth()
   const courseId = searchParams.get('courseId')
   const { state, actions } = useBuilder()
   const { enabled: copilotEnabled } = useAICopilotFeatureGate()
@@ -79,9 +81,12 @@ function CourseBuilderPage() {
               />
             </svg>
           </div>
-          <h2 className="text-xl font-bold text-slate-900 dark:text-white mb-2">
-            Materi Belum Dipilih
-          </h2>
+          <h1 className="text-2xl font-bold text-slate-900 dark:text-white mb-2">
+            Pembuat Kursus
+          </h1>
+          <p className="text-base font-semibold text-slate-700 dark:text-slate-200 mb-1">
+            Belum ada materi yang dipilih
+          </p>
           <p className="text-sm text-slate-500 dark:text-slate-400 mb-6">
             Silakan pilih kelas atau materi yang ingin Anda buat dan edit melalui halaman Kelola
             Materi.
@@ -89,7 +94,7 @@ function CourseBuilderPage() {
           <button
             data-testid="coursebuilder-back-button"
             onClick={() =>
-              navigate(role === 'admin' ? '/app/admin/courses' : '/app/teacher/courses')
+              navigate(activeRole === 'admin' ? '/app/admin/courses' : '/app/teacher/courses')
             }
             className="min-h-[44px] px-6 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-medium transition-colors shadow-sm"
           >

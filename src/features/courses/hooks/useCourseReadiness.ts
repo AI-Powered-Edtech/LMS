@@ -100,41 +100,45 @@ function computeAvailableActions(status: CourseStatus, role: UserRole | null): C
 
   const actions: CourseAction[] = []
 
+  // State machine per Design Spec Opsi B:
+  //   draft --submit_review--> in_review --approve--> approved --publish--> published
+  //                                     \\--request_changes (revert)--> draft
+  //   published --unpublish--> draft
+  // Reviewers = admin | principal. Teachers author & submit but cannot self-approve.
+  // Teachers in personal tenants are provisioned as admin/principal, so they still get reviewer actions.
   switch (status) {
     case 'draft':
-      // teacher/admin/principal can submit for review
+      // Author submits for review. No direct publish from draft in Opsi B.
       actions.push('submit_review')
-      // All authorized roles can also publish directly (self-approve flow)
-      actions.push('publish')
       break
 
     case 'in_review':
-      // Admin and principal can formally approve; teacher can also self-approve
+      // Only reviewers (admin/principal) can approve or send back to draft.
       if (role === 'admin' || role === 'principal') {
         actions.push('approve')
         actions.push('revert_draft')
       }
-      // Teacher can also self-approve and publish
+      // Teacher who submitted can retract their submission back to draft.
       if (role === 'teacher') {
-        actions.push('approve')
-        actions.push('publish')
         actions.push('revert_draft')
       }
       break
 
     case 'approved':
-      // All authorized roles can publish an approved course
+      // Approved courses can be published by any authorized role; reviewers can also revert.
       actions.push('publish')
-      actions.push('revert_draft')
+      if (role === 'admin' || role === 'principal') {
+        actions.push('revert_draft')
+      }
       break
 
     case 'published':
-      // Can always unpublish (revert to draft)
+      // Can always unpublish (revert to draft).
       actions.push('unpublish')
       break
 
     case 'archived':
-      // Reactivate by reverting to draft
+      // Reactivate by reverting to draft.
       actions.push('revert_draft')
       break
   }
