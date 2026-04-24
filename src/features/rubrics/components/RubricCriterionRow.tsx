@@ -90,6 +90,7 @@ export function RubricCriterionRow({
             type="button"
             onClick={onDelete}
             className="p-1.5 text-red-400 dark:text-red-500 hover:text-red-600 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors"
+            aria-label="Hapus kriteria"
           >
             <Trash2 className="w-4 h-4" />
           </button>
