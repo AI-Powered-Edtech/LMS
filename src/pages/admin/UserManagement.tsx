@@ -1,4 +1,4 @@
-import { ChevronDown, Filter, Mail, RefreshCw, Search, Upload, UserPlus, Users } from 'lucide-react'
+import { ChevronDown, Download, Filter, Mail, RefreshCw, Search, Upload, UserPlus, Users } from 'lucide-react'
 import { useState } from 'react'
 
 import { ChangeRoleModal } from '@/components/admin/ChangeRoleModal'
@@ -8,11 +8,14 @@ import { BulkImportWizard } from '@/features/administration/components/BulkImpor
 import { InvitationsTable } from '@/features/administration/components/InvitationsTable'
 import { UserTable } from '@/features/administration/components/UserTable'
 import { useUserManagementState } from '@/features/administration/hooks/useUserManagementState'
+import { useToast } from '@/hooks/useToast'
 import { usePageTitle } from '@/hooks/usePageTitle'
+import { defaultCsvFilename, exportCsv } from '@/shared/utils/export-table'
 import { cn } from '@/utils/cn'
 
 export function UserManagement() {
   usePageTitle('Manajemen Pengguna')
+  const addToast = useToast((s) => s.addToast)
   const [showBulkImportWizard, setShowBulkImportWizard] = useState(false)
   const {
     tab,
@@ -44,6 +47,25 @@ export function UserManagement() {
     getInitials,
   } = useUserManagementState()
 
+  const handleExportCsv = () => {
+    try {
+      const rows = users.map((u) => ({
+        Nama: `${u.first_name ?? ''} ${u.last_name ?? ''}`.trim(),
+        Email: u.email,
+        Roles: (u.roles ?? []).join('|'),
+        Aktif: u.is_active ? 'Ya' : 'Tidak',
+        'Dibuat Pada': u.created_at ?? '',
+      }))
+      exportCsv(defaultCsvFilename('users'), rows)
+      addToast({ type: 'success', message: 'Daftar pengguna berhasil diekspor ke CSV.' })
+    } catch (err) {
+      addToast({
+        type: 'warning',
+        message: err instanceof Error ? err.message : 'Gagal mengekspor CSV.',
+      })
+    }
+  }
+
   if (loading && users.length === 0 && invitations.length === 0) {
     return <AdministrationSkeleton />
   }
@@ -62,6 +84,17 @@ export function UserManagement() {
           </p>
         </div>
         <div className="flex items-center gap-2">
+          <button
+            type="button"
+            onClick={handleExportCsv}
+            disabled={users.length === 0}
+            data-testid="users-export-csv"
+            aria-label="Ekspor CSV"
+            className="px-4 py-2.5 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-200 font-bold rounded-xl flex items-center gap-2 hover:bg-slate-50 dark:hover:bg-slate-700 transition-all text-sm disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            <Download className="w-4 h-4" />
+            Ekspor CSV
+          </button>
           <button
             onClick={() => setShowBulkImportWizard(true)}
             className="px-4 py-2.5 bg-emerald-600 dark:bg-emerald-500 text-white font-bold rounded-xl flex items-center gap-2 hover:bg-emerald-700 dark:hover:bg-emerald-600 transition-all text-sm"
