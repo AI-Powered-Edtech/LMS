@@ -157,3 +157,26 @@ Heartbeat rule: if no entry in 4h during active work, append a heartbeat line.
 - 20:00 — U04 reset-dev-school DONE. Script hardened (docker fallback + invariants). 3 migrations added (065/066/067). Verify 3× stable @ <2s. Commit `7b7e45b44`.
 - 20:15 — U04 docs sync in `07-remaining-execution-plan.md`.
 - 21:00 — U14 a11y gate DONE. Captured baseline (20 routes). Fixed 5 critical/serious missing-name violations (Gradebook back-button + course selector, GradebookMainTable filter, QuestionEditor type+difficulty, QuestionSearchModal filter). Gate relaxed to check new violation IDs (not node counts — color-contrast flickers per-run). Wired to CI sweep.yml. 20/20 serial pass.
+
+## Session snapshot (2026-04-24 end-of-day)
+
+**main @ `6d02ca9ae`**
+
+Done this day:
+- U01 ✅ gradebook baseline / migration 048 unblocked (via 065)
+- U02 ⚠️ investigated, deferred post-U05 (React 19 no component stack; UUID source untraceable cheaply)
+- U03 ✅ baseline audit — no systemic drift
+- U04 ✅ reset-dev-school hardened (docker fallback + invariants + migrations 066, 067 + dev_seed column fixes)
+- U14 ✅ a11y CI regression gate landed — caveat: baseline tolerates 208 color-contrast + residual (nested-interactive, select-name, link-name). NOT full WCAG clean state; only blocks NEW violation IDs.
+
+**Next session recommended start:**
+1. **U05 richer dev seed** — treat as mini-project: define target counts, split into incremental chunks (courses → lessons → assignments → attendance → invoices → P5), never monolith `dev_seed.sql`.
+2. Revisit **U02** after U05 lands (UUID likely comes from data source empty in current thin seed).
+3. **U06.1** RBAC source-of-truth ADR.
+4. **U06.2** rbac_policy.yaml.
+5. **U07/U08** after RBAC decision.
+
+Governance notes to carry forward:
+- U14 is a **regression gate**, not a WCAG audit pass. Don't market as "accessibility complete".
+- Migration numbering now at 067. Next SQL change = 068.
+- Dev seed has column drift risk vs real schema — any schema change must update seed same PR.
