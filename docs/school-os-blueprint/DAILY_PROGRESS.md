@@ -146,3 +146,11 @@ Heartbeat rule: if no entry in 4h during active work, append a heartbeat line.
   - AI Tutor SSE chunking is single-shot (delegates to non-streaming tutor_chat); upgrading to token-streaming requires refactoring tutor_chat
   - `scripts/reset-dev-school.sh` still missing; referenced by docs
   - Richer dev_seed content (courses, assignments, invoices) belum sesuai roadmap Fase 0.5 spec
+
+## 2026-04-24 (continued — P0 execution session)
+- 18:00 — Mulai P0 execution dari 07-remaining-execution-plan.md
+- 18:15 — U01 gradebook_entries baseline: created migration 065, applied, retried 048 clean. dual-mode schema ready.
+- 18:30 — U02 dup-key investigation: sweep spec enhanced with init script (console.error override captures args). Iterated: TeacherOnboardingWizard disable test (still warning), assignment/courses/classrooms all empty or deduped, UUID not in any DB uuid column. React 19 provides no component stack in warning. DEFERRED root-cause to post-U05.
+- 19:00 — U03 baseline audit: node-based regex extract of CREATE TABLE statements. 174 DB tables vs 178 migration tables. 0 orphans in DB. 3 uncovered: lti_user_links (applied), semantic_search_index (deferred — needs pgvector), `public` (regex false positive). Baseline drift NOT systemic.
+- 19:15 — 3 P0 units disposition: U01 DONE, U02 DEFERRED (honest non-blocker), U03 RESOLVED.
+- 19:30 — Commit: migration 065 + sweep spec instrument + docs refresh (07 roadmap, DECISIONS_LOG, DAILY_PROGRESS)
