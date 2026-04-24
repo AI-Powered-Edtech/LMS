@@ -218,7 +218,9 @@ function attachErrorCapture(page: Page) {
       const t = msg.text()
       // Filter useless "Failed to load resource" (status already captured via response)
       if (t.startsWith('Failed to load resource')) return
-      consoleErrors.push(t)
+      const loc = msg.location()
+      const where = loc?.url ? ` @${loc.url}:${loc.lineNumber ?? 0}:${loc.columnNumber ?? 0}` : ''
+      consoleErrors.push(t + where)
     }
   })
   page.on('pageerror', (err) => pageErrors.push(String(err.message || err)))
@@ -264,6 +266,21 @@ for (const persona of Object.keys(CREDENTIALS) as Persona[]) {
     const outDir = path.resolve('.qa-sweep', persona)
     fs.mkdirSync(outDir, { recursive: true })
 
+    // Capture React dup-key warnings with JS stack trace (service/cache/component)
+    await page.addInitScript(() => {
+      const origErr = console.error
+      ;(window as unknown as { __dupKeyTraces?: unknown[] }).__dupKeyTraces = []
+      console.error = function (...args: unknown[]) {
+        const first = args[0]
+        if (typeof first === 'string' && first.includes('same key')) {
+          ;(window as unknown as { __dupKeyTraces: unknown[] }).__dupKeyTraces.push({
+            args: args.map((a) => (typeof a === 'string' ? a : String(a))),
+          })
+        }
+        return origErr.apply(console, args as Parameters<typeof console.error>)
+      }
+    })
+
     // Login (errors during login NOT attached to any route, but logged)
     const loginCapture = attachErrorCapture(page)
     await login(page, persona)
@@ -303,6 +320,24 @@ for (const persona of Object.keys(CREDENTIALS) as Persona[]) {
       }
       // Let lazy chunks + queries settle
       await page.waitForTimeout(2500)
+
+      // Drain dup-key traces for this route
+      try {
+        const traces = await page.evaluate(() => {
+          const w = window as unknown as { __dupKeyTraces?: unknown[] }
+          const t = w.__dupKeyTraces ?? []
+          w.__dupKeyTraces = []
+          return t
+        })
+        if (Array.isArray(traces) && traces.length > 0) {
+          for (const tr of traces) {
+            const t = tr as { args?: string[] }
+            if (t.args) loginCapture.consoleErrors.push(`DUP_KEY_ARGS: ${JSON.stringify(t.args).slice(0, 2000)}`)
+          }
+        }
+      } catch {
+        /* ignore */
+      }
 
       const shotName = `${route.replace(/\//g, '_')}.png`
       const shotPath = path.join(outDir, shotName)

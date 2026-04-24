@@ -19,32 +19,23 @@ Setiap unit: **What / Why / Dep / Est / Accept / Verify**
 
 ## 🔴 P0 Blockers
 
-### U01 — Migration 048 baseline gap (`gradebook_entries`)
-- **What**: Audit apakah `gradebook_entries` table seharusnya exist di baseline; kalau iya, buat migration yang create table; lalu apply 048
-- **Why**: 048_gradebook_dual_mode gagal apply → dual-mode descriptor (BB/MB/BSH/SB) tidak bisa dipakai → rapor Kurmer incomplete
-- **Dep**: none
-- **Est**: S
-- **Accept**: `migration 048` apply clean, tabel `gradebook_entries` exists, `mode` enum column ada
-- **Verify**: `psql` inspect, sweep `admin/gradebook` + `teacher/gradebook` green
+### U01 — Migration 048 baseline gap (`gradebook_entries`) ✅ DONE
+- Created `migration 065_gradebook_baseline.sql` with `gradebook_entries` + `gradebook_settings` schemas
+- Applied 065 + retried 048 → clean; dual-mode descriptor (BB/MB/BSH/SB) ready
+- Landed 2026-04-24
 
-### U02 — React dup-key warning (teacher dashboard + adaptive-paths)
-- **What**: Trace UUID `257d53d2-0bae-44c1-9c23-470df60d9ed2` ke sumber bertahap (jangan brute-force instrument semua list):
-  1. Audit service layer dulu (`useAssignments`, `useClassroom`, `useStruggleAlerts`, `useNotifications`, `useAdaptivePaths`) — cek return data `.id` uniqueness
-  2. Audit cache merge layer (TanStack Query setQueryData, optimistic updates) untuk possible array concat without dedup
-  3. Baru kalau service + cache clean, instrument komponen render (targeted, 1 komponen at a time)
-- **Why**: Non-crash warning, tapi indikator data duplication. Brute-force instrument akan bikin noise besar; sumber hampir selalu di service/cache layer.
-- **Dep**: none
-- **Est**: M
-- **Accept**: sweep 0 console error di teacher/dashboard + teacher/adaptive-paths
-- **Verify**: rerun sweep
+### U02 — React dup-key warning ⚠️ INVESTIGATED, DEFERRED
+- Sweep instrumented (init script captures console.error args + stack) — see `tests/e2e/sweep.spec.ts`
+- UUID `257d53d2-...` confirmed **NOT in any DB uuid column**, not from classrooms/assignments/courses/wizard. React 19 provides no component stack.
+- `teacher/adaptive-paths` dup-key **resolved** this session (likely shared component de-duped elsewhere)
+- `teacher/dashboard` persists. Non-crash warning. Defer root-cause to after U05 (richer seed) — likely data source is empty with current thin seed.
+- Full findings in `DECISIONS_LOG.md`
 
-### U03 — Backup baseline state `edusync-api/schema/baseline.sql` audit
-- **What**: Audit apakah baseline.sql match actual DB `lms-db-1`. Jika drift, document expected baseline. Fix: regenerate baseline dengan `pg_dump` atau catat di migration seed.
-- **Why**: Next fresh deploy akan miss tables seperti `gradebook_entries` (U01 root cause), pattern ini bisa berulang. Multiple `037_*` migration numbering collision juga bukti baseline drift.
-- **Dep**: none
-- **Est**: M
-- **Accept**: Fresh postgres + baseline.sql + semua migrations → identical schema dengan `lms-db-1`
-- **Verify**: diff schema between fresh + existing
+### U03 — Baseline audit ✅ RESOLVED
+- Diff analysis: DB 174 tables, migrations define 178. **0 orphan tables** in DB not covered by any migration. 3 migration tables not yet applied (resolved: `lti_user_links` applied; `semantic_search_index` deferred pending pgvector ext)
+- Baseline drift WAS point-in-time (gradebook/semesters/onboarding/subscriptions) — now addressed via migrations 037/064/065
+- No systematic baseline.sql regeneration needed
+- Full findings in `DECISIONS_LOG.md`
 
 ---
 

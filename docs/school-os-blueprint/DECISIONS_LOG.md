@@ -64,3 +64,30 @@ Fix applied at FE side (not DB) because migrations reflect actual deployed schem
 ## 2026-04-24 — Operator: `onboarding_progress` + `tenant_subscriptions` stub tables created
 
 Reason: FE services query both tables extensively. Neither exists in baseline nor migrations 001-063. Migration 064 created minimal schemas; allowlist updated. FE's existing fallback logic (`LS_ONBOARDING_UNAVAILABLE` flag) handles empty results gracefully. Reversible: operator may later decide to formalize schema with proper columns.
+
+## 2026-04-24 — U01 (migration 048 baseline gap) — RESOLVED
+
+Reason: `gradebook_entries` + `gradebook_settings` tables missing from baseline & all earlier migrations. Migration 048 ALTER TABLE-d these assumed tables. Created migration **065_gradebook_baseline.sql** with full schemas inferred from FE usage (`src/features/gradebook/api/gradebookApi.ts` comments list columns: id, tenant_id, course_id, student_id, entity_type, entity_id, score, max_score, feedback, graded_by, graded_at, created_at, updated_at). Migration 048 now applies cleanly; dual-mode descriptor (BB/MB/BSH/SB) ready.
+
+## 2026-04-24 — U02 (React dup-key warning) — INVESTIGATED, DEFERRED
+
+Findings:
+- UUID `257d53d2-0bae-44c1-9c23-470df60d9ed2` **NOT in any DB UUID column** (confirmed via exhaustive `information_schema.columns` scan of all uuid-typed columns)
+- NOT from classroom dedup layer (already fixed), NOT from assignments (empty for teacher persona), NOT from courses (list empty), NOT from TeacherOnboardingWizard (warning persists when wizard disabled)
+- Captured message args via console.error override: React only provides key string + no component stack in React 19
+- Stack trace shows only React reconciler internals (`warnOnInvalidKey` @ `react-dom_client.js`), not user render
+- Warning appears on teacher/dashboard only (adaptive-paths resolved this session)
+
+Defer rationale: Non-crash warning. Accurate root-cause requires instrumenting `React.createElement` or Fiber tree — high-cost for non-blocking bug. Plan to retry when dev school has richer data (post-U05) — UUID likely comes from a data source that's empty in current thin seed.
+
+## 2026-04-24 — U03 (baseline.sql audit) — RESOLVED with minor follow-ups
+
+Finding: baseline drift is LESS severe than feared. DB has 174 tables, migrations define 178 (inclusive of `IF NOT EXISTS`). Diff analysis:
+- Tables in DB but not in any migration file: **0** (no orphan/legacy tables)
+- Tables in migrations but not yet applied to DB: **3** — `lti_user_links` (migration 005), `semantic_search_index` (migration 058, requires pgvector extension), `public` (false positive from regex)
+
+Actions taken:
+- Applied `005_create_lti_tables.sql` → `lti_user_links` created
+- `semantic_search_index` deferred: lms-db-1 uses `postgres:16-alpine` without pgvector. Either swap to `pgvector/pgvector:pg16` image, or keep deferred until U25 (semantic search) kicks off.
+
+Baseline is substantially complete. Point-in-time gaps (gradebook, semesters, onboarding_progress, tenant_subscriptions) were addressed via migrations 037, 064, 065. No systematic rebuild of baseline.sql needed.
