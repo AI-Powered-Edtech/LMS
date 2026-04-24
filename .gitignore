@@ -110,3 +110,7 @@ config.json
 .stakpak/session*
 .codebuddy
 .qa-sweep/
+
+# sweep artifacts
+.qa-a11y/
+!.qa-a11y-baseline.json
