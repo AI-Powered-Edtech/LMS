@@ -1,4 +1,5 @@
 import './index.css'
+import './i18n'
 
 if (typeof window !== 'undefined') {
   if (
