@@ -36,6 +36,7 @@ import { AdministrationSkeleton } from '@/features/administration/components/Adm
 import { ActivityTimePoint, CourseEngagement } from '@/features/analytics'
 import { useTenantAnalytics } from '@/features/analytics/queries/analyticsQueries'
 import { usePageTitle } from '@/hooks/usePageTitle'
+import { formatDateTime, formatNumber } from '@/shared/utils/format-id'
 import { cn } from '@/utils/cn'
 
 // Color palette for charts
@@ -73,7 +74,7 @@ function MetricCard({ title, value, icon: Icon, trend, color, bgColor }: MetricC
       <div className="mt-4">
         <p className="text-sm text-slate-500 dark:text-slate-400 font-medium">{title}</p>
         <p className="text-3xl font-bold text-slate-900 dark:text-slate-100 mt-1">
-          {typeof value === 'number' ? value.toLocaleString('id-ID') : value}
+          {typeof value === 'number' ? formatNumber(value) : value}
         </p>
       </div>
     </div>
@@ -425,7 +426,7 @@ export function AdminAnalyticsDashboard() {
           {overview.lastRefreshedAt && (
             <div className="flex items-center gap-2 text-sm text-slate-500 dark:text-slate-400">
               <Clock className="w-4 h-4" />
-              <span>Diperbarui: {new Date(overview.lastRefreshedAt).toLocaleString('id-ID')}</span>
+              <span>Diperbarui: {formatDateTime(overview.lastRefreshedAt)}</span>
             </div>
           )}
           <button
@@ -534,7 +535,7 @@ export function AdminAnalyticsDashboard() {
                 <span className="text-slate-700 dark:text-slate-300">Total Event (30 Hari)</span>
               </div>
               <span className="text-xl font-bold text-slate-900 dark:text-slate-100">
-                {safeMetrics.totalEvents.toLocaleString('id-ID')}
+                {formatNumber(safeMetrics.totalEvents)}
               </span>
             </div>
             <div className="flex items-center justify-between p-4 bg-slate-50 dark:bg-slate-700/50 rounded-xl">
@@ -543,7 +544,7 @@ export function AdminAnalyticsDashboard() {
                 <span className="text-slate-700 dark:text-slate-300">Lesson Selesai</span>
               </div>
               <span className="text-xl font-bold text-slate-900 dark:text-slate-100">
-                {safeMetrics.lessonCompletions.toLocaleString('id-ID')}
+                {formatNumber(safeMetrics.lessonCompletions)}
               </span>
             </div>
           </div>

@@ -13,6 +13,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { ProgressSkeleton } from "@/features/progress/components/ProgressSkeleton";
 import { usePageTitle } from "@/hooks/usePageTitle";
 import { db } from "@/services/db";
+import { formatDate } from "@/shared/utils/format-id";
 
 const STATUS_CONFIG = {
   hadir: {
@@ -268,7 +269,7 @@ export function StudentAttendance() {
                         {r.className}
                       </p>
                       <p className="text-xs text-slate-400">
-                        {new Date(r.date).toLocaleDateString("id-ID", {
+                        {formatDate(r.date, {
                           weekday: "long",
                           day: "numeric",
                           month: "long",

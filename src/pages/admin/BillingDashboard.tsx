@@ -18,24 +18,12 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useDebounce } from "@/hooks/useDebounce";
 import { usePageTitle } from "@/hooks/usePageTitle";
 import { db } from "@/services/db";
+import { formatCurrency, formatDate as formatDateId } from "@/shared/utils/format-id";
 import { cn } from "@/utils/cn";
 
 // --- UTILS ---
-const formatCurrency = (amount: number) => {
-  return new Intl.NumberFormat("id-ID", {
-    style: "currency",
-    currency: "IDR",
-    minimumFractionDigits: 0,
-  }).format(amount);
-};
-
-const formatDate = (dateString: string) => {
-  return new Date(dateString).toLocaleDateString("id-ID", {
-    year: "numeric",
-    month: "short",
-    day: "numeric",
-  });
-};
+const formatDate = (dateString: string) =>
+  formatDateId(dateString, { year: "numeric", month: "short", day: "numeric" });
 
 const getStatusLabel = (status: string) => {
   switch (status) {

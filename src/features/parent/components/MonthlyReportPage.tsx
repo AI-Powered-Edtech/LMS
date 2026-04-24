@@ -11,6 +11,7 @@ import { Link, useParams } from 'react-router-dom'
 
 import { useAuth } from '@/contexts/AuthContext'
 import { createQueryKeys } from '@/shared/lib/queryKeys'
+import { formatDate } from '@/shared/utils/format-id'
 import { cn } from '@/utils/cn'
 import { STALE } from '@/utils/queryConstants'
 
@@ -387,7 +388,7 @@ function ReportContent({ report }: { report: ParentMonthlyReport }) {
                     {achievement.name}
                   </p>
                   <p className="text-xs text-slate-400 dark:text-slate-500">
-                    {new Date(achievement.earned_at).toLocaleDateString('id-ID', {
+                    {formatDate(achievement.earned_at, {
                       day: 'numeric',
                       month: 'long',
                     })}
@@ -412,7 +413,7 @@ function ReportContent({ report }: { report: ParentMonthlyReport }) {
       <div className="hidden print:block mt-6 pt-4 border-t border-slate-300 text-center">
         <p className="text-xs text-slate-400">
           Laporan dibuat melalui EduSync LMS &bull;{' '}
-          {new Date().toLocaleDateString('id-ID', {
+          {formatDate(new Date(), {
             day: 'numeric',
             month: 'long',
             year: 'numeric',

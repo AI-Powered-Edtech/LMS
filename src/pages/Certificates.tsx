@@ -31,6 +31,7 @@ import { certificateService } from '@/features/gamification/api/certificateServi
 import { useDebounce } from '@/hooks/useDebounce'
 import { usePageTitle } from '@/hooks/usePageTitle'
 import { useToast } from '@/hooks/useToast'
+import { formatDate as formatDateId } from '@/shared/utils/format-id'
 import { logger } from '@/utils/logger'
 
 export function Certificates() {
@@ -65,13 +66,8 @@ export function Certificates() {
 
   const highlightedCert = certificates.length > 0 ? certificates[0] : null
 
-  const formatDate = (iso: string) => {
-    return new Date(iso).toLocaleDateString('id-ID', {
-      day: 'numeric',
-      month: 'short',
-      year: 'numeric',
-    })
-  }
+  const formatDate = (iso: string) =>
+    formatDateId(iso, { day: 'numeric', month: 'short', year: 'numeric' })
 
   const handleDownload = async (cert: Certificate, format: 'pdf' | 'png') => {
     setIsDownloading(cert.id)
