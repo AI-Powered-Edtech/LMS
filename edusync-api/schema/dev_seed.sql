@@ -280,7 +280,7 @@ ON CONFLICT (id) DO NOTHING;
 
 -- ─── 8. Sample courses (4) — bound to rombel via join_code link in FE ─────────
 
-INSERT INTO public.courses (id, title, description, instructor_id, tenant_id, status, created_at, updated_at)
+INSERT INTO public.courses (id, title, description, created_by, tenant_id, status, created_at, updated_at)
 VALUES
   (public.dev_seed_uuid('course:matematika-x'),
    'Matematika Wajib X', 'Aljabar, Trigonometri, dan Geometri Fase E (Kurmer)',
@@ -332,7 +332,7 @@ ON CONFLICT DO NOTHING;
 
 -- ─── 10. Announcements (3 sample) ──────────────────────────────────────────────
 
-INSERT INTO public.announcements (id, tenant_id, author_id, title, body, created_at, updated_at)
+INSERT INTO public.announcements (id, tenant_id, created_by, title, content, created_at, updated_at)
 VALUES
   (public.dev_seed_uuid('ann:welcome'),
    public.dev_seed_uuid('tenant:sma-nusantara-dev'),
@@ -352,7 +352,7 @@ VALUES
    'Pengingat Pembayaran SPP April',
    'Mohon orang tua/wali siswa untuk segera melunasi tagihan SPP bulan April sebelum tanggal 25.',
    now() - interval '1 day', now() - interval '1 day')
-ON CONFLICT (id) DO UPDATE SET title = EXCLUDED.title, body = EXCLUDED.body, updated_at = now();
+ON CONFLICT (id) DO UPDATE SET title = EXCLUDED.title, content = EXCLUDED.content, updated_at = now();
 
 -- ─── 11. Cleanup helper function (used by reset-dev-school.sh) ─────────────────
 
