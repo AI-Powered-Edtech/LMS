@@ -131,7 +131,7 @@ export const attendanceService = {
     })
 
     if (error) throw error
-    return data as string
+    return (data as unknown) as string
   },
 
   /** Delete an attendance record */

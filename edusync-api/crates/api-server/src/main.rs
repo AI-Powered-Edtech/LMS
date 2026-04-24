@@ -7,8 +7,11 @@ mod cron;
 mod data_plane;
 mod extractors;
 mod health;
+mod ai_tutor_real;
 mod lti_handlers;
+mod midtrans_webhook;
 mod notification_handlers;
+mod report_real;
 mod observability;
 mod onboarding;
 mod processing_handlers;
@@ -70,6 +73,7 @@ use tenant_admin::{
 };
 use data_plane::{query_table_handler, rpc_proxy_handler};
 use lti_handlers::{lti_jwks_handler, lti_launch_handler, lti_oidc_login_handler};
+use midtrans_webhook::midtrans_webhook_handler;
 use notification_handlers::{
     generate_pdf_handler, send_otp_handler, send_push_handler, verify_otp_handler,
     whatsapp_webhook_get_handler, whatsapp_webhook_post_handler,
@@ -402,6 +406,7 @@ async fn main() -> anyhow::Result<()> {
         .endpoint(Method::POST, "/whatsapp/send-otp", post(send_otp_handler))
         .endpoint(Method::POST, "/whatsapp/verify-otp", post(verify_otp_handler))
         .endpoint(Method::POST, "/pdf/certificate", post(generate_pdf_handler))
+        .endpoint(Method::POST, "/webhooks/midtrans", post(midtrans_webhook_handler))
         .state(app_state.clone());
 
     // ── Phase 3D: Processing ──────────────────────────────────────────────────

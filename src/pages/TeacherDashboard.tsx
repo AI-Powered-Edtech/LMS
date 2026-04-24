@@ -74,6 +74,32 @@ export function TeacherDashboard() {
     []
   )
 
+  // Render-time dedupe: classroomService already dedupes by id, but if a future
+  // realtime path or upstream cache merge ever reintroduces dupes, this prevents
+  // React's "Encountered two children with the same key" warning AND surfaces the
+  // condition in dev so the operator can trace the source on the next sweep.
+  const uniqueClassrooms = useMemo(() => {
+    const seen = new Set<string>()
+    const out: typeof classrooms = []
+    let dupCount = 0
+    for (const c of classrooms) {
+      if (seen.has(c.id)) {
+        dupCount++
+        continue
+      }
+      seen.add(c.id)
+      out.push(c)
+    }
+    if (dupCount > 0 && import.meta.env.DEV) {
+      // eslint-disable-next-line no-console
+      console.warn(
+        `[TeacherDashboard] Dropped ${dupCount} duplicate classroom row(s) before render. ` +
+          `Investigate upstream source (classroomService.fetchClassrooms / realtime cache merge).`
+      )
+    }
+    return out
+  }, [classrooms])
+
   // ⚡ Perf: stabilize navigate callback refs
   const navigateToCourses = useCallback(() => navigate('/app/teacher/courses'), [navigate])
   const navigateToCreator = useCallback(() => navigate('/creator'), [navigate])
@@ -178,7 +204,7 @@ export function TeacherDashboard() {
           </h2>
         </div>
 
-        {classrooms.length > 0 ? (
+        {uniqueClassrooms.length > 0 ? (
           <div className="border border-slate-200 dark:border-slate-800 rounded-lg overflow-hidden bg-white dark:bg-slate-900/30">
             <div className="overflow-x-auto">
               <table className="w-full text-left text-sm whitespace-nowrap">
@@ -191,7 +217,7 @@ export function TeacherDashboard() {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-100 dark:divide-slate-800/50">
-                  {classrooms.map((classroom) => (
+                  {uniqueClassrooms.map((classroom) => (
                     <tr 
                       key={classroom.id} 
                       className="group hover:bg-slate-50/50 dark:hover:bg-slate-800/20 transition-colors"

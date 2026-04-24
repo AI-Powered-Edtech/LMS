@@ -345,6 +345,82 @@ export const SemesterPage = withErrorBoundary(
   lazy(() => import('../pages/admin/SemesterPage')),
   'Manajemen Semester'
 )
+export const AcademicYears = withErrorBoundary(
+  lazy(() => import('../pages/AcademicYears').then((m) => ({ default: m.AcademicYears }))),
+  'Tahun Ajaran'
+)
+export const RombelManagement = withErrorBoundary(
+  lazy(() => import('../pages/RombelManagement').then((m) => ({ default: m.RombelManagement }))),
+  'Manajemen Rombel'
+)
+export const Subjects = withErrorBoundary(
+  lazy(() => import('../pages/Subjects').then((m) => ({ default: m.Subjects }))),
+  'Mata Pelajaran & CP/ATP'
+)
+export const Timetable = withErrorBoundary(
+  lazy(() => import('../pages/Timetable').then((m) => ({ default: m.Timetable }))),
+  'Jadwal Pelajaran'
+)
+export const Rapor = withErrorBoundary(
+  lazy(() => import('../pages/Rapor').then((m) => ({ default: m.Rapor }))),
+  'Rapor Kurmer'
+)
+export const BosTracking = withErrorBoundary(
+  lazy(() => import('../pages/BosTracking').then((m) => ({ default: m.BosTracking }))),
+  'BOS Tracking'
+)
+export const PpdbJalur = withErrorBoundary(
+  lazy(() => import('../pages/PpdbJalur').then((m) => ({ default: m.PpdbJalur }))),
+  'PPDB Jalur'
+)
+export const P5Projects = withErrorBoundary(
+  lazy(() => import('../pages/P5Projects').then((m) => ({ default: m.P5Projects }))),
+  'Projek P5'
+)
+export const Integrations = withErrorBoundary(
+  lazy(() => import('../pages/Integrations').then((m) => ({ default: m.Integrations }))),
+  'Integrasi'
+)
+export const PrincipalInsights = withErrorBoundary(
+  lazy(() => import('../pages/PrincipalInsights').then((m) => ({ default: m.PrincipalInsights }))),
+  'Wawasan Bulanan'
+)
+export const StudentDossier = withErrorBoundary(
+  lazy(() => import('../pages/StudentDossier').then((m) => ({ default: m.StudentDossier }))),
+  'Dossier Siswa'
+)
+export const Counseling = withErrorBoundary(
+  lazy(() => import('../pages/Counseling').then((m) => ({ default: m.Counseling }))),
+  'Catatan Konseling'
+)
+export const AkmStimuli = withErrorBoundary(
+  lazy(() => import('../pages/AkmStimuli').then((m) => ({ default: m.AkmStimuli }))),
+  'Stimulus AKM'
+)
+export const BankVa = withErrorBoundary(
+  lazy(() => import('../pages/BankVa').then((m) => ({ default: m.BankVa }))),
+  'Virtual Account Bank'
+)
+export const SemanticSearch = withErrorBoundary(
+  lazy(() => import('../pages/SemanticSearch').then((m) => ({ default: m.SemanticSearch }))),
+  'Pencarian Semantik'
+)
+export const ParentLinks = withErrorBoundary(
+  lazy(() => import('../pages/ParentLinks').then((m) => ({ default: m.ParentLinks }))),
+  'Tautan Orang Tua'
+)
+export const StaffDossier = withErrorBoundary(
+  lazy(() => import('../pages/StaffDossier').then((m) => ({ default: m.StaffDossier }))),
+  'Dossier Staf'
+)
+export const RaporPrint = withErrorBoundary(
+  lazy(() => import('../pages/RaporPrint').then((m) => ({ default: m.RaporPrint }))),
+  'Cetak Rapor'
+)
+export const RombelAttendance = withErrorBoundary(
+  lazy(() => import('../pages/RombelAttendance').then((m) => ({ default: m.RombelAttendance }))),
+  'Absen Rombel'
+)
 
 // ============================================================
 // Parent pages

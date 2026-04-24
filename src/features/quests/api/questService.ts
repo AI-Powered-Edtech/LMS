@@ -71,7 +71,7 @@ export const questService = {
       .single()
 
     if (error) throw error
-    return data as QuestDefinition
+    return (data as unknown) as QuestDefinition
   },
 
   /**
@@ -91,7 +91,7 @@ export const questService = {
       .single()
 
     if (error) throw error
-    return data as QuestDefinition
+    return (data as unknown) as QuestDefinition
   },
 
   /**

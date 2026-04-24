@@ -57,7 +57,7 @@ export const ltiService = {
       .single()
 
     if (error) throw error
-    return data as LtiPlatformRegistration
+    return (data as unknown) as LtiPlatformRegistration
   },
 
   /** Update an existing LTI platform registration */
@@ -75,7 +75,7 @@ export const ltiService = {
       .single()
 
     if (error) throw error
-    return data as LtiPlatformRegistration
+    return (data as unknown) as LtiPlatformRegistration
   },
 
   /** Delete an LTI platform registration */

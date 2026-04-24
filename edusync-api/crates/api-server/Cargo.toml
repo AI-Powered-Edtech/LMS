@@ -35,3 +35,7 @@ oauth2 = "5.0.0"
 jsonwebtoken.workspace = true
 base64.workspace = true
 redis.workspace = true
+
+[[bin]]
+name = "events_worker"
+path = "src/bin/events_worker.rs"

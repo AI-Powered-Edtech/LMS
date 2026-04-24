@@ -37,21 +37,25 @@ function logMetricDev(metric: Metric): void {
   }
 }
 
+function currentRoute(): string {
+  const hash = window.location.hash || ''
+  const match = hash.match(/^#\/([^?]*)/)
+  return match ? match[1] : window.location.pathname
+}
+
 async function sendMetricProd(metric: Metric): Promise<void> {
   // 10 % sampling
   if (Math.random() > 0.1) return
 
+  // Post to dedicated Fase 7 table (Unit 52). Schema matches migration 059.
+  if (!['LCP', 'INP', 'CLS', 'FCP', 'TTFB'].includes(metric.name)) return
   try {
-    await db.from('activity_events').insert({
-      event_type: 'WEB_VITAL',
-      event_data: {
-        name: metric.name,
-        value: metric.value,
-        rating: metric.rating,
-        delta: metric.delta,
-        id: metric.id,
-        navigationType: metric.navigationType,
-      },
+    await db.from('web_vitals_snapshots').insert({
+      route: currentRoute(),
+      metric: metric.name,
+      value: Number(metric.value.toFixed(3)),
+      rating: metric.rating ?? null,
+      user_agent: navigator.userAgent.slice(0, 200),
     })
   } catch (err) {
     // Silently drop — vitals are non-critical telemetry

@@ -12,7 +12,9 @@ import {
   Courses,
   Creator,
   DocumentManager,
+  Counseling,
   Gradebook,
+  RombelAttendance,
   Leaderboard,
   LessonViewer,
   ModerationDashboard,
@@ -263,6 +265,22 @@ export function TeacherRoutes() {
         element={
           <S feature="Laporan Plagiarisme">
             <PlagiarismDashboard />
+          </S>
+        }
+      />
+      <Route
+        path="counseling"
+        element={
+          <S feature="Catatan Konseling">
+            <Counseling />
+          </S>
+        }
+      />
+      <Route
+        path="rombel-attendance"
+        element={
+          <S feature="Absen Rombel">
+            <RombelAttendance />
           </S>
         }
       />

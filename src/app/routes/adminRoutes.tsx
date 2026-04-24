@@ -27,7 +27,24 @@ import {
   QuizManager,
   ReviewQueue,
   ScanAttendance,
+  AcademicYears,
+  AkmStimuli,
+  BankVa,
+  BosTracking,
+  Integrations,
+  P5Projects,
+  ParentLinks,
+  PpdbJalur,
+  PrincipalInsights,
+  Rapor,
+  RaporPrint,
+  RombelManagement,
+  SemanticSearch,
   SemesterPage,
+  StaffDossier,
+  StudentDossier,
+  Subjects,
+  Timetable,
   SpeedGrader,
   StruggleDashboard,
   StudentProgress,
@@ -276,6 +293,142 @@ export function AdminRoutes() {
         element={
           <S>
             <SemesterPage />
+          </S>
+        }
+      />
+      <Route
+        path="academic-years"
+        element={
+          <S feature="Tahun Ajaran">
+            <AcademicYears />
+          </S>
+        }
+      />
+      <Route
+        path="rombel"
+        element={
+          <S feature="Manajemen Rombel">
+            <RombelManagement />
+          </S>
+        }
+      />
+      <Route
+        path="subjects"
+        element={
+          <S feature="Mata Pelajaran">
+            <Subjects />
+          </S>
+        }
+      />
+      <Route
+        path="timetable"
+        element={
+          <S feature="Jadwal Pelajaran">
+            <Timetable />
+          </S>
+        }
+      />
+      <Route
+        path="rapor"
+        element={
+          <S feature="Rapor Kurmer">
+            <Rapor />
+          </S>
+        }
+      />
+      <Route
+        path="bos"
+        element={
+          <S feature="BOS Tracking">
+            <BosTracking />
+          </S>
+        }
+      />
+      <Route
+        path="ppdb-jalur"
+        element={
+          <S feature="PPDB Jalur">
+            <PpdbJalur />
+          </S>
+        }
+      />
+      <Route
+        path="p5"
+        element={
+          <S feature="Projek P5">
+            <P5Projects />
+          </S>
+        }
+      />
+      <Route
+        path="integrations"
+        element={
+          <S feature="Integrasi">
+            <Integrations />
+          </S>
+        }
+      />
+      <Route
+        path="insights"
+        element={
+          <S feature="Wawasan Bulanan">
+            <PrincipalInsights />
+          </S>
+        }
+      />
+      <Route
+        path="student-dossier/:profileId"
+        element={
+          <S feature="Dossier Siswa">
+            <StudentDossier />
+          </S>
+        }
+      />
+      <Route
+        path="akm-stimuli"
+        element={
+          <S feature="Stimulus AKM">
+            <AkmStimuli />
+          </S>
+        }
+      />
+      <Route
+        path="bank-va"
+        element={
+          <S feature="Virtual Account Bank">
+            <BankVa />
+          </S>
+        }
+      />
+      <Route
+        path="parent-links"
+        element={
+          <S feature="Tautan Orang Tua">
+            <ParentLinks />
+          </S>
+        }
+      />
+      <Route
+        path="search"
+        element={
+          <S feature="Pencarian Semantik">
+            <SemanticSearch />
+          </S>
+        }
+      />
+      <Route
+        path="staff-dossier/:profileId"
+        element={
+          <S feature="Dossier Staf">
+            <StaffDossier />
+          </S>
+        }
+      />
+      <Route
+        path="rapor/print/:raporId"
+        element={
+          <S feature="Cetak Rapor">
+            <RaporPrint />
           </S>
         }
       />

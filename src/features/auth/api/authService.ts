@@ -269,6 +269,6 @@ export const authService = {
       p_role: params.role,
     })
     if (error) throw error
-    return data as string
+    return (data as unknown) as string
   },
 }

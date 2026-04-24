@@ -56,7 +56,7 @@ export const aiGraderService = {
         throw new Error(data.error)
       }
 
-      return data as AIGradeResponse
+      return (data as unknown) as AIGradeResponse
     } catch (err: unknown) {
       if (import.meta.env.DEV) logger.error('[AI Grader] Unexpected error:', err)
 

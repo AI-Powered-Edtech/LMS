@@ -74,7 +74,7 @@ export const guidanceService = {
       if (import.meta.env.DEV) logger.error('[guidanceService] upsertGuide:', error)
       throw error
     }
-    return data as string
+    return (data as unknown) as string
   },
 
   async deleteGuide(guideId: string): Promise<void> {

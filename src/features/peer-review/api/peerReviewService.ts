@@ -57,7 +57,7 @@ export const peerReviewService = {
       throw error
     }
 
-    return data as PeerReviewConfig
+    return (data as unknown) as PeerReviewConfig
   },
 
   /**
@@ -161,7 +161,7 @@ export const peerReviewService = {
       throw error
     }
 
-    return data as PeerReview
+    return (data as unknown) as PeerReview
   },
 
   /**
