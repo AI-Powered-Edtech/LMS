@@ -46,7 +46,13 @@ interface UseSessionManagementResult {
     password: string,
     firstName: string,
     lastName: string,
-    tenantId?: string
+    tenantId?: string,
+    extras?: {
+      role?: 'student' | 'teacher'
+      tenantInviteCode?: string
+      createPersonalTenant?: boolean
+      displayName?: string
+    }
   ) => Promise<{ error: Error | null }>
   signInWithGoogle: () => Promise<void>
   clearAuthError: () => void
@@ -119,7 +125,13 @@ export function useSessionManagement(): UseSessionManagementResult {
       password: string,
       firstName: string,
       lastName: string,
-      signUpTenantId?: string
+      signUpTenantId?: string,
+      extras?: {
+        role?: 'student' | 'teacher'
+        tenantInviteCode?: string
+        createPersonalTenant?: boolean
+        displayName?: string
+      }
     ) => {
       setAuthError(null)
       const { error } = await getAuthProvider().signUp({
@@ -131,6 +143,14 @@ export function useSessionManagement(): UseSessionManagementResult {
             first_name: firstName,
             last_name: lastName,
             ...(signUpTenantId ? { tenant_id: signUpTenantId } : {}),
+            ...(extras?.role ? { role: extras.role } : {}),
+            ...(extras?.tenantInviteCode
+              ? { tenant_invite_code: extras.tenantInviteCode }
+              : {}),
+            ...(extras?.createPersonalTenant !== undefined
+              ? { create_personal_tenant: extras.createPersonalTenant }
+              : {}),
+            ...(extras?.displayName ? { display_name: extras.displayName } : {}),
           },
         },
       })

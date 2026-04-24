@@ -10,13 +10,15 @@ import { logger } from '@/utils/logger'
 import { captureError } from '@/utils/sentry'
 
 export function useLessonViewerState() {
-  usePageTitle('Lesson Viewer')
   const { user, tenantId, role } = useAuth()
   const { addToast } = useToast()
   const [searchParams, setSearchParams] = useSearchParams()
   const { courseId } = useParams()
   const moduleId = searchParams.get('moduleId')
   const lessonId = searchParams.get('lessonId')
+  // Use a title that matches the screen: the list view (no :courseId) is a
+  // course picker, while the detail view is the actual lesson viewer.
+  usePageTitle(courseId ? 'Lesson Viewer' : 'Kursus Saya')
 
   const { state, actions } = useViewerReducer()
 

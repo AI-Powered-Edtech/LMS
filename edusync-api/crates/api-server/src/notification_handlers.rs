@@ -4,7 +4,7 @@
 //!
 //! Migration notes:
 //! - All JSON-body handlers: `Json<T>` → `ShmSlice` + `body.json::<T>()?`
-//! - All `Extension<Arc<AppState>>` → `ServiceCtx` + `svc.state::<Arc<AppState>>()?`
+//! - All `Extension<Arc<AppState>>` → `ServiceCtx` + `svc.state::<AppState>()?`
 //! - All `impl IntoResponse` returns → `HandlerResult<VilResponse<T>>`
 //! - Ad-hoc `(StatusCode, Json)` error tuples → `VilError::*` methods
 //! - `whatsapp_webhook_get_handler` / `whatsapp_webhook_post_handler`:
@@ -51,7 +51,7 @@ pub async fn send_push_handler(
     svc: ServiceCtx,
     body: ShmSlice,
 ) -> HandlerResult<VilResponse<SendPushResponse>> {
-    let state = svc.state::<Arc<AppState>>()?;
+    let state = svc.state::<AppState>()?;
     let req: SendPushRequest = body
         .json()
         .map_err(|e| VilError::bad_request(e.to_string()))?;
@@ -122,7 +122,7 @@ pub async fn whatsapp_webhook_post_handler(
     Query(q): Query<WebhookPostQuery>,
     body: Bytes,
 ) -> impl IntoResponse {
-    let state = svc.state::<Arc<AppState>>().ok();
+    let state = svc.state::<AppState>().ok();
     let provider = q
         .provider
         .as_deref()
@@ -150,7 +150,7 @@ pub async fn send_otp_handler(
     AuthedRequest(ctx): AuthedRequest,
     svc: ServiceCtx,
 ) -> HandlerResult<VilResponse<SendOtpResponse>> {
-    let state = svc.state::<Arc<AppState>>()?;
+    let state = svc.state::<AppState>()?;
 
     let otp = send_otp(&state.db, ctx.user_id)
         .await
@@ -181,7 +181,7 @@ pub async fn verify_otp_handler(
     svc: ServiceCtx,
     body: ShmSlice,
 ) -> HandlerResult<VilResponse<VerifyOtpResponse>> {
-    let state = svc.state::<Arc<AppState>>()?;
+    let state = svc.state::<AppState>()?;
     let req: VerifyOtpRequest = body
         .json()
         .map_err(|e| VilError::bad_request(e.to_string()))?;
@@ -210,7 +210,7 @@ pub async fn generate_pdf_handler(
     svc: ServiceCtx,
     body: ShmSlice,
 ) -> HandlerResult<impl IntoResponse> {
-    let state = svc.state::<Arc<AppState>>()?;
+    let state = svc.state::<AppState>()?;
     let req: GenerateCertificateRequest = body
         .json()
         .map_err(|e| VilError::bad_request(e.to_string()))?;

@@ -1,5 +1,5 @@
 import { Activity, BarChart3, Users, Zap } from 'lucide-react'
-import { useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 
 import { EmptyState } from '@/components/ui'
 import { useCourses } from '@/features/courses/queries/courseQueries'
@@ -11,16 +11,57 @@ import { StudentActivityTable } from '../components/StudentActivityTable'
 import { useActivityAlerts } from '../hooks/useActivityAlerts'
 import { useLessonMonitorData } from '../queries/useLessonMonitor'
 
+const LESSON_MONITOR_COURSE_STORAGE_KEY = 'lesson-monitor:selected-course-id'
+
+function readStoredCourseId(): string {
+  if (typeof window === 'undefined') return ''
+  try {
+    return window.localStorage.getItem(LESSON_MONITOR_COURSE_STORAGE_KEY) ?? ''
+  } catch {
+    return ''
+  }
+}
+
 export function TeacherLessonMonitorPage() {
   usePageTitle('Monitor Pelajaran')
-  const [selectedCourseId, setSelectedCourseId] = useState<string>('')
+  const [selectedCourseId, setSelectedCourseId] = useState<string>(readStoredCourseId)
 
   const { data: coursesData } = useCourses()
   const courses = coursesData?.courses ?? []
+
+  // Auto-select kursus pertama bila belum ada pilihan yang valid.
+  // - Jika ada nilai di localStorage namun kursus tsb tidak lagi tersedia,
+  //   fallback ke kursus pertama.
+  useEffect(() => {
+    if (courses.length === 0) return
+    const hasValidSelection = selectedCourseId && courses.some((c) => c.id === selectedCourseId)
+    if (!hasValidSelection) {
+      setSelectedCourseId(courses[0].id)
+    }
+  }, [courses, selectedCourseId])
+
+  // Persist pilihan kursus ke localStorage agar tetap konsisten lintas sesi.
+  useEffect(() => {
+    if (typeof window === 'undefined') return
+    try {
+      if (selectedCourseId) {
+        window.localStorage.setItem(LESSON_MONITOR_COURSE_STORAGE_KEY, selectedCourseId)
+      } else {
+        window.localStorage.removeItem(LESSON_MONITOR_COURSE_STORAGE_KEY)
+      }
+    } catch {
+      // Abaikan bila storage tidak dapat diakses (private mode dll).
+    }
+  }, [selectedCourseId])
   const { data: monitorData, isLoading, error } = useLessonMonitorData(selectedCourseId)
-  const { highPriorityAlerts, mediumPriorityAlerts, dismissAlert } = useActivityAlerts(
-    monitorData?.studentActivity || []
+  // Memoize to keep a stable array reference; otherwise `|| []` creates a
+  // fresh literal every render and causes useActivityAlerts to loop.
+  const studentActivity = useMemo(
+    () => monitorData?.studentActivity ?? [],
+    [monitorData?.studentActivity],
   )
+  const { highPriorityAlerts, mediumPriorityAlerts, dismissAlert } =
+    useActivityAlerts(studentActivity)
 
   if (error) {
     return (

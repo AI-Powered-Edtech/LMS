@@ -99,7 +99,7 @@ export const progressService = {
       };
     } catch (error) {
       if (import.meta.env.DEV)
-        logger.error("Error fetching student progress bundle:", error);
+        logger.warn("Student progress bundle unavailable:", error);
       throw error;
     }
   },

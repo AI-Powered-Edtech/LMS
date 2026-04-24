@@ -44,6 +44,12 @@ export function Login() {
     classInfo,
     classLookupLoading,
     classLookupError,
+    accountType,
+    setAccountType,
+    teacherMode,
+    setTeacherMode,
+    tenantInviteCode,
+    setTenantInviteCode,
     inviteToken,
     inviteInfo,
     handleSignIn,
@@ -318,17 +324,25 @@ export function Login() {
                       submitting={submitting}
                       inviteToken={inviteToken}
                       inviteInfo={inviteInfo}
+                      accountType={accountType}
+                      onAccountTypeChange={setAccountType}
                       onSubmit={handleRegisterStep1}
                     />
                   )}
 
                   {mode === "register" && step === 2 && (
                     <RegisterStep2
+                      accountType={accountType}
                       joinCode={joinCode}
                       setJoinCode={setJoinCode}
                       classInfo={classInfo}
                       classLookupLoading={classLookupLoading}
                       classLookupError={classLookupError}
+                      teacherMode={teacherMode}
+                      setTeacherMode={setTeacherMode}
+                      tenantInviteCode={tenantInviteCode}
+                      setTenantInviteCode={setTenantInviteCode}
+                      firstName={registerForm.getValues('firstName') || ''}
                       error={error}
                       submitting={submitting}
                       onBack={() => setStep(1)}

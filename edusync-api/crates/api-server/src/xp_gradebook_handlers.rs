@@ -29,7 +29,7 @@ pub async fn award_xp_handler(
     svc: ServiceCtx,
     Json(body): Json<AwardXpRequest>,
 ) -> HandlerResult<VilResponse<serde_json::Value>> {
-    let state = svc.state::<Arc<AppState>>()?;
+    let state = svc.state::<AppState>()?;
 
     let result = award_xp(&state.db, ctx.user_id, ctx.tenant_id, &body)
         .await
@@ -47,7 +47,7 @@ pub async fn get_user_xp_handler(
     svc: ServiceCtx,
     Path(user_id): Path<Uuid>,
 ) -> HandlerResult<VilResponse<serde_json::Value>> {
-    let state = svc.state::<Arc<AppState>>()?;
+    let state = svc.state::<AppState>()?;
 
     let result = get_user_xp(&state.db, user_id)
         .await
@@ -70,7 +70,7 @@ pub async fn leaderboard_handler(
     svc: ServiceCtx,
     Query(query): Query<LeaderboardQuery>,
 ) -> HandlerResult<VilResponse<serde_json::Value>> {
-    let state = svc.state::<Arc<AppState>>()?;
+    let state = svc.state::<AppState>()?;
     let limit = query.limit.unwrap_or(10);
 
     let result = get_leaderboard(&state.db, ctx.tenant_id, query.course_id, limit)
@@ -94,7 +94,7 @@ pub async fn xp_transactions_handler(
     Path(user_id): Path<Uuid>,
     Query(query): Query<TransactionsQuery>,
 ) -> HandlerResult<VilResponse<serde_json::Value>> {
-    let state = svc.state::<Arc<AppState>>()?;
+    let state = svc.state::<AppState>()?;
     let limit = query.limit.unwrap_or(20);
 
     let result = get_xp_transactions(&state.db, user_id, limit)
@@ -114,7 +114,7 @@ pub async fn gradebook_class_handler(
     svc: ServiceCtx,
     Path(class_id): Path<Uuid>,
 ) -> HandlerResult<VilResponse<serde_json::Value>> {
-    let state = svc.state::<Arc<AppState>>()?;
+    let state = svc.state::<AppState>()?;
 
     let result = get_gradebook(&state.db, class_id, ctx.tenant_id)
         .await
@@ -138,7 +138,7 @@ pub async fn gradebook_student_handler(
     Path(student_id): Path<Uuid>,
     Query(query): Query<StudentGradesQuery>,
 ) -> HandlerResult<VilResponse<serde_json::Value>> {
-    let state = svc.state::<Arc<AppState>>()?;
+    let state = svc.state::<AppState>()?;
 
     let result = get_student_grades(&state.db, student_id, query.course_id, ctx.tenant_id)
         .await

@@ -343,7 +343,7 @@ export function Certificates() {
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {filteredCertificates.map((cert, index) => (
               <motion.div
-                key={cert.id}
+                key={cert.id ?? cert.certificate_number ?? cert.course_id ?? index}
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: index * 0.1 }}

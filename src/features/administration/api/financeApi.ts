@@ -72,8 +72,11 @@ export async function fetchFinancePage(
 
   if (error) {
     if (import.meta.env.DEV)
-      logger.error("[Finance] get_finance_dashboard_page error:", error);
-    throw new Error("Gagal memuat daftar tagihan.");
+      logger.warn(
+        "[Finance] get_finance_dashboard_page unavailable:",
+        error.message ?? error,
+      );
+    return { data: [], count: 0 };
   }
 
   const rows = ((data ?? []) as Record<string, unknown>[]).map(
@@ -96,8 +99,16 @@ export async function fetchFinanceOverview(
 
   if (error) {
     if (import.meta.env.DEV)
-      logger.error("[Finance] get_finance_overview error:", error);
-    throw new Error("Gagal memuat ringkasan keuangan.");
+      logger.warn(
+        "[Finance] get_finance_overview unavailable:",
+        error.message ?? error,
+      );
+    return {
+      total_this_month: 0,
+      paid_this_month: 0,
+      unpaid_total: 0,
+      payment_rate: 0,
+    } as FinanceOverview;
   }
 
   return (data ?? {
@@ -117,8 +128,11 @@ export async function fetchFinanceMonthly(
 
   if (error) {
     if (import.meta.env.DEV)
-      logger.error("[Finance] get_finance_monthly error:", error);
-    throw new Error("Gagal memuat tren pembayaran.");
+      logger.warn(
+        "[Finance] get_finance_monthly unavailable:",
+        error.message ?? error,
+      );
+    return [];
   }
 
   return ((data ?? []) as Record<string, unknown>[]).map((row) => ({

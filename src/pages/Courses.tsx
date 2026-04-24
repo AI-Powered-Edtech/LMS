@@ -30,6 +30,11 @@ function getCourseGradient(courseId: string, gradients: string[]): string {
   return gradients[hash % gradients.length]
 }
 
+// Modal animation keyframes (extracted as const supaya tidak re-create per render)
+const MODAL_INITIAL = { opacity: 0, scale: 0.9, y: 20 } as const
+const MODAL_ANIMATE = { opacity: 1, scale: 1, y: 0 } as const
+const MODAL_EXIT = { opacity: 0, scale: 0.95, y: 10 } as const
+
 export const Courses: React.FC = () => {
   const navigate = useNavigate()
   const getPath = useRoleBasedPath()
@@ -37,7 +42,7 @@ export const Courses: React.FC = () => {
   const addToast = useToast((s) => s.addToast)
 
   useEffect(() => {
-    document.title = 'Kursus — EduSync'
+    document.title = 'Kursus | EduSync LMS'
     return () => {
       document.title = 'EduSync'
     }
@@ -68,10 +73,54 @@ export const Courses: React.FC = () => {
   // M-2: Escape key handler via useEffect so document receives the event
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'Escape' && isModalOpen) setIsModalOpen(false)
+      if (e.key === 'Escape' && isModalOpen) { if (newTitle.trim() || newDescription.trim() || newSubject.trim() || newLevel.trim()) { if (!window.confirm('Perubahan belum disimpan. Tutup tetap?')) return; } setIsModalOpen(false) }
     }
     document.addEventListener('keydown', handleKeyDown)
     return () => document.removeEventListener('keydown', handleKeyDown)
+  }, [isModalOpen])
+
+  // P2 fix: focus trap untuk modal create-course (a11y)
+  const modalDialogRef = useRef<HTMLDivElement>(null)
+  useEffect(() => {
+    if (!isModalOpen) return
+    const root = modalDialogRef.current
+    if (!root) return
+    const previouslyFocused = document.activeElement as HTMLElement | null
+    const selector =
+      'a[href], button:not([disabled]), textarea:not([disabled]), input:not([disabled]), select:not([disabled]), [tabindex]:not([tabindex="-1"])'
+    const getFocusable = () =>
+      Array.from(root.querySelectorAll<HTMLElement>(selector)).filter(
+        (el) => !el.hasAttribute('aria-hidden') && el.offsetParent !== null
+      )
+    // Auto-focus elemen pertama (biasanya field Judul)
+    requestAnimationFrame(() => {
+      const focusables = getFocusable()
+      focusables[0]?.focus()
+    })
+    const handleTab = (e: KeyboardEvent) => {
+      if (e.key !== 'Tab') return
+      const focusables = getFocusable()
+      if (focusables.length === 0) return
+      const first = focusables[0]!
+      const last = focusables[focusables.length - 1]!
+      const active = document.activeElement as HTMLElement | null
+      if (e.shiftKey) {
+        if (active === first || !root.contains(active)) {
+          e.preventDefault()
+          last.focus()
+        }
+      } else {
+        if (active === last) {
+          e.preventDefault()
+          first.focus()
+        }
+      }
+    }
+    document.addEventListener('keydown', handleTab)
+    return () => {
+      document.removeEventListener('keydown', handleTab)
+      previouslyFocused?.focus?.()
+    }
   }, [isModalOpen])
 
   const { data, fetchNextPage, hasNextPage, isFetchingNextPage, isLoading, isError, refetch } =
@@ -130,8 +179,9 @@ export const Courses: React.FC = () => {
       }
 
       setIsModalOpen(false)
+      addToast({ type: 'success', message: `Materi "${newCourse.title}" berhasil dibuat.` })
       const targetPath = `${getPath('/app/teacher/course-builder', '/app/admin/course-builder')}?courseId=${newCourse.id}`
-      console.log('Navigating to targetPath:', targetPath)
+      if (import.meta.env.DEV) logger.debug('Navigating to targetPath:', targetPath)
       void navigate(targetPath)
     } catch (err: unknown) {
       if (import.meta.env.DEV) logger.error('Failed to create course:', err)
@@ -328,13 +378,14 @@ export const Courses: React.FC = () => {
             role="presentation"
             className="fixed inset-0 z-50 flex items-center justify-center px-4 bg-black/60 backdrop-blur-md"
             onClick={(e) => {
-              if (e.target === e.currentTarget) setIsModalOpen(false)
+              if (e.target === e.currentTarget) { if (newTitle.trim() || newDescription.trim() || newSubject.trim() || newLevel.trim()) { if (!window.confirm("Perubahan belum disimpan. Tutup tetap?")) return; } setIsModalOpen(false) }
             }}
           >
             <motion.div
-              initial={{ opacity: 0, scale: 0.9, y: 20 }}
-              animate={{ opacity: 1, scale: 1, y: 0 }}
-              exit={{ opacity: 0, scale: 0.95, y: 10 }}
+              ref={modalDialogRef}
+              initial={MODAL_INITIAL}
+              animate={MODAL_ANIMATE}
+              exit={MODAL_EXIT}
               role="dialog"
               aria-modal="true"
               aria-label="Buat Materi Baru"
@@ -442,7 +493,7 @@ export const Courses: React.FC = () => {
               <div className="px-8 py-5 border-t border-gray-100 dark:border-gray-700/50 bg-gray-50/50 dark:bg-gray-800/50 flex gap-3 justify-end items-center mt-auto">
                 <button
                   type="button"
-                  onClick={() => setIsModalOpen(false)}
+                  onClick={() => { if (newTitle.trim() || newDescription.trim() || newSubject.trim() || newLevel.trim()) { if (!window.confirm("Perubahan belum disimpan. Tutup tetap?")) return; } setIsModalOpen(false) }}
                   className="px-6 py-2.5 text-gray-600 dark:text-gray-300 font-bold hover:bg-gray-200 dark:hover:bg-gray-700 rounded-xl transition-colors"
                   disabled={isCreating}
                 >

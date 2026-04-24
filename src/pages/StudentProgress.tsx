@@ -45,7 +45,7 @@ export function StudentProgress() {
         setData(progressData);
       } catch (err: unknown) {
         if (import.meta.env.DEV)
-          logger.error("Failed to load student progress", err);
+          logger.warn("Student progress unavailable:", err);
         setError("Gagal memuat progres siswa");
       } finally {
         setLoading(false);
@@ -56,7 +56,12 @@ export function StudentProgress() {
   }, [studentId, tenantId]);
 
   if (loading) {
-    return <ProgressSkeleton />;
+    return (
+      <div className="max-w-6xl mx-auto space-y-4 pb-12">
+        <h1 className="sr-only">Progres Siswa</h1>
+        <ProgressSkeleton />
+      </div>
+    );
   }
 
   // No student selected yet (nav points to /overview as placeholder)
@@ -64,9 +69,9 @@ export function StudentProgress() {
     return (
       <div className="flex-1 w-full flex flex-col items-center justify-center p-12 text-slate-500 dark:text-slate-400">
         <TrendingUp className="w-12 h-12 mb-4 text-slate-300 dark:text-slate-600" />
-        <p className="text-lg font-medium text-slate-700 dark:text-slate-300 mb-2">
+        <h1 className="text-lg font-medium text-slate-700 dark:text-slate-300 mb-2">
           Progres Siswa
-        </p>
+        </h1>
         <p className="text-sm text-center">
           Pilih siswa dari halaman{" "}
           <a
@@ -84,6 +89,9 @@ export function StudentProgress() {
   if (error || !data) {
     return (
       <div className="flex-1 w-full flex flex-col items-center justify-center p-12 text-slate-500 dark:text-slate-400">
+        <h1 className="text-xl font-bold text-slate-800 dark:text-slate-200 mb-2">
+          Progres Siswa
+        </h1>
         <p className="text-red-500 font-bold mb-2">
           {error || "Data tidak ditemukan"}
         </p>

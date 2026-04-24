@@ -97,6 +97,9 @@ export function ModerationDashboard() {
           <h1 className="text-2xl font-bold text-slate-900 dark:text-slate-100 flex items-center gap-2">
             <AlertTriangle className="w-6 h-6 text-red-500" />
             Moderasi Konten
+            <span className="ml-1 inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-indigo-100 text-indigo-700 dark:bg-indigo-900/30 dark:text-indigo-300">
+              Beta
+            </span>
           </h1>
           <p className="text-slate-500 dark:text-slate-400 mt-1">
             Tinjau laporan pengguna dan ambil tindakan terhadap konten yang melanggar.

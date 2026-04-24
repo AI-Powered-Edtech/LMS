@@ -31,9 +31,15 @@ export async function fetchLessonMonitorData(
   })
 
   if (error) {
-    if (error.code === 'PGRST202') {
+    // RPC belum tersedia / belum di-allowlist BE → degrade ke payload kosong
+    // agar halaman tetap menampilkan empty state Beta, bukan banner error merah.
+    const status = error.status
+    const code = error.code
+    if (code === 'PGRST202' || status === 403 || status === 404 || status === 501) {
       if (import.meta.env.DEV) {
-        logger.warn('get_lesson_progress_monitor RPC not available, returning empty payload')
+        logger.warn(
+          `get_lesson_progress_monitor RPC unavailable (code=${code} status=${status ?? 'n/a'}), returning empty payload`
+        )
       }
       return empty
     }

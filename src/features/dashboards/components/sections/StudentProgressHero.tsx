@@ -108,14 +108,14 @@ export function StudentProgressHero({
             
             <div className="flex flex-wrap gap-4">
               <Button 
-                onClick={() => navigate('/learning-hub')} 
+                onClick={() => navigate('/app/student/courses')} 
                 className="bg-white text-blue-700 hover:bg-blue-50 border-none font-bold px-6 py-2.5 rounded-xl shadow-md transition-all hover:shadow-lg"
               >
                 Mulai Belajar
               </Button>
               <Button 
                 variant="secondary" 
-                onClick={() => navigate('/assignments')}
+                onClick={() => navigate('/app/student/assignments')}
                 className="bg-blue-800/30 text-white border-blue-400/30 hover:bg-blue-800/50 hover:text-white font-bold px-6 py-2.5 rounded-xl backdrop-blur-sm transition-all"
               >
                 Lihat Tugas

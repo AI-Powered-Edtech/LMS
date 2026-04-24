@@ -436,8 +436,16 @@ export const lessonService = {
       } as Lesson;
     }
 
-    if (rpcError && rpcError.code !== "PGRST202") {
-      if (import.meta.env.DEV)
+    if (rpcError) {
+      const status = (rpcError as { status?: number }).status;
+      const code = (rpcError as { code?: string }).code;
+      const benign =
+        code === "PGRST202" ||
+        code === "42883" ||
+        code === "42P01" ||
+        status === 403 ||
+        status === 404;
+      if (!benign && import.meta.env.DEV)
         logger.error("Error fetching lesson snapshot:", rpcError);
     }
 
@@ -557,17 +565,17 @@ export const lessonService = {
     } = await db.auth.getUser();
     if (authError || !user) throw new Error("Not authenticated");
 
+    // RPC only supports 6 params today; resumeAnchor fields are persisted
+    // via separate endpoints once BE adds support. Keep the call minimal to
+    // avoid a 400 "unexpected argument" error.
+    void resumeAnchor;
     const { error } = await db.rpc("update_lesson_progress_monotonic", {
       p_user_id: user.id,
       p_lesson_id: lessonId,
       p_tenant_id: tenantId,
       p_status: status,
-      p_progress_percentage: progressPercentage,
-      p_last_position: lastPosition ?? null,
-      p_last_block_id: resumeAnchor?.lastBlockId ?? null,
-      p_last_block_index: resumeAnchor?.lastBlockIndex ?? null,
-      p_last_block_offset: resumeAnchor?.lastBlockOffset ?? null,
-      p_last_video_position: resumeAnchor?.lastVideoPosition ?? null,
+      p_progress_percentage: Math.round(progressPercentage),
+      p_last_position: lastPosition != null ? Math.round(lastPosition) : null,
     });
 
     if (error) {

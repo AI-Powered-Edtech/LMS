@@ -321,6 +321,10 @@ export const AuditDashboard = withErrorBoundary(
   lazy(() => import('../pages/admin/AuditDashboard').then((m) => ({ default: m.AuditDashboard }))),
   'Dasbor Audit'
 )
+export const ReviewQueue = withErrorBoundary(
+  lazy(() => import('../pages/admin/ReviewQueue').then((m) => ({ default: m.ReviewQueue }))),
+  'Antrean Review Kursus'
+)
 export const AdminAnalyticsDashboard = withErrorBoundary(
   lazy(() =>
     import('../pages/admin/AdminAnalyticsDashboard').then((m) => ({

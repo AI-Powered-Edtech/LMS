@@ -389,7 +389,16 @@ export function AdminAnalyticsDashboard() {
     (analytics.overview.totalCourses === 0 && analytics.overview.totalEnrolled === 0)
   ) {
     return (
-      <div className="max-w-7xl mx-auto p-4 md:p-8">
+      <div className="max-w-7xl mx-auto p-4 md:p-8 space-y-6">
+        <div>
+          <h1 className="text-2xl font-bold text-slate-900 dark:text-slate-100 flex items-center gap-2">
+            <BarChart3 className="w-8 h-8 text-blue-600" />
+            Dashboard Analitik
+          </h1>
+          <p className="text-slate-500 dark:text-slate-400 mt-1">
+            Pantau aktivitas pembelajaran di seluruh organisasi
+          </p>
+        </div>
         <EmptyState
           icon={<BarChart3 className="w-8 h-8" />}
           title="Belum Ada Data"

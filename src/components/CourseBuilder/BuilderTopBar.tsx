@@ -44,7 +44,7 @@ export function BuilderTopBar({
   onToggleCopilot,
 }: BuilderTopBarProps) {
   const { state, actions, mobile, offline } = useBuilder()
-  const { role } = useAuth()
+  const { activeRole } = useAuth()
   const navigate = useNavigate()
   const [isAssignModalOpen, setIsAssignModalOpen] = useState(false)
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
@@ -60,7 +60,7 @@ export function BuilderTopBar({
     courseTitle: state.courseTitle,
     courseDescription: state.courseDescription,
     courseStatus: state.courseStatus,
-    role: role as 'student' | 'teacher' | 'admin' | 'parent' | 'principal' | null,
+    role: activeRole as 'student' | 'teacher' | 'admin' | 'parent' | 'principal' | null,
   })
 
   const statusConfig = {
@@ -84,7 +84,7 @@ export function BuilderTopBar({
 
   const status = statusConfig[state.savingStatus]
 
-  const courseListPath = role === 'admin' ? '/app/admin/courses' : '/app/teacher/courses'
+  const courseListPath = activeRole === 'admin' ? '/app/admin/courses' : '/app/teacher/courses'
 
   const handleExitWithConfirm = () => {
     if (state.savingStatus === 'saving' || offline.isDirty) {

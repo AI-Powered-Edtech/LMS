@@ -1,10 +1,18 @@
-import { Eye, EyeOff } from 'lucide-react'
+import { Eye, EyeOff, GraduationCap, Home, Ticket, User } from 'lucide-react'
 import { useState } from 'react'
 import type { UseFormReturn } from 'react-hook-form'
 
 import { FormField } from '@/components/ui/FormField'
 import type { ClassInfo, InviteInfo } from '@/features/auth/hooks/useLoginState'
 import type { RegisterFormData } from '@/shared/schemas/forms'
+import { cn } from '@/utils/cn'
+
+// ============================================================
+// Types
+// ============================================================
+
+type AccountType = 'student' | 'teacher'
+type TeacherMode = 'invite' | 'personal'
 
 interface RegisterStep1Props {
   registerForm: UseFormReturn<RegisterFormData>
@@ -12,6 +20,8 @@ interface RegisterStep1Props {
   submitting: boolean
   inviteToken: string | null
   inviteInfo: InviteInfo | null
+  accountType: AccountType
+  onAccountTypeChange: (type: AccountType) => void
   onSubmit: (data: RegisterFormData) => void
 }
 
@@ -21,12 +31,42 @@ export function RegisterStep1({
   submitting,
   inviteToken,
   inviteInfo,
+  accountType,
+  onAccountTypeChange,
   onSubmit,
 }: RegisterStep1Props) {
   const [showPassword, setShowPassword] = useState(false)
 
+  // Saat ada invite token, akun akan otomatis dibuat dengan role yang di-set backend
+  // (biasanya teacher). Sembunyikan picker untuk menghindari kebingungan.
+  const showAccountTypePicker = !inviteToken
+
   return (
     <form onSubmit={registerForm.handleSubmit(onSubmit)} className="space-y-4">
+      {showAccountTypePicker && (
+        <div>
+          <label className="block text-white/60 text-xs font-medium mb-1.5">
+            Daftar sebagai
+          </label>
+          <div className="grid grid-cols-2 gap-2">
+            <AccountTypeOption
+              active={accountType === 'student'}
+              onClick={() => onAccountTypeChange('student')}
+              icon={<User className="w-4 h-4" />}
+              label="Siswa"
+              hint="Belajar di kelas guru"
+            />
+            <AccountTypeOption
+              active={accountType === 'teacher'}
+              onClick={() => onAccountTypeChange('teacher')}
+              icon={<GraduationCap className="w-4 h-4" />}
+              label="Guru"
+              hint="Buat kursus & kelas"
+            />
+          </div>
+        </div>
+      )}
+
       <div className="grid grid-cols-2 gap-3">
         <FormField
           name="firstName"
@@ -105,19 +145,78 @@ export function RegisterStep1({
   )
 }
 
+// ============================================================
+// AccountTypeOption — helper untuk picker segmented
+// ============================================================
+
+function AccountTypeOption({
+  active,
+  onClick,
+  icon,
+  label,
+  hint,
+}: {
+  active: boolean
+  onClick: () => void
+  icon: React.ReactNode
+  label: string
+  hint: string
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      aria-pressed={active}
+      className={cn(
+        'flex flex-col items-start gap-0.5 px-3 py-2.5 rounded-xl border transition-colors text-left',
+        active
+          ? 'bg-blue-500/15 border-blue-400/50 text-white'
+          : 'bg-white/5 border-white/10 text-white/70 hover:bg-white/10'
+      )}
+    >
+      <div className="flex items-center gap-1.5">
+        {icon}
+        <span className="text-sm font-semibold">{label}</span>
+      </div>
+      <span className="text-[11px] text-white/40">{hint}</span>
+    </button>
+  )
+}
+
+// ============================================================
+// RegisterStep2 — branching student (joinCode) / teacher (invite|personal)
+// ============================================================
+
 interface RegisterStep2Props {
+  accountType: AccountType
+  // Student props
   joinCode: string
   setJoinCode: (value: string) => void
   classInfo: ClassInfo | null
   classLookupLoading: boolean
   classLookupError: string
+  // Teacher props
+  teacherMode: TeacherMode
+  setTeacherMode: (mode: TeacherMode) => void
+  tenantInviteCode: string
+  setTenantInviteCode: (value: string) => void
+  firstName: string
+  // Common
   error: string
   submitting: boolean
   onBack: () => void
   onSubmit: () => void
 }
 
-export function RegisterStep2({
+export function RegisterStep2(props: RegisterStep2Props) {
+  return props.accountType === 'teacher' ? (
+    <TeacherStep2 {...props} />
+  ) : (
+    <StudentStep2 {...props} />
+  )
+}
+
+function StudentStep2({
   joinCode,
   setJoinCode,
   classInfo,
@@ -193,5 +292,141 @@ export function RegisterStep2({
         </button>
       </div>
     </div>
+  )
+}
+
+function TeacherStep2({
+  teacherMode,
+  setTeacherMode,
+  tenantInviteCode,
+  setTenantInviteCode,
+  firstName,
+  error,
+  submitting,
+  onBack,
+  onSubmit,
+}: RegisterStep2Props) {
+  return (
+    <div className="space-y-5">
+      <div>
+        <label className="block text-white/60 text-xs font-medium mb-1.5">
+          Pilih cara bergabung
+        </label>
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+          <TeacherModeOption
+            active={teacherMode === 'invite'}
+            onClick={() => setTeacherMode('invite')}
+            icon={<Ticket className="w-4 h-4" />}
+            label="Kode Undangan"
+            hint="Bergabung ke sekolah/tenant yang sudah ada"
+          />
+          <TeacherModeOption
+            active={teacherMode === 'personal'}
+            onClick={() => setTeacherMode('personal')}
+            icon={<Home className="w-4 h-4" />}
+            label="Ruang Pribadi"
+            hint="Buat ruang kerja untukmu sendiri"
+          />
+        </div>
+      </div>
+
+      {teacherMode === 'invite' ? (
+        <div>
+          <label
+            htmlFor="reg-tenant-invite"
+            className="block text-white/60 text-xs font-medium mb-1.5"
+          >
+            Kode Undangan Tenant
+          </label>
+          <input
+            id="reg-tenant-invite"
+            value={tenantInviteCode}
+            onChange={(e) => setTenantInviteCode(e.target.value.toUpperCase())}
+            placeholder="Contoh: SCHOOL-A1B2C3"
+            maxLength={32}
+            className="w-full bg-white/5 border border-white/10 text-white rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-blue-500 placeholder:text-white/20 text-sm tracking-wider font-mono uppercase"
+          />
+          <p className="text-white/30 text-xs mt-2">
+            Minta kode undangan ke admin tenant/sekolahmu. Kode akan menentukan peranmu di tenant
+            tersebut.
+          </p>
+        </div>
+      ) : (
+        <div className="p-3 bg-indigo-500/10 border border-indigo-500/20 rounded-xl">
+          <p className="text-indigo-300 text-xs font-semibold">Ruang kerja pribadi akan dibuat</p>
+          <p className="text-white/70 text-sm mt-1">
+            Nama ruang: <span className="font-semibold">{firstName || 'Ruang Saya'}</span>
+          </p>
+          <p className="text-white/40 text-xs mt-1">
+            Kamu bisa mengundang guru/siswa lain nanti lewat menu pengaturan tenant.
+          </p>
+        </div>
+      )}
+
+      {error && (
+        <p
+          role="alert"
+          className="text-red-400 text-sm bg-red-500/10 border border-red-500/20 rounded-xl px-4 py-3"
+        >
+          {error}
+        </p>
+      )}
+
+      <div className="flex gap-3">
+        <button
+          type="button"
+          onClick={onBack}
+          className="flex-1 bg-white/5 hover:bg-white/10 text-white/60 rounded-xl py-3 font-semibold transition-colors text-sm"
+        >
+          Kembali
+        </button>
+        <button
+          type="button"
+          onClick={onSubmit}
+          disabled={submitting}
+          className="flex-1 bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-white rounded-xl py-3 font-semibold transition-colors text-sm"
+        >
+          {submitting
+            ? 'Membuat...'
+            : teacherMode === 'invite'
+              ? 'Gabung Tenant & Daftar'
+              : 'Buat Ruang & Daftar'}
+        </button>
+      </div>
+    </div>
+  )
+}
+
+function TeacherModeOption({
+  active,
+  onClick,
+  icon,
+  label,
+  hint,
+}: {
+  active: boolean
+  onClick: () => void
+  icon: React.ReactNode
+  label: string
+  hint: string
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      aria-pressed={active}
+      className={cn(
+        'flex flex-col items-start gap-0.5 px-3 py-2.5 rounded-xl border transition-colors text-left',
+        active
+          ? 'bg-blue-500/15 border-blue-400/50 text-white'
+          : 'bg-white/5 border-white/10 text-white/70 hover:bg-white/10'
+      )}
+    >
+      <div className="flex items-center gap-1.5">
+        {icon}
+        <span className="text-sm font-semibold">{label}</span>
+      </div>
+      <span className="text-[11px] text-white/40">{hint}</span>
+    </button>
   )
 }

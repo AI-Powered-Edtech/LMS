@@ -170,8 +170,11 @@ export function PlagiarismDashboard() {
       {/* Header */}
       <div className="flex items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-slate-800 dark:text-slate-100">
+          <h1 className="text-2xl font-bold text-slate-800 dark:text-slate-100 flex items-center gap-2">
             Laporan Plagiarisme
+            <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-indigo-100 text-indigo-700 dark:bg-indigo-900/30 dark:text-indigo-300">
+              Beta
+            </span>
           </h1>
           <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">
             Riwayat pemeriksaan kemiripan konten pengumpulan tugas
