@@ -25,9 +25,9 @@ export const ppdbAdminService = {
   async listPeriods(tenantId: string): Promise<PpdbPeriod[]> {
     const { data, error } = await db
       .from<Array<PpdbPeriod>>('ppdb_periods')
-      .select('id, tenant_id, name, starts_on, ends_on, status')
+      .select('id, tenant_id, name, start_date, end_date, status')
       .eq('tenant_id', tenantId)
-      .order('starts_on', { ascending: false })
+      .order('start_date', { ascending: false })
     if (error) throw error
     return (data ?? []) as PpdbPeriod[]
   },

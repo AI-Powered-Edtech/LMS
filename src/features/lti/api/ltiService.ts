@@ -7,7 +7,7 @@ import type {
 } from '../types'
 
 const COLUMNS =
-  'id, tenant_id, name, issuer, client_id, auth_endpoint, token_endpoint, jwks_url, deployment_id, is_active, created_at'
+  'id, tenant_id, platform_name, issuer, client_id, auth_endpoint, token_url, jwks_url, deployment_id, is_active, created_at'
 
 /**
  * Service layer for LTI platform registration CRUD operations.
