@@ -431,9 +431,17 @@ U23 PWA validate (standalone)
 ```
 
 **Critical path** (longest chain, revised post-audit):
-`U03 → U06.1 → U06.2 → U06.3 → U08.1 → U08.2 → U08.3 → U08.4 → U11.1 → U11.2 → U11.3 → U11.4 → U12 → U24`
+```
+U03 → U06.1 → U06.2 → U06.3
+    → U08.1 → U08.2 → U08.3 → U08.4 → U08.5
+    → U06.4                         (scope checks — required before U12 role enforcement)
+    → U11.1 → U11.2 → U11.3 → U11.4
+    → U12 → U24
+```
 
-= 14 sub-units, realistic **4-6 minggu** kalau solo operator, **2-3 minggu** kalau tim 3-4 engineer paralel dan vendor credential sudah siap (Midtrans sandbox, OpenAI key, etc.).
+U06.4 (scope checks) wajib sebelum U12 karena signature eligibility (wali_kelas sign rombel-nya, kepsek sign school-level) butuh scope predicates dari U06.4. U06.5 (matrix test) bukan delivery critical — bisa paralel.
+
+= ~16 sub-units, realistic **4-6 minggu** kalau solo operator, **2-3 minggu** kalau tim 3-4 engineer paralel dan vendor credential sudah siap (Midtrans sandbox, OpenAI key, etc.).
 
 ---
 
@@ -444,8 +452,8 @@ Bisa dikerjakan paralel (file disjoint, no shared state change):
 **Batch A (Fase 0 finish)**:
 - U01 (migration 048 baseline) — SQL only
 - U02 (dup-key) — FE only
-- U04 (reset-sh script)
-- U14 (a11y) — FE + test only
+- U04 (reset-sh verify/harden — script exists)
+- U14 (a11y run/fix/gate — infra exists) — FE + test only
 
 **Batch B (Payment path)**:
 - U09, U10, U15 (sequential within batch, but batch is standalone from others)
@@ -454,7 +462,7 @@ Bisa dikerjakan paralel (file disjoint, no shared state change):
 - U05 (seed richer), U20 (AuthoringAssist wire), U21 (tutor stream)
 
 **Batch D (Operational)**:
-- U19 (Dapodik async), U22 (rate limit), U23 (PWA tune)
+- U19 (Dapodik async), U22 (rate limit), U23 (PWA validate/regression — config exists)
 
 ---
 
