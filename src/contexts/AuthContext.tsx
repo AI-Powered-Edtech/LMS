@@ -63,7 +63,13 @@ export interface AuthContextType {
     password: string,
     firstName: string,
     lastName: string,
-    tenantId?: string
+    tenantId?: string,
+    extras?: {
+      role?: 'student' | 'teacher'
+      tenantInviteCode?: string
+      createPersonalTenant?: boolean
+      displayName?: string
+    }
   ) => Promise<{ error: Error | null }>
   signOut: () => Promise<void>
   signInWithGoogle: () => Promise<void>

@@ -26,6 +26,16 @@ export const templateService = {
       .limit(50)
 
     if (error) {
+      // Some tenants/roles do not have access to the content_templates table
+      // via the generic data endpoint yet. Treat missing table (42P01),
+      // forbidden (403), and not-found (404) as "no templates" so the
+      // Course Builder just shows the empty-template state instead of a
+      // scary error toast.
+      const code = (error as { code?: string }).code
+      const status = (error as { status?: number }).status
+      if (code === '42P01' || status === 403 || status === 404) {
+        return [] as ContentTemplate[]
+      }
       logDevError('templateService', 'Error fetching templates:', error)
       throw error
     }

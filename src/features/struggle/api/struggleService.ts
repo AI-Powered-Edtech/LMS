@@ -80,8 +80,12 @@ export const struggleService = {
       p_lesson_id: lessonId,
     })
     if (error) {
+      const status = (error as { status?: number }).status
+      const code = (error as { code?: string }).code
+      // Optional feature — swallow missing RPC / forbidden silently
+      if (status === 403 || status === 404 || code === '42P01' || code === '42883') return null
       if (import.meta.env.DEV) logger.error('[struggleService] getMyLessonStatus:', error)
-      throw error
+      return null
     }
     return (data as LessonStatus) ?? null
   },

@@ -102,10 +102,6 @@ where
     type Rejection = VilError;
 
     async fn from_request_parts(parts: &mut Parts, _state: &S) -> Result<Self, Self::Rejection> {
-        let Extension(state): Extension<Arc<Arc<AppState>>> =
-            Extension::from_request_parts(parts, _state)
-                .await
-                .map_err(|_| VilError::unauthorized("Tidak terautentikasi"))?;
         extract_tenant_context(parts)
             .map(AuthedRequest)
             .map_err(IntoVilError::into_vil_error)
@@ -150,10 +146,6 @@ where
     type Rejection = VilError;
 
     async fn from_request_parts(parts: &mut Parts, _state: &S) -> Result<Self, Self::Rejection> {
-        let Extension(state): Extension<Arc<Arc<AppState>>> =
-            Extension::from_request_parts(parts, _state)
-                .await
-                .map_err(|_| VilError::unauthorized("Tidak terautentikasi"))?;
         extract_tenant_context(parts)
             .map(RbacGuard)
             .map_err(IntoVilError::into_vil_error)

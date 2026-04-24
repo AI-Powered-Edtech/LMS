@@ -219,7 +219,6 @@ export async function getStudentQuizAssignments(
     .eq("status", "ACTIVE");
 
   if (enrollmentError) throw enrollmentError;
-  console.log('STUDENT ENROLLMENTS:', enrollments);
 
   // ⚡ Perf: consolidate multiple array traversals into a single pass to reduce O(N) operations.
   const classIds: string[] = [];
@@ -230,11 +229,8 @@ export async function getStudentQuizAssignments(
   }
 
   if (classIds.length === 0) {
-    console.log('NO CLASS IDS');
     return [];
   }
-
-  console.log('CLASS IDS:', classIds);
 
   // Get quiz assignments for those classes
   const { data, error } = await db
@@ -249,7 +245,6 @@ export async function getStudentQuizAssignments(
     .limit(100);
 
   if (error) throw error;
-  console.log('QUIZ ASSIGNMENTS:', data);
 
   const assignmentRows = (data ?? []) as QuizAssignmentRow[];
   const assignedQuizIds = assignmentRows.map(

@@ -9,7 +9,7 @@
 //!                              `RbacGuard.require()` now returns `VilError` directly.
 //! - `import_users_handler`:    raw CSV upload via `Bytes` — keep `Bytes` extractor;
 //!                              same RBAC pattern.
-//! - All `Extension<Arc<AppState>>` → `ServiceCtx` + `svc.state::<Arc<AppState>>()?`
+//! - All `Extension<Arc<AppState>>` → `ServiceCtx` + `svc.state::<AppState>()?`
 //! - All ad-hoc `(StatusCode, Json)` error tuples → `VilError::*` methods
 
 use axum::{
@@ -39,7 +39,7 @@ pub async fn enqueue_events_handler(
     svc: ServiceCtx,
     body: ShmSlice,
 ) -> HandlerResult<VilResponse<serde_json::Value>> {
-    let state = svc.state::<Arc<AppState>>()?;
+    let state = svc.state::<AppState>()?;
     let events: Vec<TelemetryEvent> = body
         .json()
         .map_err(|e| VilError::bad_request(e.to_string()))?;
@@ -68,7 +68,7 @@ pub async fn load_quiz_handler(
 ) -> HandlerResult<VilResponse<serde_json::Value>> {
     use edusync_services::quiz::loader::QuizLoaderError;
 
-    let state = svc.state::<Arc<AppState>>()?;
+    let state = svc.state::<AppState>()?;
 
     let resp = load_quiz_for_student(&state.db, quiz_id, ctx.user_id, ctx.tenant_id)
         .await
@@ -128,7 +128,7 @@ pub async fn import_users_handler(
     // Only admins can import users
     rbac.require("admin")?;
 
-    let state = svc.state::<Arc<AppState>>()?;
+    let state = svc.state::<AppState>()?;
     let ctx = rbac.ctx();
 
     let result = import_users_from_csv(&state.db, &body, ctx.tenant_id, ctx.user_id)

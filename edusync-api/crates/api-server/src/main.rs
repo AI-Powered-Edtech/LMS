@@ -1,6 +1,7 @@
 mod ai_handlers;
 mod auth;
 mod cache;
+mod course_templates;
 mod courses;
 mod cron;
 mod data_plane;
@@ -9,10 +10,14 @@ mod health;
 mod lti_handlers;
 mod notification_handlers;
 mod observability;
+mod onboarding;
 mod processing_handlers;
 mod realtime;
 mod state;
 mod storage;
+mod stub_handlers;
+mod tenant_invites;
+mod tenant_admin;
 
 use dotenvy::dotenv;
 use health::{health_handler, ready_handler};
@@ -23,7 +28,7 @@ use cache::CacheClient;
 use edusync_auth::init_rsa_keys;
 use base64::Engine;
 use std::sync::Arc;
-use vil_server::prelude::{delete, get, post, put, Method, ServiceProcess, VilApp};
+use vil_server::prelude::{delete, get, patch, post, put, Method, ServiceProcess, VilApp};
 use anyhow::{bail, Context};
 
 use ai_handlers::{
@@ -45,9 +50,23 @@ use auth::tenant_rpcs::{
     lookup_class_handler, onboard_student_handler, validate_invitation_handler,
 };
 use auth::verify_email::verify_email_handler;
+use course_templates::{
+    create_template_from_course_handler, delete_template_handler, get_template_handler,
+    instantiate_template_handler, list_templates_handler,
+};
 use courses::{
-    create_course_handler, delete_course_handler, get_course_handler, get_course_modules_handler,
-    list_courses_handler, update_course_handler,
+    copy_course_handler, create_course_handler, delete_course_handler, get_course_handler,
+    get_course_modules_handler, list_course_reviews_handler, list_courses_handler,
+    reorder_lessons_handler, reorder_modules_handler, review_course_handler,
+    submit_for_review_handler, update_course_handler,
+};
+use onboarding::{get_onboarding_handler, update_onboarding_handler};
+use tenant_invites::{
+    create_tenant_invite_handler, list_tenant_invites_handler, revoke_tenant_invite_handler,
+};
+use tenant_admin::{
+    get_tenant_settings_handler, patch_tenant_settings_handler,
+    list_tenant_members_handler, grant_tenant_role_handler, revoke_tenant_role_handler,
 };
 use data_plane::{query_table_handler, rpc_proxy_handler};
 use lti_handlers::{lti_jwks_handler, lti_launch_handler, lti_oidc_login_handler};
@@ -61,6 +80,11 @@ use processing_handlers::{
 use storage::handlers::{
     create_signed_url_handler, download_handler, list_handler, migration_status_handler,
     presign_upload_handler, public_url_handler, remove_handler, upload_handler,
+};
+use stub_handlers::{
+    ai_tutor_stream_stub_handler, executive_report_stub_handler, parent_report_stub_handler,
+    plagiarism_check_stub_handler, reports_export_create_stub_handler,
+    reports_export_status_stub_handler, scorm_runtime_stub_handler,
 };
 
 #[tokio::main]
@@ -136,6 +160,10 @@ async fn main() -> anyhow::Result<()> {
         password: std::env::var("SMTP_PASSWORD").ok(),
         from_email: std::env::var("SMTP_FROM_EMAIL")
             .unwrap_or_else(|_| "noreply@edusync.dev".to_string()),
+        implicit_tls: std::env::var("SMTP_IMPLICIT_TLS")
+            .ok()
+            .map(|v| matches!(v.trim().to_ascii_lowercase().as_str(), "1"|"true"|"yes"|"on"))
+            .unwrap_or(false),
     };
 
     // ── Wave 1D: S3 config (vil_conn_s3 client built per-handler) ───────────
@@ -250,6 +278,82 @@ async fn main() -> anyhow::Result<()> {
         .endpoint(Method::PUT, "/courses/:id", put(update_course_handler))
         .endpoint(Method::DELETE, "/courses/:id", delete(delete_course_handler))
         .endpoint(Method::GET, "/courses/:id/modules", get(get_course_modules_handler))
+        // Review workflow (migrasi 024 / Opsi B state machine)
+        .endpoint(Method::POST, "/courses/:id/submit-review", post(submit_for_review_handler))
+        .endpoint(Method::POST, "/courses/:id/review", post(review_course_handler))
+        .endpoint(Method::GET, "/courses/:id/reviews", get(list_course_reviews_handler))
+        // P2.1 cross-tenant copy
+        .endpoint(Method::POST, "/courses/:id/copy", post(copy_course_handler))
+        // P2.7 drag-drop ordering
+        .endpoint(
+            Method::POST,
+            "/courses/:id/modules/reorder",
+            post(reorder_modules_handler),
+        )
+        .endpoint(
+            Method::POST,
+            "/modules/:id/lessons/reorder",
+            post(reorder_lessons_handler),
+        )
+        .state(app_state.clone());
+
+    // P2.2 / P2.8 Tenant invites (email + join_code + auto-enroll class_id)
+    let tenant_invites_service = ServiceProcess::new("tenant-invites")
+        .prefix("/api/v1")
+        .endpoint(Method::POST, "/tenant-invites", post(create_tenant_invite_handler))
+        .endpoint(Method::GET, "/tenant-invites", get(list_tenant_invites_handler))
+        .endpoint(
+            Method::DELETE,
+            "/tenant-invites/:id",
+            delete(revoke_tenant_invite_handler),
+        )
+        .state(app_state.clone());
+
+    // P2.5 Template gallery
+    let course_templates_service = ServiceProcess::new("course-templates")
+        .prefix("/api/v1")
+        .endpoint(
+            Method::POST,
+            "/course-templates",
+            post(create_template_from_course_handler),
+        )
+        .endpoint(Method::GET, "/course-templates", get(list_templates_handler))
+        .endpoint(Method::GET, "/course-templates/:id", get(get_template_handler))
+        .endpoint(
+            Method::POST,
+            "/course-templates/:id/instantiate",
+            post(instantiate_template_handler),
+        )
+        .endpoint(
+            Method::DELETE,
+            "/course-templates/:id",
+            delete(delete_template_handler),
+        )
+        .state(app_state.clone());
+
+    // P2.4 Onboarding state (resumable)
+    let onboarding_service = ServiceProcess::new("onboarding")
+        .prefix("/api/v1")
+        .endpoint(Method::GET, "/onboarding", get(get_onboarding_handler))
+        .endpoint(Method::POST, "/onboarding", post(update_onboarding_handler))
+        .state(app_state.clone());
+
+    // P4 Tenant admin (settings + role management)
+    let tenant_admin_service = ServiceProcess::new("tenant-admin")
+        .prefix("/api/v1")
+        .endpoint(Method::GET, "/tenant-settings", get(get_tenant_settings_handler))
+        .endpoint(Method::PATCH, "/tenant-settings", patch(patch_tenant_settings_handler))
+        .endpoint(Method::GET, "/tenant-members", get(list_tenant_members_handler))
+        .endpoint(
+            Method::POST,
+            "/tenant-members/:user_id/roles",
+            post(grant_tenant_role_handler),
+        )
+        .endpoint(
+            Method::DELETE,
+            "/tenant-members/:user_id/roles/:role",
+            delete(revoke_tenant_role_handler),
+        )
         .state(app_state.clone());
 
     let data_service = ServiceProcess::new("data")
@@ -337,6 +441,18 @@ async fn main() -> anyhow::Result<()> {
         )
         .state(app_state.clone());
 
+    // ── Stub services untuk endpoint FE yang sebelumnya 404 ────────────────────────
+    let stub_service = ServiceProcess::new("stubs")
+        .prefix("/api/v1")
+        .endpoint(Method::POST, "/pdf/executive-report", post(executive_report_stub_handler))
+        .endpoint(Method::POST, "/pdf/parent-report", post(parent_report_stub_handler))
+        .endpoint(Method::POST, "/reports/export", post(reports_export_create_stub_handler))
+        .endpoint(Method::GET, "/reports/export/:id", get(reports_export_status_stub_handler))
+        .endpoint(Method::POST, "/plagiarism/check", post(plagiarism_check_stub_handler))
+        .endpoint(Method::POST, "/ai/tutor/stream", post(ai_tutor_stream_stub_handler))
+        .endpoint(Method::POST, "/scorm/runtime", post(scorm_runtime_stub_handler))
+        .state(app_state.clone());
+
     VilApp::new("edusync-api")
         .port(port)
         .profile(&vil_profile)
@@ -344,6 +460,10 @@ async fn main() -> anyhow::Result<()> {
         .service(health_service)
         .service(auth_service)
         .service(course_service)
+        .service(tenant_invites_service)
+        .service(course_templates_service)
+        .service(onboarding_service)
+        .service(tenant_admin_service)
         .service(data_service)
         .service(observability_service)
         .service(ai_service)
@@ -352,6 +472,7 @@ async fn main() -> anyhow::Result<()> {
         .service(processing_service)
         .service(ws_service)
         .service(storage_service)
+        .service(stub_service)
         .run()
         .await;
 

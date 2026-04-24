@@ -143,49 +143,41 @@ export const administrationService = {
    */
   async getTenantModules(): Promise<TenantModuleConfig[]> {
     try {
-      // Fetch tenant_modules joined with module details.
-      // Uses a regular (left) join so that a missing modules row does not
-      // cause an RLS-driven error — rows without a matching module are
-      // simply filtered out in the map below.
-      const { data: tenantModules, error: tenantError } = (await db
-        .from<any>("tenant_modules")
-        .select(
-          `
-          id,
-          tenant_id,
-          module_id,
-          is_enabled,
-          updated_at,
-          modules(
-            id,
-            slug,
-            name,
-            description,
-            is_core,
-            api_enabled_default,
-            created_at
-          )
-        `,
-        )
-        .order("module_id", { ascending: true })) as {
-        data: Array<{
+      // VIL data plane does not support nested/embedded selects (Supabase
+      // `table(...)` syntax). Fetch tenant_modules and modules separately
+      // then merge in-memory.
+      const [tenantRes, modulesRes] = await Promise.all([
+        db
+          .from<any>("tenant_modules")
+          .select("id, tenant_id, module_id, is_enabled, updated_at")
+          .order("module_id", { ascending: true }),
+        db
+          .from<any>("modules")
+          .select("id, slug, name, description, is_core, api_enabled_default, created_at"),
+      ]);
+      const tenantError = tenantRes.error || modulesRes.error;
+      const modulesById = new Map<string, any>(
+        ((modulesRes.data ?? []) as any[]).map((m) => [m.id, m]),
+      );
+      const tenantModules = ((tenantRes.data ?? []) as any[]).map((tm) => ({
+        ...tm,
+        modules: modulesById.get(tm.module_id) ?? null,
+      })) as Array<{
+        id: string;
+        tenant_id: string;
+        module_id: string;
+        is_enabled: boolean;
+        updated_at: string;
+        modules: {
           id: string;
-          tenant_id: string;
-          module_id: string;
-          is_enabled: boolean;
-          updated_at: string;
-          modules: {
-            id: string;
-            slug: string;
-            name: string;
-            description?: string;
-            is_core: boolean;
-            api_enabled_default: boolean;
-            created_at: string;
-          };
-        } | null>;
-        error: Error | null;
-      };
+          slug: string;
+          name: string;
+          description?: string;
+          is_core: boolean;
+          api_enabled_default: boolean;
+          created_at: string;
+        } | null;
+      }>;
 
       if (tenantError) {
         // Log as warn — missing tenant_modules seed data is a setup

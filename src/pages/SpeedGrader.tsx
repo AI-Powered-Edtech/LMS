@@ -1,6 +1,6 @@
 import { AlertCircle, FileText, Loader2, Save, Sparkles } from 'lucide-react'
 import { useEffect, useMemo, useRef, useState } from 'react'
-import { useSearchParams } from 'react-router-dom'
+import { Link, useSearchParams } from 'react-router-dom'
 
 import { useAuth } from '@/contexts/AuthContext'
 import { aiGraderService } from '@/features/assignments/api/aiGraderService'
@@ -177,12 +177,23 @@ export function SpeedGrader() {
 
   if (!assignmentId) {
     return (
-      <div className="flex items-center justify-center min-h-[60vh]">
-        <div className="text-center max-w-sm">
-          <h2 className="text-xl font-bold text-slate-700 dark:text-slate-200 mb-2">
-            Tugas Tidak Ditemukan
-          </h2>
-          <p className="text-slate-500 text-sm">Parameter assignmentId tidak ditemukan di URL.</p>
+      <div className="flex items-center justify-center min-h-[60vh] px-4">
+        <div className="text-center max-w-md">
+          <div className="w-14 h-14 mx-auto mb-4 rounded-2xl bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 flex items-center justify-center">
+            <FileText className="w-7 h-7" aria-hidden="true" />
+          </div>
+          <h1 className="text-2xl font-bold text-slate-800 dark:text-slate-100 mb-2">
+            Penilaian Cepat
+          </h1>
+          <p className="text-slate-500 dark:text-slate-400 text-sm mb-6">
+            Pilih tugas dari Buku Nilai Tugas untuk mulai menilai pekerjaan siswa.
+          </p>
+          <Link
+            to="/app/teacher/assignment-gradebook"
+            className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold shadow-sm transition-colors"
+          >
+            Buka Buku Nilai Tugas
+          </Link>
         </div>
       </div>
     )
@@ -190,8 +201,15 @@ export function SpeedGrader() {
 
   if (!isLoadingQueue && queueStudents.length === 0) {
     return (
-      <div className="flex items-center justify-center min-h-[60vh]">
-        <p className="text-slate-500">Belum ada siswa pada grading queue assignment ini.</p>
+      <div className="flex items-center justify-center min-h-[60vh] px-4">
+        <div className="text-center max-w-md">
+          <h1 className="text-2xl font-bold text-slate-800 dark:text-slate-100 mb-2">
+            Belum Ada Pekerjaan untuk Dinilai
+          </h1>
+          <p className="text-slate-500 dark:text-slate-400 text-sm">
+            Antrian penilaian tugas ini masih kosong. Siswa belum mengumpulkan pekerjaan atau semua sudah selesai dinilai.
+          </p>
+        </div>
       </div>
     )
   }

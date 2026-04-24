@@ -47,7 +47,7 @@ pub async fn lti_oidc_login_handler(
     svc: ServiceCtx,
     Query(req): Query<LtiOidcLoginRequest>,
 ) -> HandlerResult<impl IntoResponse> {
-    let state = svc.state::<Arc<AppState>>()?;
+    let state = svc.state::<AppState>()?;
     let ctx = OidcLoginContext {
         db: Arc::new(state.db.clone()),
     };
@@ -69,7 +69,7 @@ pub async fn lti_launch_handler(
     svc: ServiceCtx,
     Form(form): Form<LtiLaunchForm>,
 ) -> HandlerResult<impl IntoResponse> {
-    let state = svc.state::<Arc<AppState>>()?;
+    let state = svc.state::<AppState>()?;
     let ctx = LaunchContext {
         db: Arc::new(state.db.clone()),
         jwt_secret: std::env::var("JWT_SECRET").unwrap_or_else(|_| "secret".to_string()),

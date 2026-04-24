@@ -11,7 +11,6 @@ import {
   CourseBuilder,
   Courses,
   Creator,
-  Dashboards,
   DocumentManager,
   Gradebook,
   Leaderboard,
@@ -147,14 +146,8 @@ export function TeacherRoutes() {
           </S>
         }
       />
-      <Route
-        path="dashboards"
-        element={
-          <S>
-            <Dashboards />
-          </S>
-        }
-      />
+      {/* P1 fix: duplikasi dashboard — redirect ke Dasbor Guru utama */}
+      <Route path="dashboards" element={<Navigate to="/app/teacher" replace />} />
       <Route
         path="classes"
         element={
@@ -224,9 +217,11 @@ export function TeacherRoutes() {
       <Route
         path="moderation"
         element={
-          <S>
-            <ModerationDashboard />
-          </S>
+          <RoleGuard allowedRoles={['admin']}>
+            <S>
+              <ModerationDashboard />
+            </S>
+          </RoleGuard>
         }
       />
       <Route

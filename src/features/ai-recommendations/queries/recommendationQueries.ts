@@ -27,5 +27,8 @@ export function useAiRecommendations(courseId: string | null, tenantId: string |
     retry: false,
     // Never throw to the error boundary — return undefined on failure
     throwOnError: false,
+    // AI recommendation endpoint is best-effort and has inline fallback UI;
+    // do not surface failures via the global toast.
+    meta: { suppressGlobalErrorToast: true },
   })
 }

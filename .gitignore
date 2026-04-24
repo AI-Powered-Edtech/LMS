@@ -108,3 +108,4 @@ config.json
 
 # Stakpak session files
 .stakpak/session*
+.codebuddy

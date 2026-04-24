@@ -63,6 +63,11 @@ export const classroomService = {
     const classroomColumns =
       "id, name, course_id, teacher_id, join_code, max_students, created_at";
 
+    const dedupeById = <T extends { id: string }>(rows: T[]): T[] => {
+      const seen = new Set<string>();
+      return rows.filter((r) => (seen.has(r.id) ? false : (seen.add(r.id), true)));
+    };
+
     if (role === "teacher") {
       const { data, error } = await db
         .from<Array<Classroom>>("classes")
@@ -71,7 +76,7 @@ export const classroomService = {
         .eq("tenant_id", tenantId)
         .order("created_at", { ascending: false });
       if (error) throw error;
-      return (data ?? []) as Classroom[];
+      return dedupeById((data ?? []) as Classroom[]);
     }
 
     if (role === "admin") {
@@ -81,7 +86,7 @@ export const classroomService = {
         .eq("tenant_id", tenantId)
         .order("created_at", { ascending: false });
       if (error) throw error;
-      return (data ?? []) as Classroom[];
+      return dedupeById((data ?? []) as Classroom[]);
     }
 
     const { data: enrollments, error } = await db
@@ -105,7 +110,10 @@ export const classroomService = {
       .order("created_at", { ascending: false });
 
     if (classroomError) throw classroomError;
-    return ((classrooms ?? []) as ClassroomRow[]).sort(
+    const rows = (classrooms ?? []) as ClassroomRow[];
+    const seen = new Set<string>();
+    const unique = rows.filter((r) => (seen.has(r.id) ? false : (seen.add(r.id), true)));
+    return unique.sort(
       (left, right) =>
         new Date(right.created_at).getTime() -
         new Date(left.created_at).getTime(),

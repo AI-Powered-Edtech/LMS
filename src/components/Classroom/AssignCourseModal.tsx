@@ -2,8 +2,11 @@ import { Check, Loader2, School, Users, X } from 'lucide-react'
 import { AnimatePresence, motion } from 'motion/react'
 import { useEffect, useState } from 'react'
 
+import { useQueryClient } from '@tanstack/react-query'
+
 import { useAuth } from '@/contexts/AuthContext'
 import { Classroom, classroomService } from '@/features/classroom/api/classroomService'
+import { courseKeys } from '@/features/courses/queries/courseKeys'
 import { useToast } from '@/hooks/useToast'
 import { cn } from '@/utils/cn'
 import { logger } from '@/utils/logger'
@@ -23,6 +26,7 @@ export function AssignCourseModal({
 }: AssignCourseModalProps) {
   const { addToast } = useToast()
   const { user, tenantId } = useAuth()
+  const queryClient = useQueryClient()
   const [classrooms, setClassrooms] = useState<Classroom[]>([])
   const [assignedClassIds, setAssignedClassIds] = useState<string[]>([])
   const [loading, setLoading] = useState(true)
@@ -36,6 +40,16 @@ export function AssignCourseModal({
     }
   }, [isOpen, user?.id, courseId])
   /* eslint-enable react-hooks/exhaustive-deps */
+
+  // Close on ESC for keyboard accessibility.
+  useEffect(() => {
+    if (!isOpen) return
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape' && !saving) onClose()
+    }
+    window.addEventListener('keydown', onKey)
+    return () => window.removeEventListener('keydown', onKey)
+  }, [isOpen, saving, onClose])
 
   const loadData = async () => {
     try {
@@ -62,16 +76,40 @@ export function AssignCourseModal({
     if (saving) return
 
     const isCurrentlyAssigned = assignedClassIds.includes(classId)
+    const targetClass = classrooms.find((c) => c.id === classId)
 
     try {
       setSaving(true)
       if (isCurrentlyAssigned) {
-        await classroomService.unassignCourseFromClass(courseId, classId, tenantId!)
+        if (!tenantId) throw new Error('Tenant ID not found')
+        await classroomService.unassignCourseFromClass(courseId, classId, tenantId)
         setAssignedClassIds((prev) => prev.filter((id) => id !== classId))
+        addToast({
+          type: 'success',
+          message: `Kursus dilepas dari kelas "${targetClass?.name ?? 'Kelas'}"`,
+        })
       } else {
         if (!tenantId) throw new Error('Tenant ID not found')
         await classroomService.assignCourseToClass(courseId, classId, tenantId)
         setAssignedClassIds((prev) => [...prev, classId])
+        addToast({
+          type: 'success',
+          message: `Kursus ditugaskan ke kelas "${targetClass?.name ?? 'Kelas'}"`,
+        })
+      }
+
+      // Invalidate readiness + assignment-dependent queries so Panel Rilis and
+      // downstream cards refetch immediately after changing the assignment.
+      if (tenantId) {
+        await Promise.all([
+          queryClient.invalidateQueries({
+            queryKey: courseKeys.enrollmentCount(tenantId, courseId),
+          }),
+          queryClient.invalidateQueries({
+            queryKey: courseKeys.builder(tenantId, courseId),
+          }),
+          queryClient.invalidateQueries({ queryKey: ['classroom', 'assignedCourses'] }),
+        ])
       }
     } catch (err: unknown) {
       if (import.meta.env.DEV) logger.error('Failed to toggle class assignment:', err)

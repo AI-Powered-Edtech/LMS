@@ -17,6 +17,9 @@ pub struct SmtpConfig {
     pub username: Option<String>,
     pub password: Option<String>,
     pub from_email: String,
+    /// P4.3: pakai implicit TLS (smtps, default port 465) ketika `true`,
+    /// else StartTLS (submission, default port 587).
+    pub implicit_tls: bool,
 }
 
 /// Central application state shared across all request handlers.

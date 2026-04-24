@@ -253,6 +253,22 @@ export function createVilAuthProvider(baseUrl = ''): AuthProvider {
         typeof options?.data?.last_name === 'string' ? options.data.last_name.trim() : ''
       const fullName = [firstName, lastName].filter(Boolean).join(' ').trim()
 
+      // Optional onboarding fields (propagated to BE /auth/register extended payload)
+      const role =
+        typeof options?.data?.role === 'string' ? options.data.role : undefined
+      const tenantInviteCode =
+        typeof options?.data?.tenant_invite_code === 'string'
+          ? options.data.tenant_invite_code.trim()
+          : undefined
+      const createPersonalTenant =
+        typeof options?.data?.create_personal_tenant === 'boolean'
+          ? options.data.create_personal_tenant
+          : undefined
+      const displayName =
+        typeof options?.data?.display_name === 'string'
+          ? options.data.display_name.trim()
+          : undefined
+
       const { data, error } = await requestJson<VilAuthResponse>(
         baseUrl,
         '/api/v1/auth/register',
@@ -263,6 +279,12 @@ export function createVilAuthProvider(baseUrl = ''): AuthProvider {
             email,
             password,
             full_name: fullName || null,
+            ...(role ? { role } : {}),
+            ...(tenantInviteCode ? { tenant_invite_code: tenantInviteCode } : {}),
+            ...(createPersonalTenant !== undefined
+              ? { create_personal_tenant: createPersonalTenant }
+              : {}),
+            ...(displayName ? { display_name: displayName } : {}),
           }),
         },
         'Gagal mendaftarkan akun.'

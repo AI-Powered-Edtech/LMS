@@ -94,6 +94,15 @@ export const peerReviewService = {
       .limit(20)
 
     if (error) {
+      // A student with no assigned peer reviews may be forbidden from reading
+      // the peer_reviews table by BE policy (403) or the table may be missing
+      // in some tenants (42P01). Treat both as "no data" rather than surfacing
+      // a scary error toast on the Peer Review page empty-state.
+      const code = (error as { code?: string; status?: number }).code
+      const status = (error as { status?: number }).status
+      if (code === '42P01' || status === 403 || status === 404) {
+        return []
+      }
       logDevError('peerReviewService', 'Error fetching my reviews:', error)
       throw error
     }

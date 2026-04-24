@@ -316,7 +316,7 @@ export function CourseBrowser({
                       onClick={() => navigate('/app/student/certificates')}
                       className="font-bold underline"
                     >
-                      Profil
+                      Sertifikat
                     </button>
                   </p>
                 </>
@@ -350,9 +350,19 @@ export function CourseBrowser({
             nextIncompleteModuleId={nextIncompleteModuleId}
           />
         ) : (
-          <div className="bg-white dark:bg-slate-800 rounded-2xl border border-slate-200/70 dark:border-slate-700/70 shadow-md shadow-slate-200/40 dark:shadow-none p-8 text-center">
-            <p className="text-slate-400 dark:text-slate-500 text-sm">
-              Belum ada modul dalam kursus ini.
+          <div className="bg-gradient-to-br from-indigo-50 to-white dark:from-indigo-900/20 dark:to-slate-800/80 rounded-2xl border border-indigo-100/70 dark:border-indigo-800/40 shadow-md shadow-slate-200/40 dark:shadow-none p-8 text-center">
+            <div className="mx-auto mb-3 w-12 h-12 rounded-full bg-indigo-100/80 dark:bg-indigo-900/40 flex items-center justify-center">
+              <BookOpen className="w-6 h-6 text-indigo-500 dark:text-indigo-300" aria-hidden="true" />
+            </div>
+            <p className="text-slate-700 dark:text-slate-200 text-sm font-semibold mb-1">
+              {role === 'teacher'
+                ? 'Kursus ini belum punya modul'
+                : 'Guru belum menambahkan materi'}
+            </p>
+            <p className="text-slate-500 dark:text-slate-400 text-xs leading-relaxed max-w-md mx-auto">
+              {role === 'teacher'
+                ? 'Tambah minimal satu modul dan pelajaran terpublikasi sebelum kursus bisa diajukan untuk review.'
+                : 'Kursus ini akan terbuka saat guru memublikasikan pelajaran pertama. Kamu bisa kembali lagi nanti — kami akan memberi tahu ketika materi tersedia.'}
             </p>
           </div>
         )}

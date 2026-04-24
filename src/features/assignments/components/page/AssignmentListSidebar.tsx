@@ -169,7 +169,7 @@ export function AssignmentListSidebar({
           <EmptyState
             icon={<FileText className="w-12 h-12" />}
             title="Tidak ada tugas ditemukan"
-            description="Coba ubah filter atau buat tugas baru."
+            description="Belum ada tugas aktif. Coba ubah filter atau cek kembali setelah guru memberikan tugas."
           />
         )}
       </div>

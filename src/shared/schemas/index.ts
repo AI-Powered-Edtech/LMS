@@ -15,7 +15,6 @@ import * as v from 'valibot'
 const uuid = v.pipe(v.string(), v.uuid())
 const nullableString = v.nullable(v.string())
 const nullableNumber = v.nullable(v.number())
-const isoTimestamp = v.nullable(v.string())
 const optTimestamp = v.optional(v.nullable(v.string()))
 
 // ── Course ────────────────────────────────────────────────────────────────
@@ -26,9 +25,9 @@ export const CourseRowSchema = v.looseObject({
   description: nullableString,
   status: v.picklist(['draft', 'in_review', 'approved', 'published', 'archived']),
   tenant_id: uuid,
-  published_at: isoTimestamp,
-  updated_at: isoTimestamp,
-  created_at: isoTimestamp,
+  published_at: optTimestamp,
+  updated_at: optTimestamp,
+  created_at: optTimestamp,
 })
 
 export type CourseRow = v.InferOutput<typeof CourseRowSchema>
