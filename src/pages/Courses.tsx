@@ -1,4 +1,4 @@
-import { BookOpen, ChevronDown, Clock, FileText, Layers, LayoutList, Loader2, Plus, RefreshCw, Search, Users } from 'lucide-react'
+import { BookOpen, ChevronDown, Clock, Download, FileText, Layers, LayoutList, Loader2, Plus, RefreshCw, Search, Users } from 'lucide-react'
 import { AnimatePresence, motion } from 'motion/react'
 import { useEffect, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
@@ -10,6 +10,7 @@ import { useInfiniteCoursesQuery } from '@/features/courses/queries/courseQuerie
 import { useDebounce } from '@/hooks/useDebounce'
 import { useRoleBasedPath } from '@/hooks/useRoleBasedPath'
 import { useToast } from '@/hooks/useToast'
+import { defaultCsvFilename, exportCsv } from '@/shared/utils/export-table'
 import { cn } from '@/utils/cn'
 import { logger } from '@/utils/logger'
 
@@ -143,6 +144,26 @@ export const Courses: React.FC = () => {
     }
   }
 
+  const handleExportCsv = () => {
+    try {
+      const rows = filteredCourses.map((c) => ({
+        Judul: c.title,
+        'Mata Pelajaran': c.subject ?? '',
+        Tingkat: c.level ?? '',
+        Deskripsi: c.description ?? '',
+        Modul: c.modules?.length ?? c.module_count ?? 0,
+        'Diperbarui Pada': c.updated_at ?? '',
+      }))
+      exportCsv(defaultCsvFilename('courses'), rows)
+      addToast({ type: 'success', message: 'Daftar kursus berhasil diekspor ke CSV.' })
+    } catch (err) {
+      addToast({
+        type: 'warning',
+        message: err instanceof Error ? err.message : 'Gagal mengekspor CSV.',
+      })
+    }
+  }
+
   const openModal = () => {
     setNewTitle('')
     setNewDescription('')
@@ -163,14 +184,27 @@ export const Courses: React.FC = () => {
             Susun kurikulum, modul pembelajaran, dan kuis interaktif untuk siswa Anda.
           </p>
         </div>
+        <div className="flex items-center gap-2 shrink-0">
+        <button
+          type="button"
+          onClick={handleExportCsv}
+          disabled={filteredCourses.length === 0}
+          data-testid="courses-export-csv"
+          aria-label="Ekspor CSV"
+          className="flex items-center gap-2 px-4 py-3 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-gray-700 dark:text-gray-200 rounded-xl font-bold hover:bg-gray-50 dark:hover:bg-gray-700 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+        >
+          <Download className="w-4 h-4" />
+          <span>Ekspor CSV</span>
+        </button>
         <button
           onClick={openModal}
-          className="group relative flex items-center space-x-2 px-6 py-3 bg-indigo-600 text-white rounded-xl font-bold hover:bg-indigo-700 transition-all shadow-lg hover:shadow-indigo-500/30 active:scale-95 overflow-hidden shrink-0"
+          className="group relative flex items-center space-x-2 px-6 py-3 bg-indigo-600 text-white rounded-xl font-bold hover:bg-indigo-700 transition-all shadow-lg hover:shadow-indigo-500/30 active:scale-95 overflow-hidden"
         >
           <div className="absolute inset-0 bg-gradient-to-r from-white/0 via-white/10 to-white/0 -translate-x-full group-hover:translate-x-full transition-transform duration-1000" />
           <Plus className="w-5 h-5" />
           <span>Buat Materi Baru</span>
         </button>
+        </div>
       </div>
 
       {/* Search bar */}
