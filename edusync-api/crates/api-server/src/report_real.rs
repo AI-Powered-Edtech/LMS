@@ -31,9 +31,7 @@ pub struct ExecutiveReportRequest {
 ///
 /// Returns aggregated school metrics for the principal monthly view.
 pub async fn executive_report_handler(
-    AuthedRequest {
-        tenant_id, ..
-    }: AuthedRequest,
+    AuthedRequest(ctx): AuthedRequest,
     svc: ServiceCtx,
     body: ShmSlice,
 ) -> HandlerResult<VilResponse<serde_json::Value>> {
@@ -41,11 +39,12 @@ pub async fn executive_report_handler(
         .json()
         .map_err(|e| VilError::bad_request(format!("invalid request: {e}")))?;
 
-    if req.tenant_id != tenant_id {
+    if req.tenant_id != ctx.tenant_id {
         return Err(VilError::forbidden("tenant mismatch"));
     }
 
-    let pool = svc.pool();
+    let state = svc.state::<crate::state::AppState>()?.clone();
+    let pool = &state.db;
 
     // Aggregate metrics — kept narrow so the query stays fast.
     let metrics_row = sqlx::query(
@@ -79,7 +78,7 @@ pub async fn executive_report_handler(
             "publishedCourses": metrics_row.get::<i64, _>("published_courses"),
             "submissions30d": metrics_row.get::<i64, _>("submissions_30d"),
             "paidInvoices30d": metrics_row.get::<i64, _>("paid_invoices_30d"),
-            "revenue30d": metrics_row.get::<sqlx::types::BigDecimal, _>("revenue_30d").to_string(),
+            "revenue30d": metrics_row.try_get::<f64, _>("revenue_30d").unwrap_or(0.0),
         },
         "generatedAt": chrono::Utc::now().to_rfc3339(),
     });
@@ -100,9 +99,7 @@ pub struct ParentReportRequest {
 
 /// POST /api/v1/pdf/parent-report — real implementation.
 pub async fn parent_report_handler(
-    AuthedRequest {
-        tenant_id, ..
-    }: AuthedRequest,
+    AuthedRequest(ctx): AuthedRequest,
     svc: ServiceCtx,
     body: ShmSlice,
 ) -> HandlerResult<VilResponse<serde_json::Value>> {
@@ -110,11 +107,12 @@ pub async fn parent_report_handler(
         .json()
         .map_err(|e| VilError::bad_request(format!("invalid request: {e}")))?;
 
-    if req.tenant_id != tenant_id {
+    if req.tenant_id != ctx.tenant_id {
         return Err(VilError::forbidden("tenant mismatch"));
     }
 
-    let pool = svc.pool();
+    let state = svc.state::<crate::state::AppState>()?.clone();
+    let pool = &state.db;
 
     let row = sqlx::query(
         r#"
