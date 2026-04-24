@@ -465,7 +465,7 @@ export function ReportPreview() {
       {/* ── Report Content ── */}
       <div className="max-w-4xl mx-auto px-4 sm:px-6 py-8">
         <div
-          className="print-content bg-white text-slate-900 p-8 sm:p-12 shadow-lg rounded-2xl dark:shadow-none dark:bg-white dark:text-slate-900"
+          className="print-content print-page-root bg-white text-slate-900 p-8 sm:p-12 shadow-lg rounded-2xl dark:shadow-none dark:bg-white dark:text-slate-900"
           id="report-print-area"
         >
           <ReportHeader data={reportData} />
