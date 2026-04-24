@@ -1,18 +1,9 @@
 import { AlertCircle, CheckCircle2, Clock, FileText, Search } from 'lucide-react'
 
+import { formatCurrency as formatRupiah } from '@/shared/utils/format-id'
 import { cn } from '@/utils/cn'
 
 import type { InvoiceFilter, InvoiceRecord, InvoiceStatusFilter } from '../../types/finance'
-
-const IDR = new Intl.NumberFormat('id-ID', {
-  style: 'currency',
-  currency: 'IDR',
-  maximumFractionDigits: 0,
-})
-
-function formatRupiah(amount: number): string {
-  return IDR.format(amount)
-}
 
 const ID_MONTHS = [
   'Jan',
