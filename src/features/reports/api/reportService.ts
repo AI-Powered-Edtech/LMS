@@ -20,7 +20,7 @@ export const reportService = {
       p_report_id: params.reportId ?? null,
     })
     if (error) throw error
-    return data as ScheduledReport
+    return (data as unknown) as ScheduledReport
   },
 
   async getReports(): Promise<ScheduledReport[]> {

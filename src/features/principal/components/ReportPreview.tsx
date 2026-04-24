@@ -20,6 +20,7 @@ import { Button } from '@/components/ui/Button'
 import { Spinner } from '@/components/ui/Spinner'
 import { useAuth } from '@/contexts/AuthContext'
 import { readVilSession } from '@/services/auth/vilSession'
+import { detectStubResponse } from '@/utils/detectStubResponse'
 
 import type { ExecutiveReportData } from '../types'
 import { exportToCSV, exportToPDF } from '../utils/reportExport'
@@ -385,6 +386,9 @@ export function ReportPreview() {
       if (!response.ok) throw new Error(`HTTP ${response.status}`)
       const data = await response.json()
 
+      if (detectStubResponse(data, 'Pratinjau laporan eksekutif')) {
+        throw new Error('Backend laporan masih placeholder (Fase 3)')
+      }
       if (data?.reportData) {
         setReportData(data.reportData as ExecutiveReportData)
       } else {

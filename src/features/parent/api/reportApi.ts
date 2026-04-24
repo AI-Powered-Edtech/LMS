@@ -8,6 +8,7 @@
 // ==========================================================================
 
 import { readVilSession } from "@/services/auth/vilSession";
+import { detectStubResponse } from "@/utils/detectStubResponse";
 import { db } from "@/services/db";
 import { logger } from "@/utils/logger";
 
@@ -61,6 +62,10 @@ export async function getMonthlyReport(
   }
 
   const data = await response.json();
+
+  if (detectStubResponse(data, "Laporan bulanan")) {
+    throw new Error("Laporan bulanan masih placeholder (Fase 3).");
+  }
 
   if (!data?.reportData) {
     throw new Error("Data laporan tidak ditemukan.");

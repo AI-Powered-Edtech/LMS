@@ -1,0 +1,115 @@
+name: Dev School Nightly Sweep
+
+on:
+  schedule:
+    # 02:00 WIB (UTC+7) = 19:00 UTC the previous day
+    - cron: '0 19 * * *'
+  workflow_dispatch:
+
+jobs:
+  reset-and-sweep:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    services:
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: postgres
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 10
+    env:
+      DATABASE_URL: postgres://postgres:postgres@localhost:5432/postgres
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Install npm dependencies
+        run: npm ci
+
+      - uses: actions-rs/toolchain@v1
+        with:
+          toolchain: stable
+          override: true
+
+      - name: Cache cargo
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+            edusync-api/target
+          key: cargo-nightly-${{ runner.os }}-${{ hashFiles('edusync-api/Cargo.lock') }}
+
+      - name: Apply schema and migrations
+        run: |
+          psql "$DATABASE_URL" -f edusync-api/schema/baseline.sql
+          for m in edusync-api/migrations/*.sql; do
+            echo "→ $m"
+            psql "$DATABASE_URL" -f "$m"
+          done
+
+      - name: Reset SMA Nusantara Dev tenant
+        run: ./edusync-api/scripts/reset-dev-school.sh
+
+      - name: Build Rust API server
+        run: cd edusync-api && cargo build --release
+
+      - name: Start Rust API server
+        run: |
+          cd edusync-api && ./target/release/api-server &
+          npx --yes wait-on http://localhost:8080/api/v1/health -t 60000
+
+      - name: Install Playwright browsers
+        run: npx playwright install chromium --with-deps
+
+      - name: Start frontend dev server
+        run: |
+          npm run dev &
+          npx --yes wait-on http://localhost:5173 -t 60000
+
+      - name: Run full sweep (9 personas)
+        run: npx playwright test tests/e2e/sweep.spec.ts --reporter=line
+
+      - name: Run a11y baseline (top-20 routes, admin persona)
+        run: npx playwright test tests/e2e/a11y.spec.ts --reporter=line
+        continue-on-error: true
+
+      - name: Diff sweep against baseline
+        run: |
+          git fetch origin main --depth=1
+          git show origin/main:.qa-sweep-baseline.json > .qa-sweep-baseline.json 2>/dev/null \
+            || echo '[]' > .qa-sweep-baseline.json
+          node scripts/sweep-diff.mjs .qa-sweep-baseline.json .qa-sweep
+
+      - name: Upload sweep + a11y reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: nightly-sweep-${{ github.run_id }}
+          path: |
+            .qa-sweep/
+            .qa-a11y/
+
+      - name: Open issue on regression
+        if: failure()
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const today = new Date().toISOString().slice(0, 10)
+            await github.rest.issues.create({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              title: `Nightly sweep regression — ${today}`,
+              body: `Nightly dev-school sweep failed on run ${context.runId}. See artifact \`nightly-sweep-${context.runId}\` for reports.\n\nLikely causes:\n- New console error introduced since last green main\n- Migration sequence broken\n- Persona credential drift (check docs/dev-school-accounts.md)\n\n_Auto-opened by .github/workflows/dev-school-nightly.yml_`,
+              labels: ['regression', 'auto-opened'],
+            })

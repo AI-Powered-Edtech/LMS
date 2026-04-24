@@ -121,7 +121,7 @@ export const questionBankService = {
     })
 
     if (error) throw error
-    return data as QuestionBankItem
+    return (data as unknown) as QuestionBankItem
   },
 
   async getQuestionOptions(questionId: string): Promise<QuestionBankOption[]> {

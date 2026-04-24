@@ -13,6 +13,7 @@
 import { useCallback, useRef, useState } from 'react'
 
 import { getAuthToken } from '@/services/auth/vilSession'
+import { detectStubResponse } from '@/utils/detectStubResponse'
 import { logger } from '@/utils/logger'
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -171,6 +172,13 @@ export function useExportReport(options: UseExportReportOptions = {}) {
         }
 
         const result = await response.json()
+        if (detectStubResponse(result, 'Ekspor laporan')) {
+          // Stub returned — toast already shown; surface as failure so UI stops
+          // pretending the export succeeded.
+          setIsLoading(false)
+          setError('Ekspor laporan sedang dikembangkan (Fase 3)')
+          return
+        }
         const newJob: ExportJob = result.data
 
         setJob(newJob)

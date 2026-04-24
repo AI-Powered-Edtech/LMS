@@ -1,4 +1,4 @@
-import { Loader2, ShieldCheck } from 'lucide-react'
+import { ShieldCheck } from 'lucide-react'
 import { useState } from 'react'
 
 import { useToast } from '@/hooks/useToast'
@@ -89,24 +89,25 @@ export function PlagiarismCheckButton({
     return <PlagiarismBadge score={null} status="processing" />
   }
 
+  // Backend currently mounts a stub handler at /api/v1/plagiarism/check that
+  // returns a fake clean result. Enabling the trigger gives a false sense of
+  // security ("0% kemiripan" on an unchecked submission). Disabled until the
+  // real engine ships in Fase 6 (Prio 8 Unit 44 — plagiarism embedding similarity).
+  // To re-enable: restore the original onClick + disabled binding once the route
+  // points at plagiarism_handlers::check_plagiarism_handler.
   return (
     <button
       type="button"
-      onClick={handleCheck}
-      disabled={isChecking}
+      disabled
+      title="Mesin plagiarisme sedang dikembangkan (Fase 6)"
+      aria-label="Periksa Plagiarisme (sedang dikembangkan)"
       className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold
-        bg-slate-100 text-slate-700 border border-slate-200
-        hover:bg-slate-200 hover:border-slate-300
-        dark:bg-slate-800 dark:text-slate-300 dark:border-slate-700
-        dark:hover:bg-slate-700 dark:hover:border-slate-600
-        transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+        bg-slate-100 text-slate-400 border border-slate-200
+        dark:bg-slate-800 dark:text-slate-500 dark:border-slate-700
+        cursor-not-allowed opacity-60"
     >
-      {isChecking ? (
-        <Loader2 className="w-3.5 h-3.5 shrink-0 animate-spin" />
-      ) : (
-        <ShieldCheck className="w-3.5 h-3.5 shrink-0" />
-      )}
-      Periksa Plagiarisme
+      <ShieldCheck className="w-3.5 h-3.5 shrink-0" />
+      Periksa Plagiarisme (segera)
     </button>
   )
 }

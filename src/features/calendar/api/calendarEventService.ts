@@ -52,7 +52,7 @@ export const calendarEventService = {
       .single()
 
     if (error) throw new Error(`Gagal menyimpan acara kalender: ${error.message}`)
-    return data as PersistedCalendarEvent
+    return (data as unknown) as PersistedCalendarEvent
   },
 
   /**

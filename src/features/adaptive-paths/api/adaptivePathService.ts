@@ -57,7 +57,7 @@ export const adaptivePathService = {
       throw error
     }
 
-    return data as PathRule
+    return (data as unknown) as PathRule
   },
 
   /**

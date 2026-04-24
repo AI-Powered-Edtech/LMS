@@ -78,7 +78,7 @@ export const certificateTemplateService = {
         .single()
 
       if (error) throw error
-      return data as CertificateTemplate
+      return (data as unknown) as CertificateTemplate
     }
 
     // Insert new
@@ -89,7 +89,7 @@ export const certificateTemplateService = {
       .single()
 
     if (error) throw error
-    return data as CertificateTemplate
+    return (data as unknown) as CertificateTemplate
   },
 
   /**

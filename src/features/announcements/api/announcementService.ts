@@ -91,7 +91,7 @@ export const announcementService = {
       throw error
     }
 
-    return data as Announcement
+    return (data as unknown) as Announcement
   },
 
   /**

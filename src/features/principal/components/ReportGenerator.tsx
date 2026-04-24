@@ -16,6 +16,7 @@ import { Modal, ModalBody, ModalFooter, ModalHeader } from '@/components/ui/Moda
 import { Select } from '@/components/ui/Select'
 import { useAuth } from '@/contexts/AuthContext'
 import { readVilSession } from '@/services/auth/vilSession'
+import { detectStubResponse } from '@/utils/detectStubResponse'
 
 import type { ExecutiveReportData, ReportFormat, ReportGeneratorState, ReportType } from '../types'
 import { exportToCSV } from '../utils/reportExport'
@@ -129,7 +130,9 @@ export function ReportGenerator({ open, onClose }: ReportGeneratorProps) {
         if (!response.ok) throw new Error(`HTTP ${response.status}`)
         const data = await response.json()
 
-        if (data?.reportData) {
+        if (detectStubResponse(data, 'Laporan eksekutif')) {
+          // stub responded — toast shown by helper; skip CSV export attempt
+        } else if (data?.reportData) {
           exportToCSV(data.reportData as ExecutiveReportData)
         }
       }

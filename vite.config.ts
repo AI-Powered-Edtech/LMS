@@ -142,7 +142,18 @@ export default defineConfig(({ mode }) => {
           navigateFallback: "/offline.html",
           navigateFallbackDenylist: [/^\/api\//],
           runtimeCaching: [
-            // VIL backend API
+            // Lesson content — student offline reading (Fase 7 Unit 49).
+            // Bigger entry budget + 7-day TTL so siswa bisa baca materi tanpa
+            // koneksi (terutama daerah rural dengan internet intermittent).
+            {
+              urlPattern: /\/api\/v1\/data\/(lessons|lesson_progress|lesson_resources)/i,
+              handler: "StaleWhileRevalidate" as const,
+              options: {
+                cacheName: "lessons-content",
+                expiration: { maxEntries: 200, maxAgeSeconds: 7 * 24 * 60 * 60 },
+              },
+            },
+            // VIL backend API (catch-all for everything else)
             {
               urlPattern: /\/api\/v1\//i,
               handler: "NetworkFirst",

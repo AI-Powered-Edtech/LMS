@@ -14,9 +14,21 @@ import path from 'node:path'
  */
 
 const CREDENTIALS = {
+  // Original 3 personas (edusync.dev tenant) — kept for backward compatibility
+  // with the baseline sweep until SMA Nusantara Dev becomes the canonical tenant.
   admin: { email: 'admin@edusync.dev', password: 'password123' },
   teacher: { email: 'teacher@edusync.dev', password: 'password123' },
   student: { email: 'student@edusync.dev', password: 'password123' },
+
+  // Fase 0.5 personas (SMA Nusantara Dev tenant). Seeded by
+  // edusync-api/schema/dev_seed.sql; full account list in
+  // docs/dev-school-accounts.md.
+  wali_kelas: { email: 'wali.x-ipa-1@nusantara.dev', password: 'password123' },
+  wakasek_kurikulum: { email: 'wakasek.kurikulum@nusantara.dev', password: 'password123' },
+  principal: { email: 'kepsek@nusantara.dev', password: 'password123' },
+  guru_bk: { email: 'bk@nusantara.dev', password: 'password123' },
+  tu: { email: 'tu@nusantara.dev', password: 'password123' },
+  parent_specific_child: { email: 'ortu001@nusantara.dev', password: 'password123' },
 } as const
 
 type Persona = keyof typeof CREDENTIALS
@@ -61,6 +73,20 @@ const ADMIN_ROUTES = [
   'system-health',
   'feature-flags',
   'semester',
+  'academic-years',
+  'rombel',
+  'subjects',
+  'timetable',
+  'rapor',
+  'bos',
+  'ppdb-jalur',
+  'p5',
+  'integrations',
+  'insights',
+  'akm-stimuli',
+  'bank-va',
+  'parent-links',
+  'search',
   'struggle',
   'lti',
   'adaptive-paths',
@@ -70,6 +96,8 @@ const ADMIN_ROUTES = [
 const TEACHER_ROUTES = [
   'dashboard',
   'teaching-hub',
+  'counseling',
+  'rombel-attendance',
   'courses',
   'course-builder',
   'quiz-manager',
@@ -103,10 +131,73 @@ const STUDENT_ROUTES = [
   'peer-reviews',
 ]
 
+// Routes the new Fase 0.5 personas should exercise. These are intentionally
+// modest subsets of TEACHER_ROUTES / ADMIN_ROUTES — every persona's privilege
+// scope is a Fase 1 RBAC concern; for now the sweep just confirms the routes
+// load without console errors when accessed by these personas.
+const WALI_KELAS_ROUTES = [
+  'dashboard',
+  'teaching-hub',
+  'classes',
+  'gradebook',
+  'attendance',
+  'announcements',
+]
+
+const WAKASEK_ROUTES = [
+  'dashboard',
+  'analytics',
+  'course-analytics',
+  'classes',
+  'semester',
+  'announcements',
+]
+
+const PRINCIPAL_ROUTES = [
+  'dashboard',
+  'analytics',
+  'finance',
+  'system-health',
+  'announcements',
+  'reviews/pending',
+]
+
+const GURU_BK_ROUTES = [
+  'dashboard',
+  'directory',
+  'announcements',
+  'forum',
+  'notifications',
+]
+
+const TU_ROUTES = [
+  'dashboard',
+  'users',
+  'billing',
+  'finance',
+  'ppdb',
+  'administration',
+  'documents',
+]
+
+const PARENT_ROUTES = [
+  'dashboard',
+  'announcements',
+  'notifications',
+  'calendar',
+  'profile',
+]
+
 const PERSONA_ROUTES: Record<Persona, string[]> = {
   admin: [...ADMIN_ROUTES.map((r) => `admin/${r}`), ...SHARED_ROUTES.map((r) => `${r}`)],
   teacher: [...TEACHER_ROUTES.map((r) => `teacher/${r}`), ...SHARED_ROUTES.map((r) => `${r}`)],
   student: [...STUDENT_ROUTES.map((r) => `student/${r}`), ...SHARED_ROUTES.map((r) => `${r}`)],
+  wali_kelas: [...WALI_KELAS_ROUTES.map((r) => `teacher/${r}`), ...SHARED_ROUTES],
+  wakasek_kurikulum: [...WAKASEK_ROUTES.map((r) => `admin/${r}`), ...SHARED_ROUTES],
+  principal: [...PRINCIPAL_ROUTES.map((r) => `admin/${r}`), ...SHARED_ROUTES],
+  guru_bk: [...GURU_BK_ROUTES.map((r) => `teacher/${r}`), ...SHARED_ROUTES],
+  tu: [...TU_ROUTES.map((r) => `admin/${r}`), ...SHARED_ROUTES],
+  parent_specific_child: [...PARENT_ROUTES, ...SHARED_ROUTES],
 }
 
 interface RouteResult {

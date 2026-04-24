@@ -20,7 +20,7 @@ export const dashboardService = {
       p_dashboard_id: params.dashboardId ?? null,
     })
     if (error) throw error
-    return data as DashboardConfig
+    return (data as unknown) as DashboardConfig
   },
 
   async getDashboards(includeShared = true): Promise<DashboardConfig[]> {
