@@ -57,6 +57,13 @@ echo "→ Applying dev_seed.sql ..."
 "${PSQL_EXEC[@]}" -v ON_ERROR_STOP=1 < "$SEED_PATH" > /tmp/dev_seed.log
 tail -3 /tmp/dev_seed.log
 
+CONTENT_PATH="${SEED_PATH%.sql}_content.sql"
+if [[ -f "$CONTENT_PATH" ]]; then
+  echo "→ Applying dev_seed_content.sql (academic, rombel_members, subjects, assignments, attendance, invoices, P5) ..."
+  "${PSQL_EXEC[@]}" -v ON_ERROR_STOP=1 < "$CONTENT_PATH" > /tmp/dev_seed_content.log
+  tail -3 /tmp/dev_seed_content.log
+fi
+
 echo "→ Verifying post-reset invariants ..."
 COUNTS=$("${PSQL_EXEC[@]}" -t -A -F ' ' -c "
 SELECT
