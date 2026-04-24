@@ -145,6 +145,8 @@ const ALLOWED_TABLES: &[&str] = &[
     "surveys",
     "survey_responses",
     "teacher_onboarding_progress",
+    "tenant_subscriptions",
+    "onboarding_progress",
     "tenant_invitations",
     "tenant_memberships",
     "tenant_modules",
