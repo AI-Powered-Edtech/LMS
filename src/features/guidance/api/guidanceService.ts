@@ -10,10 +10,20 @@ export const guidanceService = {
       p_target_id: targetId,
     })
     if (error) {
-      // PGRST202 = function not found, 22P02 = invalid UUID input — return empty gracefully
-      if (error.code === 'PGRST202' || error.code === '42883' || error.code === '22P02') return []
+      const status = (error as { status?: number }).status
+      const code = (error as { code?: string }).code
+      // Optional feature — missing RPC, invalid UUID, 403/404 return empty gracefully
+      if (
+        code === 'PGRST202' ||
+        code === '42883' ||
+        code === '42P01' ||
+        code === '22P02' ||
+        status === 403 ||
+        status === 404
+      )
+        return []
       if (import.meta.env.DEV) logger.error('[guidanceService] getApplicableGuides:', error)
-      throw error
+      return []
     }
     return (data as ApplicableGuide[]) ?? []
   },

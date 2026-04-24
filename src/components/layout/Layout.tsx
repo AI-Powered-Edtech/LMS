@@ -17,16 +17,11 @@ export function Layout() {
 
   if (!activeRole) return null
 
+  // NOTE: The skip-to-main-content link is rendered by each role layout
+  // (AppShell / AdminLayout / ParentLayout / PrincipalLayout) to avoid a
+  // duplicate skip link at the top of every page.
   return (
     <>
-      {/* Accessibility: skip link allows keyboard users to bypass nav */}
-      <a
-        href="#main-content"
-        className="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-[200] focus:rounded-md focus:bg-blue-600 focus:px-4 focus:py-2 focus:text-sm focus:font-medium focus:text-white focus:shadow-lg focus:outline-none focus:ring-2 focus:ring-white"
-      >
-        Lewati ke konten utama
-      </a>
-
       <OfflineBanner />
 
       {activeRole === 'student' && <StudentLayout />}

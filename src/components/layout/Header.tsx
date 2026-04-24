@@ -1,7 +1,8 @@
-import { Activity, Flame, LogOut, Moon, Search, Star, Sun, UserCircle } from 'lucide-react'
+import { Flame, LogOut, Moon, Search, Star, Sun, UserCircle } from 'lucide-react'
 import { memo, useEffect, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 
+import { TenantSwitcher } from '@/components/layout/TenantSwitcher'
 import { OptimizedImage } from '@/components/ui'
 import { Role, useAuth } from '@/contexts/AuthContext'
 import { useTheme } from '@/contexts/ThemeContext'
@@ -171,11 +172,8 @@ export const Header = memo(function Header({ onMenuClick }: HeaderProps) {
             </div>
           </>
         ) : (
-          /* Role badge untuk non-student (teacher, admin) */
-          <div className="flex items-center gap-1.5 bg-gradient-to-r from-blue-100 to-indigo-100 dark:from-blue-900/30 dark:to-indigo-900/30 text-blue-700 dark:text-blue-400 px-3 py-1.5 rounded-lg font-bold text-sm border border-blue-200/50 dark:border-blue-700/30">
-            <Activity className="w-4 h-4" />
-            {roleLabels[role]}
-          </div>
+          /* Tenant switcher chip + role untuk non-student (teacher, admin, parent, principal) */
+          <TenantSwitcher />
         )}
 
         {/* Dark Mode Toggle */}

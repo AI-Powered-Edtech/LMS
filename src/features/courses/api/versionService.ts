@@ -66,6 +66,15 @@ export const versionService = {
       .order("version_number", { ascending: false });
 
     if (error) {
+      // Some tenants may not yet have the course_versions table provisioned
+      // (42P01 / 404) or may not grant teacher role read access (403).
+      // Treat as "no versions" so the Course Builder can render the
+      // empty-history state instead of a blocking error toast.
+      const code = (error as { code?: string }).code;
+      const status = (error as { status?: number }).status;
+      if (code === "42P01" || status === 403 || status === 404) {
+        return [] as CourseVersion[];
+      }
       logDevError("versionService", "Error fetching course versions:", error);
       throw error;
     }

@@ -77,9 +77,9 @@ export function AdminSidebar() {
           <span className="text-white font-bold text-lg">E</span>
         </div>
         <div>
-          <h1 className="text-base font-bold text-neutral-900 dark:text-neutral-50 tracking-tight leading-none">
+          <span className="block text-base font-bold text-neutral-900 dark:text-neutral-50 tracking-tight leading-none">
             EduSync
-          </h1>
+          </span>
           <span className="text-[10px] font-semibold text-primary-600 dark:text-primary-400 uppercase tracking-widest">
             Admin
           </span>

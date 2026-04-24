@@ -44,7 +44,7 @@ pub async fn grade_answer_handler(
     svc: ServiceCtx,
     Json(body): Json<GradeAnswerRequest>,
 ) -> HandlerResult<VilResponse<QuestionGradeResult>> {
-    let _state = svc.state::<Arc<AppState>>()?;
+    let _state = svc.state::<AppState>()?;
     let result = grade_question(&body.question, body.answer.as_ref());
     Ok(VilResponse::ok(result))
 }
@@ -60,7 +60,7 @@ pub async fn grade_attempt_handler(
     svc: ServiceCtx,
     Json(body): Json<GradeAttemptRequest>,
 ) -> HandlerResult<VilResponse<AttemptGradeResult>> {
-    let _state = svc.state::<Arc<AppState>>()?;
+    let _state = svc.state::<AppState>()?;
     let result = grade_attempt_questions(&body.questions, &body.answers);
     Ok(VilResponse::ok(result))
 }
@@ -74,7 +74,7 @@ pub async fn anticheat_event_handler(
 ) -> HandlerResult<VilResponse<serde_json::Value>> {
     use edusync_services::anticheat::RecordEventResponse;
 
-    let state = svc.state::<Arc<AppState>>()?;
+    let state = svc.state::<AppState>()?;
 
     let result = record_anticheat_event(
         &state.db,
@@ -96,7 +96,7 @@ pub async fn anticheat_report_handler(
     svc: ServiceCtx,
     Path(attempt_id): Path<Uuid>,
 ) -> HandlerResult<VilResponse<serde_json::Value>> {
-    let state = svc.state::<Arc<AppState>>()?;
+    let state = svc.state::<AppState>()?;
 
     let result = get_anticheat_report(&state.db, attempt_id)
         .await
@@ -121,7 +121,7 @@ pub async fn start_attempt_handler(
     svc: ServiceCtx,
     Json(body): Json<StartAttemptBody>,
 ) -> HandlerResult<VilResponse<serde_json::Value>> {
-    let state = svc.state::<Arc<AppState>>()?;
+    let state = svc.state::<AppState>()?;
 
     let result = start_quiz_attempt(
         &state.db,
@@ -143,7 +143,7 @@ pub async fn pause_attempt_handler(
     svc: ServiceCtx,
     Path(attempt_id): Path<Uuid>,
 ) -> HandlerResult<VilResponse<serde_json::Value>> {
-    let state = svc.state::<Arc<AppState>>()?;
+    let state = svc.state::<AppState>()?;
 
     let result = pause_attempt(&state.db, attempt_id, ctx.user_id, ctx.tenant_id)
         .await
@@ -164,7 +164,7 @@ pub async fn resume_attempt_handler(
     svc: ServiceCtx,
     Path(attempt_id): Path<Uuid>,
 ) -> HandlerResult<VilResponse<serde_json::Value>> {
-    let state = svc.state::<Arc<AppState>>()?;
+    let state = svc.state::<AppState>()?;
 
     let result = resume_attempt(&state.db, attempt_id, ctx.user_id, ctx.tenant_id)
         .await
@@ -182,7 +182,7 @@ pub async fn time_remaining_handler(
     svc: ServiceCtx,
     Path(attempt_id): Path<Uuid>,
 ) -> HandlerResult<VilResponse<serde_json::Value>> {
-    let state = svc.state::<Arc<AppState>>()?;
+    let state = svc.state::<AppState>()?;
 
     let result = get_time_remaining(&state.db, attempt_id, ctx.user_id)
         .await
@@ -202,7 +202,7 @@ pub async fn analyze_quiz_handler(
     svc: ServiceCtx,
     Path(quiz_id): Path<Uuid>,
 ) -> HandlerResult<VilResponse<serde_json::Value>> {
-    let state = svc.state::<Arc<AppState>>()?;
+    let state = svc.state::<AppState>()?;
 
     let result = analyze_quiz(&state.db, quiz_id, ctx.tenant_id)
         .await
@@ -222,7 +222,7 @@ pub async fn analyze_item_handler(
     svc: ServiceCtx,
     Path(question_id): Path<Uuid>,
 ) -> HandlerResult<VilResponse<serde_json::Value>> {
-    let state = svc.state::<Arc<AppState>>()?;
+    let state = svc.state::<AppState>()?;
 
     let result = analyze_quiz_item(&state.db, question_id, ctx.tenant_id)
         .await

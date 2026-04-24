@@ -96,6 +96,17 @@ export function Dashboard() {
     }
   }, [location, role])
 
+  // Open Join Class modal when navigated with state: { openJoinClass: true }
+  // (used by StudentCoursesList's empty state CTA).
+  useEffect(() => {
+    const state = location.state as { openJoinClass?: boolean } | null
+    if (state?.openJoinClass && role === 'student') {
+      setShowJoinModal(true)
+      // Clear the state so refreshing the page doesn't re-open the modal.
+      navigate(location.pathname, { replace: true, state: {} })
+    }
+  }, [location.state, location.pathname, role, navigate])
+
   // ⚡ Perf: memoize all derived data to prevent recalculation on every render
   const userName = useMemo(() => {
     return impersonatedStudent
@@ -222,8 +233,12 @@ export function Dashboard() {
             xp={xp}
             role={role}
             leaderboardList={leaderboardList}
-            loading={loadingLeaderboard}
-            error={leaderboardError}
+            loading={Boolean(activeClassroomId) && loadingLeaderboard}
+            // Only surface a leaderboard error when the query was actually
+            // enabled (i.e. the student has an active classroom). Without a
+            // classroom the hook stays disabled, so any lingering isError flag
+            // is meaningless and would produce a spurious error card.
+            error={Boolean(activeClassroomId) && leaderboardError}
             onRetry={handleRetryLeaderboard}
           />
         </motion.div>
@@ -237,6 +252,7 @@ export function Dashboard() {
             title="Ruang Belajar (Hub)"
             description="Akses cepat ke semua fitur pembelajaran Anda."
             items={hubItems}
+            headingLevel="h2"
           />
         </motion.div>
 

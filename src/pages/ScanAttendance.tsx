@@ -42,8 +42,11 @@ export function ScanAttendance() {
   return (
     <div className="max-w-4xl mx-auto space-y-8 pb-12">
       <div>
-        <h1 className="text-3xl font-bold text-slate-900 dark:text-slate-100 tracking-tight">
+        <h1 className="text-3xl font-bold text-slate-900 dark:text-slate-100 tracking-tight flex items-center gap-3">
           Scan Buku Absensi
+          <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-300">
+            Segera Hadir
+          </span>
         </h1>
         <p className="text-slate-500 dark:text-slate-400 mt-2">
           Otomatisasi pencatatan kehadiran dengan memindai buku absensi kelas menggunakan AI.

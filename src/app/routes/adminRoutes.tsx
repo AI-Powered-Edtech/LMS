@@ -25,6 +25,7 @@ import {
   QuestionBankPage,
   QuizGradebook,
   QuizManager,
+  ReviewQueue,
   ScanAttendance,
   SemesterPage,
   SpeedGrader,
@@ -87,6 +88,18 @@ export function AdminRoutes() {
             <ModerationDashboard />
           </S>
         }
+      />
+      <Route
+        path="reviews/pending"
+        element={
+          <S feature="Antrean Review">
+            <ReviewQueue />
+          </S>
+        }
+      />
+      <Route
+        path="reviews"
+        element={<Navigate to="/app/admin/reviews/pending" replace />}
       />
       <Route
         path="finance"

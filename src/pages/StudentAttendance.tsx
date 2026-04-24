@@ -55,25 +55,55 @@ export function StudentAttendance() {
   const { data: records = [], isLoading } = useQuery({
     queryKey: ["student-attendance", user?.id, tenantId],
     queryFn: async () => {
-      // First get the student's enrollment IDs for this tenant
-      const { data: enrollments, error: enrollError } = await db
+      // 1) Fetch the student's active enrollments (no nested relational select —
+      //    the VIL generic data API does not support Supabase-style nested joins).
+      const { data: enrollmentsRaw, error: enrollError } = await db
         .from("enrollments")
-        .select("id, class_id, classes(name)")
+        .select("id, class_id")
         .eq("tenant_id", tenantId!)
         .eq("student_id", user!.id)
         .eq("status", "ACTIVE");
 
       if (enrollError) throw enrollError;
-      if (!enrollments || (enrollments as Array<{ id: string }>).length === 0)
-        return [];
+      const enrollmentsList = (enrollmentsRaw ?? []) as Array<{
+        id: string;
+        class_id: string;
+      }>;
+      if (enrollmentsList.length === 0) return [];
 
-      const enrollmentIds = (enrollments as Array<{ id: string }>).map(
-        (e) => e.id,
+      const enrollmentIds = enrollmentsList.map((e) => e.id);
+      const classIds = Array.from(
+        new Set(enrollmentsList.map((e) => e.class_id).filter(Boolean)),
       );
 
+      // 2) Fetch class names in a separate query and build a lookup map.
+      let classNameById = new Map<string, string>();
+      if (classIds.length > 0) {
+        const { data: classesRaw, error: classesError } = await db
+          .from("classes")
+          .select("id, name")
+          .eq("tenant_id", tenantId!)
+          .in("id", classIds);
+        if (classesError) throw classesError;
+        classNameById = new Map(
+          ((classesRaw ?? []) as Array<{ id: string; name: string }>).map(
+            (c) => [c.id, c.name],
+          ),
+        );
+      }
+
+      // Build enrollment-id → class-name map for record merging below.
+      const enrollments = enrollmentsList.map((e) => ({
+        id: e.id,
+        class_id: e.class_id,
+        classes: { name: classNameById.get(e.class_id) ?? "" },
+      }));
+
+      // Schema: attendance_records(id, enrollment_id, date, status, created_at, tenant_id).
+      // Historically there was a `scan_date` column; the current schema uses only `date`.
       const { data, error } = await db
         .from("attendance_records")
-        .select("id, date, scan_date, status, enrollment_id")
+        .select("id, date, status, enrollment_id")
         .eq("tenant_id", tenantId!)
         .in("enrollment_id", enrollmentIds)
         .order("date", { ascending: false })

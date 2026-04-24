@@ -19,17 +19,7 @@ export const announcementService = {
   ) {
     let query = db
       .from('announcements')
-      .select(
-        `
-                id, tenant_id, course_id, title, content, priority, target_audience,
-                status, is_pinned, allow_comments, requires_rsvp, location, contact_person,
-                created_by, created_at, updated_at,
-                author:created_by (
-                    full_name,
-                    avatar_url
-                )
-            `
-      )
+      .select('*')
       .eq('tenant_id', tenantId)
       .order('is_pinned', { ascending: false })
       .order('created_at', { ascending: false })
@@ -71,17 +61,7 @@ export const announcementService = {
   async getAnnouncementById(id: string, tenantId: string) {
     const { data, error } = await db
       .from('announcements')
-      .select(
-        `
-                id, tenant_id, course_id, title, content, priority, target_audience,
-                status, is_pinned, allow_comments, requires_rsvp, location, contact_person,
-                created_by, created_at, updated_at,
-                author:created_by (
-                    full_name,
-                    avatar_url
-                )
-            `
-      )
+      .select('*')
       .eq('id', id)
       .eq('tenant_id', tenantId)
       .single()

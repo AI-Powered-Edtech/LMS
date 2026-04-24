@@ -12,16 +12,18 @@ export function CourseAnalytics() {
   const courseId = searchParams.get('courseId')
 
   if (!courseId) {
+    const emptyAction = {
+      label: 'Kembali',
+      onClick: () => navigate(-1),
+    }
     return (
       <div className="mx-auto max-w-7xl px-4 md:px-6 lg:px-8 py-6 dark:bg-slate-900 dark:text-white">
+        <h1 className="text-2xl font-bold text-slate-900 dark:text-white mb-4">Analitik Kursus</h1>
         <EmptyState
           icon={<BarChart3 className="h-12 w-12" />}
-          title="Kursus tidak ditemukan"
-          description="Parameter courseId tidak tersedia. Silakan akses halaman ini dari menu Analitik."
-          action={{
-            label: 'Kembali',
-            onClick: () => navigate(-1),
-          }}
+          title="Pilih kursus untuk melihat analitik"
+          description="Buka menu Analitik Kursus dari daftar kursus untuk menampilkan data pembelajaran per kursus."
+          action={emptyAction}
         />
       </div>
     )

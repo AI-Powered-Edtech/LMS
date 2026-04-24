@@ -1,11 +1,12 @@
-FROM rust:1.94-slim AS builder
+FROM rust:1.94-alpine AS builder
 WORKDIR /app
-RUN apt-get update && apt-get install -y pkg-config libssl-dev && rm -rf /var/lib/apt/lists/*
+RUN apk add pkgconfig openssl-dev musl-dev build-base gcc
 COPY . .
-RUN cargo build --release -p edusync-api-server
+RUN rustup target add x86_64-unknown-linux-musl && \
+    RUSTFLAGS="-C target-feature=+crt-static" cargo build --release --target x86_64-unknown-linux-musl -p edusync-api-server
 
-FROM debian:bookworm-slim
-RUN apt-get update && apt-get install -y ca-certificates libssl3 && rm -rf /var/lib/apt/lists/*
-COPY --from=builder /app/target/release/edusync-api-server /usr/local/bin/edusync-api
+FROM alpine:3.20
+RUN apk add --no-cache ca-certificates libc6-compat
+COPY --from=builder /app/target/x86_64-unknown-linux-musl/release/edusync-api-server /usr/local/bin/edusync-api
 EXPOSE 8080
 CMD ["edusync-api"]

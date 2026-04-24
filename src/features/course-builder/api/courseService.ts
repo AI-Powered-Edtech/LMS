@@ -92,7 +92,17 @@ export const builderCourseService = {
     const { error } = await db.rpc('rpc_publish_course', {
       p_course_id: courseId,
     })
-    if (error) throw new Error(error.message)
+    if (error) {
+      // Postgres ERRCODE 22023 (invalid_parameter_value) dipakai BE sebagai
+      // guard konten publish (mis. “course harus punya minimal 1 pelajaran”).
+      // Terjemahkan ke Bahasa Indonesia agar toast UI ramah pengguna.
+      if (error.code === '22023') {
+        throw new Error(
+          'Kursus harus memiliki setidaknya satu pelajaran sebelum dapat diterbitkan.'
+        )
+      }
+      throw new Error(error.message)
+    }
   },
 
   /** Manually drafted via update instead of full RPC for now, for completeness */

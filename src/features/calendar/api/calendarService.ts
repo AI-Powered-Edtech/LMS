@@ -34,8 +34,8 @@ export const calendarService = {
           .not("due_date", "is", null)
           .order("due_date"),
         db
-          .from<Array<{ id: string; day: string; start_time: string; end_time: string; tenant_id: string; classes: { name: string } }>>("class_schedules")
-          .select("id, day, start_time, end_time, tenant_id, classes(name)")
+          .from<Array<{ id: string; day: string; start_time: string; end_time: string; tenant_id: string; class_id: string }>>("class_schedules")
+          .select("*")
           .eq("tenant_id", tenantId),
         db
           .from<Array<{ id: string; title: string; created_at: string }>>("quizzes")

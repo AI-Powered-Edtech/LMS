@@ -55,7 +55,12 @@ export function AdaptivePaths() {
           <GitBranch className="w-5 h-5 text-indigo-500 dark:text-indigo-400" />
         </div>
         <div>
-          <h1 className="text-xl font-black text-slate-900 dark:text-slate-100">Jalur Adaptif</h1>
+          <h1 className="text-xl font-black text-slate-900 dark:text-slate-100 flex items-center gap-2">
+            Jalur Adaptif
+            <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-indigo-100 text-indigo-700 dark:bg-indigo-900/30 dark:text-indigo-300">
+              Beta
+            </span>
+          </h1>
           <p className="text-sm text-slate-500 dark:text-slate-400">
             Konfigurasikan aturan pembelajaran adaptif berdasarkan performa siswa
           </p>

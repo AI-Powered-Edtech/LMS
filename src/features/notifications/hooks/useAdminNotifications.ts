@@ -159,7 +159,9 @@ export function useAdminNotifications(): UseAdminNotificationsReturn {
     return () => {
       void getRealtimeProvider().removeChannel(channel);
     };
-  }, [tenantId, user, queryClient, queryKey]);
+    // Primitive deps only — see useNotifications.ts for rationale (prevents resubscribe loop).
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [tenantId, user?.id, queryClient]);
 
   // ─── Mark Single Read (optimistic) ──────────────────────────────────────────
   const markReadMutation = useMutation({

@@ -44,6 +44,7 @@ use axum::{
         Query,
     },
     response::IntoResponse,
+    Extension,
 };
 use futures_util::{SinkExt, StreamExt};
 use serde::Deserialize;
@@ -125,10 +126,10 @@ enum ClientMessage {
 pub async fn ws_handler(
     ws: WebSocketUpgrade,
     Query(params): Query<WsConnectQuery>,
+    Extension(hub): Extension<Arc<WsHub>>,
     vil_ctx: ServiceCtx,
 ) -> HandlerResult<impl IntoResponse> {
     let state = vil_ctx.state::<AppState>().map(|s| std::sync::Arc::new(s.clone()))?.clone();
-    let hub = vil_ctx.state::<Arc<WsHub>>()?.clone();
     Ok(ws.on_upgrade(move |socket| handle_socket(socket, state, hub, params.token)))
 }
 

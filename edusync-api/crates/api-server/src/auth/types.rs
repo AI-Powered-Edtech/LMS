@@ -87,6 +87,16 @@ pub struct RegisterRequest {
     pub email: String,
     pub password: String,
     pub full_name: Option<String>,
+    /// Opsional: 'teacher' | 'student'. Default 'student' (kompatibel perilaku lama).
+    /// Diperkenalkan oleh migrasi 025 — kebijakan tenant multi-tenant.
+    #[serde(default)]
+    pub role: Option<String>,
+    /// Opsional: kode undangan tenant (redeem_tenant_invite).
+    /// - Bila `role='teacher'` dan `invite_code` diisi: user gabung ke organization tenant.
+    /// - Bila `role='teacher'` dan `invite_code` kosong: provision personal tenant.
+    /// - Bila `role='student'`: kode diabaikan di register (student butuh join_code class via onboard-student).
+    #[serde(default)]
+    pub invite_code: Option<String>,
 }
 
 impl Validatable for RegisterRequest {
@@ -94,6 +104,14 @@ impl Validatable for RegisterRequest {
         validate_email(&self.email)?;
         validate_password(&self.password)?;
         validate_full_name(&self.full_name)?;
+        if let Some(role) = self.role.as_deref() {
+            let role_lc = role.to_lowercase();
+            if role_lc != "teacher" && role_lc != "student" {
+                return Err(format!(
+                    "Peran '{role}' tidak dikenal. Gunakan 'teacher' atau 'student'."
+                ));
+            }
+        }
         Ok(())
     }
 }

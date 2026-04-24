@@ -29,6 +29,15 @@ export default function FeatureFlagsPage() {
 
   return (
     <div className="p-6 max-w-5xl mx-auto space-y-6">
+      <div>
+        <h1 className="text-2xl font-bold text-slate-900 dark:text-slate-100 flex items-center gap-2">
+          <Flag className="w-7 h-7 text-blue-600" />
+          Pengaturan Fitur
+        </h1>
+        <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">
+          Aktifkan atau nonaktifkan fitur eksperimen dan modul lanjutan.
+        </p>
+      </div>
       {/* Notice banner — informasi pemindahan fitur */}
       <div className="flex items-start gap-4 px-5 py-4 bg-blue-50 dark:bg-blue-950/40 border border-blue-200 dark:border-blue-800 rounded-2xl">
         <div className="p-2 bg-blue-100 dark:bg-blue-900/50 rounded-xl shrink-0">
