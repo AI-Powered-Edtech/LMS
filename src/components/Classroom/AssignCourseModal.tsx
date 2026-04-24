@@ -1,8 +1,7 @@
+import { useQueryClient } from '@tanstack/react-query'
 import { Check, Loader2, School, Users, X } from 'lucide-react'
 import { AnimatePresence, motion } from 'motion/react'
 import { useEffect, useState } from 'react'
-
-import { useQueryClient } from '@tanstack/react-query'
 
 import { useAuth } from '@/contexts/AuthContext'
 import { Classroom, classroomService } from '@/features/classroom/api/classroomService'
