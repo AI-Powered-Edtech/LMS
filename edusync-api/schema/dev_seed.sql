@@ -173,18 +173,26 @@ ON CONFLICT (id) DO UPDATE SET
 
 -- ─── 5. user_roles + tenant_memberships ────────────────────────────────────────
 
+-- user_roles: authoritative per ADR-001 — granular role matching tenant_memberships
 INSERT INTO public.user_roles (user_id, role, tenant_id)
 SELECT
   u.id,
-  (u.raw_user_meta_data->>'role')::public.app_role,
+  CASE
+    WHEN u.email = 'kepsek@nusantara.dev'                 THEN 'PRINCIPAL'::public.app_role
+    WHEN u.email LIKE 'wakasek.%@nusantara.dev'           THEN 'WAKASEK'::public.app_role
+    WHEN u.email = 'tu@nusantara.dev'                     THEN 'TU'::public.app_role
+    WHEN u.email = 'bk@nusantara.dev'                     THEN 'GURU_BK'::public.app_role
+    WHEN u.email LIKE 'wali.%@nusantara.dev'              THEN 'WALI_KELAS'::public.app_role
+    WHEN u.email LIKE 'guru.%@nusantara.dev'              THEN 'TEACHER'::public.app_role
+    WHEN u.email = 'admin@nusantara.dev'                  THEN 'ADMIN'::public.app_role
+    WHEN u.email LIKE 'siswa%@nusantara.dev'              THEN 'STUDENT'::public.app_role
+    WHEN u.email LIKE 'ortu%@nusantara.dev'               THEN 'PARENT'::public.app_role
+    ELSE (u.raw_user_meta_data->>'role')::public.app_role
+  END,
   public.dev_seed_uuid('tenant:sma-nusantara-dev')
 FROM public.users u
 WHERE u.email LIKE '%@nusantara.dev'
-  AND NOT EXISTS (
-    SELECT 1 FROM public.user_roles ur
-    WHERE ur.user_id = u.id
-      AND ur.tenant_id = public.dev_seed_uuid('tenant:sma-nusantara-dev')
-  );
+ON CONFLICT (user_id, role, tenant_id) DO NOTHING;
 
 -- tenant_memberships uses TEXT role, allowing finer Indonesian role names that
 -- the FE can branch on. When Fase 1 RBAC matrix lands, replace the literal

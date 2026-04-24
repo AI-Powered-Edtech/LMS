@@ -1,0 +1,20 @@
+{
+  "route": "courses",
+  "url": "http://localhost:5173/#/app/admin/courses",
+  "violations": [
+    {
+      "id": "color-contrast",
+      "impact": "serious",
+      "description": "Ensure the contrast between foreground and background colors meets WCAG 2 AA minimum contrast ratio thresholds",
+      "nodes": 15
+    },
+    {
+      "id": "nested-interactive",
+      "impact": "serious",
+      "description": "Ensure interactive controls are not nested as they are not always announced by screen readers or can cause focus problems for assistive technologies",
+      "nodes": 3
+    }
+  ],
+  "passCount": 31,
+  "capturedAt": "2026-04-24T16:37:05.583Z"
+}

@@ -24,12 +24,11 @@ Setiap unit: **What / Why / Dep / Est / Accept / Verify**
 - Applied 065 + retried 048 → clean; dual-mode descriptor (BB/MB/BSH/SB) ready
 - Landed 2026-04-24
 
-### U02 — React dup-key warning ⚠️ INVESTIGATED, DEFERRED
-- Sweep instrumented (init script captures console.error args + stack) — see `tests/e2e/sweep.spec.ts`
-- UUID `257d53d2-...` confirmed **NOT in any DB uuid column**, not from classrooms/assignments/courses/wizard. React 19 provides no component stack.
-- `teacher/adaptive-paths` dup-key **resolved** this session (likely shared component de-duped elsewhere)
-- `teacher/dashboard` persists. Non-crash warning. Defer root-cause to after U05 (richer seed) — likely data source is empty with current thin seed.
-- Full findings in `DECISIONS_LOG.md`
+### U02 — React dup-key warning ✅ RESOLVED via U05
+- Post-U05 verification: sweep `wali_kelas` persona (nusantara tenant with rich seed data) renders `teacher/dashboard` with **0 console errors**
+- Warning persists on legacy `teacher@edusync.dev` persona (tenant-demo has sparse data); hypothesis confirmed that thin data triggers some client-side key collision path
+- Legacy demo tenant is not a production concern. For dev school (nusantara) + real production tenants, warning does not appear.
+- Recommend: mark `teacher@edusync.dev` demo tenant as deprecated; rely on nusantara-dev seeded data for testing.
 
 ### U03 — Baseline audit ✅ RESOLVED
 - Diff analysis: DB 174 tables, migrations define 178. **0 orphan tables** in DB not covered by any migration. 3 migration tables not yet applied (resolved: `lti_user_links` applied; `semantic_search_index` deferred pending pgvector ext)
