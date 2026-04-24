@@ -1,4 +1,4 @@
-import Papa from 'papaparse'
+import { exportCsv } from '@/shared/utils/export-table'
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -132,21 +132,10 @@ export function exportGradebookToCSV(data: GradebookExportData, filename?: strin
     })
   }
 
-  const csv = Papa.unparse(rows)
-
   // Generate nama file
   const dateStr = new Date().toISOString().slice(0, 10)
   const classSlug = className ? `-${sanitizeFilename(className)}` : ''
   const resolvedFilename = filename ? `${filename}.csv` : `gradebook${classSlug}-${dateStr}.csv`
 
-  // Trigger download
-  const blob = new Blob(['\uFEFF' + csv], { type: 'text/csv;charset=utf-8;' })
-  const url = URL.createObjectURL(blob)
-  const link = document.createElement('a')
-  link.href = url
-  link.setAttribute('download', resolvedFilename)
-  document.body.appendChild(link)
-  link.click()
-  document.body.removeChild(link)
-  URL.revokeObjectURL(url)
+  exportCsv(resolvedFilename, rows)
 }
