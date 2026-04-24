@@ -364,6 +364,18 @@ DECLARE
   tid uuid := public.dev_seed_uuid('tenant:sma-nusantara-dev');
 BEGIN
   -- Order matters: child tables first to avoid FK violations.
+  -- Content (dev_seed_content.sql) ---
+  DELETE FROM public.attendance_records WHERE tenant_id = tid;
+  DELETE FROM public.invoices           WHERE tenant_id = tid;
+  DELETE FROM public.assignments        WHERE tenant_id = tid;
+  DELETE FROM public.p5_projects        WHERE tenant_id = tid;
+  DELETE FROM public.curriculum_items   WHERE tenant_id = tid;
+  DELETE FROM public.subjects           WHERE tenant_id = tid;
+  DELETE FROM public.rombel_members     WHERE tenant_id = tid;
+  DELETE FROM public.rombel             WHERE tenant_id = tid;
+  DELETE FROM public.grade_levels       WHERE tenant_id = tid;
+  DELETE FROM public.academic_years     WHERE tenant_id = tid;
+  -- Base (dev_seed.sql) ---
   DELETE FROM public.enrollments        WHERE tenant_id = tid;
   DELETE FROM public.course_classes     WHERE tenant_id = tid;
   DELETE FROM public.classes            WHERE tenant_id = tid;
