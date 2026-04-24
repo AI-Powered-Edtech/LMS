@@ -116,3 +116,33 @@ Heartbeat rule: if no entry in 4h during active work, append a heartbeat line.
 - 08:35 — `embeddingEngine.ts` shipped (Prio 8 Unit 44 plagiarism real engine). Cosine similarity over `/api/v1/ai/embeddings` proxy; persists to plagiarism_checks with comparison_corpus_size + top_match_submission_id. Bounded to 50 prior submissions for cost. Skips if text < 50 chars.
 - 08:50 — `report_real.rs` Rust scaffold shipped (Prio 5 Unit 31 follow-up). vil_server pattern, mod-declared. executive_report_handler aggregates 8 metrics (users, students, teachers, rombel, courses, submissions_30d, paid_invoices_30d, revenue_30d). parent_report_handler joins lesson_progress + rombel_attendance + gradebook_entries for one student. Operator gate: swap stub mounts at main.rs lines 447-448.
 - 09:00 — Round 8 wrap. Adds: 1 SQL migration (063 + bulk_record_attendance RPC), 1 admin page (RombelAttendance), 1 FE plagiarism engine, 1 Rust handler scaffold (report_real.rs). Cumulative session: **24 SQL migrations** (039-063), **20 admin pages**, **4 AI components**, **3 Rust handlers added** (midtrans, ai_tutor_real, report_real) + events worker bin.
+
+## 2026-04-24 (continued — operator hardening session)
+- 14:00 — Operator takeover from cloud agent. PR #252 reverted after audit (13 TS errors, 6 cargo errors, build broken).
+- 14:15 — Installed i18n deps via pnpm. npm was broken by Zed cache path.
+- 14:30 — Fixed 13 TS errors: <Select> → native <select> in 13 pages (RombelAttendance, StaffDossier, StudentDossier, Subjects, Timetable, Rapor, PpdbJalur, ParentLinks, P5Projects, Counseling, Integrations, BosTracking, RombelManagement); Modal isOpen→open in 2 AI components + 5 pages; Rapor.tsx Role comparison lowercase; RaporPrint explicit useQuery type; service `data as T` casts → `(data as unknown) as T`; `.select()` → `.select("*")` in akm/dossier/integrations services; IntegrationConfig.id cast; plagiarism priors.length cast; unused Loader2 + vars removed.
+- 14:45 — Added [[bin]] events_worker entry to api-server/Cargo.toml. Committed c424bb2c3.
+- 15:00 — cargo build --release surfaced 6 errors in cloud-agent code:
+  - AuthedRequest tuple struct vs record destructure (report_real.rs x2)
+  - ServiceCtx has no .pool() (report_real.rs x2, midtrans_webhook.rs x1)
+  - sqlx::types::BigDecimal feature not enabled (report_real.rs x1)
+  Fixed all → cargo build clean. Committed 837677647.
+- 15:30 — Swapped stub → real mounts in main.rs lines 452-458: executive_report, parent_report, ai_tutor_stream. Rewrote ai_tutor_real.rs to delegate to `edusync_services::ai::tutor::tutor_chat` + bridge non-streaming response to SSE format. Added `embeddings_handler.rs` (OpenAI text-embedding-3-small proxy, fail-safe). Committed 8d3d7452c.
+- 16:00 — Applied migrations 039-064 to lms-db-1 postgres container (real backend DB, port 54322). 24/25 applied. Migration 048 skipped — `gradebook_entries` baseline table doesn't exist anywhere in migrations/ or schema/. ESCALATION: needs operator confirmation on baseline state.
+- 16:30 — Restarted backend with fresh release binary. Reran sweep 3 persona.
+  - Admin: 55 routes → 0 issues (was 33)
+  - Teacher: 33 routes → 2 warnings (React dup-key on dashboard + adaptive-paths — UUID not in DB; defer)
+  - Student: 21 routes → 0 issues (was 1)
+- 16:45 — Fixed regression: FE ↔ real DB column mismatches:
+  - ppdbAdminService.ts: ppdb_periods uses start_date/end_date (not starts_on)
+  - ltiService.ts: lti_platform_registrations uses platform_name + token_url (not name + token_endpoint)
+  - RombelAttendance infinite setState loop (useQuery default `= []` unstable ref)
+  - Added onboarding_progress + tenant_subscriptions to ALLOWED_TABLES
+  - Migration 064 created stub tables for baseline gaps
+- 17:00 — Committed 9a4dc2fba. Final build gates all green: tsc 0, vitest 91/91, cargo build 0, sweep admin+student 0.
+- 17:15 — Session wrap. Remaining known issues:
+  - React dup-key warning (teacher/dashboard, adaptive-paths) — UUID source untraced
+  - Migration 048 gradebook_dual_mode — needs baseline gradebook_entries
+  - AI Tutor SSE chunking is single-shot (delegates to non-streaming tutor_chat); upgrading to token-streaming requires refactoring tutor_chat
+  - `scripts/reset-dev-school.sh` still missing; referenced by docs
+  - Richer dev_seed content (courses, assignments, invoices) belum sesuai roadmap Fase 0.5 spec

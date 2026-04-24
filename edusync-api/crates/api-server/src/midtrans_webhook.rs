@@ -66,7 +66,8 @@ pub async fn midtrans_webhook_handler(
         return Err(VilError::forbidden("invalid signature"));
     }
 
-    let pool = svc.pool();
+    let state = svc.state::<crate::state::AppState>()?.clone();
+    let pool = &state.db;
 
     // Look up tenant + invoice from order_id.
     let invoice_row: Option<(uuid::Uuid, uuid::Uuid)> = sqlx::query_as(

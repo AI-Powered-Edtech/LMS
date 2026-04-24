@@ -23,12 +23,14 @@ Mulai 2026-04-24. Progress:
 - [x] i18n scaffolding react-i18next (PR #249)
 - [x] Indonesia format helpers + audit 12 call site (PR #250)
 - [x] CSV export helper + wire 3 DataTable (PR #251)
-- [ ] User rebuild backend + apply migration 037
-- [ ] Re-run sweep → confirm all clean
-- [ ] Fix residual React duplicate key warning (teacher dashboard) — investigation stalled; retry dengan akses real-backend
-- [ ] **Audit orphan features** (dok 03 bagian C) — keputusan per-item: wire, delete, atau hide UI
-- [ ] Remove dual-path quiz/xp handlers (decide: Rust or RPC, bukan dua-duanya)
-- [ ] Playwright sweep di CI (gate: no regression)
+- [x] Backend rebuild + migrations 037-064 applied (24/25, 048 skipped — `gradebook_entries` baseline gap)
+- [x] Re-run sweep → admin 0 issues, student 0 issues
+- [x] TypeScript typecheck 0 errors (was 13)
+- [x] Cargo build 0 errors (was 6)
+- [x] Vitest 91/91 pass (was 1 file fail)
+- [x] Orphan audit — `quiz_handlers.rs` + `xp_gradebook_handlers.rs` deleted; stubs swapped to real for executive_report/parent_report/ai_tutor_stream
+- [x] Playwright sweep di CI (`.github/workflows/sweep.yml`) daily cron
+- [ ] Fix residual React dup-key warning (`teacher/dashboard`, `teacher/adaptive-paths`) — UUID `257d53d2-...` not in any DB column; needs runtime instrument
 - [ ] Accessibility baseline audit (ARIA, keyboard nav pada top-10 screens)
 
 **Exit criteria**:
@@ -55,11 +57,11 @@ Mulai 2026-04-24. Progress:
 - Sample notifications, announcements, forum posts
 
 **Deliverables**:
-- [ ] `edusync-api/schema/dev_seed.sql` — idempotent seed script
-- [ ] `edusync-api/scripts/reset-dev-school.sh` — drop tenant + recreate
-- [ ] `docs/dev-school-accounts.md` — daftar kredensial semua persona
-- [ ] Playwright sweep extended: persona wali_kelas, wakasek_kurikulum, principal, guru_bk, tu, parent_specific_child
-- [ ] CI job harian: reset + full sweep + regression check
+- [x] `edusync-api/schema/dev_seed.sql` — idempotent seed script (391 lines, `generate_series(1,120)` siswa)
+- [ ] `edusync-api/scripts/reset-dev-school.sh` — referenced but not yet written
+- [x] `docs/dev-school-accounts.md` — daftar kredensial semua persona
+- [x] Playwright sweep extended: 9 persona (admin/teacher/student + 6 nusantara)
+- [x] CI job harian: `.github/workflows/dev-school-nightly.yml`
 
 **Exit criteria**:
 - Dev school bisa di-reset dalam <30 detik
@@ -70,21 +72,19 @@ Mulai 2026-04-24. Progress:
 
 **Tujuan**: data model sekolah Indonesia proper. Tanpa ini, rapor/dapodik tidak mungkin.
 
-Entitas baru (dok 04 shared kernel):
-- [ ] `academic_years` table + CRUD + UI admin
-- [ ] Refactor `semesters` agar link ke `academic_year_id`
-- [ ] `grade_levels` (kelas 1-12 SD/SMP/SMA, unified)
-- [ ] `rombel` (rombongan belajar) — split dari `classes`: `classes` jadi "course-instance", `rombel` jadi "class-section"
-- [ ] `subjects` (mata pelajaran) dengan kurikulum phase
-- [ ] `curriculum_items` (CP/ATP hierarchical)
-- [ ] `timetable_slots` (jadwal pelajaran)
-- [ ] `student_dossier` (NISN, NIK, alamat, wali)
-- [ ] `staff_dossier` (NIP, NUPTK, sertifikasi)
+Entitas baru (dok 04 shared kernel) — **schema landed via migrations 039-045**:
+- [x] `academic_years` table (migrasi 039) + CRUD UI + admin page
+- [x] `semesters` link ke `academic_year_id` (migrasi 040)
+- [x] `grade_levels` (migrasi 041)
+- [x] `rombel` table (migrasi 042) — aditif; `classes` tetap ada untuk backward compat
+- [x] `subjects` + `curriculum_items` (migrasi 043) — CP/ATP hierarchical
+- [x] `timetable_slots` (migrasi 044)
+- [x] `student_dossier` + `staff_dossier` (migrasi 045)
 
 Role refactor:
-- [ ] RBAC matrix (role × module × action) — redesign dari coarse role
-- [ ] Add roles: `wali_kelas`, `wakasek`, `guru_bk`, `tu`, `yayasan`, `pengawas`
-- [ ] Migrate existing memberships ke role baru
+- [x] RBAC matrix (migrasi 046) — 10 roles: admin, principal, wakasek, teacher, wali_kelas, guru_bk, tu, student, parent, yayasan
+- [ ] Authorization middleware enforcement end-to-end (schema ✓, middleware wiring belum lengkap)
+- [ ] Migrate existing memberships ke role baru (data migration)
 
 Migration existing `classes`:
 - [ ] Migration audit: mana `classes` yang seharusnya `rombel`, mana yang `course-instance`
@@ -99,16 +99,18 @@ Migration existing `classes`:
 
 **Tujuan**: asesmen sesuai Kurmer. Output: nilai intrakurikuler + kualitatif.
 
-- [ ] Lesson/assignment/quiz di-tag ke `curriculum_item` (CP/ATP)
-- [ ] Gradebook dual-mode: numerik + kualitatif deskriptor (BB, MB, BSH, SB)
-- [ ] Nilai per CP (bukan hanya per assignment)
-- [ ] AKM-style question type: stimulus + multiple questions
-- [ ] P5 module: project tema lintas mapel, peer + self assessment, portofolio
+- [x] CP/ATP tagging schema (migrasi 047)
+- [ ] Gradebook dual-mode numerik + deskriptor (migrasi 048 **BLOCKED** — butuh `gradebook_entries` baseline table yang tidak ada di repo)
+- [x] Nilai per CP aggregation (migrasi 049)
+- [x] AKM-style question type (migrasi 050) — stimulus + multiple questions
+- [x] P5 module schema (migrasi 051) — project, assessment
 - [ ] Kokurikuler & ekstrakurikuler record
+- [ ] UI wiring lengkap untuk CP tagging + dual-mode entry (schema ✓, FE CRUD partial)
 
 Event bus introduction:
-- [ ] Add `domain_events` outbox table
-- [ ] Worker process untuk dispatch
+- [x] `domain_events` outbox table (migrasi 052)
+- [x] Worker process (`bin/events_worker.rs` — compiles, runs)
+- [ ] Handler per event type belum lengkap (outbox dispatches, subscribers perlu ditulis)
 - [ ] Migrate first 2 integrations ke event-driven:
   - `assessment.attempt.submitted` → gradebook + XP + notification
   - `attendance.marked` → parent notification
@@ -122,12 +124,14 @@ Event bus introduction:
 
 **Tujuan**: output formal — rapor Kurmer PDF yang bisa dipakai sekolah.
 
-- [ ] Rapor template engine (PDF): intrakurikuler per mapel per CP, kokurikuler P5, ekstrakurikuler, sikap, absensi
-- [ ] Signature flow: guru mapel → wali kelas → kepala sekolah
-- [ ] Narrative AI: generate kalimat deskripsi per mapel dari data nilai + partisipasi
-- [ ] Batch export (semua siswa 1 rombel)
-- [ ] Student/parent view rapor online + PDF download
-- [ ] Report_handlers.rs: finalize (replace stub)
+- [x] Rapor schema (migrasi 053): `rapor_documents`, `rapor_signatures`, `rapor_subject_grades`
+- [x] Auto-generate PL/pgSQL function (migrasi 062): `generate_rapor_for_rombel`
+- [x] `RaporPrint.tsx` FE page (print CSS A4, signature blocks)
+- [x] `report_real.rs` Rust handler — aggregates 8 metrics, mounted at `/pdf/executive-report` + `/pdf/parent-report`
+- [ ] PDF renderer proper (browser print → puppeteer/typst for server-side)
+- [ ] Signature flow end-to-end (DB schema ✓, UI partial)
+- [ ] Narrative AI untuk deskripsi mapel (scaffold di AI layer)
+- [ ] Batch export semua siswa 1 rombel
 
 **Exit criteria**:
 - Sekolah pilot bisa terbitkan rapor semester valid tanpa pakai sistem lain
@@ -138,15 +142,19 @@ Event bus introduction:
 
 Finance:
 - [ ] Midtrans + Xendit integration (pilih satu atau keduanya)
-- [ ] SPP recurring invoice generation
-- [ ] Virtual Account generation
-- [ ] Payment reconciliation webhook
-- [ ] Parent portal: lihat tagihan + bayar inline (link ke gateway)
+- [x] Midtrans webhook real (migrasi 054 + `midtrans_webhook.rs` — SHA512 signature verify)
+- [x] SPP invoice schema (migrasi 054: `spp_invoices`, `payment_transactions`)
+- [ ] Virtual Account generation (gateway call belum wired — `create_payment` currently stub snap token)
+- [ ] Payment reconciliation logic (webhook diterima, UPDATE invoice belum lengkap)
+- [x] Parent portal UI lihat tagihan (ParentPortal.tsx)
+- [ ] Bayar inline (Midtrans Snap JS integration)
 - [ ] WhatsApp notification tagihan + receipt
-- [ ] BOS expense tracking + laporan generator (negeri)
+- [x] BOS expense schema (migrasi 055: `bos_funding_periods`, `bos_expense_categories`, `bos_expenses`)
+- [ ] BOS laporan generator PDF
 
 PPDB full flow:
-- [ ] Period management, jalur selection, kuota
+- [x] Schema (migrasi 056: `ppdb_periods`, `ppdb_registrations`, `ppdb_jalur`)
+- [x] Admin UI: PpdbJalur page
 - [ ] Upload dokumen (akta, KK, rapor SD/SMP)
 - [ ] Tes online (reuse quiz engine)
 - [ ] Ranking + pengumuman
@@ -160,10 +168,12 @@ PPDB full flow:
 
 **Tujuan**: jembatani ke ekosistem Indonesia.
 
-- [ ] Dapodik CSV export (student + staff)
-- [ ] WhatsApp Business API proper (BSP: Infobip / MessageBird / Twilio)
+- [x] Integrations schema (migrasi 057: `integration_configs`, `dapodik_export_jobs`) + `tenant_integrations`
+- [x] FE Dapodik CSV export (students/staff/rombel scope) via `dapodikCsvExport.ts`
+- [ ] Dapodik CSV export async via Rust job queue (UI ada, job processor belum)
+- [ ] WhatsApp Business API proper (BSP wiring to Infobip/MessageBird/Twilio — code stub only)
 - [ ] Email via SES/Sendgrid proper
-- [ ] Bank VA (BCA, Mandiri direct)
+- [ ] Bank VA (BCA, Mandiri direct) — schema (bank_va_assignments) ada, provider wiring belum
 - [ ] Integrasi ke Rapor Pendidikan platform (kalau API available)
 - [ ] Webhook API untuk integrasi 3rd party (SIS, HRIS)
 
@@ -172,26 +182,33 @@ PPDB full flow:
 **Tujuan**: AI menjadi lapisan omnipresent, bukan fitur terpisah.
 
 Per dok 05:
-- [ ] AuthoringAssist inline di Course Builder (retire page "Creator")
-- [ ] SpeedGrader AI scoring + rubric
-- [ ] Lesson Viewer Q&A sidebar (tutor streaming wired)
-- [ ] Plagiarism: pilih + integrate (Turnitin/Copyleaks)
-- [ ] Principal narrative insight bulanan
-- [ ] Parent weekly digest AI-generated
-- [ ] Moderation AI (toxic classifier)
-- [ ] Semantic search lintas modul
+- [x] AuthoringAssistButton komponen reusable (inline AI untuk editor)
+- [x] SpeedGraderAiScore komponen (Anthropic dengan rubric, teacher-in-the-loop)
+- [x] LessonAiTutor floating panel (Groq streaming grounded in lesson context)
+- [x] AI Tutor streaming endpoint wired ke real `tutor_chat` (migrasi dari stub → delegates to edusync_services)
+- [x] `/api/v1/ai/embeddings` endpoint (OpenAI proxy) — `embeddings_handler.rs`
+- [x] Plagiarism in-house: `embeddingEngine.ts` (cosine similarity, 50-prior corpus limit)
+- [x] Toxic classifier (`toxicClassifier.ts`, Groq-powered, fail-open)
+- [x] ParentDigestPreview komponen (AI-generated, teacher approval flow)
+- [x] PrincipalInsights page (narrative monthly insight schema ada)
+- [x] AI usage logs + rate limit table (migrasi 058, 059)
+- [ ] Semantic search lintas modul (belum dimulai)
+- [ ] AuthoringAssistButton wired ke Course Builder existing page (komponen ada, integration pending)
 
 ### 🛡️ Fase 7 — Non-Functional (Bulan 12)
 
 **Tujuan**: production-grade untuk skala.
 
-- [ ] Offline PWA: lesson cache, draft local-first, sync when online
-- [ ] Audit log coverage complete (review every mutation)
-- [ ] Performance budget + monitoring (per-page load, query latency)
-- [ ] Rate limiting per tenant
-- [ ] Backup & disaster recovery drill
-- [ ] Pen-test security audit
-- [ ] SLO definition & incident runbook
+- [x] PWA via `vite-plugin-pwa` + Workbox — manifest, service worker, `/offline.html` fallback, runtime caching
+- [x] Audit trigger schema (migrasi 061) + 12 audit triggers auto-attached to critical tables
+- [x] Audit log table (migrasi 059)
+- [x] Rate limit schema (migrasi 059)
+- [ ] Rate limit enforcement middleware (schema ✓, middleware belum)
+- [ ] Offline PWA lesson cache (service worker ✓, lesson-specific cache strategy belum tuned)
+- [ ] Performance budget + monitoring (lighthouse.yml CI ada, no SLO threshold)
+- [ ] Backup & disaster recovery drill (docs/DISASTER_RECOVERY.md ada, drill belum)
+- [ ] Pen-test security audit (deferred per runbook §3)
+- [ ] SLO definition & incident runbook (docs/SLO_SLI.md ada)
 - [ ] Data retention policy per tenant (UU PDP compliance)
 
 ### 🚀 Fase 8+ — Expansion (Tahun 2)

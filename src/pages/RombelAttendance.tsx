@@ -57,7 +57,7 @@ export function RombelAttendance() {
     enabled: members.length > 0,
   })
 
-  const { data: existing = [] } = useQuery({
+  const { data: existing } = useQuery({
     queryKey: ['rombel_attendance_day', rombelId, date],
     queryFn: () =>
       rombelId && date ? rombelAttendanceService.getForDay(rombelId, date) : Promise.resolve([]),
@@ -66,6 +66,7 @@ export function RombelAttendance() {
 
   const [marks, setMarks] = useState<Record<string, AttendanceStatus>>({})
   useEffect(() => {
+    if (!existing) return
     const next: Record<string, AttendanceStatus> = {}
     for (const e of existing) next[e.student_id] = e.status
     setMarks(next)
