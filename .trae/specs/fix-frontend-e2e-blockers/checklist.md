@@ -1,6 +1,0 @@
-- [x] Proses build frontend (`pnpm build`) berhasil tanpa error linter.
-- [x] Pengujian linter (`pnpm run lint`) berjalan tanpa peringatan dan error.
-- [x] Dependensi browser Playwright terinstal dengan sukses (tidak ada `Executable doesn't exist`).
-- [x] Skenario pengujian login Playwright untuk error jaringan (`should show friendly error when login request fails`) berhasil lulus.
-- [x] Seluruh skenario pengujian E2E (`npx playwright test tests/e2e`) berjalan sukses (Passed) tanpa blocker.
-- [x] Keseluruhan script validasi CI (`pnpm run validate`) berjalan sukses tanpa error.

@@ -35,3 +35,32 @@ Per gap-analysis §C, five orphan items reviewed. Decisions:
 
 5. **Quiz / XP Rust handlers (`quiz_handlers.rs`, `xp_gradebook_handlers.rs`)** — DEFERRED TO PRIO 1 UNIT 4.
    Reason: explicit ladder unit covers deletion of dual-path Rust handlers; no point doing it twice.
+
+## 2026-04-24 — Operator: Skip migration 048 (gradebook_dual_mode)
+
+Reason: migration 048 depends on `public.gradebook_entries` table which doesn't exist in `edusync-api/migrations/` or `edusync-api/schema/` anywhere — pre-existing baseline gap. Applied migrations 039-047 + 049-064 (24/25). Operator action deferred: either create gradebook_entries table first, or rewrite 048 to handle absence. Non-blocking for current sweep (all routes pass).
+
+## 2026-04-24 — Operator: Stub→real mount swaps executed
+
+Reason: DECISIONS_LOG §"Prio 5 Unit 31 — Defer stub-replacement" explicitly deferred these pending cargo build access. With operator access now available and cargo build green, the swaps were executed in main.rs:
+- Line 452: `executive_report_stub_handler` → `executive_report_handler`
+- Line 453: `parent_report_stub_handler` → `parent_report_handler`
+- Line 457: `ai_tutor_stream_stub_handler` → `ai_tutor_stream_handler`
+
+`ai_tutor_real.rs` rewritten from placeholder SSE stream to real delegation: calls `edusync_services::ai::tutor::tutor_chat` (which handles Groq + sessions + rate limits), then bridges the non-streaming `TutorChatResponse` to FE SSE format (single-chunk emission). Upgrading to token-by-token streaming requires refactoring `tutor_chat` — deferred.
+
+## 2026-04-24 — Operator: `/api/v1/ai/embeddings` endpoint added
+
+Reason: SUPERBATCH §5 noted `/api/v1/ai/embeddings` as required for plagiarism engine. Added `embeddings_handler.rs` that proxies to OpenAI `text-embedding-3-small`. Returns 500 with "OPENAI_API_KEY belum dikonfigurasi" when unset — FE `embeddingEngine.ts` already has graceful fallback for this case.
+
+## 2026-04-24 — Operator: FE column mismatches fixed
+
+Reason: sweep surfaced 400 errors where FE queries used column names not matching real DB:
+- `ppdb_periods`: FE `starts_on/ends_on` → DB `start_date/end_date`
+- `lti_platform_registrations`: FE `name/token_endpoint` → DB `platform_name/token_url`
+
+Fix applied at FE side (not DB) because migrations reflect actual deployed schema; changing DB would require data migration.
+
+## 2026-04-24 — Operator: `onboarding_progress` + `tenant_subscriptions` stub tables created
+
+Reason: FE services query both tables extensively. Neither exists in baseline nor migrations 001-063. Migration 064 created minimal schemas; allowlist updated. FE's existing fallback logic (`LS_ONBOARDING_UNAVAILABLE` flag) handles empty results gracefully. Reversible: operator may later decide to formalize schema with proper columns.

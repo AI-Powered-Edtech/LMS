@@ -2,7 +2,9 @@
 
 **Audience**: Cloud agent (Claude / equivalent) dengan full access ke repo, dev environment, Docker, PostgreSQL, CI. Jalan berjam-jam / sehari penuh tanpa supervision.
 
-**Mission**: Eksekusi semua blueprints & plan di `docs/school-os-blueprint/` sampai selesai, atau sampai hit hard-stop criteria. Transformasi EduSync LMS → Indonesia School OS.
+**Status (2026-04-24)**: Initial superbatch RUN SELESAI. Cloud agent + operator hardening telah menyelesaikan banyak Prio 1-6. Lihat `06-roadmap.md` untuk checkboxes aktual. Runbook ini tetap **living document** untuk sesi lanjutan.
+
+**Mission (revised)**: Lanjutkan eksekusi blueprint dari **state saat ini** (main @ 9a4dc2fba dan seterusnya). Fokus shifts ke **quality + integration depth**, bukan lagi schema scaffolding.
 
 ---
 
@@ -79,20 +81,22 @@ Kalau keputusan tidak tercakup di atas atau di roadmap: **pilih default paling k
 
 **Priority ladder** — agent kerjakan top-down. Setiap fase harus pass **Exit Criteria** sebelum lanjut. Boleh paralel DALAM fase (multiple branch), tidak antar fase kecuali explicit listed.
 
-### Prio 1 — Fase 0 completion (sisa dari 2026-04-24 batch)
-1. Rebuild backend + apply migration 037 → verify sweep clean
-2. Fix React dup-key teacher dashboard (investigasi live sweep, trace UUID source)
-3. Orphan audit: per item di `03-gap-analysis.md` section C, decide & execute wire/delete/hide
-4. Delete dual-path Rust handlers (quiz/xp yang tidak mounted)
-5. Playwright sweep → CI workflow (`.github/workflows/sweep.yml`)
-6. Accessibility audit top-20 screens (axe-core scan + fix)
+### Prio 1 — Fase 0 completion (sisa dari 2026-04-24 batch) — ✅ MOSTLY DONE
+1. [x] Rebuild backend + migrations 037-064 applied (24/25)
+2. [ ] Fix React dup-key teacher dashboard — UUID `257d53d2-...` tidak ditemukan di DB; butuh runtime instrument
+3. [x] Orphan audit: decisions recorded in DECISIONS_LOG.md
+4. [x] Dual-path Rust handlers dihapus (quiz_handlers.rs, xp_gradebook_handlers.rs)
+5. [x] Playwright sweep CI (`.github/workflows/sweep.yml`)
+6. [ ] Accessibility audit top-20 screens (spec `tests/e2e/a11y.spec.ts` ada, fixes belum)
 
-### Prio 2 — Fase 0.5 Dev School Seeding (foundation untuk semua fase berikut)
-7. Write `edusync-api/schema/dev_seed.sql` dengan schema SMA Nusantara Dev (lihat roadmap Fase 0.5 untuk detail)
-8. Script `edusync-api/scripts/reset-dev-school.sh`
-9. Dokumentasi `docs/dev-school-accounts.md` — semua kredensial persona
-10. Extend `tests/e2e/sweep.spec.ts` dengan 6 persona tambahan (wali_kelas, wakasek, principal, guru_bk, tu, parent_specific_child)
-11. CI harian: reset + full sweep 9 persona
+### Prio 2 — Fase 0.5 Dev School Seeding — ✅ MOSTLY DONE
+7. [x] `edusync-api/schema/dev_seed.sql` (391 lines, 6 staff + 120 siswa generate_series)
+8. [ ] `edusync-api/scripts/reset-dev-school.sh` — file belum ada; docs reference it
+9. [x] `docs/dev-school-accounts.md`
+10. [x] Sweep extended 9 persona
+11. [x] CI `.github/workflows/dev-school-nightly.yml`
+
+**Remaining**: richer seed data (courses, assignments, quizzes, P5 project, SPP invoices per roadmap Fase 0.5 spec — current seed has users + rombels + subjects but thin on learning content).
 
 ### Prio 3 — Fase 1 Academic Foundation
 12. `academic_years` table + RPC + admin UI
