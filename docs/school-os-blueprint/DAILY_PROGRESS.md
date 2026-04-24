@@ -180,3 +180,12 @@ Governance notes to carry forward:
 - U14 is a **regression gate**, not a WCAG audit pass. Don't market as "accessibility complete".
 - Migration numbering now at 067. Next SQL change = 068.
 - Dev seed has column drift risk vs real schema — any schema change must update seed same PR.
+
+## 2026-04-24 (session 3 — U05 thru U08.1)
+- 22:00 — U05 richer dev seed DONE (9 subjects, 10 CPs, 12 assignments, 1140 attendance, 360 invoices, 1 P5 project). `dev_seed_content.sql` companion approach. Reset 2s stable. Commit `e3315e3d0`.
+- 22:30 — U02 revisit: `wali_kelas` persona on nusantara (rich data) sweeps `teacher/dashboard` with 0 console errors. Warning only persists on sparse teacher@edusync.dev demo tenant. RESOLVED via U05 seed depth.
+- 22:45 — U06.1 ADR-001 committed: user_roles = authoritative, tenant_memberships.role DEPRECATED for authz, role_capabilities = policy backing.
+- 23:00 — U06.2 rbac_policy.yaml: 40+ endpoints mapped. Shadow mode enabled pending middleware rewrite (U06.3).
+- 23:15 — U07.1 migration 068: backfill granular roles into user_roles (wakasek_* → WAKASEK, wali_kelas → WALI_KELAS, etc).
+- 23:30 — U07.2 dev_seed.sql user_roles INSERT rewritten to CASE email → granular app_role directly. Fresh reset now produces 10-role distribution natively.
+- 23:45 — U08.1 audit: all dev school classes are ambiguous both-role. ADR-002 documents split plan. U08.2-5 explicitly deferred as multi-file FE refactor risk; not blocking U11/U06.4/U13 which can write rombel directly.

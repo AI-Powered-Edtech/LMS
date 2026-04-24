@@ -117,11 +117,11 @@ Current state: `rbac.rs` masih 6-role hierarchy (student/parent/teacher/reviewer
 
 ### U08 — `classes` → `rombel` split (split 5 sub-unit)
 
-**U08.1 — Schema/data audit**
-- **What**: SQL query existing `classes` rows, klasifikasi: (a) yang dipakai sebagai class-section (join rapat dengan `enrollments.student_id`) vs (b) yang dipakai sebagai course-instance (join ke `courses`). Output CSV classification.
-- **Est**: S
-- **Accept**: Setiap baris `classes` punya label `{section|course_instance}` di audit output
-- **Verify**: manual review 20 sample rows
+**U08.1 — Schema/data audit** ✅ DONE
+- All 4 dev school `classes` rows are ambiguous both-role (enrollments + course_classes)
+- Finding documented in `ADR-002-classes-rombel-split.md`
+- `rombel` + `rombel_members` already populated (114 members) from U05
+- U08.2–5 explicitly deferred; not blocking U11/U06.4/U13 which can use rombel directly
 
 **U08.2 — Read adapters (backward compat)**
 - **What**: FE services (classroomService, gradebookService, attendanceService) baca dari **both** `rombel` + `classes`, prefer rombel kalau ada. Fallback ke classes. Idempotent read layer.
