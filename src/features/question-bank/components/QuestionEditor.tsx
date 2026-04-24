@@ -223,6 +223,7 @@ export const QuestionEditor: React.FC<QuestionEditorProps> = ({
                       Tipe Soal
                     </label>
                     <select
+                      aria-label="Tipe Soal"
                       value={formData.type}
                       onChange={(e) => handleTypeChange(e.target.value as QuestionType)}
                       className="w-full px-3 py-2 border border-slate-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-700 outline-none focus:ring-2 focus:ring-indigo-500"
@@ -239,6 +240,7 @@ export const QuestionEditor: React.FC<QuestionEditorProps> = ({
                       Tingkat Kesulitan
                     </label>
                     <select
+                      aria-label="Tingkat Kesulitan"
                       value={formData.difficulty_level}
                       onChange={(e) =>
                         setFormData({ ...formData, difficulty_level: Number(e.target.value) })

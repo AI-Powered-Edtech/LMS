@@ -70,7 +70,7 @@ export function GradebookMainTable({
           <span className="text-xs font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider whitespace-nowrap">
             Tampilkan:
           </span>
-          <select className="text-sm border-slate-200 dark:border-slate-600 rounded-lg bg-slate-50 dark:bg-slate-900 focus:ring-blue-500 py-1.5 pl-3 pr-8 text-slate-900 dark:text-white">
+          <select aria-label="Filter jenis penilaian" className="text-sm border-slate-200 dark:border-slate-600 rounded-lg bg-slate-50 dark:bg-slate-900 focus:ring-blue-500 py-1.5 pl-3 pr-8 text-slate-900 dark:text-white">
             <option>Semua Tugas</option>
             <option>Kuis Saja</option>
             <option>Esai Saja</option>

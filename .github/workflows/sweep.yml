@@ -75,6 +75,9 @@ jobs:
       - name: Run sweep
         run: npx playwright test tests/e2e/sweep.spec.ts --reporter=line
 
+      - name: Run a11y gate
+        run: npx playwright test tests/e2e/a11y.spec.ts --workers=1 --reporter=line
+
       - name: Restore baseline from main
         run: |
           git fetch origin main --depth=1

@@ -97,6 +97,7 @@ export function Gradebook() {
               value={s.selectedCourseId}
               onChange={(e) => s.setSelectedCourseId(e.target.value)}
               data-testid="gradebook-course-selector"
+              aria-label="Pilih kursus untuk buku nilai"
               className={cn(
                 'appearance-none pl-3 pr-9 py-2 rounded-xl text-sm font-medium',
                 'border border-slate-200 dark:border-slate-600',
@@ -137,6 +138,8 @@ export function Gradebook() {
         <div>
           <h1 className="text-2xl sm:text-3xl font-bold text-slate-900 dark:text-white tracking-tight flex items-center gap-3">
             <button
+              type="button"
+              aria-label="Kembali"
               onClick={() => window.history.back()}
               className="p-2 -ml-2 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-xl transition-colors text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white"
             >
