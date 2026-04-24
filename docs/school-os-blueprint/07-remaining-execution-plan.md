@@ -28,8 +28,11 @@ Setiap unit: **What / Why / Dep / Est / Accept / Verify**
 - **Verify**: `psql` inspect, sweep `admin/gradebook` + `teacher/gradebook` green
 
 ### U02 — React dup-key warning (teacher dashboard + adaptive-paths)
-- **What**: Runtime instrument untuk trace UUID `257d53d2-0bae-44c1-9c23-470df60d9ed2` ke sumber `.map()`. Tambah `console.assert(unique)` di setiap list render TeacherDashboard + semua komponen yang lazy-loaded pada routes tsb. Rerun sweep, identify line, fix di service layer (dedup).
-- **Why**: Non-crash warning, tapi indikator ada bug data duplication—bisa berkembang jadi bug fungsional (render ghost item, key collision di diff reconciliation)
+- **What**: Trace UUID `257d53d2-0bae-44c1-9c23-470df60d9ed2` ke sumber bertahap (jangan brute-force instrument semua list):
+  1. Audit service layer dulu (`useAssignments`, `useClassroom`, `useStruggleAlerts`, `useNotifications`, `useAdaptivePaths`) — cek return data `.id` uniqueness
+  2. Audit cache merge layer (TanStack Query setQueryData, optimistic updates) untuk possible array concat without dedup
+  3. Baru kalau service + cache clean, instrument komponen render (targeted, 1 komponen at a time)
+- **Why**: Non-crash warning, tapi indikator data duplication. Brute-force instrument akan bikin noise besar; sumber hampir selalu di service/cache layer.
 - **Dep**: none
 - **Est**: M
 - **Accept**: sweep 0 console error di teacher/dashboard + teacher/adaptive-paths
@@ -47,13 +50,17 @@ Setiap unit: **What / Why / Dep / Est / Accept / Verify**
 
 ## 🟠 P1 High
 
-### U04 — `scripts/reset-dev-school.sh`
-- **What**: Write the script. Drop tenant cascade (slug='sma-nusantara-dev') + re-run `dev_seed.sql`. Idempotent.
-- **Why**: `docs/dev-school-accounts.md` references it; CI nightly depends on reset capability
+### U04 — Verify & harden `scripts/reset-dev-school.sh` (script sudah ada)
+- **What**: `edusync-api/scripts/reset-dev-school.sh` sudah exist (calls `dev_seed_purge()` + re-apply `dev_seed.sql`). Harden:
+  1. Run di CI nightly (`.github/workflows/dev-school-nightly.yml`) → alert kalau gagal
+  2. Assertion post-reset: tenant, 120 siswa, 3 announcement exist
+  3. Fix idempotency edge cases (re-run 3× berturut tanpa drift)
+  4. Time budget: fail CI kalau >30s
+- **Why**: Script ada tapi tidak diverifikasi di CI; silent breakage risk
 - **Dep**: none
 - **Est**: S
-- **Accept**: `./scripts/reset-dev-school.sh` runs <30s, dev school restored to clean state
-- **Verify**: run twice, state stable
+- **Accept**: CI nightly green 5 consecutive runs dengan assertions hijau
+- **Verify**: trigger workflow_dispatch, check logs
 
 ### U05 — Dev seed richer content (roadmap Fase 0.5 spec)
 - **What**: Extend `dev_seed.sql` dengan: 8 subjects CP/ATP samples, 4 sample courses × 8-12 lessons, 20 assignments, 15 quizzes + attempts, 1 P5 project, 2 extracurricular, 3-month SPP invoices (60% paid), 2-week attendance (90% rata-rata), sample notifications/announcements/forum
@@ -63,29 +70,102 @@ Setiap unit: **What / Why / Dep / Est / Accept / Verify**
 - **Accept**: 9-persona sweep menghasilkan realistic render (tidak empty states everywhere)
 - **Verify**: visual spot-check of screenshots; count of non-empty data in each persona dashboard
 
-### U06 — RBAC authorization middleware enforcement
-- **What**: Schema 10-role (migrasi 046) ada; middleware belum enforce. Wire ke `edusync-api/crates/middleware/src/rbac.rs`: per-route policy map (role × action × resource). Matrix: siapa boleh GET/POST/PATCH/DELETE di endpoint mana.
-- **Why**: Tanpa enforcement, "RBAC matrix" cuma nama string di DB. Audit & security risk.
-- **Dep**: U03 (baseline audit so policy attachments stable)
-- **Est**: XL
-- **Accept**: Pengujian: guru BK tidak bisa akses finance endpoint; wali_kelas bisa akses rombel yang diampu; TU tidak bisa akses gradebook
-- **Verify**: tulis `tests/e2e/rbac.spec.ts` dengan 10-role × 5 endpoint matrix; expect right HTTP codes
+### U06 — RBAC authorization middleware enforcement (split ke 5 sub-unit)
+Current state: `rbac.rs` masih 6-role hierarchy (student/parent/teacher/reviewer/principal/admin); migrasi 046 add 10-role schema + `role_capabilities` table, tapi backend belum baca. Source-of-truth antara `user_roles` / `tenant_memberships.role` text / `role_capabilities` **belum diputuskan**.
 
-### U07 — Migration existing memberships ke 10-role
-- **What**: Data migration script: profile dengan role="teacher" → tentukan berdasarkan tugas tambahan apakah jadi wali_kelas/wakasek/guru_bk. Admin sekolah → siapa yang harus jadi principal. TU ditentukan dari administrative_assignment.
-- **Why**: Tanpa migrasi, 10-role schema kosong, semua tetap di coarse role. Tapi kalau fresh install, tidak perlu ini.
-- **Dep**: U06 (policy structure settled)
-- **Est**: M (per sekolah pilot)
-- **Accept**: Di dev school, minimal 1 user per role dari 10-role matrix
-- **Verify**: `SELECT role, COUNT(*) FROM user_roles GROUP BY role`
+**U06.1 — Source-of-truth decision ADR**
+- **What**: Tulis ADR di `docs/school-os-blueprint/ADR-001-rbac-source-of-truth.md`: pilih salah satu dari: (a) `user_roles` enum per-tenant, (b) `tenant_memberships.role` flexible text, (c) composite `role_capabilities` driven
+- **Est**: S
+- **Accept**: ADR committed + reviewed; downstream migrations konsisten
+- **Verify**: `grep` 3 kandidat source, confirm only 1 used in production queries
 
-### U08 — `classes` → `rombel` audit + gradual split
-- **What**: `classes` saat ini ambigu (course-instance vs class-section). Audit existing rows: mana representasi rombel (terikat ke siswa tetap) vs course-instance (materi). Split data: clone ke `rombel` table untuk class-section semantics; biarkan course-instance tetap di `classes`.
-- **Why**: Blok kalkulasi rapor per-rombel yang benar (saat ini mencampur)
-- **Dep**: U07 (role data settled)
+**U06.2 — `rbac_policy.yaml` policy file**
+- **What**: Deklarasi route × role × action matrix. Format: `{ "/api/v1/data/gradebook_entries": { GET: ["teacher","wali_kelas","admin","principal"], POST: ["teacher","wali_kelas"] } }`
+- **Est**: M
+- **Accept**: File di repo, covers 30 most-used endpoints
+- **Verify**: schema validate against allowlist in data_plane.rs
+
+**U06.3 — Rust policy loader + middleware binding**
+- **What**: `crates/middleware/src/rbac.rs` refactor: load policy at boot, attach middleware ke router, deny 403 kalau role ∉ policy
+- **Dep**: U06.1, U06.2
 - **Est**: L
-- **Accept**: Gradebook, attendance, rapor accessors all query `rombel` untuk class-section context; `classes` hanya untuk course-instance
-- **Verify**: grep remaining `from('classes')` in FE, confirm semantic usage correct
+- **Accept**: requests yang tidak match policy → 403
+- **Verify**: integration tests
+
+**U06.4 — Scope checks (`self` / `rombel` / `tenant` / `foundation`)**
+- **What**: Beyond role, add scope predicate: guru bisa lihat rombel-nya, bukan rombel lain. Policy YAML extend with scope.
+- **Dep**: U06.3, U08 (rombel semantics settled)
+- **Est**: L
+- **Accept**: Guru A tidak bisa GET gradebook rombel Guru B
+- **Verify**: tests/e2e/rbac-scope.spec.ts
+
+**U06.5 — E2E matrix test**
+- **What**: `tests/e2e/rbac.spec.ts` — 10 persona × 10 endpoint matrix. Assert 200/403 correct per cell.
+- **Dep**: U06.3, U06.4
+- **Est**: M
+- **Accept**: 100% cells pass
+- **Verify**: CI green
+
+**Total U06 est**: S+M+L+L+M ≈ **2 minggu** (bukan XL tunggal)
+
+### U07 — Normalize membership ke 10-role (split 2 sub-unit)
+
+**U07.1 — Normalize `user_roles` enum + backfill**
+- **What**: Current dev_seed masih `ADMIN/TEACHER/STUDENT/PARENT/PRINCIPAL`. Extend enum ke 10 roles + backfill existing rows:
+  - Guru dengan assigned rombel → `wali_kelas`
+  - Guru dengan `tenant_memberships.role='guru_bk'` → `guru_bk`
+  - Admin dengan `tenant_memberships.role='tu'` → `tu`
+  - Admin dengan `tenant_memberships.role LIKE 'wakasek_%'` → split ke `wakasek_kurikulum`/`wakasek_kesiswaan`/dll
+  - PRINCIPAL → `principal`
+- **Dep**: U06.1 (source-of-truth decision — harus pilih `user_roles` untuk path ini)
+- **Est**: M
+- **Accept**: `SELECT role, COUNT(*) FROM user_roles GROUP BY role` menunjukkan 10 role dengan counts realistic
+- **Verify**: Query + manual spot check
+
+**U07.2 — Update dev_seed.sql + reset workflow ke 10-role**
+- **What**: Seed langsung insert 10-role user_roles, hapus post-migration backfill kalau bisa
+- **Dep**: U07.1
+- **Est**: S
+- **Accept**: Fresh reset-dev-school.sh → 10-role distribution correct
+- **Verify**: reset + query
+
+### U08 — `classes` → `rombel` split (split 5 sub-unit)
+
+**U08.1 — Schema/data audit**
+- **What**: SQL query existing `classes` rows, klasifikasi: (a) yang dipakai sebagai class-section (join rapat dengan `enrollments.student_id`) vs (b) yang dipakai sebagai course-instance (join ke `courses`). Output CSV classification.
+- **Est**: S
+- **Accept**: Setiap baris `classes` punya label `{section|course_instance}` di audit output
+- **Verify**: manual review 20 sample rows
+
+**U08.2 — Read adapters (backward compat)**
+- **What**: FE services (classroomService, gradebookService, attendanceService) baca dari **both** `rombel` + `classes`, prefer rombel kalau ada. Fallback ke classes. Idempotent read layer.
+- **Dep**: U08.1
+- **Est**: M
+- **Accept**: Existing UI tetap work, rombel query route prefered
+- **Verify**: sweep no regression
+
+**U08.3 — Write migration (data copy)**
+- **What**: Migration 065 copies class-section rows dari `classes` ke `rombel`, mapping fields, preserve FK. Mark original `classes` rows with `is_migrated=true`.
+- **Dep**: U08.1, U08.2
+- **Est**: L
+- **Accept**: All section rows ada di rombel, FK enrollments repointable
+- **Verify**: count match pre/post
+
+**U08.4 — FE route + service cleanup**
+- **What**: Services write ke `rombel` only (bukan classes untuk section use case). Update `dev_seed.sql` + `useRombel*` hooks. Deprecate `classroomService` untuk section path.
+- **Dep**: U08.3
+- **Est**: M
+- **Accept**: `grep "from.*classes" src/` remaining hanya untuk course-instance semantics
+- **Verify**: grep + manual review
+
+**U08.5 — Regression sweep + Rapor re-verify**
+- **What**: Run sweep + rapor generator against dev school. Confirm per-rombel grades calculated correctly.
+- **Dep**: U08.4
+- **Est**: S
+- **Accept**: Rapor per-siswa match per-rombel membership
+- **Verify**: compare rapor output pre/post
+
+**Total U08 est**: S+M+L+M+S ≈ **2 minggu**
 
 ### U09 — Midtrans `create_payment` real API call
 - **What**: Replace fake `snap-{uuid}` token in `payment_handlers.rs::create_payment` dengan real Midtrans Snap API call: POST ke `https://app.sandbox.midtrans.com/snap/v1/transactions` with base64 server key auth. Return real `snap_token` + `redirect_url`.
@@ -95,28 +175,69 @@ Setiap unit: **What / Why / Dep / Est / Accept / Verify**
 - **Accept**: sandbox transaction completes; webhook `midtrans_webhook` receives notification; invoice status updates
 - **Verify**: manual end-to-end test dengan Midtrans sandbox account
 
-### U10 — Payment reconciliation logic in webhook
-- **What**: `midtrans_webhook.rs` sudah verify signature + insert payload. Tambah: UPDATE `invoice` status based on `transaction_status` ('settlement' → 'paid', 'cancel/expire/deny' → 'failed', 'pending' → 'pending'). Idempotent (handle repeated webhook).
-- **Why**: Tanpa ini webhook cuma logs; invoice status tidak pernah updated
-- **Dep**: U09
-- **Est**: S
-- **Accept**: Pay via sandbox → webhook received → invoice.status='paid' dalam 3 detik
-- **Verify**: integration test dengan mocked webhook payload
+### U10 — Payment reconciliation hardening (partial exists)
+- **Current state**: `midtrans_webhook.rs` sudah verify signature + insert `payment_transactions` + lookup invoice + UPDATE `invoices.status` ke 'paid'/'cancelled'. Reconciliation basic ada.
+- **What** (hardening):
+  1. **Schema consistency**: audit `invoices` vs `spp_invoices` — migrasi 054 bikin `spp_invoices`; webhook write ke `invoices`. Decide: unify atau add dispatcher.
+  2. **Idempotency**: repeated webhook (same `transaction_id`) harus no-op. Add unique index + ON CONFLICT handling.
+  3. **Event emission**: emit `invoice.paid` ke `domain_events` outbox setelah update (unblock U13 subscriber for receipt WA).
+  4. **Sandbox E2E test**: `tests/integration/midtrans_webhook.rs` with 4 payload variants (settlement/pending/cancel/deny).
+- **Dep**: U09 (payment creation path testable)
+- **Est**: M
+- **Accept**: Repeated webhook idempotent; invoice table unified; event emitted; sandbox E2E pass
+- **Verify**: integration tests
 
-### U11 — PDF renderer server-side untuk rapor
-- **What**: Pilih: (a) Puppeteer-based service (Node sidecar), atau (b) Typst (Rust native), atau (c) wkhtmltopdf. Implement endpoint `POST /pdf/rapor/:rapor_id` yang render `RaporPrint.tsx` template → PDF binary. Store hasil di S3.
-- **Why**: Saat ini hanya browser print (Ctrl+P per page). Batch export rapor 1 rombel impossible tanpa ini.
-- **Dep**: U01 (gradebook proper), U08 (rombel)
-- **Est**: XL (tech selection + impl + deploy)
-- **Accept**: batch export 30 siswa → 30 PDF files in S3, downloadable via signed URL
-- **Verify**: sekolah pilot terbitkan rapor semester
+### U11 — Server-side PDF renderer untuk rapor (split 6 sub-unit)
+
+**U11.1 — Tech decision ADR**
+- **What**: `docs/school-os-blueprint/ADR-002-pdf-renderer.md`. Trade-off: Puppeteer sidecar (Node service, full HTML/CSS fidelity, memory overhead) vs Typst (Rust-native binary, smaller footprint, custom template lang) vs wkhtmltopdf (deprecated, avoid). Decide + commit.
+- **Est**: S
+- **Accept**: ADR with chosen tech + rollback plan
+- **Verify**: decision referenced in U11.2+
+
+**U11.2 — Renderer POC**
+- **What**: POC: single rapor → PDF binary output. Hardcoded sample data dulu.
+- **Dep**: U11.1
+- **Est**: M
+- **Accept**: PDF generated, visually acceptable (signature blocks, table alignment)
+- **Verify**: manual review
+
+**U11.3 — Endpoint `POST /api/v1/pdf/rapor/:rapor_id`**
+- **What**: Rust handler receives rapor_id, query data, render, return PDF binary atau S3 signed URL
+- **Dep**: U11.2, U01 (gradebook data), U08.5 (rombel data stable)
+- **Est**: M
+- **Accept**: Endpoint responds 200 with PDF
+- **Verify**: curl + visual
+
+**U11.4 — S3 persistence**
+- **What**: Store rendered PDF ke S3 bucket `rapor/{tenant_id}/{rapor_id}.pdf`. Update `rapor_documents.pdf_url`. Signed URL 7-day TTL.
+- **Dep**: U11.3
+- **Est**: S
+- **Accept**: PDF retrievable via signed URL setelah generation
+- **Verify**: manual download test
+
+**U11.5 — Batch export per rombel**
+- **What**: Endpoint `POST /api/v1/pdf/rapor/batch/:rombel_id`. Async job, returns job_id, polling status. When done, download ZIP.
+- **Dep**: U11.4
+- **Est**: L
+- **Accept**: 30-siswa rombel → ZIP of 30 PDFs dalam <2 menit
+- **Verify**: E2E test
+
+**U11.6 — Visual regression test**
+- **What**: Playwright snapshot of rapor PDF dengan known dataset. Detect accidental layout breakage.
+- **Dep**: U11.5
+- **Est**: S
+- **Accept**: Test catches injected layout break; no false positives for 10 consecutive runs
+- **Verify**: CI green
+
+**Total U11 est**: S+M+M+S+L+S ≈ **2 minggu**
 
 ### U12 — Rapor signature flow UI end-to-end
-- **What**: Saat ini schema `rapor_signatures` ada. UI flow: guru mapel sign per-mapel → wali kelas review + sign all → kepsek final sign. State machine di FE + backend. Email notification pada setiap transition.
+- **What**: Schema `rapor_signatures` ada. State machine: DRAFT → guru_signed → wali_signed → kepsek_signed → published. Backend enforces order; FE UI per role menampilkan "queue saya". Notification tiap transition (email + in-app + WA jika wired).
 - **Why**: Rapor resmi butuh tanda tangan digital berurut sesuai struktur sekolah
-- **Dep**: U11 (PDF) — optional sebelum PDF works
+- **Dep**: U06 (role policy enforcement for sign eligibility); PDF (U11) **optional** — flow bisa dikerjakan parallel dengan PDF selama state machine backend jelas
 - **Est**: L
-- **Accept**: Rapor tidak bisa di-publish sebelum 3 signature complete
+- **Accept**: Rapor tidak bisa di-publish sebelum 3 signature complete; wrong role sign → 403
 - **Verify**: E2E test dengan 3 persona (guru mapel, wali_kelas, kepsek)
 
 ### U13 — Event bus subscribers per event type
@@ -131,13 +252,18 @@ Setiap unit: **What / Why / Dep / Est / Accept / Verify**
 - **Accept**: Submit quiz di dev school → gradebook row muncul + XP awarded + parent notification queued dalam 10 detik
 - **Verify**: integration test emit event → assert downstream side effects
 
-### U14 — Accessibility baseline fixes top-20 screens
-- **What**: Spec `tests/e2e/a11y.spec.ts` ada tapi tidak run. Integrate `@axe-core/playwright`. Scan top-20 screens, fix errors (ARIA labels, keyboard nav, color contrast, focus traps). Add CI gate.
-- **Why**: Sekolah inklusi butuh ini; compliance check; UX polish
+### U14 — Accessibility: run/fix/gate (spec sudah exist)
+- **Current state**: `tests/e2e/a11y.spec.ts` exist, `@axe-core/playwright` dependency di package.json.
+- **What**:
+  1. Run existing spec → capture baseline violations
+  2. Fix actual critical/serious violations (biasanya: missing aria-label, color contrast, heading hierarchy, form label-input association)
+  3. Integrate ke CI workflow (sekarang ada `.github/workflows/sweep.yml` tapi a11y belum di-gate)
+  4. Establish baseline: tolerate existing minor violations, gate regressions only (via expected-failure list)
+- **Why**: Sekolah inklusi butuh ini; infrastructure sudah ada, tinggal operate
 - **Dep**: none
-- **Est**: L
-- **Accept**: axe scan 0 critical/serious violations di 20 screens
-- **Verify**: `playwright test a11y.spec.ts` green, visible in CI
+- **Est**: M (bukan L — infra exists)
+- **Accept**: axe scan critical/serious = 0 di top-10 screens; CI blocks new violations
+- **Verify**: `playwright test a11y.spec.ts` green in CI
 
 ---
 
@@ -205,12 +331,17 @@ Setiap unit: **What / Why / Dep / Est / Accept / Verify**
 - **Accept**: Burst 1000 AI calls dari 1 user → 429 setelah limit; refills after reset period
 - **Verify**: integration test
 
-### U23 — Offline PWA lesson cache tuning
-- **What**: PWA config generic. Tune strategy: lesson content → stale-while-revalidate, long TTL; API calls → network-first; static assets → cache-first.
+### U23 — Offline PWA: validate + regression test (config sudah ada)
+- **Current state**: `vite.config.ts` sudah punya Workbox rule khusus `lessons-content` dengan `StaleWhileRevalidate` (200 entries, 7-day TTL) + API `NetworkFirst` fallback ke `/offline.html`.
+- **What**:
+  1. Manual verify: visit lesson → go offline → reload → LessonViewer renders
+  2. Identify gaps: draft autosave local-first saat offline? Submit queue saat kembali online? (likely missing)
+  3. Tulis E2E test yang emulate `context.setOffline(true)` + reload + assert content tetap visible
+  4. Add ke CI sebagai regression gate
 - **Dep**: none
-- **Est**: M
-- **Accept**: LessonViewer render offline untuk lesson yang pernah di-visit
-- **Verify**: devtools "offline" mode + reload
+- **Est**: M (validation + gap-fill; bukan tune from zero)
+- **Accept**: offline LessonViewer survives reload; E2E test catches cache regression
+- **Verify**: Playwright offline mode test in CI
 
 ### U24 — Narrative AI untuk rapor deskripsi
 - **What**: Scaffold AI provider ada. Prompt: input nilai + partisipasi per mapel → output 2-3 kalimat deskripsi Bahasa Indonesia sopan sesuai tone Kemdikbud.
@@ -242,8 +373,10 @@ Kemdikbud API. Deferred — tidak public.
 ### U29 — Webhook API 3rd party
 Outbound webhook system. Niche feature; deferred.
 
-### U30 — Performance budget + monitoring
-Lighthouse CI ada, belum threshold. Add SLO later when real traffic.
+### U30 — Performance budget + monitoring (bump to P2 jika pilot serius)
+Lighthouse CI ada, belum threshold. Untuk pilot school serius (>500 siswa), bump ke P2 dan set budget awal: FCP <2s, LCP <3s, TTI <5s, API p95 <500ms. Alert Slack jika regresi.
+- **Dep**: monitoring infra (kalau belum ada)
+- **Est**: M
 
 ### U31 — Backup & DR drill
 `docs/DISASTER_RECOVERY.md` ada. Drill requires production-like environment.
@@ -256,34 +389,51 @@ UU PDP compliance. Schema needed per-tenant; policy decision pending legal revie
 
 ---
 
-## Dependency graph
+## Dependency graph (revised)
 
 ```
-U01 gradebook ──┬──► U13 event bus subscribers ──► U18 PPDB, U24 narrative
-                │
-U02 dup-key ────┤   (standalone)
-                │
-U03 baseline ───┴──► U06 RBAC middleware ───► U07 role data ───► U08 rombel split
-                                                                      │
-                                                                      ▼
-U04 reset-sh ────► U05 richer seed ────► (dev school full)           │
-                                                                      │
-U09 midtrans ───► U10 reconciliation ──► U15 inline snap ──► U18 PPDB
-                                                                      │
-U11 PDF infra ──► U12 signature UI ─────────────────────────────────► U24 narrative
-            └──► U17 BOS report
-                                                                      ▼
-U14 a11y ────── (standalone, parallel)                              (Fase 3 complete)
+U01 gradebook ─┬──► U13 event bus subscribers ──► U18 PPDB, U24 narrative
+               │
+U02 dup-key ───┤   (standalone FE investigation)
+               │
+U03 baseline ──┴──► U06.1 RBAC ADR ──► U06.2 policy.yaml ──► U06.3 middleware
+                                                                    │
+                                    ┌───────────────────────────────┤
+                                    ▼                               ▼
+                          U07.1 role backfill            U08.1 rombel audit
+                                    │                               │
+                                    ▼                               ▼
+                          U07.2 seed 10-role            U08.2-5 rombel split (5 sub-unit)
+                                                                    │
+U04 reset-sh verify ─► U05 richer seed ─────────── (dev school realistic) │
+                                                                    │
+                                    ┌───────────────────────────────┤
+                                    ▼                               ▼
+                          U06.4 scope checks ──► U06.5 RBAC matrix test
+                                                                    │
+U09 midtrans create ─► U10 reconciliation ─► U15 inline snap ─► U18 PPDB
+                                                                    │
+                                                         ┌──────────┤
+                                                         ▼          ▼
+U11.1 ADR → U11.2 POC → U11.3 endpoint → U11.4 S3 → U11.5 batch → U11.6 snapshot
+                                                         │
+                                    ┌────────────────────┤
+                                    ▼                    ▼
+                          U12 signature UI      U24 narrative AI
+                                    │
+                                    └──► (Fase 3 complete)
 
+U14 a11y run/gate ── (standalone, parallel)
 U16 WA BSP ────► U18 PPDB
-U20 Authoring ─ (standalone)
-U19 Dapodik ── (standalone)
-U21 Tutor stream ─ (standalone)
-U22 Rate limit ─► U25 Semantic search
-U23 PWA ─── (standalone)
+U20 Authoring ─ (standalone) | U19 Dapodik ── (standalone)
+U21 Tutor stream (standalone) | U22 Rate limit ─► U25 Semantic search
+U23 PWA validate (standalone)
 ```
 
-**Critical path** (longest chain): U03 → U06 → U07 → U08 → U11 → U12 → U24 = **7 units, ~3 weeks** (rough).
+**Critical path** (longest chain, revised post-audit):
+`U03 → U06.1 → U06.2 → U06.3 → U08.1 → U08.2 → U08.3 → U08.4 → U11.1 → U11.2 → U11.3 → U11.4 → U12 → U24`
+
+= 14 sub-units, realistic **4-6 minggu** kalau solo operator, **2-3 minggu** kalau tim 3-4 engineer paralel dan vendor credential sudah siap (Midtrans sandbox, OpenAI key, etc.).
 
 ---
 
@@ -308,39 +458,53 @@ Bisa dikerjakan paralel (file disjoint, no shared state change):
 
 ---
 
-## Recommended execution sequence
+## Recommended execution sequence (revised: 6 minggu realistis, bukan optimistis)
 
-### Week 1 (Blocker cleanup)
-1. **Day 1-2**: U01, U02, U04 paralel
-2. **Day 3-4**: U03 (baseline audit)
-3. **Day 5**: U14 (a11y, can run paralel with U03)
+### Week 1 — Blocker cleanup + baseline stabilization
+1. **Day 1-2**: U01 (migrasi 048 + baseline gradebook_entries), U02 (dup-key service/cache audit), U04 (reset-sh CI hardening) paralel
+2. **Day 3-4**: U03 (baseline.sql audit — scope may expand; escalate if >2 day)
+3. **Day 5**: U14 run/fix/gate a11y
+4. **End-week gate**: sweep green, baseline clean, reset-sh reliable
 
-### Week 2 (Payment + RBAC path begin)
-1. U09 → U10 → U15 (serial, payment end-to-end)
-2. Paralel: U06 (RBAC middleware)
-3. Paralel: U05 (richer seed)
+### Week 2 — Payment path + RBAC foundation
+1. U09 → U10 → U15 (payment end-to-end, MUST have Midtrans sandbox credential ready)
+2. Paralel: U06.1 ADR, U06.2 policy.yaml, U07.1 role backfill
+3. Paralel: U05 richer seed (depends on nothing; valuable for downstream testing)
 
-### Week 3 (Rombel + Rapor foundation)
-1. U07 → U08 (role data + classes split)
-2. Paralel: U11 (PDF infra tech selection + POC)
-3. Paralel: U20 (AuthoringAssist wire)
+### Week 3 — RBAC runtime + Rombel split begin
+1. U06.3 middleware binding, U06.4 scope checks, U06.5 matrix test (serial within U06)
+2. Paralel: U08.1 rombel audit (data analysis)
+3. Paralel: U20 AuthoringAssist wire to CourseBuilder (standalone)
 
-### Week 4 (Rapor complete + Events)
-1. U11 (PDF infra complete)
-2. U12 (signature UI)
-3. U13 (event bus subscribers)
-4. Paralel: U21 (tutor streaming)
+### Week 4 — Rombel split complete + Rapor infra
+1. U08.2-5 (read adapters → write migration → FE cleanup → regression)
+2. Paralel: U11.1 ADR (PDF tech), U11.2 POC
+3. Paralel: U13 event bus subscribers
 
-### Week 5 (PPDB + Integrations)
-1. U16 (WA BSP) — prerequisite for U18
-2. U18 (PPDB full flow)
-3. Paralel: U19 (Dapodik async), U17 (BOS report)
+### Week 5 — Rapor complete + Integrations begin
+1. U11.3-6 (endpoint → S3 → batch → visual regression)
+2. U12 signature flow (parallel dengan PDF karena state machine independent)
+3. U21 tutor token-streaming refactor
+4. Paralel: U16 WA BSP wiring (prereq U18)
 
-### Week 6 (Hardening)
-1. U22 (rate limit), U23 (PWA), U24 (narrative AI), U25 (semantic search)
+### Week 6 — Content completion + Hardening
+1. U24 narrative AI for rapor (depends on rapor data + PDF infra ready)
+2. U18 PPDB full flow (depends on U09, U13, U16)
+3. Paralel: U17 BOS PDF report, U19 Dapodik async worker
+4. Paralel: U22 rate limit enforcement, U23 offline PWA validate
 
-### Beyond (Fase 8+, deferred)
-P5 deep, Magang, UKS, alumni, pesantren variant, ABK inklusi, yayasan multi-sekolah, native mobile.
+### Week 7+ — Deferred / Fase 8
+- U25 semantic search (blocks on U22)
+- U30 performance budget (pilot-dependent)
+- Fase 8+: P5 deep, Magang/PKL, UKS, alumni, pesantren, ABK inklusi, yayasan, native mobile
+
+### Milestone gates
+
+- **Week 2 end**: Payment sandbox E2E green; RBAC ADR committed
+- **Week 3 end**: RBAC enforced; rombel audit complete
+- **Week 4 end**: Rombel split shipped; sweep green
+- **Week 5 end**: Rapor PDF generator works; signature flow testable
+- **Week 6 end**: Dev school realistis; PPDB flow testable; production-readiness gates pass
 
 ---
 
