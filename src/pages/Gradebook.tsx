@@ -72,7 +72,7 @@ export function Gradebook() {
   }
 
   return (
-    <div className="max-w-7xl mx-auto space-y-6">
+    <div className="max-w-7xl mx-auto space-y-6 print-page-root">
       <Breadcrumb
         items={[{ label: 'Dashboard', href: dashboardHref }, { label: 'Nilai' }]}
         className="mb-2"
@@ -149,7 +149,7 @@ export function Gradebook() {
           </p>
         </div>
 
-        <div className="flex items-center gap-2 sm:gap-3">
+        <div className="flex items-center gap-2 sm:gap-3 print-hidden">
           <button
             onClick={() => s.setIsAddModalOpen(true)}
             data-testid="gradebook-add-column"

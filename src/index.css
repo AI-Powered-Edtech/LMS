@@ -1,4 +1,5 @@
 @import 'tailwindcss';
+@import './shared/styles/print.css';
 
 /* ─── Dark Mode: class-based (html.dark) ─────────────────────
    Tailwind v4 defaults toj @media (prefers-color-scheme: dark).

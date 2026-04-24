@@ -1,0 +1,163 @@
+/* =============================================================
+ * Global Print Styles — Sekolah Indonesia archival-ready output
+ *
+ * Targets: Gradebook, Principal ReportPreview, Parent MonthlyReport
+ * Goal: Ctrl+P menghasilkan dokumen A4 rapi, tanpa nav/sidebar,
+ *        monokrom-ready tapi tetap preserve warna opsional.
+ * ============================================================= */
+
+/* Utility classes — usable in any component */
+.print-only {
+  display: none !important;
+}
+
+@media print {
+  /* ─── Page setup ───────────────────────────────────────── */
+  @page {
+    size: A4;
+    margin: 15mm;
+  }
+
+  html,
+  body {
+    background: #ffffff !important;
+    color: #000000 !important;
+    font-size: 11pt;
+    line-height: 1.4;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+
+  /* ─── Utility class visibility ─────────────────────────── */
+  .print-hidden,
+  .no-print {
+    display: none !important;
+  }
+
+  .print-only {
+    display: block !important;
+  }
+
+  .page-break-before {
+    page-break-before: always;
+    break-before: page;
+  }
+
+  .page-break-after {
+    page-break-after: always;
+    break-after: page;
+  }
+
+  .page-break-avoid {
+    page-break-inside: avoid;
+    break-inside: avoid;
+  }
+
+  /* ─── Hide chrome: sidebar / top nav / floating UI ─────── */
+  aside,
+  nav[role='navigation'],
+  header[role='banner'],
+  [data-testid='sidebar'],
+  [data-testid='mobile-sidebar'],
+  [data-testid='app-header'],
+  [data-testid='toast-container'],
+  [role='dialog'][aria-modal='true'] ~ [data-backdrop],
+  .sidebar,
+  .app-sidebar,
+  .app-header,
+  .toast,
+  .tooltip {
+    display: none !important;
+  }
+
+  /* ─── Main content: expand to full width ───────────────── */
+  main,
+  .print-page-root {
+    display: block !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    box-shadow: none !important;
+    background: #ffffff !important;
+    color: #000000 !important;
+  }
+
+  /* Drop rounded/shadow containers for flatter print look */
+  .print-page-root *,
+  main * {
+    box-shadow: none !important;
+    text-shadow: none !important;
+  }
+
+  /* ─── Typography ───────────────────────────────────────── */
+  h1 {
+    font-size: 18pt;
+    margin: 0 0 8pt;
+  }
+  h2 {
+    font-size: 14pt;
+    margin: 10pt 0 6pt;
+  }
+  h3 {
+    font-size: 12pt;
+    margin: 8pt 0 4pt;
+  }
+  p {
+    margin: 0 0 6pt;
+  }
+
+  /* ─── Tables: thead repeats, rows stay together ────────── */
+  table {
+    width: 100% !important;
+    border-collapse: collapse !important;
+    page-break-inside: auto;
+  }
+  thead {
+    display: table-header-group;
+  }
+  tfoot {
+    display: table-footer-group;
+  }
+  tr,
+  td,
+  th {
+    page-break-inside: avoid;
+    break-inside: avoid;
+  }
+  th,
+  td {
+    border: 1px solid #000 !important;
+    padding: 4pt 6pt !important;
+    color: #000 !important;
+  }
+  th {
+    background: #eaeaea !important;
+    font-weight: 600;
+  }
+
+  /* ─── Links: keep simple ───────────────────────────────── */
+  a,
+  a:visited {
+    color: #000 !important;
+    text-decoration: none;
+  }
+
+  /* ─── Form controls: hide interactive affordances ──────── */
+  button,
+  select,
+  input[type='button'],
+  input[type='submit'] {
+    display: none !important;
+  }
+
+  /* Text inputs: keep value visible, drop chrome */
+  input[type='text'],
+  input[type='number'],
+  textarea {
+    border: none !important;
+    background: transparent !important;
+    color: #000 !important;
+    padding: 0 !important;
+  }
+}
