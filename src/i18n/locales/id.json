@@ -1,0 +1,16 @@
+{
+  "common": {
+    "save": "Simpan",
+    "cancel": "Batal",
+    "loading": "Memuat...",
+    "error": "Terjadi kesalahan",
+    "confirm": "Konfirmasi",
+    "delete": "Hapus",
+    "edit": "Ubah",
+    "close": "Tutup"
+  },
+  "auth": {
+    "login": "Masuk",
+    "logout": "Keluar"
+  }
+}
