@@ -11,13 +11,13 @@
 //! - `public`     — no scope check; anyone with the right role passes.
 //! - `tenant`     — actor.tenant_id must equal resource.tenant_id.
 //! - `self`       — actor.user_id must equal resource.user_id (e.g. `/me`,
-//!                  parent reading own child is `rombel` not `self`).
+//!   parent reading own child is `rombel` not `self`).
 //! - `rombel`     — actor must be wali_kelas of the rombel that contains
-//!                  the resource's student, OR principal/admin tenant-wide,
-//!                  OR a teacher who teaches a course for that rombel.
+//!   the resource's student, OR principal/admin tenant-wide,
+//!   OR a teacher who teaches a course for that rombel.
 //! - `foundation` — actor must belong to the foundation/yayasan that owns
-//!                  the resource's tenant. Reserved; verdict = Unmatched
-//!                  until foundation membership table lands.
+//!   the resource's tenant. Reserved; verdict = Unmatched
+//!   until foundation membership table lands.
 //!
 //! ### Why shadow-only
 //! Real-world endpoints don't yet pass enough resource metadata for a hard
