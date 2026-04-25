@@ -55,10 +55,21 @@ pub async fn midtrans_webhook_handler(
     let notification: MidtransNotification = serde_json::from_value(raw_payload.clone())
         .map_err(|e| VilError::bad_request(format!("invalid Midtrans notification: {e}")))?;
 
+    // Fail-closed: an unset key means we cannot verify the signature, and
+    // accepting unsigned notifications would let anyone forge a "paid" event.
+    // Match the Snap-creation handler's posture: explicit 503 on missing key
+    // rather than silent acceptance.
     let server_key = std::env::var("MIDTRANS_SERVER_KEY").unwrap_or_default();
     if server_key.is_empty() {
-        tracing::warn!("MIDTRANS_SERVER_KEY not set; webhook signature NOT verified");
-    } else if !verify_signature(&notification, &server_key) {
+        tracing::error!(
+            order_id = %notification.order_id,
+            "MIDTRANS_SERVER_KEY not set — refusing to accept unsigned Midtrans webhook"
+        );
+        return Err(VilError::internal(
+            "MIDTRANS_SERVER_KEY belum dikonfigurasi",
+        ));
+    }
+    if !verify_signature(&notification, &server_key) {
         tracing::warn!(
             order_id = %notification.order_id,
             "Midtrans webhook signature mismatch — rejecting"
