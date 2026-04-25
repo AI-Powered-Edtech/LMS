@@ -110,6 +110,7 @@ config.json
 .stakpak/session*
 .codebuddy
 .qa-sweep/
+.qa-rbac/
 
 # sweep artifacts
 .qa-a11y/

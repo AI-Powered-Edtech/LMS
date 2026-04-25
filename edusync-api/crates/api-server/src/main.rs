@@ -438,9 +438,9 @@ async fn main() -> anyhow::Result<()> {
         .endpoint(Method::POST, "/pdf/certificate", post(generate_pdf_handler))
         .endpoint(Method::POST, "/webhooks/midtrans", post(midtrans_webhook_handler))
         .endpoint(Method::POST, "/payments/snap", post(create_snap_handler))
-        .endpoint(Method::POST, "/pdf/rapor/{rapor_id}", post(render_rapor_pdf_handler))
-        .endpoint(Method::POST, "/rapor/{rapor_id}/sign", post(sign_rapor_handler))
-        .endpoint(Method::POST, "/rapor/{rapor_id}/publish", post(publish_rapor_handler))
+        .endpoint(Method::POST, "/pdf/rapor/:rapor_id", post(render_rapor_pdf_handler))
+        .endpoint(Method::POST, "/rapor/:rapor_id/sign", post(sign_rapor_handler))
+        .endpoint(Method::POST, "/rapor/:rapor_id/publish", post(publish_rapor_handler))
         .state(app_state.clone());
 
     // ── Phase 3D: Processing ──────────────────────────────────────────────────

@@ -2,9 +2,10 @@
 //!
 //! `POST /api/v1/pdf/rapor/:rapor_id`
 //!
-//! Pulls rapor data from `rapor_kurmer` + joins (rombel, profiles, subjects),
-//! shells out to `services/pdf-renderer/render.mjs` with a JSON payload, and
-//! returns the binary PDF in the response body.
+//! Pulls rapor data from `rapor_documents` + joins (rombel, profiles,
+//! semesters, academic_years, subject_grades aggregate, signatures), shells
+//! out to `services/pdf-renderer/render.mjs` with a JSON payload, and returns
+//! the binary PDF in the response body.
 //!
 //! ### RBAC posture (shadow-mode aligned)
 //! `rbac_policy.yaml` already has `POST /pdf/rapor/{id} → wali_kelas, principal,
@@ -43,48 +44,68 @@ pub async fn render_rapor_pdf_handler(
     let state = svc.state::<AppState>()?.clone();
     let pool = &state.db;
 
-    // Single-shot data load. The query joins the minimum tables to populate
-    // the renderer fixture shape; deeper joins (per-CP descriptions, sikap)
-    // come once F1 lands and the published-rapor view is finalised.
+    // Single-shot data load against the actual rapor_documents schema
+    // (migration 053). subject grades come from rapor_subject_grades; the
+    // kepsek signature is looked up in rapor_signatures. Tenant-level
+    // address / NPSN and per-student NIS are placeholders — those columns
+    // do not exist in the current schema and will be filled in once the
+    // school-profile / dossiers join lands.
     let row: Option<(serde_json::Value,)> = sqlx::query_as(
         r#"
         SELECT jsonb_build_object(
             'school',  jsonb_build_object(
                 'nama',   t.name,
-                'alamat', COALESCE(t.address, ''),
-                'npsn',   COALESCE(t.npsn, '')
+                'alamat', '',
+                'npsn',   ''
             ),
             'student', jsonb_build_object(
-                'nama', p.full_name,
-                'nis',  COALESCE(p.nis, ''),
-                'nisn', COALESCE(p.nisn, '')
+                'nama', COALESCE(p.full_name, rd.student_name),
+                'nis',  '',
+                'nisn', COALESCE(rd.nisn, '')
             ),
             'rombel',  jsonb_build_object(
-                'nama',       r.name,
+                'nama',       COALESCE(r.name, rd.rombel_name, '-'),
                 'wali_kelas', COALESCE(wk.full_name, '-'),
-                'fase',       COALESCE(rk.fase, '-')
+                'fase',       '-'
             ),
             'semester', jsonb_build_object(
                 'nama',  COALESCE(s.name, '-'),
-                'tahun', COALESCE(ay.label, '-')
+                'tahun', COALESCE(ay.label, s.academic_year, '-')
             ),
-            'subjects',   COALESCE(rk.subjects_jsonb,   '[]'::jsonb),
-            'attendance', COALESCE(rk.attendance_jsonb, '{}'::jsonb),
+            'subjects', COALESCE(
+                (SELECT jsonb_agg(jsonb_build_object(
+                    'nama',       sg.subject_name,
+                    'nilai',      sg.nilai_akhir,
+                    'descriptor', sg.descriptor::text,
+                    'deskripsi',  sg.deskripsi_capaian
+                ) ORDER BY sg.subject_name)
+                   FROM public.rapor_subject_grades sg
+                  WHERE sg.rapor_id = rd.id),
+                '[]'::jsonb
+            ),
+            'attendance', '{}'::jsonb,
             'signatures', jsonb_build_object(
                 'wali_kelas', COALESCE(wk.full_name, ''),
-                'kepsek',     COALESCE(kp.full_name, ''),
-                'published',  COALESCE(rk.status, '') = 'published'
+                'kepsek', COALESCE(
+                    (SELECT pk.full_name
+                       FROM public.rapor_signatures rs
+                       JOIN public.profiles pk ON pk.id = rs.signer_id
+                      WHERE rs.rapor_id = rd.id
+                        AND rs.signer_role = 'kepsek'
+                      LIMIT 1),
+                    ''
+                ),
+                'published', rd.status = 'published'
             )
         ) AS payload
-        FROM public.rapor_kurmer rk
-        JOIN public.profiles  p  ON p.id  = rk.student_id
-        JOIN public.rombel    r  ON r.id  = rk.rombel_id
+        FROM public.rapor_documents rd
+        LEFT JOIN public.profiles p ON p.id = rd.student_id
+        LEFT JOIN public.rombel r ON r.id = rd.rombel_id
         LEFT JOIN public.profiles wk ON wk.id = r.wali_kelas_id
-        LEFT JOIN public.profiles kp ON kp.id = rk.kepsek_id
-        LEFT JOIN public.semesters s ON s.id = rk.semester_id
-        LEFT JOIN public.academic_years ay ON ay.id = s.academic_year_id
-        JOIN public.tenants   t  ON t.id  = rk.tenant_id
-        WHERE rk.id = $1 AND rk.tenant_id = $2
+        LEFT JOIN public.semesters s ON s.id = rd.semester_id
+        LEFT JOIN public.academic_years ay ON ay.id = rd.academic_year_id
+        JOIN public.tenants t ON t.id = rd.tenant_id
+        WHERE rd.id = $1 AND rd.tenant_id = $2
         "#,
     )
     .bind(rapor_id)

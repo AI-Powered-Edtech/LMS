@@ -50,7 +50,7 @@ WHERE tm.status = 'active'
         ) THEN TRUE
         ELSE FALSE
       END
-ON CONFLICT (user_id, role, tenant_id) DO NOTHING;
+ON CONFLICT (user_id, role) DO NOTHING;
 
 -- Optional cleanup: delete coarse TEACHER rows for users who now have a more
 -- specific role like WALI_KELAS / GURU_BK. Policy file treats each role as

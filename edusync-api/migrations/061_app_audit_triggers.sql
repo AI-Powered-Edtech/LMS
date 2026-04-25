@@ -77,14 +77,16 @@ BEGIN
         'counseling_notes'
     ]
     LOOP
-        EXECUTE format(
-            'DROP TRIGGER IF EXISTS trg_audit_%I ON public.%I; '
-            'CREATE TRIGGER trg_audit_%I '
-            'AFTER INSERT OR UPDATE OR DELETE ON public.%I '
-            'FOR EACH ROW EXECUTE FUNCTION public.app_audit_trigger();',
-            target_table, target_table, target_table, target_table
-        );
-    EXCEPTION WHEN OTHERS THEN
-        RAISE NOTICE 'audit trigger on % skipped: %', target_table, SQLERRM;
+        BEGIN
+            EXECUTE format(
+                'DROP TRIGGER IF EXISTS trg_audit_%I ON public.%I; '
+                'CREATE TRIGGER trg_audit_%I '
+                'AFTER INSERT OR UPDATE OR DELETE ON public.%I '
+                'FOR EACH ROW EXECUTE FUNCTION public.app_audit_trigger();',
+                target_table, target_table, target_table, target_table
+            );
+        EXCEPTION WHEN OTHERS THEN
+            RAISE NOTICE 'audit trigger on % skipped: %', target_table, SQLERRM;
+        END;
     END LOOP;
 END $$;

@@ -192,7 +192,7 @@ SELECT
   public.dev_seed_uuid('tenant:sma-nusantara-dev')
 FROM public.users u
 WHERE u.email LIKE '%@nusantara.dev'
-ON CONFLICT (user_id, role, tenant_id) DO NOTHING;
+ON CONFLICT (user_id, role) DO NOTHING;
 
 -- tenant_memberships uses TEXT role, allowing finer Indonesian role names that
 -- the FE can branch on. When Fase 1 RBAC matrix lands, replace the literal
