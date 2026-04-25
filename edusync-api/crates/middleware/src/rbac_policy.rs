@@ -44,6 +44,11 @@ pub struct PolicyFile {
     pub default: DefaultPolicy,
     #[serde(default = "default_true")]
     pub shadow_mode: bool,
+    /// Path prefixes that hard-enforce (return 403) even when shadow_mode is
+    /// true. A3 partial enforce flip lists `finance / audit / counseling /
+    /// admin_users` paths here while the rest of the surface stays shadow.
+    #[serde(default)]
+    pub enforce_paths: Vec<String>,
 }
 
 fn default_version() -> u32 {
@@ -66,6 +71,11 @@ pub struct RbacPolicy {
     entries: Vec<CompiledEntry>,
     pub shadow_mode: bool,
     pub deny_unmatched: bool,
+    /// Normalised path prefixes (no leading slash) that hard-enforce even in
+    /// shadow mode. Match by exact equality OR prefix-with-slash so
+    /// `/data/invoices` enforces both `/data/invoices` and `/data/invoices/123`
+    /// without accidentally catching `/data/invoices_archive`.
+    enforce_path_prefixes: Vec<String>,
 }
 
 #[derive(Debug, Clone)]
@@ -126,10 +136,31 @@ impl RbacPolicy {
                 scope: entry.scope.clone(),
             });
         }
+        let enforce_path_prefixes = file
+            .enforce_paths
+            .into_iter()
+            .map(|p| p.trim_start_matches('/').trim_end_matches('/').to_string())
+            .filter(|p| !p.is_empty())
+            .collect();
         Ok(Self {
             entries,
             shadow_mode: file.shadow_mode,
             deny_unmatched: file.default.deny_unmatched,
+            enforce_path_prefixes,
+        })
+    }
+
+    /// True when `path` should hard-enforce (403 on Deny) regardless of the
+    /// global `shadow_mode` flag. Used by A3 partial enforce flip.
+    pub fn is_enforced(&self, path: &str) -> bool {
+        let normalised = path
+            .split('?')
+            .next()
+            .unwrap_or("")
+            .trim_start_matches('/')
+            .trim_end_matches('/');
+        self.enforce_path_prefixes.iter().any(|prefix| {
+            normalised == prefix || normalised.starts_with(&format!("{prefix}/"))
         })
     }
 

@@ -128,42 +128,77 @@ where
         );
         ctx.roles = merged;
 
-        // Shadow-mode policy evaluation — per ADR-001 / U06.3c. Logs verdict
-        // but does NOT block (until shadow_mode=false in rbac_policy.yaml).
-        shadow_evaluate_policy(parts, &ctx);
+        // A3 partial enforce flip — Deny verdicts return 403 only for paths
+        // listed in `enforce_paths` of rbac_policy.yaml (or any path when
+        // global shadow_mode is off). Other modules stay shadow-mode and
+        // only log "would_deny", to keep the rollout incremental.
+        evaluate_policy_or_enforce(parts, &ctx)?;
         Ok(AuthedRequest(ctx))
     }
 }
 
-/// Evaluate rbac_policy for the current request and log the verdict.
-/// Never blocks. Intended to surface policy drift before enforcement is flipped.
-fn shadow_evaluate_policy(parts: &Parts, ctx: &TenantContext) {
+/// Evaluate rbac_policy for the current request. Returns `Err(VilError::forbidden)`
+/// when the verdict is Deny *and* the path is hard-enforced (or shadow_mode is
+/// globally off). Otherwise just logs and returns Ok — preserving the original
+/// shadow-mode telemetry for the rest of the surface.
+fn evaluate_policy_or_enforce(parts: &Parts, ctx: &TenantContext) -> Result<(), VilError> {
     use edusync_middleware::rbac_policy::{global, Verdict};
-    let Some(policy) = global() else { return };
+    let Some(policy) = global() else { return Ok(()) };
     let method = parts.method.as_str();
-    let path = parts.uri.path();
+    // vil_server's ServiceProcess.prefix() already strips `/api/v1` from the
+    // path before the extractor runs — so paths look like `/data/invoices`,
+    // matching the policy key convention. Both `evaluate` and `is_enforced`
+    // see the same shape.
+    let raw_path = parts.uri.path();
+    let enforced = policy.is_enforced(raw_path);
+    let global_enforce = !policy.shadow_mode;
+
     // A0: evaluate against the *full* role vector, not the legacy single
     // role, so users with TEACHER+WALI_KELAS satisfy either-side policies.
-    match policy.evaluate(&ctx.roles, method, path) {
-        Verdict::Allow => {}
+    match policy.evaluate(&ctx.roles, method, raw_path) {
+        Verdict::Allow => Ok(()),
         Verdict::Deny => {
-            tracing::warn!(
-                target: "rbac_shadow",
-                method = %method, path = %path,
-                user_role = %ctx.role, user_id = %ctx.user_id,
-                roles = ?ctx.roles,
-                "rbac_shadow: would_deny (shadow_mode={})", policy.shadow_mode,
-            );
-        }
-        Verdict::Unmatched => {
-            if policy.deny_unmatched {
+            if global_enforce || enforced {
+                tracing::warn!(
+                    target: "rbac_enforce",
+                    method = %method, path = %raw_path,
+                    user_id = %ctx.user_id, roles = ?ctx.roles,
+                    "rbac_enforce: deny",
+                );
+                Err(VilError::forbidden("Akses ditolak (RBAC)"))
+            } else {
                 tracing::warn!(
                     target: "rbac_shadow",
-                    method = %method, path = %path,
+                    method = %method, path = %raw_path,
+                    user_role = %ctx.role, user_id = %ctx.user_id,
+                    roles = ?ctx.roles,
+                    "rbac_shadow: would_deny (shadow_mode=true)",
+                );
+                Ok(())
+            }
+        }
+        Verdict::Unmatched => {
+            if policy.deny_unmatched && (global_enforce || enforced) {
+                tracing::warn!(
+                    target: "rbac_enforce",
+                    method = %method, path = %raw_path,
+                    user_id = %ctx.user_id, roles = ?ctx.roles,
+                    "rbac_enforce: deny_unmatched",
+                );
+                Err(VilError::forbidden(
+                    "Akses ditolak (RBAC: route not in policy)",
+                ))
+            } else if policy.deny_unmatched {
+                tracing::warn!(
+                    target: "rbac_shadow",
+                    method = %method, path = %raw_path,
                     user_role = %ctx.role,
                     roles = ?ctx.roles,
-                    "rbac_shadow: would_deny_unmatched (shadow_mode={})", policy.shadow_mode,
+                    "rbac_shadow: would_deny_unmatched (shadow_mode=true)",
                 );
+                Ok(())
+            } else {
+                Ok(())
             }
         }
     }

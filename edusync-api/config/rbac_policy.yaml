@@ -64,16 +64,20 @@ policies:
   GET  /data/academic_years:           { roles: [teacher, wali_kelas, wakasek, tu, principal, admin], scope: tenant }
   POST /data/academic_years:           { roles: [wakasek, tu, admin], scope: tenant }
 
-  # ─── BK (counseling) ─────────────────────────────────────────────────────
+  # ─── BK (counseling) — A3 hard-enforce ───────────────────────────────────
   GET  /data/counseling_notes:         { roles: [guru_bk, principal, admin], scope: tenant }
-  POST /data/counseling_notes:         { roles: [guru_bk, admin], scope: self }
+  # data_plane unifies POST for read+write; principal needs read access so the
+  # entry covers union of permitted users. Row-level write filtering happens
+  # at the handler / RLS layer.
+  POST /data/counseling_notes:         { roles: [admin, principal, guru_bk], scope: self }
 
-  # ─── Finance / Invoices ──────────────────────────────────────────────────
+  # ─── Finance / Invoices — A3 hard-enforce ────────────────────────────────
   GET  /data/invoices:                 { roles: [parent, tu, admin, principal], scope: self }
-  POST /data/invoices:                 { roles: [tu, admin], scope: tenant }
+  POST /data/invoices:                 { roles: [tu, admin, principal, parent], scope: self }
+  POST /data/payment_transactions:     { roles: [tu, admin, principal], scope: tenant }
   POST /payment/create:                { roles: [parent, student], scope: self }
   GET  /data/bos_expenses:             { roles: [tu, admin, principal], scope: tenant }
-  POST /data/bos_expenses:             { roles: [tu, admin], scope: tenant }
+  POST /data/bos_expenses:             { roles: [tu, admin, principal], scope: tenant }
 
   # ─── PPDB ────────────────────────────────────────────────────────────────
   GET  /data/ppdb_periods:             { roles: [tu, admin, principal, wakasek], scope: tenant }
@@ -100,6 +104,7 @@ policies:
   GET  /data/users:                    { roles: [admin, tu, principal], scope: tenant }
   POST /data/lti_platform_registrations: { roles: [admin], scope: tenant }
   GET  /data/audit_logs:               { roles: [admin, principal, yayasan], scope: tenant }
+  POST /data/app_audit_logs:           { roles: [admin, principal], scope: tenant }
   GET  /data/system_health:            { roles: [admin, principal], scope: tenant }
 
   # ─── Principal / Executive ───────────────────────────────────────────────
@@ -144,3 +149,26 @@ default:
 # Rollout: middleware logs "would deny" for unmatched routes in shadow mode
 # before actually denying. Flip `shadow_mode` to `false` to enable enforcement.
 shadow_mode: true
+
+# A3 partial enforce flip — Wave 4. Paths listed here return 403 on Deny
+# verdicts even while shadow_mode is true; everything else stays shadow until
+# its module clears the matrix gate. Match is exact OR prefix-with-slash.
+#
+# Paths are written WITHOUT the `/api/v1` prefix — vil_server strips that
+# before the middleware sees the request, so the convention here matches
+# the policy keys above (e.g. `POST /data/invoices`).
+#
+# Currently enforced via the AuthedRequest extractor only (data_plane,
+# rapor, payments). Routes that go through RbacGuard (tenant-admin,
+# tenant-invites, tenant-settings) already enforce at the handler via
+# `rbac.require("admin")` — they are NOT listed here to avoid double-gating
+# until RbacGuard is wired through the same evaluator.
+enforce_paths:
+  # finance
+  - /data/invoices
+  - /data/payment_transactions
+  - /data/bos_expenses
+  # audit
+  - /data/app_audit_logs
+  # counseling / BK
+  - /data/counseling_notes
