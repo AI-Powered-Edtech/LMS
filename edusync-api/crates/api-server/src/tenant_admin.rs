@@ -33,7 +33,10 @@ pub async fn get_tenant_settings_handler(
     rbac: RbacGuard,
 ) -> HandlerResult<VilResponse<TenantSettingsResponse>> {
     let state = svc.state::<AppState>()?.clone();
-    rbac.require("admin")?;
+    // Read access matches policy: admin OR principal (kepala sekolah read-only
+    // oversight). PATCH stays admin-only below. Belt-and-suspenders only —
+    // the policy evaluator in build_authed_ctx is the primary gate.
+    rbac.require("principal")?;
     let tenant_id = rbac.ctx().tenant_id;
 
     let row = sqlx::query("SELECT settings FROM public.tenants WHERE id = $1")
