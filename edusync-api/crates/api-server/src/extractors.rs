@@ -102,9 +102,42 @@ where
     type Rejection = VilError;
 
     async fn from_request_parts(parts: &mut Parts, _state: &S) -> Result<Self, Self::Rejection> {
-        extract_tenant_context(parts)
-            .map(AuthedRequest)
-            .map_err(IntoVilError::into_vil_error)
+        let ctx = extract_tenant_context(parts).map_err(IntoVilError::into_vil_error)?;
+        // Shadow-mode policy evaluation — per ADR-001 / U06.3c. Logs verdict
+        // but does NOT block (until shadow_mode=false in rbac_policy.yaml).
+        shadow_evaluate_policy(parts, &ctx);
+        Ok(AuthedRequest(ctx))
+    }
+}
+
+/// Evaluate rbac_policy for the current request and log the verdict.
+/// Never blocks. Intended to surface policy drift before enforcement is flipped.
+fn shadow_evaluate_policy(parts: &Parts, ctx: &TenantContext) {
+    use edusync_middleware::rbac_policy::{global, Verdict};
+    let Some(policy) = global() else { return };
+    let method = parts.method.as_str();
+    let path = parts.uri.path();
+    let roles = vec![ctx.role.clone()];
+    match policy.evaluate(&roles, method, path) {
+        Verdict::Allow => {}
+        Verdict::Deny => {
+            tracing::warn!(
+                target: "rbac_shadow",
+                method = %method, path = %path,
+                user_role = %ctx.role, user_id = %ctx.user_id,
+                "rbac_shadow: would_deny (shadow_mode={})", policy.shadow_mode,
+            );
+        }
+        Verdict::Unmatched => {
+            if policy.deny_unmatched {
+                tracing::warn!(
+                    target: "rbac_shadow",
+                    method = %method, path = %path,
+                    user_role = %ctx.role,
+                    "rbac_shadow: would_deny_unmatched (shadow_mode={})", policy.shadow_mode,
+                );
+            }
+        }
     }
 }
 
