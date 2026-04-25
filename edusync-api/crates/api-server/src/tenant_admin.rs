@@ -1,13 +1,22 @@
 //! Tenant-admin endpoints (P4).
 //!
-//! Admin-gated actions untuk:
+//! Endpoint dan gate level role:
 //! - GET  /api/v1/tenant-settings                        — baca `tenants.settings`
+//!     gate: `rbac.require("principal")` → admin + principal lolos (read-only oversight).
 //! - PATCH /api/v1/tenant-settings                       — merge patch JSON
+//!     gate: `rbac.require("admin")` → admin-only.
 //! - GET  /api/v1/tenant-members                         — list user+roles pada tenant aktif
+//!     gate: `rbac.require("admin")` → admin-only.
 //! - POST /api/v1/tenant-members/:user_id/roles          — tambah role ke user
+//!     gate: `rbac.require("admin")` → admin-only.
 //! - DELETE /api/v1/tenant-members/:user_id/roles/:role  — cabut role
+//!     gate: `rbac.require("admin")` → admin-only.
 //!
-//! Semua endpoint require role `admin` pada tenant aktif (rbac).
+//! Selain handler-level `rbac.require(...)`, semua route ini juga lewat
+//! `build_authed_ctx` di extractors.rs yang menjalankan policy evaluator
+//! (rbac_policy.yaml). Untuk path yang ada di `enforce_paths`, policy adalah
+//! primary gate; handler-level check tetap dipertahankan sebagai
+//! belt-and-suspenders.
 
 use edusync_middleware::errors::from_sqlx_error;
 use serde::{Deserialize, Serialize};
