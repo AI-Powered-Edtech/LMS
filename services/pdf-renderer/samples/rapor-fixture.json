@@ -1,0 +1,36 @@
+{
+  "template": "rapor-kurmer-v1",
+  "data": {
+    "school": {
+      "nama": "SMA Nusantara Dev",
+      "alamat": "Jl. Pendidikan No. 1, Jakarta Selatan",
+      "npsn": "20123456"
+    },
+    "student": {
+      "nama": "Siswa Satu",
+      "nis": "240001",
+      "nisn": "0091234567"
+    },
+    "rombel": {
+      "nama": "X IPA 1",
+      "wali_kelas": "Bapak Budi Santoso",
+      "fase": "E"
+    },
+    "semester": { "nama": "Ganjil", "tahun": "2025/2026" },
+    "subjects": [
+      { "name": "Matematika", "score": 88, "predikat": "B", "deskripsi": "Memiliki pemahaman baik pada operasi aljabar dan fungsi linear." },
+      { "name": "Bahasa Indonesia", "score": 92, "predikat": "A", "deskripsi": "Mampu menulis teks eksposisi dengan struktur yang jelas." },
+      { "name": "Bahasa Inggris", "score": 85, "predikat": "B", "deskripsi": "Penguasaan kosakata baik; perlu latihan listening." },
+      { "name": "Fisika", "score": 78, "predikat": "C", "deskripsi": "Memahami konsep gerak; perlu latihan soal hitung." },
+      { "name": "Biologi", "score": 90, "predikat": "A", "deskripsi": "Sangat baik dalam materi keanekaragaman hayati." },
+      { "name": "PKn", "score": 87, "predikat": "B", "deskripsi": "Aktif diskusi tentang nilai Pancasila." }
+    ],
+    "attendance": { "sakit": 2, "izin": 1, "alpa": 0 },
+    "signatures": {
+      "orangtua": "(....................)",
+      "wali_kelas": "Bapak Budi Santoso",
+      "kepsek": "Drs. Hartono Wijaya",
+      "published": false
+    }
+  }
+}

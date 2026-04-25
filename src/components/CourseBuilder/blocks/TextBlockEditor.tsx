@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 
 import { MarkdownBlock } from '@/components/LessonViewer/blocks/MarkdownBlock'
 import { useBuilder } from '@/contexts/BuilderContext'
+import { AuthoringAssistToolbar } from '@/features/ai-authoring/components/AuthoringAssistToolbar'
 import { cn } from '@/utils/cn'
 
 interface TextBlockEditorProps {
@@ -75,18 +76,27 @@ export function TextBlockEditor({ blockId }: TextBlockEditorProps) {
           <MarkdownBlock content={localContent} />
         </div>
       ) : (
-        <textarea
-          aria-label="Konten teks markdown"
-          value={localContent}
-          onChange={(e) => setLocalContent(e.target.value)}
-          onBlur={() => {
-            actions.updateBlock(blockId, { content: localContent })
-            void actions.saveBlock(blockId)
-          }}
-          placeholder="Ketik materi di sini... (Mendukung Markdown)"
-          className="w-full min-h-[160px] p-0 text-base text-slate-700 bg-transparent border-none outline-none resize-y font-sans leading-relaxed placeholder:text-slate-400 focus:ring-0"
-          rows={6}
-        />
+        <>
+          <AuthoringAssistToolbar
+            current={localContent}
+            onInsert={(next) => {
+              setLocalContent(next)
+              actions.updateBlock(blockId, { content: next })
+            }}
+          />
+          <textarea
+            aria-label="Konten teks markdown"
+            value={localContent}
+            onChange={(e) => setLocalContent(e.target.value)}
+            onBlur={() => {
+              actions.updateBlock(blockId, { content: localContent })
+              void actions.saveBlock(blockId)
+            }}
+            placeholder="Ketik materi di sini... (Mendukung Markdown)"
+            className="w-full min-h-[160px] p-0 text-base text-slate-700 bg-transparent border-none outline-none resize-y font-sans leading-relaxed placeholder:text-slate-400 focus:ring-0"
+            rows={6}
+          />
+        </>
       )}
     </div>
   )

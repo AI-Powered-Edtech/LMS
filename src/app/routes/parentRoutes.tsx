@@ -52,6 +52,12 @@ const MonthlyReportPage = lazy(() =>
   }))
 )
 
+const InvoiceList = lazy(() =>
+  import('../../features/parent/components/InvoiceList').then((m) => ({
+    default: m.InvoiceList,
+  }))
+)
+
 /**
  * All /app/parent/* routes (authenticated, role=parent atau admin).
  *
@@ -134,6 +140,16 @@ export function ParentRoutes() {
         element={
           <S feature="Isi Survei">
             <SurveyRespondPage />
+          </S>
+        }
+      />
+
+      {/* Tagihan SPP + Snap (C3) */}
+      <Route
+        path="tagihan"
+        element={
+          <S feature="Tagihan SPP">
+            <InvoiceList />
           </S>
         }
       />

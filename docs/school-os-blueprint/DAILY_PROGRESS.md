@@ -19,6 +19,16 @@ Heartbeat rule: if no entry in 4h during active work, append a heartbeat line.
 -->
 
 ## 2026-04-24
+- 17:30 — Big-scope batch landed (RBAC A0/A1/A2, payment C1/C2, eventbus D1+D2/D3/D4, rapor E1/E2/E3+F1, AI G3, B1 migration, ADR-003)
+  - Migrations: 069 (classes.rombel_id), 070 (event_handler_log), 071 (ai_rate_limit)
+  - Middleware: rbac_roles (multi-role loader), rbac_scope (shadow resolver), ai_rate_limit
+  - Handlers: payment_handlers (Snap), rapor_pdf_handler, rapor_signature_handler
+  - Worker: events_worker now panic-safe + handles invoice.paid + attendance.marked with per-handler idempotency
+  - Renderer POC: services/pdf-renderer/{render.mjs, templates/rapor-kurmer-v1.mjs, samples/}
+  - E2E: tests/e2e/rbac.spec.ts (9-persona × 11-endpoint matrix, shadow-mode oracle)
+  - Docs: ADR-003 PDF renderer (Puppeteer sidecar accepted)
+  - Pending operator gates: cargo build, schema apply, sweep matrix run, Midtrans sandbox creds for C1 live test
+  - Deferred: B2 (FE rombel adapters — multi-file refactor, defer to next batch), H1/H3 (sweep + security pass — runtime needed)
 - 15:10 — Cloud agent boot — bootstrap docs read, tracking files initialized (DAILY_PROGRESS, DECISIONS_LOG, FLAKY_TESTS)
 - 15:11 — Orchestration scaffolding complete: sweep-diff (6/6 vitest pass), check-no-mocks (clean), sweep.yml, superbatch-status, superbatch-handoff, PR template
 - 15:12 — Self-test: Started Prio 1 Unit 1 — Rebuild backend + apply migration 037 → verify sweep clean

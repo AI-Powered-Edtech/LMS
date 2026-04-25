@@ -11,6 +11,9 @@ mod ai_tutor_real;
 mod embeddings_handler;
 mod lti_handlers;
 mod midtrans_webhook;
+mod payment_handlers;
+mod rapor_pdf_handler;
+mod rapor_signature_handler;
 mod notification_handlers;
 mod report_real;
 mod observability;
@@ -75,6 +78,9 @@ use tenant_admin::{
 use data_plane::{query_table_handler, rpc_proxy_handler};
 use lti_handlers::{lti_jwks_handler, lti_launch_handler, lti_oidc_login_handler};
 use midtrans_webhook::midtrans_webhook_handler;
+use payment_handlers::create_snap_handler;
+use rapor_pdf_handler::render_rapor_pdf_handler;
+use rapor_signature_handler::{publish_rapor_handler, sign_rapor_handler};
 use notification_handlers::{
     generate_pdf_handler, send_otp_handler, send_push_handler, verify_otp_handler,
     whatsapp_webhook_get_handler, whatsapp_webhook_post_handler,
@@ -240,6 +246,11 @@ async fn main() -> anyhow::Result<()> {
     };
 
     let state_arc: Arc<AppState> = Arc::new(app_state.clone());
+
+    // A0: register DB pool for the rbac_roles loader so the AuthedRequest
+    // extractor can resolve `public.user_roles` per request without
+    // threading state through Axum's generic `S` parameter.
+    edusync_middleware::rbac_roles::init_db_pool(state_arc.db.clone());
 
     // ── Wave 1D: VIL Scheduler replaces manual tokio::time::interval cron ────
     let _scheduler = cron::build_scheduler(state_arc.db.clone());
@@ -426,6 +437,10 @@ async fn main() -> anyhow::Result<()> {
         .endpoint(Method::POST, "/whatsapp/verify-otp", post(verify_otp_handler))
         .endpoint(Method::POST, "/pdf/certificate", post(generate_pdf_handler))
         .endpoint(Method::POST, "/webhooks/midtrans", post(midtrans_webhook_handler))
+        .endpoint(Method::POST, "/payments/snap", post(create_snap_handler))
+        .endpoint(Method::POST, "/pdf/rapor/{rapor_id}", post(render_rapor_pdf_handler))
+        .endpoint(Method::POST, "/rapor/{rapor_id}/sign", post(sign_rapor_handler))
+        .endpoint(Method::POST, "/rapor/{rapor_id}/publish", post(publish_rapor_handler))
         .state(app_state.clone());
 
     // ── Phase 3D: Processing ──────────────────────────────────────────────────
