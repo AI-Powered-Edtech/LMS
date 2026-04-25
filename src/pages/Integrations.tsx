@@ -218,6 +218,7 @@ export function Integrations() {
                           className="text-blue-600 hover:underline"
                         >
                           Unduh
+                          <span className="sr-only">(buka di tab baru)</span>
                         </a>
                       ) : (
                         '—'
