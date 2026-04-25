@@ -124,6 +124,12 @@ pub async fn midtrans_webhook_handler(
     //   settlement / capture (with fraud_status=accept) → paid
     //   pending                                          → pending (no-op)
     //   deny / cancel / expire / failure                 → cancelled
+    //
+    // C2: emit `invoice.paid` to domain_events outbox EXACTLY ONCE per
+    // invoice transition. Idempotency comes from the conditional UPDATE
+    // (`WHERE status <> 'paid'`): if the row already moved to paid we get
+    // 0 rows affected and skip event emission. This handles webhook
+    // retries without producing duplicate notifications downstream.
     if let Some(inv_id) = invoice_id {
         let new_status = match notification.transaction_status.as_str() {
             "settlement" => Some("paid"),
@@ -133,20 +139,69 @@ pub async fn midtrans_webhook_handler(
         };
 
         if let Some(status) = new_status {
-            sqlx::query(
-                "UPDATE public.invoices SET status = $1, amount_paid = amount_due, updated_at = now() WHERE id = $2",
-            )
-            .bind(status)
-            .bind(inv_id)
-            .execute(pool)
-            .await
-            .map_err(|e| VilError::internal(e.to_string()))?;
+            let rows_updated = if status == "paid" {
+                sqlx::query(
+                    "UPDATE public.invoices \
+                     SET status = $1, amount_paid = amount_due, updated_at = now() \
+                     WHERE id = $2 AND status <> 'paid'",
+                )
+                .bind(status)
+                .bind(inv_id)
+                .execute(pool)
+                .await
+                .map_err(|e| VilError::internal(e.to_string()))?
+                .rows_affected()
+            } else {
+                sqlx::query(
+                    "UPDATE public.invoices \
+                     SET status = $1, updated_at = now() \
+                     WHERE id = $2 AND status <> $1",
+                )
+                .bind(status)
+                .bind(inv_id)
+                .execute(pool)
+                .await
+                .map_err(|e| VilError::internal(e.to_string()))?
+                .rows_affected()
+            };
 
             tracing::info!(
                 order_id = %notification.order_id,
                 new_status = status,
+                rows_updated,
                 "Invoice status updated from Midtrans webhook"
             );
+
+            if status == "paid" && rows_updated > 0 {
+                // Outbox emission. Failure here MUST NOT roll back the
+                // invoice update — the webhook is at-least-once; downstream
+                // can be reconciled from the invoice state. Log + continue.
+                let payload = json!({
+                    "invoice_id": inv_id,
+                    "tenant_id": tenant_id,
+                    "order_id": notification.order_id,
+                    "midtrans_transaction_id": notification.transaction_id,
+                    "gross_amount": notification.gross_amount,
+                    "settlement_time": notification.settlement_time,
+                });
+                if let Err(e) = sqlx::query(
+                    "SELECT public.emit_domain_event($1, $2, $3, $4, $5)",
+                )
+                .bind(tenant_id)
+                .bind("invoice.paid")
+                .bind("invoice")
+                .bind(inv_id)
+                .bind(&payload)
+                .execute(pool)
+                .await
+                {
+                    tracing::error!(
+                        order_id = %notification.order_id,
+                        error = %e,
+                        "Failed to emit invoice.paid domain event — manual reconcile may be required"
+                    );
+                }
+            }
         }
     }
 

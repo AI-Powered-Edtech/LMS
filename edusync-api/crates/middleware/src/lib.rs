@@ -6,3 +6,6 @@ pub mod brute_force;
 pub mod db_context;
 pub mod csrf;
 pub mod rbac_policy;
+pub mod rbac_roles;
+pub mod rbac_scope;
+pub mod ai_rate_limit;

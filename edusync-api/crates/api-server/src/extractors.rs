@@ -6,6 +6,7 @@ use axum::{
 };
 use edusync_auth::{AuthError, verify_access_token};
 use edusync_middleware::rbac::role_has_permission;
+use edusync_middleware::rbac_roles::{load_roles, merge_roles};
 use edusync_middleware::tenant::TenantContext;
 use vil_server::prelude::VilError;
 use std::sync::Arc;
@@ -38,7 +39,17 @@ fn extract_tenant_context(
         .and_then(|t| t.parse::<Uuid>().ok())
         .ok_or(AuthError::Unauthorized)?;
 
-    Ok(TenantContext { user_id, tenant_id, role: claims.role, email: claims.email })
+    let role = claims.role.clone();
+    Ok(TenantContext {
+        user_id,
+        tenant_id,
+        role: role.clone(),
+        // Provisional: extractor's async path will overwrite this with the
+        // DB-loaded multi-role vector. Sync callers (legacy `RbacGuard`) get
+        // at least the JWT role so policy evaluation is never empty.
+        roles: vec![role],
+        email: claims.email,
+    })
 }
 
 // ---------------------------------------------------------------------------
@@ -102,7 +113,21 @@ where
     type Rejection = VilError;
 
     async fn from_request_parts(parts: &mut Parts, _state: &S) -> Result<Self, Self::Rejection> {
-        let ctx = extract_tenant_context(parts).map_err(IntoVilError::into_vil_error)?;
+        let mut ctx = extract_tenant_context(parts).map_err(IntoVilError::into_vil_error)?;
+
+        // A0: enrich ctx.roles from public.user_roles. Failure-soft — fall
+        // back to the JWT role so a transient DB error never locks anyone
+        // out. Logged at `rbac_roles_loaded` / `rbac_roles_fallback`.
+        let db_roles = load_roles(ctx.user_id, ctx.tenant_id).await;
+        let merged = merge_roles(&ctx.role, db_roles);
+        tracing::debug!(
+            target: "rbac_roles_loaded",
+            user_id = %ctx.user_id, tenant_id = %ctx.tenant_id,
+            roles_count = merged.len(),
+            "rbac_roles_loaded"
+        );
+        ctx.roles = merged;
+
         // Shadow-mode policy evaluation — per ADR-001 / U06.3c. Logs verdict
         // but does NOT block (until shadow_mode=false in rbac_policy.yaml).
         shadow_evaluate_policy(parts, &ctx);
@@ -117,14 +142,16 @@ fn shadow_evaluate_policy(parts: &Parts, ctx: &TenantContext) {
     let Some(policy) = global() else { return };
     let method = parts.method.as_str();
     let path = parts.uri.path();
-    let roles = vec![ctx.role.clone()];
-    match policy.evaluate(&roles, method, path) {
+    // A0: evaluate against the *full* role vector, not the legacy single
+    // role, so users with TEACHER+WALI_KELAS satisfy either-side policies.
+    match policy.evaluate(&ctx.roles, method, path) {
         Verdict::Allow => {}
         Verdict::Deny => {
             tracing::warn!(
                 target: "rbac_shadow",
                 method = %method, path = %path,
                 user_role = %ctx.role, user_id = %ctx.user_id,
+                roles = ?ctx.roles,
                 "rbac_shadow: would_deny (shadow_mode={})", policy.shadow_mode,
             );
         }
@@ -134,6 +161,7 @@ fn shadow_evaluate_policy(parts: &Parts, ctx: &TenantContext) {
                     target: "rbac_shadow",
                     method = %method, path = %path,
                     user_role = %ctx.role,
+                    roles = ?ctx.roles,
                     "rbac_shadow: would_deny_unmatched (shadow_mode={})", policy.shadow_mode,
                 );
             }
