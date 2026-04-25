@@ -5,13 +5,14 @@ import { Button } from '@/components/ui/Button'
 import { Card } from '@/components/ui/Card'
 import { Input } from '@/components/ui/Input'
 import { Modal, ModalBody, ModalFooter, ModalHeader } from '@/components/ui/Modal'
+
 import {
   useCreateSubject,
   useCurriculumItems,
   useSubjects,
 } from '@/features/subjects/hooks/useSubjects'
-import { usePageTitle } from '@/hooks/usePageTitle'
 import { useToast } from '@/hooks/useToast'
+import { usePageTitle } from '@/hooks/usePageTitle'
 
 export function Subjects() {
   usePageTitle('Mata Pelajaran & CP/ATP')

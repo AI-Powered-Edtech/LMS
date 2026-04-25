@@ -97,7 +97,7 @@ pub async fn create_snap_handler(
     // suffix on retry to avoid 406 "duplicate order_id" responses on prod.
     let order_id = match existing_order_id {
         Some(existing) => existing,
-        None => std::format!(
+        None => format!(
             "INV-{}-{}",
             invoice_number.replace(' ', "-"),
             chrono::Utc::now().timestamp()
@@ -106,7 +106,7 @@ pub async fn create_snap_handler(
 
     let payload = json!({
         "transaction_details": {
-            "order_id": order_id.to_string(),
+            "order_id": order_id,
             "gross_amount": amount_due.to_string().parse::<i64>().unwrap_or_default(),
         },
         "credit_card": { "secure": true },

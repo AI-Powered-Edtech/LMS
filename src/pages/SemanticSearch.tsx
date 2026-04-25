@@ -5,9 +5,9 @@ import { Button } from '@/components/ui/Button'
 import { Card } from '@/components/ui/Card'
 import { Input } from '@/components/ui/Input'
 import { useAuth } from '@/contexts/AuthContext'
-import { usePageTitle } from '@/hooks/usePageTitle'
-import { useToast } from '@/hooks/useToast'
 import { db } from '@/services/db'
+import { useToast } from '@/hooks/useToast'
+import { usePageTitle } from '@/hooks/usePageTitle'
 
 interface SearchHit {
   id: string

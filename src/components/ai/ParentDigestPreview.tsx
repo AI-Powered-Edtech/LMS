@@ -4,9 +4,9 @@ import { useState } from 'react'
 import { Button } from '@/components/ui/Button'
 import { Card } from '@/components/ui/Card'
 import { useAuth } from '@/contexts/AuthContext'
-import { useToast } from '@/hooks/useToast'
 import { generateParentWeeklyDigest } from '@/services/ai/aiProvider'
 import { db } from '@/services/db'
+import { useToast } from '@/hooks/useToast'
 
 interface ParentDigestPreviewProps {
   studentId: string
