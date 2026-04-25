@@ -107,6 +107,19 @@ policies:
   POST /data/app_audit_logs:           { roles: [admin, principal], scope: tenant }
   GET  /data/system_health:            { roles: [admin, principal], scope: tenant }
 
+  # ─── Tenant-admin user/role/invite management — A3 hard-enforce ──────────
+  # These routes are the ones that read/mutate the tenant member roster.
+  # Handler still calls `rbac.require("admin")` as belt-and-suspenders;
+  # the entries below are the source-of-truth gate.
+  GET    /tenant-members:                       { roles: [admin], scope: tenant }
+  POST   /tenant-members/{user_id}/roles:        { roles: [admin], scope: tenant }
+  DELETE /tenant-members/{user_id}/roles/{role}: { roles: [admin], scope: tenant }
+  GET    /tenant-invites:                       { roles: [admin], scope: tenant }
+  POST   /tenant-invites:                       { roles: [admin], scope: tenant }
+  DELETE /tenant-invites/{id}:                   { roles: [admin], scope: tenant }
+  GET    /tenant-settings:                      { roles: [admin, principal], scope: tenant }
+  PATCH  /tenant-settings:                      { roles: [admin], scope: tenant }
+
   # ─── Principal / Executive ───────────────────────────────────────────────
   GET  /data/principal_insights:       { roles: [principal, admin, yayasan], scope: tenant }
   POST /rpc/get_executive_overview:    { roles: [principal, admin, yayasan], scope: tenant }
@@ -158,11 +171,10 @@ shadow_mode: true
 # before the middleware sees the request, so the convention here matches
 # the policy keys above (e.g. `POST /data/invoices`).
 #
-# Currently enforced via the AuthedRequest extractor only (data_plane,
-# rapor, payments). Routes that go through RbacGuard (tenant-admin,
-# tenant-invites, tenant-settings) already enforce at the handler via
-# `rbac.require("admin")` — they are NOT listed here to avoid double-gating
-# until RbacGuard is wired through the same evaluator.
+# Both AuthedRequest and RbacGuard route through the same evaluator
+# (build_authed_ctx in extractors.rs), so any route below is hard-enforced
+# regardless of which extractor the handler picks. Handlers may still call
+# `rbac.require(...)` as a belt-and-suspenders check.
 enforce_paths:
   # finance
   - /data/invoices
@@ -172,3 +184,7 @@ enforce_paths:
   - /data/app_audit_logs
   # counseling / BK
   - /data/counseling_notes
+  # admin user / role / invite / tenant-settings management
+  - /tenant-members
+  - /tenant-invites
+  - /tenant-settings
