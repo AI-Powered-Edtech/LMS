@@ -27,6 +27,64 @@ Migration dijalankan secara berurutan sesuai nomor prefix (`NNN_`). Gunakan `scr
 | 015_backend_heavy_tables.sql | Schema | Tabel-tabel besar backend (audit log, event stream, dsb.) yang di-offload dari frontend. |
 | 016_add_performance_indexes.sql | Performance | Index tambahan untuk query panas (dashboard, leaderboard, gradebook). |
 | 017_add_google_id_to_profiles.sql | Auth | Kolom `google_id` di `profiles` untuk Google OAuth single sign-on. |
+| 018_fix_backend_schema_bugs.sql | Schema | Undocumented migration |
+| 019_audit_fixes.sql | Schema | Undocumented migration |
+| 020_fix_rpc_signatures.sql | Schema | Undocumented migration |
+| 021_rpc_json.sql | Schema | Undocumented migration |
+| 022_align_table_columns.sql | Schema | Undocumented migration |
+| 023_rpc_stubs.sql | Schema | Undocumented migration |
+| 024_course_review_workflow.sql | Schema | Undocumented migration |
+| 025_personal_and_multi_tenant.sql | Schema | Undocumented migration |
+| 026_join_code_and_slugify.sql | Schema | Undocumented migration |
+| 027_p2_backlog.sql | Schema | Undocumented migration |
+| 028_p3_tenant_settings_and_roles.sql | Schema | Undocumented migration |
+| 029_add_admin_notification_types.sql | Schema | Undocumented migration |
+| 030_admin_stub_tables_and_rpcs.sql | Schema | Undocumented migration |
+| 031_qa_schema_gaps.sql | Schema | Undocumented migration |
+| 032_qa_rpcs.sql | Schema | Undocumented migration |
+| 033_fix_search_questions_return_json.sql | Schema | Undocumented migration |
+| 034_lesson_progress_monitor_rpc.sql | Schema | Undocumented migration |
+| 035_admin_backfill.sql | Schema | Undocumented migration |
+| 036_confirm_demo_seed_users.sql | Schema | Undocumented migration |
+| 037_qa_sweep_fixes.sql | Schema | Undocumented migration |
+| 037_seed_modules_missing_rpcs_and_auth_uid.sql | Schema | Undocumented migration |
+| 038_fix_get_tenant_users_user_id_alias.sql | Schema | Undocumented migration |
+| 039_academic_years.sql | Schema | Undocumented migration |
+| 040_semesters_link_academic_year.sql | Schema | Undocumented migration |
+| 041_grade_levels.sql | Schema | Undocumented migration |
+| 042_rombel.sql | Schema | Undocumented migration |
+| 043_subjects_and_curriculum_items.sql | Schema | Undocumented migration |
+| 044_timetable_slots.sql | Schema | Undocumented migration |
+| 045_dossiers.sql | Schema | Undocumented migration |
+| 046_rbac_10_role_matrix.sql | Schema | Undocumented migration |
+| 047_cp_tagging.sql | Schema | Undocumented migration |
+| 048_gradebook_dual_mode.sql | Schema | Undocumented migration |
+| 049_nilai_per_cp.sql | Schema | Undocumented migration |
+| 050_akm_question_type.sql | Schema | Undocumented migration |
+| 051_p5_module.sql | Schema | Undocumented migration |
+| 052_domain_events_outbox.sql | Schema | Undocumented migration |
+| 053_rapor_kurmer.sql | Schema | Undocumented migration |
+| 054_finance_midtrans.sql | Schema | Undocumented migration |
+| 055_bos_expense_tracking.sql | Schema | Undocumented migration |
+| 056_ppdb_flow.sql | Schema | Undocumented migration |
+| 057_integrations.sql | Schema | Undocumented migration |
+| 058_ai_polish.sql | Schema | Undocumented migration |
+| 059_audit_rate_limit_perf.sql | Schema | Undocumented migration |
+| 060_counseling_parent_links_sikap.sql | Schema | Undocumented migration |
+| 061_app_audit_triggers.sql | Schema | Undocumented migration |
+| 062_rapor_autogen_rpc.sql | Schema | Undocumented migration |
+| 063_rombel_attendance.sql | Schema | Undocumented migration |
+| 064_stub_tables.sql | Schema | Undocumented migration |
+| 065_gradebook_baseline.sql | Schema | Undocumented migration |
+| 066_role_enum_completeness.sql | Schema | Undocumented migration |
+| 067_idempotent_auto_modules.sql | Schema | Undocumented migration |
+| 068_sync_user_roles_to_granular.sql | Schema | Undocumented migration |
+| 069_classes_rombel_id.sql | Schema | Undocumented migration |
+| 070_event_handler_idempotency.sql | Schema | Undocumented migration |
+| 071_ai_rate_limit.sql | Schema | Undocumented migration |
+| 072_parent_invoices_rpc.sql | Schema | Undocumented migration |
+| 073_refresh_tokens_session_metadata.sql | Schema | Undocumented migration |
+| 074_tenant_invites_and_settings.sql | Schema | Undocumented migration |
 
 > Gap pada nomor (misal 010, 011) adalah hasil revert/konsolidasi migration yang dibatalkan sebelum landing di `main`. Jangan reuse nomor tersebut untuk migration baru.
 
