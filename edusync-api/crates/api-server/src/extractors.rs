@@ -105,6 +105,35 @@ impl IntoVilError for AuthError {
 /// ```
 pub struct AuthedRequest(pub TenantContext);
 
+/// Shared FromRequestParts pipeline used by both `AuthedRequest` and
+/// `RbacGuard`: validate JWT → enrich multi-role from DB → run the
+/// shadow/enforce policy evaluator. Anything calling this gets the same
+/// authz semantics, so wiring a new extractor type to this helper is enough
+/// to inherit RBAC enforcement.
+async fn build_authed_ctx(parts: &mut Parts) -> Result<TenantContext, VilError> {
+    let mut ctx = extract_tenant_context(parts).map_err(IntoVilError::into_vil_error)?;
+
+    // A0: enrich ctx.roles from public.user_roles. Failure-soft — fall
+    // back to the JWT role so a transient DB error never locks anyone
+    // out. Logged at `rbac_roles_loaded` / `rbac_roles_fallback`.
+    let db_roles = load_roles(ctx.user_id, ctx.tenant_id).await;
+    let merged = merge_roles(&ctx.role, db_roles);
+    tracing::debug!(
+        target: "rbac_roles_loaded",
+        user_id = %ctx.user_id, tenant_id = %ctx.tenant_id,
+        roles_count = merged.len(),
+        "rbac_roles_loaded"
+    );
+    ctx.roles = merged;
+
+    // A3 partial enforce flip — Deny verdicts return 403 only for paths
+    // listed in `enforce_paths` of rbac_policy.yaml (or any path when
+    // global shadow_mode is off). Other modules stay shadow-mode and
+    // only log "would_deny", to keep the rollout incremental.
+    evaluate_policy_or_enforce(parts, &ctx)?;
+    Ok(ctx)
+}
+
 #[async_trait]
 impl<S> FromRequestParts<S> for AuthedRequest
 where
@@ -113,27 +142,7 @@ where
     type Rejection = VilError;
 
     async fn from_request_parts(parts: &mut Parts, _state: &S) -> Result<Self, Self::Rejection> {
-        let mut ctx = extract_tenant_context(parts).map_err(IntoVilError::into_vil_error)?;
-
-        // A0: enrich ctx.roles from public.user_roles. Failure-soft — fall
-        // back to the JWT role so a transient DB error never locks anyone
-        // out. Logged at `rbac_roles_loaded` / `rbac_roles_fallback`.
-        let db_roles = load_roles(ctx.user_id, ctx.tenant_id).await;
-        let merged = merge_roles(&ctx.role, db_roles);
-        tracing::debug!(
-            target: "rbac_roles_loaded",
-            user_id = %ctx.user_id, tenant_id = %ctx.tenant_id,
-            roles_count = merged.len(),
-            "rbac_roles_loaded"
-        );
-        ctx.roles = merged;
-
-        // A3 partial enforce flip — Deny verdicts return 403 only for paths
-        // listed in `enforce_paths` of rbac_policy.yaml (or any path when
-        // global shadow_mode is off). Other modules stay shadow-mode and
-        // only log "would_deny", to keep the rollout incremental.
-        evaluate_policy_or_enforce(parts, &ctx)?;
-        Ok(AuthedRequest(ctx))
+        Ok(AuthedRequest(build_authed_ctx(parts).await?))
     }
 }
 
@@ -204,9 +213,15 @@ fn evaluate_policy_or_enforce(parts: &Parts, ctx: &TenantContext) -> Result<(), 
     }
 }
 
-/// Axum extractor: same as `AuthedRequest` plus runtime role enforcement.
+/// Axum extractor: same JWT/multi-role/policy pipeline as `AuthedRequest`,
+/// plus a `require()` helper for handler-level role checks.
 ///
-/// Call `rbac.require("teacher")?` to gate by role. `admin` passes every check.
+/// As of the A3 partial enforce flip, RbacGuard runs through the same
+/// `build_authed_ctx` pipeline as AuthedRequest — so middleware-level
+/// enforcement applies identically to `/tenant-members`, `/tenant-invites`,
+/// `/tenant-settings` and friends. `require()` is preserved as a
+/// belt-and-suspenders handler-level gate for legacy code paths and for
+/// stricter checks the policy file does not yet express.
 ///
 /// # Usage
 ///
@@ -242,9 +257,7 @@ where
     type Rejection = VilError;
 
     async fn from_request_parts(parts: &mut Parts, _state: &S) -> Result<Self, Self::Rejection> {
-        extract_tenant_context(parts)
-            .map(RbacGuard)
-            .map_err(IntoVilError::into_vil_error)
+        Ok(RbacGuard(build_authed_ctx(parts).await?))
     }
 }
 

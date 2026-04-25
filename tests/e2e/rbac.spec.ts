@@ -72,11 +72,12 @@ const MATRIX: EndpointSpec[] = [
   { group: 'ai', method: 'POST', path: '/api/v1/ai/embeddings', allowed: ['admin', 'teacher', 'wali_kelas'] },
   // parent child data — RPC is the entry point per migration 072 (no /parent/children route).
   { group: 'parent', method: 'POST', path: '/api/v1/rpc/get_parent_invoices', allowed: ['admin', 'parent'] },
-  // admin user management (A3 hard-enforce) — tenant-members is the live route.
-  // Handler currently gates on rbac.require("admin"); principal is in the
-  // policy but not in the handler — promote to admin-only for now and let
-  // the policy/handler reconciliation happen in A3.
+  // admin user management — A3 hard-enforce via the policy entry.
+  // Both handler-level `rbac.require("admin")` and the middleware policy
+  // gate fire; either rejecting non-admin yields 403, which the matrix
+  // counts as expected_deny for non-admin personas.
   { group: 'admin_users', method: 'GET', path: '/api/v1/tenant-members', allowed: ['admin'] },
+  { group: 'admin_users', method: 'GET', path: '/api/v1/tenant-invites', allowed: ['admin'] },
 ]
 
 async function tokenFor(api: APIRequestContext, persona: Persona): Promise<string> {
