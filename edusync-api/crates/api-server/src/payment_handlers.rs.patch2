@@ -1,0 +1,7 @@
+--- edusync-api/crates/api-server/src/payment_handlers.rs
++++ edusync-api/crates/api-server/src/payment_handlers.rs
+@@ -67,3 +67,3 @@
+     // against another school's invoice.
+-    let row: Option<(Uuid, String, bigdecimal::BigDecimal, String, Option<String>)> = sqlx::query_as(
++    let row: Option<(Uuid, String, sqlx::types::BigDecimal, String, Option<String>)> = sqlx::query_as(
+         "SELECT id, invoice_number, amount_due, status, midtrans_order_id \
