@@ -201,6 +201,7 @@ const ALLOWED_RPCS: &[&str] = &[
     "get_my_children",
     "get_my_children_v2",
     "get_parent_dashboard_snapshot",
+    "get_parent_invoices",
     "get_principal_monthly_trend_cached",
     "get_principal_overview_cached",
     "get_prediction_summary",

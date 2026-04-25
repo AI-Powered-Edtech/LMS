@@ -80,6 +80,7 @@
     "zustand": "^5.0.12"
   },
   "devDependencies": {
+    "@axe-core/playwright": "^4.10.1",
     "@playwright/test": "^1.59.1",
     "@rollup/plugin-terser": "^1.0.0",
     "@sentry/vite-plugin": "^5.2.0",
@@ -90,7 +91,6 @@
     "@testing-library/jest-dom": "^6.9.1",
     "@testing-library/react": "^16.3.2",
     "@testing-library/user-event": "^14.6.1",
-    "@axe-core/playwright": "^4.10.1",
     "@types/canvas-confetti": "^1.9.0",
     "@types/jest-axe": "^3.5.9",
     "@types/node": "^25.6.0",
@@ -116,6 +116,7 @@
     "lint-staged": "^16.4.0",
     "madge": "^8.0.0",
     "prettier": "^3.8.3",
+    "puppeteer-core": "^24.42.0",
     "rollup-plugin-visualizer": "^7.0.1",
     "storybook": "^10.3.5",
     "typescript": "~5.8.2",

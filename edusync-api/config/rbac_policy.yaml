@@ -129,12 +129,12 @@ policies:
   POST /rpc/get_activity_timeline:     { roles: [admin, principal, yayasan], scope: tenant }
   POST /rpc/get_audit_logs:            { roles: [admin, principal, yayasan], scope: tenant }
   POST /rpc/get_course_engagement:     { roles: [teacher, wakasek, admin, principal], scope: tenant }
-  POST /rpc/get_finance_dashboard_page:{ roles: [tu, admin, principal], scope: tenant }
+  POST /rpc/get_finance_dashboard_page: { roles: [tu, admin, principal], scope: tenant }
   POST /rpc/get_finance_monthly:       { roles: [tu, admin, principal], scope: tenant }
   POST /rpc/get_finance_overview:      { roles: [tu, admin, principal], scope: tenant }
   POST /rpc/get_struggle_alerts:       { roles: [teacher, wali_kelas, guru_bk, admin, principal], scope: tenant }
   POST /rpc/get_student_xp_profile:    { roles: [student, teacher, wali_kelas, admin], scope: self }
-  POST /rpc/get_tenant_activity_counts:{ roles: [admin, principal, yayasan], scope: tenant }
+  POST /rpc/get_tenant_activity_counts: { roles: [admin, principal, yayasan], scope: tenant }
   POST /rpc/get_tenant_users:          { roles: [admin, tu, principal], scope: tenant }
 
 # Wildcard fallback: any route not explicitly listed denies by default.
