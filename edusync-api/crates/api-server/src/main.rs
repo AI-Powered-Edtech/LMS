@@ -99,6 +99,23 @@ async fn main() -> anyhow::Result<()> {
     observability::init_tracing();
     let _sentry_guard = observability::init_sentry();
 
+    // RBAC policy — shadow-mode evaluator loaded once at boot. Missing/bad
+    // policy logs a warning and runs with no-op evaluator (fails open during
+    // shadow; must be fixed before enforcement).
+    match edusync_middleware::rbac_policy::init() {
+        Ok(p) => tracing::info!(
+            target: "rbac_shadow",
+            shadow_mode = p.shadow_mode,
+            deny_unmatched = p.deny_unmatched,
+            "rbac_policy loaded"
+        ),
+        Err(err) => tracing::warn!(
+            target: "rbac_shadow",
+            error = %err,
+            "rbac_policy unavailable — shadow evaluator disabled"
+        ),
+    }
+
     let database_url = std::env::var("DATABASE_URL").expect("DATABASE_URL must be set");
     
     let jwt_rsa_private_key = std::env::var("JWT_RSA_PRIVATE_KEY").context("JWT_RSA_PRIVATE_KEY harus diset")?;

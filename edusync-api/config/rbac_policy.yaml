@@ -110,6 +110,33 @@ policies:
   # ─── Foundation (yayasan / pengawas) — cross-tenant read-only ────────────
   GET  /foundation/overview:           { roles: [yayasan, pengawas], scope: foundation }
 
+  # ─── Coverage gap fills (from U06.3 shadow sweep log) ────────────────────
+  POST /data/activity_logs:            { roles: [admin, principal, yayasan], scope: tenant }
+  POST /data/assignments:              { roles: [student, teacher, wali_kelas, admin, principal], scope: tenant }
+  POST /data/content_reports:          { roles: [admin, principal], scope: tenant }
+  POST /data/course_modules:           { roles: [student, teacher, wali_kelas, admin], scope: tenant }
+  POST /data/courses:                  { roles: [student, parent, teacher, wali_kelas, wakasek, guru_bk, tu, principal, admin], scope: tenant }
+  POST /data/course_stats:             { roles: [teacher, wakasek, principal, admin], scope: tenant }
+  POST /data/lesson_progress:          { roles: [student, teacher, wali_kelas, admin], scope: self }
+  POST /data/lessons:                  { roles: [student, teacher, wali_kelas, admin], scope: tenant }
+  POST /data/modules:                  { roles: [admin, principal], scope: tenant }
+  POST /data/notifications:            { roles: [student, parent, teacher, wali_kelas, wakasek, guru_bk, tu, principal, admin], scope: self }
+  POST /data/onboarding_progress:      { roles: [teacher, wali_kelas, wakasek, guru_bk, tu, principal, admin], scope: self }
+  POST /data/quiz_attempts_v2:         { roles: [student, teacher, wali_kelas, admin], scope: self }
+  POST /data/tenant_subscriptions:     { roles: [admin, principal], scope: tenant }
+  POST /data/user_badges:              { roles: [student, teacher, wali_kelas, admin], scope: self }
+  POST /data/user_points:              { roles: [student, teacher, wali_kelas, admin], scope: self }
+  POST /rpc/get_activity_timeline:     { roles: [admin, principal, yayasan], scope: tenant }
+  POST /rpc/get_audit_logs:            { roles: [admin, principal, yayasan], scope: tenant }
+  POST /rpc/get_course_engagement:     { roles: [teacher, wakasek, admin, principal], scope: tenant }
+  POST /rpc/get_finance_dashboard_page:{ roles: [tu, admin, principal], scope: tenant }
+  POST /rpc/get_finance_monthly:       { roles: [tu, admin, principal], scope: tenant }
+  POST /rpc/get_finance_overview:      { roles: [tu, admin, principal], scope: tenant }
+  POST /rpc/get_struggle_alerts:       { roles: [teacher, wali_kelas, guru_bk, admin, principal], scope: tenant }
+  POST /rpc/get_student_xp_profile:    { roles: [student, teacher, wali_kelas, admin], scope: self }
+  POST /rpc/get_tenant_activity_counts:{ roles: [admin, principal, yayasan], scope: tenant }
+  POST /rpc/get_tenant_users:          { roles: [admin, tu, principal], scope: tenant }
+
 # Wildcard fallback: any route not explicitly listed denies by default.
 default:
   deny_unmatched: true
