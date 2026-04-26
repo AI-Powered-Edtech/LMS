@@ -28,7 +28,7 @@ export function StudentJoinForm({
         </div>
         <div>
           <h2 className="text-lg font-bold text-white">Gabung sebagai Murid</h2>
-          <p className="text-slate-400 text-xs">Masukkan kode kelas yang diberikan guru Anda</p>
+          <p className="text-slate-300 text-xs">Masukkan kode kelas yang diberikan guru Anda</p>
         </div>
       </div>
       <form onSubmit={onSubmit} className="space-y-4">

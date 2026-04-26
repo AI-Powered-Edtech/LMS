@@ -64,7 +64,7 @@ export function SchoolCreateForm({
         </div>
         <div>
           <h2 className="text-lg font-bold text-white">{cfg.title}</h2>
-          <p className="text-slate-400 text-xs">{cfg.description}</p>
+          <p className="text-slate-300 text-xs">{cfg.description}</p>
         </div>
       </div>
       <form onSubmit={onSubmit} className="space-y-4">

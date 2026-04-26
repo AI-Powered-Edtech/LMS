@@ -165,11 +165,12 @@ export function StudentSubmissionPanel({
         <div className="space-y-4">
           {assignment.allowTextSubmission && (
             <div className="space-y-2">
-              <label className="text-sm font-bold text-slate-700 dark:text-slate-300 flex items-center gap-2">
+              <label htmlFor="draft-text-input" className="text-sm font-bold text-slate-700 dark:text-slate-300 flex items-center gap-2">
                 <MessageSquareText className="w-4 h-4 text-blue-500" />
                 Jawaban Teks
               </label>
               <textarea
+                id="draft-text-input"
                 value={draftText}
                 onChange={(event) => onTextChange(assignment.id, event.target.value)}
                 rows={7}
@@ -181,11 +182,12 @@ export function StudentSubmissionPanel({
 
           {assignment.allowLinkSubmission && (
             <div className="space-y-2">
-              <label className="text-sm font-bold text-slate-700 dark:text-slate-300 flex items-center gap-2">
+              <label htmlFor="draft-link-input" className="text-sm font-bold text-slate-700 dark:text-slate-300 flex items-center gap-2">
                 <LinkIcon className="w-4 h-4 text-blue-500" />
                 Link Tugas
               </label>
               <input
+                id="draft-link-input"
                 type="url"
                 value={draftLink}
                 onChange={(event) => onLinkChange(assignment.id, event.target.value)}
@@ -198,11 +200,12 @@ export function StudentSubmissionPanel({
           {assignment.allowFileSubmission && (
             <div className="space-y-3">
               <div className="flex items-center justify-between gap-3">
-                <label className="text-sm font-bold text-slate-700 dark:text-slate-300 flex items-center gap-2">
+                <label htmlFor="draft-file-input" className="text-sm font-bold text-slate-700 dark:text-slate-300 flex items-center gap-2">
                   <Paperclip className="w-4 h-4 text-blue-500" />
                   Lampiran File
                 </label>
                 <input
+                  id="draft-file-input"
                   ref={fileInputRef}
                   type="file"
                   className="hidden"
