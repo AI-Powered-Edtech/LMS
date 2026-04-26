@@ -216,8 +216,10 @@ export function Integrations() {
                           target="_blank"
                           rel="noopener noreferrer"
                           className="text-blue-600 hover:underline"
+                          aria-label="Unduh CSV"
                         >
                           Unduh
+                          <span className="sr-only">(buka di tab baru)</span>
                         </a>
                       ) : (
                         '—'
