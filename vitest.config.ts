@@ -13,7 +13,7 @@ export default defineConfig({
       'scripts/**/*.{test,spec}.{js,mjs,cjs,ts,mts,cts}',
     ],
     coverage: {
-      reporter: ['text', 'json-summary', 'json', 'html', 'lcov'],
+      reporter: ['text', 'json-summary', 'json', 'html', 'lcov', 'clover'],
       reportOnFailure: true,
     },
   },
