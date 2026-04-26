@@ -1,14 +1,14 @@
+import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { Lightbulb, RefreshCw } from 'lucide-react'
 import { useState } from 'react'
 
 import { Button } from '@/components/ui/Button'
 import { Card } from '@/components/ui/Card'
 import { useAuth } from '@/contexts/AuthContext'
+import { usePageTitle } from '@/hooks/usePageTitle'
+import { useToast } from '@/hooks/useToast'
 import { generatePrincipalInsight } from '@/services/ai/aiProvider'
 import { db } from '@/services/db'
-import { useToast } from '@/hooks/useToast'
-import { usePageTitle } from '@/hooks/usePageTitle'
-import { useQuery, useQueryClient } from '@tanstack/react-query'
 
 interface PrincipalInsight {
   id: string
