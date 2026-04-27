@@ -11,6 +11,8 @@ import { useToast } from '@/hooks/useToast'
 import { usePageTitle } from '@/hooks/usePageTitle'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 
+import { sanitizeUrl } from '@/utils/sanitize'
+
 interface IntegrationDef {
   key: string
   label: string
@@ -212,7 +214,7 @@ export function Integrations() {
                     <td className="px-4 py-2">
                       {j.file_url ? (
                         <a
-                          href={j.file_url}
+                          href={sanitizeUrl(j.file_url)}
                           target="_blank"
                           rel="noopener noreferrer"
                           className="text-blue-600 hover:underline"
