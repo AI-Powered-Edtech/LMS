@@ -8,8 +8,8 @@ import { BulkImportWizard } from '@/features/administration/components/BulkImpor
 import { InvitationsTable } from '@/features/administration/components/InvitationsTable'
 import { UserTable } from '@/features/administration/components/UserTable'
 import { useUserManagementState } from '@/features/administration/hooks/useUserManagementState'
-import { useToast } from '@/hooks/useToast'
 import { usePageTitle } from '@/hooks/usePageTitle'
+import { useToast } from '@/hooks/useToast'
 import { defaultCsvFilename, exportCsv } from '@/shared/utils/export-table'
 import { cn } from '@/utils/cn'
 

@@ -1,6 +1,6 @@
 import { BookOpen, ChevronDown, Clock, Download, FileText, Layers, LayoutList, Loader2, Plus, RefreshCw, Search, Users } from 'lucide-react'
 import { AnimatePresence, motion } from 'motion/react'
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 
 import { AssignCourseModal } from '@/components/Classroom/AssignCourseModal'
@@ -126,7 +126,10 @@ export const Courses: React.FC = () => {
   const { data, fetchNextPage, hasNextPage, isFetchingNextPage, isLoading, isError, refetch } =
     useInfiniteCoursesQuery(debouncedSearch)
 
-  const courses = data?.pages.flatMap((p) => p.courses) ?? []
+  // ⚡ Bolt: Memoize derived array to prevent unnecessary re-renders in child components
+  const courses = useMemo(() => {
+    return data?.pages.flatMap((p) => p.courses) ?? []
+  }, [data?.pages])
 
   // Sentinel for IntersectionObserver — triggers loading the next page
   const sentinelRef = useRef<HTMLDivElement>(null)

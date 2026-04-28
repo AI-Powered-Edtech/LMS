@@ -4,9 +4,9 @@ import { useState } from 'react'
 import { Button } from '@/components/ui/Button'
 import { Modal, ModalBody, ModalFooter, ModalHeader } from '@/components/ui/Modal'
 import { useAuth } from '@/contexts/AuthContext'
+import { useToast } from '@/hooks/useToast'
 import { aiProvider } from '@/services/ai/aiProvider'
 import { db } from '@/services/db'
-import { useToast } from '@/hooks/useToast'
 
 interface AuthoringAssistButtonProps {
   targetType: 'course' | 'lesson' | 'quiz' | 'assignment'
