@@ -320,6 +320,7 @@ jobs:
           EOF
 
       - name: Upload security summary
+        if: always()
         uses: actions/upload-artifact@v4
         with:
           name: security-summary
