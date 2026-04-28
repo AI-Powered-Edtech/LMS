@@ -28,13 +28,17 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - uses: pnpm/action-setup@v4
+        with:
+          run_install: false
+
       - uses: actions/setup-node@v4
         with:
           node-version: 20
           cache: pnpm
 
       - name: Install npm dependencies
-        run: npm ci
+        run: pnpm install --frozen-lockfile
 
       - uses: actions-rs/toolchain@v1
         with:
@@ -70,7 +74,7 @@ jobs:
           npx --yes wait-on http://localhost:8080/api/v1/health -t 60000
 
       - name: Install Playwright browsers
-        run: npx playwright install chromium --with-deps
+        run: pnpm exec playwright install chromium --with-deps
 
       - name: Start frontend dev server
         run: |
