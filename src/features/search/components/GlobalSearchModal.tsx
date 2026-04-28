@@ -4,6 +4,8 @@ import { useCallback, useEffect, useRef } from 'react'
 import { EmptyState } from '@/components/ui/EmptyState'
 import { Modal, ModalBody, ModalHeader } from '@/components/ui/Modal'
 
+import { sanitizeRedirectTarget } from '@/features/auth/utils/authFlow'
+
 import { useGlobalSearch } from '../hooks/useGlobalSearch'
 import { SearchResultItem } from './SearchResultItem'
 
@@ -37,7 +39,12 @@ export function GlobalSearchModal({ isOpen, onClose }: GlobalSearchModalProps) {
   const handleSelect = useCallback(
     (url: string) => {
       onClose()
-      window.location.assign(url)
+      const safeUrl = sanitizeRedirectTarget(url)
+      if (safeUrl) {
+        window.location.assign(safeUrl)
+      } else {
+        window.location.assign('/app')
+      }
     },
     [onClose]
   )
