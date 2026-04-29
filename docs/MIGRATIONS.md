@@ -56,3 +56,62 @@ Konsistensi antara daftar di atas dengan file fisik di `edusync-api/migrations/`
 ```
 
 Lihat juga [`docs/DATABASE.md`](./DATABASE.md) untuk dokumentasi skema, RLS policy, dan indexing strategy.
+| 018_fix_backend_schema_bugs.sql | Fixes | Memperbaiki bug schema backend. |
+| 019_audit_fixes.sql | Audit | Perbaikan tabel dan fungsi audit. |
+| 020_fix_rpc_signatures.sql | RPC | Memperbaiki signature RPC yang tidak sesuai. |
+| 021_rpc_json.sql | RPC | Menambahkan pengembalian JSON pada RPC. |
+| 022_align_table_columns.sql | Schema | Menyeleraskan nama kolom antar tabel. |
+| 023_rpc_stubs.sql | RPC | Menambahkan stub untuk RPC yang belum diimplementasikan. |
+| 024_course_review_workflow.sql | Feature | Menambahkan workflow untuk review course. |
+| 025_personal_and_multi_tenant.sql | Auth | Dukungan untuk tenant personal dan multi-tenant. |
+| 026_join_code_and_slugify.sql | Feature | Menambahkan kode join dan slugify URL. |
+| 027_p2_backlog.sql | Feature | Fitur-fitur dari P2 backlog. |
+| 028_p3_tenant_settings_and_roles.sql | Settings | Menambahkan pengaturan tenant dan role P3. |
+| 029_add_admin_notification_types.sql | Notifications | Menambahkan tipe notifikasi untuk admin. |
+| 030_admin_stub_tables_and_rpcs.sql | Admin | Menambahkan tabel dan RPC stub untuk halaman admin. |
+| 031_qa_schema_gaps.sql | QA | Menutup celah schema yang ditemukan QA. |
+| 032_qa_rpcs.sql | QA | Menambahkan RPC untuk keperluan QA. |
+| 033_fix_search_questions_return_json.sql | Fixes | Memperbaiki RPC search question untuk me-return JSON. |
+| 034_lesson_progress_monitor_rpc.sql | RPC | Menambahkan RPC untuk monitoring progress lesson. |
+| 035_admin_backfill.sql | Admin | Script backfill data untuk admin. |
+| 036_confirm_demo_seed_users.sql | Seed | Script konfirmasi untuk user demo di seed data. |
+| 037_qa_sweep_fixes.sql | QA | Fix dari hasil QA sweep. |
+| 037_seed_modules_missing_rpcs_and_auth_uid.sql | Seed | Seed modul RPC dan uid auth yang hilang. |
+| 038_fix_get_tenant_users_user_id_alias.sql | Fixes | Fix alias pada get tenant users. |
+| 039_academic_years.sql | Schema | Tabel academic_years untuk tahun ajaran. |
+| 040_semesters_link_academic_year.sql | Schema | Link tabel semesters ke academic_years. |
+| 041_grade_levels.sql | Schema | Tabel grade_levels. |
+| 042_rombel.sql | Schema | Tabel rombel. |
+| 043_subjects_and_curriculum_items.sql | Schema | Tabel subjects dan curriculum items. |
+| 044_timetable_slots.sql | Schema | Tabel timetable slots. |
+| 045_dossiers.sql | Schema | Tabel dossiers untuk student. |
+| 046_rbac_10_role_matrix.sql | RBAC | Role matrix versi 1.0. |
+| 047_cp_tagging.sql | Feature | Fitur tagging Capaian Pembelajaran (CP). |
+| 048_gradebook_dual_mode.sql | Feature | Mode dual pada gradebook. |
+| 049_nilai_per_cp.sql | Feature | Penyimpanan nilai per CP. |
+| 050_akm_question_type.sql | Feature | Dukungan untuk tipe soal AKM. |
+| 051_p5_module.sql | Feature | Modul P5 Kurikulum Merdeka. |
+| 052_domain_events_outbox.sql | Pattern | Implementasi outbox pattern untuk event domain. |
+| 053_rapor_kurmer.sql | Feature | Struktur data rapor kurikulum merdeka. |
+| 054_finance_midtrans.sql | Integration | Skema untuk integrasi midtrans. |
+| 055_bos_expense_tracking.sql | Feature | Pelacakan dana BOS. |
+| 056_ppdb_flow.sql | Feature | Alur proses PPDB. |
+| 057_integrations.sql | Integration | Skema log sinkronisasi data Dapodik dll. |
+| 058_ai_polish.sql | AI | Menyempurnakan skema fungsionalitas AI. |
+| 059_audit_rate_limit_perf.sql | Performance | Skema untuk limit rate endpoint audit. |
+| 060_counseling_parent_links_sikap.sql | Feature | Penilaian sikap, konseling, parent links. |
+| 061_app_audit_triggers.sql | Audit | Mengaktifkan triggers log audit DB level. |
+| 062_rapor_autogen_rpc.sql | RPC | Script otomatisasi data rapor. |
+| 063_rombel_attendance.sql | Feature | Skema untuk presensi rombel. |
+| 064_stub_tables.sql | Schema | Tabel mock/stub untuk fitur belum jadi. |
+| 065_gradebook_baseline.sql | Feature | Tabel utama gradebook awal. |
+| 066_role_enum_completeness.sql | Fixes | Mengupdate tipe data enum role. |
+| 067_idempotent_auto_modules.sql | Modules | Mengamankan idempotency automodules. |
+| 068_sync_user_roles_to_granular.sql | Sync | Skrip sinkronisasi role. |
+| 069_classes_rombel_id.sql | Fixes | Relasi constraint id rombel ke kelas. |
+| 070_event_handler_idempotency.sql | Events | Konstrain unik idempotent log events. |
+| 071_ai_rate_limit.sql | Feature | Tabel rate limiting integrasi AI. |
+| 072_parent_invoices_rpc.sql | Feature | Endpoint invoice orang tua murid. |
+| 073_refresh_tokens_session_metadata.sql | Auth | Penyimpanan detail token auth refresh. |
+| 074_tenant_invites_and_settings.sql | Settings | Menambahkan setelan spesifik tiap institusi sekolah (tenant) serta alur registrasi via unique invite code bagi staff/guru baru. |
+| 075_tenant_invites_global_unique_code.sql | Security | Menambahkan constraint GLOBAL UNIQUE pada kolom code di tabel tenant_invites untuk mencegah collision kode registrasi lintas sekolah. |

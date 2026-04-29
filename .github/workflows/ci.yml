@@ -25,6 +25,13 @@ jobs:
       - run: pnpm typecheck
       - run: pnpm lint
       - run: pnpm test:ci
+      - name: Upload coverage summary
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-summary
+          path: coverage/coverage-summary.json
+          retention-days: 1
+          if-no-files-found: ignore
       - run: pnpm build
       - name: Bundle size check
         run: ./node_modules/.bin/bundlesize
