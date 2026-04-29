@@ -241,12 +241,14 @@ function StudentCard({
                             <button
                               onClick={() => handleSave(assignment.id)}
                               className="p-1 text-green-600 hover:bg-green-50 dark:hover:bg-green-900/30 rounded"
+                              aria-label="Simpan"
                             >
                               <Save className="w-4 h-4" />
                             </button>
                             <button
                               onClick={handleCancel}
                               className="p-1 text-red-600 hover:bg-red-50 dark:hover:bg-red-900/30 rounded"
+                              aria-label="Batal"
                             >
                               <X className="w-4 h-4" />
                             </button>
