@@ -1,6 +1,6 @@
 import { BookOpen, ChevronDown, Clock, Download, FileText, Layers, LayoutList, Loader2, Plus, RefreshCw, Search, Users } from 'lucide-react'
 import { AnimatePresence, motion } from 'motion/react'
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 
 import { AssignCourseModal } from '@/components/Classroom/AssignCourseModal'
@@ -126,10 +126,7 @@ export const Courses: React.FC = () => {
   const { data, fetchNextPage, hasNextPage, isFetchingNextPage, isLoading, isError, refetch } =
     useInfiniteCoursesQuery(debouncedSearch)
 
-  // ⚡ Bolt: Wrap courses derivation in useMemo to prevent recreating array reference on every render
-  const courses = useMemo(() => {
-    return data?.pages.flatMap((p) => p.courses) ?? []
-  }, [data?.pages])
+  const courses = data?.pages.flatMap((p) => p.courses) ?? []
 
   // Sentinel for IntersectionObserver — triggers loading the next page
   const sentinelRef = useRef<HTMLDivElement>(null)
@@ -155,16 +152,13 @@ export const Courses: React.FC = () => {
 
   // Server-side search covers title. Client-side filter covers description
   // (the service only does ilike on title, so we locally filter description as well)
-  // ⚡ Bolt: Wrap filteredCourses derivation in useMemo to avoid filtering loop on non-related re-renders
-  const filteredCourses = useMemo(() => {
-    return debouncedSearch
-      ? courses.filter(
-          (c) =>
-            c.title.toLowerCase().includes(debouncedSearch.toLowerCase()) ||
-            (c.description ?? '').toLowerCase().includes(debouncedSearch.toLowerCase())
-        )
-      : courses
-  }, [courses, debouncedSearch])
+  const filteredCourses = debouncedSearch
+    ? courses.filter(
+        (c) =>
+          c.title.toLowerCase().includes(debouncedSearch.toLowerCase()) ||
+          (c.description ?? '').toLowerCase().includes(debouncedSearch.toLowerCase())
+      )
+    : courses
 
   const handleCreateCourse = async (e: React.FormEvent) => {
     e.preventDefault()
