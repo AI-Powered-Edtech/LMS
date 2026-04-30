@@ -43,6 +43,7 @@ export function Dashboards() {
           {view !== 'list' && (
             <button
               onClick={handleBack}
+              aria-label="Kembali"
               className="flex items-center gap-2 rounded-lg p-2 text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
             >
               <ArrowLeft className="h-5 w-5" />
