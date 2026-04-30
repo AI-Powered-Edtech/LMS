@@ -1,7 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 
 import { useAuth } from '@/contexts/AuthContext'
-import { type CurriculumItem,type Subject, subjectService } from '@/features/subjects/api/subjectService'
+import { subjectService, type Subject, type CurriculumItem } from '@/features/subjects/api/subjectService'
 import { createQueryKeys } from '@/lib/queryKeys'
 
 const subjectKeys = createQueryKeys('subjects')

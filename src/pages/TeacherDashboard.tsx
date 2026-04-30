@@ -91,7 +91,7 @@ export function TeacherDashboard() {
       out.push(c)
     }
     if (dupCount > 0 && import.meta.env.DEV) {
-
+      // eslint-disable-next-line no-console
       console.warn(
         `[TeacherDashboard] Dropped ${dupCount} duplicate classroom row(s) before render. ` +
           `Investigate upstream source (classroomService.fetchClassrooms / realtime cache merge).`
