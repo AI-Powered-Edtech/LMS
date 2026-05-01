@@ -1,171 +1,212 @@
-import { BookOpen, ChevronDown, Clock, Download, FileText, Layers, LayoutList, Loader2, Plus, RefreshCw, Search, Users } from 'lucide-react'
-import { AnimatePresence, motion } from 'motion/react'
-import { useEffect, useRef, useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import {
+  BookOpen,
+  ChevronDown,
+  Clock,
+  Download,
+  FileText,
+  Layers,
+  LayoutList,
+  Loader2,
+  Plus,
+  RefreshCw,
+  Search,
+  Users,
+} from "lucide-react";
+import { AnimatePresence, motion } from "motion/react";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { useNavigate } from "react-router-dom";
 
-import { AssignCourseModal } from '@/components/Classroom/AssignCourseModal'
-import { useAuth } from '@/contexts/AuthContext'
-import { Course, courseService } from '@/features/courses'
-import { useInfiniteCoursesQuery } from '@/features/courses/queries/courseQueries'
-import { useDebounce } from '@/hooks/useDebounce'
-import { useRoleBasedPath } from '@/hooks/useRoleBasedPath'
-import { useToast } from '@/hooks/useToast'
-import { defaultCsvFilename, exportCsv } from '@/shared/utils/export-table'
-import { cn } from '@/utils/cn'
-import { logger } from '@/utils/logger'
+import { AssignCourseModal } from "@/components/Classroom/AssignCourseModal";
+import { useAuth } from "@/contexts/AuthContext";
+import { Course, courseService } from "@/features/courses";
+import { useInfiniteCoursesQuery } from "@/features/courses/queries/courseQueries";
+import { useDebounce } from "@/hooks/useDebounce";
+import { useRoleBasedPath } from "@/hooks/useRoleBasedPath";
+import { useToast } from "@/hooks/useToast";
+import { defaultCsvFilename, exportCsv } from "@/shared/utils/export-table";
+import { cn } from "@/utils/cn";
+import { logger } from "@/utils/logger";
 
 // Gradient palette rotated per card index
 const CARD_GRADIENTS = [
-  'from-indigo-500 via-indigo-600 to-purple-600',
-  'from-blue-500 via-cyan-500 to-teal-500',
-  'from-rose-500 via-pink-500 to-fuchsia-600',
-  'from-amber-500 via-orange-500 to-red-500',
-  'from-emerald-500 via-teal-500 to-cyan-600',
-  'from-violet-500 via-purple-600 to-indigo-600',
-]
+  "from-indigo-500 via-indigo-600 to-purple-600",
+  "from-blue-500 via-cyan-500 to-teal-500",
+  "from-rose-500 via-pink-500 to-fuchsia-600",
+  "from-amber-500 via-orange-500 to-red-500",
+  "from-emerald-500 via-teal-500 to-cyan-600",
+  "from-violet-500 via-purple-600 to-indigo-600",
+];
 
 // M-10: Deterministic gradient based on course.id to prevent flicker on search filter
 function getCourseGradient(courseId: string, gradients: string[]): string {
-  const hash = courseId.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0)
-  return gradients[hash % gradients.length]
+  const hash = courseId
+    .split("")
+    .reduce((acc, char) => acc + char.charCodeAt(0), 0);
+  return gradients[hash % gradients.length];
 }
 
 // Modal animation keyframes (extracted as const supaya tidak re-create per render)
-const MODAL_INITIAL = { opacity: 0, scale: 0.9, y: 20 } as const
-const MODAL_ANIMATE = { opacity: 1, scale: 1, y: 0 } as const
-const MODAL_EXIT = { opacity: 0, scale: 0.95, y: 10 } as const
+const MODAL_INITIAL = { opacity: 0, scale: 0.9, y: 20 } as const;
+const MODAL_ANIMATE = { opacity: 1, scale: 1, y: 0 } as const;
+const MODAL_EXIT = { opacity: 0, scale: 0.95, y: 10 } as const;
 
 export const Courses: React.FC = () => {
-  const navigate = useNavigate()
-  const getPath = useRoleBasedPath()
-  const { user, activeTenant } = useAuth()
-  const addToast = useToast((s) => s.addToast)
+  const navigate = useNavigate();
+  const getPath = useRoleBasedPath();
+  const { user, activeTenant } = useAuth();
+  const addToast = useToast((s) => s.addToast);
 
   useEffect(() => {
-    document.title = 'Kursus | EduSync LMS'
+    document.title = "Kursus | EduSync LMS";
     return () => {
-      document.title = 'EduSync'
-    }
-  }, [])
+      document.title = "EduSync";
+    };
+  }, []);
 
-  const [search, setSearch] = useState('')
-  const debouncedSearch = useDebounce(search, 300)
+  const [search, setSearch] = useState("");
+  const debouncedSearch = useDebounce(search, 300);
 
   // Create Course Modal State
-  const [isModalOpen, setIsModalOpen] = useState(false)
-  const [newTitle, setNewTitle] = useState('')
-  const [newDescription, setNewDescription] = useState('')
-  const [newSubject, setNewSubject] = useState('')
-  const [newLevel, setNewLevel] = useState('')
-  const [isCreating, setIsCreating] = useState(false)
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [newTitle, setNewTitle] = useState("");
+  const [newDescription, setNewDescription] = useState("");
+  const [newSubject, setNewSubject] = useState("");
+  const [newLevel, setNewLevel] = useState("");
+  const [isCreating, setIsCreating] = useState(false);
 
   // Assign Class Modal State
   const [assignModal, setAssignModal] = useState<{
-    isOpen: boolean
-    courseId: string
-    courseTitle: string
+    isOpen: boolean;
+    courseId: string;
+    courseTitle: string;
   }>({
     isOpen: false,
-    courseId: '',
-    courseTitle: '',
-  })
+    courseId: "",
+    courseTitle: "",
+  });
 
   // M-2: Escape key handler via useEffect so document receives the event
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'Escape' && isModalOpen) { if (newTitle.trim() || newDescription.trim() || newSubject.trim() || newLevel.trim()) { if (!window.confirm('Perubahan belum disimpan. Tutup tetap?')) return; } setIsModalOpen(false) }
-    }
-    document.addEventListener('keydown', handleKeyDown)
-    return () => document.removeEventListener('keydown', handleKeyDown)
-  }, [isModalOpen])
+      if (e.key === "Escape" && isModalOpen) {
+        if (
+          newTitle.trim() ||
+          newDescription.trim() ||
+          newSubject.trim() ||
+          newLevel.trim()
+        ) {
+          if (!window.confirm("Perubahan belum disimpan. Tutup tetap?")) return;
+        }
+        setIsModalOpen(false);
+      }
+    };
+    document.addEventListener("keydown", handleKeyDown);
+    return () => document.removeEventListener("keydown", handleKeyDown);
+  }, [isModalOpen]);
 
   // P2 fix: focus trap untuk modal create-course (a11y)
-  const modalDialogRef = useRef<HTMLDivElement>(null)
+  const modalDialogRef = useRef<HTMLDivElement>(null);
   useEffect(() => {
-    if (!isModalOpen) return
-    const root = modalDialogRef.current
-    if (!root) return
-    const previouslyFocused = document.activeElement as HTMLElement | null
+    if (!isModalOpen) return;
+    const root = modalDialogRef.current;
+    if (!root) return;
+    const previouslyFocused = document.activeElement as HTMLElement | null;
     const selector =
-      'a[href], button:not([disabled]), textarea:not([disabled]), input:not([disabled]), select:not([disabled]), [tabindex]:not([tabindex="-1"])'
+      'a[href], button:not([disabled]), textarea:not([disabled]), input:not([disabled]), select:not([disabled]), [tabindex]:not([tabindex="-1"])';
     const getFocusable = () =>
       Array.from(root.querySelectorAll<HTMLElement>(selector)).filter(
-        (el) => !el.hasAttribute('aria-hidden') && el.offsetParent !== null
-      )
+        (el) => !el.hasAttribute("aria-hidden") && el.offsetParent !== null,
+      );
     // Auto-focus elemen pertama (biasanya field Judul)
     requestAnimationFrame(() => {
-      const focusables = getFocusable()
-      focusables[0]?.focus()
-    })
+      const focusables = getFocusable();
+      focusables[0]?.focus();
+    });
     const handleTab = (e: KeyboardEvent) => {
-      if (e.key !== 'Tab') return
-      const focusables = getFocusable()
-      if (focusables.length === 0) return
-      const first = focusables[0]!
-      const last = focusables[focusables.length - 1]!
-      const active = document.activeElement as HTMLElement | null
+      if (e.key !== "Tab") return;
+      const focusables = getFocusable();
+      if (focusables.length === 0) return;
+      const first = focusables[0]!;
+      const last = focusables[focusables.length - 1]!;
+      const active = document.activeElement as HTMLElement | null;
       if (e.shiftKey) {
         if (active === first || !root.contains(active)) {
-          e.preventDefault()
-          last.focus()
+          e.preventDefault();
+          last.focus();
         }
       } else {
         if (active === last) {
-          e.preventDefault()
-          first.focus()
+          e.preventDefault();
+          first.focus();
         }
       }
-    }
-    document.addEventListener('keydown', handleTab)
+    };
+    document.addEventListener("keydown", handleTab);
     return () => {
-      document.removeEventListener('keydown', handleTab)
-      previouslyFocused?.focus?.()
-    }
-  }, [isModalOpen])
+      document.removeEventListener("keydown", handleTab);
+      previouslyFocused?.focus?.();
+    };
+  }, [isModalOpen]);
 
-  const { data, fetchNextPage, hasNextPage, isFetchingNextPage, isLoading, isError, refetch } =
-    useInfiniteCoursesQuery(debouncedSearch)
+  const {
+    data,
+    fetchNextPage,
+    hasNextPage,
+    isFetchingNextPage,
+    isLoading,
+    isError,
+    refetch,
+  } = useInfiniteCoursesQuery(debouncedSearch);
 
-  const courses = data?.pages.flatMap((p) => p.courses) ?? []
+  // ⚡ Bolt: Memoize the derived array to prevent creating a new reference on every render,
+  // which preserves downstream memoization and reduces unnecessary re-renders.
+  const courses = useMemo(() => {
+    return data?.pages.flatMap((p) => p.courses) ?? [];
+  }, [data?.pages]);
 
   // Sentinel for IntersectionObserver — triggers loading the next page
-  const sentinelRef = useRef<HTMLDivElement>(null)
+  const sentinelRef = useRef<HTMLDivElement>(null);
 
   // M-18: Stable ref for the load-more callback — prevents observer recreation on dep changes
-  const loadMoreRef = useRef<() => void>(() => {})
+  const loadMoreRef = useRef<() => void>(() => {});
   loadMoreRef.current = () => {
-    if (hasNextPage && !isFetchingNextPage) void fetchNextPage()
-  }
+    if (hasNextPage && !isFetchingNextPage) void fetchNextPage();
+  };
 
   useEffect(() => {
-    const sentinel = sentinelRef.current
-    if (!sentinel) return
+    const sentinel = sentinelRef.current;
+    if (!sentinel) return;
     const observer = new IntersectionObserver(
       (entries) => {
-        if (entries[0]?.isIntersecting) loadMoreRef.current()
+        if (entries[0]?.isIntersecting) loadMoreRef.current();
       },
-      { rootMargin: '200px', threshold: 0.1 }
-    )
-    observer.observe(sentinel)
-    return () => observer.disconnect()
-  }, []) // stable — uses ref internally
+      { rootMargin: "200px", threshold: 0.1 },
+    );
+    observer.observe(sentinel);
+    return () => observer.disconnect();
+  }, []); // stable — uses ref internally
 
   // Server-side search covers title. Client-side filter covers description
   // (the service only does ilike on title, so we locally filter description as well)
-  const filteredCourses = debouncedSearch
-    ? courses.filter(
-        (c) =>
-          c.title.toLowerCase().includes(debouncedSearch.toLowerCase()) ||
-          (c.description ?? '').toLowerCase().includes(debouncedSearch.toLowerCase())
-      )
-    : courses
+  // ⚡ Bolt: Memoize the filtered array to avoid re-evaluating the filter operation on every render
+  const filteredCourses = useMemo(() => {
+    return debouncedSearch
+      ? courses.filter(
+          (c) =>
+            c.title.toLowerCase().includes(debouncedSearch.toLowerCase()) ||
+            (c.description ?? "")
+              .toLowerCase()
+              .includes(debouncedSearch.toLowerCase()),
+        )
+      : courses;
+  }, [courses, debouncedSearch]);
 
   const handleCreateCourse = async (e: React.FormEvent) => {
-    e.preventDefault()
-    if (!activeTenant?.id || !user?.id || !newTitle.trim()) return
+    e.preventDefault();
+    if (!activeTenant?.id || !user?.id || !newTitle.trim()) return;
 
     try {
-      setIsCreating(true)
+      setIsCreating(true);
       const newCourse = await courseService.createCourse({
         title: newTitle.trim(),
         description: newDescription.trim() || null,
@@ -173,54 +214,62 @@ export const Courses: React.FC = () => {
         level: newLevel.trim() || null,
         tenant_id: activeTenant.id,
         created_by: user.id,
-      })
+      });
       if (!newCourse?.id) {
-        throw new Error('Gagal membuat materi baru.')
+        throw new Error("Gagal membuat materi baru.");
       }
 
-      setIsModalOpen(false)
-      addToast({ type: 'success', message: `Materi "${newCourse.title}" berhasil dibuat.` })
-      const targetPath = `${getPath('/app/teacher/course-builder', '/app/admin/course-builder')}?courseId=${newCourse.id}`
-      if (import.meta.env.DEV) logger.debug('Navigating to targetPath:', targetPath)
-      void navigate(targetPath)
-    } catch (err: unknown) {
-      if (import.meta.env.DEV) logger.error('Failed to create course:', err)
+      setIsModalOpen(false);
       addToast({
-        type: 'error',
-        message: err instanceof Error ? err.message : 'Gagal membuat materi baru.',
-      })
+        type: "success",
+        message: `Materi "${newCourse.title}" berhasil dibuat.`,
+      });
+      const targetPath = `${getPath("/app/teacher/course-builder", "/app/admin/course-builder")}?courseId=${newCourse.id}`;
+      if (import.meta.env.DEV)
+        logger.debug("Navigating to targetPath:", targetPath);
+      void navigate(targetPath);
+    } catch (err: unknown) {
+      if (import.meta.env.DEV) logger.error("Failed to create course:", err);
+      addToast({
+        type: "error",
+        message:
+          err instanceof Error ? err.message : "Gagal membuat materi baru.",
+      });
     } finally {
-      setIsCreating(false)
+      setIsCreating(false);
     }
-  }
+  };
 
   const handleExportCsv = () => {
     try {
       const rows = filteredCourses.map((c) => ({
         Judul: c.title,
-        'Mata Pelajaran': c.subject ?? '',
-        Tingkat: c.level ?? '',
-        Deskripsi: c.description ?? '',
+        "Mata Pelajaran": c.subject ?? "",
+        Tingkat: c.level ?? "",
+        Deskripsi: c.description ?? "",
         Modul: c.modules?.length ?? c.module_count ?? 0,
-        'Diperbarui Pada': c.updated_at ?? '',
-      }))
-      exportCsv(defaultCsvFilename('courses'), rows)
-      addToast({ type: 'success', message: 'Daftar kursus berhasil diekspor ke CSV.' })
+        "Diperbarui Pada": c.updated_at ?? "",
+      }));
+      exportCsv(defaultCsvFilename("courses"), rows);
+      addToast({
+        type: "success",
+        message: "Daftar kursus berhasil diekspor ke CSV.",
+      });
     } catch (err) {
       addToast({
-        type: 'warning',
-        message: err instanceof Error ? err.message : 'Gagal mengekspor CSV.',
-      })
+        type: "warning",
+        message: err instanceof Error ? err.message : "Gagal mengekspor CSV.",
+      });
     }
-  }
+  };
 
   const openModal = () => {
-    setNewTitle('')
-    setNewDescription('')
-    setNewSubject('')
-    setNewLevel('')
-    setIsModalOpen(true)
-  }
+    setNewTitle("");
+    setNewDescription("");
+    setNewSubject("");
+    setNewLevel("");
+    setIsModalOpen(true);
+  };
 
   return (
     <div className="p-4 md:p-10 max-w-7xl mx-auto min-h-screen">
@@ -231,29 +280,30 @@ export const Courses: React.FC = () => {
             Kelola Materi
           </h1>
           <p className="text-gray-600 dark:text-gray-400 text-base max-w-2xl">
-            Susun kurikulum, modul pembelajaran, dan kuis interaktif untuk siswa Anda.
+            Susun kurikulum, modul pembelajaran, dan kuis interaktif untuk siswa
+            Anda.
           </p>
         </div>
         <div className="flex items-center gap-2 shrink-0">
-        <button
-          type="button"
-          onClick={handleExportCsv}
-          disabled={filteredCourses.length === 0}
-          data-testid="courses-export-csv"
-          aria-label="Ekspor CSV"
-          className="flex items-center gap-2 px-4 py-3 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-gray-700 dark:text-gray-200 rounded-xl font-bold hover:bg-gray-50 dark:hover:bg-gray-700 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
-        >
-          <Download className="w-4 h-4" />
-          <span>Ekspor CSV</span>
-        </button>
-        <button
-          onClick={openModal}
-          className="group relative flex items-center space-x-2 px-6 py-3 bg-indigo-600 text-white rounded-xl font-bold hover:bg-indigo-700 transition-all shadow-lg hover:shadow-indigo-500/30 active:scale-95 overflow-hidden"
-        >
-          <div className="absolute inset-0 bg-gradient-to-r from-white/0 via-white/10 to-white/0 -translate-x-full group-hover:translate-x-full transition-transform duration-1000" />
-          <Plus className="w-5 h-5" />
-          <span>Buat Materi Baru</span>
-        </button>
+          <button
+            type="button"
+            onClick={handleExportCsv}
+            disabled={filteredCourses.length === 0}
+            data-testid="courses-export-csv"
+            aria-label="Ekspor CSV"
+            className="flex items-center gap-2 px-4 py-3 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-gray-700 dark:text-gray-200 rounded-xl font-bold hover:bg-gray-50 dark:hover:bg-gray-700 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            <Download className="w-4 h-4" />
+            <span>Ekspor CSV</span>
+          </button>
+          <button
+            onClick={openModal}
+            className="group relative flex items-center space-x-2 px-6 py-3 bg-indigo-600 text-white rounded-xl font-bold hover:bg-indigo-700 transition-all shadow-lg hover:shadow-indigo-500/30 active:scale-95 overflow-hidden"
+          >
+            <div className="absolute inset-0 bg-gradient-to-r from-white/0 via-white/10 to-white/0 -translate-x-full group-hover:translate-x-full transition-transform duration-1000" />
+            <Plus className="w-5 h-5" />
+            <span>Buat Materi Baru</span>
+          </button>
         </div>
       </div>
 
@@ -276,7 +326,9 @@ export const Courses: React.FC = () => {
       {isLoading ? (
         <div className="flex flex-col items-center justify-center py-32 bg-white/30 dark:bg-gray-800/20 backdrop-blur-sm rounded-3xl border border-dashed border-gray-300 dark:border-gray-700">
           <Loader2 className="w-12 h-12 animate-spin text-indigo-500 mb-4" />
-          <p className="text-gray-500 dark:text-gray-400 font-medium">Memuat daftar materi...</p>
+          <p className="text-gray-500 dark:text-gray-400 font-medium">
+            Memuat daftar materi...
+          </p>
         </div>
       ) : isError ? (
         <div className="flex flex-col items-center justify-center py-20 text-center">
@@ -285,7 +337,9 @@ export const Courses: React.FC = () => {
               <RefreshCw className="w-8 h-8" />
             </div>
             <p className="text-xl font-bold mb-3">Oops! Ada kendala</p>
-            <p className="text-sm opacity-80 mb-6">Gagal memuat daftar materi.</p>
+            <p className="text-sm opacity-80 mb-6">
+              Gagal memuat daftar materi.
+            </p>
             <button
               onClick={() => refetch()}
               className="flex items-center justify-center w-full space-x-2 px-6 py-3 bg-red-600 text-white rounded-xl font-bold hover:bg-red-700 transition-all shadow-lg hover:shadow-red-500/20"
@@ -310,12 +364,12 @@ export const Courses: React.FC = () => {
             </div>
           </div>
           <h2 className="text-2xl font-extrabold text-gray-900 dark:text-white mb-2">
-            {search ? 'Materi Tidak Ditemukan' : 'Mulai Petualangan Anda'}
+            {search ? "Materi Tidak Ditemukan" : "Mulai Petualangan Anda"}
           </h2>
           <p className="text-gray-500 dark:text-gray-400 text-center max-w-sm mb-8 text-base">
             {search
               ? `Tidak ada materi yang cocok dengan "${search}". Coba kata kunci lain.`
-              : 'Anda belum memiliki materi. Mari buat materi pertama yang menginspirasi siswa Anda!'}
+              : "Anda belum memiliki materi. Mari buat materi pertama yang menginspirasi siswa Anda!"}
           </p>
           {!search && (
             <button
@@ -340,11 +394,15 @@ export const Courses: React.FC = () => {
                 gradientClass={getCourseGradient(course.id, CARD_GRADIENTS)}
                 onNavigate={() =>
                   navigate(
-                    `${getPath('/app/teacher/course-builder', '/app/admin/course-builder')}?courseId=${course.id}`
+                    `${getPath("/app/teacher/course-builder", "/app/admin/course-builder")}?courseId=${course.id}`,
                   )
                 }
                 onAssign={() =>
-                  setAssignModal({ isOpen: true, courseId: course.id, courseTitle: course.title })
+                  setAssignModal({
+                    isOpen: true,
+                    courseId: course.id,
+                    courseTitle: course.title,
+                  })
                 }
               />
             ))}
@@ -357,7 +415,9 @@ export const Courses: React.FC = () => {
           {isFetchingNextPage && (
             <div className="col-span-full flex justify-center items-center py-6">
               <div className="h-6 w-6 animate-spin rounded-full border-2 border-blue-500 border-t-transparent" />
-              <span className="ml-2 text-sm text-slate-500">Memuat lebih banyak...</span>
+              <span className="ml-2 text-sm text-slate-500">
+                Memuat lebih banyak...
+              </span>
             </div>
           )}
 
@@ -378,7 +438,18 @@ export const Courses: React.FC = () => {
             role="presentation"
             className="fixed inset-0 z-50 flex items-center justify-center px-4 bg-black/60 backdrop-blur-md"
             onClick={(e) => {
-              if (e.target === e.currentTarget) { if (newTitle.trim() || newDescription.trim() || newSubject.trim() || newLevel.trim()) { if (!window.confirm("Perubahan belum disimpan. Tutup tetap?")) return; } setIsModalOpen(false) }
+              if (e.target === e.currentTarget) {
+                if (
+                  newTitle.trim() ||
+                  newDescription.trim() ||
+                  newSubject.trim() ||
+                  newLevel.trim()
+                ) {
+                  if (!window.confirm("Perubahan belum disimpan. Tutup tetap?"))
+                    return;
+                }
+                setIsModalOpen(false);
+              }
             }}
           >
             <motion.div
@@ -410,7 +481,11 @@ export const Courses: React.FC = () => {
               </div>
 
               <div className="overflow-y-auto px-8 py-6 custom-scrollbar">
-                <form id="create-course-form" onSubmit={handleCreateCourse} className="space-y-6">
+                <form
+                  id="create-course-form"
+                  onSubmit={handleCreateCourse}
+                  className="space-y-6"
+                >
                   {/* Judul Materi */}
                   <div>
                     <label className="flex items-center gap-2 text-sm font-bold text-gray-700 dark:text-gray-300 mb-2">
@@ -463,10 +538,18 @@ export const Courses: React.FC = () => {
                         >
                           <option value="">Pilih Tingkat...</option>
                           <option value="SD / Sederajat">SD / Sederajat</option>
-                          <option value="SMP / Sederajat">SMP / Sederajat</option>
-                          <option value="SMA / SMK / Sederajat">SMA / SMK / Sederajat</option>
-                          <option value="Perguruan Tinggi">Perguruan Tinggi</option>
-                          <option value="Umum / Profesional">Umum / Profesional</option>
+                          <option value="SMP / Sederajat">
+                            SMP / Sederajat
+                          </option>
+                          <option value="SMA / SMK / Sederajat">
+                            SMA / SMK / Sederajat
+                          </option>
+                          <option value="Perguruan Tinggi">
+                            Perguruan Tinggi
+                          </option>
+                          <option value="Umum / Profesional">
+                            Umum / Profesional
+                          </option>
                         </select>
                         <ChevronDown className="absolute right-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
                       </div>
@@ -493,7 +576,22 @@ export const Courses: React.FC = () => {
               <div className="px-8 py-5 border-t border-gray-100 dark:border-gray-700/50 bg-gray-50/50 dark:bg-gray-800/50 flex gap-3 justify-end items-center mt-auto">
                 <button
                   type="button"
-                  onClick={() => { if (newTitle.trim() || newDescription.trim() || newSubject.trim() || newLevel.trim()) { if (!window.confirm("Perubahan belum disimpan. Tutup tetap?")) return; } setIsModalOpen(false) }}
+                  onClick={() => {
+                    if (
+                      newTitle.trim() ||
+                      newDescription.trim() ||
+                      newSubject.trim() ||
+                      newLevel.trim()
+                    ) {
+                      if (
+                        !window.confirm(
+                          "Perubahan belum disimpan. Tutup tetap?",
+                        )
+                      )
+                        return;
+                    }
+                    setIsModalOpen(false);
+                  }}
                   className="px-6 py-2.5 text-gray-600 dark:text-gray-300 font-bold hover:bg-gray-200 dark:hover:bg-gray-700 rounded-xl transition-colors"
                   disabled={isCreating}
                 >
@@ -511,7 +609,7 @@ export const Courses: React.FC = () => {
                       Menyimpan...
                     </>
                   ) : (
-                    'Buat & Mulai Edit'
+                    "Buat & Mulai Edit"
                   )}
                 </button>
               </div>
@@ -528,20 +626,25 @@ export const Courses: React.FC = () => {
         courseTitle={assignModal.courseTitle}
       />
     </div>
-  )
-}
+  );
+};
 
 // ─── Course Card ────────────────────────────────────────────────────────────
 
 interface CourseCardProps {
-  course: Course
-  gradientClass: string
-  onNavigate: () => void
-  onAssign: () => void
+  course: Course;
+  gradientClass: string;
+  onNavigate: () => void;
+  onAssign: () => void;
 }
 
-function CourseCard({ course, gradientClass, onNavigate, onAssign }: CourseCardProps) {
-  const moduleCount = course.modules?.length ?? course.module_count ?? null
+function CourseCard({
+  course,
+  gradientClass,
+  onNavigate,
+  onAssign,
+}: CourseCardProps) {
+  const moduleCount = course.modules?.length ?? course.module_count ?? null;
 
   return (
     <div
@@ -550,18 +653,18 @@ function CourseCard({ course, gradientClass, onNavigate, onAssign }: CourseCardP
       // L-1: ARIA label for screen readers
       aria-label={`Buka kursus ${course.title}`}
       className={cn(
-        'group cursor-pointer bg-white dark:bg-gray-800 rounded-3xl border border-gray-200 dark:border-gray-700/60',
-        'overflow-hidden shadow-sm hover:shadow-xl hover:shadow-indigo-500/10 dark:hover:shadow-indigo-900/20',
-        'transition-all duration-300 hover:-translate-y-1'
+        "group cursor-pointer bg-white dark:bg-gray-800 rounded-3xl border border-gray-200 dark:border-gray-700/60",
+        "overflow-hidden shadow-sm hover:shadow-xl hover:shadow-indigo-500/10 dark:hover:shadow-indigo-900/20",
+        "transition-all duration-300 hover:-translate-y-1",
       )}
       onClick={onNavigate}
-      onKeyDown={(e) => (e.key === 'Enter' || e.key === ' ') && onNavigate()}
+      onKeyDown={(e) => (e.key === "Enter" || e.key === " ") && onNavigate()}
     >
       {/* Thumbnail / gradient header */}
       <div
         className={cn(
-          'h-40 bg-gradient-to-br relative p-6 flex flex-col justify-end overflow-hidden',
-          gradientClass
+          "h-40 bg-gradient-to-br relative p-6 flex flex-col justify-end overflow-hidden",
+          gradientClass,
         )}
       >
         {/* decorative blobs */}
@@ -599,7 +702,7 @@ function CourseCard({ course, gradientClass, onNavigate, onAssign }: CourseCardP
                 key={ac.class_id}
                 className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold bg-indigo-50 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400 border border-indigo-100 dark:border-indigo-800"
               >
-                {ac.class?.name || 'Kelas'}
+                {ac.class?.name || "Kelas"}
               </span>
             ))}
           </div>
@@ -612,20 +715,20 @@ function CourseCard({ course, gradientClass, onNavigate, onAssign }: CourseCardP
             {/* M-1: Guard against null updated_at to avoid "Invalid Date" */}
             <span>
               {course.updated_at
-                ? new Date(course.updated_at).toLocaleDateString('id-ID', {
-                    day: '2-digit',
-                    month: 'short',
-                    year: 'numeric',
+                ? new Date(course.updated_at).toLocaleDateString("id-ID", {
+                    day: "2-digit",
+                    month: "short",
+                    year: "numeric",
                   })
-                : '-'}
+                : "-"}
             </span>
           </div>
           <div className="flex items-center gap-2">
             {/* L-2: aria-label for assistive technology */}
             <button
               onClick={(e) => {
-                e.stopPropagation()
-                onAssign()
+                e.stopPropagation();
+                onAssign();
               }}
               aria-label="Tugaskan ke Kelas"
               className="p-2 bg-gray-50 dark:bg-gray-700/50 text-gray-500 dark:text-gray-400 rounded-xl hover:bg-indigo-50 dark:hover:bg-indigo-900/30 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors"
@@ -641,5 +744,5 @@ function CourseCard({ course, gradientClass, onNavigate, onAssign }: CourseCardP
         </div>
       </div>
     </div>
-  )
+  );
 }
