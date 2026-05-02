@@ -1,15 +1,16 @@
-import { Loader2, Search, X } from 'lucide-react'
-import { useCallback, useEffect, useRef } from 'react'
+import { Loader2, Search, X } from "lucide-react";
+import { useCallback, useEffect, useRef } from "react";
 
-import { EmptyState } from '@/components/ui/EmptyState'
-import { Modal, ModalBody, ModalHeader } from '@/components/ui/Modal'
+import { EmptyState } from "@/components/ui/EmptyState";
+import { Modal, ModalBody, ModalHeader } from "@/components/ui/Modal";
+import { sanitizeRedirectTarget } from "@/features/auth/utils/authFlow";
 
-import { useGlobalSearch } from '../hooks/useGlobalSearch'
-import { SearchResultItem } from './SearchResultItem'
+import { useGlobalSearch } from "../hooks/useGlobalSearch";
+import { SearchResultItem } from "./SearchResultItem";
 
 interface GlobalSearchModalProps {
-  isOpen: boolean
-  onClose: () => void
+  isOpen: boolean;
+  onClose: () => void;
 }
 
 /**
@@ -17,42 +18,48 @@ interface GlobalSearchModalProps {
  * Mendukung pencarian lintas: kursus, pelajaran, tugas, kuis, diskusi, pengguna.
  */
 export function GlobalSearchModal({ isOpen, onClose }: GlobalSearchModalProps) {
-  const { query, setQuery, results, loading, clear } = useGlobalSearch()
-  const inputRef = useRef<HTMLInputElement>(null)
+  const { query, setQuery, results, loading, clear } = useGlobalSearch();
+  const inputRef = useRef<HTMLInputElement>(null);
 
   // Focus input on open
   useEffect(() => {
     if (isOpen) {
-      setTimeout(() => inputRef.current?.focus(), 100)
+      setTimeout(() => inputRef.current?.focus(), 100);
     }
-  }, [isOpen])
+  }, [isOpen]);
 
   // Reset on close
   useEffect(() => {
     if (!isOpen) {
-      clear()
+      clear();
     }
-  }, [isOpen, clear])
+  }, [isOpen, clear]);
 
   const handleSelect = useCallback(
     (url: string) => {
-      onClose()
-      window.location.assign(url)
+      onClose();
+      const safeUrl = sanitizeRedirectTarget(url) || "/app";
+      window.location.assign(safeUrl);
     },
-    [onClose]
-  )
+    [onClose],
+  );
 
   const handleKeyDown = useCallback(
     (e: React.KeyboardEvent) => {
-      if (e.key === 'Escape') {
-        onClose()
+      if (e.key === "Escape") {
+        onClose();
       }
     },
-    [onClose]
-  )
+    [onClose],
+  );
 
   return (
-    <Modal open={isOpen} onClose={onClose} size="lg" ariaLabel="Pencarian Global">
+    <Modal
+      open={isOpen}
+      onClose={onClose}
+      size="lg"
+      ariaLabel="Pencarian Global"
+    >
       <ModalHeader onClose={onClose}>
         <div className="flex items-center gap-3 w-full">
           <Search className="w-5 h-5 text-slate-400 flex-shrink-0" />
@@ -66,10 +73,12 @@ export function GlobalSearchModal({ isOpen, onClose }: GlobalSearchModalProps) {
             className="flex-1 bg-transparent border-none outline-none text-slate-900 dark:text-white placeholder:text-slate-400 text-lg"
             aria-label="Kata kunci pencarian"
           />
-          {loading && <Loader2 className="w-4 h-4 animate-spin text-slate-400" />}
+          {loading && (
+            <Loader2 className="w-4 h-4 animate-spin text-slate-400" />
+          )}
           {query && (
             <button
-              onClick={() => setQuery('')}
+              onClick={() => setQuery("")}
               className="p-1 hover:bg-slate-100 dark:hover:bg-slate-700 rounded"
               aria-label="Hapus pencarian"
             >
@@ -105,5 +114,5 @@ export function GlobalSearchModal({ isOpen, onClose }: GlobalSearchModalProps) {
         </div>
       </ModalBody>
     </Modal>
-  )
+  );
 }
