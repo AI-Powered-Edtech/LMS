@@ -89,6 +89,7 @@ export function RubricCriterionRow({
           <button
             type="button"
             onClick={onDelete}
+            aria-label="Hapus kriteria"
             className="p-1.5 text-red-400 dark:text-red-500 hover:text-red-600 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors"
           >
             <Trash2 className="w-4 h-4" />
@@ -143,6 +144,7 @@ export function RubricCriterionRow({
                   type="button"
                   onClick={() => onDeleteLevel(level.id)}
                   disabled={criterion.levels.length <= 1}
+                  aria-label="Hapus level"
                   className="p-1.5 text-red-400 dark:text-red-500 hover:text-red-600 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors disabled:opacity-30 disabled:cursor-not-allowed mt-0.5"
                 >
                   <Trash2 className="w-3.5 h-3.5" />
