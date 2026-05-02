@@ -1,0 +1,6 @@
+fix(ci): Resolve additional workflow failures and optimize Playwright servers
+
+This commit addresses the remaining GitHub CI workflow failures:
+1.  **Lighthouse / Deploy / E2E Configs**: Downgrades `node-version: 24` references to `node-version: 20` and applies `FORCE_JAVASCRIPT_ACTIONS_TO_NODE24=true` globally to `lighthouse.yml`, `deploy.yml`, and `e2e.yml` to stabilize the environments while suppressing deprecation warnings.
+2.  **Playwright Server Reuse**: Removes redundant, manual `pnpm dev &` and `wait-on` steps from `qa.yml` and `sweep.yml` since `playwright.config.ts` handles the server bootstrapping via its `webServer` block.
+3.  **Playwright Server Command**: Updates `playwright.config.ts`'s `webServer.command` to `pnpm dev` (instead of `npm run dev`) to unify the package manager usage and avoid cache hit misses during CI.

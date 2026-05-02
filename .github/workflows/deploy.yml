@@ -17,6 +17,8 @@ jobs:
     environment:
       name: preview
       url: ${{ steps.vercel.outputs.preview-url }}
+    env:
+      FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
 
     steps:
       - name: Checkout
@@ -30,7 +32,7 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: 24
+          node-version: 20
           cache: pnpm
 
       - name: Install dependencies
@@ -93,7 +95,7 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: 24
+          node-version: 20
           cache: pnpm
 
       - name: Install dependencies

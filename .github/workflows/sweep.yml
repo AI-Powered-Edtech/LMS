@@ -70,11 +70,6 @@ jobs:
       - name: Install Playwright browsers
         run: pnpm exec playwright install chromium --with-deps
 
-      - name: Start frontend dev server
-        run: |
-          pnpm run dev &
-          npx --yes wait-on http://localhost:5173 -t 60000
-
       - name: Run sweep
         run: pnpm exec playwright test tests/e2e/sweep.spec.ts --reporter=line
 
