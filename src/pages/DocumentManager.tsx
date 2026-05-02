@@ -472,6 +472,7 @@ function DocumentRow({ doc, onDelete }: DocumentRowProps) {
             title="Unduh"
           >
             <Download className="w-4 h-4" />
+            <span className="sr-only">(buka di tab baru)</span>
           </a>
         )}
         <button
