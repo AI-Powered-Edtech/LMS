@@ -18,12 +18,14 @@ class Logger {
 
   debug(message: string, ...args: any[]) {
     if (isDev) {
+      // eslint-disable-next-line no-console
       console.debug(this.formatMessage('debug', message, ...args))
     }
   }
 
   info(message: string, ...args: any[]) {
     if (isDev) {
+      // eslint-disable-next-line no-console
       console.info(this.formatMessage('info', message, ...args))
     }
   }
