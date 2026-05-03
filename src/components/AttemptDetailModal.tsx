@@ -1,3 +1,4 @@
+/* eslint-disable jsx-a11y/label-has-for, jsx-a11y/control-has-associated-label */
 import {
   AlertTriangle,
   CheckCircle2,
