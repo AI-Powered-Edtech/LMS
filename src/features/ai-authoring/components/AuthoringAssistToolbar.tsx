@@ -11,6 +11,7 @@
  */
 
 import { useState } from 'react'
+
 import { aiProvider } from '@/services/ai/aiProvider'
 
 type ActionId = 'paragraph' | 'questions' | 'simplify'
