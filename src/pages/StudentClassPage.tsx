@@ -1,48 +1,54 @@
-import { ArrowLeft, BookOpen, GraduationCap, Play } from 'lucide-react'
-import { useEffect, useState } from 'react'
-import { useNavigate, useParams } from 'react-router-dom'
+import { ArrowLeft, BookOpen, GraduationCap, Play } from "lucide-react";
+import { useEffect, useState } from "react";
+import { useNavigate, useParams } from "react-router-dom";
 
-import { useAuth } from '@/contexts/AuthContext'
-import { useClassroom } from '@/features/classroom/hooks/useClassroomQueries'
-import { Course, courseService } from '@/features/courses'
-import { usePageTitle } from '@/hooks/usePageTitle'
-import { logger } from '@/utils/logger'
-import { captureError } from '@/utils/sentry'
+import { useAuth } from "@/contexts/AuthContext";
+import { useClassroom } from "@/features/classroom/hooks/useClassroomQueries";
+import { Course, courseService } from "@/features/courses";
+import { usePageTitle } from "@/hooks/usePageTitle";
+import { logger } from "@/utils/logger";
+import { captureError } from "@/utils/sentry";
 
 export function StudentClassPage() {
-  usePageTitle('Halaman Kelas Siswa')
-  const { classId } = useParams()
-  const navigate = useNavigate()
-  const { classrooms } = useClassroom()
-  const { tenantId } = useAuth()
+  usePageTitle("Halaman Kelas Siswa");
+  const { classId } = useParams();
+  const navigate = useNavigate();
+  const { classrooms } = useClassroom();
+  const { tenantId } = useAuth();
 
-  const [courses, setCourses] = useState<Course[]>([])
-  const [loading, setLoading] = useState(true)
+  const [courses, setCourses] = useState<Course[]>([]);
+  const [loading, setLoading] = useState(true);
 
-  const currentClass = classrooms.find((c) => c.id === classId)
+  const currentClass = classrooms.find((c) => c.id === classId);
 
   useEffect(() => {
     async function loadClassData() {
-      if (!tenantId || !classId) return
+      if (!tenantId || !classId) return;
       try {
-        setLoading(true)
-        const { courses } = await courseService.fetchCourses({ tenantId, limit: 100 })
+        setLoading(true);
+        const { courses } = await courseService.fetchCourses({
+          tenantId,
+          limit: 100,
+        });
         const classCourses = courses.filter((course) =>
-          course.assigned_classes?.some((ac: { class_id: string }) => ac.class_id === classId)
-        )
-        setCourses(classCourses)
+          course.assigned_classes?.some(
+            (ac: { class_id: string }) => ac.class_id === classId,
+          ),
+        );
+        setCourses(classCourses);
       } catch (err) {
-        if (import.meta.env.DEV) logger.error('Failed to load class courses:', err)
-        captureError(err, { context: 'StudentClassPage.loadClassData' })
+        if (import.meta.env.DEV)
+          logger.error("Failed to load class courses:", err);
+        captureError(err, { context: "StudentClassPage.loadClassData" });
       } finally {
-        setLoading(false)
+        setLoading(false);
       }
     }
 
     if (currentClass) {
-      void loadClassData()
+      void loadClassData();
     }
-  }, [classId, tenantId, currentClass])
+  }, [classId, tenantId, currentClass]);
 
   if (!currentClass) {
     return (
@@ -52,13 +58,13 @@ export function StudentClassPage() {
           Kelas tidak ditemukan
         </h2>
         <button
-          onClick={() => navigate('/dashboard')}
+          onClick={() => navigate("/dashboard")}
           className="mt-4 text-indigo-600 font-bold hover:underline"
         >
           Kembali ke Dashboard
         </button>
       </div>
-    )
+    );
   }
 
   return (
@@ -68,7 +74,8 @@ export function StudentClassPage() {
         <div className="flex items-start gap-4 mb-6">
           <button
             onClick={() => navigate(-1)}
-            className="p-2 -ml-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-700 rounded-xl transition-colors text-slate-600 dark:text-slate-400"
+            aria-label="Kembali"
+            className="p-2 -ml-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-700 rounded-xl transition-colors text-slate-600 dark:text-slate-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500"
           >
             <ArrowLeft className="w-5 h-5" />
           </button>
@@ -78,7 +85,7 @@ export function StudentClassPage() {
             </h1>
             <p className="text-slate-500 dark:text-slate-400 mt-1 flex items-center gap-2 font-medium">
               <span className="flex items-center gap-1.5 px-2.5 py-1 bg-indigo-50 dark:bg-indigo-900/30 text-indigo-700 dark:text-indigo-300 rounded-md text-xs">
-                {currentClass.teacher_name || 'Guru'}
+                {currentClass.teacher_name || "Guru"}
               </span>
             </p>
           </div>
@@ -111,7 +118,8 @@ export function StudentClassPage() {
                     tabIndex={0}
                     onClick={() => navigate(`/courses/${course.id}`)}
                     onKeyDown={(e) => {
-                      if (e.key === 'Enter' || e.key === ' ') void navigate(`/courses/${course.id}`)
+                      if (e.key === "Enter" || e.key === " ")
+                        void navigate(`/courses/${course.id}`);
                     }}
                     className="bg-white dark:bg-slate-800 p-4 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-sm hover:border-indigo-300 hover:shadow-md transition-all cursor-pointer group flex items-start gap-4"
                   >
@@ -123,7 +131,7 @@ export function StudentClassPage() {
                         {course.title}
                       </h3>
                       <p className="text-sm text-slate-500 dark:text-slate-400 line-clamp-2 mt-1">
-                        {course.description || 'Tidak ada deskripsi'}
+                        {course.description || "Tidak ada deskripsi"}
                       </p>
                     </div>
                   </div>
@@ -134,5 +142,5 @@ export function StudentClassPage() {
         </div>
       </div>
     </div>
-  )
+  );
 }
