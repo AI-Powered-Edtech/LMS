@@ -1,6 +1,6 @@
 import { BookOpen, ChevronDown, Clock, Download, FileText, Layers, LayoutList, Loader2, Plus, RefreshCw, Search, Users } from 'lucide-react'
 import { AnimatePresence, motion } from 'motion/react'
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 
 import { AssignCourseModal } from '@/components/Classroom/AssignCourseModal'
@@ -126,7 +126,9 @@ export const Courses: React.FC = () => {
   const { data, fetchNextPage, hasNextPage, isFetchingNextPage, isLoading, isError, refetch } =
     useInfiniteCoursesQuery(debouncedSearch)
 
-  const courses = data?.pages.flatMap((p) => p.courses) ?? []
+  // ⚡ Perf: Wrap derived array in useMemo with data?.pages as the dependency
+  // to prevent downstream memoization breaks in filteredCourses.
+  const courses = useMemo(() => data?.pages.flatMap((p) => p.courses) ?? [], [data?.pages])
 
   // Sentinel for IntersectionObserver — triggers loading the next page
   const sentinelRef = useRef<HTMLDivElement>(null)
@@ -152,13 +154,18 @@ export const Courses: React.FC = () => {
 
   // Server-side search covers title. Client-side filter covers description
   // (the service only does ilike on title, so we locally filter description as well)
-  const filteredCourses = debouncedSearch
-    ? courses.filter(
-        (c) =>
-          c.title.toLowerCase().includes(debouncedSearch.toLowerCase()) ||
-          (c.description ?? '').toLowerCase().includes(debouncedSearch.toLowerCase())
-      )
-    : courses
+  // ⚡ Perf: Memoize filteredCourses and hoist debouncedSearch.toLowerCase() outside the loop
+  // to avoid O(n) redundant string allocations.
+  const filteredCourses = useMemo(() => {
+    if (!debouncedSearch) return courses;
+
+    const query = debouncedSearch.toLowerCase();
+    return courses.filter(
+      (c) =>
+        c.title.toLowerCase().includes(query) ||
+        (c.description ?? '').toLowerCase().includes(query)
+    );
+  }, [courses, debouncedSearch])
 
   const handleCreateCourse = async (e: React.FormEvent) => {
     e.preventDefault()
