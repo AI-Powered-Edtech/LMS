@@ -227,7 +227,7 @@ jobs:
           exit 1
 
       - name: Install Lighthouse CI
-        run: npm install -g @lhci/cli@0.14.x
+        run: npm i -g pnpm && pnpm install -g @lhci/cli@0.14.x
 
       - name: Run Lighthouse CI
         run: lhci autorun --config=lighthouserc.json
