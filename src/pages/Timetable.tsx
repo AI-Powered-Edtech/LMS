@@ -48,7 +48,7 @@ export function Timetable() {
         await timetableService.delete(existing.id, tenantId)
         addToast({ type: 'success', message: 'Slot dihapus' })
         void qc.invalidateQueries({ queryKey: ['timetable_slots'] })
-      } catch (err) {
+      } catch (_err) {
         addToast({ type: 'error', message: 'Gagal menghapus slot' })
       }
       return
