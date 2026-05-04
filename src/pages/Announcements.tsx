@@ -146,12 +146,15 @@ export function Announcements() {
   // announcements, debouncedSearch, or filter change. Previously recomputed
   // on every render (modal toggle, comment expand, etc.).
   const filteredAnnouncements = useMemo(
-    () =>
-      announcements
+    () => {
+      // ⚡ Perf: Hoist debouncedSearch.toLowerCase() outside the .filter loop
+      // to avoid O(N) redundant string allocations and conversions per memoization update.
+      const lowerSearch = debouncedSearch.toLowerCase()
+      return announcements
         .filter((a) => {
           const matchesSearch =
-            a.title.toLowerCase().includes(debouncedSearch.toLowerCase()) ||
-            a.content.toLowerCase().includes(debouncedSearch.toLowerCase())
+            a.title.toLowerCase().includes(lowerSearch) ||
+            a.content.toLowerCase().includes(lowerSearch)
           const matchesFilter =
             filter === 'all'
               ? true
@@ -166,7 +169,8 @@ export function Announcements() {
           if (a.is_pinned && !b.is_pinned) return -1
           if (!a.is_pinned && b.is_pinned) return 1
           return 0
-        }),
+        })
+    },
     [announcements, debouncedSearch, filter]
   )
 
