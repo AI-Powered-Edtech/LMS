@@ -239,12 +239,14 @@ function StudentCard({
                               }}
                             />
                             <button
+                              aria-label="Simpan nilai"
                               onClick={() => handleSave(assignment.id)}
                               className="p-1 text-green-600 hover:bg-green-50 dark:hover:bg-green-900/30 rounded"
                             >
                               <Save className="w-4 h-4" />
                             </button>
                             <button
+                              aria-label="Batal edit"
                               onClick={handleCancel}
                               className="p-1 text-red-600 hover:bg-red-50 dark:hover:bg-red-900/30 rounded"
                             >
@@ -263,6 +265,7 @@ function StudentCard({
                             </span>
                             {onEditGrade && (
                               <button
+                                aria-label="Edit nilai"
                                 onClick={() => handleEdit(assignment.id, entry.score)}
                                 className="p-1 text-slate-400 hover:text-blue-600 dark:hover:text-blue-400 transition-colors"
                               >
