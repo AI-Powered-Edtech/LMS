@@ -122,16 +122,19 @@ export function Assignments() {
   }, [assignments, selectedAssignment])
 
   const filteredAssignments = useMemo(
-    () =>
-      assignments.filter((assignment) => {
-        const matchesSearch = assignment.title.toLowerCase().includes(debouncedSearch.toLowerCase())
+    () => {
+      // ⚡ Perf: Hoist toLowerCase() outside the loop to prevent O(n) redundant recalculations
+      const lowerSearch = debouncedSearch.toLowerCase()
+      return assignments.filter((assignment) => {
+        const matchesSearch = assignment.title.toLowerCase().includes(lowerSearch)
         const matchesStatus =
           filter === 'all' ||
           assignment.status === filter ||
           (filter === 'assigned' && assignment.status === 'late')
         const matchesType = typeFilter === 'all' || assignment.type === typeFilter
         return matchesSearch && matchesStatus && matchesType
-      }),
+      })
+    },
     [assignments, debouncedSearch, filter, typeFilter]
   )
 
