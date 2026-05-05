@@ -2,10 +2,11 @@
   "ci": {
     "collect": {
       "url": [
-        "http://localhost:5173/#/login",
-        "http://localhost:5173/#/privacy",
-        "http://localhost:5173/#/terms"
+        "http://localhost:4173/#/login",
+        "http://localhost:4173/#/privacy",
+        "http://localhost:4173/#/terms"
       ],
+      "startServerCommand": "pnpm preview -- --host 0.0.0.0 --port 4173",
       "numberOfRuns": 1,
       "settings": {
         "preset": "desktop",

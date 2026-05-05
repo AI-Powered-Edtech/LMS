@@ -6,9 +6,9 @@
  * own children's invoices; we don't double-filter on the client.
  */
 
+import { db } from '@/services/db'
 import { getVilHttpBaseUrl } from '@/services/api/baseUrl'
 import { readVilSession } from '@/services/auth/vilSession'
-import { db } from '@/services/db'
 import { logger } from '@/utils/logger'
 
 export type InvoiceStatus = 'pending' | 'unpaid' | 'paid' | 'cancelled' | 'failed'

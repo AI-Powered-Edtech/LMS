@@ -1,7 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 
 import { useAuth } from '@/contexts/AuthContext'
-import { type AcademicYear,academicYearService } from '@/features/academic-years/api/academicYearService'
+import { academicYearService, type AcademicYear } from '@/features/academic-years/api/academicYearService'
 import { createQueryKeys } from '@/lib/queryKeys'
 
 const academicYearKeys = createQueryKeys('academic_years')
