@@ -116,6 +116,7 @@ export const QuestionSearchModal: React.FC<QuestionSearchModalProps> = ({
             <button
               onClick={onClose}
               className="p-2 text-slate-400 hover:text-slate-600 hover:bg-slate-100 rounded-lg transition-colors"
+              aria-label="Tutup"
             >
               <X className="w-5 h-5" />
             </button>

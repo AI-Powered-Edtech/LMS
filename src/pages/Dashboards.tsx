@@ -44,6 +44,7 @@ export function Dashboards() {
             <button
               onClick={handleBack}
               className="flex items-center gap-2 rounded-lg p-2 text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
+              aria-label="Kembali"
             >
               <ArrowLeft className="h-5 w-5" />
             </button>

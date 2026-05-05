@@ -88,6 +88,7 @@ export function ModuleCompletionModal({
             'hover:bg-slate-100 dark:hover:bg-slate-800',
             'text-slate-400 dark:text-slate-500 hover:text-slate-600 dark:hover:text-slate-300'
           )}
+          aria-label="Tutup"
         >
           <X className="w-5 h-5" />
         </button>
