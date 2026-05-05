@@ -1,0 +1,1212 @@
+
+> edusync-lms@1.0.0 lint /app
+> eslint src/
+
+
+/app/src/app/routes/adminRoutes.tsx
+  1:1  error  Run autofix to sort these imports!  simple-import-sort/imports
+
+/app/src/app/routes/sharedRoutes.tsx
+  1:1  error  Run autofix to sort these imports!  simple-import-sort/imports
+
+/app/src/app/routes/teacherRoutes.tsx
+  1:1  error  Run autofix to sort these imports!  simple-import-sort/imports
+
+/app/src/components/AttemptDetailModal.tsx
+  374:25  warning  Form label must have ALL of the following types of associated control: nesting, id  jsx-a11y/label-has-for
+  381:27  warning  A control must be associated with a text label                                      jsx-a11y/control-has-associated-label
+  403:25  warning  Form label must have ALL of the following types of associated control: nesting, id  jsx-a11y/label-has-for
+  410:25  warning  A control must be associated with a text label                                      jsx-a11y/control-has-associated-label
+
+/app/src/components/Classroom/AssignCourseModal.tsx
+  1:1  error  Run autofix to sort these imports!  simple-import-sort/imports
+
+/app/src/components/CourseBuilder/blocks/AssignmentBlockEditor.tsx
+  177:11  warning  Form label must have ALL of the following types of associated control: nesting, id  jsx-a11y/label-has-for
+  183:11  warning  A control must be associated with a text label                                      jsx-a11y/control-has-associated-label
+  193:11  warning  Form label must have ALL of the following types of associated control: nesting, id  jsx-a11y/label-has-for
+  199:11  warning  A control must be associated with a text label                                      jsx-a11y/control-has-associated-label
+  210:13  warning  Form label must have ALL of the following types of associated control: nesting, id  jsx-a11y/label-has-for
+  216:13  warning  A control must be associated with a text label                                      jsx-a11y/control-has-associated-label
+  228:13  warning  Form label must have ALL of the following types of associated control: nesting, id  jsx-a11y/label-has-for
+  234:13  warning  A control must be associated with a text label                                      jsx-a11y/control-has-associated-label
+  250:11  warning  Form label must have ALL of the following types of associated control: nesting, id  jsx-a11y/label-has-for
+  257:13  warning  A control must be associated with a text label                                      jsx-a11y/control-has-associated-label
+
+/app/src/components/CourseBuilder/blocks/FileBlockEditor.tsx
+  153:5  warning  React Hook useCallback has missing dependencies: 'blockId', 'state.activeLesson', 'state.courseId', and 'tenantId'. Either include them or remove the dependency array  react-hooks/exhaustive-deps
+
+/app/src/components/CourseBuilder/blocks/ScormBlockEditor.tsx
+  242:9  warning  A control must be associated with a text label  jsx-a11y/control-has-associated-label
+  285:9  warning  A control must be associated with a text label  jsx-a11y/control-has-associated-label
+
+/app/src/components/LessonViewer/AssignmentViewer.tsx
+  202:13  warning  A control must be associated with a text label  jsx-a11y/control-has-associated-label
+
+/app/src/components/LessonViewer/blocks/ImageBlockViewer.tsx
+  99:9  warning  Non-interactive elements should not be assigned mouse or keyboard event listeners  jsx-a11y/no-noninteractive-element-interactions
+
+/app/src/components/Onboarding.tsx
+  144:5  warning  Visible, non-interactive elements with click handlers must have at least one keyboard listener  jsx-a11y/click-events-have-key-events
+  144:5  warning  Non-interactive elements should not be assigned mouse or keyboard event listeners               jsx-a11y/no-noninteractive-element-interactions
+
+/app/src/components/Social/CommentSection.tsx
+  100:15  warning  A control must be associated with a text label                                                 jsx-a11y/control-has-associated-label
+  101:17  warning  The autoFocus prop should not be used, as it can reduce usability and accessibility for users  jsx-a11y/no-autofocus
+  212:17  warning  A control must be associated with a text label                                                 jsx-a11y/control-has-associated-label
+  214:19  warning  The autoFocus prop should not be used, as it can reduce usability and accessibility for users  jsx-a11y/no-autofocus
+  429:11  warning  A control must be associated with a text label                                                 jsx-a11y/control-has-associated-label
+
+/app/src/components/admin/ChangeRoleModal.tsx
+  66:7  warning  Visible, non-interactive elements with click handlers must have at least one keyboard listener  jsx-a11y/click-events-have-key-events
+  66:7  warning  Non-interactive elements should not be assigned mouse or keyboard event listeners               jsx-a11y/no-noninteractive-element-interactions
+
+/app/src/components/admin/InviteUserModal.tsx
+  176:17  warning  A control must be associated with a text label                                                 jsx-a11y/control-has-associated-label
+  180:19  warning  The autoFocus prop should not be used, as it can reduce usability and accessibility for users  jsx-a11y/no-autofocus
+
+/app/src/components/ai/AuthoringAssistButton.tsx
+  1:1  error  Run autofix to sort these imports!  simple-import-sort/imports
+
+/app/src/components/ai/ParentDigestPreview.tsx
+  1:1  error  Run autofix to sort these imports!  simple-import-sort/imports
+
+/app/src/components/ai/SpeedGraderAiScore.tsx
+  1:1  error  Run autofix to sort these imports!  simple-import-sort/imports
+
+/app/src/components/layout/Header.tsx
+  224:13  warning  A control must be associated with a text label  jsx-a11y/control-has-associated-label
+
+/app/src/components/layout/Sidebar.tsx
+  49:7  warning  Non-interactive elements should not be assigned mouse or keyboard event listeners  jsx-a11y/no-noninteractive-element-interactions
+
+/app/src/components/moderation/ReportModal.tsx
+  132:25  warning  A form label must have accessible text                                              jsx-a11y/label-has-associated-control
+  132:25  warning  Form label must have ALL of the following types of associated control: nesting, id  jsx-a11y/label-has-for
+  140:27  warning  A control must be associated with a text label                                      jsx-a11y/control-has-associated-label
+  160:21  warning  Form label must have ALL of the following types of associated control: nesting, id  jsx-a11y/label-has-for
+  166:21  warning  A control must be associated with a text label                                      jsx-a11y/control-has-associated-label
+
+/app/src/components/ui/FormField.tsx
+  41:9  warning  Form label must have ALL of the following types of associated control: nesting, id  jsx-a11y/label-has-for
+
+/app/src/components/ui/Input.tsx
+  32:11  warning  Form label must have ALL of the following types of associated control: nesting, id  jsx-a11y/label-has-for
+
+/app/src/components/ui/OptimizedImage.tsx
+  103:7  warning  Non-interactive elements should not be assigned mouse or keyboard event listeners  jsx-a11y/no-noninteractive-element-interactions
+
+/app/src/components/ui/Select.tsx
+  52:11  warning  Form label must have ALL of the following types of associated control: nesting, id  jsx-a11y/label-has-for
+
+/app/src/components/ui/Tabs.tsx
+  78:5  warning  Elements with the 'tablist' interactive role must be focusable  jsx-a11y/interactive-supports-focus
+
+/app/src/contexts/auth/useRoleResolution.ts
+  327:6  warning  React Hook useCallback has a missing dependency: 'fetchUserData'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+
+/app/src/features/academic-years/hooks/useAcademicYears.ts
+  1:1  error  Run autofix to sort these imports!  simple-import-sort/imports
+
+/app/src/features/adaptive-paths/components/PathRuleEditor.tsx
+  137:15  warning  Form label must have ALL of the following types of associated control: nesting, id  jsx-a11y/label-has-for
+  162:15  warning  Form label must have ALL of the following types of associated control: nesting, id  jsx-a11y/label-has-for
+  182:17  warning  Form label must have ALL of the following types of associated control: nesting, id  jsx-a11y/label-has-for
+  185:17  warning  A control must be associated with a text label                                      jsx-a11y/control-has-associated-label
+  209:17  warning  Form label must have ALL of the following types of associated control: nesting, id  jsx-a11y/label-has-for
+  212:17  warning  A control must be associated with a text label                                      jsx-a11y/control-has-associated-label
+  239:15  warning  Form label must have ALL of the following types of associated control: nesting, id  jsx-a11y/label-has-for
+  265:15  warning  Form label must have ALL of the following types of associated control: nesting, id  jsx-a11y/label-has-for
+  268:15  warning  A control must be associated with a text label                                      jsx-a11y/control-has-associated-label
+  280:15  warning  Form label must have ALL of the following types of associated control: nesting, id  jsx-a11y/label-has-for
+  283:15  warning  A control must be associated with a text label                                      jsx-a11y/control-has-associated-label
+  296:15  warning  A control must be associated with a text label                                      jsx-a11y/control-has-associated-label
+
+/app/src/features/administration/components/FeatureManagement.tsx
+  436:23  warning  A control must be associated with a text label  jsx-a11y/control-has-associated-label
+  438:27  warning  A control must be associated with a text label  jsx-a11y/control-has-associated-label
+
+/app/src/features/administration/components/UserTable.tsx
+  99:17  warning  A control must be associated with a text label  jsx-a11y/control-has-associated-label
+
+/app/src/features/administration/components/bulk-import/BulkImportPreviewStep.tsx
+  186:9   warning  A control must be associated with a text label                                      jsx-a11y/control-has-associated-label
+  224:13  warning  Form label must have ALL of the following types of associated control: nesting, id  jsx-a11y/label-has-for
+  225:15  warning  A control must be associated with a text label                                      jsx-a11y/control-has-associated-label
+
+/app/src/features/administration/components/finance/AddInvoiceModal.tsx
+  101:13  warning  A form label must be associated with a control                                      jsx-a11y/label-has-associated-control
+  101:13  warning  Form label must have ALL of the following types of associated control: nesting, id  jsx-a11y/label-has-for
+  124:13  warning  A form label must be associated with a control                                      jsx-a11y/label-has-associated-control
+  124:13  warning  Form label must have ALL of the following types of associated control: nesting, id  jsx-a11y/label-has-for
+  127:13  warning  A control must be associated with a text label                                      jsx-a11y/control-has-associated-label
+  140:13  warning  A form label must be associated with a control                                      jsx-a11y/label-has-associated-control
+  140:13  warning  Form label must have ALL of the following types of associated control: nesting, id  jsx-a11y/label-has-for
+  143:13  warning  A control must be associated with a text label                                      jsx-a11y/control-has-associated-label
+  154:15  warning  A form label must be associated with a control                                      jsx-a11y/label-has-associated-control
+  154:15  warning  Form label must have ALL of the following types of associated control: nesting, id  jsx-a11y/label-has-for
+  157:15  warning  A control must be associated with a text label                                      jsx-a11y/control-has-associated-label
+  165:15  warning  A form label must be associated with a control                                      jsx-a11y/label-has-associated-control
+  165:15  warning  Form label must have ALL of the following types of associated control: nesting, id  jsx-a11y/label-has-for
+  168:15  warning  A control must be associated with a text label                                      jsx-a11y/control-has-associated-label
+
+/app/src/features/administration/components/finance/FinanceTransactionTable.tsx
+   76:9   warning  A control must be associated with a text label  jsx-a11y/control-has-associated-label
+   86:5   warning  A control must be associated with a text label  jsx-a11y/control-has-associated-label
+  169:13  warning  A control must be associated with a text label  jsx-a11y/control-has-associated-label
+
+/app/src/features/administration/components/ppdb/PPDBAddRegModal.tsx
+   53:15  warning  A form label must be associated with a control                                      jsx-a11y/label-has-associated-control
+   53:15  warning  Form label must have ALL of the following types of associated control: nesting, id  jsx-a11y/label-has-for
+   56:15  warning  A control must be associated with a text label                                      jsx-a11y/control-has-associated-label
+   65:15  warning  A form label must be associated with a control                                      jsx-a11y/label-has-associated-control
+   65:15  warning  Form label must have ALL of the following types of associated control: nesting, id  jsx-a11y/label-has-for
+   68:15  warning  A control must be associated with a text label                                      jsx-a11y/control-has-associated-label
+   77:15  warning  A form label must be associated with a control                                      jsx-a11y/label-has-associated-control
+   77:15  warning  Form label must have ALL of the following types of associated control: nesting, id  jsx-a11y/label-has-for
+   90:15  warning  A form label must be associated with a control                                      jsx-a11y/label-has-associated-control
+   90:15  warning  Form label must have ALL of the following types of associated control: nesting, id  jsx-a11y/label-has-for
+   93:15  warning  A control must be associated with a text label                                      jsx-a11y/control-has-associated-label
+  108:17  warning  A form label must be associated with a control                                      jsx-a11y/label-has-associated-control
+  108:17  warning  Form label must have ALL of the following types of associated control: nesting, id  jsx-a11y/label-has-for
+  111:17  warning  A control must be associated with a text label                                      jsx-a11y/control-has-associated-label
+  120:17  warning  A form label must be associated with a control                                      jsx-a11y/label-has-associated-control
+  120:17  warning  Form label must have ALL of the following types of associated control: nesting, id  jsx-a11y/label-has-for
+  123:17  warning  A control must be associated with a text label                                      jsx-a11y/control-has-associated-label
+  132:17  warning  A form label must be associated with a control                                      jsx-a11y/label-has-associated-control
+  132:17  warning  Form label must have ALL of the following types of associated control: nesting, id  jsx-a11y/label-has-for
+  135:17  warning  A control must be associated with a text label                                      jsx-a11y/control-has-associated-label
+  143:17  warning  A form label must be associated with a control                                      jsx-a11y/label-has-associated-control
+  143:17  warning  Form label must have ALL of the following types of associated control: nesting, id  jsx-a11y/label-has-for
+  146:17  warning  A control must be associated with a text label                                      jsx-a11y/control-has-associated-label
+
+/app/src/features/administration/components/ppdb/PPDBDetailModal.tsx
+  189:13  warning  A control must be associated with a text label  jsx-a11y/control-has-associated-label
+
+/app/src/features/administration/components/ppdb/PPDBPeriodModal.tsx
+   51:13  warning  A form label must be associated with a control                                      jsx-a11y/label-has-associated-control
+   51:13  warning  Form label must have ALL of the following types of associated control: nesting, id  jsx-a11y/label-has-for
+   54:13  warning  A control must be associated with a text label                                      jsx-a11y/control-has-associated-label
+   65:13  warning  A form label must be associated with a control                                      jsx-a11y/label-has-associated-control
+   65:13  warning  Form label must have ALL of the following types of associated control: nesting, id  jsx-a11y/label-has-for
+   68:13  warning  A control must be associated with a text label                                      jsx-a11y/control-has-associated-label
+   80:15  warning  A form label must be associated with a control                                      jsx-a11y/label-has-associated-control
+   80:15  warning  Form label must have ALL of the following types of associated control: nesting, id  jsx-a11y/label-has-for
+   83:15  warning  A control must be associated with a text label                                      jsx-a11y/control-has-associated-label
+   92:15  warning  A form label must be associated with a control                                      jsx-a11y/label-has-associated-control
+   92:15  warning  Form label must have ALL of the following types of associated control: nesting, id  jsx-a11y/label-has-for
+   95:15  warning  A control must be associated with a text label                                      jsx-a11y/control-has-associated-label
+  106:13  warning  A form label must be associated with a control                                      jsx-a11y/label-has-associated-control
+  106:13  warning  Form label must have ALL of the following types of associated control: nesting, id  jsx-a11y/label-has-for
+  109:13  warning  A control must be associated with a text label                                      jsx-a11y/control-has-associated-label
+
+/app/src/features/administration/components/ppdb/PPDBRegistrationTable.tsx
+   90:9   warning  A control must be associated with a text label  jsx-a11y/control-has-associated-label
+  100:5   warning  A control must be associated with a text label  jsx-a11y/control-has-associated-label
+  181:11  warning  A control must be associated with a text label  jsx-a11y/control-has-associated-label
+  209:15  warning  A control must be associated with a text label  jsx-a11y/control-has-associated-label
+  210:17  warning  A control must be associated with a text label  jsx-a11y/control-has-associated-label
+  248:19  warning  A control must be associated with a text label  jsx-a11y/control-has-associated-label
+  249:21  warning  A control must be associated with a text label  jsx-a11y/control-has-associated-label
+
+/app/src/features/ai-authoring/components/AIQuizGeneratorPanel.tsx
+  203:15  warning  Form label must have ALL of the following types of associated control: nesting, id  jsx-a11y/label-has-for
+  210:17  warning  A control must be associated with a text label                                      jsx-a11y/control-has-associated-label
+  319:25  warning  Form label must have ALL of the following types of associated control: nesting, id  jsx-a11y/label-has-for
+  325:25  warning  A control must be associated with a text label                                      jsx-a11y/control-has-associated-label
+  336:25  warning  Form label must have ALL of the following types of associated control: nesting, id  jsx-a11y/label-has-for
+  342:25  warning  A control must be associated with a text label                                      jsx-a11y/control-has-associated-label
+  353:25  warning  Form label must have ALL of the following types of associated control: nesting, id  jsx-a11y/label-has-for
+  359:25  warning  A control must be associated with a text label                                      jsx-a11y/control-has-associated-label
+
+/app/src/features/ai-authoring/components/AuthoringAssistToolbar.tsx
+  13:1  error  Run autofix to sort these imports!  simple-import-sort/imports
+
+/app/src/features/ai-authoring/components/EditQuestionModal.tsx
+  118:11  warning  Form label must have ALL of the following types of associated control: nesting, id  jsx-a11y/label-has-for
+  124:11  warning  A control must be associated with a text label                                      jsx-a11y/control-has-associated-label
+  175:21  warning  A control must be associated with a text label                                      jsx-a11y/control-has-associated-label
+  199:15  warning  Form label must have ALL of the following types of associated control: nesting, id  jsx-a11y/label-has-for
+  205:15  warning  A control must be associated with a text label                                      jsx-a11y/control-has-associated-label
+  220:13  warning  Form label must have ALL of the following types of associated control: nesting, id  jsx-a11y/label-has-for
+  226:13  warning  A control must be associated with a text label                                      jsx-a11y/control-has-associated-label
+
+/app/src/features/ai-authoring/components/HistoryPanel.tsx
+  134:21  warning  A control must be associated with a text label  jsx-a11y/control-has-associated-label
+
+/app/src/features/ai-builder-copilot/components/AssessmentTab.tsx
+  341:13  warning  A control must be associated with a text label  jsx-a11y/control-has-associated-label
+
+/app/src/features/ai-builder-copilot/components/CourseBuilderAICopilotDrawer.tsx
+  120:5  warning  The element aside has an implicit role of complementary. Defining this explicitly is redundant and should be avoided  jsx-a11y/no-redundant-roles
+
+/app/src/features/ai-builder-copilot/components/LessonDraftTab.tsx
+  177:15  warning  Form label must have ALL of the following types of associated control: nesting, id  jsx-a11y/label-has-for
+  178:17  warning  A control must be associated with a text label                                      jsx-a11y/control-has-associated-label
+  241:11  warning  A form label must be associated with a control                                      jsx-a11y/label-has-associated-control
+  241:11  warning  Form label must have ALL of the following types of associated control: nesting, id  jsx-a11y/label-has-for
+  244:11  warning  A control must be associated with a text label                                      jsx-a11y/control-has-associated-label
+  254:11  warning  A form label must be associated with a control                                      jsx-a11y/label-has-associated-control
+  254:11  warning  Form label must have ALL of the following types of associated control: nesting, id  jsx-a11y/label-has-for
+  257:11  warning  A control must be associated with a text label                                      jsx-a11y/control-has-associated-label
+
+/app/src/features/ai-builder-copilot/components/OutlineTab.tsx
+  184:11  warning  A form label must be associated with a control                                      jsx-a11y/label-has-associated-control
+  184:11  warning  Form label must have ALL of the following types of associated control: nesting, id  jsx-a11y/label-has-for
+  187:11  warning  A control must be associated with a text label                                      jsx-a11y/control-has-associated-label
+  197:11  warning  A form label must be associated with a control                                      jsx-a11y/label-has-associated-control
+  197:11  warning  Form label must have ALL of the following types of associated control: nesting, id  jsx-a11y/label-has-for
+  200:11  warning  A control must be associated with a text label                                      jsx-a11y/control-has-associated-label
+  211:13  warning  A form label must be associated with a control                                      jsx-a11y/label-has-associated-control
+  211:13  warning  Form label must have ALL of the following types of associated control: nesting, id  jsx-a11y/label-has-for
+  214:13  warning  A control must be associated with a text label                                      jsx-a11y/control-has-associated-label
+  224:13  warning  A form label must be associated with a control                                      jsx-a11y/label-has-associated-control
+  224:13  warning  Form label must have ALL of the following types of associated control: nesting, id  jsx-a11y/label-has-for
+  227:13  warning  A control must be associated with a text label                                      jsx-a11y/control-has-associated-label
+
+/app/src/features/ai-tutor/components/AITutorInput.tsx
+  115:11  warning  A control must be associated with a text label  jsx-a11y/control-has-associated-label
+
+/app/src/features/analytics/components/AnalyticsStudentTable.tsx
+  109:23  warning  A control must be associated with a text label  jsx-a11y/control-has-associated-label
+
+/app/src/features/analytics/components/FunnelBuilder.tsx
+  59:9  warning  A form label must be associated with a control                                      jsx-a11y/label-has-associated-control
+  59:9  warning  Form label must have ALL of the following types of associated control: nesting, id  jsx-a11y/label-has-for
+  62:9  warning  A control must be associated with a text label                                      jsx-a11y/control-has-associated-label
+  72:9  warning  Form label must have ALL of the following types of associated control: nesting, id  jsx-a11y/label-has-for
+
+/app/src/features/analytics/components/GuideAnalytics.tsx
+  125:17  warning  A control must be associated with a text label  jsx-a11y/control-has-associated-label
+
+/app/src/features/analytics/components/GuideBuilder.tsx
+   96:11  warning  A form label must be associated with a control                                      jsx-a11y/label-has-associated-control
+   96:11  warning  Form label must have ALL of the following types of associated control: nesting, id  jsx-a11y/label-has-for
+   99:11  warning  A control must be associated with a text label                                      jsx-a11y/control-has-associated-label
+  115:11  warning  Form label must have ALL of the following types of associated control: nesting, id  jsx-a11y/label-has-for
+  121:11  warning  A control must be associated with a text label                                      jsx-a11y/control-has-associated-label
+  138:11  warning  A form label must be associated with a control                                      jsx-a11y/label-has-associated-control
+  138:11  warning  Form label must have ALL of the following types of associated control: nesting, id  jsx-a11y/label-has-for
+  141:11  warning  A control must be associated with a text label                                      jsx-a11y/control-has-associated-label
+  157:11  warning  A form label must be associated with a control                                      jsx-a11y/label-has-associated-control
+  157:11  warning  Form label must have ALL of the following types of associated control: nesting, id  jsx-a11y/label-has-for
+  180:11  warning  A form label must be associated with a control                                      jsx-a11y/label-has-associated-control
+  180:11  warning  Form label must have ALL of the following types of associated control: nesting, id  jsx-a11y/label-has-for
+  204:13  warning  A form label must be associated with a control                                      jsx-a11y/label-has-associated-control
+  204:13  warning  Form label must have ALL of the following types of associated control: nesting, id  jsx-a11y/label-has-for
+  226:15  warning  A form label must be associated with a control                                      jsx-a11y/label-has-associated-control
+  226:15  warning  Form label must have ALL of the following types of associated control: nesting, id  jsx-a11y/label-has-for
+  229:15  warning  A control must be associated with a text label                                      jsx-a11y/control-has-associated-label
+  248:13  warning  A form label must be associated with a control                                      jsx-a11y/label-has-associated-control
+  248:13  warning  Form label must have ALL of the following types of associated control: nesting, id  jsx-a11y/label-has-for
+  251:13  warning  A control must be associated with a text label                                      jsx-a11y/control-has-associated-label
+  264:11  warning  Form label must have ALL of the following types of associated control: nesting, id  jsx-a11y/label-has-for
+  265:13  warning  A control must be associated with a text label                                      jsx-a11y/control-has-associated-label
+
+/app/src/features/announcements/components/AnnouncementFeedCard.tsx
+  178:17  warning  The href attribute requires a valid value to be accessible. Provide a valid, navigable address as the href value. If you cannot provide a valid href, but still need the element to resemble a link, use a button and change it with appropriate styles. Learn more: https://github.com/jsx-eslint/eslint-plugin-jsx-a11y/blob/HEAD/docs/rules/anchor-is-valid.md  jsx-a11y/anchor-is-valid
+
+/app/src/features/announcements/components/CreateAnnouncementModal.tsx
+  111:17  warning  Form label must have ALL of the following types of associated control: nesting, id  jsx-a11y/label-has-for
+  134:17  warning  Form label must have ALL of the following types of associated control: nesting, id  jsx-a11y/label-has-for
+  158:19  warning  Form label must have ALL of the following types of associated control: nesting, id  jsx-a11y/label-has-for
+  176:19  warning  Form label must have ALL of the following types of associated control: nesting, id  jsx-a11y/label-has-for
+  196:19  warning  Form label must have ALL of the following types of associated control: nesting, id  jsx-a11y/label-has-for
+  211:19  warning  Form label must have ALL of the following types of associated control: nesting, id  jsx-a11y/label-has-for
+  228:17  warning  A form label must be associated with a control                                      jsx-a11y/label-has-associated-control
+  228:17  warning  Form label must have ALL of the following types of associated control: nesting, id  jsx-a11y/label-has-for
+  232:17  warning  A form label must have accessible text                                              jsx-a11y/label-has-associated-control
+  232:17  warning  Form label must have ALL of the following types of associated control: nesting, id  jsx-a11y/label-has-for
+  233:19  warning  A control must be associated with a text label                                      jsx-a11y/control-has-associated-label
+  249:17  warning  A form label must have accessible text                                              jsx-a11y/label-has-associated-control
+  249:17  warning  Form label must have ALL of the following types of associated control: nesting, id  jsx-a11y/label-has-for
+  250:19  warning  A control must be associated with a text label                                      jsx-a11y/control-has-associated-label
+  266:17  warning  A form label must have accessible text                                              jsx-a11y/label-has-associated-control
+  266:17  warning  Form label must have ALL of the following types of associated control: nesting, id  jsx-a11y/label-has-for
+  267:19  warning  A control must be associated with a text label                                      jsx-a11y/control-has-associated-label
+
+/app/src/features/assignments/components/GradingModal.tsx
+  119:19  warning  Form label must have ALL of the following types of associated control: nesting, id  jsx-a11y/label-has-for
+  125:19  warning  A control must be associated with a text label                                      jsx-a11y/control-has-associated-label
+  137:19  warning  Form label must have ALL of the following types of associated control: nesting, id  jsx-a11y/label-has-for
+  140:19  warning  A control must be associated with a text label                                      jsx-a11y/control-has-associated-label
+
+/app/src/features/assignments/components/groups/CreateGroupModal.tsx
+  191:21  warning  Form label must have ALL of the following types of associated control: nesting, id  jsx-a11y/label-has-for
+  194:21  warning  A control must be associated with a text label                                      jsx-a11y/control-has-associated-label
+  237:23  warning  Form label must have ALL of the following types of associated control: nesting, id  jsx-a11y/label-has-for
+
+/app/src/features/assignments/components/groups/GradeGroupModal.tsx
+   91:13  warning  Form label must have ALL of the following types of associated control: nesting, id  jsx-a11y/label-has-for
+   97:13  warning  A control must be associated with a text label                                      jsx-a11y/control-has-associated-label
+  108:13  warning  Form label must have ALL of the following types of associated control: nesting, id  jsx-a11y/label-has-for
+  114:13  warning  A control must be associated with a text label                                      jsx-a11y/control-has-associated-label
+
+/app/src/features/assignments/components/groups/GroupChatPanel.tsx
+  84:11  warning  A control must be associated with a text label  jsx-a11y/control-has-associated-label
+
+/app/src/features/assignments/components/groups/GroupSettingsTab.tsx
+   47:11  warning  Form label must have ALL of the following types of associated control: nesting, id  jsx-a11y/label-has-for
+  100:13  warning  A form label must have accessible text                                              jsx-a11y/label-has-associated-control
+  100:13  warning  Form label must have ALL of the following types of associated control: nesting, id  jsx-a11y/label-has-for
+  101:15  warning  A control must be associated with a text label                                      jsx-a11y/control-has-associated-label
+  117:13  warning  A form label must have accessible text                                              jsx-a11y/label-has-associated-control
+  117:13  warning  Form label must have ALL of the following types of associated control: nesting, id  jsx-a11y/label-has-for
+  118:15  warning  A control must be associated with a text label                                      jsx-a11y/control-has-associated-label
+  138:11  warning  A form label must have accessible text                                              jsx-a11y/label-has-associated-control
+  138:11  warning  Form label must have ALL of the following types of associated control: nesting, id  jsx-a11y/label-has-for
+  139:13  warning  A control must be associated with a text label                                      jsx-a11y/control-has-associated-label
+
+/app/src/features/assignments/components/groups/GroupTasksTab.tsx
+  106:11  warning  A control must be associated with a text label  jsx-a11y/control-has-associated-label
+
+/app/src/features/assignments/components/page/CreateAssignmentModal.tsx
+  178:21  warning  Form label must have ALL of the following types of associated control: nesting, id  jsx-a11y/label-has-for
+  201:21  warning  Form label must have ALL of the following types of associated control: nesting, id  jsx-a11y/label-has-for
+  218:23  warning  Form label must have ALL of the following types of associated control: nesting, id  jsx-a11y/label-has-for
+  240:23  warning  Form label must have ALL of the following types of associated control: nesting, id  jsx-a11y/label-has-for
+  264:23  warning  Form label must have ALL of the following types of associated control: nesting, id  jsx-a11y/label-has-for
+  279:23  warning  Form label must have ALL of the following types of associated control: nesting, id  jsx-a11y/label-has-for
+  301:23  warning  Form label must have ALL of the following types of associated control: nesting, id  jsx-a11y/label-has-for
+  328:21  warning  A form label must be associated with a control                                      jsx-a11y/label-has-associated-control
+  328:21  warning  Form label must have ALL of the following types of associated control: nesting, id  jsx-a11y/label-has-for
+  332:23  warning  Form label must have ALL of the following types of associated control: nesting, id  jsx-a11y/label-has-for
+  348:23  warning  Form label must have ALL of the following types of associated control: nesting, id  jsx-a11y/label-has-for
+  364:23  warning  Form label must have ALL of the following types of associated control: nesting, id  jsx-a11y/label-has-for
+  387:21  warning  Form label must have ALL of the following types of associated control: nesting, id  jsx-a11y/label-has-for
+
+/app/src/features/assignments/components/page/PrivateCommentsPanel.tsx
+  74:13  warning  A control must be associated with a text label  jsx-a11y/control-has-associated-label
+
+/app/src/features/assignments/components/page/StudentSubmissionPanel.tsx
+  168:15  warning  A form label must be associated with a control                                      jsx-a11y/label-has-associated-control
+  168:15  warning  Form label must have ALL of the following types of associated control: nesting, id  jsx-a11y/label-has-for
+  172:15  warning  A control must be associated with a text label                                      jsx-a11y/control-has-associated-label
+  184:15  warning  A form label must be associated with a control                                      jsx-a11y/label-has-associated-control
+  184:15  warning  Form label must have ALL of the following types of associated control: nesting, id  jsx-a11y/label-has-for
+  188:15  warning  A control must be associated with a text label                                      jsx-a11y/control-has-associated-label
+  201:17  warning  A form label must be associated with a control                                      jsx-a11y/label-has-associated-control
+  201:17  warning  Form label must have ALL of the following types of associated control: nesting, id  jsx-a11y/label-has-for
+  205:17  warning  A control must be associated with a text label                                      jsx-a11y/control-has-associated-label
+
+/app/src/features/auth/components/LoginForm.tsx
+  40:9   warning  A control must be associated with a text label  jsx-a11y/control-has-associated-label
+  59:11  warning  A control must be associated with a text label  jsx-a11y/control-has-associated-label
+
+/app/src/features/auth/components/MFAVerifyPage.tsx
+  66:13  warning  The autoFocus prop should not be used, as it can reduce usability and accessibility for users  jsx-a11y/no-autofocus
+
+/app/src/features/auth/components/ParentRegisterPage.tsx
+  484:21  warning  Form label must have ALL of the following types of associated control: nesting, id             jsx-a11y/label-has-for
+  492:23  warning  A control must be associated with a text label                                                 jsx-a11y/control-has-associated-label
+  504:25  warning  The autoFocus prop should not be used, as it can reduce usability and accessibility for users  jsx-a11y/no-autofocus
+  645:21  warning  Form label must have ALL of the following types of associated control: nesting, id             jsx-a11y/label-has-for
+  648:21  warning  A control must be associated with a text label                                                 jsx-a11y/control-has-associated-label
+  658:23  warning  The autoFocus prop should not be used, as it can reduce usability and accessibility for users  jsx-a11y/no-autofocus
+  664:21  warning  Form label must have ALL of the following types of associated control: nesting, id             jsx-a11y/label-has-for
+  668:21  warning  A control must be associated with a text label                                                 jsx-a11y/control-has-associated-label
+  684:21  warning  A form label must be associated with a control                                                 jsx-a11y/label-has-associated-control
+  684:21  warning  Form label must have ALL of the following types of associated control: nesting, id             jsx-a11y/label-has-for
+
+/app/src/features/auth/components/RegisterForm.tsx
+   48:11  warning  A form label must be associated with a control                                      jsx-a11y/label-has-associated-control
+   48:11  warning  Form label must have ALL of the following types of associated control: nesting, id  jsx-a11y/label-has-for
+   77:11  warning  A control must be associated with a text label                                      jsx-a11y/control-has-associated-label
+   88:11  warning  A control must be associated with a text label                                      jsx-a11y/control-has-associated-label
+  100:9   warning  A control must be associated with a text label                                      jsx-a11y/control-has-associated-label
+  114:11  warning  A control must be associated with a text label                                      jsx-a11y/control-has-associated-label
+  233:9   warning  Form label must have ALL of the following types of associated control: nesting, id  jsx-a11y/label-has-for
+  236:9   warning  A control must be associated with a text label                                      jsx-a11y/control-has-associated-label
+  312:9   warning  A form label must be associated with a control                                      jsx-a11y/label-has-associated-control
+  312:9   warning  Form label must have ALL of the following types of associated control: nesting, id  jsx-a11y/label-has-for
+  335:11  warning  Form label must have ALL of the following types of associated control: nesting, id  jsx-a11y/label-has-for
+  341:11  warning  A control must be associated with a text label                                      jsx-a11y/control-has-associated-label
+
+/app/src/features/calendar/components/AddEventModal.tsx
+   83:17  warning  A form label must be associated with a control                                      jsx-a11y/label-has-associated-control
+   83:17  warning  Form label must have ALL of the following types of associated control: nesting, id  jsx-a11y/label-has-for
+   86:17  warning  A control must be associated with a text label                                      jsx-a11y/control-has-associated-label
+   98:19  warning  A form label must be associated with a control                                      jsx-a11y/label-has-associated-control
+   98:19  warning  Form label must have ALL of the following types of associated control: nesting, id  jsx-a11y/label-has-for
+  106:19  warning  A form label must be associated with a control                                      jsx-a11y/label-has-associated-control
+  106:19  warning  Form label must have ALL of the following types of associated control: nesting, id  jsx-a11y/label-has-for
+  109:19  warning  A control must be associated with a text label                                      jsx-a11y/control-has-associated-label
+  121:21  warning  A form label must be associated with a control                                      jsx-a11y/label-has-associated-control
+  121:21  warning  Form label must have ALL of the following types of associated control: nesting, id  jsx-a11y/label-has-for
+  124:21  warning  A control must be associated with a text label                                      jsx-a11y/control-has-associated-label
+  138:21  warning  A form label must be associated with a control                                      jsx-a11y/label-has-associated-control
+  138:21  warning  Form label must have ALL of the following types of associated control: nesting, id  jsx-a11y/label-has-for
+  141:21  warning  A control must be associated with a text label                                      jsx-a11y/control-has-associated-label
+  149:21  warning  A form label must be associated with a control                                      jsx-a11y/label-has-associated-control
+  149:21  warning  Form label must have ALL of the following types of associated control: nesting, id  jsx-a11y/label-has-for
+  152:21  warning  A control must be associated with a text label                                      jsx-a11y/control-has-associated-label
+  167:19  warning  A form label must be associated with a control                                      jsx-a11y/label-has-associated-control
+  167:19  warning  Form label must have ALL of the following types of associated control: nesting, id  jsx-a11y/label-has-for
+  184:19  warning  A form label must be associated with a control                                      jsx-a11y/label-has-associated-control
+  184:19  warning  Form label must have ALL of the following types of associated control: nesting, id  jsx-a11y/label-has-for
+  202:17  warning  A form label must be associated with a control                                      jsx-a11y/label-has-associated-control
+  202:17  warning  Form label must have ALL of the following types of associated control: nesting, id  jsx-a11y/label-has-for
+  205:17  warning  A control must be associated with a text label                                      jsx-a11y/control-has-associated-label
+  215:17  warning  A form label must be associated with a control                                      jsx-a11y/label-has-associated-control
+  215:17  warning  Form label must have ALL of the following types of associated control: nesting, id  jsx-a11y/label-has-for
+  218:17  warning  A control must be associated with a text label                                      jsx-a11y/control-has-associated-label
+
+/app/src/features/certificates/components/CertificateTemplateEditor.tsx
+   42:7   warning  Form label must have ALL of the following types of associated control: nesting, id  jsx-a11y/label-has-for
+   46:9   warning  A control must be associated with a text label                                      jsx-a11y/control-has-associated-label
+   74:7   warning  Form label must have ALL of the following types of associated control: nesting, id  jsx-a11y/label-has-for
+   77:7   warning  A control must be associated with a text label                                      jsx-a11y/control-has-associated-label
+  106:7   warning  A control must be associated with a text label                                      jsx-a11y/control-has-associated-label
+  260:11  warning  Form label must have ALL of the following types of associated control: nesting, id  jsx-a11y/label-has-for
+
+/app/src/features/classroom/components/ClassDetailPanel.tsx
+   91:19  warning  A control must be associated with a text label                                                 jsx-a11y/control-has-associated-label
+  100:21  warning  The autoFocus prop should not be used, as it can reduce usability and accessibility for users  jsx-a11y/no-autofocus
+
+/app/src/features/classroom/components/ClassListPanel.tsx
+  36:9   warning  A control must be associated with a text label  jsx-a11y/control-has-associated-label
+  59:13  warning  A control must be associated with a text label  jsx-a11y/control-has-associated-label
+
+/app/src/features/classroom/components/ClassroomSwitcher.tsx
+  181:19  warning  The autoFocus prop should not be used, as it can reduce usability and accessibility for users  jsx-a11y/no-autofocus
+
+/app/src/features/courses/components/CourseCollaborators.tsx
+  85:21  warning  Elements with the ARIA role "option" must have the following attributes defined: aria-selected  jsx-a11y/role-has-required-aria-props
+
+/app/src/features/courses/components/CourseSettingsModal.tsx
+   60:9   warning  Form label must have ALL of the following types of associated control: nesting, id  jsx-a11y/label-has-for
+   66:9   warning  A control must be associated with a text label                                      jsx-a11y/control-has-associated-label
+   78:9   warning  Form label must have ALL of the following types of associated control: nesting, id  jsx-a11y/label-has-for
+   84:9   warning  A control must be associated with a text label                                      jsx-a11y/control-has-associated-label
+   97:11  warning  Form label must have ALL of the following types of associated control: nesting, id  jsx-a11y/label-has-for
+  103:11  warning  A control must be associated with a text label                                      jsx-a11y/control-has-associated-label
+  113:11  warning  Form label must have ALL of the following types of associated control: nesting, id  jsx-a11y/label-has-for
+
+/app/src/features/courses/components/CourseVersionHistoryDrawer.tsx
+  377:19  warning  A form label must be associated with a control                                                 jsx-a11y/label-has-associated-control
+  377:19  warning  Form label must have ALL of the following types of associated control: nesting, id             jsx-a11y/label-has-for
+  380:19  warning  A control must be associated with a text label                                                 jsx-a11y/control-has-associated-label
+  382:21  warning  The autoFocus prop should not be used, as it can reduce usability and accessibility for users  jsx-a11y/no-autofocus
+
+/app/src/features/courses/components/InteractiveVideoEditor.tsx
+  286:23  warning  A form label must be associated with a control                                      jsx-a11y/label-has-associated-control
+  286:23  warning  Form label must have ALL of the following types of associated control: nesting, id  jsx-a11y/label-has-for
+  289:23  warning  A control must be associated with a text label                                      jsx-a11y/control-has-associated-label
+  307:23  warning  A form label must be associated with a control                                      jsx-a11y/label-has-associated-control
+  307:23  warning  Form label must have ALL of the following types of associated control: nesting, id  jsx-a11y/label-has-for
+  415:19  warning  A form label must be associated with a control                                      jsx-a11y/label-has-associated-control
+  415:19  warning  Form label must have ALL of the following types of associated control: nesting, id  jsx-a11y/label-has-for
+  435:19  warning  A form label must be associated with a control                                      jsx-a11y/label-has-associated-control
+  435:19  warning  Form label must have ALL of the following types of associated control: nesting, id  jsx-a11y/label-has-for
+  438:19  warning  A control must be associated with a text label                                      jsx-a11y/control-has-associated-label
+  448:17  warning  A form label must be associated with a control                                      jsx-a11y/label-has-associated-control
+  448:17  warning  Form label must have ALL of the following types of associated control: nesting, id  jsx-a11y/label-has-for
+  451:17  warning  Form label must have ALL of the following types of associated control: nesting, id  jsx-a11y/label-has-for
+  456:19  warning  A control must be associated with a text label                                      jsx-a11y/control-has-associated-label
+
+/app/src/features/courses/components/SaveTemplateModal.tsx
+  105:15  warning  A form label must be associated with a control                                                 jsx-a11y/label-has-associated-control
+  105:15  warning  Form label must have ALL of the following types of associated control: nesting, id             jsx-a11y/label-has-for
+  108:15  warning  A control must be associated with a text label                                                 jsx-a11y/control-has-associated-label
+  110:17  warning  The autoFocus prop should not be used, as it can reduce usability and accessibility for users  jsx-a11y/no-autofocus
+  120:15  warning  A form label must be associated with a control                                                 jsx-a11y/label-has-associated-control
+  120:15  warning  Form label must have ALL of the following types of associated control: nesting, id             jsx-a11y/label-has-for
+  123:15  warning  A control must be associated with a text label                                                 jsx-a11y/control-has-associated-label
+
+/app/src/features/courses/components/TemplateModal.tsx
+  87:13  warning  A control must be associated with a text label  jsx-a11y/control-has-associated-label
+
+/app/src/features/dashboards/components/DashboardBuilder.tsx
+   97:13  warning  A form label must be associated with a control                                      jsx-a11y/label-has-associated-control
+   97:13  warning  Form label must have ALL of the following types of associated control: nesting, id  jsx-a11y/label-has-for
+  100:13  warning  A control must be associated with a text label                                      jsx-a11y/control-has-associated-label
+  108:13  warning  A form label must be associated with a control                                      jsx-a11y/label-has-associated-control
+  108:13  warning  Form label must have ALL of the following types of associated control: nesting, id  jsx-a11y/label-has-for
+  111:13  warning  A control must be associated with a text label                                      jsx-a11y/control-has-associated-label
+  121:11  warning  Form label must have ALL of the following types of associated control: nesting, id  jsx-a11y/label-has-for
+  122:13  warning  A control must be associated with a text label                                      jsx-a11y/control-has-associated-label
+
+/app/src/features/dashboards/components/sections/StudentProgressHero.tsx
+  194:21  warning  Visible, non-interactive elements with click handlers must have at least one keyboard listener                                                                                                     jsx-a11y/click-events-have-key-events
+  194:21  warning  Avoid non-native interactive elements. If using native HTML is not possible, add an appropriate role and support for tabbing, mouse, keyboard, and touch inputs to an interactive content element  jsx-a11y/no-static-element-interactions
+
+/app/src/features/discussions/components/forum/CreatePostForm.tsx
+  53:13  warning  A control must be associated with a text label                                      jsx-a11y/control-has-associated-label
+  61:11  warning  A control must be associated with a text label                                      jsx-a11y/control-has-associated-label
+  96:15  warning  Form label must have ALL of the following types of associated control: nesting, id  jsx-a11y/label-has-for
+  97:17  warning  A control must be associated with a text label                                      jsx-a11y/control-has-associated-label
+
+/app/src/features/discussions/components/forum/ForumParticipationFilters.tsx
+  30:9   warning  A form label must be associated with a control                                      jsx-a11y/label-has-associated-control
+  30:9   warning  Form label must have ALL of the following types of associated control: nesting, id  jsx-a11y/label-has-for
+  51:9   warning  A form label must be associated with a control                                      jsx-a11y/label-has-associated-control
+  51:9   warning  Form label must have ALL of the following types of associated control: nesting, id  jsx-a11y/label-has-for
+  56:11  warning  A control must be associated with a text label                                      jsx-a11y/control-has-associated-label
+  66:9   warning  A form label must be associated with a control                                      jsx-a11y/label-has-associated-control
+  66:9   warning  Form label must have ALL of the following types of associated control: nesting, id  jsx-a11y/label-has-for
+  71:11  warning  A control must be associated with a text label                                      jsx-a11y/control-has-associated-label
+
+/app/src/features/discussions/components/forum/ForumSearchBar.tsx
+  23:9  warning  A control must be associated with a text label  jsx-a11y/control-has-associated-label
+
+/app/src/features/gamification/components/BadgeManager.tsx
+  194:19  warning  A form label must be associated with a control                                      jsx-a11y/label-has-associated-control
+  194:19  warning  Form label must have ALL of the following types of associated control: nesting, id  jsx-a11y/label-has-for
+  197:19  warning  A control must be associated with a text label                                      jsx-a11y/control-has-associated-label
+  207:19  warning  A form label must be associated with a control                                      jsx-a11y/label-has-associated-control
+  207:19  warning  Form label must have ALL of the following types of associated control: nesting, id  jsx-a11y/label-has-for
+  210:19  warning  A control must be associated with a text label                                      jsx-a11y/control-has-associated-label
+  221:17  warning  A form label must be associated with a control                                      jsx-a11y/label-has-associated-control
+  221:17  warning  Form label must have ALL of the following types of associated control: nesting, id  jsx-a11y/label-has-for
+  224:17  warning  A control must be associated with a text label                                      jsx-a11y/control-has-associated-label
+  235:19  warning  A form label must be associated with a control                                      jsx-a11y/label-has-associated-control
+  235:19  warning  Form label must have ALL of the following types of associated control: nesting, id  jsx-a11y/label-has-for
+  256:19  warning  A form label must be associated with a control                                      jsx-a11y/label-has-associated-control
+  256:19  warning  Form label must have ALL of the following types of associated control: nesting, id  jsx-a11y/label-has-for
+  277:19  warning  A form label must be associated with a control                                      jsx-a11y/label-has-associated-control
+  277:19  warning  Form label must have ALL of the following types of associated control: nesting, id  jsx-a11y/label-has-for
+  280:19  warning  A control must be associated with a text label                                      jsx-a11y/control-has-associated-label
+  294:19  warning  Form label must have ALL of the following types of associated control: nesting, id  jsx-a11y/label-has-for
+  295:21  warning  A control must be associated with a text label                                      jsx-a11y/control-has-associated-label
+  309:19  warning  A form label must be associated with a control                                      jsx-a11y/label-has-associated-control
+  309:19  warning  Form label must have ALL of the following types of associated control: nesting, id  jsx-a11y/label-has-for
+  329:21  warning  A form label must be associated with a control                                      jsx-a11y/label-has-associated-control
+  329:21  warning  Form label must have ALL of the following types of associated control: nesting, id  jsx-a11y/label-has-for
+  332:21  warning  A control must be associated with a text label                                      jsx-a11y/control-has-associated-label
+
+/app/src/features/gradebook/components/AddAssignmentModal.tsx
+  46:13  warning  A form label must be associated with a control                                      jsx-a11y/label-has-associated-control
+  46:13  warning  Form label must have ALL of the following types of associated control: nesting, id  jsx-a11y/label-has-for
+  49:13  warning  A control must be associated with a text label                                      jsx-a11y/control-has-associated-label
+  59:13  warning  A form label must be associated with a control                                      jsx-a11y/label-has-associated-control
+  59:13  warning  Form label must have ALL of the following types of associated control: nesting, id  jsx-a11y/label-has-for
+  82:15  warning  A form label must be associated with a control                                      jsx-a11y/label-has-associated-control
+  82:15  warning  Form label must have ALL of the following types of associated control: nesting, id  jsx-a11y/label-has-for
+  85:15  warning  A control must be associated with a text label                                      jsx-a11y/control-has-associated-label
+  95:15  warning  A form label must be associated with a control                                      jsx-a11y/label-has-associated-control
+  95:15  warning  Form label must have ALL of the following types of associated control: nesting, id  jsx-a11y/label-has-for
+  98:15  warning  A control must be associated with a text label                                      jsx-a11y/control-has-associated-label
+
+/app/src/features/gradebook/components/GradebookMainTable.tsx
+  100:17  warning  A control must be associated with a text label                                                 jsx-a11y/control-has-associated-label
+  122:15  warning  A control must be associated with a text label                                                 jsx-a11y/control-has-associated-label
+  135:19  warning  A control must be associated with a text label                                                 jsx-a11y/control-has-associated-label
+  177:29  warning  A control must be associated with a text label                                                 jsx-a11y/control-has-associated-label
+  181:31  warning  The autoFocus prop should not be used, as it can reduce usability and accessibility for users  jsx-a11y/no-autofocus
+
+/app/src/features/gradebook/components/GradebookMobileCards.tsx
+  228:29  warning  A control must be associated with a text label                                                 jsx-a11y/control-has-associated-label
+  235:31  warning  The autoFocus prop should not be used, as it can reduce usability and accessibility for users  jsx-a11y/no-autofocus
+
+/app/src/features/gradebook/components/GradebookTable.tsx
+  243:11  warning  A control must be associated with a text label                                                 jsx-a11y/control-has-associated-label
+  297:17  warning  A control must be associated with a text label                                                 jsx-a11y/control-has-associated-label
+  359:27  warning  A control must be associated with a text label                                                 jsx-a11y/control-has-associated-label
+  380:35  warning  A control must be associated with a text label                                                 jsx-a11y/control-has-associated-label
+  382:37  warning  The autoFocus prop should not be used, as it can reduce usability and accessibility for users  jsx-a11y/no-autofocus
+  466:17  warning  A control must be associated with a text label                                                 jsx-a11y/control-has-associated-label
+
+/app/src/features/gradebook/components/StudentGradeView.tsx
+  112:7  warning  A control must be associated with a text label  jsx-a11y/control-has-associated-label
+
+/app/src/features/gradebook/components/speedgrader/DocumentViewer.tsx
+  96:13  warning  A control must be associated with a text label                                                 jsx-a11y/control-has-associated-label
+  97:15  warning  The autoFocus prop should not be used, as it can reduce usability and accessibility for users  jsx-a11y/no-autofocus
+
+/app/src/features/gradebook/components/speedgrader/RubricPanel.tsx
+  240:19  warning  Form label must have ALL of the following types of associated control: nesting, id  jsx-a11y/label-has-for
+  244:21  warning  A control must be associated with a text label                                      jsx-a11y/control-has-associated-label
+  280:15  warning  A control must be associated with a text label                                      jsx-a11y/control-has-associated-label
+
+/app/src/features/gradebook/hooks/useExportReport.ts
+  104:5  warning  React Hook useCallback has a missing dependency: 'stopPolling'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+
+/app/src/features/interactive-blocks/components/FillBlankBlock.tsx
+  115:15  warning  A control must be associated with a text label  jsx-a11y/control-has-associated-label
+
+/app/src/features/lesson-monitor/pages/TeacherLessonMonitorPage.tsx
+   30:9   warning  The 'courses' logical expression could make the dependencies of useEffect Hook (at line 41) change on every render. To fix this, wrap the initialization of 'courses' in its own useMemo() Hook  react-hooks/exhaustive-deps
+  224:21  warning  A control must be associated with a text label                                                                                                                                                   jsx-a11y/control-has-associated-label
+  280:21  warning  A control must be associated with a text label                                                                                                                                                   jsx-a11y/control-has-associated-label
+
+/app/src/features/lessons/components/viewer/LessonTopBar.tsx
+  104:15  warning  A control must be associated with a text label  jsx-a11y/control-has-associated-label
+
+/app/src/features/lti/components/LtiPlatformFormModal.tsx
+  192:15  warning  A form label must be associated with a control                                                 jsx-a11y/label-has-associated-control
+  192:15  warning  Form label must have ALL of the following types of associated control: nesting, id             jsx-a11y/label-has-for
+  197:17  warning  The autoFocus prop should not be used, as it can reduce usability and accessibility for users  jsx-a11y/no-autofocus
+  205:17  warning  A form label must be associated with a control                                                 jsx-a11y/label-has-associated-control
+  205:17  warning  Form label must have ALL of the following types of associated control: nesting, id             jsx-a11y/label-has-for
+  214:17  warning  A form label must be associated with a control                                                 jsx-a11y/label-has-associated-control
+  214:17  warning  Form label must have ALL of the following types of associated control: nesting, id             jsx-a11y/label-has-for
+  227:17  warning  A form label must be associated with a control                                                 jsx-a11y/label-has-associated-control
+  227:17  warning  Form label must have ALL of the following types of associated control: nesting, id             jsx-a11y/label-has-for
+  238:17  warning  A form label must be associated with a control                                                 jsx-a11y/label-has-associated-control
+  238:17  warning  Form label must have ALL of the following types of associated control: nesting, id             jsx-a11y/label-has-for
+  252:15  warning  A form label must be associated with a control                                                 jsx-a11y/label-has-associated-control
+  252:15  warning  Form label must have ALL of the following types of associated control: nesting, id             jsx-a11y/label-has-for
+  259:15  warning  A form label must be associated with a control                                                 jsx-a11y/label-has-associated-control
+  259:15  warning  Form label must have ALL of the following types of associated control: nesting, id             jsx-a11y/label-has-for
+  268:13  warning  Form label must have ALL of the following types of associated control: nesting, id             jsx-a11y/label-has-for
+
+/app/src/features/notifications/components/NotificationPreferencesPanel.tsx
+  137:43  warning  Non-interactive elements should not be assigned interactive roles  jsx-a11y/no-noninteractive-element-to-interactive-role
+
+/app/src/features/onboarding/components/SchoolCreateForm.tsx
+  72:11  warning  A form label must be associated with a control                                      jsx-a11y/label-has-associated-control
+  72:11  warning  Form label must have ALL of the following types of associated control: nesting, id  jsx-a11y/label-has-for
+  73:11  warning  A control must be associated with a text label                                      jsx-a11y/control-has-associated-label
+  83:11  warning  A form label must be associated with a control                                      jsx-a11y/label-has-associated-control
+  83:11  warning  Form label must have ALL of the following types of associated control: nesting, id  jsx-a11y/label-has-for
+  84:11  warning  A control must be associated with a text label                                      jsx-a11y/control-has-associated-label
+
+/app/src/features/onboarding/components/StudentJoinForm.tsx
+  36:11  warning  A form label must be associated with a control                                      jsx-a11y/label-has-associated-control
+  36:11  warning  Form label must have ALL of the following types of associated control: nesting, id  jsx-a11y/label-has-for
+  37:11  warning  A control must be associated with a text label                                      jsx-a11y/control-has-associated-label
+  47:11  warning  A form label must be associated with a control                                      jsx-a11y/label-has-associated-control
+  47:11  warning  Form label must have ALL of the following types of associated control: nesting, id  jsx-a11y/label-has-for
+  48:11  warning  A control must be associated with a text label                                      jsx-a11y/control-has-associated-label
+
+/app/src/features/onboarding/components/TeacherOnboardingWizard.tsx
+  225:11  warning  A form label must be associated with a control                                      jsx-a11y/label-has-associated-control
+  225:11  warning  Form label must have ALL of the following types of associated control: nesting, id  jsx-a11y/label-has-for
+  228:11  warning  A control must be associated with a text label                                      jsx-a11y/control-has-associated-label
+  237:11  warning  A form label must be associated with a control                                      jsx-a11y/label-has-associated-control
+  237:11  warning  Form label must have ALL of the following types of associated control: nesting, id  jsx-a11y/label-has-for
+  240:11  warning  A control must be associated with a text label                                      jsx-a11y/control-has-associated-label
+  249:11  warning  A form label must be associated with a control                                      jsx-a11y/label-has-associated-control
+  249:11  warning  Form label must have ALL of the following types of associated control: nesting, id  jsx-a11y/label-has-for
+  252:11  warning  A control must be associated with a text label                                      jsx-a11y/control-has-associated-label
+  505:11  warning  A form label must be associated with a control                                      jsx-a11y/label-has-associated-control
+  505:11  warning  Form label must have ALL of the following types of associated control: nesting, id  jsx-a11y/label-has-for
+  508:11  warning  A control must be associated with a text label                                      jsx-a11y/control-has-associated-label
+  517:11  warning  A form label must be associated with a control                                      jsx-a11y/label-has-associated-control
+  517:11  warning  Form label must have ALL of the following types of associated control: nesting, id  jsx-a11y/label-has-for
+  520:11  warning  A control must be associated with a text label                                      jsx-a11y/control-has-associated-label
+
+/app/src/features/parent/api/financeApi.ts
+  9:1  error  Run autofix to sort these imports!  simple-import-sort/imports
+
+/app/src/features/parent/api/reportApi.ts
+  10:1  error  Run autofix to sort these imports!  simple-import-sort/imports
+
+/app/src/features/parent/components/AchievementFeed.tsx
+  57:9  warning  The element ul has an implicit role of list. Defining this explicitly is redundant and should be avoided  jsx-a11y/no-redundant-roles
+
+/app/src/features/parent/components/AttendanceDetailPage.tsx
+  196:11  warning  A control must be associated with a text label  jsx-a11y/control-has-associated-label
+
+/app/src/features/parent/components/DigestSettings.tsx
+  99:5  warning  A control must be associated with a text label  jsx-a11y/control-has-associated-label
+
+/app/src/features/parent/components/GradeCard.tsx
+   57:7  warning  A control must be associated with a text label                                                            jsx-a11y/control-has-associated-label
+  101:9  warning  The element ul has an implicit role of list. Defining this explicitly is redundant and should be avoided  jsx-a11y/no-redundant-roles
+
+/app/src/features/parent/components/GradesDetailPage.tsx
+  60:7  warning  A control must be associated with a text label  jsx-a11y/control-has-associated-label
+
+/app/src/features/parent/components/InvoiceList.tsx
+  10:1  error  Run autofix to sort these imports!  simple-import-sort/imports
+
+/app/src/features/parent/components/MessageThread.tsx
+  395:11  warning  A control must be associated with a text label  jsx-a11y/control-has-associated-label
+
+/app/src/features/parent/components/MonthlyReportPage.tsx
+  133:7  warning  A control must be associated with a text label  jsx-a11y/control-has-associated-label
+
+/app/src/features/parent/components/PendingAssignmentList.tsx
+  98:9  warning  The element ul has an implicit role of list. Defining this explicitly is redundant and should be avoided  jsx-a11y/no-redundant-roles
+
+/app/src/features/peer-review/components/PeerReviewConfigPanel.tsx
+  145:9   warning  A control must be associated with a text label                                      jsx-a11y/control-has-associated-label
+  195:15  warning  A form label must be associated with a control                                      jsx-a11y/label-has-associated-control
+  195:15  warning  Form label must have ALL of the following types of associated control: nesting, id  jsx-a11y/label-has-for
+  198:15  warning  A control must be associated with a text label                                      jsx-a11y/control-has-associated-label
+  213:15  warning  Form label must have ALL of the following types of associated control: nesting, id  jsx-a11y/label-has-for
+  217:15  warning  A control must be associated with a text label                                      jsx-a11y/control-has-associated-label
+  243:13  warning  A control must be associated with a text label                                      jsx-a11y/control-has-associated-label
+  264:13  warning  A form label must be associated with a control                                      jsx-a11y/label-has-associated-control
+  264:13  warning  Form label must have ALL of the following types of associated control: nesting, id  jsx-a11y/label-has-for
+  267:13  warning  A control must be associated with a text label                                      jsx-a11y/control-has-associated-label
+  277:13  warning  A form label must be associated with a control                                      jsx-a11y/label-has-associated-control
+  277:13  warning  Form label must have ALL of the following types of associated control: nesting, id  jsx-a11y/label-has-for
+
+/app/src/features/peer-review/components/PeerReviewForm.tsx
+  139:9  warning  A form label must be associated with a control                                      jsx-a11y/label-has-associated-control
+  139:9  warning  Form label must have ALL of the following types of associated control: nesting, id  jsx-a11y/label-has-for
+  142:9  warning  A control must be associated with a text label                                      jsx-a11y/control-has-associated-label
+  163:9  warning  Form label must have ALL of the following types of associated control: nesting, id  jsx-a11y/label-has-for
+  169:9  warning  A control must be associated with a text label                                      jsx-a11y/control-has-associated-label
+
+/app/src/features/principal/components/BeforeAfterAnalytics.tsx
+  110:13  warning  A form label must be associated with a control                                      jsx-a11y/label-has-associated-control
+  110:13  warning  Form label must have ALL of the following types of associated control: nesting, id  jsx-a11y/label-has-for
+  125:15  warning  A form label must be associated with a control                                      jsx-a11y/label-has-associated-control
+  125:15  warning  Form label must have ALL of the following types of associated control: nesting, id  jsx-a11y/label-has-for
+  141:15  warning  A form label must be associated with a control                                      jsx-a11y/label-has-associated-control
+  141:15  warning  Form label must have ALL of the following types of associated control: nesting, id  jsx-a11y/label-has-for
+  157:15  warning  A form label must be associated with a control                                      jsx-a11y/label-has-associated-control
+  157:15  warning  Form label must have ALL of the following types of associated control: nesting, id  jsx-a11y/label-has-for
+  173:15  warning  A form label must be associated with a control                                      jsx-a11y/label-has-associated-control
+  173:15  warning  Form label must have ALL of the following types of associated control: nesting, id  jsx-a11y/label-has-for
+  193:13  warning  A form label must be associated with a control                                      jsx-a11y/label-has-associated-control
+  193:13  warning  Form label must have ALL of the following types of associated control: nesting, id  jsx-a11y/label-has-for
+  196:13  warning  A control must be associated with a text label                                      jsx-a11y/control-has-associated-label
+
+/app/src/features/principal/components/PrincipalSettingsPage.tsx
+  289:15  warning  Form label must have ALL of the following types of associated control: nesting, id  jsx-a11y/label-has-for
+  290:17  warning  A control must be associated with a text label                                      jsx-a11y/control-has-associated-label
+  343:13  warning  A control must be associated with a text label                                      jsx-a11y/control-has-associated-label
+
+/app/src/features/principal/components/ReportGenerator.tsx
+  177:17  warning  A form label must have accessible text                                              jsx-a11y/label-has-associated-control
+  177:17  warning  Form label must have ALL of the following types of associated control: nesting, id  jsx-a11y/label-has-for
+  185:19  warning  A control must be associated with a text label                                      jsx-a11y/control-has-associated-label
+  268:19  warning  Form label must have ALL of the following types of associated control: nesting, id  jsx-a11y/label-has-for
+  276:21  warning  A control must be associated with a text label                                      jsx-a11y/control-has-associated-label
+
+/app/src/features/principal/components/ReportScheduler.tsx
+  168:13  warning  A control must be associated with a text label  jsx-a11y/control-has-associated-label
+
+/app/src/features/principal/components/SurveyBuilder.tsx
+  129:11  warning  Form label must have ALL of the following types of associated control: nesting, id  jsx-a11y/label-has-for
+  130:13  warning  A control must be associated with a text label                                      jsx-a11y/control-has-associated-label
+  282:15  warning  A form label must be associated with a control                                      jsx-a11y/label-has-associated-control
+  282:15  warning  Form label must have ALL of the following types of associated control: nesting, id  jsx-a11y/label-has-for
+  294:15  warning  A form label must be associated with a control                                      jsx-a11y/label-has-associated-control
+  294:15  warning  Form label must have ALL of the following types of associated control: nesting, id  jsx-a11y/label-has-for
+  306:17  warning  A form label must be associated with a control                                      jsx-a11y/label-has-associated-control
+  306:17  warning  Form label must have ALL of the following types of associated control: nesting, id  jsx-a11y/label-has-for
+  316:17  warning  A form label must be associated with a control                                      jsx-a11y/label-has-associated-control
+  316:17  warning  Form label must have ALL of the following types of associated control: nesting, id  jsx-a11y/label-has-for
+  327:15  warning  Form label must have ALL of the following types of associated control: nesting, id  jsx-a11y/label-has-for
+
+/app/src/features/principal/components/SurveyResponseForm.tsx
+  148:9  warning  A control must be associated with a text label  jsx-a11y/control-has-associated-label
+
+/app/src/features/profile/components/AccountDeletionPage.tsx
+  71:11  warning  A form label must be associated with a control                                      jsx-a11y/label-has-associated-control
+  71:11  warning  Form label must have ALL of the following types of associated control: nesting, id  jsx-a11y/label-has-for
+  85:11  warning  A form label must be associated with a control                                      jsx-a11y/label-has-associated-control
+  85:11  warning  Form label must have ALL of the following types of associated control: nesting, id  jsx-a11y/label-has-for
+
+/app/src/features/question-bank/components/QuestionCard.tsx
+  68:13  warning  A control must be associated with a text label  jsx-a11y/control-has-associated-label
+
+/app/src/features/question-bank/components/QuestionEditor.tsx
+  222:21  warning  A form label must be associated with a control                                      jsx-a11y/label-has-associated-control
+  222:21  warning  Form label must have ALL of the following types of associated control: nesting, id  jsx-a11y/label-has-for
+  239:21  warning  A form label must be associated with a control                                      jsx-a11y/label-has-associated-control
+  239:21  warning  Form label must have ALL of the following types of associated control: nesting, id  jsx-a11y/label-has-for
+  260:19  warning  A form label must be associated with a control                                      jsx-a11y/label-has-associated-control
+  260:19  warning  Form label must have ALL of the following types of associated control: nesting, id  jsx-a11y/label-has-for
+  263:19  warning  A control must be associated with a text label                                      jsx-a11y/control-has-associated-label
+  274:23  warning  A form label must be associated with a control                                      jsx-a11y/label-has-associated-control
+  274:23  warning  Form label must have ALL of the following types of associated control: nesting, id  jsx-a11y/label-has-for
+  308:27  warning  A control must be associated with a text label                                      jsx-a11y/control-has-associated-label
+  332:19  warning  A form label must be associated with a control                                      jsx-a11y/label-has-associated-control
+  332:19  warning  Form label must have ALL of the following types of associated control: nesting, id  jsx-a11y/label-has-for
+  335:19  warning  A control must be associated with a text label                                      jsx-a11y/control-has-associated-label
+  344:19  warning  A form label must be associated with a control                                      jsx-a11y/label-has-associated-control
+  344:19  warning  Form label must have ALL of the following types of associated control: nesting, id  jsx-a11y/label-has-for
+  363:19  warning  A control must be associated with a text label                                      jsx-a11y/control-has-associated-label
+
+/app/src/features/question-bank/components/QuestionSearchModal.tsx
+  129:17  warning  A control must be associated with a text label  jsx-a11y/control-has-associated-label
+
+/app/src/features/quizzes/components/ImportFromQuestionBank.tsx
+  164:17  warning  A control must be associated with a text label                                                  jsx-a11y/control-has-associated-label
+  208:17  warning  A control must be associated with a text label                                                  jsx-a11y/control-has-associated-label
+  289:21  warning  Visible, non-interactive elements with click handlers must have at least one keyboard listener  jsx-a11y/click-events-have-key-events
+  289:21  warning  Elements with the 'checkbox' interactive role must be focusable                                 jsx-a11y/interactive-supports-focus
+  304:25  warning  A control must be associated with a text label                                                  jsx-a11y/control-has-associated-label
+
+/app/src/features/quizzes/components/QuestionList.tsx
+   96:17  warning  A control must be associated with a text label  jsx-a11y/control-has-associated-label
+  109:15  warning  A control must be associated with a text label  jsx-a11y/control-has-associated-label
+  160:21  warning  A control must be associated with a text label  jsx-a11y/control-has-associated-label
+
+/app/src/features/quizzes/components/QuizAssignModal.tsx
+  155:21  warning  A control must be associated with a text label                                      jsx-a11y/control-has-associated-label
+  184:29  warning  A form label must be associated with a control                                      jsx-a11y/label-has-associated-control
+  184:29  warning  Form label must have ALL of the following types of associated control: nesting, id  jsx-a11y/label-has-for
+  187:29  warning  A control must be associated with a text label                                      jsx-a11y/control-has-associated-label
+  203:29  warning  A form label must be associated with a control                                      jsx-a11y/label-has-associated-control
+  203:29  warning  Form label must have ALL of the following types of associated control: nesting, id  jsx-a11y/label-has-for
+  206:29  warning  A control must be associated with a text label                                      jsx-a11y/control-has-associated-label
+  222:29  warning  A form label must be associated with a control                                      jsx-a11y/label-has-associated-control
+  222:29  warning  Form label must have ALL of the following types of associated control: nesting, id  jsx-a11y/label-has-for
+  225:29  warning  A control must be associated with a text label                                      jsx-a11y/control-has-associated-label
+
+/app/src/features/quizzes/components/QuizBlockEditor.tsx
+   90:11  warning  A form label must be associated with a control                                      jsx-a11y/label-has-associated-control
+   90:11  warning  Form label must have ALL of the following types of associated control: nesting, id  jsx-a11y/label-has-for
+   93:11  warning  A control must be associated with a text label                                      jsx-a11y/control-has-associated-label
+  103:11  warning  A form label must be associated with a control                                      jsx-a11y/label-has-associated-control
+  103:11  warning  Form label must have ALL of the following types of associated control: nesting, id  jsx-a11y/label-has-for
+  106:11  warning  A control must be associated with a text label                                      jsx-a11y/control-has-associated-label
+  117:13  warning  A form label must be associated with a control                                      jsx-a11y/label-has-associated-control
+  117:13  warning  Form label must have ALL of the following types of associated control: nesting, id  jsx-a11y/label-has-for
+  120:13  warning  A control must be associated with a text label                                      jsx-a11y/control-has-associated-label
+  133:13  warning  A form label must be associated with a control                                      jsx-a11y/label-has-associated-control
+  133:13  warning  Form label must have ALL of the following types of associated control: nesting, id  jsx-a11y/label-has-for
+  136:13  warning  A control must be associated with a text label                                      jsx-a11y/control-has-associated-label
+  149:13  warning  Form label must have ALL of the following types of associated control: nesting, id  jsx-a11y/label-has-for
+  150:15  warning  A control must be associated with a text label                                      jsx-a11y/control-has-associated-label
+  163:13  warning  Form label must have ALL of the following types of associated control: nesting, id  jsx-a11y/label-has-for
+  164:15  warning  A control must be associated with a text label                                      jsx-a11y/control-has-associated-label
+  183:13  warning  A form label must be associated with a control                                      jsx-a11y/label-has-associated-control
+  183:13  warning  Form label must have ALL of the following types of associated control: nesting, id  jsx-a11y/label-has-for
+  198:13  warning  Form label must have ALL of the following types of associated control: nesting, id  jsx-a11y/label-has-for
+  199:15  warning  A control must be associated with a text label                                      jsx-a11y/control-has-associated-label
+
+/app/src/features/quizzes/components/QuizEditorView.tsx
+  302:13  warning  A form label must be associated with a control                                      jsx-a11y/label-has-associated-control
+  302:13  warning  Form label must have ALL of the following types of associated control: nesting, id  jsx-a11y/label-has-for
+  323:13  warning  A form label must be associated with a control                                      jsx-a11y/label-has-associated-control
+  323:13  warning  Form label must have ALL of the following types of associated control: nesting, id  jsx-a11y/label-has-for
+  337:15  warning  A form label must be associated with a control                                      jsx-a11y/label-has-associated-control
+  337:15  warning  Form label must have ALL of the following types of associated control: nesting, id  jsx-a11y/label-has-for
+  351:15  warning  A form label must be associated with a control                                      jsx-a11y/label-has-associated-control
+  351:15  warning  Form label must have ALL of the following types of associated control: nesting, id  jsx-a11y/label-has-for
+  368:15  warning  A form label must be associated with a control                                      jsx-a11y/label-has-associated-control
+  368:15  warning  Form label must have ALL of the following types of associated control: nesting, id  jsx-a11y/label-has-for
+  384:15  warning  A form label must be associated with a control                                      jsx-a11y/label-has-associated-control
+  384:15  warning  Form label must have ALL of the following types of associated control: nesting, id  jsx-a11y/label-has-for
+  409:15  warning  Form label must have ALL of the following types of associated control: nesting, id  jsx-a11y/label-has-for
+
+/app/src/features/quizzes/components/QuizGradebookFilters.tsx
+  27:9  warning  A form label must be associated with a control                                      jsx-a11y/label-has-associated-control
+  27:9  warning  Form label must have ALL of the following types of associated control: nesting, id  jsx-a11y/label-has-for
+  47:9  warning  A form label must be associated with a control                                      jsx-a11y/label-has-associated-control
+  47:9  warning  Form label must have ALL of the following types of associated control: nesting, id  jsx-a11y/label-has-for
+
+/app/src/features/quizzes/components/QuizGradebookTable.tsx
+  173:11  warning  A control must be associated with a text label  jsx-a11y/control-has-associated-label
+
+/app/src/features/quizzes/components/QuizViewerQuestion.tsx
+  106:11  warning  A control must be associated with a text label  jsx-a11y/control-has-associated-label
+  119:11  warning  A control must be associated with a text label  jsx-a11y/control-has-associated-label
+
+/app/src/features/quizzes/components/analytics/QuestionBankPoolConfig.tsx
+  279:23  warning  Form label must have ALL of the following types of associated control: nesting, id  jsx-a11y/label-has-for
+  285:23  warning  A control must be associated with a text label                                      jsx-a11y/control-has-associated-label
+  300:23  warning  Form label must have ALL of the following types of associated control: nesting, id  jsx-a11y/label-has-for
+  306:23  warning  A control must be associated with a text label                                      jsx-a11y/control-has-associated-label
+
+/app/src/features/quizzes/components/analytics/QuizLiveMonitor.tsx
+  111:9  warning  A control must be associated with a text label  jsx-a11y/control-has-associated-label
+
+/app/src/features/quizzes/components/player/QuizBody.tsx
+  184:11  warning  A control must be associated with a text label                                                 jsx-a11y/control-has-associated-label
+  196:13  warning  The autoFocus prop should not be used, as it can reduce usability and accessibility for users  jsx-a11y/no-autofocus
+  204:11  warning  A control must be associated with a text label                                                 jsx-a11y/control-has-associated-label
+  216:13  warning  The autoFocus prop should not be used, as it can reduce usability and accessibility for users  jsx-a11y/no-autofocus
+
+/app/src/features/quizzes/components/player/QuizReviewScreen.tsx
+  226:15  warning  A control must be associated with a text label  jsx-a11y/control-has-associated-label
+
+/app/src/features/quizzes/hooks/useOfflineQuiz.ts
+  108:5  warning  React Hook useCallback has a missing dependency: 'submitPendingAnswers'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+
+/app/src/features/reports/components/ReportScheduler.tsx
+   60:11  warning  A form label must be associated with a control                                      jsx-a11y/label-has-associated-control
+   60:11  warning  Form label must have ALL of the following types of associated control: nesting, id  jsx-a11y/label-has-for
+   61:11  warning  A control must be associated with a text label                                      jsx-a11y/control-has-associated-label
+   71:11  warning  A form label must be associated with a control                                      jsx-a11y/label-has-associated-control
+   71:11  warning  Form label must have ALL of the following types of associated control: nesting, id  jsx-a11y/label-has-for
+   86:11  warning  A form label must be associated with a control                                      jsx-a11y/label-has-associated-control
+   86:11  warning  Form label must have ALL of the following types of associated control: nesting, id  jsx-a11y/label-has-for
+  101:11  warning  A form label must be associated with a control                                      jsx-a11y/label-has-associated-control
+  101:11  warning  Form label must have ALL of the following types of associated control: nesting, id  jsx-a11y/label-has-for
+
+/app/src/features/rombel/hooks/useRombel.ts
+  1:1  error  Run autofix to sort these imports!  simple-import-sort/imports
+
+/app/src/features/rubrics/components/RubricBuilder.tsx
+  116:13  warning  A form label must be associated with a control                                      jsx-a11y/label-has-associated-control
+  116:13  warning  Form label must have ALL of the following types of associated control: nesting, id  jsx-a11y/label-has-for
+  119:13  warning  A control must be associated with a text label                                      jsx-a11y/control-has-associated-label
+  128:13  warning  A form label must be associated with a control                                      jsx-a11y/label-has-associated-control
+  128:13  warning  Form label must have ALL of the following types of associated control: nesting, id  jsx-a11y/label-has-for
+  131:13  warning  A control must be associated with a text label                                      jsx-a11y/control-has-associated-label
+  161:11  warning  Form label must have ALL of the following types of associated control: nesting, id  jsx-a11y/label-has-for
+  163:15  warning  A control must be associated with a text label                                      jsx-a11y/control-has-associated-label
+
+/app/src/features/rubrics/components/RubricCriterionRow.tsx
+   51:11  warning  A control must be associated with a text label                                      jsx-a11y/control-has-associated-label
+   58:11  warning  A control must be associated with a text label                                      jsx-a11y/control-has-associated-label
+   66:13  warning  A form label must be associated with a control                                      jsx-a11y/label-has-associated-control
+   66:13  warning  Form label must have ALL of the following types of associated control: nesting, id  jsx-a11y/label-has-for
+   69:13  warning  A control must be associated with a text label                                      jsx-a11y/control-has-associated-label
+  112:19  warning  A control must be associated with a text label                                      jsx-a11y/control-has-associated-label
+  119:19  warning  A control must be associated with a text label                                      jsx-a11y/control-has-associated-label
+  127:21  warning  A form label must be associated with a control                                      jsx-a11y/label-has-associated-control
+  127:21  warning  Form label must have ALL of the following types of associated control: nesting, id  jsx-a11y/label-has-for
+  130:21  warning  A control must be associated with a text label                                      jsx-a11y/control-has-associated-label
+
+/app/src/features/rubrics/components/RubricScoringGrid.tsx
+  95:15  warning  A control must be associated with a text label  jsx-a11y/control-has-associated-label
+
+/app/src/features/rubrics/components/RubricTemplateModal.tsx
+  112:15  warning  A control must be associated with a text label  jsx-a11y/control-has-associated-label
+
+/app/src/features/semester/components/SemesterManager.tsx
+   74:9   warning  A form label must be associated with a control                                      jsx-a11y/label-has-associated-control
+   74:9   warning  Form label must have ALL of the following types of associated control: nesting, id  jsx-a11y/label-has-for
+   85:9   warning  A form label must be associated with a control                                      jsx-a11y/label-has-associated-control
+   85:9   warning  Form label must have ALL of the following types of associated control: nesting, id  jsx-a11y/label-has-for
+   96:9   warning  A form label must be associated with a control                                      jsx-a11y/label-has-associated-control
+   96:9   warning  Form label must have ALL of the following types of associated control: nesting, id  jsx-a11y/label-has-for
+  108:11  warning  A form label must be associated with a control                                      jsx-a11y/label-has-associated-control
+  108:11  warning  Form label must have ALL of the following types of associated control: nesting, id  jsx-a11y/label-has-for
+  119:11  warning  A form label must be associated with a control                                      jsx-a11y/label-has-associated-control
+  119:11  warning  Form label must have ALL of the following types of associated control: nesting, id  jsx-a11y/label-has-for
+
+/app/src/features/struggle/components/StruggleConfigPanel.tsx
+   72:9  warning  Form label must have ALL of the following types of associated control: nesting, id  jsx-a11y/label-has-for
+   75:9  warning  A control must be associated with a text label                                      jsx-a11y/control-has-associated-label
+   99:9  warning  Form label must have ALL of the following types of associated control: nesting, id  jsx-a11y/label-has-for
+  102:9  warning  A control must be associated with a text label                                      jsx-a11y/control-has-associated-label
+  140:9  warning  A form label must be associated with a control                                      jsx-a11y/label-has-associated-control
+  140:9  warning  Form label must have ALL of the following types of associated control: nesting, id  jsx-a11y/label-has-for
+  146:9  warning  A control must be associated with a text label                                      jsx-a11y/control-has-associated-label
+  209:7  warning  A control must be associated with a text label                                      jsx-a11y/control-has-associated-label
+
+/app/src/features/subjects/hooks/useSubjects.ts
+  1:1  error  Run autofix to sort these imports!  simple-import-sort/imports
+
+/app/src/features/video/components/AdaptiveVideoPlayer.tsx
+  145:7  warning  Media elements such as <audio> and <video> must have a <track> for captions  jsx-a11y/media-has-caption
+
+/app/src/features/video/components/VideoUploader.tsx
+  182:13  warning  A control must be associated with a text label                               jsx-a11y/control-has-associated-label
+  237:17  warning  Media elements such as <audio> and <video> must have a <track> for captions  jsx-a11y/media-has-caption
+
+/app/src/features/video/hooks/useTranscodingStatus.ts
+  104:5  warning  React Hook useCallback has a missing dependency: 'stopPolling'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+
+/app/src/pages/AcademicYears.tsx
+  1:1  error  Run autofix to sort these imports!  simple-import-sort/imports
+
+/app/src/pages/AdaptivePaths.tsx
+  72:9  warning  Form label must have ALL of the following types of associated control: nesting, id  jsx-a11y/label-has-for
+
+/app/src/pages/AdminQuizOverview.tsx
+  277:13  warning  Form label must have ALL of the following types of associated control: nesting, id  jsx-a11y/label-has-for
+  285:13  warning  A control must be associated with a text label                                      jsx-a11y/control-has-associated-label
+
+/app/src/pages/AkmStimuli.tsx
+    1:1   error    Run autofix to sort these imports!                                                  simple-import-sort/imports
+  123:17  warning  A form label must be associated with a control                                      jsx-a11y/label-has-associated-control
+  123:17  warning  Form label must have ALL of the following types of associated control: nesting, id  jsx-a11y/label-has-for
+  126:17  warning  A control must be associated with a text label                                      jsx-a11y/control-has-associated-label
+
+/app/src/pages/AssignmentGradebook.tsx
+  151:15  warning  A control must be associated with a text label  jsx-a11y/control-has-associated-label
+
+/app/src/pages/BankVa.tsx
+  1:1  error  Run autofix to sort these imports!  simple-import-sort/imports
+
+/app/src/pages/BosTracking.tsx
+  1:1  error  Run autofix to sort these imports!  simple-import-sort/imports
+
+/app/src/pages/Certificates.tsx
+  325:15  warning  A control must be associated with a text label  jsx-a11y/control-has-associated-label
+
+/app/src/pages/ClassManagement.tsx
+  87:15  warning  Form label must have ALL of the following types of associated control: nesting, id  jsx-a11y/label-has-for
+
+/app/src/pages/Counseling.tsx
+    1:1   error    Run autofix to sort these imports!                                                  simple-import-sort/imports
+  171:17  warning  A form label must be associated with a control                                      jsx-a11y/label-has-associated-control
+  171:17  warning  Form label must have ALL of the following types of associated control: nesting, id  jsx-a11y/label-has-for
+  174:17  warning  A control must be associated with a text label                                      jsx-a11y/control-has-associated-label
+  183:17  warning  A form label must be associated with a control                                      jsx-a11y/label-has-associated-control
+  183:17  warning  Form label must have ALL of the following types of associated control: nesting, id  jsx-a11y/label-has-for
+  186:17  warning  A control must be associated with a text label                                      jsx-a11y/control-has-associated-label
+  193:15  warning  Form label must have ALL of the following types of associated control: nesting, id  jsx-a11y/label-has-for
+  194:17  warning  A control must be associated with a text label                                      jsx-a11y/control-has-associated-label
+
+/app/src/pages/Courses.tsx
+   80:6   warning  React Hook useEffect has missing dependencies: 'newDescription', 'newLevel', 'newSubject', and 'newTitle'. Either include them or remove the dependency array  react-hooks/exhaustive-deps
+  416:21  warning  A form label must be associated with a control                                                                                                                 jsx-a11y/label-has-associated-control
+  416:21  warning  Form label must have ALL of the following types of associated control: nesting, id                                                                             jsx-a11y/label-has-for
+  420:21  warning  A control must be associated with a text label                                                                                                                 jsx-a11y/control-has-associated-label
+  428:23  warning  The autoFocus prop should not be used, as it can reduce usability and accessibility for users                                                                  jsx-a11y/no-autofocus
+  435:23  warning  A form label must be associated with a control                                                                                                                 jsx-a11y/label-has-associated-control
+  435:23  warning  Form label must have ALL of the following types of associated control: nesting, id                                                                             jsx-a11y/label-has-for
+  440:25  warning  A control must be associated with a text label                                                                                                                 jsx-a11y/control-has-associated-label
+  454:23  warning  A form label must be associated with a control                                                                                                                 jsx-a11y/label-has-associated-control
+  454:23  warning  Form label must have ALL of the following types of associated control: nesting, id                                                                             jsx-a11y/label-has-for
+  478:21  warning  A form label must be associated with a control                                                                                                                 jsx-a11y/label-has-associated-control
+  478:21  warning  Form label must have ALL of the following types of associated control: nesting, id                                                                             jsx-a11y/label-has-for
+  482:21  warning  A control must be associated with a text label                                                                                                                 jsx-a11y/control-has-associated-label
+
+/app/src/pages/Creator.tsx
+  496:21  warning  A control must be associated with a text label                                      jsx-a11y/control-has-associated-label
+  528:19  warning  A form label must be associated with a control                                      jsx-a11y/label-has-associated-control
+  528:19  warning  Form label must have ALL of the following types of associated control: nesting, id  jsx-a11y/label-has-for
+  553:21  warning  Form label must have ALL of the following types of associated control: nesting, id  jsx-a11y/label-has-for
+  560:19  warning  A control must be associated with a text label                                      jsx-a11y/control-has-associated-label
+  579:19  warning  A form label must be associated with a control                                      jsx-a11y/label-has-associated-control
+  579:19  warning  Form label must have ALL of the following types of associated control: nesting, id  jsx-a11y/label-has-for
+  629:25  warning  A form label must be associated with a control                                      jsx-a11y/label-has-associated-control
+  629:25  warning  Form label must have ALL of the following types of associated control: nesting, id  jsx-a11y/label-has-for
+  632:25  warning  A control must be associated with a text label                                      jsx-a11y/control-has-associated-label
+  642:25  warning  A form label must be associated with a control                                      jsx-a11y/label-has-associated-control
+  642:25  warning  Form label must have ALL of the following types of associated control: nesting, id  jsx-a11y/label-has-for
+  645:25  warning  A control must be associated with a text label                                      jsx-a11y/control-has-associated-label
+  655:25  warning  A form label must be associated with a control                                      jsx-a11y/label-has-associated-control
+  655:25  warning  Form label must have ALL of the following types of associated control: nesting, id  jsx-a11y/label-has-for
+  658:25  warning  A control must be associated with a text label                                      jsx-a11y/control-has-associated-label
+  796:19  warning  A control must be associated with a text label                                      jsx-a11y/control-has-associated-label
+
+/app/src/pages/DocumentManager.tsx
+  261:13  warning  A control must be associated with a text label                                      jsx-a11y/control-has-associated-label
+  313:13  warning  A form label must be associated with a control                                      jsx-a11y/label-has-associated-control
+  313:13  warning  Form label must have ALL of the following types of associated control: nesting, id  jsx-a11y/label-has-for
+  316:13  warning  A control must be associated with a text label                                      jsx-a11y/control-has-associated-label
+
+/app/src/pages/ForgotPassword.tsx
+  99:17  warning  The autoFocus prop should not be used, as it can reduce usability and accessibility for users  jsx-a11y/no-autofocus
+
+/app/src/pages/Grades.tsx
+   70:9   warning  The 'submissionsData' conditional could make the dependencies of useMemo Hook (at line 92) change on every render. To fix this, wrap the initialization of 'submissionsData' in its own useMemo() Hook  react-hooks/exhaustive-deps
+  202:15  warning  A control must be associated with a text label                                                                                                                                                          jsx-a11y/control-has-associated-label
+  267:25  warning  A control must be associated with a text label                                                                                                                                                          jsx-a11y/control-has-associated-label
+
+/app/src/pages/Integrations.tsx
+  1:1  error  Run autofix to sort these imports!  simple-import-sort/imports
+
+/app/src/pages/P5Projects.tsx
+  1:1  error  Run autofix to sort these imports!  simple-import-sort/imports
+
+/app/src/pages/ParentLinks.tsx
+    1:1   error    Run autofix to sort these imports!                                                  simple-import-sort/imports
+  178:15  warning  Form label must have ALL of the following types of associated control: nesting, id  jsx-a11y/label-has-for
+  179:17  warning  A control must be associated with a text label                                      jsx-a11y/control-has-associated-label
+
+/app/src/pages/PpdbJalur.tsx
+    1:1   error    Run autofix to sort these imports!                                                  simple-import-sort/imports
+  108:11  warning  A form label must be associated with a control                                      jsx-a11y/label-has-associated-control
+  108:11  warning  Form label must have ALL of the following types of associated control: nesting, id  jsx-a11y/label-has-for
+
+/app/src/pages/PrincipalInsights.tsx
+  1:1  error  Run autofix to sort these imports!  simple-import-sort/imports
+
+/app/src/pages/PublicProfile.tsx
+  140:17  warning  Non-interactive elements should not be assigned mouse or keyboard event listeners  jsx-a11y/no-noninteractive-element-interactions
+
+/app/src/pages/QuestionBankPage.tsx
+  124:13  warning  A control must be associated with a text label  jsx-a11y/control-has-associated-label
+
+/app/src/pages/Rapor.tsx
+   1:1   error    Run autofix to sort these imports!                                                  simple-import-sort/imports
+  94:11  warning  A form label must be associated with a control                                      jsx-a11y/label-has-associated-control
+  94:11  warning  Form label must have ALL of the following types of associated control: nesting, id  jsx-a11y/label-has-for
+
+/app/src/pages/RaporPrint.tsx
+  1:1  error  Run autofix to sort these imports!  simple-import-sort/imports
+
+/app/src/pages/ResetPassword.tsx
+  201:19  warning  The autoFocus prop should not be used, as it can reduce usability and accessibility for users  jsx-a11y/no-autofocus
+
+/app/src/pages/RombelAttendance.tsx
+  1:1  error  Run autofix to sort these imports!  simple-import-sort/imports
+
+/app/src/pages/RombelManagement.tsx
+   1:1   error    Run autofix to sort these imports!              simple-import-sort/imports
+  95:19  warning  A control must be associated with a text label  jsx-a11y/control-has-associated-label
+
+/app/src/pages/ScanAttendance.tsx
+  58:9  warning  A form label must be associated with a control                                      jsx-a11y/label-has-associated-control
+  58:9  warning  Form label must have ALL of the following types of associated control: nesting, id  jsx-a11y/label-has-for
+
+/app/src/pages/SemanticSearch.tsx
+  1:1  error  Run autofix to sort these imports!  simple-import-sort/imports
+
+/app/src/pages/Settings.tsx
+  222:19  warning  A form label must be associated with a control                                      jsx-a11y/label-has-associated-control
+  222:19  warning  Form label must have ALL of the following types of associated control: nesting, id  jsx-a11y/label-has-for
+  234:19  warning  A form label must be associated with a control                                      jsx-a11y/label-has-associated-control
+  234:19  warning  Form label must have ALL of the following types of associated control: nesting, id  jsx-a11y/label-has-for
+  248:19  warning  A form label must be associated with a control                                      jsx-a11y/label-has-associated-control
+  248:19  warning  Form label must have ALL of the following types of associated control: nesting, id  jsx-a11y/label-has-for
+
+/app/src/pages/SettingsTabs.tsx
+  142:13  warning  Form label must have ALL of the following types of associated control: nesting, id  jsx-a11y/label-has-for
+  163:13  warning  A form label must be associated with a control                                      jsx-a11y/label-has-associated-control
+  163:13  warning  Form label must have ALL of the following types of associated control: nesting, id  jsx-a11y/label-has-for
+  164:13  warning  A control must be associated with a text label                                      jsx-a11y/control-has-associated-label
+  172:13  warning  A form label must be associated with a control                                      jsx-a11y/label-has-associated-control
+  172:13  warning  Form label must have ALL of the following types of associated control: nesting, id  jsx-a11y/label-has-for
+  175:13  warning  A control must be associated with a text label                                      jsx-a11y/control-has-associated-label
+  276:13  warning  A form label must be associated with a control                                      jsx-a11y/label-has-associated-control
+  276:13  warning  Form label must have ALL of the following types of associated control: nesting, id  jsx-a11y/label-has-for
+  280:15  warning  A control must be associated with a text label                                      jsx-a11y/control-has-associated-label
+  297:13  warning  A form label must be associated with a control                                      jsx-a11y/label-has-associated-control
+  297:13  warning  Form label must have ALL of the following types of associated control: nesting, id  jsx-a11y/label-has-for
+  300:13  warning  A control must be associated with a text label                                      jsx-a11y/control-has-associated-label
+  309:13  warning  A form label must be associated with a control                                      jsx-a11y/label-has-associated-control
+  309:13  warning  Form label must have ALL of the following types of associated control: nesting, id  jsx-a11y/label-has-for
+  312:13  warning  A control must be associated with a text label                                      jsx-a11y/control-has-associated-label
+
+/app/src/pages/StaffDossier.tsx
+  1:1  error  Run autofix to sort these imports!  simple-import-sort/imports
+
+/app/src/pages/StruggleDashboard.tsx
+  183:17  warning  Form label must have ALL of the following types of associated control: nesting, id                        jsx-a11y/label-has-for
+  226:17  warning  The element ul has an implicit role of list. Defining this explicitly is redundant and should be avoided  jsx-a11y/no-redundant-roles
+
+/app/src/pages/StudentDossier.tsx
+  1:1  error  Run autofix to sort these imports!  simple-import-sort/imports
+
+/app/src/pages/Subjects.tsx
+   1:1   error    Run autofix to sort these imports!              simple-import-sort/imports
+  85:19  warning  A control must be associated with a text label  jsx-a11y/control-has-associated-label
+
+/app/src/pages/TeacherDashboard.tsx
+   94:7   warning  Unused eslint-disable directive (no problems were reported from 'no-console')
+  231:23  warning  A control must be associated with a text label                                 jsx-a11y/control-has-associated-label
+
+/app/src/pages/Timetable.tsx
+    1:1   error    Run autofix to sort these imports!                                                  simple-import-sort/imports
+   52:16  warning  'err' is defined but never used. Allowed unused caught errors must match /^_/u      @typescript-eslint/no-unused-vars
+  102:11  warning  A form label must be associated with a control                                      jsx-a11y/label-has-associated-control
+  102:11  warning  Form label must have ALL of the following types of associated control: nesting, id  jsx-a11y/label-has-for
+
+/app/src/pages/admin/BillingDashboard.tsx
+  339:21  warning  A control must be associated with a text label  jsx-a11y/control-has-associated-label
+  349:21  warning  A control must be associated with a text label  jsx-a11y/control-has-associated-label
+
+/app/src/pages/admin/LtiManagement.tsx
+  211:13  warning  A control must be associated with a text label  jsx-a11y/control-has-associated-label
+  271:21  warning  A control must be associated with a text label  jsx-a11y/control-has-associated-label
+
+/app/src/pages/admin/ModerationDashboard.tsx
+  149:11  warning  A control must be associated with a text label  jsx-a11y/control-has-associated-label
+
+/app/src/pages/admin/ReviewQueue.tsx
+  157:9   warning  The 'teachers' logical expression could make the dependencies of useMemo Hook (at line 164) change on every render. Move it inside the useMemo callback. Alternatively, wrap the initialization of 'teachers' in its own useMemo() Hook  react-hooks/exhaustive-deps
+  273:19  warning  A form label must be associated with a control                                                                                                                                                                                           jsx-a11y/label-has-associated-control
+  273:19  warning  Form label must have ALL of the following types of associated control: nesting, id                                                                                                                                                       jsx-a11y/label-has-for
+  277:19  warning  A control must be associated with a text label                                                                                                                                                                                           jsx-a11y/control-has-associated-label
+
+/app/src/pages/admin/UserManagement.tsx
+  1:1  error  Run autofix to sort these imports!  simple-import-sort/imports
+
+/app/src/pages/dashboard/JoinClassModal.tsx
+  105:19  warning  The autoFocus prop should not be used, as it can reduce usability and accessibility for users  jsx-a11y/no-autofocus
+
+/app/src/utils/logger.ts
+  21:7  warning  Unexpected console statement. Only these console methods are allowed: error, warn  no-console
+  27:7  warning  Unexpected console statement. Only these console methods are allowed: error, warn  no-console
+
+✖ 823 problems (34 errors, 789 warnings)
+  34 errors and 1 warning potentially fixable with the `--fix` option.
+
+ ELIFECYCLE  Command failed with exit code 1.
