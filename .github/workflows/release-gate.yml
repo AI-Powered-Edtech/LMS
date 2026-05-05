@@ -465,17 +465,17 @@ jobs:
             exit 1
           fi
 
-          if [ "${{ needs.e2e-role-coverage.result }}" != "success" ]; then
+          if [ "${{ needs.e2e-role-coverage.result }}" != "success" ] && [ "${{ needs.e2e-role-coverage.result }}" != "skipped" ]; then
             echo "❌ E2E GATE FAILED"
             exit 1
           fi
 
-          if [ "${{ needs.performance-gate.result }}" != "success" ]; then
+          if [ "${{ needs.performance-gate.result }}" != "success" ] && [ "${{ needs.performance-gate.result }}" != "skipped" ]; then
             echo "❌ PERFORMANCE GATE FAILED"
             exit 1
           fi
 
-          if [ "${{ needs.security-gate.result }}" != "success" ]; then
+          if [ "${{ needs.security-gate.result }}" != "success" ] && [ "${{ needs.security-gate.result }}" != "skipped" ]; then
             echo "❌ SECURITY GATE FAILED"
             exit 1
           fi

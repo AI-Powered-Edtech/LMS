@@ -54,10 +54,13 @@ jobs:
       - name: Apply database schema and migrations
         run: |
           psql "$DATABASE_URL" -f edusync-api/schema/baseline.sql
+          # Apply core setup and test data
           for m in edusync-api/migrations/*.sql; do
             echo "Applying $m"
-            psql "$DATABASE_URL" -f "$m"
+            psql "$DATABASE_URL" -v ON_ERROR_STOP=1 -f "$m"
           done
+          # Apply core setup and test data after migrations
+          psql "$DATABASE_URL" -v ON_ERROR_STOP=0 -f edusync-api/schema/dev_seed.sql
 
       - name: Build Rust API server
         run: cd edusync-api && cargo build --release
@@ -68,18 +71,18 @@ jobs:
           npx --yes wait-on http://localhost:8080/api/v1/health -t 60000
 
       - name: Install Playwright browsers
-        run: npx playwright install chromium --with-deps
+        run: pnpm exec playwright install chromium --with-deps
 
       - name: Start frontend dev server
         run: |
-          npm run dev &
+          pnpm dev &
           npx --yes wait-on http://localhost:5173 -t 60000
 
       - name: Run sweep
-        run: npx playwright test tests/e2e/sweep.spec.ts --reporter=line
+        run: pnpm exec playwright test tests/e2e/sweep.spec.ts --reporter=line
 
       - name: Run a11y gate
-        run: npx playwright test tests/e2e/a11y.spec.ts --workers=1 --reporter=line
+        run: pnpm exec playwright test tests/e2e/a11y.spec.ts --workers=1 --reporter=line
 
       - name: Restore baseline from main
         run: |
