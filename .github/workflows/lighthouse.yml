@@ -27,6 +27,12 @@ jobs:
       - name: Install Lighthouse CI
         run: npm install -g @lhci/cli@0.14.x
 
+      - name: Start preview server
+        run: pnpm dev &
+
+      - name: Wait for server
+        run: npx --yes wait-on http://localhost:5173 -t 60000
+
       - name: Run Lighthouse CI
         run: lhci autorun
         env:
