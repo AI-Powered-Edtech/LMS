@@ -470,6 +470,7 @@ function DocumentRow({ doc, onDelete }: DocumentRowProps) {
             rel="noopener noreferrer"
             className="p-1.5 rounded-lg text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-700 hover:text-blue-600 dark:hover:text-blue-400 transition-colors"
             title="Unduh"
+            aria-label="Unduh (buka di tab baru)"
           >
             <Download className="w-4 h-4" />
           </a>
