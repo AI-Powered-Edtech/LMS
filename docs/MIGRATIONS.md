@@ -27,6 +27,65 @@ Migration dijalankan secara berurutan sesuai nomor prefix (`NNN_`). Gunakan `scr
 | 015_backend_heavy_tables.sql | Schema | Tabel-tabel besar backend (audit log, event stream, dsb.) yang di-offload dari frontend. |
 | 016_add_performance_indexes.sql | Performance | Index tambahan untuk query panas (dashboard, leaderboard, gradebook). |
 | 017_add_google_id_to_profiles.sql | Auth | Kolom `google_id` di `profiles` untuk Google OAuth single sign-on. |
+| 018_fix_backend_schema_bugs.sql | Pending | Pendokumentasian otomatis |
+| 019_audit_fixes.sql | Pending | Pendokumentasian otomatis |
+| 020_fix_rpc_signatures.sql | Pending | Pendokumentasian otomatis |
+| 021_rpc_json.sql | Pending | Pendokumentasian otomatis |
+| 022_align_table_columns.sql | Pending | Pendokumentasian otomatis |
+| 023_rpc_stubs.sql | Pending | Pendokumentasian otomatis |
+| 024_course_review_workflow.sql | Pending | Pendokumentasian otomatis |
+| 025_personal_and_multi_tenant.sql | Pending | Pendokumentasian otomatis |
+| 026_join_code_and_slugify.sql | Pending | Pendokumentasian otomatis |
+| 027_p2_backlog.sql | Pending | Pendokumentasian otomatis |
+| 028_p3_tenant_settings_and_roles.sql | Pending | Pendokumentasian otomatis |
+| 029_add_admin_notification_types.sql | Pending | Pendokumentasian otomatis |
+| 030_admin_stub_tables_and_rpcs.sql | Pending | Pendokumentasian otomatis |
+| 031_qa_schema_gaps.sql | Pending | Pendokumentasian otomatis |
+| 032_qa_rpcs.sql | Pending | Pendokumentasian otomatis |
+| 033_fix_search_questions_return_json.sql | Pending | Pendokumentasian otomatis |
+| 034_lesson_progress_monitor_rpc.sql | Pending | Pendokumentasian otomatis |
+| 035_admin_backfill.sql | Pending | Pendokumentasian otomatis |
+| 036_confirm_demo_seed_users.sql | Pending | Pendokumentasian otomatis |
+| 037_qa_sweep_fixes.sql | Pending | Pendokumentasian otomatis |
+| 037_seed_modules_missing_rpcs_and_auth_uid.sql | Pending | Pendokumentasian otomatis |
+| 038_fix_get_tenant_users_user_id_alias.sql | Pending | Pendokumentasian otomatis |
+| 039_academic_years.sql | Pending | Pendokumentasian otomatis |
+| 040_semesters_link_academic_year.sql | Pending | Pendokumentasian otomatis |
+| 041_grade_levels.sql | Pending | Pendokumentasian otomatis |
+| 042_rombel.sql | Pending | Pendokumentasian otomatis |
+| 043_subjects_and_curriculum_items.sql | Pending | Pendokumentasian otomatis |
+| 044_timetable_slots.sql | Pending | Pendokumentasian otomatis |
+| 045_dossiers.sql | Pending | Pendokumentasian otomatis |
+| 046_rbac_10_role_matrix.sql | Pending | Pendokumentasian otomatis |
+| 047_cp_tagging.sql | Pending | Pendokumentasian otomatis |
+| 048_gradebook_dual_mode.sql | Pending | Pendokumentasian otomatis |
+| 049_nilai_per_cp.sql | Pending | Pendokumentasian otomatis |
+| 050_akm_question_type.sql | Pending | Pendokumentasian otomatis |
+| 051_p5_module.sql | Pending | Pendokumentasian otomatis |
+| 052_domain_events_outbox.sql | Pending | Pendokumentasian otomatis |
+| 053_rapor_kurmer.sql | Pending | Pendokumentasian otomatis |
+| 054_finance_midtrans.sql | Pending | Pendokumentasian otomatis |
+| 055_bos_expense_tracking.sql | Pending | Pendokumentasian otomatis |
+| 056_ppdb_flow.sql | Pending | Pendokumentasian otomatis |
+| 057_integrations.sql | Pending | Pendokumentasian otomatis |
+| 058_ai_polish.sql | Pending | Pendokumentasian otomatis |
+| 059_audit_rate_limit_perf.sql | Pending | Pendokumentasian otomatis |
+| 060_counseling_parent_links_sikap.sql | Pending | Pendokumentasian otomatis |
+| 061_app_audit_triggers.sql | Pending | Pendokumentasian otomatis |
+| 062_rapor_autogen_rpc.sql | Pending | Pendokumentasian otomatis |
+| 063_rombel_attendance.sql | Pending | Pendokumentasian otomatis |
+| 064_stub_tables.sql | Pending | Pendokumentasian otomatis |
+| 065_gradebook_baseline.sql | Pending | Pendokumentasian otomatis |
+| 066_role_enum_completeness.sql | Pending | Pendokumentasian otomatis |
+| 067_idempotent_auto_modules.sql | Pending | Pendokumentasian otomatis |
+| 068_sync_user_roles_to_granular.sql | Pending | Pendokumentasian otomatis |
+| 069_classes_rombel_id.sql | Pending | Pendokumentasian otomatis |
+| 070_event_handler_idempotency.sql | Pending | Pendokumentasian otomatis |
+| 071_ai_rate_limit.sql | Pending | Pendokumentasian otomatis |
+| 072_parent_invoices_rpc.sql | Pending | Pendokumentasian otomatis |
+| 073_refresh_tokens_session_metadata.sql | Pending | Pendokumentasian otomatis |
+| 074_tenant_invites_and_settings.sql | Pending | Pendokumentasian otomatis |
+| 075_tenant_invites_global_unique_code.sql | Pending | Pendokumentasian otomatis |
 
 > Gap pada nomor (misal 010, 011) adalah hasil revert/konsolidasi migration yang dibatalkan sebelum landing di `main`. Jangan reuse nomor tersebut untuk migration baru.
 
