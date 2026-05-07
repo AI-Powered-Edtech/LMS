@@ -115,3 +115,21 @@ config.json
 # sweep artifacts
 .qa-a11y/
 !.qa-a11y-baseline.json
+
+# --- chore/clean-root: prevent dev/debug artifacts at root ---
+# Compiled Rust scratch binaries (use target/ instead)
+/test_any
+/test_any*
+/*.rs
+!eslint.config.js
+# Edusync-api scratch
+/edusync-api/test_*.rs
+# Debug screenshots at repo root
+/*.png
+# Ad-hoc devtools snippets
+/clear_auth.js
+/get_error.js
+/network-requests.txt
+# Private keys must never be committed (rotate any leaked key)
+*.pem
+!**/jwt-public.pem
