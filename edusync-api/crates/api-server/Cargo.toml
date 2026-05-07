@@ -26,6 +26,7 @@ hex.workspace = true
 totp-rs.workspace = true
 time.workspace = true
 reqwest.workspace = true
+tokio-stream = "0.1"
 lettre.workspace = true
 futures-util.workspace = true
 vil_conn_s3.workspace = true
