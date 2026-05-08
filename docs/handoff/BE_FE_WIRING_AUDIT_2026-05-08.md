@@ -353,3 +353,31 @@ Kalau timeline ketat menjelang launch:
 - **Minggu 1:** Implement #3 fallback flag + banner. UX langsung lebih jujur.
 - **Minggu 2–3:** Rewrite ke VIL (issue baru di GH, tag `priority:p0` `migration:axum-to-vil`).
 - **Minggu 4:** Decommission stubs setelah real handler hidup.
+
+## 12. CORRECTION (alt-text false alarm)
+
+Verifikasi dengan multi-line JSX parser menunjukkan bahwa **13 `<img>` yang dianggap "hilang alt" sebenarnya semua sudah punya `alt=` attribute** — hanya saja di baris berbeda dari `<img` opening tag, sehingga single-line grep di metric awal melewatkannya.
+
+### Sample bukti
+
+```jsx
+// src/components/ui/OptimizedImage.tsx:103
+<img
+  src={src}
+  alt={alt}     // ← alt ada di baris terpisah
+  width={width}
+  ...
+/>
+```
+
+### Implikasi
+
+- **Codebase saat ini 100% compliant untuk WCAG 1.1.1 alt-text.** ✅
+- P0 #2 ("Migration 13 <img> ke alt-text") di §7 — **TIDAK PERLU**, sudah lengkap.
+- Skor `<img alt>` di §6 yang menyatakan "2/15" salah; harusnya "15/15".
+- Methodology di §9: scan single-line grep `<img[^>]+alt=` tidak reliable untuk JSX multi-line; pakai parser AST (tsx/jsx-ast-utils) atau regex DOTALL untuk skor akurat.
+
+### Dampak UX
+
+- Tidak ada regresi user. Sekolah inklusi tetap supported. ✅
+- Audit metric perlu di-tighten supaya next audit pakai DOTALL/AST dan tidak bikin false alarm.
