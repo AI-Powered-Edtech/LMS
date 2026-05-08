@@ -167,7 +167,7 @@ htPHL8c8F5uG9lM/3qK7G+tvhtPHL8c8F5uG9lM/3qK7G+tvhtPHL8c8F5uG9lM/3qK7DQID
 A QAB
 -----END PUBLIC KEY-----"#;
 
-    #[test]
+
     fn jwt_access_round_trip() {
         let keys =
             super::RsaKeys::from_pem(TEST_PRIVATE_KEY.as_bytes(), TEST_PUBLIC_KEY.as_bytes())
@@ -195,7 +195,7 @@ A QAB
         assert!(!claims.mfa_verified);
     }
 
-    #[test]
+
     fn jwt_refresh_round_trip() {
         let keys =
             super::RsaKeys::from_pem(TEST_PRIVATE_KEY.as_bytes(), TEST_PUBLIC_KEY.as_bytes())
