@@ -20,3 +20,5 @@ pub mod whatsapp;
 
 // Re-export the primary email client for convenience
 pub use email::EmailClient;
+pub mod reports;
+pub mod plagiarism;

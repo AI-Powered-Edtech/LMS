@@ -33,13 +33,13 @@ pub async fn check_plagiarism_handler(
     State(_state): State<Arc<crate::state::AppState>>,
     Json(req): Json<CheckPlagiarismRequest>,
 ) -> Result<Json<serde_json::Value>, (axum::http::StatusCode, Json<serde_json::Value>)> {
-    let plagiarism_req = edusync_services::plagiarism::CheckPlagiarismRequest {
+    let plagiarism_req = edusync_services::ai::plagiarism::CheckPlagiarismRequest {
         submission_id: req.submission_id,
         content: req.content,
         assignment_id: req.assignment_id,
     };
 
-    match edusync_services::plagiarism::check_plagiarism(&db, user_id, tenant_id, plagiarism_req)
+    match edusync_services::ai::plagiarism::check_plagiarism(&db, user_id, tenant_id, plagiarism_req)
         .await
     {
         Ok(response) => {
@@ -74,7 +74,7 @@ pub async fn get_plagiarism_report_handler(
     State(db): State<PgPool>,
     Path(report_id): Path<Uuid>,
 ) -> Result<Json<serde_json::Value>, (axum::http::StatusCode, Json<serde_json::Value>)> {
-    match edusync_services::plagiarism::get_plagiarism_report(&db, report_id).await {
+    match edusync_services::ai::plagiarism::get_plagiarism_report(&db, report_id).await {
         Ok(response) => Ok(Json(serde_json::json!({
             "success": true,
             "data": response.data

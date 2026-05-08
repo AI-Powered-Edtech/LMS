@@ -39,6 +39,7 @@ pub async fn create_session(
    create_session_with_meta(pool, user_id, email, role, tenant_id, mfa_verified, None, None).await
 }
 
+#[allow(clippy::too_many_arguments)]
 pub async fn create_session_with_meta(
    pool: &PgPool,
    user_id: Uuid,
@@ -87,6 +88,7 @@ pub async fn refresh_session(
    refresh_session_with_meta(pool, refresh_token, user_id, email, role, tenant_id, mfa_verified, None, None).await
 }
 
+#[allow(clippy::too_many_arguments)]
 pub async fn refresh_session_with_meta(
    pool: &PgPool,
    refresh_token: &str,
@@ -192,7 +194,7 @@ pub async fn get_user_sessions(pool: &PgPool, user_id: Uuid, current_refresh_tok
          let user_agent: Option<String> = row.try_get("user_agent")?;
          let hash: String = row.try_get("token_hash")?;
 
-         let is_current = current_token_hash.as_ref().map_or(false, |h| h == &hash);
+         let is_current = current_token_hash.as_ref() == Some(&hash);
 
          sessions.push(SessionInfo {
             session_id,
@@ -204,7 +206,7 @@ pub async fn get_user_sessions(pool: &PgPool, user_id: Uuid, current_refresh_tok
          });
    }
 
-   sessions.sort_by(|a, b| b.last_used_at.cmp(&a.last_used_at));
+   sessions.sort_by_key(|b| std::cmp::Reverse(b.last_used_at));
 
    Ok(sessions)
 }

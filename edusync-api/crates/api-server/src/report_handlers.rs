@@ -31,9 +31,9 @@ pub async fn export_report_handler(
         ..
     }: AuthedRequest,
     State(state): State<Arc<AppState>>,
-    Json(req): Json<edusync_services::reports::ExportReportRequest>,
+    Json(req): Json<edusync_services::export_jobs::ExportReportRequest>,
 ) -> Result<Json<serde_json::Value>, (axum::http::StatusCode, Json<serde_json::Value>)> {
-    match edusync_services::reports::create_export_job(&db, user_id, tenant_id, req).await {
+    match edusync_services::export_jobs::create_export_job(&db, user_id, tenant_id, req).await {
         Ok(response) => {
             tracing::info!(job_id = %response.data.job_id, user_id = %user_id, "Export job created via API");
 
@@ -64,7 +64,7 @@ pub async fn get_export_status_handler(
     State(db): State<PgPool>,
     Path(job_id): Path<Uuid>,
 ) -> Result<Json<serde_json::Value>, (axum::http::StatusCode, Json<serde_json::Value>)> {
-    match edusync_services::reports::get_export_status(&db, job_id).await {
+    match edusync_services::export_jobs::get_export_status(&db, job_id).await {
         Ok(response) => Ok(Json(serde_json::json!({
             "success": true,
             "data": response.data
