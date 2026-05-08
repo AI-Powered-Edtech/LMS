@@ -146,6 +146,27 @@ pub async fn ai_tutor_stream_handler(
                     .await;
             }
         }
+
+        // Quota crash-safety (Issue #323 A4): record the request against
+        // ai_quota_usage on BOTH success and error paths. The rate-limit
+        // guard at the top of the handler already prevented over-quota
+        // streams from opening, so reaching this point guarantees the
+        // user is within their hourly cap and the increment is owed.
+        // Failure to insert is logged (e.g. transient DB blip) but does
+        // not surface to the SSE client — quota is best-effort accounting.
+        if let Err(err) = sqlx::query(
+            r#"INSERT INTO public.ai_quota_usage (id, user_id, tenant_id, endpoint, created_at)
+               VALUES ($1, $2, $3, 'ai_tutor', NOW())"#,
+        )
+        .bind(Uuid::new_v4())
+        .bind(user_id)
+        .bind(tenant_id)
+        .execute(&db)
+        .await
+        {
+            tracing::warn!(error = %err, user_id = %user_id, tenant_id = %tenant_id,
+                "failed to record ai_quota_usage after stream");
+        }
     });
 
     let stream = ReceiverStream::new(rx);
@@ -301,15 +322,9 @@ async fn stream_pipeline(
 
     persist_session(db, session.id, tenant_id, session.messages_json, message, &full_reply).await?;
 
-    let _ = sqlx::query(
-        r#"INSERT INTO public.ai_quota_usage (id, user_id, tenant_id, endpoint, created_at)
-           VALUES ($1, $2, $3, 'ai_tutor', NOW())"#,
-    )
-    .bind(Uuid::new_v4())
-    .bind(user_id)
-    .bind(tenant_id)
-    .execute(db)
-    .await;
+    // Note: quota increment moved out of stream_pipeline to the outer spawn
+    // (Issue #323 A4) so it fires on BOTH Ok and Err paths — mid-stream Groq
+    // errors no longer give the user a free retry.
 
     Ok(session.id)
 }
