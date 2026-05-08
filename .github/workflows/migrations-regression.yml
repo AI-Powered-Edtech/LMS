@@ -1,0 +1,75 @@
+# Regression test for edusync-api/migrations/.
+# Spins up a clean Postgres 16 and runs every migration in numeric order via psql.
+# Catches future ordering hazards (like the 048-needs-065 regression we hit on 2026-05-07).
+name: migrations-regression
+
+on:
+  pull_request:
+    paths:
+      - 'edusync-api/migrations/**'
+      - '.github/workflows/migrations-regression.yml'
+      - 'scripts/check-migration-sequence.sh'
+  push:
+    branches: [main]
+    paths:
+      - 'edusync-api/migrations/**'
+      - '.github/workflows/migrations-regression.yml'
+      - 'scripts/check-migration-sequence.sh'
+  workflow_dispatch:
+
+jobs:
+  apply-all-migrations:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_PASSWORD: edusync_local_pass
+          POSTGRES_DB: postgres
+          POSTGRES_USER: postgres
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+    env:
+      PGHOST: localhost
+      PGPORT: '5432'
+      PGUSER: postgres
+      PGPASSWORD: edusync_local_pass
+      PGDATABASE: postgres
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Lint migration sequence
+        run: bash scripts/check-migration-sequence.sh
+
+      - name: Install psql client
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y postgresql-client
+
+      - name: Wait for Postgres
+        run: |
+          for i in {1..30}; do
+            pg_isready -h localhost -p 5432 -U postgres && break
+            sleep 1
+          done
+
+      - name: Apply migrations 001..n
+        run: |
+          set -euo pipefail
+          cd edusync-api
+          shopt -s nullglob
+          for f in $(ls migrations/*.sql | sort); do
+            echo "::group::$f"
+            psql -v ON_ERROR_STOP=1 -f "$f"
+            echo '::endgroup::'
+          done
+          echo "OK: all migrations applied"
+
+      - name: Smoke check schema
+        run: |
+          psql -v ON_ERROR_STOP=1 -c "SELECT count(*) FROM pg_tables WHERE schemaname = 'public';"
