@@ -106,6 +106,9 @@ pub async fn ai_tutor_stream_handler(
     let session_id_in = req.session_id;
 
     tokio::spawn(async move {
+        crate::metrics::AI_TUTOR_STREAM_REQUESTS_TOTAL
+            .with_label_values(&["start"]) // Issue #322 A3
+            .inc();
         let _ = tx
             .send(Ok(Event::default()
                 .event("start")
@@ -118,6 +121,9 @@ pub async fn ai_tutor_stream_handler(
         .await
         {
             Ok(session_id) => {
+                crate::metrics::AI_TUTOR_STREAM_REQUESTS_TOTAL
+                    .with_label_values(&["done"]) // Issue #322 A3
+                    .inc();
                 let payload = serde_json::json!({
                     "status": "completed",
                     "session_id": session_id
@@ -127,6 +133,9 @@ pub async fn ai_tutor_stream_handler(
                     .await;
             }
             Err(e) => {
+                crate::metrics::AI_TUTOR_STREAM_REQUESTS_TOTAL
+                    .with_label_values(&["failed"]) // Issue #322 A3
+                    .inc();
                 tracing::warn!(error = %e, "ai_tutor stream pipeline failed");
                 let payload = serde_json::json!({
                     "error": e.to_string(),
@@ -275,6 +284,7 @@ async fn stream_pipeline(
                         if let Some(token) = json["choices"][0]["delta"]["content"].as_str() {
                             if !token.is_empty() {
                                 full_reply.push_str(token);
+                                crate::metrics::AI_TUTOR_TOKENS_EMITTED_TOTAL.inc(); // Issue #322 A3
                                 let payload = serde_json::json!({"token": token});
                                 let _ = tx
                                     .send(Ok(Event::default()

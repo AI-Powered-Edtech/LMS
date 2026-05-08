@@ -7,6 +7,7 @@ mod cron;
 mod data_plane;
 mod extractors;
 mod health;
+mod metrics;
 mod ai_tutor_real;
 mod embeddings_handler;
 mod lti_handlers;
@@ -30,6 +31,7 @@ mod tenant_admin;
 
 use dotenvy::dotenv;
 use health::{health_handler, ready_handler};
+use metrics::metrics_handler;
 use realtime::{handler::ws_handler, pg_notify::start_pg_listener, WsHub};
 use sqlx::postgres::PgPoolOptions;
 use state::{AppState, ShadowRuntimeConfig, SmtpConfig};
@@ -264,10 +266,15 @@ async fn main() -> anyhow::Result<()> {
 
     // ── Service registrations ─────────────────────────────────────────────────
 
+    // Eagerly init Prometheus metric statics so they are visible at /metrics
+    // even before the first AI tutor request (Issue #322 A3).
+    metrics::init();
+
     let health_service = ServiceProcess::new("system")
         .prefix("/api/v1")
         .endpoint(Method::GET, "/health", get(health_handler))
         .endpoint(Method::GET, "/ready", get(ready_handler))
+        .endpoint(Method::GET, "/metrics", get(metrics_handler))
         .state(app_state.clone());
 
     let auth_service = ServiceProcess::new("auth")
