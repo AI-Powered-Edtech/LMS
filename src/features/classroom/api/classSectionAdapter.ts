@@ -252,3 +252,253 @@ export function assertSourceExhaustive(value: never): never {
 		`Unhandled ClassSection.source variant: ${String(value)}`,
 	);
 }
+
+// ---------------------------------------------------------------------------
+// Student-side helpers (Issue #325 F2 closure)
+// ---------------------------------------------------------------------------
+
+export interface StudentClassSection {
+  enrollmentId: string
+  classId: string
+  className: string
+  source: "rombel" | "classes"
+}
+
+/**
+ * Class-sections a student belongs to. Dual-source dispatch:
+ *   - rombel_members (active rows: left_at IS NULL) -> source="rombel"
+ *   - enrollments    (status="ACTIVE")              -> source="classes"
+ *
+ * Both sides are queried when the rombel adapter is enabled and merged.
+ * Errors on either side are logged and skipped so partial data still renders
+ * (matches the listClassSections best-effort contract).
+ *
+ * The returned `enrollmentId` is the source-table row id (rombel_members.id
+ * for "rombel", enrollments.id for "classes"). Do NOT cross-match
+ * enrollmentId to attendance_records across sources -- use
+ * getStudentAttendance instead, which dispatches per source.
+ */
+export async function getStudentClassSections(
+  studentId: string,
+  tenantId: string,
+): Promise<StudentClassSection[]> {
+  const out: StudentClassSection[] = []
+
+  if (isRombelAdapterEnabled()) {
+    try {
+      const { data: members, error } = await db
+        .from("rombel_members")
+        .select("id, rombel_id")
+        .eq("student_id", studentId)
+        .eq("tenant_id", tenantId)
+        .is("left_at", null)
+      if (error) throw error
+      const rows = (members ?? []) as Array<{ id: string; rombel_id: string }>
+      const rombelIds = Array.from(
+        new Set(rows.map((r) => r.rombel_id).filter(Boolean)),
+      )
+      if (rombelIds.length > 0) {
+        const { data: rombelRows, error: rombelErr } = await db
+          .from("rombel")
+          .select("id, name, code")
+          .eq("tenant_id", tenantId)
+          .in("id", rombelIds)
+        if (rombelErr) throw rombelErr
+        const nameById = new Map<string, string>()
+        for (const r of (rombelRows ?? []) as Array<{
+          id: string
+          name: string | null
+          code: string | null
+        }>) {
+          nameById.set(r.id, r.name || r.code || "Rombel")
+        }
+        for (const r of rows) {
+          out.push({
+            enrollmentId: r.id,
+            classId: r.rombel_id,
+            className: nameById.get(r.rombel_id) ?? "Rombel",
+            source: "rombel",
+          })
+        }
+      }
+    } catch (err) {
+      logger.warn(
+        "[ClassSectionAdapter] rombel student-sections fetch failed; falling back to enrollments",
+        err,
+      )
+    }
+  }
+
+  try {
+    const { data: enrollmentsRaw, error } = await db
+      .from("enrollments")
+      .select("id, class_id")
+      .eq("student_id", studentId)
+      .eq("tenant_id", tenantId)
+      .eq("status", "ACTIVE")
+    if (error) throw error
+    const rows = (enrollmentsRaw ?? []) as Array<{
+      id: string
+      class_id: string
+    }>
+    const classIds = Array.from(
+      new Set(rows.map((r) => r.class_id).filter(Boolean)),
+    )
+    if (classIds.length > 0) {
+      const { data: classesRaw, error: classesErr } = await db
+        .from("classes")
+        .select("id, name")
+        .eq("tenant_id", tenantId)
+        .in("id", classIds)
+      if (classesErr) throw classesErr
+      const nameById = new Map<string, string>()
+      for (const c of (classesRaw ?? []) as Array<{
+        id: string
+        name: string | null
+      }>) {
+        nameById.set(c.id, c.name ?? "")
+      }
+      for (const r of rows) {
+        out.push({
+          enrollmentId: r.id,
+          classId: r.class_id,
+          className: nameById.get(r.class_id) ?? "Kelas",
+          source: "classes",
+        })
+      }
+    }
+  } catch (err) {
+    logger.warn(
+      "[ClassSectionAdapter] enrollments student-sections fetch failed",
+      err,
+    )
+  }
+
+  return out
+}
+
+/**
+ * Normalized attendance record across both sources (Issue #325 F2 closure).
+ * Status normalization: rombel_attendance uses "alpa", attendance_records
+ * legacy and FE config use "alpha" -- we standardize on "alpha".
+ */
+export interface StudentAttendanceRecord {
+  id: string
+  date: string
+  status: "hadir" | "sakit" | "izin" | "alpha"
+  className: string
+  source: "rombel" | "classes"
+}
+
+const STUDENT_ATTENDANCE_STATUS_ALIASES: Record<
+  string,
+  StudentAttendanceRecord["status"]
+> = {
+  hadir: "hadir",
+  sakit: "sakit",
+  izin: "izin",
+  alpa: "alpha",
+  alpha: "alpha",
+}
+
+function normalizeStudentAttendanceStatus(
+  raw: string | null | undefined,
+): StudentAttendanceRecord["status"] | null {
+  if (!raw) return null
+  return STUDENT_ATTENDANCE_STATUS_ALIASES[raw.toLowerCase()] ?? null
+}
+
+/**
+ * Student-side attendance roll-up. Reads BOTH:
+ *   - rombel_attendance (per-student per-day, primary "absen pagi" path)
+ *   - attendance_records (legacy per-class scan, via enrollments)
+ *
+ * Merges, normalizes status, sorts by date DESC, and caps at `limit`.
+ * Both sides are tenant-scoped for defense-in-depth (RLS is primary guard).
+ * Failures on one side are logged and skipped so the other side still renders.
+ */
+export async function getStudentAttendance(
+  studentId: string,
+  tenantId: string,
+  limit = 60,
+): Promise<StudentAttendanceRecord[]> {
+  const out: StudentAttendanceRecord[] = []
+
+  const sections = await getStudentClassSections(studentId, tenantId)
+  const rombelNameById = new Map<string, string>()
+  const enrollmentIdToClassName = new Map<string, string>()
+  const enrollmentIds: string[] = []
+  for (const s of sections) {
+    if (s.source === "rombel") {
+      rombelNameById.set(s.classId, s.className)
+    } else {
+      enrollmentIdToClassName.set(s.enrollmentId, s.className)
+      enrollmentIds.push(s.enrollmentId)
+    }
+  }
+
+  if (isRombelAdapterEnabled()) {
+    try {
+      const { data, error } = await db
+        .from("rombel_attendance")
+        .select("id, attendance_date, status, rombel_id")
+        .eq("student_id", studentId)
+        .eq("tenant_id", tenantId)
+        .order("attendance_date", { ascending: false })
+        .limit(limit)
+      if (error) throw error
+      for (const r of (data ?? []) as Array<{
+        id: string
+        attendance_date: string
+        status: string
+        rombel_id: string
+      }>) {
+        const status = normalizeStudentAttendanceStatus(r.status)
+        if (!status) continue
+        out.push({
+          id: r.id,
+          date: r.attendance_date,
+          status,
+          className: rombelNameById.get(r.rombel_id) ?? "Rombel",
+          source: "rombel",
+        })
+      }
+    } catch (err) {
+      logger.warn("[ClassSectionAdapter] rombel_attendance fetch failed", err)
+    }
+  }
+
+  if (enrollmentIds.length > 0) {
+    try {
+      const { data, error } = await db
+        .from("attendance_records")
+        .select("id, date, status, enrollment_id")
+        .eq("tenant_id", tenantId)
+        .in("enrollment_id", enrollmentIds)
+        .order("date", { ascending: false })
+        .limit(limit)
+      if (error) throw error
+      for (const r of (data ?? []) as Array<{
+        id: string
+        date: string
+        status: string
+        enrollment_id: string
+      }>) {
+        const status = normalizeStudentAttendanceStatus(r.status)
+        if (!status) continue
+        out.push({
+          id: r.id,
+          date: r.date,
+          status,
+          className: enrollmentIdToClassName.get(r.enrollment_id) ?? "Kelas",
+          source: "classes",
+        })
+      }
+    } catch (err) {
+      logger.warn("[ClassSectionAdapter] attendance_records fetch failed", err)
+    }
+  }
+
+  out.sort((a, b) => (a.date < b.date ? 1 : a.date > b.date ? -1 : 0))
+  return out.slice(0, limit)
+}

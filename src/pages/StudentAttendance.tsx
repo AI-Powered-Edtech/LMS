@@ -10,9 +10,12 @@ import { useMemo } from "react";
 
 import { EmptyState } from "@/components/ui";
 import { useAuth } from "@/contexts/AuthContext";
+import {
+  getStudentAttendance,
+  type StudentAttendanceRecord,
+} from "@/features/classroom/api/classSectionAdapter";
 import { ProgressSkeleton } from "@/features/progress/components/ProgressSkeleton";
 import { usePageTitle } from "@/hooks/usePageTitle";
-import { db } from "@/services/db";
 import { formatDate } from "@/shared/utils/format-id";
 
 const STATUS_CONFIG = {
@@ -50,88 +53,16 @@ export function StudentAttendance() {
   usePageTitle("Kehadiran Siswa");
   const { user, tenantId } = useAuth();
 
-  // Query attendance records via enrollment (which links student → class).
-  // attendance_records.enrollment_id → enrollments.id → enrollments.student_id = user.id
-  const { data: records = [], isLoading } = useQuery({
-    queryKey: ["student-attendance", user?.id, tenantId],
-    queryFn: async () => {
-      // 1) Fetch the student's active enrollments (no nested relational select —
-      //    the VIL generic data API does not support Supabase-style nested joins).
-      const { data: enrollmentsRaw, error: enrollError } = await db
-        .from("enrollments")
-        .select("id, class_id")
-        .eq("tenant_id", tenantId!)
-        .eq("student_id", user!.id)
-        .eq("status", "ACTIVE");
-
-      if (enrollError) throw enrollError;
-      const enrollmentsList = (enrollmentsRaw ?? []) as Array<{
-        id: string;
-        class_id: string;
-      }>;
-      if (enrollmentsList.length === 0) return [];
-
-      const enrollmentIds = enrollmentsList.map((e) => e.id);
-      const classIds = Array.from(
-        new Set(enrollmentsList.map((e) => e.class_id).filter(Boolean)),
-      );
-
-      // 2) Fetch class names in a separate query and build a lookup map.
-      let classNameById = new Map<string, string>();
-      if (classIds.length > 0) {
-        const { data: classesRaw, error: classesError } = await db
-          .from("classes")
-          .select("id, name")
-          .eq("tenant_id", tenantId!)
-          .in("id", classIds);
-        if (classesError) throw classesError;
-        classNameById = new Map(
-          ((classesRaw ?? []) as Array<{ id: string; name: string }>).map(
-            (c) => [c.id, c.name],
-          ),
-        );
-      }
-
-      // Build enrollment-id → class-name map for record merging below.
-      const enrollments = enrollmentsList.map((e) => ({
-        id: e.id,
-        class_id: e.class_id,
-        classes: { name: classNameById.get(e.class_id) ?? "" },
-      }));
-
-      // Schema: attendance_records(id, enrollment_id, date, status, created_at, tenant_id).
-      // Historically there was a `scan_date` column; the current schema uses only `date`.
-      const { data, error } = await db
-        .from("attendance_records")
-        .select("id, date, status, enrollment_id")
-        .eq("tenant_id", tenantId!)
-        .in("enrollment_id", enrollmentIds)
-        .order("date", { ascending: false })
-        .limit(60);
-
-      if (error) throw error;
-
-      // Merge class name from the enrollment lookup
-      const enrollmentMap = new Map(
-        (
-          enrollments as unknown as Array<{
-            id: string;
-            class_id: string;
-            classes: { name: string } | null;
-          }>
-        ).map((enr) => [enr.id, enr.classes?.name ?? ""]),
-      );
-      return ((data ?? []) as Array<{ enrollment_id: string }>).map((r) => ({
-        ...r,
-        scan_date:
-          (r as { scan_date?: string | null }).scan_date ??
-          (r as { date?: string }).date,
-        class_id: null,
-        classes: { name: enrollmentMap.get(r.enrollment_id) ?? "" },
-      }));
+  // Student-side attendance roll-up. The classroom adapter merges
+  // rombel_attendance (per-student daily) with attendance_records (legacy
+  // per-class scan via enrollments) and normalizes status. See Issue #325.
+  const { data: records = [], isLoading } = useQuery<StudentAttendanceRecord[]>(
+    {
+      queryKey: ["student-attendance", user?.id, tenantId],
+      queryFn: () => getStudentAttendance(user!.id, tenantId!),
+      enabled: !!tenantId && !!user,
     },
-    enabled: !!tenantId && !!user,
-  });
+  );
 
   // Records are already filtered by student_id in the query above.
   // No name-based filtering — eliminates risk of leaking other students' data.
@@ -139,33 +70,18 @@ export function StudentAttendance() {
   // The new per-student schema provides only `status` per record; class-aggregate
   // fields have been removed from the type and mapped object to avoid confusion.
   const { myRecords, totalHadir, totalAlpha, totalSakit } = useMemo(() => {
-    const recordsList = (records || []) as unknown as Array<
-      Record<string, unknown> & {
-        id: string;
-        scan_date: string;
-        status: string;
-        classes?: { name: string } | { name: string }[];
-      }
-    >;
-
-    return recordsList.reduce(
+    const list = (records ?? []) as StudentAttendanceRecord[];
+    return list.reduce(
       (acc, r) => {
-        const status = r.status as string;
-        if (!status) return acc;
-
         acc.myRecords.push({
           id: r.id,
-          date: r.scan_date,
-          className:
-            (Array.isArray(r.classes) ? r.classes[0]?.name : r.classes?.name) ??
-            "Kelas",
-          status,
+          date: r.date,
+          className: r.className,
+          status: r.status,
         });
-
-        if (status === "hadir") acc.totalHadir++;
-        else if (status === "alpha") acc.totalAlpha++;
-        else if (status === "sakit") acc.totalSakit++;
-
+        if (r.status === "hadir") acc.totalHadir++;
+        else if (r.status === "alpha") acc.totalAlpha++;
+        else if (r.status === "sakit") acc.totalSakit++;
         return acc;
       },
       {
