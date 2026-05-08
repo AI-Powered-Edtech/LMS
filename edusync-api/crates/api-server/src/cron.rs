@@ -61,7 +61,7 @@ pub fn build_scheduler(db: PgPool) -> Scheduler {
     {
         let db = db.clone();
         sched.every(Duration::from_secs(30), "video-transcoding", move || {
-            let db = db.clone();
+            let _db = db.clone();
             async move {
                 // Transcoding worker akan di-handle di storage module
                 // Karena membutuhkan S3 client yang hanya ada di api-server

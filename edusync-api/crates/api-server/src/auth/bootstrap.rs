@@ -4,7 +4,7 @@ use axum::http::HeaderMap;
 use edusync_auth::{verify_access_token, AuthError};
 use serde::Serialize;
 use uuid::Uuid;
-use vil_server::prelude::{HandlerResult, ServiceCtx, VilError, VilResponse};
+use vil_server::prelude::{HandlerResult, ServiceCtx, VilResponse};
 
 use crate::{observability::request_id_from_headers, state::AppState};
 

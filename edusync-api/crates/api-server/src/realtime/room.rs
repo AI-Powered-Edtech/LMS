@@ -108,4 +108,3 @@ impl WsMessage {
 // Injected in main.rs via `.extension(Arc::new(WsHub::new()))` and accessed
 // in handlers via `svc.state::<Arc<WsHub>>()`.
 // ---------------------------------------------------------------------------
-pub use vil_server::prelude::WsHub as RoomManager;

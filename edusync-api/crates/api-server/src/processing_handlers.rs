@@ -16,7 +16,6 @@ use axum::{
     body::Bytes,
     extract::Path,
 };
-use std::sync::Arc;
 use uuid::Uuid;
 use vil_server::prelude::{HandlerResult, ServiceCtx, ShmSlice, VilError, VilResponse};
 

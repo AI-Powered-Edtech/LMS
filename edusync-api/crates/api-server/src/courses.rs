@@ -6,7 +6,6 @@ use edusync_middleware::errors::from_sqlx_error;
 use edusync_models::{course::Course, lesson::Lesson};
 use serde::{Deserialize, Serialize};
 use sqlx::{postgres::PgRow, QueryBuilder, Row};
-use std::sync::Arc;
 use uuid::Uuid;
 use vil_server::prelude::{
     HandlerResult, NoContent, ServiceCtx, ShmSlice, VilError, VilResponse,

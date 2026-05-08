@@ -23,10 +23,9 @@
 use axum::{
     extract::{Multipart, Path, Query},
     http::{header, StatusCode},
-    response::{IntoResponse, Response},
+    response::IntoResponse,
 };
 use serde::{Deserialize, Serialize};
-use std::sync::Arc;
 use std::time::Duration;
 use vil_server::prelude::*;
 

@@ -137,7 +137,7 @@ pub async fn ws_handler(
 
 async fn handle_socket(
     socket: WebSocket,
-    state: Arc<AppState>,
+    _state: Arc<AppState>,
     hub: Arc<WsHub>,
     token: Option<String>,
 ) {

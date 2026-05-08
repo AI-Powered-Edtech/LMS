@@ -181,3 +181,21 @@ export async function getClassSectionStudents(
   out.sort((a, b) => a.full_name.localeCompare(b.full_name))
   return out
 }
+
+/**
+ * Compile-time exhaustiveness check for `ClassSection['source']` consumers.
+ * Pass the value at the end of a switch/if-else chain; if a new source variant is
+ * added in the future, TypeScript will reject the call site until it handles it.
+ *
+ * @example
+ * switch (section.source) {
+ *   case 'rombel': return doRombel(section);
+ *   case 'classes': return doClasses(section);
+ *   default: assertSourceExhaustive(section.source);
+ * }
+ */
+export function assertSourceExhaustive(value: never): never {
+	throw new Error(
+		`Unhandled ClassSection.source variant: ${String(value)}`,
+	);
+}

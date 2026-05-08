@@ -6,7 +6,6 @@ use std::time::Duration;
 
 pub mod session;
 
-pub use session::SessionCache;
 
 #[derive(Clone)]
 pub struct CacheClient {

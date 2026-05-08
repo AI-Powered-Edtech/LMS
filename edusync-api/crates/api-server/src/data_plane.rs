@@ -6,7 +6,7 @@ use edusync_middleware::errors::{from_sqlx_error, VilError};
 use serde::{Deserialize, Serialize};
 use serde_json::{json, Map, Value};
 use sqlx::{postgres::PgRow, PgPool, Postgres, QueryBuilder, Row, Transaction};
-use std::{collections::BTreeMap, sync::Arc};
+use std::collections::BTreeMap;
 use vil_server::prelude::{HandlerResult, ServiceCtx, ShmSlice, VilResponse};
 
 use crate::{

@@ -20,7 +20,6 @@ use axum::{
     response::IntoResponse,
 };
 use serde::{Deserialize, Serialize};
-use std::sync::Arc;
 use vil_server::prelude::{HandlerResult, ServiceCtx, ShmSlice, VilError, VilResponse};
 
 use crate::extractors::AuthedRequest;

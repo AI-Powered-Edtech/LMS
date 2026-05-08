@@ -2,16 +2,13 @@ use axum::{
     async_trait,
     extract::FromRequestParts,
     http::request::Parts,
-    Extension,
 };
 use edusync_auth::{AuthError, verify_access_token};
 use edusync_middleware::rbac::role_has_permission;
 use edusync_middleware::rbac_roles::{load_roles, merge_roles};
 use edusync_middleware::tenant::TenantContext;
 use vil_server::prelude::VilError;
-use std::sync::Arc;
 use uuid::Uuid;
-use crate::state::AppState;
 
 fn extract_tenant_context(
     parts: &Parts,

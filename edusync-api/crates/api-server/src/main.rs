@@ -36,7 +36,7 @@ use edusync_auth::init_rsa_keys;
 use base64::Engine;
 use std::sync::Arc;
 use vil_server::prelude::{delete, get, patch, post, put, Method, ServiceProcess, VilApp};
-use anyhow::{bail, Context};
+use anyhow::Context;
 
 use ai_handlers::{
     generate_content_handler, generate_quiz_handler, grade_essay_handler, tutor_chat_handler,

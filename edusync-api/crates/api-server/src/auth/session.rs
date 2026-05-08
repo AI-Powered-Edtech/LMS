@@ -15,13 +15,13 @@ pub struct SessionInfo {
 }
 
 pub async fn list_sessions_handler(
-    svc: ServiceCtx,
+    _svc: ServiceCtx,
 ) -> HandlerResult<VilResponse<Vec<SessionInfo>>> {
     Ok(VilResponse::ok(vec![]))
 }
 
 pub async fn revoke_session_handler(
-    svc: ServiceCtx,
+    _svc: ServiceCtx,
     body: ShmSlice,
 ) -> HandlerResult<VilResponse<bool>> {
     let _body: RevokeSessionRequest = body.json().map_err(|e| VilError::bad_request(e.to_string()))?;

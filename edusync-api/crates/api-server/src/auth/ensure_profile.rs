@@ -2,7 +2,7 @@ use crate::extractors::IntoVilError;
 use std::sync::Arc;
 use axum::http::HeaderMap;
 use edusync_auth::{AuthError, verify_access_token};
-use vil_server::prelude::{ServiceCtx, VilResponse, VilError, HandlerResult};
+use vil_server::prelude::{ServiceCtx, VilResponse, HandlerResult};
 use crate::state::AppState;
 use uuid::Uuid;
 

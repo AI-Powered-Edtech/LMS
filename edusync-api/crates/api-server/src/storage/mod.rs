@@ -9,4 +9,3 @@ pub mod handlers;
 pub mod transcode_handlers;
 pub mod url;
 
-pub use vil_conn_s3::S3Connector;

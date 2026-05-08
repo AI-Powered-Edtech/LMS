@@ -15,7 +15,6 @@
 use edusync_middleware::errors::from_sqlx_error;
 use serde::{Deserialize, Serialize};
 use sqlx::Row;
-use std::sync::Arc;
 use uuid::Uuid;
 use vil_server::prelude::{HandlerResult, NoContent, ServiceCtx, ShmSlice, VilError, VilResponse};
 

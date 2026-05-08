@@ -13,7 +13,7 @@ use axum::response::IntoResponse;
 use serde::Deserialize;
 use std::sync::Arc;
 use uuid::Uuid;
-use vil_server::prelude::{HandlerResult, ServiceCtx, ShmSlice, VilError, VilResponse};
+use vil_server::prelude::{HandlerResult, ServiceCtx, ShmSlice, VilError};
 
 use crate::extractors::AuthedRequest;
 use crate::state::AppState;
