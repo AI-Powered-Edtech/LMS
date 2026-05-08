@@ -12,6 +12,13 @@ export default defineConfig({
       'src/**/*.{test,spec}.{js,mjs,cjs,ts,mts,cts,jsx,tsx}',
       'scripts/**/*.{test,spec}.{js,mjs,cjs,ts,mts,cts}',
     ],
+    coverage: {
+      reporter: ['text', 'json', 'json-summary', 'html'],
+      include: ['src/**/*.ts', 'src/**/*.tsx'],
+      exclude: [
+        'src/main.tsx',
+      ]
+    }
   },
   resolve: {
     alias: {
