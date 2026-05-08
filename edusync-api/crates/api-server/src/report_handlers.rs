@@ -1,102 +1,80 @@
-/// API handlers untuk report exports
-///
-/// Endpoints:
-/// - POST /api/v1/reports/export - Membuat export job baru
-/// - GET /api/v1/reports/export/:job_id - Cek status export
-use axum::{
-    extract::{Path, State},
-    Json,
-};
-use serde::Deserialize;
-use sqlx::PgPool;
-use std::sync::Arc;
+//! Report-export HTTP handlers — VIL-style migration (post-audit §11, 2026-05-08).
+//!
+//! Sebelum migrasi: handler axum-style (State<Arc<AppState>>, Json<T>, Path<Uuid>)
+//! tidak compatible dengan VIL .endpoint() — file orphan dan tidak ter-compile.
+//!
+//! Setelah migrasi: signature VIL (AuthedRequest, ServiceCtx, ShmSlice, Path)
+//! match «.endpoint(Method::X, path, post(handler))» di main.rs.
+//!
+//! Endpoints:
+//! - POST /api/v1/reports/export   → export_report_handler
+//! - GET  /api/v1/reports/export/:id → get_export_status_handler
+
+use axum::extract::Path;
 use uuid::Uuid;
+use vil_server::prelude::{HandlerResult, ServiceCtx, ShmSlice, VilError, VilResponse};
 
-use crate::{extractors::AuthedRequest, state::AppState, storage::client::create_s3_client};
-
-#[derive(Debug, Deserialize)]
-pub struct ExportReportQuery {
-    pub course_id: Option<Uuid>,
-    pub start_date: Option<String>,
-    pub end_date: Option<String>,
-}
+use crate::{extractors::AuthedRequest, state::AppState};
 
 /// POST /api/v1/reports/export
-/// Membuat export job baru untuk laporan
+///
+/// Membuat export job baru. Job akan diproses oleh background worker (cron).
 pub async fn export_report_handler(
-    AuthedRequest {
-        user_id,
-        tenant_id,
-        db,
-        ..
-    }: AuthedRequest,
-    State(state): State<Arc<AppState>>,
-    Json(req): Json<edusync_services::reports::ExportReportRequest>,
-) -> Result<Json<serde_json::Value>, (axum::http::StatusCode, Json<serde_json::Value>)> {
+    AuthedRequest(ctx): AuthedRequest,
+    svc: ServiceCtx,
+    body: ShmSlice,
+) -> HandlerResult<VilResponse<serde_json::Value>> {
+    let req: edusync_services::reports::ExportReportRequest = body
+        .json()
+        .map_err(|e| VilError::bad_request(format!("invalid request: {e}")))?;
+
+    let state = svc.state::<AppState>()?.clone();
+    let db = state.db.clone();
+    let user_id = ctx.user_id;
+    let tenant_id = ctx.tenant_id;
+
     match edusync_services::reports::create_export_job(&db, user_id, tenant_id, req).await {
         Ok(response) => {
-            tracing::info!(job_id = %response.data.job_id, user_id = %user_id, "Export job created via API");
-
-            // Job akan diproses oleh background worker (cron job)
-            // Tidak spawn task di sini untuk menghindari race condition
-
-            Ok(Json(serde_json::json!({
+            tracing::info!(
+                job_id = %response.data.job_id,
+                user_id = %user_id,
+                "Export job created via API"
+            );
+            Ok(VilResponse::ok(serde_json::json!({
                 "success": true,
                 "data": response.data
             })))
         }
         Err(e) => {
             tracing::error!(error = %e, "Failed to create export job");
-            Err((
-                axum::http::StatusCode::BAD_REQUEST,
-                Json(serde_json::json!({
-                    "success": false,
-                    "error": e.to_string()
-                })),
-            ))
+            Err(VilError::bad_request(e.to_string()))
         }
     }
 }
 
-/// GET /api/v1/reports/export/:job_id
-/// Cek status export job
+/// GET /api/v1/reports/export/:id
+///
+/// Cek status export job. Returns 404 kalau job_id tidak ditemukan.
 pub async fn get_export_status_handler(
-    State(db): State<PgPool>,
+    AuthedRequest(_ctx): AuthedRequest,
+    svc: ServiceCtx,
     Path(job_id): Path<Uuid>,
-) -> Result<Json<serde_json::Value>, (axum::http::StatusCode, Json<serde_json::Value>)> {
+) -> HandlerResult<VilResponse<serde_json::Value>> {
+    let state = svc.state::<AppState>()?.clone();
+    let db = state.db.clone();
+
     match edusync_services::reports::get_export_status(&db, job_id).await {
-        Ok(response) => Ok(Json(serde_json::json!({
+        Ok(response) => Ok(VilResponse::ok(serde_json::json!({
             "success": true,
             "data": response.data
         }))),
         Err(e) => {
-            let status_code = if e.to_string().contains("not found") {
-                axum::http::StatusCode::NOT_FOUND
+            let msg = e.to_string();
+            if msg.contains("not found") {
+                Err(VilError::not_found(msg))
             } else {
-                axum::http::StatusCode::INTERNAL_SERVER_ERROR
-            };
-
-            Err((
-                status_code,
-                Json(serde_json::json!({
-                    "success": false,
-                    "error": e.to_string()
-                })),
-            ))
-        }
-    }
-}
-
-/// Handler untuk background worker
-pub async fn run_export_worker_handler(db: &PgPool, state: &Arc<AppState>) {
-    match create_s3_client(state).await {
-        Some(s3_client) => {
-            // Export worker akan dipanggil dari cron job
-            // Implementation ada di services layer
-            tracing::debug!("cron:export_worker tick (handled by services)");
-        }
-        None => {
-            tracing::error!("cron:export_worker - failed to create S3 client");
+                Err(VilError::internal(msg))
+            }
         }
     }
 }

@@ -1,18 +1,16 @@
-/// API handlers untuk plagiarism checking
-///
-/// Endpoints:
-/// - POST /api/v1/ai/check-plagiarism - Cek plagiarism untuk submission
-/// - GET /api/v1/ai/plagiarism-report/:report_id - Ambil laporan plagiarism
-use axum::{
-    extract::{Path, State},
-    Json,
-};
-use serde::Deserialize;
-use sqlx::PgPool;
-use std::sync::Arc;
-use uuid::Uuid;
+//! Plagiarism-check HTTP handler — VIL-style migration (post-audit §11, 2026-05-08).
+//!
+//! Sebelum migrasi: handler axum-style tidak compatible dengan VIL — orphan file.
+//! Setelah migrasi: signature VIL match «.endpoint(...post(handler))» di main.rs.
+//!
+//! Endpoint:
+//! - POST /api/v1/plagiarism/check → check_plagiarism_handler
 
-use crate::extractors::AuthedRequest;
+use serde::Deserialize;
+use uuid::Uuid;
+use vil_server::prelude::{HandlerResult, ServiceCtx, ShmSlice, VilError, VilResponse};
+
+use crate::{extractors::AuthedRequest, state::AppState};
 
 #[derive(Debug, Deserialize)]
 pub struct CheckPlagiarismRequest {
@@ -21,18 +19,23 @@ pub struct CheckPlagiarismRequest {
     pub assignment_id: Uuid,
 }
 
-/// POST /api/v1/ai/check-plagiarism
-/// Cek plagiarism untuk submission siswa
+/// POST /api/v1/plagiarism/check
+///
+/// Cek similarity teks submisi siswa terhadap referensi internal.
 pub async fn check_plagiarism_handler(
-    AuthedRequest {
-        user_id,
-        tenant_id,
-        db,
-        ..
-    }: AuthedRequest,
-    State(_state): State<Arc<crate::state::AppState>>,
-    Json(req): Json<CheckPlagiarismRequest>,
-) -> Result<Json<serde_json::Value>, (axum::http::StatusCode, Json<serde_json::Value>)> {
+    AuthedRequest(ctx): AuthedRequest,
+    svc: ServiceCtx,
+    body: ShmSlice,
+) -> HandlerResult<VilResponse<serde_json::Value>> {
+    let req: CheckPlagiarismRequest = body
+        .json()
+        .map_err(|e| VilError::bad_request(format!("invalid request: {e}")))?;
+
+    let state = svc.state::<AppState>()?.clone();
+    let db = state.db.clone();
+    let user_id = ctx.user_id;
+    let tenant_id = ctx.tenant_id;
+
     let plagiarism_req = edusync_services::plagiarism::CheckPlagiarismRequest {
         submission_id: req.submission_id,
         content: req.content,
@@ -49,50 +52,14 @@ pub async fn check_plagiarism_handler(
                 status = %response.data.status,
                 "Plagiarism check completed"
             );
-
-            Ok(Json(serde_json::json!({
+            Ok(VilResponse::ok(serde_json::json!({
                 "success": true,
                 "data": response.data
             })))
         }
         Err(e) => {
             tracing::error!(error = %e, "Plagiarism check failed");
-            Err((
-                axum::http::StatusCode::BAD_REQUEST,
-                Json(serde_json::json!({
-                    "success": false,
-                    "error": e.to_string()
-                })),
-            ))
-        }
-    }
-}
-
-/// GET /api/v1/ai/plagiarism-report/:report_id
-/// Ambil laporan plagiarism
-pub async fn get_plagiarism_report_handler(
-    State(db): State<PgPool>,
-    Path(report_id): Path<Uuid>,
-) -> Result<Json<serde_json::Value>, (axum::http::StatusCode, Json<serde_json::Value>)> {
-    match edusync_services::plagiarism::get_plagiarism_report(&db, report_id).await {
-        Ok(response) => Ok(Json(serde_json::json!({
-            "success": true,
-            "data": response.data
-        }))),
-        Err(e) => {
-            let status_code = if e.to_string().contains("not found") {
-                axum::http::StatusCode::NOT_FOUND
-            } else {
-                axum::http::StatusCode::INTERNAL_SERVER_ERROR
-            };
-
-            Err((
-                status_code,
-                Json(serde_json::json!({
-                    "success": false,
-                    "error": e.to_string()
-                })),
-            ))
+            Err(VilError::bad_request(e.to_string()))
         }
     }
 }

@@ -16,6 +16,8 @@ mod rapor_pdf_handler;
 mod rapor_signature_handler;
 mod notification_handlers;
 mod report_real;
+mod report_handlers;
+mod plagiarism_handlers;
 mod observability;
 mod onboarding;
 mod processing_handlers;
@@ -94,10 +96,9 @@ use storage::handlers::{
 };
 use ai_tutor_real::ai_tutor_stream_handler;
 use report_real::{executive_report_handler, parent_report_handler};
-use stub_handlers::{
-    plagiarism_check_stub_handler, reports_export_create_stub_handler,
-    reports_export_status_stub_handler, scorm_runtime_stub_handler,
-};
+use report_handlers::{export_report_handler, get_export_status_handler};
+use plagiarism_handlers::check_plagiarism_handler;
+use stub_handlers::scorm_runtime_stub_handler;
 
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {
@@ -485,9 +486,9 @@ async fn main() -> anyhow::Result<()> {
         .prefix("/api/v1")
         .endpoint(Method::POST, "/pdf/executive-report", post(executive_report_handler))
         .endpoint(Method::POST, "/pdf/parent-report", post(parent_report_handler))
-        .endpoint(Method::POST, "/reports/export", post(reports_export_create_stub_handler))
-        .endpoint(Method::GET, "/reports/export/:id", get(reports_export_status_stub_handler))
-        .endpoint(Method::POST, "/plagiarism/check", post(plagiarism_check_stub_handler))
+        .endpoint(Method::POST, "/reports/export", post(export_report_handler))
+        .endpoint(Method::GET, "/reports/export/:id", get(get_export_status_handler))
+        .endpoint(Method::POST, "/plagiarism/check", post(check_plagiarism_handler))
         .endpoint(Method::POST, "/ai/tutor/stream", post(ai_tutor_stream_handler))
         .endpoint(Method::POST, "/ai/embeddings", post(embeddings_handler::embeddings_handler))
         .endpoint(Method::POST, "/scorm/runtime", post(scorm_runtime_stub_handler))
