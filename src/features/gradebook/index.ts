@@ -1,5 +1,3 @@
-import { FeatureFlagBanner } from "../../components/FeatureFlagBanner";
-
 /**
  * Gradebook Feature Module
  *
