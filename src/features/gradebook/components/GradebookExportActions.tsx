@@ -1,3 +1,5 @@
+import { FeatureFlagBanner } from "../../../components/FeatureFlagBanner";
+
 /* eslint-disable jsx-a11y/no-static-element-interactions, jsx-a11y/click-events-have-key-events */
 /**
  * Gradebook Export Actions Component
@@ -71,6 +73,7 @@ export function GradebookExportActions({
 
   return (
     <div className={cn('relative', className)}>
+      <FeatureFlagBanner feature="reports.export" />
       {/* Export Button */}
       <button
         onClick={() => setOpen(!open)}
