@@ -1,4 +1,5 @@
 import { db } from '@/services/db'
+import { getClassSectionStudentsByEntityId } from '@/features/classroom/api/classSectionAdapter'
 
 import type { AttendanceRecord, ClassOption, ClassStudent, UpsertAttendanceParams } from '../types'
 
@@ -20,48 +21,18 @@ export const attendanceService = {
     return (data ?? []) as ClassOption[]
   },
 
-  /** Fetch enrolled students for a class */
-  // FIXED: Added tenantId parameter to enforce tenant scoping on enrollments query
+  /** Fetch enrolled students for a class (or rombel; auto-detected via adapter). */
+  // Issue #325 F2: routes through classSectionAdapter for dual-source dispatch.
+  // Caller still passes the same classId (which can now be either a rombel.id
+  // or a legacy classes.id); adapter handles the lookup + tenant scoping.
   async fetchClassStudents(classId: string, tenantId: string): Promise<ClassStudent[]> {
-    // VIL generic data API does not support Supabase-style nested relational
-    // selects (`profiles!fk(full_name)`). Fetch enrollments first, then hydrate
-    // full names from `profiles` with a second query.
-    const { data: enrollmentsRaw, error } = await db
-      .from('enrollments')
-      .select('student_id')
-      .eq('class_id', classId)
-      // Scope enrollment query to tenant to prevent cross-tenant data access.
-      .eq('tenant_id', tenantId)
-      .eq('status', 'ACTIVE')
-
-    if (error) throw error
-
-    const enrollments = (enrollmentsRaw ?? []) as Array<{ student_id: string }>
-    const studentIds = Array.from(
-      new Set(enrollments.map((e) => e.student_id).filter(Boolean)),
-    )
-
-    let nameById = new Map<string, string>()
-    if (studentIds.length > 0) {
-      const { data: profilesRaw, error: profilesError } = await db
-        .from('profiles')
-        .select('id, full_name')
-        .in('id', studentIds)
-      if (profilesError) throw profilesError
-      nameById = new Map(
-        ((profilesRaw ?? []) as Array<{ id: string; full_name: string | null }>).map(
-          (p) => [p.id, p.full_name ?? 'Siswa'],
-        ),
-      )
-    }
-
-    const students: ClassStudent[] = enrollments.map((row) => ({
-      student_id: row.student_id,
-      full_name: nameById.get(row.student_id) ?? 'Siswa',
+    const sectionStudents = await getClassSectionStudentsByEntityId(classId, tenantId)
+    // Adapter returns ClassSectionStudent (student_id, full_name, email, sorted).
+    // ClassStudent is a narrower shape: drop email, preserve sort order.
+    return sectionStudents.map((s) => ({
+      student_id: s.student_id,
+      full_name: s.full_name,
     }))
-    // Sort alphabetically by full_name (was previously handled by the server).
-    students.sort((a, b) => a.full_name.localeCompare(b.full_name))
-    return students
   },
 
   /** Fetch attendance records for a class */
