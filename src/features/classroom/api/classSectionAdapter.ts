@@ -135,6 +135,7 @@ async function listClassSectionsLegacy(): Promise<ClassSection[]> {
  */
 export async function getClassSectionStudents(
   section: Pick<ClassSection, 'id' | 'source'>,
+  tenantId?: string,
 ): Promise<ClassSectionStudent[]> {
   const memberIds: string[] = []
 
@@ -149,11 +150,17 @@ export async function getClassSectionStudents(
       if (r.student_id) memberIds.push(r.student_id)
     }
   } else {
-    const { data, error } = await db
+    let q = db
       .from('enrollments')
       .select('student_id')
       .eq('class_id', section.id)
       .eq('status', 'ACTIVE')
+    if (tenantId) {
+      // Defense-in-depth tenant scoping when caller provides tenantId
+      // (preserves attendanceService.fetchClassStudents original guarantee).
+      q = q.eq('tenant_id', tenantId)
+    }
+    const { data, error } = await q
     if (error) throw error
     for (const r of (data ?? []) as Array<{ student_id: string }>) {
       if (r.student_id) memberIds.push(r.student_id)
@@ -180,6 +187,52 @@ export async function getClassSectionStudents(
 
   out.sort((a, b) => a.full_name.localeCompare(b.full_name))
   return out
+}
+
+/**
+ * Dual-source dispatch by raw entity id (Issue #325 F2).
+ *
+ * The caller does not always know whether `entityId` is a `rombel.id` or a
+ * legacy `classes.id`. This helper looks the id up in `rombel` first; if a
+ * row matches, it dispatches with `source='rombel'`. Otherwise it falls back
+ * to the legacy `source='classes'` path.
+ *
+ * Use this when migrating call sites that previously queried `enrollments`
+ * directly (e.g. attendanceService.fetchClassStudents) so the cutover stays
+ * consistent with the rombel rollout.
+ *
+ * Tenant scoping is enforced explicitly on the lookup and on the enrollments
+ * fallback for defense-in-depth (RLS is still the primary guard).
+ *
+ * Falls back silently to `source='classes'` on lookup error so the caller
+ * never breaks on transient failures.
+ */
+export async function getClassSectionStudentsByEntityId(
+  entityId: string,
+  tenantId: string,
+): Promise<ClassSectionStudent[]> {
+  let source: 'rombel' | 'classes' = 'classes'
+
+  if (isRombelAdapterEnabled()) {
+    try {
+      const { data, error } = await db
+        .from('rombel')
+        .select('id')
+        .eq('id', entityId)
+        .eq('tenant_id', tenantId)
+        .limit(1)
+      if (!error && Array.isArray(data) && data.length > 0) {
+        source = 'rombel'
+      }
+    } catch (err) {
+      logger.warn(
+        '[ClassSectionAdapter] rombel lookup failed; defaulting to classes source',
+        err,
+      )
+    }
+  }
+
+  return getClassSectionStudents({ id: entityId, source }, tenantId)
 }
 
 /**
