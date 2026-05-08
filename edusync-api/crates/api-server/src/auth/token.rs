@@ -13,7 +13,7 @@ mod tests {
     use sqlx::postgres::PgPoolOptions;
     use uuid::Uuid;
 
-    use crate::state::{cache::CacheClient, AppState, ShadowRuntimeConfig, SmtpConfig};
+    use crate::state::{AppState, ShadowRuntimeConfig, SmtpConfig};
     use edusync_auth::jwt::{init_rsa_keys, issue_refresh_token};
     use edusync_middleware::brute_force::BruteForceTracker;
 

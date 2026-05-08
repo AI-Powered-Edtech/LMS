@@ -11,8 +11,8 @@ import {
   useCreateAcademicYear,
   useSetActiveAcademicYear,
 } from '@/features/academic-years/hooks/useAcademicYears'
-import { useToast } from '@/hooks/useToast'
 import { usePageTitle } from '@/hooks/usePageTitle'
+import { useToast } from '@/hooks/useToast'
 
 const STATUS_LABEL: Record<string, string> = {
   planned: 'Direncanakan',
