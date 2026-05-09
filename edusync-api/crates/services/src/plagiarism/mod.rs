@@ -31,7 +31,7 @@ pub struct PlagiarismReport {
 
 pub async fn check_plagiarism(
     db: &PgPool,
-    _user_id: Uuid,
+    user_id: Uuid,
     tenant_id: Uuid,
     req: CheckPlagiarismRequest,
 ) -> Result<VilResponse<PlagiarismReport>, VilError> {
@@ -113,16 +113,24 @@ pub async fn check_plagiarism(
 
     let report_id = Uuid::new_v4();
 
-    // Save report
+    // Save check history. FE PlagiarismDashboard reads via Supabase RLS from
+    // this same table; schema in migration 077_plagiarism_checks.sql.
+    let similarity_score: i32 = (overall_similarity * 100.0).round() as i32;
+    let report_data = serde_json::json!({
+        "matches": &matches,
+    });
     sqlx::query(
-        r#"INSERT INTO public.plagiarism_reports
-              (id, submission_id, overall_similarity, status, created_at)
-           VALUES ($1, $2, $3, $4, NOW())"#,
+        r#"INSERT INTO public.plagiarism_checks
+              (id, submission_id, provider, status, similarity_score,
+               report_data, checked_by, tenant_id, created_at, updated_at)
+           VALUES ($1, $2, 'internal', 'completed', $3, $4, $5, $6, NOW(), NOW())"#,
     )
     .bind(report_id)
     .bind(req.submission_id)
-    .bind(overall_similarity)
-    .bind(status)
+    .bind(similarity_score)
+    .bind(report_data)
+    .bind(user_id)
+    .bind(tenant_id)
     .execute(db)
     .await
     .ok();
@@ -162,7 +170,7 @@ pub async fn get_plagiarism_report(
     report_id: Uuid,
 ) -> Result<VilResponse<PlagiarismReport>, VilError> {
     let report = sqlx::query(
-        r#"SELECT overall_similarity, status FROM public.plagiarism_reports WHERE id = $1"#,
+        r#"SELECT similarity_score, status FROM public.plagiarism_checks WHERE id = $1"#,
     )
     .bind(report_id)
     .fetch_optional(db)
@@ -170,13 +178,13 @@ pub async fn get_plagiarism_report(
     .map_err(|e| VilError::internal(format!("DB error: {}", e)))?
     .ok_or_else(|| VilError::not_found("Report not found"))?;
 
-    let overall_similarity: f64 = report.get("overall_similarity");
+    let similarity_score: Option<i32> = report.try_get("similarity_score").ok();
     let status: String = report.get("status");
 
     Ok(VilResponse::ok(PlagiarismReport {
         report_id,
-        overall_similarity,
-        matches: vec![], // TODO: fetch from DB
+        overall_similarity: similarity_score.map(|s| f64::from(s) / 100.0).unwrap_or(0.0),
+        matches: vec![], // TODO: hydrate from report_data JSONB
         status,
     }))
 }
