@@ -735,5 +735,58 @@
       "title": "Select Assignment",
       "description": "Select an assignment from the list on the left to view details, attempts, or grading status."
     }
+  },
+  "certificatesPage": {
+    "pageTitle": "Certificates",
+    "studentFallback": "Student",
+    "issuerName": "EduSync Academy",
+    "fileSuffix": "Certificate",
+    "shareText": "I just earned a certificate for \"{course}\" on EduSync! View my portfolio.",
+    "toasts": {
+      "downloadError": "Failed to download certificate. Please try again."
+    },
+    "teacher": {
+      "title": "Certificate Management",
+      "subtitle": "Design templates and issue certificates for your students.",
+      "settings": "Settings",
+      "bulkTitle": "Bulk Issuance",
+      "bulkDescription": "Bulk issuance is under development — it will let you automatically issue certificates to all students who meet the passing criteria or complete modules in a class.",
+      "templateTitle": "Certificate Templates",
+      "templateDescription": "Manage the certificate designs issued for your courses",
+      "loadingTenant": "Loading tenant data..."
+    },
+    "error": {
+      "title": "Failed to Load Certificates",
+      "description": "An error occurred while loading your certificate list. Please refresh the page or try again later."
+    },
+    "student": {
+      "title": "My Certificates",
+      "subtitle": "A digital portfolio that validates your academic achievements.",
+      "latest": "Latest Certificate",
+      "issuedBy": "Issued by",
+      "issuedOn": "Issued on",
+      "courseCompleted": "Course Completed",
+      "officialId": "Official Certificate ID",
+      "qrHint": "Scan the QR code to verify authenticity on EduSync.",
+      "allCertificates": "All Certificates",
+      "certificates": "Certificates",
+      "searchPlaceholder": "Search certificates...",
+      "courseCompletion": "Course Completion"
+    },
+    "actions": {
+      "downloadPdf": "Download PDF",
+      "downloadPng": "Download PNG",
+      "downloadPngAria": "Download certificate as PNG",
+      "share": "Share",
+      "shareCertificate": "Share certificate"
+    },
+    "empty": {
+      "title": "No certificates yet",
+      "description": "Complete courses to earn completion certificates. Certificates will be issued automatically when all modules are finished."
+    },
+    "searchEmpty": {
+      "title": "Not found",
+      "description": "The certificate you searched for was not found."
+    }
   }
 }

@@ -735,5 +735,58 @@
       "title": "Pilih Tugas",
       "description": "Pilih tugas dari daftar di sebelah kiri untuk melihat detail, attempt, atau status grading."
     }
+  },
+  "certificatesPage": {
+    "pageTitle": "Sertifikat",
+    "studentFallback": "Siswa",
+    "issuerName": "EduSync Academy",
+    "fileSuffix": "Sertifikat",
+    "shareText": "Saya baru saja mendapatkan sertifikat \"{course}\" di EduSync! Lihat portofolio saya.",
+    "toasts": {
+      "downloadError": "Gagal mengunduh sertifikat. Silakan coba lagi."
+    },
+    "teacher": {
+      "title": "Manajemen Sertifikat",
+      "subtitle": "Desain template dan terbitkan sertifikat untuk siswa Anda.",
+      "settings": "Pengaturan",
+      "bulkTitle": "Penerbitan Massal (Bulk Issuance)",
+      "bulkDescription": "Fitur penerbitan massal dalam pengembangan — akan memungkinkan Anda menerbitkan sertifikat secara otomatis untuk seluruh siswa yang telah memenuhi KKM atau menyelesaikan modul dalam satu kelas.",
+      "templateTitle": "Template Sertifikat",
+      "templateDescription": "Kelola tampilan sertifikat yang diterbitkan untuk kursus Anda",
+      "loadingTenant": "Memuat data tenant..."
+    },
+    "error": {
+      "title": "Gagal Memuat Sertifikat",
+      "description": "Terjadi kesalahan saat memuat daftar sertifikat Anda. Silakan muat ulang halaman atau coba lagi nanti."
+    },
+    "student": {
+      "title": "Sertifikat Saya",
+      "subtitle": "Portofolio digital yang memvalidasi pencapaian akademik Anda.",
+      "latest": "Sertifikat Terbaru",
+      "issuedBy": "Diterbitkan oleh",
+      "issuedOn": "Diberikan pada",
+      "courseCompleted": "Kursus Selesai",
+      "officialId": "ID Sertifikat Resmi",
+      "qrHint": "Pindai QR untuk verifikasi keaslian di platform EduSync.",
+      "allCertificates": "Semua Sertifikat",
+      "certificates": "Sertifikat",
+      "searchPlaceholder": "Cari sertifikat...",
+      "courseCompletion": "Penyelesaian Kursus"
+    },
+    "actions": {
+      "downloadPdf": "Unduh PDF",
+      "downloadPng": "Unduh PNG",
+      "downloadPngAria": "Unduh sertifikat format PNG",
+      "share": "Bagikan",
+      "shareCertificate": "Bagikan sertifikat"
+    },
+    "empty": {
+      "title": "Belum ada sertifikat",
+      "description": "Selesaikan kursus untuk mendapatkan sertifikat penyelesaian. Sertifikat akan terbit otomatis saat semua modul selesai."
+    },
+    "searchEmpty": {
+      "title": "Tidak ditemukan",
+      "description": "Sertifikat yang Anda cari tidak ditemukan."
+    }
   }
 }
