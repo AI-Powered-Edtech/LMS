@@ -835,5 +835,39 @@
       "page": "Page {page}",
       "next": "Next"
     }
+  },
+  "notificationsCenter": {
+    "title": "Notification Center",
+    "unreadCount": "__COUNT__ unread",
+    "allRead": "All caught up",
+    "loading": "Loading notifications",
+    "aria": {
+      "panel": "Notification center",
+      "tabs": "Notification center tabs"
+    },
+    "status": {
+      "read": "read",
+      "unread": "unread",
+      "clickToOpen": "click to open"
+    },
+    "actions": {
+      "markAll": "Mark All",
+      "markAllReadAria": "Mark all __COUNT__ notifications as read",
+      "markItemReadAria": "Mark \"{title}\" as read"
+    },
+    "tabs": {
+      "notifications": "Notifications",
+      "settings": "Settings"
+    },
+    "dateGroups": {
+      "today": "Today",
+      "yesterday": "Yesterday",
+      "lastWeek": "Last Week",
+      "older": "Older"
+    },
+    "empty": {
+      "title": "No new notifications",
+      "description": "All notifications will appear here"
+    }
   }
 }

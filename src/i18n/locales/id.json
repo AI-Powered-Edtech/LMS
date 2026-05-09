@@ -835,5 +835,39 @@
       "page": "Halaman {page}",
       "next": "Berikutnya"
     }
+  },
+  "notificationsCenter": {
+    "title": "Pusat Notifikasi",
+    "unreadCount": "__COUNT__ belum dibaca",
+    "allRead": "Semua sudah dibaca",
+    "loading": "Memuat notifikasi",
+    "aria": {
+      "panel": "Pusat notifikasi",
+      "tabs": "Tab pusat notifikasi"
+    },
+    "status": {
+      "read": "sudah dibaca",
+      "unread": "belum dibaca",
+      "clickToOpen": "klik untuk buka"
+    },
+    "actions": {
+      "markAll": "Tandai Semua",
+      "markAllReadAria": "Tandai semua __COUNT__ notifikasi sebagai sudah dibaca",
+      "markItemReadAria": "Tandai \"{title}\" sudah dibaca"
+    },
+    "tabs": {
+      "notifications": "Notifikasi",
+      "settings": "Pengaturan"
+    },
+    "dateGroups": {
+      "today": "Hari Ini",
+      "yesterday": "Kemarin",
+      "lastWeek": "Minggu Lalu",
+      "older": "Lebih Lama"
+    },
+    "empty": {
+      "title": "Tidak ada notifikasi baru",
+      "description": "Semua notifikasi akan muncul di sini"
+    }
   }
 }
