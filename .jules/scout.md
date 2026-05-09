@@ -1,0 +1,3 @@
+## 2024-05-09 - Scope Containment for CI Fixes
+**Learning:** Fixing global CI issues (like `validate-docs` failing on `ENVIRONMENT.md`, missing `MIGRATIONS.md` rows, or global `eslint` import-sort issues across the whole codebase) violates Scout's strict constraint of touching "Max 1 test file per run". Running `pnpm lint --fix` without a file argument altered dozens of unrelated files.
+**Action:** When CI fails due to issues outside the current scope (e.g. documentation or global linting problems), DO NOT attempt to fix them unless instructed. Always pass specific file paths to tools like `eslint --fix src/utils/__tests__/clientCompute.test.ts`. If global workflows fail due to pre-existing conditions not caused by the new test file, leave them alone.
