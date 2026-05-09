@@ -14,8 +14,8 @@ import {
   Sun,
 } from "lucide-react";
 import { useCallback, useState } from "react";
-import { useTranslation } from "react-i18next";
 import { type Resolver, useForm } from "react-hook-form";
+import { useTranslation } from "react-i18next";
 
 import { OptimizedImage } from "@/components/ui";
 import { OfflineFormNotice } from "@/components/ui/OfflineFormNotice";

@@ -1,5 +1,5 @@
-import { db } from '@/services/db'
 import { getClassSectionStudentsByEntityId } from '@/features/classroom/api/classSectionAdapter'
+import { db } from '@/services/db'
 
 import type { AttendanceRecord, ClassOption, ClassStudent, UpsertAttendanceParams } from '../types'
 
