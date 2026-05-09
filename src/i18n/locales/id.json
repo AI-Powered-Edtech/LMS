@@ -232,7 +232,26 @@
       "verifyEmailLoginButton": "🔑 Masuk ke Akun",
       "verifyEmailRefreshPage": "🔄 Refresh Halaman",
       "verifyEmailUseDifferentEmail": "Logout & Gunakan Email Lain",
-      "verifyEmailCheckSpam": "Cek folder spam jika tidak menemukan email."
+      "verifyEmailCheckSpam": "Cek folder spam jika tidak menemukan email.",
+      "authErrorPageTitle": "Login Gagal",
+      "authErrorCannotCompleteTitle": "Login Tidak Dapat Diselesaikan",
+      "authErrorNoWorkspaceTitle": "Akses Ruang Kerja Belum Aktif",
+      "authErrorNoWorkspaceDescription": "Akun Anda berhasil masuk, tetapi tidak memiliki ruang kerja aktif. Hubungi admin sekolah jika akses Anda seharusnya sudah tersedia.",
+      "authErrorTimeoutTitle": "Login Terlalu Lama Diproses",
+      "authErrorTimeoutDescription": "Sesi login dari Google tidak selesai dalam waktu yang aman. Coba lagi dari awal atau gunakan login email.",
+      "authErrorInvalidLinkTitle": "Tautan Login Tidak Valid",
+      "authErrorInvalidLinkDescription": "Callback login yang diterima aplikasi tidak lengkap atau sudah berubah. Silakan mulai login lagi dari halaman masuk.",
+      "authErrorGenericTitle": "Terjadi Masalah Saat Login",
+      "authErrorGenericDescription": "Aplikasi tidak dapat menyelesaikan proses autentikasi. Coba lagi atau gunakan metode login lain.",
+      "authErrorTryAgain": "Coba Login Lagi",
+      "authErrorUseEmailLogin": "Pakai Login Email",
+      "authErrorSignOutSwitch": "Keluar dan Ganti Akun",
+      "authCallbackPageTitle": "Memproses Login",
+      "authCallbackVerifyingGoogle": "Memverifikasi login Google...",
+      "authCallbackProviderError": "Login Google dibatalkan atau gagal diproses.",
+      "authCallbackExchangeCode": "Menukar kode login menjadi sesi aktif...",
+      "authCallbackPreparingWorkspace": "Menyiapkan ruang kerja Anda...",
+      "authCallbackFailed": "Gagal memproses login Google. Silakan coba lagi."
     }
   },
   "settings": {

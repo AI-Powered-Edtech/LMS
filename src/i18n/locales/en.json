@@ -232,7 +232,26 @@
       "verifyEmailLoginButton": "🔑 Log In to Account",
       "verifyEmailRefreshPage": "🔄 Refresh Page",
       "verifyEmailUseDifferentEmail": "Log out & Use Another Email",
-      "verifyEmailCheckSpam": "Check your spam folder if you cannot find the email."
+      "verifyEmailCheckSpam": "Check your spam folder if you cannot find the email.",
+      "authErrorPageTitle": "Login Failed",
+      "authErrorCannotCompleteTitle": "Login Could Not Be Completed",
+      "authErrorNoWorkspaceTitle": "Workspace Access Is Not Active Yet",
+      "authErrorNoWorkspaceDescription": "Your account signed in successfully, but it does not have an active workspace. Contact your school admin if your access should already be available.",
+      "authErrorTimeoutTitle": "Login Took Too Long",
+      "authErrorTimeoutDescription": "The Google login session did not finish within the safe time limit. Try again from the beginning or use email login.",
+      "authErrorInvalidLinkTitle": "Invalid Login Link",
+      "authErrorInvalidLinkDescription": "The login callback received by the app is incomplete or has changed. Please start login again from the sign-in page.",
+      "authErrorGenericTitle": "There Was a Login Problem",
+      "authErrorGenericDescription": "The app could not complete authentication. Try again or use another login method.",
+      "authErrorTryAgain": "Try Login Again",
+      "authErrorUseEmailLogin": "Use Email Login",
+      "authErrorSignOutSwitch": "Sign Out and Switch Account",
+      "authCallbackPageTitle": "Processing Login",
+      "authCallbackVerifyingGoogle": "Verifying Google login...",
+      "authCallbackProviderError": "Google login was cancelled or could not be processed.",
+      "authCallbackExchangeCode": "Exchanging the login code for an active session...",
+      "authCallbackPreparingWorkspace": "Preparing your workspace...",
+      "authCallbackFailed": "Failed to process Google login. Please try again."
     }
   },
   "settings": {
