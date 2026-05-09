@@ -1640,5 +1640,103 @@
   "onboardingLayout": {
     "welcomeTitle": "Welcome to EduSync!",
     "signedInAs": "Signed in as"
+  },
+  "rolePicker": {
+    "prompt": "I am a...",
+    "roles": {
+      "student": {
+        "title": "Student",
+        "description": "I have a class code from my teacher"
+      },
+      "teacher": {
+        "title": "Teacher",
+        "description": "I want to create classes and materials"
+      },
+      "admin": {
+        "title": "School Admin",
+        "description": "I manage the school and its users"
+      }
+    }
+  },
+  "schoolCreateForm": {
+    "labels": {
+      "fullName": "Full Name",
+      "schoolName": "School Name"
+    },
+    "back": "Back",
+    "roles": {
+      "teacher": {
+        "title": "Register as Teacher",
+        "description": "Create a new school and start teaching",
+        "placeholder": "e.g., Budi Santoso, S.Pd.",
+        "schoolPlaceholder": "e.g., SMA Negeri 1 Jakarta",
+        "schoolHint": "You can invite other teachers after the school is created.",
+        "submitLabel": "Create School & Start"
+      },
+      "admin": {
+        "title": "Register as Admin",
+        "description": "Manage schools, teachers, and students",
+        "placeholder": "e.g., Dr. Siti Rahayu",
+        "schoolPlaceholder": "e.g., SMA Negeri 1 Jakarta",
+        "schoolHint": "As an admin, you will have full control over school settings.",
+        "submitLabel": "Create School & Start"
+      }
+    }
+  },
+  "studentJoinForm": {
+    "title": "Join as Student",
+    "subtitle": "Enter the class code given by your teacher",
+    "labels": {
+      "fullName": "Full Name",
+      "joinCode": "Class Code"
+    },
+    "placeholders": {
+      "fullName": "e.g., Andi Pratama"
+    },
+    "hint": "Ask your teacher or class coordinator for this code.",
+    "back": "Back",
+    "submit": "Join Class"
+  },
+  "studentWelcome": {
+    "defaultFirstName": "Student",
+    "greeting": "Welcome, __NAME__! 🎉",
+    "subtitle": "EduSync is ready to help you learn more effectively. Where would you like to start?",
+    "closeAria": "Close welcome",
+    "startButton": "Start Learning",
+    "actions": {
+      "findCourses": {
+        "title": "Find Courses",
+        "desc": "Explore courses available for you"
+      },
+      "checkAssignments": {
+        "title": "Check Assignments",
+        "desc": "See tasks that need to be completed"
+      },
+      "viewSchedule": {
+        "title": "View Schedule",
+        "desc": "Track your class and quiz schedule"
+      }
+    }
+  },
+  "teacherWelcome": {
+    "defaultFirstName": "Teacher",
+    "greeting": "Welcome, __NAME__! 🎉",
+    "subtitle": "EduSync is ready to help you teach more effectively. Where would you like to start?",
+    "closeAria": "Close welcome",
+    "startButton": "Start Teaching",
+    "actions": {
+      "createCourse": {
+        "title": "Create Your First Course",
+        "desc": "Start building learning content for your students"
+      },
+      "inviteStudents": {
+        "title": "Invite Students",
+        "desc": "Add students to the classes you manage"
+      },
+      "createQuiz": {
+        "title": "Create a Quiz",
+        "desc": "Design quizzes to test student understanding"
+      }
+    }
   }
 }

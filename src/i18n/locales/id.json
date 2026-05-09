@@ -1640,5 +1640,103 @@
   "onboardingLayout": {
     "welcomeTitle": "Selamat Datang di EduSync!",
     "signedInAs": "Masuk sebagai"
+  },
+  "rolePicker": {
+    "prompt": "Saya adalah...",
+    "roles": {
+      "student": {
+        "title": "Murid",
+        "description": "Saya punya kode kelas dari guru saya"
+      },
+      "teacher": {
+        "title": "Guru",
+        "description": "Saya ingin membuat kelas dan materi"
+      },
+      "admin": {
+        "title": "Admin Sekolah",
+        "description": "Saya mengelola sekolah dan pengguna"
+      }
+    }
+  },
+  "schoolCreateForm": {
+    "labels": {
+      "fullName": "Nama Lengkap",
+      "schoolName": "Nama Sekolah"
+    },
+    "back": "Kembali",
+    "roles": {
+      "teacher": {
+        "title": "Daftar sebagai Guru",
+        "description": "Buat sekolah baru dan mulai mengajar",
+        "placeholder": "Misal: Budi Santoso, S.Pd.",
+        "schoolPlaceholder": "Misal: SMA Negeri 1 Jakarta",
+        "schoolHint": "Anda dapat mengundang guru lain setelah sekolah dibuat.",
+        "submitLabel": "Buat Sekolah & Mulai"
+      },
+      "admin": {
+        "title": "Daftar sebagai Admin",
+        "description": "Kelola sekolah, guru, dan siswa",
+        "placeholder": "Misal: Dr. Siti Rahayu",
+        "schoolPlaceholder": "Misal: SMA Negeri 1 Jakarta",
+        "schoolHint": "Sebagai admin, Anda akan memiliki kendali penuh atas pengaturan sekolah.",
+        "submitLabel": "Buat Sekolah & Mulai"
+      }
+    }
+  },
+  "studentJoinForm": {
+    "title": "Gabung sebagai Murid",
+    "subtitle": "Masukkan kode kelas yang diberikan guru Anda",
+    "labels": {
+      "fullName": "Nama Lengkap",
+      "joinCode": "Kode Kelas"
+    },
+    "placeholders": {
+      "fullName": "Misal: Andi Pratama"
+    },
+    "hint": "Minta kode ini dari guru atau wali kelas Anda.",
+    "back": "Kembali",
+    "submit": "Gabung Kelas"
+  },
+  "studentWelcome": {
+    "defaultFirstName": "Siswa",
+    "greeting": "Selamat Datang, __NAME__! 🎉",
+    "subtitle": "EduSync siap membantumu belajar lebih efektif. Mulai dari mana?",
+    "closeAria": "Tutup sambutan",
+    "startButton": "Mulai Belajar",
+    "actions": {
+      "findCourses": {
+        "title": "Temukan Kursus",
+        "desc": "Jelajahi kursus yang tersedia untukmu"
+      },
+      "checkAssignments": {
+        "title": "Cek Tugas",
+        "desc": "Lihat tugas yang perlu diselesaikan"
+      },
+      "viewSchedule": {
+        "title": "Lihat Jadwal",
+        "desc": "Pantau jadwal kelas dan quiz"
+      }
+    }
+  },
+  "teacherWelcome": {
+    "defaultFirstName": "Guru",
+    "greeting": "Selamat Datang, __NAME__! 🎉",
+    "subtitle": "EduSync siap membantumu mengajar lebih efektif. Mulai dari mana?",
+    "closeAria": "Tutup sambutan",
+    "startButton": "Mulai Mengajar",
+    "actions": {
+      "createCourse": {
+        "title": "Buat Kursus Pertama",
+        "desc": "Mulai membuat konten pembelajaran untuk siswamu"
+      },
+      "inviteStudents": {
+        "title": "Undang Siswa",
+        "desc": "Tambahkan siswa ke kelas yang kamu kelola"
+      },
+      "createQuiz": {
+        "title": "Buat Kuis",
+        "desc": "Rancang kuis untuk menguji pemahaman siswa"
+      }
+    }
   }
 }

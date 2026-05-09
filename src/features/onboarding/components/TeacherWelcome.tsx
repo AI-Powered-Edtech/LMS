@@ -1,65 +1,67 @@
-import { BookPlus, ClipboardCheck, Sparkles, Users, X } from 'lucide-react'
-import { AnimatePresence, motion } from 'motion/react'
-import { useEffect, useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { BookPlus, ClipboardCheck, Sparkles, Users, X } from "lucide-react";
+import { AnimatePresence, motion } from "motion/react";
+import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 
-import { useAuth } from '@/contexts/AuthContext'
-import { useRoleBasedPath } from '@/hooks/useRoleBasedPath'
+import { useAuth } from "@/contexts/AuthContext";
+import { useRoleBasedPath } from "@/hooks/useRoleBasedPath";
+import { useTranslation } from "react-i18next";
 
-const WELCOME_KEY = 'edusync_teacher_welcomed'
+const WELCOME_KEY = "edusync_teacher_welcomed";
 // Coordina com o wizard: não mostrar enquanto o wizard estiver ativo
-const WIZARD_DISMISS_KEY = 'edusync_teacher_onboarding_dismissed'
-const WIZARD_COMPLETED_KEY = 'edusync_teacher_onboarding_completed'
+const WIZARD_DISMISS_KEY = "edusync_teacher_onboarding_dismissed";
+const WIZARD_COMPLETED_KEY = "edusync_teacher_onboarding_completed";
 
 export function TeacherWelcome() {
-  const { profile } = useAuth()
-  const navigate = useNavigate()
-  const getPath = useRoleBasedPath()
-  const [show, setShow] = useState(false)
+  const { t } = useTranslation();
+  const { profile } = useAuth();
+  const navigate = useNavigate();
+  const getPath = useRoleBasedPath();
+  const [show, setShow] = useState(false);
 
   useEffect(() => {
     // Wizard already dismissed/completed → TeacherWelcome can show for returning teachers
     const wizardDone =
-      localStorage.getItem(WIZARD_DISMISS_KEY) === '1' ||
-      localStorage.getItem(WIZARD_COMPLETED_KEY) === '1'
+      localStorage.getItem(WIZARD_DISMISS_KEY) === "1" ||
+      localStorage.getItem(WIZARD_COMPLETED_KEY) === "1";
 
     if (wizardDone && !localStorage.getItem(WELCOME_KEY)) {
       // Small delay so the dashboard loads first
-      const timer = setTimeout(() => setShow(true), 800)
-      return () => clearTimeout(timer)
+      const timer = setTimeout(() => setShow(true), 800);
+      return () => clearTimeout(timer);
     }
-  }, [])
+  }, []);
 
   const dismiss = () => {
-    localStorage.setItem(WELCOME_KEY, '1')
-    setShow(false)
-  }
+    localStorage.setItem(WELCOME_KEY, "1");
+    setShow(false);
+  };
 
-  const firstName = profile?.first_name || 'Guru'
+  const firstName = profile?.first_name || t("teacherWelcome.defaultFirstName");
 
   const actions = [
     {
+      i18nKey: "createCourse",
       icon: <BookPlus className="w-6 h-6 text-blue-500" />,
-      title: 'Buat Kursus Pertama',
-      desc: 'Mulai membuat konten pembelajaran untuk siswamu',
-      path: getPath('/app/teacher/course-builder', '/app/admin/course-builder'),
-      color: 'bg-blue-50 dark:bg-blue-900/20 border-blue-100 dark:border-blue-800/40',
+      path: getPath("/app/teacher/course-builder", "/app/admin/course-builder"),
+      color:
+        "bg-blue-50 dark:bg-blue-900/20 border-blue-100 dark:border-blue-800/40",
     },
     {
+      i18nKey: "inviteStudents",
       icon: <Users className="w-6 h-6 text-violet-500" />,
-      title: 'Undang Siswa',
-      desc: 'Tambahkan siswa ke kelas yang kamu kelola',
-      path: '/app/teacher/classes',
-      color: 'bg-violet-50 dark:bg-violet-900/20 border-violet-100 dark:border-violet-800/40',
+      path: "/app/teacher/classes",
+      color:
+        "bg-violet-50 dark:bg-violet-900/20 border-violet-100 dark:border-violet-800/40",
     },
     {
+      i18nKey: "createQuiz",
       icon: <ClipboardCheck className="w-6 h-6 text-emerald-500" />,
-      title: 'Buat Kuis',
-      desc: 'Rancang kuis untuk menguji pemahaman siswa',
-      path: '/app/teacher/quiz-manager',
-      color: 'bg-emerald-50 dark:bg-emerald-900/20 border-emerald-100 dark:border-emerald-800/40',
+      path: "/app/teacher/quiz-manager",
+      color:
+        "bg-emerald-50 dark:bg-emerald-900/20 border-emerald-100 dark:border-emerald-800/40",
     },
-  ]
+  ];
 
   return (
     <AnimatePresence>
@@ -81,7 +83,7 @@ export function TeacherWelcome() {
             <button
               onClick={dismiss}
               className="absolute top-4 right-4 p-2 rounded-xl text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
-              aria-label="Tutup sambutan"
+              aria-label={t("teacherWelcome.closeAria")}
             >
               <X className="w-5 h-5" />
             </button>
@@ -92,10 +94,10 @@ export function TeacherWelcome() {
                 <Sparkles className="w-8 h-8 text-white" />
               </div>
               <h2 className="text-2xl font-black text-slate-900 dark:text-white mb-2">
-                Selamat Datang, {firstName}! 🎉
+                {t("teacherWelcome.greeting").replace("__NAME__", firstName)}
               </h2>
               <p className="text-slate-500 dark:text-slate-400 text-sm">
-                EduSync siap membantumu mengajar lebih efektif. Mulai dari mana?
+                {t("teacherWelcome.subtitle")}
               </p>
             </div>
 
@@ -105,17 +107,19 @@ export function TeacherWelcome() {
                 <button
                   key={a.path}
                   onClick={() => {
-                    dismiss()
-                    void navigate(a.path)
+                    dismiss();
+                    void navigate(a.path);
                   }}
                   className={`w-full flex items-center gap-4 p-4 rounded-2xl border text-left transition-all hover:scale-[1.01] active:scale-[0.99] ${a.color}`}
                 >
                   <div className="shrink-0">{a.icon}</div>
                   <div>
                     <p className="font-bold text-slate-900 dark:text-slate-100 text-sm">
-                      {a.title}
+                      {t(`teacherWelcome.actions.${a.i18nKey}.title`)}
                     </p>
-                    <p className="text-xs text-slate-500 dark:text-slate-400">{a.desc}</p>
+                    <p className="text-xs text-slate-500 dark:text-slate-400">
+                      {t(`teacherWelcome.actions.${a.i18nKey}.desc`)}
+                    </p>
                   </div>
                 </button>
               ))}
@@ -125,11 +129,11 @@ export function TeacherWelcome() {
               onClick={dismiss}
               className="w-full py-3 bg-gradient-to-r from-violet-600 to-indigo-600 text-white font-bold rounded-2xl hover:from-violet-700 hover:to-indigo-700 transition-all shadow-md"
             >
-              Mulai Mengajar
+              {t("teacherWelcome.startButton")}
             </button>
           </motion.div>
         </motion.div>
       )}
     </AnimatePresence>
-  )
+  );
 }

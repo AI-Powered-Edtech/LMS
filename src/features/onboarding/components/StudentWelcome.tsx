@@ -1,55 +1,57 @@
-import { BookOpen, Calendar, ClipboardList, Sparkles, X } from 'lucide-react'
-import { AnimatePresence, motion } from 'motion/react'
-import { useEffect, useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { BookOpen, Calendar, ClipboardList, Sparkles, X } from "lucide-react";
+import { AnimatePresence, motion } from "motion/react";
+import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 
-import { useAuth } from '@/contexts/AuthContext'
+import { useAuth } from "@/contexts/AuthContext";
 
-const WELCOME_KEY = 'edusync_student_welcomed'
+const WELCOME_KEY = "edusync_student_welcomed";
 
 export function StudentWelcome() {
-  const { profile } = useAuth()
-  const navigate = useNavigate()
-  const [show, setShow] = useState(false)
+  const { t } = useTranslation();
+  const { profile } = useAuth();
+  const navigate = useNavigate();
+  const [show, setShow] = useState(false);
 
   useEffect(() => {
     if (!localStorage.getItem(WELCOME_KEY)) {
       // Small delay so the dashboard loads first
-      const timer = setTimeout(() => setShow(true), 800)
-      return () => clearTimeout(timer)
+      const timer = setTimeout(() => setShow(true), 800);
+      return () => clearTimeout(timer);
     }
-  }, [])
+  }, []);
 
   const dismiss = () => {
-    localStorage.setItem(WELCOME_KEY, '1')
-    setShow(false)
-  }
+    localStorage.setItem(WELCOME_KEY, "1");
+    setShow(false);
+  };
 
-  const firstName = profile?.first_name || 'Siswa'
+  const firstName = profile?.first_name || t("studentWelcome.defaultFirstName");
 
   const actions = [
     {
+      i18nKey: "findCourses",
       icon: <BookOpen className="w-6 h-6 text-blue-500" />,
-      title: 'Temukan Kursus',
-      desc: 'Jelajahi kursus yang tersedia untukmu',
-      path: '/app/student/courses',
-      color: 'bg-blue-50 dark:bg-blue-900/20 border-blue-100 dark:border-blue-800/40',
+      path: "/app/student/courses",
+      color:
+        "bg-blue-50 dark:bg-blue-900/20 border-blue-100 dark:border-blue-800/40",
     },
     {
+      i18nKey: "checkAssignments",
       icon: <ClipboardList className="w-6 h-6 text-amber-500" />,
-      title: 'Cek Tugas',
-      desc: 'Lihat tugas yang perlu diselesaikan',
-      path: '/app/student/assignments',
-      color: 'bg-amber-50 dark:bg-amber-900/20 border-amber-100 dark:border-amber-800/40',
+      path: "/app/student/assignments",
+      color:
+        "bg-amber-50 dark:bg-amber-900/20 border-amber-100 dark:border-amber-800/40",
     },
     {
+      i18nKey: "viewSchedule",
       icon: <Calendar className="w-6 h-6 text-emerald-500" />,
-      title: 'Lihat Jadwal',
-      desc: 'Pantau jadwal kelas dan quiz',
-      path: '/calendar',
-      color: 'bg-emerald-50 dark:bg-emerald-900/20 border-emerald-100 dark:border-emerald-800/40',
+      path: "/calendar",
+      color:
+        "bg-emerald-50 dark:bg-emerald-900/20 border-emerald-100 dark:border-emerald-800/40",
     },
-  ]
+  ];
 
   return (
     <AnimatePresence>
@@ -71,7 +73,7 @@ export function StudentWelcome() {
             <button
               onClick={dismiss}
               className="absolute top-4 right-4 p-2 rounded-xl text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
-              aria-label="Tutup sambutan"
+              aria-label={t("studentWelcome.closeAria")}
             >
               <X className="w-5 h-5" />
             </button>
@@ -82,10 +84,10 @@ export function StudentWelcome() {
                 <Sparkles className="w-8 h-8 text-white" />
               </div>
               <h2 className="text-2xl font-black text-slate-900 dark:text-white mb-2">
-                Selamat Datang, {firstName}! 🎉
+                {t("studentWelcome.greeting").replace("__NAME__", firstName)}
               </h2>
               <p className="text-slate-500 dark:text-slate-400 text-sm">
-                EduSync siap membantumu belajar lebih efektif. Mulai dari mana?
+                {t("studentWelcome.subtitle")}
               </p>
             </div>
 
@@ -95,17 +97,19 @@ export function StudentWelcome() {
                 <button
                   key={a.path}
                   onClick={() => {
-                    dismiss()
-                    void navigate(a.path)
+                    dismiss();
+                    void navigate(a.path);
                   }}
                   className={`w-full flex items-center gap-4 p-4 rounded-2xl border text-left transition-all hover:scale-[1.01] active:scale-[0.99] ${a.color}`}
                 >
                   <div className="shrink-0">{a.icon}</div>
                   <div>
                     <p className="font-bold text-slate-900 dark:text-slate-100 text-sm">
-                      {a.title}
+                      {t(`studentWelcome.actions.${a.i18nKey}.title`)}
                     </p>
-                    <p className="text-xs text-slate-500 dark:text-slate-400">{a.desc}</p>
+                    <p className="text-xs text-slate-500 dark:text-slate-400">
+                      {t(`studentWelcome.actions.${a.i18nKey}.desc`)}
+                    </p>
                   </div>
                 </button>
               ))}
@@ -115,11 +119,11 @@ export function StudentWelcome() {
               onClick={dismiss}
               className="w-full py-3 bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-bold rounded-2xl hover:from-blue-700 hover:to-indigo-700 transition-all shadow-md"
             >
-              Mulai Belajar
+              {t("studentWelcome.startButton")}
             </button>
           </motion.div>
         </motion.div>
       )}
     </AnimatePresence>
-  )
+  );
 }
