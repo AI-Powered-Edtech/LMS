@@ -1,10 +1,8 @@
 //! Stub handlers untuk endpoint FE yang masih perlu placeholder.
 //!
-//! Per 2026-05-09: report (executive/parent), reports/export, dan plagiarism
-//! sudah punya implementasi nyata di handler crate masing-masing dan dipanggil
-//! langsung dari main.rs. Yang tersisa di file ini:
-//!   - `scorm_runtime_stub_handler` — fire-and-forget beacon ScormPlayer
-//!     (akan diganti Task C SCORM xAPI receiver).
+//! Per 2026-05-09: report (executive/parent), reports/export, plagiarism, dan
+//! scorm/runtime sudah punya implementasi nyata di handler crate masing-masing
+//! dan dipanggil langsung dari main.rs. Yang tersisa di file ini:
 //!   - `ai_tutor_stream_stub_handler` — fallback aman; pemensiun tunggu #320
 //!     operator smoke pass (#321).
 
@@ -12,8 +10,7 @@ use axum::{
     http::{header, StatusCode},
     response::IntoResponse,
 };
-use serde_json::json;
-use vil_server::prelude::{HandlerResult, ServiceCtx, ShmSlice, VilResponse};
+use vil_server::prelude::{HandlerResult, ServiceCtx, ShmSlice};
 
 use crate::extractors::AuthedRequest;
 
@@ -48,18 +45,4 @@ pub async fn ai_tutor_stream_stub_handler(
         .into_response();
 
     Ok(response)
-}
-
-// ─── SCORM Runtime (stub) ────────────────────────────────────────────────────────────
-
-/// Fire-and-forget dari ScormPlayer beforeunload beacon — cukup return 200 OK.
-pub async fn scorm_runtime_stub_handler(
-    _svc: ServiceCtx,
-    body: ShmSlice,
-) -> HandlerResult<VilResponse<serde_json::Value>> {
-    let _ignored: serde_json::Value = body.json().unwrap_or(json!({}));
-    Ok(VilResponse::ok(json!({
-        "success": true,
-        "stub": true,
-    })))
 }

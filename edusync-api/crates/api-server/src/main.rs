@@ -91,6 +91,7 @@ use notification_handlers::{
 };
 use processing_handlers::{
     enqueue_events_handler, extract_scorm_handler, import_users_handler, load_quiz_handler,
+    scorm_runtime_handler,
 };
 use storage::handlers::{
     create_signed_url_handler, download_handler, list_handler, migration_status_handler,
@@ -100,7 +101,6 @@ use ai_tutor_real::ai_tutor_stream_handler;
 use report_real::{executive_report_handler, parent_report_handler};
 use report_handlers::{export_report_handler, get_export_status_handler};
 use plagiarism_handlers::check_plagiarism_handler;
-use stub_handlers::scorm_runtime_stub_handler;
 
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {
@@ -498,7 +498,7 @@ async fn main() -> anyhow::Result<()> {
         .endpoint(Method::POST, "/plagiarism/check", post(check_plagiarism_handler))
         .endpoint(Method::POST, "/ai/tutor/stream", post(ai_tutor_stream_handler))
         .endpoint(Method::POST, "/ai/embeddings", post(embeddings_handler::embeddings_handler))
-        .endpoint(Method::POST, "/scorm/runtime", post(scorm_runtime_stub_handler))
+        .endpoint(Method::POST, "/scorm/runtime", post(scorm_runtime_handler))
         .state(app_state.clone());
 
     VilApp::new("edusync-api")

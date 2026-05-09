@@ -143,3 +143,74 @@ pub async fn import_users_handler(
         serde_json::to_value(result).unwrap_or_default(),
     ))
 }
+
+// ─── SCORM Runtime Beacon ─────────────────────────────────────────────────────
+//
+// POST /api/v1/scorm/runtime
+//
+// Beforeunload beacon fallback dari ScormPlayer.tsx via
+// lessonService.sendBeaconUpsert. Body shape mirror Supabase RPC
+// `upsert_scorm_runtime` (param `p_*`) supaya FE pakai DTO yang sama untuk
+// dual-path (primary RPC + beacon BE fallback).
+//
+// Defense-in-depth: validasi `p_user_id`/`p_tenant_id` cocok dengan JWT
+// context sebelum panggil RPC SECURITY DEFINER (yang bypass RLS).
+
+#[derive(Debug, serde::Deserialize)]
+pub struct ScormRuntimeBeaconReq {
+    pub p_user_id: Uuid,
+    pub p_scorm_package_id: Uuid,
+    pub p_tenant_id: Uuid,
+    pub p_cmi_data: serde_json::Value,
+    #[serde(default)]
+    pub p_score_raw: Option<f64>,
+    #[serde(default)]
+    pub p_score_max: Option<f64>,
+    #[serde(default)]
+    pub p_lesson_status: Option<String>,
+    #[serde(default)]
+    pub p_total_time: Option<i32>,
+    #[serde(default)]
+    pub p_suspend_data: Option<String>,
+}
+
+pub async fn scorm_runtime_handler(
+    AuthedRequest(ctx): AuthedRequest,
+    svc: ServiceCtx,
+    body: ShmSlice,
+) -> HandlerResult<VilResponse<serde_json::Value>> {
+    let req: ScormRuntimeBeaconReq = body
+        .json()
+        .map_err(|e| VilError::bad_request(format!("invalid request: {e}")))?;
+
+    if req.p_user_id != ctx.user_id {
+        return Err(VilError::forbidden(
+            "user_id pada body tidak cocok dengan token",
+        ));
+    }
+    if req.p_tenant_id != ctx.tenant_id {
+        return Err(VilError::forbidden(
+            "tenant_id pada body tidak cocok dengan token",
+        ));
+    }
+
+    let state = svc.state::<AppState>()?;
+
+    sqlx::query(
+        "SELECT public.upsert_scorm_runtime($1, $2, $3, $4, $5, $6, $7, $8, $9)",
+    )
+    .bind(req.p_user_id)
+    .bind(req.p_scorm_package_id)
+    .bind(req.p_tenant_id)
+    .bind(req.p_cmi_data)
+    .bind(req.p_score_raw)
+    .bind(req.p_score_max)
+    .bind(req.p_lesson_status)
+    .bind(req.p_total_time)
+    .bind(req.p_suspend_data)
+    .execute(&state.db)
+    .await
+    .map_err(|e| VilError::internal(format!("upsert_scorm_runtime: {e}")))?;
+
+    Ok(VilResponse::ok(serde_json::json!({ "success": true })))
+}
