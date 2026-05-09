@@ -131,7 +131,11 @@
       "picomatch": ">=4.0.4",
       "brace-expansion": ">=5.0.5",
       "lodash": ">=4.18.0",
-      "postcss": "^8.5.10"
+      "postcss": "^8.5.10",
+      "fast-uri": ">=3.1.2",
+      "@babel/plugin-transform-modules-systemjs": ">=7.29.4",
+      "basic-ftp": ">=5.3.1",
+      "ip-address": ">=10.1.1"
     }
   },
   "lint-staged": {
