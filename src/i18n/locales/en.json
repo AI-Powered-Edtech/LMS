@@ -1484,5 +1484,121 @@
       "announcements": "Announcements",
       "menu": "Menu"
     }
+  },
+  "teacherOnboarding": {
+    "welcome": {
+      "defaultFirstName": "Teacher",
+      "title": "Welcome to EduSync! 🎉",
+      "greetingPrefix": "Hello, ",
+      "greetingSuffix": "! We'll help you start your digital teaching journey in just a few easy steps.",
+      "duration": "This will only take about 2 minutes.",
+      "cards": {
+        "createClass": "Create Class",
+        "inviteStudents": "Invite Students",
+        "createMaterial": "Create Material"
+      },
+      "startButton": "Start Setup"
+    },
+    "createClass": {
+      "alreadyCreated": {
+        "title": "Class already created!",
+        "description": "Your class was successfully created earlier.",
+        "continue": "Continue to Invite Students"
+      },
+      "errors": {
+        "nameRequired": "Class name is required.",
+        "fetchFailed": "Failed to retrieve newly created class.",
+        "createFailed": "Failed to create class. Try again."
+      },
+      "title": "Create Your First Class",
+      "subtitle": "Fill in your class details",
+      "fields": {
+        "name": {
+          "label": "Class Name",
+          "placeholder": "Example: Class 9A, XII Science 1"
+        },
+        "subject": {
+          "label": "Subject",
+          "placeholder": "Example: Mathematics, English"
+        },
+        "year": {
+          "label": "Academic Year",
+          "placeholder": "Example: 2025/2026"
+        }
+      },
+      "skip": "Skip",
+      "submit": "Create Class"
+    },
+    "inviteStudents": {
+      "title": "Invite Students to Class",
+      "subtitle": "Share this code with your students",
+      "joinCodeLabel": "Join Code",
+      "codeValidity": "Valid until the class is deleted",
+      "copyCode": "Copy Code",
+      "copyLink": "Copy Link",
+      "qrAlt": "Class join QR code",
+      "qrTitle": "QR Code",
+      "qrDescription": "Display on the board so students can scan directly",
+      "tipsLabel": "Tips:",
+      "tipsMessage": "Share this code with students via WhatsApp or write it on the board. Students just need to open EduSync and enter this code.",
+      "continue": "Done, Continue"
+    },
+    "createCourse": {
+      "alreadyCreated": {
+        "title": "Course already created!",
+        "description": "Your course was successfully created earlier.",
+        "continue": "Continue"
+      },
+      "errors": {
+        "titleRequired": "Course title is required.",
+        "createFailedShort": "Failed to create course.",
+        "createFailed": "Failed to create course. Try again."
+      },
+      "title": "Create Your First Material",
+      "subtitle": "Start creating a learning course",
+      "fields": {
+        "title": {
+          "label": "Course Title",
+          "placeholder": "Example: Basic Algebra, Narrative Text"
+        },
+        "subject": {
+          "label": "Subject",
+          "placeholder": "Example: Mathematics, English"
+        }
+      },
+      "builderTipBefore": "After creating the course, you'll be redirected straight to",
+      "builderTipName": "Course Builder",
+      "builderTipAfter": "to add modules and lesson materials.",
+      "skip": "Later",
+      "submit": "Create Course"
+    },
+    "ready": {
+      "title": "You're Ready to Teach! 🚀",
+      "subtitle": "EduSync is configured for you.",
+      "checklist": {
+        "classCreated": "Class created",
+        "studentsInvited": "Students invited",
+        "materialAdded": "Material added"
+      },
+      "nextStepsLabel": "Next Steps",
+      "nextSteps": {
+        "createQuiz": "Create Quiz",
+        "viewAnalytics": "View Analytics",
+        "gradeAssignments": "Grade Assignments",
+        "explore": "Explore Features"
+      },
+      "startTeaching": "Start Teaching!"
+    },
+    "wizard": {
+      "stepProgress": "Step __CURRENT__ of __TOTAL__",
+      "closeAria": "Close guide",
+      "back": "← Back",
+      "dismissConfirm": {
+        "title": "Are you sure you want to skip this guide?",
+        "description": "This guide won't appear again. You can still set up your class and materials manually.",
+        "cancel": "Continue",
+        "confirm": "Yes, Skip"
+      }
+    }
   }
 }

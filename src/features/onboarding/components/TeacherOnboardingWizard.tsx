@@ -14,6 +14,7 @@ import {
 } from "lucide-react";
 import { AnimatePresence, motion } from "motion/react";
 import React, { useState } from "react";
+import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router-dom";
 
 import { Button } from "@/components/ui";
@@ -35,8 +36,10 @@ interface StepProps {
 /* ─── Step 1 — Selamat Datang ────────────────────────────────── */
 
 function StepWelcome({ onNext }: StepProps): React.JSX.Element {
+  const { t } = useTranslation();
   const { profile } = useAuth();
-  const firstName = profile?.first_name || "Guru";
+  const firstName =
+    profile?.first_name || t("teacherOnboarding.welcome.defaultFirstName");
 
   return (
     <div className="flex flex-col items-center text-center py-4">
@@ -44,34 +47,33 @@ function StepWelcome({ onNext }: StepProps): React.JSX.Element {
         <Sparkles className="w-10 h-10 text-white" />
       </div>
       <h2 className="text-2xl font-black text-slate-900 dark:text-white mb-3">
-        Selamat Datang di EduSync! 🎉
+        {t("teacherOnboarding.welcome.title")}
       </h2>
       <p className="text-slate-500 dark:text-slate-400 text-sm leading-relaxed max-w-sm mb-2">
-        Halo,{" "}
+        {t("teacherOnboarding.welcome.greetingPrefix")}
         <span className="font-semibold text-slate-700 dark:text-slate-200">
           {firstName}
         </span>
-        ! Kami akan membantu Anda memulai perjalanan mengajar digital dalam
-        beberapa langkah mudah.
+        {t("teacherOnboarding.welcome.greetingSuffix")}
       </p>
       <p className="text-slate-400 dark:text-slate-500 text-xs mb-8">
-        Proses ini hanya memakan waktu sekitar 2 menit.
+        {t("teacherOnboarding.welcome.duration")}
       </p>
       <div className="grid grid-cols-3 gap-4 w-full mb-8">
         {[
           {
             icon: <School className="w-5 h-5" />,
-            label: "Buat Kelas",
+            label: t("teacherOnboarding.welcome.cards.createClass"),
             color: "text-indigo-500 bg-indigo-50 dark:bg-indigo-900/30",
           },
           {
             icon: <GraduationCap className="w-5 h-5" />,
-            label: "Undang Siswa",
+            label: t("teacherOnboarding.welcome.cards.inviteStudents"),
             color: "text-emerald-500 bg-emerald-50 dark:bg-emerald-900/30",
           },
           {
             icon: <BookOpen className="w-5 h-5" />,
-            label: "Buat Materi",
+            label: t("teacherOnboarding.welcome.cards.createMaterial"),
             color: "text-amber-500 bg-amber-50 dark:bg-amber-900/30",
           },
         ].map((item) => (
@@ -96,7 +98,7 @@ function StepWelcome({ onNext }: StepProps): React.JSX.Element {
         onClick={onNext}
         className="bg-gradient-to-r from-violet-600 to-indigo-600 hover:from-violet-700 hover:to-indigo-700 text-white border-0"
       >
-        Mulai Pengaturan
+        {t("teacherOnboarding.welcome.startButton")}
         <ChevronRight className="w-5 h-5 ml-1" />
       </Button>
     </div>
@@ -118,6 +120,7 @@ function StepCreateClass({
   existingClassId,
   existingJoinCode,
 }: Step2Props): React.JSX.Element {
+  const { t } = useTranslation();
   const { user, tenantId } = useAuth();
   const [className, setClassName] = useState("");
   const [mapel, setMapel] = useState("");
@@ -133,13 +136,14 @@ function StepCreateClass({
           <Check className="w-8 h-8 text-emerald-500" />
         </div>
         <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-2">
-          Kelas sudah dibuat!
+          {t("teacherOnboarding.createClass.alreadyCreated.title")}
         </h3>
         <p className="text-slate-500 dark:text-slate-400 text-sm mb-6">
-          Kelas Anda telah berhasil dibuat sebelumnya.
+          {t("teacherOnboarding.createClass.alreadyCreated.description")}
         </p>
         <Button fullWidth onClick={onNext}>
-          Lanjut ke Undang Siswa <ChevronRight className="w-4 h-4" />
+          {t("teacherOnboarding.createClass.alreadyCreated.continue")}{" "}
+          <ChevronRight className="w-4 h-4" />
         </Button>
       </div>
     );
@@ -147,7 +151,7 @@ function StepCreateClass({
 
   async function handleCreateClass(): Promise<void> {
     if (!className.trim()) {
-      setError("Nama kelas wajib diisi.");
+      setError(t("teacherOnboarding.createClass.errors.nameRequired"));
       return;
     }
     if (!user || !tenantId) return;
@@ -187,7 +191,7 @@ function StepCreateClass({
         .single();
 
       if (fetchErr || !data) {
-        throw new Error("Gagal mengambil data kelas yang baru dibuat.");
+        throw new Error(t("teacherOnboarding.createClass.errors.fetchFailed"));
       }
 
       onClassCreated(
@@ -197,7 +201,9 @@ function StepCreateClass({
       onNext();
     } catch (err) {
       setError(
-        err instanceof Error ? err.message : "Gagal membuat kelas. Coba lagi.",
+        err instanceof Error
+          ? err.message
+          : t("teacherOnboarding.createClass.errors.createFailed"),
       );
     } finally {
       setIsCreating(false);
@@ -212,10 +218,10 @@ function StepCreateClass({
         </div>
         <div>
           <h3 className="text-lg font-bold text-slate-900 dark:text-white">
-            Buat Kelas Pertama
+            {t("teacherOnboarding.createClass.title")}
           </h3>
           <p className="text-sm text-slate-500 dark:text-slate-400">
-            Isi detail kelas Anda
+            {t("teacherOnboarding.createClass.subtitle")}
           </p>
         </div>
       </div>
@@ -223,37 +229,44 @@ function StepCreateClass({
       <div className="space-y-4">
         <div>
           <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-1.5">
-            Nama Kelas <span className="text-red-500">*</span>
+            {t("teacherOnboarding.createClass.fields.name.label")}{" "}
+            <span className="text-red-500">*</span>
           </label>
           <input
             type="text"
             value={className}
             onChange={(e) => setClassName(e.target.value)}
-            placeholder="Contoh: Kelas 9A, XII IPA 1"
+            placeholder={t(
+              "teacherOnboarding.createClass.fields.name.placeholder",
+            )}
             className="w-full px-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 text-sm"
           />
         </div>
         <div>
           <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-1.5">
-            Mata Pelajaran
+            {t("teacherOnboarding.createClass.fields.subject.label")}
           </label>
           <input
             type="text"
             value={mapel}
             onChange={(e) => setMapel(e.target.value)}
-            placeholder="Contoh: Matematika, Bahasa Indonesia"
+            placeholder={t(
+              "teacherOnboarding.createClass.fields.subject.placeholder",
+            )}
             className="w-full px-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 text-sm"
           />
         </div>
         <div>
           <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-1.5">
-            Tahun Ajaran
+            {t("teacherOnboarding.createClass.fields.year.label")}
           </label>
           <input
             type="text"
             value={tahunAjaran}
             onChange={(e) => setTahunAjaran(e.target.value)}
-            placeholder="Contoh: 2025/2026"
+            placeholder={t(
+              "teacherOnboarding.createClass.fields.year.placeholder",
+            )}
             className="w-full px-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 text-sm"
           />
         </div>
@@ -267,7 +280,7 @@ function StepCreateClass({
 
       <div className="flex gap-3 mt-6">
         <Button variant="ghost" size="sm" onClick={onSkip} className="flex-1">
-          Lewati
+          {t("teacherOnboarding.createClass.skip")}
         </Button>
         <Button
           size="md"
@@ -276,7 +289,7 @@ function StepCreateClass({
           onClick={handleCreateClass}
           disabled={!className.trim()}
         >
-          Buat Kelas
+          {t("teacherOnboarding.createClass.submit")}
         </Button>
       </div>
     </div>
@@ -293,6 +306,7 @@ function StepInviteStudents({
   onNext,
   joinCode,
 }: Step3Props): React.JSX.Element {
+  const { t } = useTranslation();
   const [copied, setCopied] = useState(false);
 
   const displayCode = joinCode || "------";
@@ -321,10 +335,10 @@ function StepInviteStudents({
         </div>
         <div>
           <h3 className="text-lg font-bold text-slate-900 dark:text-white">
-            Undang Siswa ke Kelas
+            {t("teacherOnboarding.inviteStudents.title")}
           </h3>
           <p className="text-sm text-slate-500 dark:text-slate-400">
-            Bagikan kode ini ke siswa Anda
+            {t("teacherOnboarding.inviteStudents.subtitle")}
           </p>
         </div>
       </div>
@@ -332,14 +346,14 @@ function StepInviteStudents({
       {/* Join Code Display */}
       <div className="bg-gradient-to-br from-indigo-50 to-violet-50 dark:from-indigo-900/20 dark:to-violet-900/20 border border-indigo-100 dark:border-indigo-800/40 rounded-2xl p-5 mb-4 text-center">
         <p className="text-xs font-semibold text-indigo-600 dark:text-indigo-400 uppercase tracking-wider mb-2">
-          Kode Bergabung
+          {t("teacherOnboarding.inviteStudents.joinCodeLabel")}
         </p>
         <p className="text-4xl font-black tracking-[0.3em] text-indigo-700 dark:text-indigo-300 mb-1">
           {displayCode}
         </p>
         {joinCode && (
           <p className="text-xs text-slate-400 dark:text-slate-500 mt-1">
-            Berlaku hingga kelas dihapus
+            {t("teacherOnboarding.inviteStudents.codeValidity")}
           </p>
         )}
       </div>
@@ -354,14 +368,14 @@ function StepInviteStudents({
           ) : (
             <Copy className="w-4 h-4" />
           )}
-          Salin Kode
+          {t("teacherOnboarding.inviteStudents.copyCode")}
         </button>
         <button
           onClick={copyLink}
           className="flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 text-sm font-semibold text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors"
         >
           <Copy className="w-4 h-4" />
-          Salin Link
+          {t("teacherOnboarding.inviteStudents.copyLink")}
         </button>
       </div>
 
@@ -370,17 +384,17 @@ function StepInviteStudents({
         <div className="flex items-center gap-4 bg-slate-50 dark:bg-slate-800/50 rounded-xl p-3 mb-4">
           <img
             src={qrUrl}
-            alt="QR Code bergabung kelas"
+            alt={t("teacherOnboarding.inviteStudents.qrAlt")}
             className="w-16 h-16 rounded-lg"
             loading="lazy"
             decoding="async"
           />
           <div>
             <p className="text-sm font-semibold text-slate-700 dark:text-slate-300">
-              QR Code
+              {t("teacherOnboarding.inviteStudents.qrTitle")}
             </p>
             <p className="text-xs text-slate-500 dark:text-slate-400 leading-relaxed">
-              Tampilkan di papan tulis agar siswa bisa scan langsung
+              {t("teacherOnboarding.inviteStudents.qrDescription")}
             </p>
           </div>
         </div>
@@ -388,9 +402,11 @@ function StepInviteStudents({
 
       <div className="bg-amber-50 dark:bg-amber-900/20 border border-amber-100 dark:border-amber-800/40 rounded-xl p-3 mb-6">
         <p className="text-xs text-amber-700 dark:text-amber-400 leading-relaxed">
-          💡 <span className="font-semibold">Tips:</span> Bagikan kode ini ke
-          siswa via WhatsApp atau tulis di papan tulis. Siswa cukup buka EduSync
-          dan masukkan kode ini.
+          💡{" "}
+          <span className="font-semibold">
+            {t("teacherOnboarding.inviteStudents.tipsLabel")}
+          </span>{" "}
+          {t("teacherOnboarding.inviteStudents.tipsMessage")}
         </p>
       </div>
 
@@ -400,7 +416,8 @@ function StepInviteStudents({
         onClick={onNext}
         className="bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white border-0"
       >
-        Selesai, Lanjut <ChevronRight className="w-4 h-4" />
+        {t("teacherOnboarding.inviteStudents.continue")}{" "}
+        <ChevronRight className="w-4 h-4" />
       </Button>
     </div>
   );
@@ -419,6 +436,7 @@ function StepCreateCourse({
   onCourseCreated,
   existingCourseId,
 }: Step4Props): React.JSX.Element {
+  const { t } = useTranslation();
   const { user, tenantId } = useAuth();
   const navigate = useNavigate();
   const [title, setTitle] = useState("");
@@ -433,13 +451,14 @@ function StepCreateCourse({
           <Check className="w-8 h-8 text-amber-500" />
         </div>
         <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-2">
-          Kursus sudah dibuat!
+          {t("teacherOnboarding.createCourse.alreadyCreated.title")}
         </h3>
         <p className="text-slate-500 dark:text-slate-400 text-sm mb-6">
-          Kursus Anda telah berhasil dibuat sebelumnya.
+          {t("teacherOnboarding.createCourse.alreadyCreated.description")}
         </p>
         <Button fullWidth onClick={onNext}>
-          Lanjut <ChevronRight className="w-4 h-4" />
+          {t("teacherOnboarding.createCourse.alreadyCreated.continue")}{" "}
+          <ChevronRight className="w-4 h-4" />
         </Button>
       </div>
     );
@@ -447,7 +466,7 @@ function StepCreateCourse({
 
   async function handleCreateCourse(): Promise<void> {
     if (!title.trim()) {
-      setError("Judul kursus wajib diisi.");
+      setError(t("teacherOnboarding.createCourse.errors.titleRequired"));
       return;
     }
     if (!user || !tenantId) return;
@@ -465,7 +484,9 @@ function StepCreateCourse({
         created_by: user.id,
       });
       if (!course?.id) {
-        throw new Error("Gagal membuat kursus.");
+        throw new Error(
+          t("teacherOnboarding.createCourse.errors.createFailedShort"),
+        );
       }
 
       onCourseCreated(course.id);
@@ -477,7 +498,9 @@ function StepCreateCourse({
       }, 400);
     } catch (err) {
       setError(
-        err instanceof Error ? err.message : "Gagal membuat kursus. Coba lagi.",
+        err instanceof Error
+          ? err.message
+          : t("teacherOnboarding.createCourse.errors.createFailed"),
       );
     } finally {
       setIsCreating(false);
@@ -492,10 +515,10 @@ function StepCreateCourse({
         </div>
         <div>
           <h3 className="text-lg font-bold text-slate-900 dark:text-white">
-            Buat Materi Pertama
+            {t("teacherOnboarding.createCourse.title")}
           </h3>
           <p className="text-sm text-slate-500 dark:text-slate-400">
-            Mulai buat kursus pembelajaran
+            {t("teacherOnboarding.createCourse.subtitle")}
           </p>
         </div>
       </div>
@@ -503,34 +526,41 @@ function StepCreateCourse({
       <div className="space-y-4">
         <div>
           <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-1.5">
-            Judul Kursus <span className="text-red-500">*</span>
+            {t("teacherOnboarding.createCourse.fields.title.label")}{" "}
+            <span className="text-red-500">*</span>
           </label>
           <input
             type="text"
             value={title}
             onChange={(e) => setTitle(e.target.value)}
-            placeholder="Contoh: Aljabar Dasar, Teks Narasi"
+            placeholder={t(
+              "teacherOnboarding.createCourse.fields.title.placeholder",
+            )}
             className="w-full px-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-amber-500 text-sm"
           />
         </div>
         <div>
           <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-1.5">
-            Mata Pelajaran
+            {t("teacherOnboarding.createCourse.fields.subject.label")}
           </label>
           <input
             type="text"
             value={subject}
             onChange={(e) => setSubject(e.target.value)}
-            placeholder="Contoh: Matematika, Bahasa Indonesia"
+            placeholder={t(
+              "teacherOnboarding.createCourse.fields.subject.placeholder",
+            )}
             className="w-full px-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-amber-500 text-sm"
           />
         </div>
 
         <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-100 dark:border-blue-800/40 rounded-xl p-3">
           <p className="text-xs text-blue-700 dark:text-blue-400 leading-relaxed">
-            📝 Setelah membuat kursus, Anda akan langsung diarahkan ke{" "}
-            <strong>Course Builder</strong> untuk menambahkan modul dan materi
-            pelajaran.
+            📝 {t("teacherOnboarding.createCourse.builderTipBefore")}{" "}
+            <strong>
+              {t("teacherOnboarding.createCourse.builderTipName")}
+            </strong>{" "}
+            {t("teacherOnboarding.createCourse.builderTipAfter")}
           </p>
         </div>
 
@@ -543,7 +573,7 @@ function StepCreateCourse({
 
       <div className="flex gap-3 mt-6">
         <Button variant="ghost" size="sm" onClick={onSkip} className="flex-1">
-          Nanti saja
+          {t("teacherOnboarding.createCourse.skip")}
         </Button>
         <Button
           size="md"
@@ -553,7 +583,7 @@ function StepCreateCourse({
           disabled={!title.trim()}
         >
           <Layers className="w-4 h-4" />
-          Buat Kursus
+          {t("teacherOnboarding.createCourse.submit")}
         </Button>
       </div>
     </div>
@@ -575,19 +605,20 @@ function StepReady({
   createdCourseId,
   onFinish,
 }: Step5Props): React.JSX.Element {
+  const { t } = useTranslation();
   const navigate = useNavigate();
 
   const checklistItems = [
     {
-      label: "Kelas dibuat",
+      label: t("teacherOnboarding.ready.checklist.classCreated"),
       done: completedSteps.includes(2) || !!createdClassId,
     },
     {
-      label: "Siswa diundang",
+      label: t("teacherOnboarding.ready.checklist.studentsInvited"),
       done: completedSteps.includes(3),
     },
     {
-      label: "Materi ditambahkan",
+      label: t("teacherOnboarding.ready.checklist.materialAdded"),
       done: completedSteps.includes(4) || !!createdCourseId,
     },
   ];
@@ -595,25 +626,25 @@ function StepReady({
   const nextSteps = [
     {
       icon: <ClipboardCheck className="w-5 h-5 text-violet-500" />,
-      label: "Buat Kuis",
+      label: t("teacherOnboarding.ready.nextSteps.createQuiz"),
       path: "/app/teacher/quiz-manager",
       bg: "bg-violet-50 dark:bg-violet-900/20 border-violet-100 dark:border-violet-800/40",
     },
     {
       icon: <BarChart3 className="w-5 h-5 text-blue-500" />,
-      label: "Lihat Analitik",
+      label: t("teacherOnboarding.ready.nextSteps.viewAnalytics"),
       path: "/analytics",
       bg: "bg-blue-50 dark:bg-blue-900/20 border-blue-100 dark:border-blue-800/40",
     },
     {
       icon: <BookOpen className="w-5 h-5 text-amber-500" />,
-      label: "Koreksi Tugas",
+      label: t("teacherOnboarding.ready.nextSteps.gradeAssignments"),
       path: "/grader",
       bg: "bg-amber-50 dark:bg-amber-900/20 border-amber-100 dark:border-amber-800/40",
     },
     {
       icon: <Rocket className="w-5 h-5 text-emerald-500" />,
-      label: "Eksplorasi Fitur",
+      label: t("teacherOnboarding.ready.nextSteps.explore"),
       path: "/app/teacher/teaching-hub",
       bg: "bg-emerald-50 dark:bg-emerald-900/20 border-emerald-100 dark:border-emerald-800/40",
     },
@@ -626,10 +657,10 @@ function StepReady({
           <Rocket className="w-8 h-8 text-white" />
         </div>
         <h3 className="text-xl font-black text-slate-900 dark:text-white mb-1">
-          Anda Siap Mengajar! 🚀
+          {t("teacherOnboarding.ready.title")}
         </h3>
         <p className="text-sm text-slate-500 dark:text-slate-400">
-          EduSync sudah dikonfigurasi untuk Anda.
+          {t("teacherOnboarding.ready.subtitle")}
         </p>
       </div>
 
@@ -675,7 +706,7 @@ function StepReady({
 
       {/* Next Steps */}
       <p className="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-3">
-        Langkah Selanjutnya
+        {t("teacherOnboarding.ready.nextStepsLabel")}
       </p>
       <div className="grid grid-cols-2 gap-2 mb-6">
         {nextSteps.map((item) => (
@@ -704,7 +735,7 @@ function StepReady({
         onClick={onFinish}
         className="bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 text-white border-0"
       >
-        Mulai Mengajar!
+        {t("teacherOnboarding.ready.startTeaching")}
       </Button>
     </div>
   );
@@ -713,6 +744,7 @@ function StepReady({
 /* ─── Main Wizard Component ──────────────────────────────────── */
 
 export function TeacherOnboardingWizard(): React.JSX.Element | null {
+  const { t } = useTranslation();
   const [showDismissConfirm, setShowDismissConfirm] = useState(false);
 
   const {
@@ -795,12 +827,14 @@ export function TeacherOnboardingWizard(): React.JSX.Element | null {
           <div className="px-6 pt-5 pb-4">
             <div className="flex items-center justify-between mb-3">
               <span className="text-xs font-semibold text-slate-400 dark:text-slate-500 uppercase tracking-wider">
-                Langkah {currentStep} dari {totalSteps}
+                {t("teacherOnboarding.wizard.stepProgress")
+                  .replace("__CURRENT__", String(currentStep))
+                  .replace("__TOTAL__", String(totalSteps))}
               </span>
               <button
                 onClick={() => setShowDismissConfirm(true)}
                 className="p-1.5 rounded-lg text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
-                aria-label="Tutup panduan"
+                aria-label={t("teacherOnboarding.wizard.closeAria")}
               >
                 <X className="w-4 h-4" />
               </button>
@@ -898,7 +932,7 @@ export function TeacherOnboardingWizard(): React.JSX.Element | null {
                 onClick={prevStep}
                 className="text-xs text-slate-400 dark:text-slate-500 hover:text-slate-600 dark:hover:text-slate-300 transition-colors"
               >
-                ← Kembali
+                {t("teacherOnboarding.wizard.back")}
               </button>
             </div>
           )}
@@ -917,11 +951,10 @@ export function TeacherOnboardingWizard(): React.JSX.Element | null {
             >
               <div className="bg-white dark:bg-slate-900 rounded-2xl shadow-2xl border border-slate-200 dark:border-slate-700 p-6 max-w-sm w-full text-center">
                 <p className="text-base font-bold text-slate-900 dark:text-white mb-2">
-                  Yakin ingin melewati panduan ini?
+                  {t("teacherOnboarding.wizard.dismissConfirm.title")}
                 </p>
                 <p className="text-sm text-slate-500 dark:text-slate-400 mb-6">
-                  Panduan ini tidak akan muncul lagi. Anda tetap bisa mengatur
-                  kelas dan materi secara manual.
+                  {t("teacherOnboarding.wizard.dismissConfirm.description")}
                 </p>
                 <div className="flex gap-3">
                   <Button
@@ -929,14 +962,14 @@ export function TeacherOnboardingWizard(): React.JSX.Element | null {
                     className="flex-1"
                     onClick={() => setShowDismissConfirm(false)}
                   >
-                    Lanjutkan
+                    {t("teacherOnboarding.wizard.dismissConfirm.cancel")}
                   </Button>
                   <Button
                     variant="danger"
                     className="flex-1"
                     onClick={handleDismissConfirmed}
                   >
-                    Ya, Lewati
+                    {t("teacherOnboarding.wizard.dismissConfirm.confirm")}
                   </Button>
                 </div>
               </div>

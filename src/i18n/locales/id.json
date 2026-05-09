@@ -1484,5 +1484,121 @@
       "announcements": "Pengumuman",
       "menu": "Menu"
     }
+  },
+  "teacherOnboarding": {
+    "welcome": {
+      "defaultFirstName": "Guru",
+      "title": "Selamat Datang di EduSync! 🎉",
+      "greetingPrefix": "Halo, ",
+      "greetingSuffix": "! Kami akan membantu Anda memulai perjalanan mengajar digital dalam beberapa langkah mudah.",
+      "duration": "Proses ini hanya memakan waktu sekitar 2 menit.",
+      "cards": {
+        "createClass": "Buat Kelas",
+        "inviteStudents": "Undang Siswa",
+        "createMaterial": "Buat Materi"
+      },
+      "startButton": "Mulai Pengaturan"
+    },
+    "createClass": {
+      "alreadyCreated": {
+        "title": "Kelas sudah dibuat!",
+        "description": "Kelas Anda telah berhasil dibuat sebelumnya.",
+        "continue": "Lanjut ke Undang Siswa"
+      },
+      "errors": {
+        "nameRequired": "Nama kelas wajib diisi.",
+        "fetchFailed": "Gagal mengambil data kelas yang baru dibuat.",
+        "createFailed": "Gagal membuat kelas. Coba lagi."
+      },
+      "title": "Buat Kelas Pertama",
+      "subtitle": "Isi detail kelas Anda",
+      "fields": {
+        "name": {
+          "label": "Nama Kelas",
+          "placeholder": "Contoh: Kelas 9A, XII IPA 1"
+        },
+        "subject": {
+          "label": "Mata Pelajaran",
+          "placeholder": "Contoh: Matematika, Bahasa Indonesia"
+        },
+        "year": {
+          "label": "Tahun Ajaran",
+          "placeholder": "Contoh: 2025/2026"
+        }
+      },
+      "skip": "Lewati",
+      "submit": "Buat Kelas"
+    },
+    "inviteStudents": {
+      "title": "Undang Siswa ke Kelas",
+      "subtitle": "Bagikan kode ini ke siswa Anda",
+      "joinCodeLabel": "Kode Bergabung",
+      "codeValidity": "Berlaku hingga kelas dihapus",
+      "copyCode": "Salin Kode",
+      "copyLink": "Salin Link",
+      "qrAlt": "QR Code bergabung kelas",
+      "qrTitle": "QR Code",
+      "qrDescription": "Tampilkan di papan tulis agar siswa bisa scan langsung",
+      "tipsLabel": "Tips:",
+      "tipsMessage": "Bagikan kode ini ke siswa via WhatsApp atau tulis di papan tulis. Siswa cukup buka EduSync dan masukkan kode ini.",
+      "continue": "Selesai, Lanjut"
+    },
+    "createCourse": {
+      "alreadyCreated": {
+        "title": "Kursus sudah dibuat!",
+        "description": "Kursus Anda telah berhasil dibuat sebelumnya.",
+        "continue": "Lanjut"
+      },
+      "errors": {
+        "titleRequired": "Judul kursus wajib diisi.",
+        "createFailedShort": "Gagal membuat kursus.",
+        "createFailed": "Gagal membuat kursus. Coba lagi."
+      },
+      "title": "Buat Materi Pertama",
+      "subtitle": "Mulai buat kursus pembelajaran",
+      "fields": {
+        "title": {
+          "label": "Judul Kursus",
+          "placeholder": "Contoh: Aljabar Dasar, Teks Narasi"
+        },
+        "subject": {
+          "label": "Mata Pelajaran",
+          "placeholder": "Contoh: Matematika, Bahasa Indonesia"
+        }
+      },
+      "builderTipBefore": "Setelah membuat kursus, Anda akan langsung diarahkan ke",
+      "builderTipName": "Course Builder",
+      "builderTipAfter": "untuk menambahkan modul dan materi pelajaran.",
+      "skip": "Nanti saja",
+      "submit": "Buat Kursus"
+    },
+    "ready": {
+      "title": "Anda Siap Mengajar! 🚀",
+      "subtitle": "EduSync sudah dikonfigurasi untuk Anda.",
+      "checklist": {
+        "classCreated": "Kelas dibuat",
+        "studentsInvited": "Siswa diundang",
+        "materialAdded": "Materi ditambahkan"
+      },
+      "nextStepsLabel": "Langkah Selanjutnya",
+      "nextSteps": {
+        "createQuiz": "Buat Kuis",
+        "viewAnalytics": "Lihat Analitik",
+        "gradeAssignments": "Koreksi Tugas",
+        "explore": "Eksplorasi Fitur"
+      },
+      "startTeaching": "Mulai Mengajar!"
+    },
+    "wizard": {
+      "stepProgress": "Langkah __CURRENT__ dari __TOTAL__",
+      "closeAria": "Tutup panduan",
+      "back": "← Kembali",
+      "dismissConfirm": {
+        "title": "Yakin ingin melewati panduan ini?",
+        "description": "Panduan ini tidak akan muncul lagi. Anda tetap bisa mengatur kelas dan materi secara manual.",
+        "cancel": "Lanjutkan",
+        "confirm": "Ya, Lewati"
+      }
+    }
   }
 }
