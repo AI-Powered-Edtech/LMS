@@ -792,7 +792,7 @@
   "notificationsPage": {
     "pageTitle": "Notifications",
     "title": "Notifications",
-    "unreadCount": "count unread",
+    "unreadCount": "__COUNT__ unread",
     "allRead": "All caught up",
     "preferencesTitle": "Notification Settings",
     "actions": {
@@ -802,10 +802,10 @@
     },
     "time": {
       "justNow": "just now",
-      "minutesAgo": "count minutes ago",
-      "hoursAgo": "count hours ago",
+      "minutesAgo": "__COUNT__ minutes ago",
+      "hoursAgo": "__COUNT__ hours ago",
       "yesterday": "yesterday",
-      "daysAgo": "count days ago"
+      "daysAgo": "__COUNT__ days ago"
     },
     "tabs": {
       "all": "All",

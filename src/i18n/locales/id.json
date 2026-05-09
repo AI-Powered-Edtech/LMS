@@ -792,7 +792,7 @@
   "notificationsPage": {
     "pageTitle": "Notifikasi",
     "title": "Notifikasi",
-    "unreadCount": "count belum dibaca",
+    "unreadCount": "__COUNT__ belum dibaca",
     "allRead": "Semua sudah dibaca",
     "preferencesTitle": "Pengaturan Notifikasi",
     "actions": {
@@ -802,10 +802,10 @@
     },
     "time": {
       "justNow": "baru saja",
-      "minutesAgo": "count menit lalu",
-      "hoursAgo": "count jam lalu",
+      "minutesAgo": "__COUNT__ menit lalu",
+      "hoursAgo": "__COUNT__ jam lalu",
       "yesterday": "kemarin",
-      "daysAgo": "count hari lalu"
+      "daysAgo": "__COUNT__ hari lalu"
     },
     "tabs": {
       "all": "Semua",

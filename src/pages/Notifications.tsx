@@ -65,10 +65,17 @@ function relativeTime(dateStr: string, t: TFunction): string {
 
   if (seconds < 60) return t("notificationsPage.time.justNow");
   if (minutes < 60)
-    return t("notificationsPage.time.minutesAgo", { count: minutes });
-  if (hours < 24) return t("notificationsPage.time.hoursAgo", { count: hours });
+    return t("notificationsPage.time.minutesAgo").replace(
+      "__COUNT__",
+      String(minutes),
+    );
+  if (hours < 24)
+    return t("notificationsPage.time.hoursAgo").replace(
+      "__COUNT__",
+      String(hours),
+    );
   if (days === 1) return t("notificationsPage.time.yesterday");
-  return t("notificationsPage.time.daysAgo", { count: days });
+  return t("notificationsPage.time.daysAgo").replace("__COUNT__", String(days));
 }
 
 const TAB_LABEL_KEYS: Record<FilterTab, string> = {
@@ -229,7 +236,10 @@ export function Notifications() {
           </h1>
           <p className="text-sm text-slate-500 dark:text-slate-400 mt-0.5">
             {unreadCount > 0
-              ? t("notificationsPage.unreadCount", { count: unreadCount })
+              ? t("notificationsPage.unreadCount").replace(
+                  "__COUNT__",
+                  String(unreadCount),
+                )
               : t("notificationsPage.allRead")}
           </p>
         </div>
