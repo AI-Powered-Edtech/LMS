@@ -97,6 +97,7 @@ use storage::handlers::{
     create_signed_url_handler, download_handler, list_handler, migration_status_handler,
     presign_upload_handler, public_url_handler, remove_handler, upload_handler,
 };
+use storage::transcode_handlers::{create_transcode_handler, get_transcode_status_handler};
 use ai_tutor_real::ai_tutor_stream_handler;
 use report_real::{executive_report_handler, parent_report_handler};
 use report_handlers::{export_report_handler, get_export_status_handler};
@@ -481,6 +482,8 @@ async fn main() -> anyhow::Result<()> {
         .endpoint(Method::POST, "/sign", post(create_signed_url_handler))
         .endpoint(Method::POST, "/presign-upload", post(presign_upload_handler))
         .endpoint(Method::GET, "/list/:bucket", get(list_handler))
+        .endpoint(Method::GET, "/transcode-status/:video_id", get(get_transcode_status_handler))
+        .endpoint(Method::POST, "/transcode", post(create_transcode_handler))
         .endpoint(
             Method::GET,
             "/migration-status",
