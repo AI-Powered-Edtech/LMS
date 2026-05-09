@@ -869,5 +869,36 @@
       "title": "Tidak ada notifikasi baru",
       "description": "Semua notifikasi akan muncul di sini"
     }
+  },
+  "notificationsPanel": {
+    "title": "Notifikasi",
+    "unreadCount": "__COUNT__ belum dibaca",
+    "allRead": "Semua sudah dibaca",
+    "loading": "Memuat notifikasi",
+    "aria": {
+      "panel": "Panel notifikasi"
+    },
+    "status": {
+      "read": "sudah dibaca",
+      "unread": "belum dibaca",
+      "clickToOpen": "klik untuk buka"
+    },
+    "time": {
+      "justNow": "baru saja",
+      "minutesAgo": "__COUNT__ menit lalu",
+      "hoursAgo": "__COUNT__ jam lalu",
+      "yesterday": "kemarin",
+      "daysAgo": "__COUNT__ hari lalu"
+    },
+    "actions": {
+      "markAllRead": "Tandai semua sudah dibaca",
+      "markAllReadAria": "Tandai semua __COUNT__ notifikasi sebagai sudah dibaca",
+      "settingsAria": "Pengaturan notifikasi",
+      "viewAll": "Lihat semua notifikasi"
+    },
+    "empty": {
+      "title": "Tidak ada notifikasi baru",
+      "description": "Kamu akan melihat notifikasi di sini"
+    }
   }
 }

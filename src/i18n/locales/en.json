@@ -869,5 +869,36 @@
       "title": "No new notifications",
       "description": "All notifications will appear here"
     }
+  },
+  "notificationsPanel": {
+    "title": "Notifications",
+    "unreadCount": "__COUNT__ unread",
+    "allRead": "All caught up",
+    "loading": "Loading notifications",
+    "aria": {
+      "panel": "Notification panel"
+    },
+    "status": {
+      "read": "read",
+      "unread": "unread",
+      "clickToOpen": "click to open"
+    },
+    "time": {
+      "justNow": "just now",
+      "minutesAgo": "__COUNT__ minutes ago",
+      "hoursAgo": "__COUNT__ hours ago",
+      "yesterday": "yesterday",
+      "daysAgo": "__COUNT__ days ago"
+    },
+    "actions": {
+      "markAllRead": "Mark all as read",
+      "markAllReadAria": "Mark all __COUNT__ notifications as read",
+      "settingsAria": "Notification settings",
+      "viewAll": "View all notifications"
+    },
+    "empty": {
+      "title": "No new notifications",
+      "description": "You will see notifications here"
+    }
   }
 }
