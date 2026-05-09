@@ -1,14 +1,15 @@
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { Download, Plug, RefreshCw } from 'lucide-react'
 import { useState } from 'react'
 
 import { Button } from '@/components/ui/Button'
 import { Card } from '@/components/ui/Card'
+
 import { useAuth } from '@/contexts/AuthContext'
 import { dapodikCsvExport } from '@/features/exports/api/dapodikCsvExport'
 import { integrationService } from '@/features/integrations/api/integrationService'
-import { usePageTitle } from '@/hooks/usePageTitle'
 import { useToast } from '@/hooks/useToast'
+import { usePageTitle } from '@/hooks/usePageTitle'
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 
 interface IntegrationDef {
   key: string
