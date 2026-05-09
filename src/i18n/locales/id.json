@@ -489,5 +489,73 @@
       "daysAgo": "{count} hari lalu",
       "weeksAgo": "{count} minggu lalu"
     }
+  },
+  "courses": {
+    "pageTitle": "Kursus | EduSync LMS",
+    "title": "Kelola Materi",
+    "subtitle": "Susun kurikulum, modul pembelajaran, dan kuis interaktif untuk siswa Anda.",
+    "searchPlaceholder": "Cari materi...",
+    "searchAria": "Cari materi",
+    "loading": "Memuat daftar materi...",
+    "loadingMore": "Memuat lebih banyak...",
+    "allShown": "Semua {count} kursus ditampilkan",
+    "errorTitle": "Oops! Ada kendala",
+    "errorDescription": "Gagal memuat daftar materi.",
+    "actions": {
+      "exportCsv": "Ekspor CSV",
+      "createNew": "Buat Materi Baru",
+      "reload": "Coba Muat Ulang",
+      "createFirst": "Buat Materi Pertama"
+    },
+    "empty": {
+      "searchTitle": "Materi Tidak Ditemukan",
+      "title": "Mulai Petualangan Anda",
+      "searchDescription": "Tidak ada materi yang cocok dengan \"{query}\". Coba kata kunci lain.",
+      "description": "Anda belum memiliki materi. Mari buat materi pertama yang menginspirasi siswa Anda!"
+    },
+    "create": {
+      "title": "Buat Materi Baru",
+      "description": "Lengkapi detail di bawah untuk memulai penyusunan materi.",
+      "titleLabel": "Judul Materi",
+      "titlePlaceholder": "Contoh: Dasar-dasar Design Thinking",
+      "subjectLabel": "Mata Pelajaran",
+      "subjectPlaceholder": "Contoh: Seni Rupa",
+      "levelLabel": "Tingkat / Kelas",
+      "levelPlaceholder": "Pilih Tingkat...",
+      "shortDescriptionLabel": "Deskripsi Singkat",
+      "shortDescriptionPlaceholder": "Opsional: Jelaskan apa yang akan dipelajari siswa dalam materi ini...",
+      "unsavedConfirm": "Perubahan belum disimpan. Tutup tetap?",
+      "saving": "Menyimpan...",
+      "submit": "Buat & Mulai Edit"
+    },
+    "levels": {
+      "elementary": "SD / Sederajat",
+      "middle": "SMP / Sederajat",
+      "high": "SMA / SMK / Sederajat",
+      "college": "Perguruan Tinggi",
+      "generalProfessional": "Umum / Profesional"
+    },
+    "toasts": {
+      "createError": "Gagal membuat materi baru.",
+      "createSuccess": "Materi \"{title}\" berhasil dibuat.",
+      "exportSuccess": "Daftar kursus berhasil diekspor ke CSV.",
+      "exportError": "Gagal mengekspor CSV."
+    },
+    "csv": {
+      "title": "Judul",
+      "subject": "Mata Pelajaran",
+      "level": "Tingkat",
+      "description": "Deskripsi",
+      "modules": "Modul",
+      "updatedAt": "Diperbarui Pada"
+    },
+    "card": {
+      "openAria": "Buka kursus {title}",
+      "moduleCount": "{count} Modul",
+      "noDescription": "Tidak ada deskripsi",
+      "classFallback": "Kelas",
+      "assignToClass": "Tugaskan ke Kelas",
+      "edit": "Edit Materi"
+    }
   }
 }

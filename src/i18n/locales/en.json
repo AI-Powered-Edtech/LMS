@@ -489,5 +489,73 @@
       "daysAgo": "{count} days ago",
       "weeksAgo": "{count} weeks ago"
     }
+  },
+  "courses": {
+    "pageTitle": "Courses | EduSync LMS",
+    "title": "Manage Learning Materials",
+    "subtitle": "Organize curriculum, learning modules, and interactive quizzes for your students.",
+    "searchPlaceholder": "Search materials...",
+    "searchAria": "Search materials",
+    "loading": "Loading materials...",
+    "loadingMore": "Loading more...",
+    "allShown": "All {count} courses shown",
+    "errorTitle": "Oops! Something went wrong",
+    "errorDescription": "Failed to load materials.",
+    "actions": {
+      "exportCsv": "Export CSV",
+      "createNew": "Create New Material",
+      "reload": "Try Again",
+      "createFirst": "Create First Material"
+    },
+    "empty": {
+      "searchTitle": "Material Not Found",
+      "title": "Start Your Journey",
+      "searchDescription": "No materials match \"{query}\". Try another keyword.",
+      "description": "You do not have any materials yet. Create your first inspiring material for students!"
+    },
+    "create": {
+      "title": "Create New Material",
+      "description": "Complete the details below to start building the material.",
+      "titleLabel": "Material Title",
+      "titlePlaceholder": "Example: Design Thinking Basics",
+      "subjectLabel": "Subject",
+      "subjectPlaceholder": "Example: Visual Arts",
+      "levelLabel": "Level / Class",
+      "levelPlaceholder": "Choose level...",
+      "shortDescriptionLabel": "Short Description",
+      "shortDescriptionPlaceholder": "Optional: Explain what students will learn in this material...",
+      "unsavedConfirm": "You have unsaved changes. Close anyway?",
+      "saving": "Saving...",
+      "submit": "Create & Start Editing"
+    },
+    "levels": {
+      "elementary": "Elementary / Equivalent",
+      "middle": "Middle School / Equivalent",
+      "high": "High School / Vocational / Equivalent",
+      "college": "Higher Education",
+      "generalProfessional": "General / Professional"
+    },
+    "toasts": {
+      "createError": "Failed to create new material.",
+      "createSuccess": "Material \"{title}\" was created successfully.",
+      "exportSuccess": "Course list exported to CSV successfully.",
+      "exportError": "Failed to export CSV."
+    },
+    "csv": {
+      "title": "Title",
+      "subject": "Subject",
+      "level": "Level",
+      "description": "Description",
+      "modules": "Modules",
+      "updatedAt": "Updated At"
+    },
+    "card": {
+      "openAria": "Open course {title}",
+      "moduleCount": "{count} Modules",
+      "noDescription": "No description",
+      "classFallback": "Class",
+      "assignToClass": "Assign to Class",
+      "edit": "Edit Material"
+    }
   }
 }
