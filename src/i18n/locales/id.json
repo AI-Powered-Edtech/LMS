@@ -413,6 +413,19 @@
       "lastNamePlaceholder": "Masukkan nama belakang",
       "changesSavedSuccess": "Perubahan berhasil disimpan.",
       "saveChangesButton": "Simpan Perubahan"
+    },
+    "public": {
+      "pageTitle": "Profil Publik",
+      "unavailableTitle": "Profil Tidak Tersedia",
+      "unavailableDescription": "Profil ini tidak tersedia atau bersifat privat.",
+      "publicProfile": "Profil Publik",
+      "privateProfile": "Profil Privat",
+      "totalXp": "Total XP",
+      "level": "Level",
+      "streakDays": "Hari Beruntun",
+      "completedCourses": "Kursus Selesai",
+      "badges": "Lencana",
+      "noBadges": "Belum ada lencana yang diraih"
     }
   }
 }

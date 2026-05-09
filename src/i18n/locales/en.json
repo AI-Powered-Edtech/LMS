@@ -413,6 +413,19 @@
       "lastNamePlaceholder": "Enter last name",
       "changesSavedSuccess": "Changes saved successfully.",
       "saveChangesButton": "Save Changes"
+    },
+    "public": {
+      "pageTitle": "Public Profile",
+      "unavailableTitle": "Profile Unavailable",
+      "unavailableDescription": "This profile is unavailable or private.",
+      "publicProfile": "Public Profile",
+      "privateProfile": "Private Profile",
+      "totalXp": "Total XP",
+      "level": "Level",
+      "streakDays": "Streak Days",
+      "completedCourses": "Completed Courses",
+      "badges": "Badges",
+      "noBadges": "No badges earned yet"
     }
   }
 }

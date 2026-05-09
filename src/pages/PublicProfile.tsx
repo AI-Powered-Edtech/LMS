@@ -1,14 +1,25 @@
-import { Award, BookOpen, ChevronLeft, Eye, EyeOff, Flame, Star, User, Zap } from 'lucide-react'
-import { useNavigate, useParams } from 'react-router-dom'
+import {
+  Award,
+  BookOpen,
+  ChevronLeft,
+  Eye,
+  EyeOff,
+  Flame,
+  Star,
+  User,
+  Zap,
+} from "lucide-react";
+import { useTranslation } from "react-i18next";
+import { useNavigate, useParams } from "react-router-dom";
 
-import { useAuth } from '@/contexts/AuthContext'
+import { useAuth } from "@/contexts/AuthContext";
 import {
   useProfileIdByUsername,
   usePublicProfileById,
   useUpdateProfilePrivacy,
-} from '@/features/profile/hooks/usePublicProfile'
-import { usePageTitle } from '@/hooks/usePageTitle'
-import { cn } from '@/utils/cn'
+} from "@/features/profile/hooks/usePublicProfile";
+import { usePageTitle } from "@/hooks/usePageTitle";
+import { cn } from "@/utils/cn";
 
 // ── Skeleton ──────────────────────────────────────────────────────────────────
 function ProfileSkeleton() {
@@ -25,66 +36,81 @@ function ProfileSkeleton() {
           </div>
           <div className="mt-6 grid grid-cols-2 sm:grid-cols-4 gap-3">
             {[1, 2, 3, 4].map((i) => (
-              <div key={i} className="h-20 bg-slate-100 dark:bg-slate-700 rounded-2xl" />
+              <div
+                key={i}
+                className="h-20 bg-slate-100 dark:bg-slate-700 rounded-2xl"
+              />
             ))}
           </div>
         </div>
       </div>
     </div>
-  )
+  );
 }
 
 // ── Stat card ─────────────────────────────────────────────────────────────────
 interface StatCardProps {
-  icon: React.ElementType
-  label: string
-  value: number | string
-  iconClass?: string
+  icon: React.ElementType;
+  label: string;
+  value: number | string;
+  iconClass?: string;
 }
 
 function StatCard({ icon: Icon, label, value, iconClass }: StatCardProps) {
   return (
     <div className="flex flex-col items-center justify-center gap-1.5 py-4 px-3 bg-slate-50 dark:bg-slate-700/60 rounded-2xl text-center">
-      <Icon className={cn('w-5 h-5', iconClass ?? 'text-indigo-500 dark:text-indigo-400')} />
+      <Icon
+        className={cn(
+          "w-5 h-5",
+          iconClass ?? "text-indigo-500 dark:text-indigo-400",
+        )}
+      />
       <p className="text-lg font-extrabold text-slate-900 dark:text-slate-100 tabular-nums">
         {value}
       </p>
-      <p className="text-xs text-slate-500 dark:text-slate-400 leading-tight">{label}</p>
+      <p className="text-xs text-slate-500 dark:text-slate-400 leading-tight">
+        {label}
+      </p>
     </div>
-  )
+  );
 }
 
 // ── Badge chip ────────────────────────────────────────────────────────────────
 function BadgeChip({ name, icon }: { name: string; icon: string | null }) {
-  const emoji = icon ?? '🏅'
+  const emoji = icon ?? "🏅";
   return (
     <div className="flex items-center gap-2 px-3 py-2 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-xl text-sm font-medium text-amber-800 dark:text-amber-300">
       <span className="text-base leading-none">{emoji}</span>
       <span className="truncate">{name}</span>
     </div>
-  )
+  );
 }
 
 // ── Main component ────────────────────────────────────────────────────────────
 export function PublicProfile() {
-  usePageTitle('Profil Publik')
-  const { username } = useParams<{ username: string }>()
-  const navigate = useNavigate()
-  const { user } = useAuth()
+  const { t, i18n } = useTranslation();
+  usePageTitle(t("profile.public.pageTitle"));
+  const { username } = useParams<{ username: string }>();
+  const navigate = useNavigate();
+  const { user } = useAuth();
 
   // Resolve username → userId
-  const { data: resolved, isLoading: isResolvingId } = useProfileIdByUsername(username)
-  const targetUserId = resolved?.id
+  const { data: resolved, isLoading: isResolvingId } =
+    useProfileIdByUsername(username);
+  const targetUserId = resolved?.id;
 
   // Fetch profile data
-  const { data: profile, isLoading: isLoadingProfile } = usePublicProfileById(targetUserId)
+  const { data: profile, isLoading: isLoadingProfile } =
+    usePublicProfileById(targetUserId);
 
-  const isOwn = !!user && user.id === targetUserId
-  const { mutate: setPrivacy, isPending: isToggling } = useUpdateProfilePrivacy(targetUserId ?? '')
+  const isOwn = !!user && user.id === targetUserId;
+  const { mutate: setPrivacy, isPending: isToggling } = useUpdateProfilePrivacy(
+    targetUserId ?? "",
+  );
 
-  const isLoading = isResolvingId || isLoadingProfile
+  const isLoading = isResolvingId || isLoadingProfile;
 
-  if (isLoading) return <ProfileSkeleton />
+  if (isLoading) return <ProfileSkeleton />;
 
   // Not found or private (null = private/not found, undefined = still loading handled above)
   if (!targetUserId || profile == null) {
@@ -94,7 +120,7 @@ export function PublicProfile() {
           onClick={() => navigate(-1)}
           className="flex items-center gap-2 text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 transition-colors font-medium text-sm"
         >
-          <ChevronLeft className="w-4 h-4" /> Kembali
+          <ChevronLeft className="w-4 h-4" /> {t("common.back")}
         </button>
 
         <div className="bg-white dark:bg-slate-800 rounded-3xl border border-slate-200 dark:border-slate-700 shadow-sm p-12 text-center">
@@ -102,20 +128,22 @@ export function PublicProfile() {
             <User className="w-10 h-10 text-slate-400 dark:text-slate-500" />
           </div>
           <h2 className="text-xl font-bold text-slate-900 dark:text-slate-100 mb-2">
-            Profil Tidak Tersedia
+            {t("profile.public.unavailableTitle")}
           </h2>
           <p className="text-sm text-slate-500 dark:text-slate-400 max-w-sm mx-auto">
-            Profil ini tidak tersedia atau bersifat privat.
+            {t("profile.public.unavailableDescription")}
           </p>
         </div>
       </div>
-    )
+    );
   }
 
-  const { stats, badges } = profile
-  const displayName = profile.full_name || profile.username || 'Pengguna'
+  const { stats, badges } = profile;
+  const displayName =
+    profile.full_name || profile.username || t("profile.account.defaultUser");
   const avatarSrc =
-    profile.avatar_url ?? `https://api.dicebear.com/7.x/avataaars/svg?seed=${profile.id}`
+    profile.avatar_url ??
+    `https://api.dicebear.com/7.x/avataaars/svg?seed=${profile.id}`;
 
   return (
     <div className="max-w-4xl mx-auto p-4 md:p-8 space-y-6 pb-24 md:pb-8">
@@ -124,7 +152,7 @@ export function PublicProfile() {
         onClick={() => navigate(-1)}
         className="flex items-center gap-2 text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 transition-colors font-medium text-sm"
       >
-        <ChevronLeft className="w-4 h-4" /> Kembali
+        <ChevronLeft className="w-4 h-4" /> {t("common.back")}
       </button>
 
       {/* Profile card */}
@@ -142,8 +170,8 @@ export function PublicProfile() {
                   alt={displayName}
                   className="w-full h-full object-cover"
                   onError={(e) => {
-                    ;(e.currentTarget as HTMLImageElement).src =
-                      `https://api.dicebear.com/7.x/initials/svg?seed=${displayName}`
+                    (e.currentTarget as HTMLImageElement).src =
+                      `https://api.dicebear.com/7.x/initials/svg?seed=${displayName}`;
                   }}
                 />
               </div>
@@ -165,22 +193,22 @@ export function PublicProfile() {
                 onClick={() => setPrivacy(!profile.is_profile_public)}
                 disabled={isToggling}
                 className={cn(
-                  'flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-bold border transition-all shrink-0',
+                  "flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-bold border transition-all shrink-0",
                   profile.is_profile_public
-                    ? 'border-emerald-200 dark:border-emerald-800 bg-emerald-50 dark:bg-emerald-900/20 text-emerald-700 dark:text-emerald-400 hover:bg-emerald-100 dark:hover:bg-emerald-900/30'
-                    : 'border-slate-200 dark:border-slate-600 bg-slate-50 dark:bg-slate-700 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-600',
-                  isToggling && 'opacity-50 cursor-not-allowed'
+                    ? "border-emerald-200 dark:border-emerald-800 bg-emerald-50 dark:bg-emerald-900/20 text-emerald-700 dark:text-emerald-400 hover:bg-emerald-100 dark:hover:bg-emerald-900/30"
+                    : "border-slate-200 dark:border-slate-600 bg-slate-50 dark:bg-slate-700 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-600",
+                  isToggling && "opacity-50 cursor-not-allowed",
                 )}
               >
                 {profile.is_profile_public ? (
                   <>
                     <Eye className="w-4 h-4" />
-                    Profil Publik
+                    {t("profile.public.publicProfile")}
                   </>
                 ) : (
                   <>
                     <EyeOff className="w-4 h-4" />
-                    Profil Privat
+                    {t("profile.public.privateProfile")}
                   </>
                 )}
               </button>
@@ -198,25 +226,27 @@ export function PublicProfile() {
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-6">
             <StatCard
               icon={Zap}
-              label="Total XP"
-              value={stats.total_xp.toLocaleString('id-ID')}
+              label={t("profile.public.totalXp")}
+              value={stats.total_xp.toLocaleString(
+                i18n.language === "en" ? "en-US" : "id-ID",
+              )}
               iconClass="text-yellow-500"
             />
             <StatCard
               icon={Star}
-              label="Level"
+              label={t("profile.public.level")}
               value={stats.level}
               iconClass="text-indigo-500 dark:text-indigo-400"
             />
             <StatCard
               icon={Flame}
-              label="Hari Beruntun"
+              label={t("profile.public.streakDays")}
               value={stats.streak}
               iconClass="text-orange-500"
             />
             <StatCard
               icon={BookOpen}
-              label="Kursus Selesai"
+              label={t("profile.public.completedCourses")}
               value={stats.courses_done}
               iconClass="text-emerald-500"
             />
@@ -227,7 +257,7 @@ export function PublicProfile() {
             <div className="flex items-center gap-2 mb-3">
               <Award className="w-5 h-5 text-amber-500" />
               <h2 className="font-bold text-slate-900 dark:text-slate-100 text-base">
-                Lencana ({stats.badge_count})
+                {t("profile.public.badges")} ({stats.badge_count})
               </h2>
             </div>
 
@@ -235,19 +265,29 @@ export function PublicProfile() {
               <div className="text-center py-8 bg-slate-50 dark:bg-slate-700/40 rounded-2xl border border-dashed border-slate-200 dark:border-slate-600">
                 <Award className="w-10 h-10 mx-auto text-slate-300 dark:text-slate-600 mb-2" />
                 <p className="text-sm text-slate-500 dark:text-slate-400">
-                  Belum ada lencana yang diraih
+                  {t("profile.public.noBadges")}
                 </p>
               </div>
             ) : (
               <div className="flex flex-wrap gap-2">
-                {badges.map((badge: { id: string; name: string; icon: string | null }) => (
-                  <BadgeChip key={badge.id} name={badge.name} icon={badge.icon} />
-                ))}
+                {badges.map(
+                  (badge: {
+                    id: string;
+                    name: string;
+                    icon: string | null;
+                  }) => (
+                    <BadgeChip
+                      key={badge.id}
+                      name={badge.name}
+                      icon={badge.icon}
+                    />
+                  ),
+                )}
               </div>
             )}
           </div>
         </div>
       </div>
     </div>
-  )
+  );
 }
