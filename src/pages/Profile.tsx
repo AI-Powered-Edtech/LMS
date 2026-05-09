@@ -9,63 +9,71 @@ import {
   ShieldCheck,
   Star,
   Trophy,
-} from 'lucide-react'
-import { motion } from 'motion/react'
+} from "lucide-react";
+import { motion } from "motion/react";
+import { useTranslation } from "react-i18next";
 
-import { OptimizedImage, useToast } from '@/components/ui'
-import { useAuth } from '@/contexts/AuthContext'
-import { BadgeShowcase } from '@/features/gamification/components/BadgeShowcase'
-import { CertificateViewer } from '@/features/gamification/components/CertificateViewer'
-import { StreakCounter } from '@/features/gamification/components/StreakCounter'
-import { XPProgressBar } from '@/features/gamification/components/XPProgressBar'
+import { OptimizedImage, useToast } from "@/components/ui";
+import { useAuth } from "@/contexts/AuthContext";
+import { BadgeShowcase } from "@/features/gamification/components/BadgeShowcase";
+import { CertificateViewer } from "@/features/gamification/components/CertificateViewer";
+import { StreakCounter } from "@/features/gamification/components/StreakCounter";
+import { XPProgressBar } from "@/features/gamification/components/XPProgressBar";
 import {
   useStudentCertificates,
   useStudentXPProfile,
-} from '@/features/gamification/queries/gamificationQueries'
-import { PasswordChangeForm } from '@/features/profile/components/PasswordChangeForm'
-import { ProfileForm } from '@/features/profile/components/ProfileForm'
-import { useStudentProgressData } from '@/features/progress/hooks/useStudentProgressQueries'
-import { usePageTitle } from '@/hooks/usePageTitle'
-import { cn } from '@/utils/cn'
+} from "@/features/gamification/queries/gamificationQueries";
+import { PasswordChangeForm } from "@/features/profile/components/PasswordChangeForm";
+import { ProfileForm } from "@/features/profile/components/ProfileForm";
+import { useStudentProgressData } from "@/features/progress/hooks/useStudentProgressQueries";
+import { usePageTitle } from "@/hooks/usePageTitle";
+import { cn } from "@/utils/cn";
 
 export function Profile() {
-  usePageTitle('Profil')
-  const { user, role, activeRole, profile } = useAuth()
-  const addToast = useToast((s) => s.addToast)
+  const { t } = useTranslation();
+  usePageTitle(t("profile.page.pageTitle"));
+  const { user, role, activeRole, profile } = useAuth();
+  const addToast = useToast((s) => s.addToast);
   // SECURITY FIX: Use activeRole (tenant-scoped) instead of global role
-  const isTeacher = activeRole === 'teacher'
+  const isTeacher = activeRole === "teacher";
 
   // Real data hooks (safe to call unconditionally)
-  const { data: xpProfile } = useStudentXPProfile()
-  const { data: certificates = [] } = useStudentCertificates()
-  const { assignments } = useStudentProgressData()
+  const { data: xpProfile } = useStudentXPProfile();
+  const { data: certificates = [] } = useStudentCertificates();
+  const { assignments } = useStudentProgressData();
 
   // Derived identity
   const displayName =
     profile?.first_name && profile?.last_name
       ? `${profile.first_name} ${profile.last_name}`
-      : ((user?.user_metadata?.full_name as string) ?? 'Pengguna')
-  const displayEmail = user?.email ?? ''
+      : ((user?.user_metadata?.full_name as string) ??
+        t("profile.account.defaultUser"));
+  const displayEmail = user?.email ?? "";
   const avatarUrl =
     profile?.avatar_url ??
-    `https://api.dicebear.com/7.x/avataaars/svg?seed=${(user?.id as string) ?? 'default'}`
+    `https://api.dicebear.com/7.x/avataaars/svg?seed=${(user?.id as string) ?? "default"}`;
 
   // Use activeRole for display; fall back to global role only if activeRole not yet resolved
-  const displayRole = activeRole ?? role
-  const roleLabel = displayRole === 'teacher' ? 'Guru' : displayRole === 'admin' ? 'Admin' : 'Siswa'
+  const displayRole = activeRole ?? role;
+  const roleLabel =
+    displayRole === "teacher"
+      ? t("profile.page.roles.teacher")
+      : displayRole === "admin"
+        ? t("profile.page.roles.admin")
+        : t("profile.page.roles.student");
 
   // Student stats from real data
-  const totalXP = xpProfile?.total_xp ?? 0
-  const currentStreak = xpProfile?.streak_current ?? 0
-  const assignmentCount = assignments?.length ?? 0
-  const certificateCount = certificates?.length ?? 0
+  const totalXP = xpProfile?.total_xp ?? 0;
+  const currentStreak = xpProfile?.streak_current ?? 0;
+  const assignmentCount = assignments?.length ?? 0;
+  const certificateCount = certificates?.length ?? 0;
 
   return (
     <div className="p-4 md:p-8 max-w-6xl mx-auto space-y-6 pb-24 md:pb-8">
       {/* Page title */}
       <div className="flex justify-between items-center">
         <h1 className="text-2xl font-extrabold text-slate-900 dark:text-white tracking-tight">
-          Profil Pengguna
+          {t("profile.page.heading")}
         </h1>
       </div>
 
@@ -81,10 +89,10 @@ export function Profile() {
             {/* Hero gradient banner */}
             <div
               className={cn(
-                'absolute top-0 left-0 w-full h-28',
+                "absolute top-0 left-0 w-full h-28",
                 isTeacher
-                  ? 'bg-gradient-to-r from-emerald-500 to-teal-600'
-                  : 'bg-gradient-to-r from-indigo-500 via-blue-500 to-purple-600'
+                  ? "bg-gradient-to-r from-emerald-500 to-teal-600"
+                  : "bg-gradient-to-r from-indigo-500 via-blue-500 to-purple-600",
               )}
             />
 
@@ -100,11 +108,11 @@ export function Profile() {
               <button
                 onClick={() =>
                   addToast({
-                    type: 'warning',
-                    message: 'Fitur ubah foto profil dalam pengembangan.',
+                    type: "warning",
+                    message: t("profile.page.avatarDevelopmentToast"),
                   })
                 }
-                aria-label="Ubah foto profil"
+                aria-label={t("profile.page.changePhotoAria")}
                 disabled
                 className="absolute bottom-0 right-0 w-8 h-8 bg-slate-100 dark:bg-slate-700 rounded-full shadow-md border border-slate-200 dark:border-slate-600 flex items-center justify-center text-slate-400 dark:text-slate-500 cursor-not-allowed"
               >
@@ -114,28 +122,33 @@ export function Profile() {
 
             {/* Identity */}
             <div className="px-6 pb-6 w-full">
-              <h2 className="text-xl font-bold text-slate-900 dark:text-white">{displayName}</h2>
+              <h2 className="text-xl font-bold text-slate-900 dark:text-white">
+                {displayName}
+              </h2>
 
               <div className="flex items-center justify-center gap-2 mt-2 mb-3 flex-wrap">
                 <span
                   className={cn(
-                    'px-2.5 py-0.5 rounded-full text-xs font-bold border',
+                    "px-2.5 py-0.5 rounded-full text-xs font-bold border",
                     isTeacher
-                      ? 'bg-emerald-50 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400 border-emerald-200 dark:border-emerald-700'
-                      : 'bg-indigo-50 dark:bg-indigo-900/30 text-indigo-700 dark:text-indigo-400 border-indigo-200 dark:border-indigo-700'
+                      ? "bg-emerald-50 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400 border-emerald-200 dark:border-emerald-700"
+                      : "bg-indigo-50 dark:bg-indigo-900/30 text-indigo-700 dark:text-indigo-400 border-indigo-200 dark:border-indigo-700",
                   )}
                 >
                   {roleLabel}
                 </span>
                 {isTeacher && (
-                  <span title="Guru Terverifikasi">
+                  <span title={t("profile.page.verifiedTeacher")}>
                     <ShieldCheck className="w-4 h-4 text-emerald-500" />
                   </span>
                 )}
                 {!isTeacher && currentStreak > 0 && (
                   <div className="flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-bold bg-orange-50 dark:bg-orange-900/30 text-orange-700 dark:text-orange-400 border border-orange-200 dark:border-orange-700">
                     <Flame className="w-3.5 h-3.5 fill-current" />
-                    {currentStreak} Hari
+                    {t("profile.page.streakDays").replace(
+                      "{count}",
+                      String(currentStreak),
+                    )}
                   </div>
                 )}
               </div>
@@ -176,7 +189,7 @@ export function Profile() {
         </div>
       </div>
     </div>
-  )
+  );
 }
 
 // ─── Student Overview ────────────────────────────────────────────────────────
@@ -187,11 +200,14 @@ function StudentOverview({
   totalXP,
   currentStreak,
 }: {
-  assignmentCount: number
-  certificateCount: number
-  totalXP: number
-  currentStreak: number
+  assignmentCount: number;
+  certificateCount: number;
+  totalXP: number;
+  currentStreak: number;
 }) {
+  const { t, i18n } = useTranslation();
+  const locale = i18n.language === "en" ? "en-US" : "id-ID";
+
   return (
     <>
       {/* Stats Cards */}
@@ -200,33 +216,37 @@ function StudentOverview({
           icon={<CheckCircle className="w-5 h-5" />}
           iconBg="bg-blue-100 dark:bg-blue-900/40 text-blue-600 dark:text-blue-400"
           value={assignmentCount}
-          label="Tugas"
+          locale={locale}
+          label={t("profile.page.stats.assignments")}
         />
         <StatCard
           icon={<Award className="w-5 h-5" />}
           iconBg="bg-amber-100 dark:bg-amber-900/40 text-amber-600 dark:text-amber-400"
           value={certificateCount}
-          label="Sertifikat"
+          locale={locale}
+          label={t("profile.page.stats.certificates")}
         />
         <StatCard
           icon={<Star className="w-5 h-5" />}
           iconBg="bg-purple-100 dark:bg-purple-900/40 text-purple-600 dark:text-purple-400"
           value={totalXP}
-          label="Total XP"
+          locale={locale}
+          label={t("profile.page.stats.totalXp")}
         />
         <StatCard
           icon={<Flame className="w-5 h-5" />}
           iconBg="bg-orange-100 dark:bg-orange-900/40 text-orange-600 dark:text-orange-400"
           value={currentStreak}
-          label="Streak"
-          unit="Hari"
+          locale={locale}
+          label={t("profile.page.stats.streak")}
+          unit={t("profile.page.stats.days")}
         />
       </div>
 
       {/* XP Progress & Streak */}
       <div className="bg-white dark:bg-slate-800 rounded-3xl p-6 border border-slate-200 dark:border-slate-700 shadow-sm space-y-4">
         <h3 className="text-sm font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-2">
-          Kemajuan XP
+          {t("profile.page.xpProgress")}
         </h3>
         <XPProgressBar />
         <div className="border-t border-slate-100 dark:border-slate-700/60 pt-4">
@@ -239,7 +259,7 @@ function StudentOverview({
         <div className="flex justify-between items-center mb-5">
           <h2 className="text-lg font-bold text-slate-900 dark:text-white flex items-center gap-2">
             <Trophy className="w-5 h-5 text-yellow-500" />
-            Lencana &amp; Pencapaian
+            {t("profile.page.badgesAchievements")}
           </h2>
         </div>
         <BadgeShowcase />
@@ -249,27 +269,28 @@ function StudentOverview({
       <div className="bg-white dark:bg-slate-800 rounded-3xl p-6 border border-slate-200 dark:border-slate-700 shadow-sm">
         <h2 className="text-lg font-bold text-slate-900 dark:text-white flex items-center gap-2 mb-4">
           <Award className="w-5 h-5 text-amber-500" />
-          Sertifikat
+          {t("profile.page.certificates")}
         </h2>
         <CertificateViewer />
       </div>
     </>
-  )
+  );
 }
 
 // ─── Teacher Overview ────────────────────────────────────────────────────────
 
 function TeacherOverview({ displayName }: { displayName: string }) {
+  const { t } = useTranslation();
+
   return (
     <>
       <div className="bg-white dark:bg-slate-800 rounded-3xl p-6 border border-slate-200 dark:border-slate-700 shadow-sm">
         <h2 className="text-lg font-bold text-slate-900 dark:text-white flex items-center gap-2 mb-3">
           <GraduationCap className="w-5 h-5 text-emerald-600" />
-          Selamat Datang, {displayName}
+          {t("profile.page.teacherWelcome").replace("{name}", displayName)}
         </h2>
         <p className="text-sm text-slate-600 dark:text-slate-400 leading-relaxed">
-          Gunakan menu navigasi untuk mengelola kelas, melihat analitik, dan memberi nilai tugas
-          siswa.
+          {t("profile.page.teacherDescription")}
         </p>
       </div>
 
@@ -280,16 +301,17 @@ function TeacherOverview({ displayName }: { displayName: string }) {
             <BookOpen className="w-6 h-6 text-emerald-600 dark:text-emerald-400" />
           </div>
           <div>
-            <h3 className="font-bold text-slate-900 dark:text-white mb-1">Tips Mengajar</h3>
+            <h3 className="font-bold text-slate-900 dark:text-white mb-1">
+              {t("profile.page.teachingTipsTitle")}
+            </h3>
             <p className="text-sm text-slate-600 dark:text-slate-400 leading-relaxed">
-              Unggah materi pembelajaran yang kaya konten untuk meningkatkan keterlibatan siswa dan
-              mendorong hasil belajar yang lebih baik.
+              {t("profile.page.teachingTipsDescription")}
             </p>
           </div>
         </div>
       </div>
     </>
-  )
+  );
 }
 
 // ─── Stat Card ───────────────────────────────────────────────────────────────
@@ -300,30 +322,37 @@ function StatCard({
   value,
   label,
   unit,
+  locale,
 }: {
-  icon: React.ReactNode
-  iconBg: string
-  value: number
-  label: string
-  unit?: string
+  icon: React.ReactNode;
+  iconBg: string;
+  value: number;
+  label: string;
+  unit?: string;
+  locale: string;
 }) {
   return (
     <motion.div
       whileHover={{ y: -2 }}
       className="bg-white dark:bg-slate-800 p-4 rounded-3xl border border-slate-200 dark:border-slate-700 shadow-sm flex flex-col items-center justify-center text-center gap-2 transition-shadow hover:shadow-md dark:hover:shadow-slate-900/40"
     >
-      <div className={cn('w-10 h-10 rounded-full flex items-center justify-center', iconBg)}>
+      <div
+        className={cn(
+          "w-10 h-10 rounded-full flex items-center justify-center",
+          iconBg,
+        )}
+      >
         {icon}
       </div>
       <div>
         <p className="text-2xl font-black text-slate-900 dark:text-white leading-none">
-          {value.toLocaleString('id-ID')}
+          {value.toLocaleString(locale)}
         </p>
         <p className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wide mt-0.5">
           {label}
-          {unit ? ` ${unit}` : ''}
+          {unit ? ` ${unit}` : ""}
         </p>
       </div>
     </motion.div>
-  )
+  );
 }

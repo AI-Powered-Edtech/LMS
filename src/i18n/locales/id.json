@@ -426,6 +426,33 @@
       "completedCourses": "Kursus Selesai",
       "badges": "Lencana",
       "noBadges": "Belum ada lencana yang diraih"
+    },
+    "page": {
+      "pageTitle": "Profil",
+      "heading": "Profil Pengguna",
+      "avatarDevelopmentToast": "Fitur ubah foto profil dalam pengembangan.",
+      "changePhotoAria": "Ubah foto profil",
+      "verifiedTeacher": "Guru Terverifikasi",
+      "streakDays": "{count} Hari",
+      "roles": {
+        "teacher": "Guru",
+        "admin": "Admin",
+        "student": "Siswa"
+      },
+      "stats": {
+        "assignments": "Tugas",
+        "certificates": "Sertifikat",
+        "totalXp": "Total XP",
+        "streak": "Streak",
+        "days": "Hari"
+      },
+      "xpProgress": "Kemajuan XP",
+      "badgesAchievements": "Lencana & Pencapaian",
+      "certificates": "Sertifikat",
+      "teacherWelcome": "Selamat Datang, {name}",
+      "teacherDescription": "Gunakan menu navigasi untuk mengelola kelas, melihat analitik, dan memberi nilai tugas siswa.",
+      "teachingTipsTitle": "Tips Mengajar",
+      "teachingTipsDescription": "Unggah materi pembelajaran yang kaya konten untuk meningkatkan keterlibatan siswa dan mendorong hasil belajar yang lebih baik."
     }
   },
   "documents": {

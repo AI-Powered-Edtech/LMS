@@ -426,6 +426,33 @@
       "completedCourses": "Completed Courses",
       "badges": "Badges",
       "noBadges": "No badges earned yet"
+    },
+    "page": {
+      "pageTitle": "Profile",
+      "heading": "User Profile",
+      "avatarDevelopmentToast": "Profile photo changes are under development.",
+      "changePhotoAria": "Change profile photo",
+      "verifiedTeacher": "Verified Teacher",
+      "streakDays": "{count} Days",
+      "roles": {
+        "teacher": "Teacher",
+        "admin": "Admin",
+        "student": "Student"
+      },
+      "stats": {
+        "assignments": "Assignments",
+        "certificates": "Certificates",
+        "totalXp": "Total XP",
+        "streak": "Streak",
+        "days": "Days"
+      },
+      "xpProgress": "XP Progress",
+      "badgesAchievements": "Badges & Achievements",
+      "certificates": "Certificates",
+      "teacherWelcome": "Welcome, {name}",
+      "teacherDescription": "Use the navigation menu to manage classes, view analytics, and grade student assignments.",
+      "teachingTipsTitle": "Teaching Tips",
+      "teachingTipsDescription": "Upload rich learning materials to increase student engagement and encourage better learning outcomes."
     }
   },
   "documents": {
