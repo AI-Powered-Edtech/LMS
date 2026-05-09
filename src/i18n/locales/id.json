@@ -427,5 +427,67 @@
       "badges": "Lencana",
       "noBadges": "Belum ada lencana yang diraih"
     }
+  },
+  "documents": {
+    "pageTitle": "Manajemen Dokumen",
+    "title": "Surat & Dokumen",
+    "totalStored": "{count} dokumen tersimpan",
+    "searchPlaceholder": "Cari dokumen...",
+    "allDocuments": "Semua Dokumen",
+    "searchResultLabel": "Pencarian",
+    "loading": "Memuat dokumen...",
+    "emptyTitle": "Belum ada dokumen",
+    "emptySearchDescription": "Tidak ditemukan dokumen dengan kata kunci \"{query}\"",
+    "emptyDescription": "Mulai unggah dokumen sekolah untuk mengelola arsip digital.",
+    "deleteConfirmTitle": "Konfirmasi Hapus",
+    "deleteConfirmDescription": "Yakin ingin menghapus dokumen ini? Tindakan ini tidak dapat dibatalkan dan file akan dihapus permanen dari server.",
+    "categories": {
+      "all": "Semua Kategori",
+      "incomingLetter": "Surat Masuk",
+      "outgoingLetter": "Surat Keluar",
+      "decree": "SK",
+      "announcement": "Pengumuman",
+      "reportCard": "Rapor",
+      "general": "Umum"
+    },
+    "visibility": {
+      "admin": "Admin Saja",
+      "teacher": "Guru & Admin",
+      "all": "Semua"
+    },
+    "upload": {
+      "button": "Unggah Dokumen",
+      "title": "Unggah Dokumen",
+      "dropzoneTitle": "Seret file ke sini atau klik untuk memilih",
+      "dropzoneHint": "PDF, Word, Excel, Gambar (maks. 10MB)",
+      "titleLabel": "Judul Dokumen",
+      "titlePlaceholder": "Masukkan judul dokumen",
+      "descriptionLabel": "Deskripsi (opsional)",
+      "descriptionPlaceholder": "Deskripsi singkat dokumen",
+      "categoryLabel": "Kategori",
+      "visibilityLabel": "Visibilitas",
+      "submit": "Unggah"
+    },
+    "toasts": {
+      "fileTooLarge": "Ukuran file melebihi batas 10MB",
+      "titleAndFileRequired": "Judul dan file wajib diisi",
+      "uploadSuccess": "Dokumen berhasil diunggah",
+      "uploadError": "Gagal mengunggah dokumen",
+      "loadError": "Gagal memuat data",
+      "deleteSuccess": "Dokumen berhasil dihapus",
+      "deleteError": "Gagal menghapus dokumen"
+    },
+    "actions": {
+      "download": "Unduh",
+      "delete": "Hapus",
+      "deletePermanent": "Hapus Permanen"
+    },
+    "time": {
+      "justNow": "Baru saja",
+      "minutesAgo": "{count} menit lalu",
+      "hoursAgo": "{count} jam lalu",
+      "daysAgo": "{count} hari lalu",
+      "weeksAgo": "{count} minggu lalu"
+    }
   }
 }

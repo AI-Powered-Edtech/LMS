@@ -427,5 +427,67 @@
       "badges": "Badges",
       "noBadges": "No badges earned yet"
     }
+  },
+  "documents": {
+    "pageTitle": "Document Management",
+    "title": "Letters & Documents",
+    "totalStored": "{count} documents stored",
+    "searchPlaceholder": "Search documents...",
+    "allDocuments": "All Documents",
+    "searchResultLabel": "Search",
+    "loading": "Loading documents...",
+    "emptyTitle": "No documents yet",
+    "emptySearchDescription": "No documents found for \"{query}\"",
+    "emptyDescription": "Start uploading school documents to manage the digital archive.",
+    "deleteConfirmTitle": "Confirm Delete",
+    "deleteConfirmDescription": "Are you sure you want to delete this document? This action cannot be undone and the file will be permanently deleted from the server.",
+    "categories": {
+      "all": "All Categories",
+      "incomingLetter": "Incoming Letters",
+      "outgoingLetter": "Outgoing Letters",
+      "decree": "Decrees",
+      "announcement": "Announcements",
+      "reportCard": "Report Cards",
+      "general": "General"
+    },
+    "visibility": {
+      "admin": "Admin Only",
+      "teacher": "Teachers & Admins",
+      "all": "Everyone"
+    },
+    "upload": {
+      "button": "Upload Document",
+      "title": "Upload Document",
+      "dropzoneTitle": "Drag a file here or click to choose",
+      "dropzoneHint": "PDF, Word, Excel, Images (max. 10MB)",
+      "titleLabel": "Document Title",
+      "titlePlaceholder": "Enter document title",
+      "descriptionLabel": "Description (optional)",
+      "descriptionPlaceholder": "Brief document description",
+      "categoryLabel": "Category",
+      "visibilityLabel": "Visibility",
+      "submit": "Upload"
+    },
+    "toasts": {
+      "fileTooLarge": "File size exceeds the 10MB limit",
+      "titleAndFileRequired": "Title and file are required",
+      "uploadSuccess": "Document uploaded successfully",
+      "uploadError": "Failed to upload document",
+      "loadError": "Failed to load data",
+      "deleteSuccess": "Document deleted successfully",
+      "deleteError": "Failed to delete document"
+    },
+    "actions": {
+      "download": "Download",
+      "delete": "Delete",
+      "deletePermanent": "Delete Permanently"
+    },
+    "time": {
+      "justNow": "Just now",
+      "minutesAgo": "{count} minutes ago",
+      "hoursAgo": "{count} hours ago",
+      "daysAgo": "{count} days ago",
+      "weeksAgo": "{count} weeks ago"
+    }
   }
 }
