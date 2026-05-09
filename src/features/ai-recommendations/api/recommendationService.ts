@@ -1,37 +1,70 @@
-import { readVilSession } from '@/services/auth/vilSession'
+import { db } from "@/services/db";
 
-import type { RecommendationResult } from '../types'
+import type { LearningRecommendation, RecommendationResult } from "../types";
+
+interface CourseModuleRow {
+  id: string;
+  title: string;
+  order: number;
+}
+
+interface LessonRow {
+  id: string;
+  title: string;
+  order: number;
+  module_id: string;
+}
+
+function toPriority(index: number): LearningRecommendation["priority"] {
+  if (index === 0) return "high";
+  if (index === 1) return "medium";
+  return "low";
+}
 
 export const aiRecommendationService = {
   /**
-   * TODO: Phase 6 — recommend-learning-path belum punya VIL endpoint resmi.
-   * Saat VIL mengimplementasi endpoint ini, ganti dengan /api/v1/ai/recommend-learning-path.
-   * Sementara menggunakan /api/v1/ai/generate-content sebagai proxy terdekat.
+   * Rule-based learning path recommendations from existing VIL data tables.
+   * This keeps the widget useful without depending on a separate AI endpoint.
    */
   async getRecommendations(courseId: string): Promise<RecommendationResult> {
-    const token = readVilSession()?.access_token
-    if (!token) throw new Error('Tidak terautentikasi')
+    const { data: modules, error: modulesError } = await db
+      .from<CourseModuleRow[]>("course_modules")
+      .select("id, title, order")
+      .eq("course_id", courseId)
+      .order("order", { ascending: true })
+      .limit(6);
 
-    const apiUrl = import.meta.env.VITE_API_URL ?? ''
+    if (modulesError) throw modulesError;
 
-    // TODO: Phase 6 — ganti dengan /api/v1/ai/recommend-learning-path saat endpoint tersedia.
-    const response = await fetch(`${apiUrl}/api/v1/ai/generate-content`, {
-      method: 'POST',
-      headers: {
-        Authorization: `Bearer ${token}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({ function: 'recommend-learning-path', course_id: courseId }),
-    })
-
-    if (!response.ok) {
-      const err = new Error(`Gagal memuat rekomendasi (${response.status})`) as Error & {
-        status: number
-      }
-      err.status = response.status
-      throw err
+    const moduleRows = modules ?? [];
+    if (moduleRows.length === 0) {
+      return { recommendations: [], generated_by: "rule_based" };
     }
 
-    return response.json() as Promise<RecommendationResult>
+    const moduleIds = moduleRows.map((module) => module.id);
+    const moduleTitleById = new Map(
+      moduleRows.map((module) => [module.id, module.title]),
+    );
+
+    const { data: lessons, error: lessonsError } = await db
+      .from<LessonRow[]>("lessons")
+      .select("id, title, order, module_id")
+      .in("module_id", moduleIds)
+      .eq("is_published", true)
+      .order("order", { ascending: true })
+      .limit(6);
+
+    if (lessonsError) throw lessonsError;
+
+    const recommendations = (lessons ?? [])
+      .slice(0, 3)
+      .map((lesson, index) => ({
+        lesson_id: lesson.id,
+        lesson_title: lesson.title,
+        reason: `Lanjutkan dari modul ${moduleTitleById.get(lesson.module_id) ?? "berikutnya"} agar progres belajar tetap runtut.`,
+        priority: toPriority(index),
+      }));
+
+    return { recommendations, generated_by: "rule_based" };
   },
-}
+};

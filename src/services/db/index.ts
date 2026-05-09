@@ -78,7 +78,7 @@ export const db: DbFacade = {
       fnName: string,
       _options?: { body?: unknown },
     ): Promise<{ data: null; error: Error }> {
-      const msg = `[VIL] Edge Function '${fnName}' removed. Use fetch('/api/v1/...') instead.`;
+      const msg = `[VIL] Edge Function '${fnName}' removed. Use the VIL API client or a typed service wrapper instead.`;
       logger.error(msg);
       return Promise.resolve({ data: null, error: new Error(msg) });
     },

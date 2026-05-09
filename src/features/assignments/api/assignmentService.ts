@@ -1,4 +1,3 @@
- 
 import { db } from "@/services/db";
 import { getStorageProvider } from "@/services/storage";
 import { logDevError } from "@/utils/logDevError";
@@ -269,10 +268,9 @@ function calculateEffectiveScore(
 }
 
 async function ensureSubmitRateLimit(_userKey: string): Promise<void> {
-  // TODO: Phase 6 — check-rate-limit adalah internal service.
-  // Saat VIL mengimplementasi /api/v1/rate-limit, aktifkan kembali server-side check.
-  // Sementara, client-side rate limiting menjadi primary defense.
-  // Parameter _userKey disimpan untuk kompatibilitas dengan implementasi mendatang.
+  // Server-side assignment throttling remains internal; client-side rate limiting
+  // is the primary defense for this flow. Parameter _userKey is preserved for
+  // future server-side integration without changing callers.
 }
 
 export const assignmentService = {
@@ -513,7 +511,13 @@ export const assignmentService = {
     const { data: profiles, error: profileError } =
       studentIds.length > 0
         ? await db
-            .from<Array<{ id: string; full_name: string | null; email: string | null }>>("profiles")
+            .from<
+              Array<{
+                id: string;
+                full_name: string | null;
+                email: string | null;
+              }>
+            >("profiles")
             .select("id, full_name, avatar_url")
             .eq("tenant_id", tenantId)
             .in("id", studentIds)
@@ -797,7 +801,13 @@ export const assignmentService = {
     const { data: profiles, error: profileError } =
       submissionStudentIds.length > 0
         ? await db
-            .from<Array<{ id: string; full_name: string | null; email: string | null }>>("profiles")
+            .from<
+              Array<{
+                id: string;
+                full_name: string | null;
+                email: string | null;
+              }>
+            >("profiles")
             .select("id, full_name")
             .eq("tenant_id", tenantId)
             .in("id", submissionStudentIds)
