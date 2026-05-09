@@ -86,7 +86,7 @@ pub async fn create_transcoding_job(
             error_message, created_at, updated_at, started_at, completed_at
         "#,
     )
-    .bind(Uuid::new_v4())
+    .bind(req.video_id)
     .bind(user_id)
     .bind(&req.original_filename)
     .bind(&req.s3_key)
