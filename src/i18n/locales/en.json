@@ -1738,5 +1738,172 @@
         "desc": "Design quizzes to test student understanding"
       }
     }
+  },
+  "hubs": {
+    "teaching": {
+      "pageTitle": "Teaching Hub",
+      "title": "Teaching Hub",
+      "description": "Manage classes, grades, and student attendance.",
+      "emptyTitle": "No active teaching tools yet",
+      "emptyDescription": "Teaching menus (Material Manager, Gradebook, Quizzes, etc.) will appear here once an admin enables the module and you are registered as a teacher in an active class. Pick a class in the sidebar or contact your school admin if a menu should be available."
+    },
+    "social": {
+      "pageTitle": "Social & Information",
+      "title": "Social & Information",
+      "description": "Discussion forums, schedule, and school announcements.",
+      "emptyTitle": "No active social channels yet",
+      "emptyDescription": "Forum, Schedule, and Announcements will appear here once an admin enables Forum/Calendar/Announcements modules. No data has been seeded — enable the modules from tenant settings first."
+    },
+    "gamification": {
+      "pageTitle": "Achievements & Games",
+      "heading": "Achievements & Games",
+      "subheading": "View achievements, certificates, and play quizzes.",
+      "emptyTitle": "No active gamification features yet",
+      "emptyDescription": {
+        "teacher": "Class leaderboards will appear here once you have active students in your class. No data is seeded — data appears organically from student activity.",
+        "student": "Leaderboards and certificates appear here once you start working on materials and quizzes. No XP or achievements have been seeded yet."
+      },
+      "summary": {
+        "levelLabel": "Level __LEVEL__",
+        "levelTitles": {
+          "1": "Beginner",
+          "2": "Explorer",
+          "3": "Adventurer",
+          "4": "Warrior",
+          "5": "Hero",
+          "6": "Scholar",
+          "7": "Expert",
+          "8": "Master",
+          "9": "Legend",
+          "10": "Knowledge Deity"
+        },
+        "progressTo": "Progress to Level __LEVEL__",
+        "streakLabel": "Daily Streak",
+        "streakDays": "days",
+        "streakRecord": "Longest record: __N__ days",
+        "recentLabel": "Recent Activity",
+        "sources": {
+          "lesson_complete": "Lesson completed",
+          "quiz_score": "Quiz score",
+          "streak_bonus": "Streak bonus",
+          "badge_earned": "Badge earned",
+          "assignment_submit": "Assignment submitted"
+        },
+        "empty": "No activity yet. Start learning to earn XP!"
+      }
+    },
+    "admin": {
+      "pageTitle": "School Administration",
+      "title": "School Administration",
+      "description": "Manage finance, admissions, and administrative documents.",
+      "emptyTitle": "No active administration modules yet",
+      "emptyDescription": "School administration menus (Finance, Admissions, Documents, etc.) will appear once an admin enables the related module."
+    }
+  },
+  "gradebook": {
+    "breadcrumb": {
+      "dashboard": "Dashboard",
+      "grades": "Grades"
+    },
+    "perCourseTitle": "Grades per Course",
+    "perCourseSubtitle": "Pick a course to view the full gradebook",
+    "courseSelector": {
+      "ariaLabel": "Pick a course for the gradebook",
+      "placeholder": "-- Pick a Course --"
+    },
+    "empty": {
+      "noCourses": {
+        "title": "No courses yet",
+        "description": "Create a course first to start managing student grades."
+      },
+      "pickCourse": "Pick a course above to display the gradebook"
+    },
+    "header": {
+      "back": "Back",
+      "title": "Gradebook",
+      "subtitle": "Manage and monitor student grades"
+    },
+    "actions": {
+      "addColumn": "Add Column",
+      "addColumnAria": "Add a grade column",
+      "filter": "Filter",
+      "exportCsv": "Export CSV"
+    },
+    "toast": {
+      "pickCourseFirst": "Pick a course first to export.",
+      "exportSuccess": "Gradebook successfully exported to CSV."
+    }
+  },
+  "questionBank": {
+    "pageTitle": "Question Bank",
+    "header": {
+      "title": "Question Bank",
+      "subtitle": "Manage your question library for quizzes and exams.",
+      "createNew": "Create New Question"
+    },
+    "search": {
+      "placeholder": "Search questions..."
+    },
+    "filter": {
+      "all": "All Types",
+      "mcq": "Multiple Choice",
+      "trueFalse": "True/False",
+      "shortAnswer": "Short Answer",
+      "essay": "Essay"
+    },
+    "loading": "Loading questions...",
+    "empty": {
+      "title": "No questions found",
+      "subtitle": "Try a different keyword or create a new question."
+    },
+    "deleteConfirm": "Are you sure you want to delete this question?",
+    "toast": {
+      "loadFail": "Failed to load question bank. Try again.",
+      "deleteFail": "Failed to delete question."
+    }
+  },
+  "raporPrint": {
+    "pageTitle": "Print Report Card",
+    "loading": "Loading...",
+    "printButton": "Print / Save PDF",
+    "header": {
+      "title": "Student Report Card",
+      "subtitle": "Kurikulum Merdeka — Kemdikbudristek"
+    },
+    "fields": {
+      "studentName": "Student Name:",
+      "nisn": "NISN:",
+      "kelas": "Class / Rombel:",
+      "status": "Status:"
+    },
+    "statusLabels": {
+      "draft": "Draft",
+      "guru_signed": "Signed by Teacher",
+      "wali_signed": "Signed by Homeroom Teacher",
+      "kepsek_signed": "Signed by Principal",
+      "published": "Published"
+    },
+    "subjectGrades": {
+      "title": "Subject Achievements",
+      "headers": {
+        "no": "No",
+        "subject": "Subject",
+        "score": "Score",
+        "grade": "Predicate",
+        "description": "Achievement Description"
+      },
+      "empty": "No subject grades yet."
+    },
+    "narrativeTitle": "Homeroom Teacher Notes",
+    "signatureRoles": {
+      "guru": "Subject Teacher",
+      "wali_kelas": "Homeroom Teacher",
+      "kepsek": "Principal"
+    },
+    "signatureSigned": "Signed __DATE__",
+    "signaturePending": "— not yet signed —",
+    "footer": {
+      "lead": "Digital report document. Verify signatures via hash:"
+    }
   }
 }

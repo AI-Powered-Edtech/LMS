@@ -1,95 +1,100 @@
-import { useVirtualizer } from '@tanstack/react-virtual'
-import { BookOpen, Filter, Loader2, Plus, Search } from 'lucide-react'
-import { useEffect, useRef, useState } from 'react'
+import { useVirtualizer } from "@tanstack/react-virtual";
+import { BookOpen, Filter, Loader2, Plus, Search } from "lucide-react";
+import { useEffect, useRef, useState } from "react";
+import { useTranslation } from "react-i18next";
 
-import { useToast } from '@/components/ui'
+import { useToast } from "@/components/ui";
 import {
   QuestionBankItem,
   questionBankService,
-} from '@/features/question-bank/api/questionBankService'
-import { QuestionBankExportImport } from '@/features/question-bank/components/QuestionBankExportImport'
-import { QuestionBankSkeleton } from '@/features/question-bank/components/QuestionBankSkeleton'
-import { QuestionCard } from '@/features/question-bank/components/QuestionCard'
-import { QuestionEditor } from '@/features/question-bank/components/QuestionEditor'
-import { usePageTitle } from '@/hooks/usePageTitle'
-import { logger } from '@/utils/logger'
+} from "@/features/question-bank/api/questionBankService";
+import { QuestionBankExportImport } from "@/features/question-bank/components/QuestionBankExportImport";
+import { QuestionBankSkeleton } from "@/features/question-bank/components/QuestionBankSkeleton";
+import { QuestionCard } from "@/features/question-bank/components/QuestionCard";
+import { QuestionEditor } from "@/features/question-bank/components/QuestionEditor";
+import { usePageTitle } from "@/hooks/usePageTitle";
+import { logger } from "@/utils/logger";
 
 export function QuestionBankPage() {
-  const addToast = useToast((s) => s.addToast)
-  usePageTitle('Bank Soal')
-  const [questions, setQuestions] = useState<QuestionBankItem[]>([])
-  const [loading, setLoading] = useState(true)
-  const [searchTerm, setSearchTerm] = useState('')
-  const [debouncedSearchTerm, setDebouncedSearchTerm] = useState('')
-  const [typeFilter, setTypeFilter] = useState('')
+  const { t } = useTranslation();
+  const addToast = useToast((s) => s.addToast);
+  usePageTitle(t("questionBank.pageTitle"));
+  const [questions, setQuestions] = useState<QuestionBankItem[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [debouncedSearchTerm, setDebouncedSearchTerm] = useState("");
+  const [typeFilter, setTypeFilter] = useState("");
 
   // Editor modal state
-  const [showEditor, setShowEditor] = useState(false)
-  const [editingQuestionId, setEditingQuestionId] = useState<string | undefined>(undefined)
+  const [showEditor, setShowEditor] = useState(false);
+  const [editingQuestionId, setEditingQuestionId] = useState<
+    string | undefined
+  >(undefined);
 
-  const parentRef = useRef<HTMLDivElement>(null)
+  const parentRef = useRef<HTMLDivElement>(null);
   const virtualizer = useVirtualizer({
     count: questions.length,
     getScrollElement: () => parentRef.current,
     estimateSize: () => 80,
     overscan: 5,
-  })
+  });
 
   /* eslint-disable react-hooks/exhaustive-deps */
   useEffect(() => {
-    void loadQuestions()
-  }, [debouncedSearchTerm, typeFilter])
+    void loadQuestions();
+  }, [debouncedSearchTerm, typeFilter]);
   /* eslint-enable react-hooks/exhaustive-deps */
 
   // Handle debounced search
   useEffect(() => {
     const timer = setTimeout(() => {
-      setDebouncedSearchTerm(searchTerm)
-    }, 500)
-    return () => clearTimeout(timer)
-  }, [searchTerm])
+      setDebouncedSearchTerm(searchTerm);
+    }, 500);
+    return () => clearTimeout(timer);
+  }, [searchTerm]);
 
   const loadQuestions = async () => {
-    setLoading(true)
+    setLoading(true);
     try {
       const data = await questionBankService.searchQuestions({
         query: debouncedSearchTerm || undefined,
         questionType: typeFilter || undefined,
         limit: 50,
-      })
-      setQuestions(data)
+      });
+      setQuestions(data);
     } catch (error) {
-      if (import.meta.env.DEV) logger.error('Failed to load questions:', error)
-      addToast({ type: 'error', message: 'Gagal memuat bank soal. Coba lagi.' })
+      if (import.meta.env.DEV) logger.error("Failed to load questions:", error);
+      addToast({ type: "error", message: t("questionBank.toast.loadFail") });
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }
+  };
 
   const handleEdit = (id: string) => {
-    setEditingQuestionId(id)
-    setShowEditor(true)
-  }
+    setEditingQuestionId(id);
+    setShowEditor(true);
+  };
 
   const handleCreateNew = () => {
-    setEditingQuestionId(undefined)
-    setShowEditor(true)
-  }
+    setEditingQuestionId(undefined);
+    setShowEditor(true);
+  };
 
   const handleDelete = async (id: string) => {
-    if (!confirm('Apakah Anda yakin ingin menghapus soal ini?')) return
+    if (!confirm(t("questionBank.deleteConfirm"))) return;
 
     try {
-      await questionBankService.archiveQuestion(id)
-      setQuestions((q) => q.filter((item) => item.id !== id))
+      await questionBankService.archiveQuestion(id);
+      setQuestions((q) => q.filter((item) => item.id !== id));
     } catch (error) {
-      if (import.meta.env.DEV) logger.error('Failed to delete question:', error)
-      addToast({ type: 'error', message: 'Gagal menghapus soal.' })
+      if (import.meta.env.DEV)
+        logger.error("Failed to delete question:", error);
+      addToast({ type: "error", message: t("questionBank.toast.deleteFail") });
     }
-  }
+  };
 
   if (loading && questions.length === 0) {
-    return <QuestionBankSkeleton />
+    return <QuestionBankSkeleton />;
   }
 
   return (
@@ -98,10 +103,10 @@ export function QuestionBankPage() {
         <div>
           <h1 className="text-2xl font-bold mb-2 flex items-center gap-2">
             <BookOpen className="w-6 h-6 text-indigo-600" />
-            Bank Soal
+            {t("questionBank.header.title")}
           </h1>
           <p className="text-slate-600 dark:text-slate-400">
-            Kelola koleksi soal untuk kuis dan ujian.
+            {t("questionBank.header.subtitle")}
           </p>
         </div>
         <button
@@ -109,7 +114,7 @@ export function QuestionBankPage() {
           className="flex justify-center items-center space-x-2 px-5 py-2.5 bg-indigo-600 text-white font-medium rounded-lg hover:bg-indigo-700 transition-colors shadow-sm"
         >
           <Plus className="w-5 h-5" />
-          <span>Buat Soal Baru</span>
+          <span>{t("questionBank.header.createNew")}</span>
         </button>
       </div>
 
@@ -123,7 +128,7 @@ export function QuestionBankPage() {
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
             <input
               type="text"
-              placeholder="Cari soal..."
+              placeholder={t("questionBank.search.placeholder")}
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               className="w-full pl-10 pr-4 py-2 border dark:border-slate-600 rounded-lg bg-slate-50 dark:bg-slate-700/50 focus:ring-2 focus:ring-indigo-500 outline-none transition-all"
@@ -138,11 +143,15 @@ export function QuestionBankPage() {
                 onChange={(e) => setTypeFilter(e.target.value)}
                 className="w-full pl-9 pr-8 py-2 border dark:border-slate-600 rounded-lg bg-slate-50 dark:bg-slate-700/50 focus:ring-2 focus:ring-indigo-500 outline-none appearance-none"
               >
-                <option value="">Semua Tipe</option>
-                <option value="MCQ">Pilihan Ganda</option>
-                <option value="TRUE_FALSE">Benar/Salah</option>
-                <option value="SHORT_ANSWER">Isian Singkat</option>
-                <option value="ESSAY">Esai</option>
+                <option value="">{t("questionBank.filter.all")}</option>
+                <option value="MCQ">{t("questionBank.filter.mcq")}</option>
+                <option value="TRUE_FALSE">
+                  {t("questionBank.filter.trueFalse")}
+                </option>
+                <option value="SHORT_ANSWER">
+                  {t("questionBank.filter.shortAnswer")}
+                </option>
+                <option value="ESSAY">{t("questionBank.filter.essay")}</option>
               </select>
             </div>
           </div>
@@ -152,7 +161,7 @@ export function QuestionBankPage() {
       {loading ? (
         <div className="flex flex-col items-center justify-center py-20">
           <Loader2 className="w-8 h-8 animate-spin text-indigo-600 mb-4" />
-          <p className="text-slate-500">Memuat soal...</p>
+          <p className="text-slate-500">{t("questionBank.loading")}</p>
         </div>
       ) : questions.length === 0 ? (
         <div className="flex flex-col items-center justify-center py-24 bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm text-center px-4">
@@ -160,35 +169,48 @@ export function QuestionBankPage() {
             <Search className="w-8 h-8 text-slate-400" />
           </div>
           <h3 className="text-lg font-medium text-slate-900 dark:text-slate-100 mb-1">
-            Tidak ada soal ditemukan
+            {t("questionBank.empty.title")}
           </h3>
           <p className="text-slate-500 max-w-sm">
-            Coba gunakan kata kunci berbeda atau buat soal baru.
+            {t("questionBank.empty.subtitle")}
           </p>
         </div>
       ) : (
-        <div ref={parentRef} className="overflow-auto" style={{ maxHeight: '70vh' }}>
-          <div style={{ height: `${virtualizer.getTotalSize()}px`, position: 'relative' }}>
+        <div
+          ref={parentRef}
+          className="overflow-auto"
+          style={{ maxHeight: "70vh" }}
+        >
+          <div
+            style={{
+              height: `${virtualizer.getTotalSize()}px`,
+              position: "relative",
+            }}
+          >
             {virtualizer.getVirtualItems().map((vRow) => {
-              const q = questions[vRow.index]
+              const q = questions[vRow.index];
               return (
                 <div
                   key={q.id}
                   ref={virtualizer.measureElement}
                   data-index={vRow.index}
                   style={{
-                    position: 'absolute',
+                    position: "absolute",
                     top: 0,
                     left: 0,
-                    width: '100%',
+                    width: "100%",
                     transform: `translateY(${vRow.start}px)`,
                   }}
                 >
                   <div className="pb-4">
-                    <QuestionCard question={q} onEdit={handleEdit} onDelete={handleDelete} />
+                    <QuestionCard
+                      question={q}
+                      onEdit={handleEdit}
+                      onDelete={handleDelete}
+                    />
                   </div>
                 </div>
-              )
+              );
             })}
           </div>
         </div>
@@ -201,5 +223,5 @@ export function QuestionBankPage() {
         onSaveSuccess={loadQuestions}
       />
     </div>
-  )
+  );
 }

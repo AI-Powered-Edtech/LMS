@@ -1738,5 +1738,172 @@
         "desc": "Rancang kuis untuk menguji pemahaman siswa"
       }
     }
+  },
+  "hubs": {
+    "teaching": {
+      "pageTitle": "Pusat Mengajar",
+      "title": "Ruang Mengajar",
+      "description": "Kelola kelas, nilai, dan absensi siswa.",
+      "emptyTitle": "Belum ada alat mengajar yang aktif",
+      "emptyDescription": "Menu mengajar (Manajemen Materi, Buku Nilai, Kuis, dll.) akan muncul di sini setelah admin mengaktifkan modulnya dan Anda terdaftar sebagai guru di kelas aktif. Pilih kelas di sidebar atau hubungi admin sekolah jika menu seharusnya tersedia."
+    },
+    "social": {
+      "pageTitle": "Sosial & Informasi",
+      "title": "Sosial & Informasi",
+      "description": "Forum diskusi, jadwal, dan pengumuman sekolah.",
+      "emptyTitle": "Belum ada kanal sosial yang aktif",
+      "emptyDescription": "Forum, Jadwal, dan Pengumuman akan muncul di sini setelah admin mengaktifkan modul Forum/Calendar/Announcements. Belum ada data yang di-seed — aktifkan modulnya dari pengaturan tenant terlebih dahulu."
+    },
+    "gamification": {
+      "pageTitle": "Prestasi & Permainan",
+      "heading": "Prestasi & Permainan",
+      "subheading": "Lihat pencapaian, sertifikat, dan mainkan kuis.",
+      "emptyTitle": "Belum ada fitur gamifikasi yang aktif",
+      "emptyDescription": {
+        "teacher": "Papan peringkat kelas akan muncul di sini setelah ada siswa yang aktif di kelas Anda. Tidak ada data yang di-seed — data muncul organik dari aktivitas siswa.",
+        "student": "Papan peringkat dan sertifikat muncul di sini setelah Anda mulai mengerjakan materi dan kuis. Belum ada XP atau pencapaian yang di-seed."
+      },
+      "summary": {
+        "levelLabel": "Level __LEVEL__",
+        "levelTitles": {
+          "1": "Pemula",
+          "2": "Penjelajah",
+          "3": "Petualang",
+          "4": "Pejuang",
+          "5": "Pahlawan",
+          "6": "Cendekia",
+          "7": "Ahli",
+          "8": "Master",
+          "9": "Legenda",
+          "10": "Dewa Ilmu"
+        },
+        "progressTo": "Progres ke Level __LEVEL__",
+        "streakLabel": "Streak Harian",
+        "streakDays": "hari",
+        "streakRecord": "Rekor terlama: __N__ hari",
+        "recentLabel": "Aktivitas Terbaru",
+        "sources": {
+          "lesson_complete": "Materi selesai",
+          "quiz_score": "Skor kuis",
+          "streak_bonus": "Bonus streak",
+          "badge_earned": "Badge diraih",
+          "assignment_submit": "Tugas dikumpul"
+        },
+        "empty": "Belum ada aktivitas. Mulai belajar untuk mendapatkan XP!"
+      }
+    },
+    "admin": {
+      "pageTitle": "Administrasi Sekolah",
+      "title": "Administrasi Sekolah",
+      "description": "Kelola keuangan, PPDB, dan dokumen administrasi.",
+      "emptyTitle": "Belum ada modul administrasi yang aktif",
+      "emptyDescription": "Menu administrasi sekolah (Keuangan, PPDB, Dokumen, dll.) akan muncul setelah admin mengaktifkan modul terkait."
+    }
+  },
+  "gradebook": {
+    "breadcrumb": {
+      "dashboard": "Dashboard",
+      "grades": "Nilai"
+    },
+    "perCourseTitle": "Nilai per Kursus",
+    "perCourseSubtitle": "Pilih kursus untuk melihat buku nilai lengkap",
+    "courseSelector": {
+      "ariaLabel": "Pilih kursus untuk buku nilai",
+      "placeholder": "-- Pilih Kursus --"
+    },
+    "empty": {
+      "noCourses": {
+        "title": "Belum ada kursus",
+        "description": "Buat kursus terlebih dahulu untuk mulai mengelola nilai siswa."
+      },
+      "pickCourse": "Pilih kursus di atas untuk menampilkan buku nilai"
+    },
+    "header": {
+      "back": "Kembali",
+      "title": "Buku Nilai",
+      "subtitle": "Kelola dan pantau nilai siswa"
+    },
+    "actions": {
+      "addColumn": "Tambah Kolom",
+      "addColumnAria": "Tambah kolom nilai",
+      "filter": "Filter",
+      "exportCsv": "Ekspor CSV"
+    },
+    "toast": {
+      "pickCourseFirst": "Pilih kursus terlebih dahulu untuk mengekspor.",
+      "exportSuccess": "Buku nilai berhasil diekspor ke CSV."
+    }
+  },
+  "questionBank": {
+    "pageTitle": "Bank Soal",
+    "header": {
+      "title": "Bank Soal",
+      "subtitle": "Kelola koleksi soal untuk kuis dan ujian.",
+      "createNew": "Buat Soal Baru"
+    },
+    "search": {
+      "placeholder": "Cari soal..."
+    },
+    "filter": {
+      "all": "Semua Tipe",
+      "mcq": "Pilihan Ganda",
+      "trueFalse": "Benar/Salah",
+      "shortAnswer": "Isian Singkat",
+      "essay": "Esai"
+    },
+    "loading": "Memuat soal...",
+    "empty": {
+      "title": "Tidak ada soal ditemukan",
+      "subtitle": "Coba gunakan kata kunci berbeda atau buat soal baru."
+    },
+    "deleteConfirm": "Apakah Anda yakin ingin menghapus soal ini?",
+    "toast": {
+      "loadFail": "Gagal memuat bank soal. Coba lagi.",
+      "deleteFail": "Gagal menghapus soal."
+    }
+  },
+  "raporPrint": {
+    "pageTitle": "Cetak Rapor",
+    "loading": "Memuat...",
+    "printButton": "Cetak / Simpan PDF",
+    "header": {
+      "title": "Rapor Peserta Didik",
+      "subtitle": "Kurikulum Merdeka — Kemdikbudristek"
+    },
+    "fields": {
+      "studentName": "Nama Peserta Didik:",
+      "nisn": "NISN:",
+      "kelas": "Kelas / Rombel:",
+      "status": "Status:"
+    },
+    "statusLabels": {
+      "draft": "Draf",
+      "guru_signed": "Ditandatangani Guru",
+      "wali_signed": "Ditandatangani Wali Kelas",
+      "kepsek_signed": "Ditandatangani Kepala Sekolah",
+      "published": "Diterbitkan"
+    },
+    "subjectGrades": {
+      "title": "Capaian Mata Pelajaran",
+      "headers": {
+        "no": "No",
+        "subject": "Mata Pelajaran",
+        "score": "Nilai",
+        "grade": "Predikat",
+        "description": "Deskripsi Capaian"
+      },
+      "empty": "Belum ada nilai mapel."
+    },
+    "narrativeTitle": "Catatan Wali Kelas",
+    "signatureRoles": {
+      "guru": "Guru Mata Pelajaran",
+      "wali_kelas": "Wali Kelas",
+      "kepsek": "Kepala Sekolah"
+    },
+    "signatureSigned": "Ditandatangani __DATE__",
+    "signaturePending": "— belum ditandatangani —",
+    "footer": {
+      "lead": "Dokumen rapor digital. Verifikasi tanda tangan via hash di:"
+    }
   }
 }
