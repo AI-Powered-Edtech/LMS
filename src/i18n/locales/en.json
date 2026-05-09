@@ -165,7 +165,7 @@
       "goToMyDashboard": "Go to My Dashboard",
       "parentRegisterPageTitle": "Register as a Parent",
       "parentOtpGroupLabel": "OTP code",
-      "parentOtpDigitLabel": "Digit number",
+      "parentOtpDigitLabel": "Digit",
       "parentInvalidPhoneError": "Enter a valid phone number (at least 9 digits).",
       "parentOtpSendRetryError": "Failed to send OTP. Try again.",
       "parentOtpSendError": "Failed to send OTP",
@@ -212,6 +212,96 @@
       "parentCompleteRegistrationButton": "Complete Registration",
       "needHelp": "Need help?",
       "contactSupport": "Contact support"
+    }
+  },
+  "settings": {
+    "title": "Settings",
+    "subtitle": "Manage account preferences, notifications, and app appearance.",
+    "saving": "Saving...",
+    "tabs": {
+      "account": "Account & Profile",
+      "notifications": "Notifications",
+      "security": "Security",
+      "appearance": "Appearance",
+      "language": "Language & Region",
+      "accessibility": "Accessibility"
+    },
+    "roles": {
+      "teacher": "Teacher",
+      "student": "Student",
+      "admin": "Administrator",
+      "parent": "Parent",
+      "principal": "Principal"
+    },
+    "account": {
+      "title": "Account Information",
+      "description": "Update your basic account information.",
+      "profileUpdated": "Profile updated successfully.",
+      "profileUpdateError": "Failed to update profile. Try again.",
+      "avatarAlt": "Avatar",
+      "changePhotoUnavailable": "Change photo is not available yet",
+      "changePhoto": "Change Photo",
+      "fullName": "Full Name",
+      "role": "Account Role",
+      "saveChanges": "Save Changes"
+    },
+    "notifications": {
+      "title": "Notification Preferences",
+      "description": "Choose notification channels for each notification type. Changes are saved automatically."
+    },
+    "security": {
+      "title": "Account Security",
+      "description": "Manage your password and account security.",
+      "newPasswordMinError": "New password must be at least 6 characters.",
+      "confirmPasswordMismatch": "Password confirmation does not match.",
+      "currentPasswordInvalid": "The current password is invalid.",
+      "passwordChanged": "Password changed successfully.",
+      "passwordChangeError": "Failed to change password. Make sure the current password is correct.",
+      "currentPassword": "Current Password",
+      "currentPasswordPlaceholder": "Enter your current password",
+      "newPassword": "New Password",
+      "newPasswordPlaceholder": "Minimum 6 characters",
+      "confirmNewPassword": "Confirm New Password",
+      "confirmNewPasswordPlaceholder": "Repeat the new password",
+      "changePassword": "Change Password"
+    },
+    "privacy": {
+      "title": "Privacy & Data",
+      "description": "Manage your personal data according to PDPA/GDPR.",
+      "exportData": "Export Personal Data",
+      "exportDataDescription": "Download all your data in JSON format",
+      "deleteAccount": "Delete Account",
+      "deleteAccountDescription": "Send an account deletion request to an admin"
+    },
+    "appearance": {
+      "title": "Appearance",
+      "description": "Customize the app theme.",
+      "light": "Light",
+      "dark": "Dark",
+      "system": "System"
+    },
+    "accessibility": {
+      "title": "Accessibility",
+      "description": "Adjust display and controls for a more comfortable experience.",
+      "highContrast": "High Contrast Mode",
+      "highContrastDescription": "Increase contrast for better readability",
+      "fontSize": "Text Size",
+      "fontSizeDescription": "Adjust display text size",
+      "keyboardShortcuts": "Keyboard Shortcuts",
+      "keyboardShortcutsDescription": "Press Shift+? to view all shortcuts"
+    },
+    "language": {
+      "title": "Language & Region",
+      "description": "Language and regional format settings.",
+      "languageLabel": "Language",
+      "indonesian": "Indonesian",
+      "timezone": "Time Zone",
+      "dateFormat": "Date Format"
+    },
+    "danger": {
+      "title": "Danger Zone",
+      "description": "The actions below cannot be undone.",
+      "signOut": "Sign Out"
     }
   }
 }

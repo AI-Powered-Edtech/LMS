@@ -157,7 +157,7 @@ function OtpInput({ value, onChange, disabled }: OtpInputProps) {
           maxLength={1}
           value={value[idx] ?? ""}
           disabled={disabled}
-          aria-label={t("auth.pages.parentOtpDigitLabel", { number: idx + 1 })}
+          aria-label={`${t("auth.pages.parentOtpDigitLabel")} ${idx + 1}`}
           onChange={(e) => handleChange(idx, e.target.value)}
           onKeyDown={(e) => handleKeyDown(idx, e)}
           onPaste={handlePaste}

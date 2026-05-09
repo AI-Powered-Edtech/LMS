@@ -165,7 +165,7 @@
       "goToMyDashboard": "Ke Dashboard Saya",
       "parentRegisterPageTitle": "Daftar sebagai Orang Tua",
       "parentOtpGroupLabel": "Kode OTP",
-      "parentOtpDigitLabel": "Digit number",
+      "parentOtpDigitLabel": "Digit",
       "parentInvalidPhoneError": "Masukkan nomor HP yang valid (minimal 9 digit).",
       "parentOtpSendRetryError": "Gagal mengirim OTP. Coba lagi.",
       "parentOtpSendError": "Gagal mengirim OTP",
@@ -212,6 +212,96 @@
       "parentCompleteRegistrationButton": "Selesaikan Pendaftaran",
       "needHelp": "Butuh bantuan?",
       "contactSupport": "Hubungi dukungan"
+    }
+  },
+  "settings": {
+    "title": "Pengaturan",
+    "subtitle": "Kelola preferensi akun, notifikasi, dan tampilan aplikasi.",
+    "saving": "Menyimpan...",
+    "tabs": {
+      "account": "Akun & Profil",
+      "notifications": "Notifikasi",
+      "security": "Keamanan",
+      "appearance": "Tampilan",
+      "language": "Bahasa & Wilayah",
+      "accessibility": "Aksesibilitas"
+    },
+    "roles": {
+      "teacher": "Guru",
+      "student": "Siswa",
+      "admin": "Administrator",
+      "parent": "Orang Tua",
+      "principal": "Kepala Sekolah"
+    },
+    "account": {
+      "title": "Informasi Akun",
+      "description": "Perbarui informasi dasar akun Anda.",
+      "profileUpdated": "Profil berhasil diperbarui.",
+      "profileUpdateError": "Gagal memperbarui profil. Coba lagi.",
+      "avatarAlt": "Avatar",
+      "changePhotoUnavailable": "Fitur ubah foto belum tersedia",
+      "changePhoto": "Ubah Foto",
+      "fullName": "Nama Lengkap",
+      "role": "Peran Akun",
+      "saveChanges": "Simpan Perubahan"
+    },
+    "notifications": {
+      "title": "Preferensi Notifikasi",
+      "description": "Pilih saluran pemberitahuan untuk setiap jenis notifikasi. Perubahan tersimpan otomatis."
+    },
+    "security": {
+      "title": "Keamanan Akun",
+      "description": "Kelola kata sandi dan keamanan akun Anda.",
+      "newPasswordMinError": "Kata sandi baru minimal 6 karakter.",
+      "confirmPasswordMismatch": "Konfirmasi kata sandi tidak cocok.",
+      "currentPasswordInvalid": "Kata sandi lama tidak valid.",
+      "passwordChanged": "Kata sandi berhasil diubah.",
+      "passwordChangeError": "Gagal mengubah kata sandi. Pastikan kata sandi lama benar.",
+      "currentPassword": "Kata Sandi Saat Ini",
+      "currentPasswordPlaceholder": "Masukkan kata sandi saat ini",
+      "newPassword": "Kata Sandi Baru",
+      "newPasswordPlaceholder": "Minimal 6 karakter",
+      "confirmNewPassword": "Konfirmasi Kata Sandi Baru",
+      "confirmNewPasswordPlaceholder": "Ulangi kata sandi baru",
+      "changePassword": "Ubah Kata Sandi"
+    },
+    "privacy": {
+      "title": "Privasi & Data",
+      "description": "Kelola data pribadi Anda sesuai PDPA/GDPR.",
+      "exportData": "Export Data Pribadi",
+      "exportDataDescription": "Download semua data Anda dalam format JSON",
+      "deleteAccount": "Hapus Akun",
+      "deleteAccountDescription": "Kirim permintaan penghapusan akun ke admin"
+    },
+    "appearance": {
+      "title": "Tampilan",
+      "description": "Sesuaikan tema aplikasi.",
+      "light": "Terang",
+      "dark": "Gelap",
+      "system": "Sistem"
+    },
+    "accessibility": {
+      "title": "Aksesibilitas",
+      "description": "Sesuaikan tampilan dan kontrol untuk pengalaman yang lebih nyaman.",
+      "highContrast": "Mode Kontras Tinggi",
+      "highContrastDescription": "Tingkatkan kontras untuk keterbacaan lebih baik",
+      "fontSize": "Ukuran Teks",
+      "fontSizeDescription": "Sesuaikan ukuran teks tampilan",
+      "keyboardShortcuts": "Pintasan Keyboard",
+      "keyboardShortcutsDescription": "Tekan Shift+? untuk melihat semua pintasan"
+    },
+    "language": {
+      "title": "Bahasa & Wilayah",
+      "description": "Pengaturan bahasa dan format regional.",
+      "languageLabel": "Bahasa",
+      "indonesian": "Bahasa Indonesia",
+      "timezone": "Zona Waktu",
+      "dateFormat": "Format Tanggal"
+    },
+    "danger": {
+      "title": "Zona Berbahaya",
+      "description": "Tindakan di bawah ini tidak dapat dibatalkan.",
+      "signOut": "Keluar Akun"
     }
   }
 }
