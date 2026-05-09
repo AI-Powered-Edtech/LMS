@@ -3,16 +3,10 @@ import { AlertTriangle, CheckCircle2, Plus } from 'lucide-react'
 import { motion } from 'motion/react'
 import { useEffect, useState } from 'react'
 import { useForm } from 'react-hook-form'
-import * as v from 'valibot'
 
 import { Button, Input, Modal, ModalBody, ModalHeader } from '@/components/ui'
 import { FormField } from '@/components/ui/FormField'
-
-const JoinClassSchema = v.object({
-  code: v.pipe(v.string(), v.minLength(1, 'Wajib diisi')),
-})
-
-type JoinClassData = v.InferOutput<typeof JoinClassSchema>
+import { type JoinClassFormData, JoinClassFormSchema } from '@/shared/schemas/forms'
 
 interface JoinClassModalProps {
   open: boolean
@@ -22,8 +16,8 @@ interface JoinClassModalProps {
 }
 
 export function JoinClassModal({ open, onClose, initialCode = '', onJoin }: JoinClassModalProps) {
-  const { control, handleSubmit, reset, watch } = useForm<JoinClassData>({
-    resolver: valibotResolver(JoinClassSchema),
+  const { control, handleSubmit, reset, watch } = useForm<JoinClassFormData>({
+    resolver: valibotResolver(JoinClassFormSchema),
     defaultValues: { code: initialCode },
   })
   const code = watch('code')
@@ -38,7 +32,7 @@ export function JoinClassModal({ open, onClose, initialCode = '', onJoin }: Join
     }
   }, [open, initialCode, reset])
 
-  const onSubmit = async (data: JoinClassData) => {
+  const onSubmit = async (data: JoinClassFormData) => {
     const codeToJoin = data.code.trim().toUpperCase()
     if (!codeToJoin) return
 

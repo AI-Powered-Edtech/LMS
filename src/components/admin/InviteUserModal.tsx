@@ -1,21 +1,16 @@
 import { valibotResolver } from "@hookform/resolvers/valibot";
 import React, { useState } from "react";
 import { useForm } from "react-hook-form";
-import * as v from "valibot";
 
 import { useToast } from "@/hooks/useToast";
 import { db } from "@/services/db";
+import { type InviteUserFormData, InviteUserFormSchema } from "@/shared/schemas/forms";
 import { logger } from "@/utils/logger";
 
 import { useAuth } from "../../contexts/AuthContext";
 import { FormField } from "../ui/FormField";
 
-const InviteUserSchema = v.object({
-  email: v.pipe(v.string(), v.email("Email tidak valid")),
-  role: v.picklist(["STUDENT", "TEACHER", "ADMIN"]),
-});
-type InviteUserData = v.InferOutput<typeof InviteUserSchema>;
-type InviteRole = InviteUserData["role"];
+type InviteRole = InviteUserFormData["role"];
 
 interface InviteUserModalProps {
   isOpen: boolean;
@@ -31,8 +26,8 @@ export function InviteUserModal({
   const { user, tenantId, activeTenant } = useAuth();
   const addToast = useToast((s) => s.addToast);
   const { control, handleSubmit, reset, watch, setValue } =
-    useForm<InviteUserData>({
-      resolver: valibotResolver(InviteUserSchema),
+    useForm<InviteUserFormData>({
+      resolver: valibotResolver(InviteUserFormSchema),
       defaultValues: { email: "", role: "STUDENT" },
     });
 
@@ -46,7 +41,7 @@ export function InviteUserModal({
 
   if (!isOpen) return null;
 
-  const onSubmit = async (data: InviteUserData) => {
+  const onSubmit = async (data: InviteUserFormData) => {
     setError("");
     setInviteLink("");
     setLoading(true);

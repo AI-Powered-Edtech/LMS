@@ -2,18 +2,15 @@ import { valibotResolver } from '@hookform/resolvers/valibot'
 import { useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { Link } from 'react-router-dom'
-import * as v from 'valibot'
 
 import { FormField } from '@/components/ui/FormField'
 import { usePageTitle } from '@/hooks/usePageTitle'
 import { getAuthProvider } from '@/services/auth'
+import {
+  type ForgotPasswordFormData,
+  ForgotPasswordFormSchema,
+} from '@/shared/schemas/forms'
 import { passwordResetRateLimiter } from '@/utils/rateLimiter'
-
-const forgotPasswordSchema = v.object({
-  email: v.pipe(v.string(), v.email('Email tidak valid.')),
-})
-
-type ForgotPasswordFormData = v.InferInput<typeof forgotPasswordSchema>
 
 export function ForgotPassword() {
   usePageTitle('Lupa Kata Sandi')
@@ -27,7 +24,7 @@ export function ForgotPassword() {
     control,
     formState: { isSubmitting },
   } = useForm<ForgotPasswordFormData>({
-    resolver: valibotResolver(forgotPasswordSchema),
+    resolver: valibotResolver(ForgotPasswordFormSchema),
     defaultValues: { email: '' },
   })
 

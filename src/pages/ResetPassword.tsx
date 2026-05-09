@@ -3,29 +3,14 @@ import { Eye, EyeOff } from 'lucide-react'
 import { useEffect, useRef, useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { Link, useNavigate } from 'react-router-dom'
-import * as v from 'valibot'
 
 import { FormField } from '@/components/ui/FormField'
 import { usePageTitle } from '@/hooks/usePageTitle'
 import { getAuthProvider } from '@/services/auth'
-
-const resetPasswordSchema = v.pipe(
-  v.object({
-    // FIXED: Minimum password length increased from 6 to 8 characters for stronger security
-    password: v.pipe(v.string(), v.minLength(8, 'Password minimal 8 karakter.')),
-    confirmPassword: v.string(),
-  }),
-  v.forward(
-    v.partialCheck(
-      [['password'], ['confirmPassword']],
-      (input) => input.password === input.confirmPassword,
-      'Password tidak cocok.'
-    ),
-    ['confirmPassword']
-  )
-)
-
-type ResetPasswordFormData = v.InferInput<typeof resetPasswordSchema>
+import {
+  type ResetPasswordFormData,
+  ResetPasswordFormSchema,
+} from '@/shared/schemas/forms'
 
 export function ResetPassword() {
   usePageTitle('Atur Ulang Kata Sandi')
@@ -44,7 +29,7 @@ export function ResetPassword() {
     control,
     formState: { isSubmitting },
   } = useForm<ResetPasswordFormData>({
-    resolver: valibotResolver(resetPasswordSchema),
+    resolver: valibotResolver(ResetPasswordFormSchema),
     defaultValues: { password: '', confirmPassword: '' },
   })
   const [showPassword, setShowPassword] = useState(false)

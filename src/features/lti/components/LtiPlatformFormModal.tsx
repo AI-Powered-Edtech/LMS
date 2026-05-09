@@ -1,48 +1,11 @@
 import { valibotResolver } from '@hookform/resolvers/valibot'
 import { useCallback, useEffect } from 'react'
 import { useForm } from 'react-hook-form'
-import * as v from 'valibot'
 
 import { Modal, ModalBody, ModalFooter, ModalHeader } from '@/components/ui'
+import { type LtiPlatformFormData, LtiPlatformFormSchema } from '@/shared/schemas/forms'
 
 import type { CreateLtiPlatformParams, LtiPlatformRegistration } from '../types'
-
-// ── Valibot schema ─────────────────────────────────────────────
-const LtiPlatformFormSchema = v.object({
-  name: v.pipe(
-    v.string(),
-    v.nonEmpty('Nama platform wajib diisi'),
-    v.maxLength(200, 'Nama platform maksimal 200 karakter')
-  ),
-  issuer: v.pipe(
-    v.string(),
-    v.nonEmpty('Issuer URL wajib diisi'),
-    v.url('Issuer harus berupa URL yang valid')
-  ),
-  client_id: v.pipe(v.string(), v.nonEmpty('Client ID wajib diisi')),
-  auth_endpoint: v.pipe(
-    v.string(),
-    v.nonEmpty('Auth endpoint wajib diisi'),
-    v.url('Auth endpoint harus berupa URL yang valid')
-  ),
-  token_endpoint: v.pipe(
-    v.string(),
-    v.nonEmpty('Token endpoint wajib diisi'),
-    v.url('Token endpoint harus berupa URL yang valid')
-  ),
-  jwks_url: v.pipe(
-    v.string(),
-    v.nonEmpty('JWKS URL wajib diisi'),
-    v.url('JWKS URL harus berupa URL yang valid')
-  ),
-  deployment_id: v.pipe(
-    v.string(),
-    v.transform((s) => s || '')
-  ),
-  is_active: v.boolean(),
-})
-
-type LtiPlatformFormData = v.InferOutput<typeof LtiPlatformFormSchema>
 
 // ── Canvas / Moodle presets ────────────────────────────────────
 const PRESETS: Record<string, Partial<LtiPlatformFormData>> = {
