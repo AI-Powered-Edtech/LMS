@@ -9,11 +9,16 @@ const PLAGIARISM_COLUMNS =
 
 export const plagiarismService = {
   /**
-   * Calls the VIL plagiarism check endpoint to run similarity analysis.
-   * Returns the similarity score and matched submissions.
+   * Calls the VIL plagiarism check endpoint to run similarity analysis on a
+   * student submission. The BE looks up content + assignment_id by
+   * submission_id (G-3 BE-trim, 2026-05-09), so the FE only sends submission_id.
    *
-   * TODO: Phase 6 — check-plagiarism belum punya VIL endpoint resmi.
-   * Saat VIL mengimplementasi endpoint ini, ganti dengan /api/v1/plagiarism/check.
+   * BE returns VilResponse<PlagiarismReport>:
+   *   { data: { report_id, overall_similarity (0..1), matches[], status: 'clean'|'suspicious'|'high_risk' } }
+   *
+   * We adapt to the FE's CheckPlagiarismResult shape:
+   *   { similarity_score (0..100 int), status: 'completed', matches[] }
+   * — so the existing PlagiarismBadge thresholds (<20, 20-50, >50) keep working.
    */
   async checkPlagiarism(submissionId: string): Promise<CheckPlagiarismResult> {
     const token = readVilSession()?.access_token
@@ -23,7 +28,6 @@ export const plagiarismService = {
 
     const apiUrl = import.meta.env.VITE_API_URL ?? ''
 
-    // TODO: Phase 6 — ganti dengan /api/v1/plagiarism/check saat endpoint tersedia di VIL.
     const res = await fetch(`${apiUrl}/api/v1/plagiarism/check`, {
       method: 'POST',
       headers: {
@@ -34,11 +38,34 @@ export const plagiarismService = {
     })
 
     if (!res.ok) {
-      const errBody = await res.json().catch(() => ({ error: 'Gagal menghubungi server' }))
+      const errBody = await res
+        .json()
+        .catch(() => ({ error: 'Gagal menghubungi server' }))
       throw new Error(errBody.error ?? 'Gagal memeriksa plagiarisme')
     }
 
-    return res.json() as Promise<CheckPlagiarismResult>
+    type BackendReport = {
+      report_id: string
+      overall_similarity: number
+      matches: Array<{
+        submission_id: string
+        student_name?: string
+        similarity: number
+        matched_text?: string[]
+      }>
+      status: 'clean' | 'suspicious' | 'high_risk'
+    }
+    const envelope = (await res.json()) as { data: BackendReport }
+    const report = envelope.data
+
+    return {
+      similarity_score: Math.round((report.overall_similarity ?? 0) * 100),
+      status: 'completed',
+      matches: (report.matches ?? []).map((m) => ({
+        submission_id: m.submission_id,
+        similarity: Math.round((m.similarity ?? 0) * 100),
+      })),
+    }
   },
 
   /**

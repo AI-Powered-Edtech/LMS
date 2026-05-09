@@ -89,25 +89,25 @@ export function PlagiarismCheckButton({
     return <PlagiarismBadge score={null} status="processing" />
   }
 
-  // Backend currently mounts a stub handler at /api/v1/plagiarism/check that
-  // returns a fake clean result. Enabling the trigger gives a false sense of
-  // security ("0% kemiripan" on an unchecked submission). Disabled until the
-  // real engine ships in Fase 6 (Prio 8 Unit 44 — plagiarism embedding similarity).
-  // To re-enable: restore the original onClick + disabled binding once the route
-  // points at plagiarism_handlers::check_plagiarism_handler.
+  // Real handler at plagiarism_handlers::check_plagiarism_handler (mounted in
+  // main.rs at /api/v1/plagiarism/check) computes Jaccard word-set similarity
+  // against sibling submissions of the same assignment. G-3 BE-trim simplified
+  // the request to just { submission_id }; the FE adapter
+  // (plagiarismService.checkPlagiarism) maps the response to our
+  // CheckPlagiarismResult shape. (2026-05-09)
   return (
     <button
       type="button"
-      disabled
-      title="Mesin plagiarisme sedang dikembangkan (Fase 6)"
-      aria-label="Periksa Plagiarisme (sedang dikembangkan)"
+      onClick={handleCheck}
+      disabled={isChecking}
+      aria-label="Periksa Plagiarisme"
       className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold
-        bg-slate-100 text-slate-400 border border-slate-200
-        dark:bg-slate-800 dark:text-slate-500 dark:border-slate-700
-        cursor-not-allowed opacity-60"
+        bg-blue-50 text-blue-700 border border-blue-200 hover:bg-blue-100
+        dark:bg-blue-950/40 dark:text-blue-300 dark:border-blue-800 dark:hover:bg-blue-900/40
+        transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
     >
       <ShieldCheck className="w-3.5 h-3.5 shrink-0" />
-      Periksa Plagiarisme (segera)
+      Periksa Plagiarisme
     </button>
   )
 }

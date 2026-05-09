@@ -9,8 +9,6 @@ use vil_server::prelude::{VilError, VilResponse};
 #[derive(Deserialize)]
 pub struct CheckPlagiarismRequest {
     pub submission_id: Uuid,
-    pub content: String,
-    pub assignment_id: Uuid,
 }
 
 #[derive(Serialize)]
@@ -37,7 +35,26 @@ pub async fn check_plagiarism(
     tenant_id: Uuid,
     req: CheckPlagiarismRequest,
 ) -> Result<VilResponse<PlagiarismReport>, VilError> {
-    if req.content.len() < 50 {
+    // G-3 BE-trim (2026-05-09): FE only sends `{ submission_id }`. We look up
+    // content + assignment_id from public.submissions ourselves so the FE
+    // doesn't need to know either schema. Tenant-scoped for defense-in-depth
+    // alongside RLS.
+    let row = sqlx::query(
+        r#"SELECT content, assignment_id
+           FROM public.submissions
+           WHERE id = $1 AND tenant_id = $2"#,
+    )
+    .bind(req.submission_id)
+    .bind(tenant_id)
+    .fetch_optional(db)
+    .await
+    .map_err(|e| VilError::internal(format!("DB error: {}", e)))?
+    .ok_or_else(|| VilError::not_found("Submission not found"))?;
+
+    let content: String = row.try_get("content").unwrap_or_default();
+    let assignment_id: Uuid = row.get("assignment_id");
+
+    if content.len() < 50 {
         return Err(VilError::bad_request("Content too short (min 50 chars)"));
     }
 
@@ -51,7 +68,7 @@ pub async fn check_plagiarism(
              AND s.tenant_id = $3
            LIMIT 50"#,
     )
-    .bind(req.assignment_id)
+    .bind(assignment_id)
     .bind(req.submission_id)
     .bind(tenant_id)
     .fetch_all(db)
@@ -60,7 +77,7 @@ pub async fn check_plagiarism(
 
     // Calculate similarity (simple word-based comparison)
     let mut matches = Vec::new();
-    let words: Vec<&str> = req.content.split_whitespace().collect();
+    let words: Vec<&str> = content.split_whitespace().collect();
 
     for sub in submissions {
         let other_content: String = sub.get("content");
