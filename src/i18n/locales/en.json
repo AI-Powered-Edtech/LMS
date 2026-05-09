@@ -1905,5 +1905,41 @@
     "footer": {
       "lead": "Digital report document. Verify signatures via hash:"
     }
+  },
+  "grades": {
+    "pageTitle": "Grades",
+    "defaultSubject": "Subject",
+    "defaultAssignments": {
+      "midterm": "Midterm Exam",
+      "groupTask": "Group Assignment",
+      "quiz": "Quiz",
+      "final": "Final Exam"
+    },
+    "perCourse": {
+      "title": "My Course Grades",
+      "placeholder": "-- Select Course --",
+      "empty": "Select a course to view your grades"
+    },
+    "whatIf": {
+      "title": "Grade Simulator (What-If Grades)",
+      "subtitleWithCount": "Showing __COUNT__ assignments from your submission history.",
+      "subtitleEmpty": "Enter \"what-if\" scores to see your projected final grade.",
+      "currentScore": "Current Grade",
+      "projection": "Projected Final Grade",
+      "target": "Target Grade",
+      "outOf": "/ 100",
+      "targetReached": "Projection meets target!",
+      "targetShort": "Need __SHORT__ more points."
+    },
+    "assignments": {
+      "title": "All Assignments",
+      "weightTotal": "Total weight: 100%",
+      "weightLabel": "__SUBJECT__ · Weight: __WEIGHT__%",
+      "originalScore": "Actual Score",
+      "whatIfScore": "What-If Score",
+      "notGraded": "Not graded yet",
+      "totalProjection": "Total Projected Final Grade",
+      "totalSubtitle": "Combination of actual scores and What-If scores"
+    }
   }
 }

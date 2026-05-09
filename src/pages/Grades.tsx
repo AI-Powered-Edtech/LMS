@@ -1,118 +1,146 @@
-import { useQuery } from '@tanstack/react-query'
-import { BookOpen, Calculator, ChevronDown, Target, Trophy } from 'lucide-react'
-import { useMemo, useState } from 'react'
+import { useQuery } from "@tanstack/react-query";
+import {
+  BookOpen,
+  Calculator,
+  ChevronDown,
+  Target,
+  Trophy,
+} from "lucide-react";
+import { useMemo, useState } from "react";
+import { useTranslation } from "react-i18next";
 
-import { useAuth } from '@/contexts/AuthContext'
-import { useCourses } from '@/features/courses/queries/courseQueries'
-import type { Course } from '@/features/courses/types'
-import { gradebookService } from '@/features/gradebook/api/gradebookService'
-import { GradebookSkeleton } from '@/features/gradebook/components/GradebookSkeleton'
-import { StudentGradeView } from '@/features/gradebook/components/StudentGradeView'
-import { usePageTitle } from '@/hooks/usePageTitle'
-import { cn } from '@/utils/cn'
+import { useAuth } from "@/contexts/AuthContext";
+import { useCourses } from "@/features/courses/queries/courseQueries";
+import type { Course } from "@/features/courses/types";
+import { gradebookService } from "@/features/gradebook/api/gradebookService";
+import { GradebookSkeleton } from "@/features/gradebook/components/GradebookSkeleton";
+import { StudentGradeView } from "@/features/gradebook/components/StudentGradeView";
+import { usePageTitle } from "@/hooks/usePageTitle";
+import { cn } from "@/utils/cn";
 
 interface Assignment {
-  id: string
-  title: string
-  subject: string
-  maxScore: number
-  actualScore: number | null
-  weight: number
+  id: string;
+  title: string;
+  subject: string;
+  maxScore: number;
+  actualScore: number | null;
+  weight: number;
 }
 
-const DEFAULT_ASSIGNMENTS: Assignment[] = [
-  {
-    id: '1',
-    title: 'Ujian Tengah Semester',
-    subject: 'Pelajaran',
-    maxScore: 100,
-    actualScore: null,
-    weight: 30,
-  },
-  {
-    id: '2',
-    title: 'Tugas Kelompok',
-    subject: 'Pelajaran',
-    maxScore: 100,
-    actualScore: null,
-    weight: 20,
-  },
-  { id: '3', title: 'Kuis', subject: 'Pelajaran', maxScore: 100, actualScore: null, weight: 10 },
-  {
-    id: '4',
-    title: 'Ujian Akhir Semester',
-    subject: 'Pelajaran',
-    maxScore: 100,
-    actualScore: null,
-    weight: 40,
-  },
-]
-
 export function Grades() {
-  usePageTitle('Nilai')
-  const { user, tenantId } = useAuth()
-  const [whatIfScores, setWhatIfScores] = useState<Record<string, number | null>>({})
-  const [targetGrade, setTargetGrade] = useState<number>(90)
+  const { t } = useTranslation();
+  usePageTitle(t("grades.pageTitle"));
+  const { user, tenantId } = useAuth();
+  const [whatIfScores, setWhatIfScores] = useState<
+    Record<string, number | null>
+  >({});
+  const [targetGrade, setTargetGrade] = useState<number>(90);
 
   // Course selector for StudentGradeView
-  const [selectedCourseId, setSelectedCourseId] = useState<string>('')
-  const coursesQuery = useCourses({ limit: 50 })
+  const [selectedCourseId, setSelectedCourseId] = useState<string>("");
+  const coursesQuery = useCourses({ limit: 50 });
 
   const { data: submissionsDataRaw, isLoading } = useQuery({
-    queryKey: ['student-grades', user?.id, tenantId],
+    queryKey: ["student-grades", user?.id, tenantId],
     queryFn: async () => {
-      return await gradebookService.getStudentGrades(user!.id, tenantId!)
+      return await gradebookService.getStudentGrades(user!.id, tenantId!);
     },
     enabled: !!user && !!tenantId,
-  })
+  });
 
   // Ensure submissionsData is always an array
-  const submissionsData = Array.isArray(submissionsDataRaw) ? submissionsDataRaw : []
+  const submissionsData = Array.isArray(submissionsDataRaw)
+    ? submissionsDataRaw
+    : [];
 
   const assignments: Assignment[] = useMemo(() => {
-    if (submissionsData.length === 0) return DEFAULT_ASSIGNMENTS
-    const equalWeight = Math.floor(100 / submissionsData.length)
+    if (submissionsData.length === 0)
+      return [
+        {
+          id: "1",
+          title: t("grades.defaultAssignments.midterm"),
+          subject: t("grades.defaultSubject"),
+          maxScore: 100,
+          actualScore: null,
+          weight: 30,
+        },
+        {
+          id: "2",
+          title: t("grades.defaultAssignments.groupTask"),
+          subject: t("grades.defaultSubject"),
+          maxScore: 100,
+          actualScore: null,
+          weight: 20,
+        },
+        {
+          id: "3",
+          title: t("grades.defaultAssignments.quiz"),
+          subject: t("grades.defaultSubject"),
+          maxScore: 100,
+          actualScore: null,
+          weight: 10,
+        },
+        {
+          id: "4",
+          title: t("grades.defaultAssignments.final"),
+          subject: t("grades.defaultSubject"),
+          maxScore: 100,
+          actualScore: null,
+          weight: 40,
+        },
+      ];
+    const equalWeight = Math.floor(100 / submissionsData.length);
     return (
       submissionsData as unknown as Array<{
-        id: string
-        score: number | null
-        assignments: { title: string; max_points?: number; classes?: { name?: string } | null }
+        id: string;
+        score: number | null;
+        assignments: {
+          title: string;
+          max_points?: number;
+          classes?: { name?: string } | null;
+        };
       }>
     ).map((s, i) => ({
       id: s.id,
       title: s.assignments.title,
-      subject: (s.assignments.classes as { name?: string } | null)?.name ?? 'Pelajaran',
+      subject:
+        (s.assignments.classes as { name?: string } | null)?.name ??
+        t("grades.defaultSubject"),
       maxScore: s.assignments.max_points ?? 100,
       actualScore: s.score ?? null,
       weight:
         i === submissionsData.length - 1
           ? 100 - equalWeight * (submissionsData.length - 1)
           : equalWeight,
-    }))
-  }, [submissionsData])
+    }));
+  }, [submissionsData, t]);
 
   const calculateGrade = (useWhatIf: boolean) => {
     let totalWeight = 0,
-      earnedPoints = 0
+      earnedPoints = 0;
     assignments.forEach((a) => {
       const score =
-        a.actualScore !== null ? a.actualScore : useWhatIf ? (whatIfScores[a.id] ?? null) : null
+        a.actualScore !== null
+          ? a.actualScore
+          : useWhatIf
+            ? (whatIfScores[a.id] ?? null)
+            : null;
       if (score !== null) {
-        totalWeight += a.weight
-        earnedPoints += (score / a.maxScore) * a.weight
+        totalWeight += a.weight;
+        earnedPoints += (score / a.maxScore) * a.weight;
       }
-    })
-    return totalWeight === 0 ? 0 : (earnedPoints / totalWeight) * 100
-  }
+    });
+    return totalWeight === 0 ? 0 : (earnedPoints / totalWeight) * 100;
+  };
 
-  const currentGrade = calculateGrade(false)
-  const projectedGrade = calculateGrade(true)
+  const currentGrade = calculateGrade(false);
+  const projectedGrade = calculateGrade(true);
 
   if (isLoading) {
-    return <GradebookSkeleton />
+    return <GradebookSkeleton />;
   }
 
-  const courses: Course[] = coursesQuery.data?.courses ?? []
+  const courses: Course[] = coursesQuery.data?.courses ?? [];
 
   return (
     <div className="h-full flex flex-col bg-slate-50 dark:bg-slate-900 p-4 md:p-6 overflow-y-auto">
@@ -122,21 +150,21 @@ export function Grades() {
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
             <h2 className="font-bold text-slate-800 dark:text-slate-200 flex items-center gap-2">
               <BookOpen className="w-5 h-5 text-blue-500" />
-              Nilai Kursus Saya
+              {t("grades.perCourse.title")}
             </h2>
             <div className="relative">
               <select
-                value={selectedCourseId ?? ''}
+                value={selectedCourseId ?? ""}
                 onChange={(e) => setSelectedCourseId(e.target.value)}
                 className={cn(
-                  'appearance-none pl-3 pr-9 py-2 rounded-xl text-sm font-medium',
-                  'border border-slate-200 dark:border-slate-600',
-                  'bg-slate-50 dark:bg-slate-900 text-slate-800 dark:text-slate-200',
-                  'focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors',
-                  'min-w-[200px]'
+                  "appearance-none pl-3 pr-9 py-2 rounded-xl text-sm font-medium",
+                  "border border-slate-200 dark:border-slate-600",
+                  "bg-slate-50 dark:bg-slate-900 text-slate-800 dark:text-slate-200",
+                  "focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors",
+                  "min-w-[200px]",
                 )}
               >
-                <option value="">-- Pilih Kursus --</option>
+                <option value="">{t("grades.perCourse.placeholder")}</option>
                 {courses.map((c: Course) => (
                   <option key={c.id} value={c.id}>
                     {c.title}
@@ -152,7 +180,7 @@ export function Grades() {
           ) : (
             <div className="flex items-center justify-center h-20 border-2 border-dashed border-slate-200 dark:border-slate-600 rounded-xl">
               <p className="text-sm text-slate-400 dark:text-slate-500">
-                Pilih kursus untuk melihat nilai kamu
+                {t("grades.perCourse.empty")}
               </p>
             </div>
           )}
@@ -161,41 +189,54 @@ export function Grades() {
         <div>
           <h1 className="text-2xl font-bold text-slate-900 dark:text-white flex items-center gap-2">
             <Trophy className="w-6 h-6 text-yellow-500" />
-            Simulasi Nilai (What-If Grades)
+            {t("grades.whatIf.title")}
           </h1>
           <p className="text-slate-500 mt-1 text-sm">
             {submissionsData.length > 0
-              ? `Menampilkan ${submissionsData.length} tugas dari riwayat pengirimamu.`
-              : 'Masukkan nilai "andaikan" untuk melihat proyeksi nilai akhirmu.'}
+              ? t("grades.whatIf.subtitleWithCount").replace(
+                  "__COUNT__",
+                  String(submissionsData.length),
+                )
+              : t("grades.whatIf.subtitleEmpty")}
           </p>
         </div>
 
         {/* Dashboard Cards */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <div className="bg-white dark:bg-slate-800 p-5 rounded-3xl border border-slate-200 dark:border-slate-700 shadow-sm flex flex-col justify-center">
-            <p className="text-sm font-bold text-slate-500 mb-1">Nilai Saat Ini</p>
+            <p className="text-sm font-bold text-slate-500 mb-1">
+              {t("grades.whatIf.currentScore")}
+            </p>
             <div className="flex items-end gap-2">
               <span className="text-4xl font-black text-slate-800 dark:text-slate-200">
                 {currentGrade.toFixed(1)}
               </span>
-              <span className="text-slate-400 font-medium mb-1">/ 100</span>
+              <span className="text-slate-400 font-medium mb-1">
+                {t("grades.whatIf.outOf")}
+              </span>
             </div>
           </div>
 
           <div className="bg-blue-600 p-5 rounded-3xl shadow-lg shadow-blue-200 flex flex-col justify-center text-white relative overflow-hidden">
             <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full blur-2xl -mr-10 -mt-10" />
             <p className="text-sm font-bold text-blue-100 mb-1 relative z-10">
-              Proyeksi Nilai Akhir
+              {t("grades.whatIf.projection")}
             </p>
             <div className="flex items-end gap-2 relative z-10">
-              <span className="text-4xl font-black">{projectedGrade.toFixed(1)}</span>
-              <span className="text-blue-200 font-medium mb-1">/ 100</span>
+              <span className="text-4xl font-black">
+                {projectedGrade.toFixed(1)}
+              </span>
+              <span className="text-blue-200 font-medium mb-1">
+                {t("grades.whatIf.outOf")}
+              </span>
             </div>
           </div>
 
           <div className="bg-white dark:bg-slate-800 p-5 rounded-3xl border border-slate-200 dark:border-slate-700 shadow-sm flex flex-col justify-center">
             <div className="flex justify-between items-center mb-1">
-              <p className="text-sm font-bold text-slate-500">Target Nilai</p>
+              <p className="text-sm font-bold text-slate-500">
+                {t("grades.whatIf.target")}
+              </p>
               <Target className="w-4 h-4 text-orange-500" />
             </div>
             <div className="flex items-center gap-2">
@@ -207,13 +248,20 @@ export function Grades() {
                 min="0"
                 max="100"
               />
-              <span className="text-slate-400 font-medium">/ 100</span>
+              <span className="text-slate-400 font-medium">
+                {t("grades.whatIf.outOf")}
+              </span>
             </div>
             {projectedGrade >= targetGrade ? (
-              <p className="text-xs font-bold text-green-500 mt-2">Proyeksi mencapai target!</p>
+              <p className="text-xs font-bold text-green-500 mt-2">
+                {t("grades.whatIf.targetReached")}
+              </p>
             ) : (
               <p className="text-xs font-bold text-orange-500 mt-2">
-                Kurang {(targetGrade - projectedGrade).toFixed(1)} poin lagi.
+                {t("grades.whatIf.targetShort").replace(
+                  "__SHORT__",
+                  (targetGrade - projectedGrade).toFixed(1),
+                )}
               </p>
             )}
           </div>
@@ -226,8 +274,12 @@ export function Grades() {
               <BookOpen className="w-5 h-5" />
             </div>
             <div>
-              <h2 className="font-bold text-slate-800 dark:text-slate-200">Semua Tugas</h2>
-              <p className="text-xs font-medium text-slate-500">Bobot total: 100%</p>
+              <h2 className="font-bold text-slate-800 dark:text-slate-200">
+                {t("grades.assignments.title")}
+              </h2>
+              <p className="text-xs font-medium text-slate-500">
+                {t("grades.assignments.weightTotal")}
+              </p>
             </div>
           </div>
 
@@ -238,9 +290,13 @@ export function Grades() {
                 className="p-4 md:p-5 flex flex-col md:flex-row md:items-center justify-between gap-4 hover:bg-slate-50 dark:hover:bg-slate-700/50 transition-colors"
               >
                 <div className="flex-1">
-                  <h3 className="font-bold text-slate-800 dark:text-slate-200">{a.title}</h3>
+                  <h3 className="font-bold text-slate-800 dark:text-slate-200">
+                    {a.title}
+                  </h3>
                   <p className="text-xs font-medium text-slate-500 mt-1">
-                    {a.subject} · Bobot: {a.weight}%
+                    {t("grades.assignments.weightLabel")
+                      .replace("__SUBJECT__", a.subject)
+                      .replace("__WEIGHT__", String(a.weight))}
                   </p>
                 </div>
 
@@ -248,7 +304,7 @@ export function Grades() {
                   {a.actualScore !== null ? (
                     <div className="flex flex-col items-end">
                       <span className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">
-                        Nilai Asli
+                        {t("grades.assignments.originalScore")}
                       </span>
                       <div className="px-4 py-2 bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-300 font-bold rounded-xl border border-slate-200 dark:border-slate-600">
                         {a.actualScore} / {a.maxScore}
@@ -258,30 +314,36 @@ export function Grades() {
                     <div className="flex flex-col items-end">
                       <span className="text-xs font-bold text-blue-500 uppercase tracking-wider mb-1 flex items-center gap-1">
                         <Calculator className="w-3 h-3" />
-                        What-If Score
+                        {t("grades.assignments.whatIfScore")}
                       </span>
                       <div className="flex items-center gap-2">
                         <span className="text-xs font-medium text-slate-400 mr-1 bg-slate-100 dark:bg-slate-700 px-2 py-1 rounded-md">
-                          Belum dinilai
+                          {t("grades.assignments.notGraded")}
                         </span>
                         <input
                           type="number"
                           placeholder="-"
                           value={
-                            whatIfScores[a.id] === undefined || whatIfScores[a.id] === null
-                              ? ''
+                            whatIfScores[a.id] === undefined ||
+                            whatIfScores[a.id] === null
+                              ? ""
                               : whatIfScores[a.id]!
                           }
                           onChange={(e) => {
                             const v =
-                              e.target.value === ''
+                              e.target.value === ""
                                 ? null
-                                : Math.min(a.maxScore, Math.max(0, Number(e.target.value)))
-                            setWhatIfScores((prev) => ({ ...prev, [a.id]: v }))
+                                : Math.min(
+                                    a.maxScore,
+                                    Math.max(0, Number(e.target.value)),
+                                  );
+                            setWhatIfScores((prev) => ({ ...prev, [a.id]: v }));
                           }}
                           className="w-16 px-2 py-1.5 bg-blue-50 dark:bg-blue-900/20 border-2 border-blue-200 dark:border-blue-800 focus:border-blue-500 text-blue-700 dark:text-blue-300 font-bold rounded-lg outline-none text-center transition-colors placeholder:text-blue-300 dark:placeholder:text-blue-700"
                         />
-                        <span className="text-slate-400 font-medium text-sm">/ {a.maxScore}</span>
+                        <span className="text-slate-400 font-medium text-sm">
+                          / {a.maxScore}
+                        </span>
                       </div>
                     </div>
                   )}
@@ -292,16 +354,24 @@ export function Grades() {
 
           <div className="p-5 border-t border-slate-100 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/50 flex items-center justify-between">
             <div>
-              <p className="text-sm font-medium text-slate-500">Total Proyeksi Nilai Akhir</p>
-              <p className="text-xs text-slate-400 mt-0.5">Gabungan nilai asli dan skor What-If</p>
+              <p className="text-sm font-medium text-slate-500">
+                {t("grades.assignments.totalProjection")}
+              </p>
+              <p className="text-xs text-slate-400 mt-0.5">
+                {t("grades.assignments.totalSubtitle")}
+              </p>
             </div>
             <div className="text-right">
-              <span className="text-3xl font-black text-blue-600">{projectedGrade.toFixed(1)}</span>
-              <span className="text-slate-400 font-medium text-sm ml-1">/ 100</span>
+              <span className="text-3xl font-black text-blue-600">
+                {projectedGrade.toFixed(1)}
+              </span>
+              <span className="text-slate-400 font-medium text-sm ml-1">
+                {t("grades.whatIf.outOf")}
+              </span>
             </div>
           </div>
         </div>
       </div>
     </div>
-  )
+  );
 }

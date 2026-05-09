@@ -1905,5 +1905,41 @@
     "footer": {
       "lead": "Dokumen rapor digital. Verifikasi tanda tangan via hash di:"
     }
+  },
+  "grades": {
+    "pageTitle": "Nilai",
+    "defaultSubject": "Pelajaran",
+    "defaultAssignments": {
+      "midterm": "Ujian Tengah Semester",
+      "groupTask": "Tugas Kelompok",
+      "quiz": "Kuis",
+      "final": "Ujian Akhir Semester"
+    },
+    "perCourse": {
+      "title": "Nilai Kursus Saya",
+      "placeholder": "-- Pilih Kursus --",
+      "empty": "Pilih kursus untuk melihat nilai kamu"
+    },
+    "whatIf": {
+      "title": "Simulasi Nilai (What-If Grades)",
+      "subtitleWithCount": "Menampilkan __COUNT__ tugas dari riwayat pengirimanmu.",
+      "subtitleEmpty": "Masukkan nilai \"andaikan\" untuk melihat proyeksi nilai akhirmu.",
+      "currentScore": "Nilai Saat Ini",
+      "projection": "Proyeksi Nilai Akhir",
+      "target": "Target Nilai",
+      "outOf": "/ 100",
+      "targetReached": "Proyeksi mencapai target!",
+      "targetShort": "Kurang __SHORT__ poin lagi."
+    },
+    "assignments": {
+      "title": "Semua Tugas",
+      "weightTotal": "Bobot total: 100%",
+      "weightLabel": "__SUBJECT__ · Bobot: __WEIGHT__%",
+      "originalScore": "Nilai Asli",
+      "whatIfScore": "What-If Score",
+      "notGraded": "Belum dinilai",
+      "totalProjection": "Total Proyeksi Nilai Akhir",
+      "totalSubtitle": "Gabungan nilai asli dan skor What-If"
+    }
   }
 }
