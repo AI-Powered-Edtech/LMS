@@ -567,5 +567,102 @@
     "createDescription": "Susun widget analitik sesuai kebutuhanmu",
     "editDescription": "Edit konfigurasi dashboard",
     "editButton": "Edit Dashboard"
+  },
+  "creator": {
+    "pageTitle": "Kreator AI",
+    "title": "Generator Kursus & Kuis AI",
+    "beta": "Beta",
+    "subtitle": "Unggah dokumen atau materi — AI akan otomatis membuat soal sesuai level Bloom.",
+    "infoTitle": "Kreator AI",
+    "infoDescription": "Otomatisasi pembuatan konten dari materi yang ada. Mendukung PDF, DOCX, TXT, CSV — maks 10MB.",
+    "history": "Riwayat",
+    "progress": {
+      "extracting": "Membaca & mengekstrak teks dokumen",
+      "analyzing": "Menganalisis konten materi",
+      "generating": "Membuat soal dengan AI (Groq)",
+      "saving": "Menyimpan hasil generasi",
+      "stepPrefix": "Langkah {step}",
+      "workingTitle": "AI sedang bekerja...",
+      "workingDescription": "Mohon tunggu, proses ini memakan 10–30 detik"
+    },
+    "toasts": {
+      "fileTooLarge": "Ukuran file maksimal 10MB.",
+      "unsupportedFormat": "Format tidak didukung. Gunakan .pdf, .docx, .txt, atau .csv.",
+      "processError": "Gagal memproses materi.",
+      "selectQuestionToAdd": "Pilih minimal 1 soal untuk ditambahkan.",
+      "addedToCalendar": "Berhasil ditambahkan ke kalender.",
+      "selectQuestionToExport": "Pilih minimal 1 soal untuk diekspor.",
+      "exportSuccess": "{count} soal berhasil diekspor ke CSV.",
+      "selectQuestionToSave": "Pilih minimal 1 soal untuk disimpan.",
+      "saveToBankSuccess": "{saved} soal berhasil disimpan ke Bank Soal.{failedPart}",
+      "failedCount": "{count} gagal",
+      "saveToBankError": "Gagal menyimpan soal ke Bank Soal."
+    },
+    "defaults": {
+      "aiContent": "Konten Buatan AI",
+      "newMaterial": "Materi Baru",
+      "aiQuestionsFilename": "soal_ai"
+    },
+    "notifications": {
+      "assignmentScheduledTitle": "Tugas Dijadwalkan",
+      "assignmentScheduledMessage": "Tugas telah ditambahkan ke kalender."
+    },
+    "assignmentTypes": {
+      "quiz": "Kuis (PG)",
+      "quizShort": "Kuis",
+      "reading": "Membaca",
+      "writing": "Menulis"
+    },
+    "upload": {
+      "title": "Unggah Materi",
+      "removeFile": "Hapus File",
+      "dropTitle": "Tarik & Lepas file di sini",
+      "dropHint": "Mendukung .pdf, .docx, .txt, .csv (Maks 10MB)",
+      "chooseFile": "Pilih File"
+    },
+    "config": {
+      "title": "Konfigurasi AI",
+      "assignmentType": "Jenis Tugas",
+      "topicCount": "Jumlah Topik",
+      "questionCount": "Jumlah Soal",
+      "writingLimit": "Tugas menulis dibatasi maksimal 3 topik.",
+      "bloomDifficulty": "Tingkat Kesulitan (Taksonomi Bloom)",
+      "curriculumAlignment": "Penyelarasan Kurikulum",
+      "optional": "opsional",
+      "subject": "Mata Pelajaran",
+      "subjectPlaceholder": "mis. Matematika, Bahasa Indonesia",
+      "gradeLevel": "Kelas / Tingkat",
+      "gradePlaceholder": "mis. VII, 10, SD Kelas 5",
+      "curriculumRef": "Referensi Kurikulum",
+      "curriculumPlaceholder": "mis. CP Fase D, Kurikulum Merdeka"
+    },
+    "generate": {
+      "processing": "Memproses dokumen...",
+      "button": "Buat dengan AI"
+    },
+    "results": {
+      "unknownDocument": "Dokumen tidak diketahui",
+      "created": "Dibuat",
+      "readingText": "Teks Bacaan",
+      "topicContext": "Konteks Topik",
+      "summary": "Rangkuman Materi",
+      "saved": "Tersimpan",
+      "noSummary": "Tidak ada rangkuman.",
+      "createNew": "Buat Baru",
+      "topicList": "Daftar Topik",
+      "questionList": "Daftar Soal",
+      "dueDate": "Tanggal tenggat",
+      "saving": "Menyimpan...",
+      "questionBank": "Bank Soal",
+      "schedule": "Jadwalkan",
+      "addToCourse": "Tambahkan ke Kursus",
+      "allDeleted": "Semua soal telah dihapus.",
+      "regenerate": "Buat ulang"
+    },
+    "selection": {
+      "selectAll": "Pilih Semua",
+      "deselectAll": "Batalkan Semua",
+      "selectedCount": "{count} dipilih"
+    }
   }
 }

@@ -567,5 +567,102 @@
     "createDescription": "Arrange analytics widgets to match your needs",
     "editDescription": "Edit dashboard configuration",
     "editButton": "Edit Dashboard"
+  },
+  "creator": {
+    "pageTitle": "AI Creator",
+    "title": "AI Course & Quiz Generator",
+    "beta": "Beta",
+    "subtitle": "Upload documents or materials — AI will automatically create questions aligned to Bloom levels.",
+    "infoTitle": "AI Creator",
+    "infoDescription": "Automate content creation from existing materials. Supports PDF, DOCX, TXT, CSV — max 10MB.",
+    "history": "History",
+    "progress": {
+      "extracting": "Reading & extracting document text",
+      "analyzing": "Analyzing material content",
+      "generating": "Generating questions with AI (Groq)",
+      "saving": "Saving generated results",
+      "stepPrefix": "Step {step}",
+      "workingTitle": "AI is working...",
+      "workingDescription": "Please wait, this process takes 10–30 seconds"
+    },
+    "toasts": {
+      "fileTooLarge": "Maximum file size is 10MB.",
+      "unsupportedFormat": "Unsupported format. Use .pdf, .docx, .txt, or .csv.",
+      "processError": "Failed to process material.",
+      "selectQuestionToAdd": "Select at least 1 question to add.",
+      "addedToCalendar": "Successfully added to calendar.",
+      "selectQuestionToExport": "Select at least 1 question to export.",
+      "exportSuccess": "{count} questions exported to CSV successfully.",
+      "selectQuestionToSave": "Select at least 1 question to save.",
+      "saveToBankSuccess": "{saved} questions saved to Question Bank.{failedPart}",
+      "failedCount": "{count} failed",
+      "saveToBankError": "Failed to save questions to Question Bank."
+    },
+    "defaults": {
+      "aiContent": "AI-Generated Content",
+      "newMaterial": "New Material",
+      "aiQuestionsFilename": "ai_questions"
+    },
+    "notifications": {
+      "assignmentScheduledTitle": "Assignment Scheduled",
+      "assignmentScheduledMessage": "The assignment has been added to the calendar."
+    },
+    "assignmentTypes": {
+      "quiz": "Quiz (MCQ)",
+      "quizShort": "Quiz",
+      "reading": "Reading",
+      "writing": "Writing"
+    },
+    "upload": {
+      "title": "Upload Material",
+      "removeFile": "Remove File",
+      "dropTitle": "Drag & drop a file here",
+      "dropHint": "Supports .pdf, .docx, .txt, .csv (Max 10MB)",
+      "chooseFile": "Choose File"
+    },
+    "config": {
+      "title": "AI Configuration",
+      "assignmentType": "Assignment Type",
+      "topicCount": "Topic Count",
+      "questionCount": "Question Count",
+      "writingLimit": "Writing assignments are limited to a maximum of 3 topics.",
+      "bloomDifficulty": "Difficulty Level (Bloom Taxonomy)",
+      "curriculumAlignment": "Curriculum Alignment",
+      "optional": "optional",
+      "subject": "Subject",
+      "subjectPlaceholder": "e.g. Mathematics, Indonesian Language",
+      "gradeLevel": "Class / Level",
+      "gradePlaceholder": "e.g. VII, 10, Grade 5 Elementary",
+      "curriculumRef": "Curriculum Reference",
+      "curriculumPlaceholder": "e.g. Phase D outcome, Merdeka Curriculum"
+    },
+    "generate": {
+      "processing": "Processing document...",
+      "button": "Create with AI"
+    },
+    "results": {
+      "unknownDocument": "Unknown document",
+      "created": "Created",
+      "readingText": "Reading Text",
+      "topicContext": "Topic Context",
+      "summary": "Material Summary",
+      "saved": "Saved",
+      "noSummary": "No summary available.",
+      "createNew": "Create New",
+      "topicList": "Topic List",
+      "questionList": "Question List",
+      "dueDate": "Due date",
+      "saving": "Saving...",
+      "questionBank": "Question Bank",
+      "schedule": "Schedule",
+      "addToCourse": "Add to Course",
+      "allDeleted": "All questions have been deleted.",
+      "regenerate": "Regenerate"
+    },
+    "selection": {
+      "selectAll": "Select All",
+      "deselectAll": "Deselect All",
+      "selectedCount": "{count} selected"
+    }
   }
 }
