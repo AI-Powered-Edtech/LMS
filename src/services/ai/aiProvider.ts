@@ -61,12 +61,13 @@ export const aiProvider = {
       throw new Error(err.error ?? `AI request gagal (HTTP ${response.status})`)
     }
 
-    const data = await response.json()
+    const result = await response.json()
+    const data = result.data ?? result
     return {
       content: data.content ?? '',
-      tokensInput: data.tokens_input ?? 0,
-      tokensOutput: data.tokens_output ?? 0,
-      provider: req.provider,
+      tokensInput: data.tokensInput ?? data.tokens_input ?? 0,
+      tokensOutput: data.tokensOutput ?? data.tokens_output ?? 0,
+      provider: data.provider ?? req.provider,
       model: data.model ?? req.model ?? defaultModel(req.provider),
     }
   },

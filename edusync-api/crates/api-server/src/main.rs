@@ -1,4 +1,5 @@
 mod ai_handlers;
+mod ai_chat_handlers;
 mod auth;
 mod cache;
 mod course_templates;
@@ -45,6 +46,7 @@ use anyhow::Context;
 use ai_handlers::{
     generate_content_handler, generate_quiz_handler, grade_essay_handler, tutor_chat_handler,
 };
+use ai_chat_handlers::{ai_chat_handler, ai_chat_stream_handler};
 use auth::bootstrap::bootstrap_handler;
 use auth::ensure_profile::ensure_profile_handler;
 use auth::login::login_handler;
@@ -424,6 +426,8 @@ async fn main() -> anyhow::Result<()> {
         .prefix("/api/v1/ai")
         .endpoint(Method::POST, "/grade-essay", post(grade_essay_handler))
         .endpoint(Method::POST, "/tutor", post(tutor_chat_handler))
+        .endpoint(Method::POST, "/chat", post(ai_chat_handler))
+        .endpoint(Method::POST, "/chat/stream", post(ai_chat_stream_handler))
         .endpoint(Method::POST, "/generate-content", post(generate_content_handler))
         .endpoint(Method::POST, "/generate-quiz", post(generate_quiz_handler))
         .state(app_state.clone());

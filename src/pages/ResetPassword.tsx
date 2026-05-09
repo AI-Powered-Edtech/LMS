@@ -1,6 +1,7 @@
 import { valibotResolver } from '@hookform/resolvers/valibot'
 import { Eye, EyeOff } from 'lucide-react'
 import { useEffect, useRef, useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { useForm } from 'react-hook-form'
 import { Link, useNavigate } from 'react-router-dom'
 
@@ -13,7 +14,8 @@ import {
 } from '@/shared/schemas/forms'
 
 export function ResetPassword() {
-  usePageTitle('Atur Ulang Kata Sandi')
+  const { t } = useTranslation()
+  usePageTitle(t('auth.pages.resetPageTitle'))
   const navigate = useNavigate()
   const [error, setError] = useState('')
   const [success, setSuccess] = useState(false)
@@ -65,7 +67,7 @@ export function ResetPassword() {
           setSessionReady(true)
         }
       } catch (err) {
-        setError(err instanceof Error ? err.message : 'Link reset password tidak valid.')
+        setError(err instanceof Error ? err.message : t('auth.pages.invalidResetLink'))
       }
     }
 
@@ -114,7 +116,7 @@ export function ResetPassword() {
         setTimeout(() => navigate('/'), 3000)
       }
     } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : 'Terjadi kesalahan.')
+      setError(err instanceof Error ? err.message : t('auth.pages.genericErrorShort'))
     }
   }
 
@@ -125,21 +127,21 @@ export function ResetPassword() {
           <div className="text-center mb-8">
             <span className="text-5xl inline-block mb-4">⏳</span>
             <h1 className="text-slate-900 dark:text-slate-100 text-2xl font-bold mt-2 mb-1">
-              Memverifikasi...
+              {t('auth.pages.verifying')}
             </h1>
             <p className="text-slate-500 dark:text-slate-400 text-sm leading-relaxed m-0">
-              Menunggu verifikasi link reset password.
+              {t('auth.pages.waitingVerification')}
             </p>
           </div>
           <div className="text-center mb-6">
             <p className="text-slate-500 dark:text-slate-400 text-sm m-0">
-              Jika halaman ini tidak berubah, link mungkin sudah kedaluwarsa.
+              {t('auth.pages.expiredHint')}
             </p>
             <Link
               to="/forgot-password"
               className="text-blue-600 dark:text-blue-400 text-sm font-bold no-underline block text-center mt-4 hover:text-blue-700 dark:hover:text-blue-300"
             >
-              Minta link baru →
+              {t('auth.pages.requestNewLink')}
             </Link>
           </div>
         </div>
@@ -153,36 +155,36 @@ export function ResetPassword() {
         <div className="text-center mb-8">
           <span className="text-5xl inline-block mb-4">{success ? '✅' : '🔑'}</span>
           <h1 className="text-slate-900 dark:text-slate-100 text-2xl font-bold mt-2 mb-1">
-            {success ? 'Password Berhasil Diubah' : 'Buat Password Baru'}
+            {success ? t('auth.pages.passwordChangedTitle') : t('auth.pages.newPasswordTitle')}
           </h1>
           <p className="text-slate-500 dark:text-slate-400 text-sm leading-relaxed m-0">
             {success
-              ? 'Anda akan dialihkan ke dashboard...'
-              : 'Masukkan password baru untuk akun Anda'}
+              ? t('auth.pages.redirectingDashboard')
+              : t('auth.pages.enterNewPassword')}
           </p>
         </div>
 
         {success ? (
           <div className="bg-emerald-50 dark:bg-emerald-900/20 p-6 rounded-xl border border-emerald-200 dark:border-emerald-800/50 text-center">
             <p className="text-emerald-700 dark:text-emerald-400 font-bold mb-2">
-              Password telah diperbarui. Mengarahkan ke dashboard dalam 3 detik...
+              {t('auth.pages.passwordUpdatedRedirect')}
             </p>
             <Link
               to="/"
               className="text-blue-600 dark:text-blue-400 text-sm font-bold no-underline block text-center mt-4 hover:text-blue-700 dark:hover:text-blue-300"
             >
-              Ke Dashboard →
+              {t('auth.pages.toDashboard')}
             </Link>
           </div>
         ) : (
           <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-4">
             <div style={{ position: 'relative' }}>
-              <FormField control={control} name="password" label="Kata Sandi Baru">
+              <FormField control={control} name="password" label={t('auth.pages.newPassword')}>
                 <input
                   type={showPassword ? 'text' : 'password'}
                   className="p-3 pr-10 w-full rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-700/50 text-slate-900 dark:text-white outline-none focus:ring-2 focus:ring-blue-500 transition-shadow"
                   {...register('password')}
-                  placeholder="Minimal 8 karakter"
+                  placeholder={t('auth.pages.newPasswordPlaceholder')}
                   autoFocus
                 />
               </FormField>
@@ -198,19 +200,19 @@ export function ResetPassword() {
                   cursor: 'pointer',
                   color: '#94a3b8',
                 }}
-                aria-label={showPassword ? 'Sembunyikan kata sandi' : 'Tampilkan kata sandi'}
+                aria-label={showPassword ? t('auth.pages.hidePassword') : t('auth.pages.showPassword')}
               >
                 {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
               </button>
             </div>
 
             <div style={{ position: 'relative' }}>
-              <FormField control={control} name="confirmPassword" label="Konfirmasi Kata Sandi">
+              <FormField control={control} name="confirmPassword" label={t('auth.pages.confirmPassword')}>
                 <input
                   type={showPassword ? 'text' : 'password'}
                   className="p-3 pr-10 w-full rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-700/50 text-slate-900 dark:text-white outline-none focus:ring-2 focus:ring-blue-500 transition-shadow"
                   {...register('confirmPassword')}
-                  placeholder="Ulangi password baru"
+                  placeholder={t('auth.pages.confirmPasswordPlaceholder')}
                 />
               </FormField>
               <button
@@ -225,7 +227,7 @@ export function ResetPassword() {
                   cursor: 'pointer',
                   color: '#94a3b8',
                 }}
-                aria-label={showPassword ? 'Sembunyikan kata sandi' : 'Tampilkan kata sandi'}
+                aria-label={showPassword ? t('auth.pages.hidePassword') : t('auth.pages.showPassword')}
               >
                 {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
               </button>
@@ -238,7 +240,7 @@ export function ResetPassword() {
               className="mt-2 p-3 bg-blue-600 text-white font-bold rounded-lg border-none cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed hover:bg-blue-700 transition-colors w-full"
               disabled={isSubmitting}
             >
-              {isSubmitting ? 'Menyimpan...' : 'Simpan Password Baru'}
+              {isSubmitting ? t('auth.pages.saving') : t('auth.pages.saveNewPassword')}
             </button>
           </form>
         )}

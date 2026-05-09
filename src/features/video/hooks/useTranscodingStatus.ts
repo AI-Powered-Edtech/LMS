@@ -77,7 +77,16 @@ export function useTranscodingStatus(options: UseTranscodingStatusOptions = {}) 
         }
 
         const result = await response.json()
-        const transcodingStatus: TranscodingStatus = result.data
+        const rawStatus = result.data ?? result
+        const transcodingStatus: TranscodingStatus = {
+          videoId: rawStatus.videoId ?? rawStatus.video_id,
+          status: rawStatus.status,
+          progressPercent: rawStatus.progressPercent ?? rawStatus.progress_percent ?? 0,
+          hlsManifestUrl: rawStatus.hlsManifestUrl ?? rawStatus.hls_manifest_url,
+          thumbnailUrl: rawStatus.thumbnailUrl ?? rawStatus.thumbnail_url,
+          durationSeconds: rawStatus.durationSeconds ?? rawStatus.duration_seconds,
+          errorMessage: rawStatus.errorMessage ?? rawStatus.error_message,
+        }
 
         setStatus(transcodingStatus)
 
