@@ -788,5 +788,52 @@
       "title": "Not found",
       "description": "The certificate you searched for was not found."
     }
+  },
+  "notificationsPage": {
+    "pageTitle": "Notifications",
+    "title": "Notifications",
+    "unreadCount": "count unread",
+    "allRead": "All caught up",
+    "preferencesTitle": "Notification Settings",
+    "actions": {
+      "markRead": "Mark read",
+      "markAllRead": "Mark all as read",
+      "processing": "Processing..."
+    },
+    "time": {
+      "justNow": "just now",
+      "minutesAgo": "count minutes ago",
+      "hoursAgo": "count hours ago",
+      "yesterday": "yesterday",
+      "daysAgo": "count days ago"
+    },
+    "tabs": {
+      "all": "All",
+      "unread": "Unread",
+      "grade": "Grades",
+      "assignment": "Assignments",
+      "quiz": "Quizzes",
+      "quizResult": "Quiz Results",
+      "announcement": "Announcements",
+      "course": "Courses",
+      "badge": "Badges",
+      "discussion": "Discussions",
+      "message": "Messages",
+      "system": "System",
+      "systemAlert": "System Alerts",
+      "invitation": "Invitations",
+      "moderation": "Moderation",
+      "sync": "Sync",
+      "newUser": "New Users"
+    },
+    "empty": {
+      "title": "No new notifications",
+      "description": "New notifications will appear here."
+    },
+    "pagination": {
+      "previous": "Previous",
+      "page": "Page {page}",
+      "next": "Next"
+    }
   }
 }

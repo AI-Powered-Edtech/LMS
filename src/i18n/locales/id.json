@@ -788,5 +788,52 @@
       "title": "Tidak ditemukan",
       "description": "Sertifikat yang Anda cari tidak ditemukan."
     }
+  },
+  "notificationsPage": {
+    "pageTitle": "Notifikasi",
+    "title": "Notifikasi",
+    "unreadCount": "count belum dibaca",
+    "allRead": "Semua sudah dibaca",
+    "preferencesTitle": "Pengaturan Notifikasi",
+    "actions": {
+      "markRead": "Tandai dibaca",
+      "markAllRead": "Tandai semua sudah dibaca",
+      "processing": "Memproses..."
+    },
+    "time": {
+      "justNow": "baru saja",
+      "minutesAgo": "count menit lalu",
+      "hoursAgo": "count jam lalu",
+      "yesterday": "kemarin",
+      "daysAgo": "count hari lalu"
+    },
+    "tabs": {
+      "all": "Semua",
+      "unread": "Belum Dibaca",
+      "grade": "Nilai",
+      "assignment": "Tugas",
+      "quiz": "Kuis",
+      "quizResult": "Hasil Kuis",
+      "announcement": "Pengumuman",
+      "course": "Kursus",
+      "badge": "Lencana",
+      "discussion": "Diskusi",
+      "message": "Pesan",
+      "system": "Sistem",
+      "systemAlert": "Peringatan Sistem",
+      "invitation": "Undangan",
+      "moderation": "Moderasi",
+      "sync": "Sinkronisasi",
+      "newUser": "Pengguna Baru"
+    },
+    "empty": {
+      "title": "Tidak ada notifikasi baru",
+      "description": "Notifikasi terbaru akan muncul di sini."
+    },
+    "pagination": {
+      "previous": "Sebelumnya",
+      "page": "Halaman {page}",
+      "next": "Berikutnya"
+    }
   }
 }
