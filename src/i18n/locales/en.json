@@ -7,10 +7,65 @@
     "confirm": "Confirm",
     "delete": "Delete",
     "edit": "Edit",
-    "close": "Close"
+    "close": "Close",
+    "email": "Email",
+    "password": "Password",
+    "back": "Back"
   },
   "auth": {
     "login": "Log in",
-    "logout": "Log out"
+    "logout": "Log out",
+    "loginForm": {
+      "errors": {
+        "invalidEmail": "Invalid email.",
+        "passwordRequired": "Password is required.",
+        "missingCredentials": "Please enter your email and password."
+      },
+      "emailPlaceholder": "you@email.com",
+      "showPassword": "Show password",
+      "hidePassword": "Hide password",
+      "forgotPassword": "Forgot Password?",
+      "submitting": "Signing in..."
+    },
+    "registerForm": {
+      "accountTypeLabel": "Register as",
+      "student": "Student",
+      "studentHint": "Learn in a teacher-led class",
+      "teacher": "Teacher",
+      "teacherHint": "Create courses & classes",
+      "firstName": "First Name",
+      "lastName": "Last Name",
+      "firstNamePlaceholder": "Budi",
+      "lastNamePlaceholder": "Santoso",
+      "emailPlaceholder": "you@email.com",
+      "passwordPlaceholder": "Min 8 chars, 1 uppercase letter, 1 number",
+      "showPassword": "Show password",
+      "hidePassword": "Hide password",
+      "submittingCreateAccount": "Creating Account...",
+      "createAndJoin": "Create Account & Join",
+      "continue": "Continue →",
+      "joinCodeLabel": "Class Code from Teacher / Tutor",
+      "joinCodePlaceholder": "Example: ABC123",
+      "lookupLoading": "Searching for class...",
+      "classFound": "Class found",
+      "joinCodeHelp": "Ask your teacher or tutor for a class code. If you do not have one yet, skip this step.",
+      "submitting": "Creating...",
+      "registerAndJoin": "Register & Join",
+      "skipAndRegister": "Skip & Register",
+      "teacherModeLabel": "Choose how to join",
+      "inviteCode": "Invite Code",
+      "inviteCodeHint": "Join an existing school/tenant",
+      "personalSpace": "Personal Space",
+      "personalSpaceHint": "Create a workspace for yourself",
+      "tenantInviteLabel": "Tenant Invite Code",
+      "tenantInvitePlaceholder": "Example: SCHOOL-A1B2C3",
+      "tenantInviteHelp": "Ask your tenant/school admin for an invite code. The code determines your role in that tenant.",
+      "personalSpaceWillBeCreated": "Personal workspace will be created",
+      "spaceName": "Space name:",
+      "personalFallbackName": "My Space",
+      "personalSpaceHelp": "You can invite other teachers/students later from tenant settings.",
+      "joinTenantAndRegister": "Join Tenant & Register",
+      "createSpaceAndRegister": "Create Space & Register"
+    }
   }
 }

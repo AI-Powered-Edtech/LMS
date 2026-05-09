@@ -7,10 +7,65 @@
     "confirm": "Konfirmasi",
     "delete": "Hapus",
     "edit": "Ubah",
-    "close": "Tutup"
+    "close": "Tutup",
+    "email": "Email",
+    "password": "Kata Sandi",
+    "back": "Kembali"
   },
   "auth": {
     "login": "Masuk",
-    "logout": "Keluar"
+    "logout": "Keluar",
+    "loginForm": {
+      "errors": {
+        "invalidEmail": "Email tidak valid.",
+        "passwordRequired": "Kata sandi wajib diisi.",
+        "missingCredentials": "Silakan isi email dan kata sandi."
+      },
+      "emailPlaceholder": "kamu@email.com",
+      "showPassword": "Tampilkan kata sandi",
+      "hidePassword": "Sembunyikan kata sandi",
+      "forgotPassword": "Lupa Kata Sandi?",
+      "submitting": "Masuk..."
+    },
+    "registerForm": {
+      "accountTypeLabel": "Daftar sebagai",
+      "student": "Siswa",
+      "studentHint": "Belajar di kelas guru",
+      "teacher": "Guru",
+      "teacherHint": "Buat kursus & kelas",
+      "firstName": "Nama Depan",
+      "lastName": "Nama Belakang",
+      "firstNamePlaceholder": "Budi",
+      "lastNamePlaceholder": "Santoso",
+      "emailPlaceholder": "kamu@email.com",
+      "passwordPlaceholder": "Min 8 karakter, 1 Huruf Besar, 1 Angka",
+      "showPassword": "Tampilkan kata sandi",
+      "hidePassword": "Sembunyikan kata sandi",
+      "submittingCreateAccount": "Membuat Akun...",
+      "createAndJoin": "Buat Akun & Bergabung",
+      "continue": "Lanjut →",
+      "joinCodeLabel": "Kode Kelas dari Guru / Tutor",
+      "joinCodePlaceholder": "Contoh: ABC123",
+      "lookupLoading": "Mencari kelas...",
+      "classFound": "Kelas ditemukan",
+      "joinCodeHelp": "Minta kode kelas dari guru atau tutor kamu. Jika belum punya, lewati langkah ini.",
+      "submitting": "Membuat...",
+      "registerAndJoin": "Daftar & Bergabung",
+      "skipAndRegister": "Lewati & Daftar",
+      "teacherModeLabel": "Pilih cara bergabung",
+      "inviteCode": "Kode Undangan",
+      "inviteCodeHint": "Bergabung ke sekolah/tenant yang sudah ada",
+      "personalSpace": "Ruang Pribadi",
+      "personalSpaceHint": "Buat ruang kerja untukmu sendiri",
+      "tenantInviteLabel": "Kode Undangan Tenant",
+      "tenantInvitePlaceholder": "Contoh: SCHOOL-A1B2C3",
+      "tenantInviteHelp": "Minta kode undangan ke admin tenant/sekolahmu. Kode akan menentukan peranmu di tenant tersebut.",
+      "personalSpaceWillBeCreated": "Ruang kerja pribadi akan dibuat",
+      "spaceName": "Nama ruang:",
+      "personalFallbackName": "Ruang Saya",
+      "personalSpaceHelp": "Kamu bisa mengundang guru/siswa lain nanti lewat menu pengaturan tenant.",
+      "joinTenantAndRegister": "Gabung Tenant & Daftar",
+      "createSpaceAndRegister": "Buat Ruang & Daftar"
+    }
   }
 }

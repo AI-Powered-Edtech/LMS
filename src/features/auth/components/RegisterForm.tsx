@@ -1,28 +1,32 @@
-import { Eye, EyeOff, GraduationCap, Home, Ticket, User } from 'lucide-react'
-import { useState } from 'react'
-import type { UseFormReturn } from 'react-hook-form'
+import { Eye, EyeOff, GraduationCap, Home, Ticket, User } from "lucide-react";
+import { useState } from "react";
+import { useTranslation } from "react-i18next";
+import type { UseFormReturn } from "react-hook-form";
 
-import { FormField } from '@/components/ui/FormField'
-import type { ClassInfo, InviteInfo } from '@/features/auth/hooks/useLoginState'
-import type { RegisterFormData } from '@/shared/schemas/forms'
-import { cn } from '@/utils/cn'
+import { FormField } from "@/components/ui/FormField";
+import type {
+  ClassInfo,
+  InviteInfo,
+} from "@/features/auth/hooks/useLoginState";
+import type { RegisterFormData } from "@/shared/schemas/forms";
+import { cn } from "@/utils/cn";
 
 // ============================================================
 // Types
 // ============================================================
 
-type AccountType = 'student' | 'teacher'
-type TeacherMode = 'invite' | 'personal'
+type AccountType = "student" | "teacher";
+type TeacherMode = "invite" | "personal";
 
 interface RegisterStep1Props {
-  registerForm: UseFormReturn<RegisterFormData>
-  error: string
-  submitting: boolean
-  inviteToken: string | null
-  inviteInfo: InviteInfo | null
-  accountType: AccountType
-  onAccountTypeChange: (type: AccountType) => void
-  onSubmit: (data: RegisterFormData) => void
+  registerForm: UseFormReturn<RegisterFormData>;
+  error: string;
+  submitting: boolean;
+  inviteToken: string | null;
+  inviteInfo: InviteInfo | null;
+  accountType: AccountType;
+  onAccountTypeChange: (type: AccountType) => void;
+  onSubmit: (data: RegisterFormData) => void;
 }
 
 export function RegisterStep1({
@@ -35,33 +39,34 @@ export function RegisterStep1({
   onAccountTypeChange,
   onSubmit,
 }: RegisterStep1Props) {
-  const [showPassword, setShowPassword] = useState(false)
+  const [showPassword, setShowPassword] = useState(false);
+  const { t } = useTranslation();
 
   // Saat ada invite token, akun akan otomatis dibuat dengan role yang di-set backend
   // (biasanya teacher). Sembunyikan picker untuk menghindari kebingungan.
-  const showAccountTypePicker = !inviteToken
+  const showAccountTypePicker = !inviteToken;
 
   return (
     <form onSubmit={registerForm.handleSubmit(onSubmit)} className="space-y-4">
       {showAccountTypePicker && (
         <div>
           <label className="block text-white/60 text-xs font-medium mb-1.5">
-            Daftar sebagai
+            {t("auth.registerForm.accountTypeLabel")}
           </label>
           <div className="grid grid-cols-2 gap-2">
             <AccountTypeOption
-              active={accountType === 'student'}
-              onClick={() => onAccountTypeChange('student')}
+              active={accountType === "student"}
+              onClick={() => onAccountTypeChange("student")}
               icon={<User className="w-4 h-4" />}
-              label="Siswa"
-              hint="Belajar di kelas guru"
+              label={t("auth.registerForm.student")}
+              hint={t("auth.registerForm.studentHint")}
             />
             <AccountTypeOption
-              active={accountType === 'teacher'}
-              onClick={() => onAccountTypeChange('teacher')}
+              active={accountType === "teacher"}
+              onClick={() => onAccountTypeChange("teacher")}
               icon={<GraduationCap className="w-4 h-4" />}
-              label="Guru"
-              hint="Buat kursus & kelas"
+              label={t("auth.registerForm.teacher")}
+              hint={t("auth.registerForm.teacherHint")}
             />
           </div>
         </div>
@@ -71,22 +76,22 @@ export function RegisterStep1({
         <FormField
           name="firstName"
           control={registerForm.control}
-          label="Nama Depan"
+          label={t("auth.registerForm.firstName")}
           labelClassName="text-white/60 text-xs font-medium mb-1.5"
         >
           <input
-            placeholder="Budi"
+            placeholder={t("auth.registerForm.firstNamePlaceholder")}
             className="w-full bg-white/5 border border-white/10 text-white rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-blue-500 placeholder:text-white/20 text-sm"
           />
         </FormField>
         <FormField
           name="lastName"
           control={registerForm.control}
-          label="Nama Belakang"
+          label={t("auth.registerForm.lastName")}
           labelClassName="text-white/60 text-xs font-medium mb-1.5"
         >
           <input
-            placeholder="Santoso"
+            placeholder={t("auth.registerForm.lastNamePlaceholder")}
             className="w-full bg-white/5 border border-white/10 text-white rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-blue-500 placeholder:text-white/20 text-sm"
           />
         </FormField>
@@ -94,12 +99,12 @@ export function RegisterStep1({
       <FormField
         name="email"
         control={registerForm.control}
-        label="Email"
+        label={t("common.email")}
         labelClassName="text-white/60 text-xs font-medium mb-1.5"
       >
         <input
           type="email"
-          placeholder="kamu@email.com"
+          placeholder={t("auth.registerForm.emailPlaceholder")}
           readOnly={!!inviteInfo}
           className="w-full bg-white/5 border border-white/10 text-white rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-blue-500 placeholder:text-white/20 text-sm disabled:opacity-60"
         />
@@ -108,12 +113,12 @@ export function RegisterStep1({
         <FormField
           name="password"
           control={registerForm.control}
-          label="Kata Sandi"
+          label={t("common.password")}
           labelClassName="text-white/60 text-xs font-medium mb-1.5"
         >
           <input
-            type={showPassword ? 'text' : 'password'}
-            placeholder="Min 8 karakter, 1 Huruf Besar, 1 Angka"
+            type={showPassword ? "text" : "password"}
+            placeholder={t("auth.registerForm.passwordPlaceholder")}
             className="w-full bg-white/5 border border-white/10 text-white rounded-xl px-4 py-3 pr-10 focus:outline-none focus:ring-2 focus:ring-blue-500 placeholder:text-white/20 text-sm"
           />
         </FormField>
@@ -121,9 +126,17 @@ export function RegisterStep1({
           type="button"
           onClick={() => setShowPassword(!showPassword)}
           className="absolute right-3 top-9 text-white/40 hover:text-white/60 transition-colors"
-          aria-label={showPassword ? 'Sembunyikan kata sandi' : 'Tampilkan kata sandi'}
+          aria-label={
+            showPassword
+              ? t("auth.registerForm.hidePassword")
+              : t("auth.registerForm.showPassword")
+          }
         >
-          {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+          {showPassword ? (
+            <EyeOff className="w-4 h-4" />
+          ) : (
+            <Eye className="w-4 h-4" />
+          )}
         </button>
       </div>
       {error && (
@@ -139,10 +152,14 @@ export function RegisterStep1({
         disabled={submitting}
         className="w-full bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-white rounded-xl py-3 font-semibold transition-colors mt-2"
       >
-        {inviteToken ? (submitting ? 'Membuat Akun...' : 'Buat Akun & Bergabung') : 'Lanjut →'}
+        {inviteToken
+          ? submitting
+            ? t("auth.registerForm.submittingCreateAccount")
+            : t("auth.registerForm.createAndJoin")
+          : t("auth.registerForm.continue")}
       </button>
     </form>
-  )
+  );
 }
 
 // ============================================================
@@ -156,11 +173,11 @@ function AccountTypeOption({
   label,
   hint,
 }: {
-  active: boolean
-  onClick: () => void
-  icon: React.ReactNode
-  label: string
-  hint: string
+  active: boolean;
+  onClick: () => void;
+  icon: React.ReactNode;
+  label: string;
+  hint: string;
 }) {
   return (
     <button
@@ -168,10 +185,10 @@ function AccountTypeOption({
       onClick={onClick}
       aria-pressed={active}
       className={cn(
-        'flex flex-col items-start gap-0.5 px-3 py-2.5 rounded-xl border transition-colors text-left',
+        "flex flex-col items-start gap-0.5 px-3 py-2.5 rounded-xl border transition-colors text-left",
         active
-          ? 'bg-blue-500/15 border-blue-400/50 text-white'
-          : 'bg-white/5 border-white/10 text-white/70 hover:bg-white/10'
+          ? "bg-blue-500/15 border-blue-400/50 text-white"
+          : "bg-white/5 border-white/10 text-white/70 hover:bg-white/10",
       )}
     >
       <div className="flex items-center gap-1.5">
@@ -180,7 +197,7 @@ function AccountTypeOption({
       </div>
       <span className="text-[11px] text-white/40">{hint}</span>
     </button>
-  )
+  );
 }
 
 // ============================================================
@@ -188,32 +205,32 @@ function AccountTypeOption({
 // ============================================================
 
 interface RegisterStep2Props {
-  accountType: AccountType
+  accountType: AccountType;
   // Student props
-  joinCode: string
-  setJoinCode: (value: string) => void
-  classInfo: ClassInfo | null
-  classLookupLoading: boolean
-  classLookupError: string
+  joinCode: string;
+  setJoinCode: (value: string) => void;
+  classInfo: ClassInfo | null;
+  classLookupLoading: boolean;
+  classLookupError: string;
   // Teacher props
-  teacherMode: TeacherMode
-  setTeacherMode: (mode: TeacherMode) => void
-  tenantInviteCode: string
-  setTenantInviteCode: (value: string) => void
-  firstName: string
+  teacherMode: TeacherMode;
+  setTeacherMode: (mode: TeacherMode) => void;
+  tenantInviteCode: string;
+  setTenantInviteCode: (value: string) => void;
+  firstName: string;
   // Common
-  error: string
-  submitting: boolean
-  onBack: () => void
-  onSubmit: () => void
+  error: string;
+  submitting: boolean;
+  onBack: () => void;
+  onSubmit: () => void;
 }
 
 export function RegisterStep2(props: RegisterStep2Props) {
-  return props.accountType === 'teacher' ? (
+  return props.accountType === "teacher" ? (
     <TeacherStep2 {...props} />
   ) : (
     <StudentStep2 {...props} />
-  )
+  );
 }
 
 function StudentStep2({
@@ -227,30 +244,39 @@ function StudentStep2({
   onBack,
   onSubmit,
 }: RegisterStep2Props) {
+  const { t } = useTranslation();
+
   return (
     <div className="space-y-5">
       <div>
-        <label htmlFor="reg-join-code" className="block text-white/60 text-xs font-medium mb-1.5">
-          Kode Kelas dari Guru / Tutor
+        <label
+          htmlFor="reg-join-code"
+          className="block text-white/60 text-xs font-medium mb-1.5"
+        >
+          {t("auth.registerForm.joinCodeLabel")}
         </label>
         <input
           id="reg-join-code"
           value={joinCode}
           onChange={(e) => setJoinCode(e.target.value.toUpperCase())}
-          placeholder="Contoh: ABC123"
+          placeholder={t("auth.registerForm.joinCodePlaceholder")}
           maxLength={10}
           className="w-full bg-white/5 border border-white/10 text-white rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-blue-500 placeholder:text-white/20 text-sm tracking-widest font-mono uppercase"
         />
         {classLookupLoading && (
           <p className="text-white/40 text-xs mt-2 flex items-center gap-1">
             <span className="inline-block w-3 h-3 border border-white/20 border-t-white/60 rounded-full animate-spin" />
-            Mencari kelas...
+            {t("auth.registerForm.lookupLoading")}
           </p>
         )}
         {classInfo && (
           <div className="mt-2 p-3 bg-green-500/10 border border-green-500/20 rounded-xl">
-            <p className="text-green-300 text-xs font-semibold">Kelas ditemukan</p>
-            <p className="text-white/80 text-sm font-medium mt-0.5">{classInfo.class_name}</p>
+            <p className="text-green-300 text-xs font-semibold">
+              {t("auth.registerForm.classFound")}
+            </p>
+            <p className="text-white/80 text-sm font-medium mt-0.5">
+              {classInfo.class_name}
+            </p>
             <p className="text-white/40 text-xs">
               {classInfo.teacher_name} · {classInfo.tenant_name}
             </p>
@@ -262,7 +288,7 @@ function StudentStep2({
       </div>
 
       <p className="text-white/30 text-xs text-center">
-        Minta kode kelas dari guru atau tutor kamu. Jika belum punya, lewati langkah ini.
+        {t("auth.registerForm.joinCodeHelp")}
       </p>
 
       {error && (
@@ -280,7 +306,7 @@ function StudentStep2({
           onClick={onBack}
           className="flex-1 bg-white/5 hover:bg-white/10 text-white/60 rounded-xl py-3 font-semibold transition-colors text-sm"
         >
-          Kembali
+          {t("common.back")}
         </button>
         <button
           type="button"
@@ -288,11 +314,15 @@ function StudentStep2({
           disabled={submitting}
           className="flex-1 bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-white rounded-xl py-3 font-semibold transition-colors text-sm"
         >
-          {submitting ? 'Membuat...' : classInfo ? 'Daftar & Bergabung' : 'Lewati & Daftar'}
+          {submitting
+            ? t("auth.registerForm.submitting")
+            : classInfo
+              ? t("auth.registerForm.registerAndJoin")
+              : t("auth.registerForm.skipAndRegister")}
         </button>
       </div>
     </div>
-  )
+  );
 }
 
 function TeacherStep2({
@@ -306,59 +336,65 @@ function TeacherStep2({
   onBack,
   onSubmit,
 }: RegisterStep2Props) {
+  const { t } = useTranslation();
+
   return (
     <div className="space-y-5">
       <div>
         <label className="block text-white/60 text-xs font-medium mb-1.5">
-          Pilih cara bergabung
+          {t("auth.registerForm.teacherModeLabel")}
         </label>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
           <TeacherModeOption
-            active={teacherMode === 'invite'}
-            onClick={() => setTeacherMode('invite')}
+            active={teacherMode === "invite"}
+            onClick={() => setTeacherMode("invite")}
             icon={<Ticket className="w-4 h-4" />}
-            label="Kode Undangan"
-            hint="Bergabung ke sekolah/tenant yang sudah ada"
+            label={t("auth.registerForm.inviteCode")}
+            hint={t("auth.registerForm.inviteCodeHint")}
           />
           <TeacherModeOption
-            active={teacherMode === 'personal'}
-            onClick={() => setTeacherMode('personal')}
+            active={teacherMode === "personal"}
+            onClick={() => setTeacherMode("personal")}
             icon={<Home className="w-4 h-4" />}
-            label="Ruang Pribadi"
-            hint="Buat ruang kerja untukmu sendiri"
+            label={t("auth.registerForm.personalSpace")}
+            hint={t("auth.registerForm.personalSpaceHint")}
           />
         </div>
       </div>
 
-      {teacherMode === 'invite' ? (
+      {teacherMode === "invite" ? (
         <div>
           <label
             htmlFor="reg-tenant-invite"
             className="block text-white/60 text-xs font-medium mb-1.5"
           >
-            Kode Undangan Tenant
+            {t("auth.registerForm.tenantInviteLabel")}
           </label>
           <input
             id="reg-tenant-invite"
             value={tenantInviteCode}
             onChange={(e) => setTenantInviteCode(e.target.value.toUpperCase())}
-            placeholder="Contoh: SCHOOL-A1B2C3"
+            placeholder={t("auth.registerForm.tenantInvitePlaceholder")}
             maxLength={32}
             className="w-full bg-white/5 border border-white/10 text-white rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-blue-500 placeholder:text-white/20 text-sm tracking-wider font-mono uppercase"
           />
           <p className="text-white/30 text-xs mt-2">
-            Minta kode undangan ke admin tenant/sekolahmu. Kode akan menentukan peranmu di tenant
-            tersebut.
+            {t("auth.registerForm.tenantInviteHelp")}
           </p>
         </div>
       ) : (
         <div className="p-3 bg-indigo-500/10 border border-indigo-500/20 rounded-xl">
-          <p className="text-indigo-300 text-xs font-semibold">Ruang kerja pribadi akan dibuat</p>
+          <p className="text-indigo-300 text-xs font-semibold">
+            {t("auth.registerForm.personalSpaceWillBeCreated")}
+          </p>
           <p className="text-white/70 text-sm mt-1">
-            Nama ruang: <span className="font-semibold">{firstName || 'Ruang Saya'}</span>
+            {t("auth.registerForm.spaceName")}{" "}
+            <span className="font-semibold">
+              {firstName || t("auth.registerForm.personalFallbackName")}
+            </span>
           </p>
           <p className="text-white/40 text-xs mt-1">
-            Kamu bisa mengundang guru/siswa lain nanti lewat menu pengaturan tenant.
+            {t("auth.registerForm.personalSpaceHelp")}
           </p>
         </div>
       )}
@@ -378,7 +414,7 @@ function TeacherStep2({
           onClick={onBack}
           className="flex-1 bg-white/5 hover:bg-white/10 text-white/60 rounded-xl py-3 font-semibold transition-colors text-sm"
         >
-          Kembali
+          {t("common.back")}
         </button>
         <button
           type="button"
@@ -387,14 +423,14 @@ function TeacherStep2({
           className="flex-1 bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-white rounded-xl py-3 font-semibold transition-colors text-sm"
         >
           {submitting
-            ? 'Membuat...'
-            : teacherMode === 'invite'
-              ? 'Gabung Tenant & Daftar'
-              : 'Buat Ruang & Daftar'}
+            ? t("auth.registerForm.submitting")
+            : teacherMode === "invite"
+              ? t("auth.registerForm.joinTenantAndRegister")
+              : t("auth.registerForm.createSpaceAndRegister")}
         </button>
       </div>
     </div>
-  )
+  );
 }
 
 function TeacherModeOption({
@@ -404,11 +440,11 @@ function TeacherModeOption({
   label,
   hint,
 }: {
-  active: boolean
-  onClick: () => void
-  icon: React.ReactNode
-  label: string
-  hint: string
+  active: boolean;
+  onClick: () => void;
+  icon: React.ReactNode;
+  label: string;
+  hint: string;
 }) {
   return (
     <button
@@ -416,10 +452,10 @@ function TeacherModeOption({
       onClick={onClick}
       aria-pressed={active}
       className={cn(
-        'flex flex-col items-start gap-0.5 px-3 py-2.5 rounded-xl border transition-colors text-left',
+        "flex flex-col items-start gap-0.5 px-3 py-2.5 rounded-xl border transition-colors text-left",
         active
-          ? 'bg-blue-500/15 border-blue-400/50 text-white'
-          : 'bg-white/5 border-white/10 text-white/70 hover:bg-white/10'
+          ? "bg-blue-500/15 border-blue-400/50 text-white"
+          : "bg-white/5 border-white/10 text-white/70 hover:bg-white/10",
       )}
     >
       <div className="flex items-center gap-1.5">
@@ -428,5 +464,5 @@ function TeacherModeOption({
       </div>
       <span className="text-[11px] text-white/40">{hint}</span>
     </button>
-  )
+  );
 }
