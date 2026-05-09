@@ -343,5 +343,45 @@
       "description": "Tindakan di bawah ini tidak dapat dibatalkan.",
       "signOut": "Keluar Akun"
     }
+  },
+  "profile": {
+    "privacy": {
+      "exportTitle": "Export Data Pribadi",
+      "exportDescription": "Download semua data pribadi Anda yang tersimpan di EduSync. Data akan diunduh dalam format JSON.",
+      "exportIncludesTitle": "Data yang akan di-export",
+      "exportIncludesProfile": "Profil pengguna",
+      "exportIncludesEnrollments": "Enrollment kursus",
+      "exportIncludesProgress": "Progress pembelajaran",
+      "exportIncludesGrades": "Nilai dan rapor",
+      "exportIncludesMessages": "Pesan ke guru",
+      "exportIncludesCertificates": "Sertifikat",
+      "exportSuccessToast": "Data berhasil di-export",
+      "exportError": "Gagal mengexport data. Coba lagi nanti.",
+      "exportErrorToast": "Gagal mengexport data",
+      "exporting": "Mengeksport data...",
+      "downloadMyData": "Download Data Saya",
+      "lastExport": "Export Terakhir",
+      "enrollments": "Enrollment",
+      "progress": "Progress",
+      "grades": "Nilai",
+      "certificates": "Sertifikat",
+      "deleteTitle": "Hapus Akun",
+      "deleteDescription": "Permintaan penghapusan akun akan dikirim ke admin sekolah untuk ditinjau. Data Anda tidak akan dihapus sampai admin menyetujui permintaan ini.",
+      "deleteSuccessToast": "Permintaan penghapusan akun berhasil dikirim",
+      "deleteError": "Gagal mengirim permintaan. Coba lagi nanti.",
+      "deleteErrorToast": "Gagal mengirim permintaan penghapusan",
+      "deleteSubmittedTitle": "Permintaan Terkirim",
+      "deleteSubmittedDescription": "Permintaan penghapusan akun Anda telah dikirim ke admin sekolah. Admin akan meninjau dan menghubungi Anda dalam 14 hari kerja.",
+      "backToDashboard": "Kembali ke Dashboard",
+      "warningTitle": "Perhatian:",
+      "warningDescription": "Penghapusan akun bersifat permanen. Semua data pembelajaran, nilai, dan sertifikat Anda akan dihapus.",
+      "deleteReasonLabel": "Alasan penghapusan",
+      "deleteReasonPlaceholder": "Ceritakan alasan Anda menghapus akun...",
+      "deleteReasonAria": "Alasan penghapusan akun",
+      "deleteConfirmLabel": "Konfirmasi: ketik nama depan Anda untuk melanjutkan",
+      "firstNamePlaceholder": "Nama depan Anda",
+      "deleteConfirmAria": "Konfirmasi nama depan untuk penghapusan akun",
+      "sendDeleteRequest": "Kirim Permintaan Penghapusan"
+    }
   }
 }

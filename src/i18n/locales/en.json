@@ -343,5 +343,45 @@
       "description": "The actions below cannot be undone.",
       "signOut": "Sign Out"
     }
+  },
+  "profile": {
+    "privacy": {
+      "exportTitle": "Export Personal Data",
+      "exportDescription": "Download all personal data stored in EduSync. The data will be downloaded in JSON format.",
+      "exportIncludesTitle": "Data that will be exported",
+      "exportIncludesProfile": "User profile",
+      "exportIncludesEnrollments": "Course enrollments",
+      "exportIncludesProgress": "Learning progress",
+      "exportIncludesGrades": "Grades and report cards",
+      "exportIncludesMessages": "Messages to teachers",
+      "exportIncludesCertificates": "Certificates",
+      "exportSuccessToast": "Data exported successfully",
+      "exportError": "Failed to export data. Try again later.",
+      "exportErrorToast": "Failed to export data",
+      "exporting": "Exporting data...",
+      "downloadMyData": "Download My Data",
+      "lastExport": "Last Export",
+      "enrollments": "Enrollments",
+      "progress": "Progress",
+      "grades": "Grades",
+      "certificates": "Certificates",
+      "deleteTitle": "Delete Account",
+      "deleteDescription": "The account deletion request will be sent to a school admin for review. Your data will not be deleted until an admin approves this request.",
+      "deleteSuccessToast": "Account deletion request sent successfully",
+      "deleteError": "Failed to send request. Try again later.",
+      "deleteErrorToast": "Failed to send deletion request",
+      "deleteSubmittedTitle": "Request Sent",
+      "deleteSubmittedDescription": "Your account deletion request has been sent to a school admin. An admin will review it and contact you within 14 business days.",
+      "backToDashboard": "Back to Dashboard",
+      "warningTitle": "Warning:",
+      "warningDescription": "Account deletion is permanent. All learning data, grades, and certificates will be deleted.",
+      "deleteReasonLabel": "Reason for deletion",
+      "deleteReasonPlaceholder": "Tell us why you want to delete your account...",
+      "deleteReasonAria": "Reason for account deletion",
+      "deleteConfirmLabel": "Confirmation: type your first name to continue",
+      "firstNamePlaceholder": "Your first name",
+      "deleteConfirmAria": "Confirm first name for account deletion",
+      "sendDeleteRequest": "Send Deletion Request"
+    }
   }
 }

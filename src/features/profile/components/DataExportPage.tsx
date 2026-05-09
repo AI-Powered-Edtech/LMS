@@ -1,57 +1,68 @@
-import { Download } from 'lucide-react'
-import { useCallback, useState } from 'react'
+import { Download } from "lucide-react";
+import { useCallback, useState } from "react";
+import { useTranslation } from "react-i18next";
 
-import { Button, Card, Spinner } from '@/components/ui'
-import { useAuth } from '@/contexts/AuthContext'
-import { useToast } from '@/hooks/useToast'
+import { Button, Card, Spinner } from "@/components/ui";
+import { useAuth } from "@/contexts/AuthContext";
+import { useToast } from "@/hooks/useToast";
 
-import type { UserDataExport } from '../api/privacyService'
-import { downloadExport, exportUserData } from '../api/privacyService'
+import type { UserDataExport } from "../api/privacyService";
+import { downloadExport, exportUserData } from "../api/privacyService";
 
 export function DataExportPage() {
-  const { user, tenantId } = useAuth()
-  const { addToast } = useToast()
-  const [loading, setLoading] = useState(false)
-  const [lastExport, setLastExport] = useState<UserDataExport | null>(null)
-  const [error, setError] = useState<string | null>(null)
+  const { user, tenantId } = useAuth();
+  const { addToast } = useToast();
+  const { t, i18n } = useTranslation();
+  const [loading, setLoading] = useState(false);
+  const [lastExport, setLastExport] = useState<UserDataExport | null>(null);
+  const [error, setError] = useState<string | null>(null);
 
   const handleExport = useCallback(async () => {
-    if (!user || !tenantId) return
-    setLoading(true)
-    setError(null)
+    if (!user || !tenantId) return;
+    setLoading(true);
+    setError(null);
 
-    const data = await exportUserData(user.id, tenantId)
+    const data = await exportUserData(user.id, tenantId);
     if (data) {
-      setLastExport(data)
-      downloadExport(data)
-      addToast({ type: 'success', message: 'Data berhasil di-export' })
+      setLastExport(data);
+      downloadExport(data);
+      addToast({
+        type: "success",
+        message: t("profile.privacy.exportSuccessToast"),
+      });
     } else {
-      setError('Gagal mengexport data. Coba lagi nanti.')
-      addToast({ type: 'error', message: 'Gagal mengexport data' })
+      setError(t("profile.privacy.exportError"));
+      addToast({
+        type: "error",
+        message: t("profile.privacy.exportErrorToast"),
+      });
     }
-    setLoading(false)
-  }, [user, tenantId, addToast])
+    setLoading(false);
+  }, [user, tenantId, addToast, t]);
 
   return (
     <div className="max-w-2xl mx-auto space-y-6 p-4">
       <div>
-        <h1 className="text-2xl font-bold text-slate-900 dark:text-white">Export Data Pribadi</h1>
+        <h1 className="text-2xl font-bold text-slate-900 dark:text-white">
+          {t("profile.privacy.exportTitle")}
+        </h1>
         <p className="text-slate-600 dark:text-slate-400 mt-1">
-          Download semua data pribadi Anda yang tersimpan di EduSync. Data akan diunduh dalam format
-          JSON.
+          {t("profile.privacy.exportDescription")}
         </p>
       </div>
 
       <Card className="p-4 space-y-4">
         <div>
-          <h2 className="font-semibold text-slate-900 dark:text-white">Data yang akan di-export</h2>
+          <h2 className="font-semibold text-slate-900 dark:text-white">
+            {t("profile.privacy.exportIncludesTitle")}
+          </h2>
           <ul className="mt-2 space-y-1 text-sm text-slate-600 dark:text-slate-400">
-            <li>• Profil pengguna</li>
-            <li>• Enrollment kursus</li>
-            <li>• Progress pembelajaran</li>
-            <li>• Nilai dan rapor</li>
-            <li>• Pesan ke guru</li>
-            <li>• Sertifikat</li>
+            <li>• {t("profile.privacy.exportIncludesProfile")}</li>
+            <li>• {t("profile.privacy.exportIncludesEnrollments")}</li>
+            <li>• {t("profile.privacy.exportIncludesProgress")}</li>
+            <li>• {t("profile.privacy.exportIncludesGrades")}</li>
+            <li>• {t("profile.privacy.exportIncludesMessages")}</li>
+            <li>• {t("profile.privacy.exportIncludesCertificates")}</li>
           </ul>
         </div>
 
@@ -68,12 +79,12 @@ export function DataExportPage() {
           {loading ? (
             <span className="flex items-center justify-center gap-2">
               <Spinner size="sm" />
-              Mengeksport data...
+              {t("profile.privacy.exporting")}
             </span>
           ) : (
             <span className="flex items-center justify-center gap-2">
               <Download className="w-4 h-4" />
-              Download Data Saya
+              {t("profile.privacy.downloadMyData")}
             </span>
           )}
         </Button>
@@ -81,36 +92,53 @@ export function DataExportPage() {
 
       {lastExport && (
         <Card className="p-4">
-          <h2 className="font-semibold text-slate-900 dark:text-white mb-2">Export Terakhir</h2>
+          <h2 className="font-semibold text-slate-900 dark:text-white mb-2">
+            {t("profile.privacy.lastExport")}
+          </h2>
           <p className="text-sm text-slate-600 dark:text-slate-400">
-            {new Date(lastExport.exportedAt).toLocaleString('id-ID', {
-              day: 'numeric',
-              month: 'long',
-              year: 'numeric',
-              hour: '2-digit',
-              minute: '2-digit',
-            })}
+            {new Date(lastExport.exportedAt).toLocaleString(
+              i18n.language === "en" ? "en-US" : "id-ID",
+              {
+                day: "numeric",
+                month: "long",
+                year: "numeric",
+                hour: "2-digit",
+                minute: "2-digit",
+              },
+            )}
           </p>
           <div className="mt-2 grid grid-cols-2 gap-2 text-sm">
             <div>
-              <span className="text-slate-500">Enrollment:</span>{' '}
-              <span className="font-medium">{lastExport.enrollments.length}</span>
+              <span className="text-slate-500">
+                {t("profile.privacy.enrollments")}:
+              </span>{" "}
+              <span className="font-medium">
+                {lastExport.enrollments.length}
+              </span>
             </div>
             <div>
-              <span className="text-slate-500">Progress:</span>{' '}
+              <span className="text-slate-500">
+                {t("profile.privacy.progress")}:
+              </span>{" "}
               <span className="font-medium">{lastExport.progress.length}</span>
             </div>
             <div>
-              <span className="text-slate-500">Nilai:</span>{' '}
+              <span className="text-slate-500">
+                {t("profile.privacy.grades")}:
+              </span>{" "}
               <span className="font-medium">{lastExport.grades.length}</span>
             </div>
             <div>
-              <span className="text-slate-500">Sertifikat:</span>{' '}
-              <span className="font-medium">{lastExport.certificates.length}</span>
+              <span className="text-slate-500">
+                {t("profile.privacy.certificates")}:
+              </span>{" "}
+              <span className="font-medium">
+                {lastExport.certificates.length}
+              </span>
             </div>
           </div>
         </Card>
       )}
     </div>
-  )
+  );
 }
