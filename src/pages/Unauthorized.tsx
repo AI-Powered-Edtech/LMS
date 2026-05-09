@@ -1,30 +1,32 @@
-import { ArrowLeft, Home, ShieldX } from 'lucide-react'
-import { useEffect, useRef } from 'react'
-import { useLocation, useNavigate } from 'react-router-dom'
+import { ArrowLeft, Home, ShieldX } from "lucide-react";
+import { useEffect, useRef } from "react";
+import { useTranslation } from "react-i18next";
+import { useLocation, useNavigate } from "react-router-dom";
 
-import { usePageTitle } from '@/hooks/usePageTitle'
+import { usePageTitle } from "@/hooks/usePageTitle";
 
 const DASHBOARD_PATHS: Record<string, string> = {
-  teacher: '/app/teacher/dashboard',
-  student: '/app/student/dashboard',
-  admin: '/app/admin/dashboard',
-}
+  teacher: "/app/teacher/dashboard",
+  student: "/app/student/dashboard",
+  admin: "/app/admin/dashboard",
+};
 
 export function Unauthorized() {
-  usePageTitle('Tidak Diizinkan')
-  const navigate = useNavigate()
-  const location = useLocation()
-  const headingRef = useRef<HTMLHeadingElement>(null)
+  const { t } = useTranslation();
+  usePageTitle(t("auth.pages.unauthorizedPageTitle"));
+  const navigate = useNavigate();
+  const location = useLocation();
+  const headingRef = useRef<HTMLHeadingElement>(null);
 
   // State injected by RoleGuard — contains the user's actual role and attempted path
-  const state = location.state as { from?: Location; userRole?: string } | null
-  const dashboardPath = DASHBOARD_PATHS[state?.userRole ?? ''] ?? '/app'
+  const state = location.state as { from?: Location; userRole?: string } | null;
+  const dashboardPath = DASHBOARD_PATHS[state?.userRole ?? ""] ?? "/app";
 
   // WCAG 2.4.3: Move focus to the main content area after redirect
   // Without this, keyboard focus stays on whatever was focused before the redirect
   useEffect(() => {
-    headingRef.current?.focus()
-  }, [])
+    headingRef.current?.focus();
+  }, []);
 
   return (
     <div className="min-h-screen bg-slate-50 dark:bg-slate-950 flex items-center justify-center p-4 transition-colors duration-300">
@@ -38,10 +40,10 @@ export function Unauthorized() {
             tabIndex={-1}
             className="text-4xl font-bold text-slate-900 dark:text-white mb-4 outline-none"
           >
-            Akses Ditolak
+            {t("auth.pages.unauthorizedHeading")}
           </h1>
           <p className="text-slate-500 dark:text-slate-400 text-lg">
-            Anda tidak memiliki izin untuk mengakses halaman ini.
+            {t("auth.pages.unauthorizedDescription")}
           </p>
         </div>
 
@@ -51,7 +53,7 @@ export function Unauthorized() {
             className="w-full flex items-center justify-center space-x-2 px-6 py-3 bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-700 text-slate-700 dark:text-white rounded-lg transition-colors border border-slate-200 dark:border-slate-700 shadow-sm"
           >
             <ArrowLeft size={20} />
-            <span>Kembali</span>
+            <span>{t("common.back")}</span>
           </button>
 
           <button
@@ -59,10 +61,10 @@ export function Unauthorized() {
             className="w-full flex items-center justify-center space-x-2 px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors shadow-sm"
           >
             <Home size={20} />
-            <span>Ke Dashboard Saya</span>
+            <span>{t("auth.pages.goToMyDashboard")}</span>
           </button>
         </div>
       </div>
     </div>
-  )
+  );
 }
