@@ -900,5 +900,194 @@
       "title": "Tidak ada notifikasi baru",
       "description": "Kamu akan melihat notifikasi di sini"
     }
+  },
+  "notifications": {
+    "formatter": {
+      "typeLabels": {
+        "gradePosted": "Nilai Diposting",
+        "grade": "Nilai",
+        "assignmentDue": "Batas Waktu Tugas",
+        "quizAvailable": "Kuis Tersedia",
+        "quizResult": "Hasil Kuis",
+        "announcement": "Pengumuman",
+        "courseEnrolled": "Pendaftaran Kursus",
+        "badgeEarned": "Lencana Diperoleh",
+        "discussionReply": "Balasan Diskusi",
+        "messageReceived": "Pesan Masuk",
+        "system": "Sistem",
+        "systemAlert": "Peringatan Sistem",
+        "invitationAccepted": "Undangan Diterima",
+        "moderationReport": "Laporan Moderasi",
+        "syncFailure": "Gagal Sinkronisasi",
+        "userJoined": "Pengguna Baru"
+      },
+      "scorePrefix": "nilai",
+      "forCourse": "untuk",
+      "fromActor": "dari",
+      "newLabel": "baru",
+      "newInfo": "informasi baru",
+      "defaults": {
+        "title": "Notifikasi",
+        "body": "Anda memiliki notifikasi baru.",
+        "aria": "Notifikasi baru.",
+        "ariaShort": "Notifikasi baru"
+      },
+      "time": {
+        "justNow": "baru saja",
+        "minutesAgo": "__COUNT__ menit lalu",
+        "hoursAgo": "__COUNT__ jam lalu",
+        "yesterday": "kemarin",
+        "daysAgo": "__COUNT__ hari lalu"
+      },
+      "events": {
+        "lessonCompleted": {
+          "title": "Pelajaran Selesai",
+          "bodyWithCourse": "Kamu telah menyelesaikan pelajaran di \"__COURSE__\".",
+          "body": "Kamu telah menyelesaikan satu pelajaran.",
+          "ariaWithCourse": "Notifikasi: Pelajaran selesai di __COURSE__.",
+          "aria": "Notifikasi: Pelajaran selesai."
+        },
+        "quizCompleted": {
+          "title": "Kuis Selesai",
+          "bodyWithQuizScore": "Kuis \"__QUIZ__\" selesai dengan nilai __SCORE__.",
+          "bodyWithQuiz": "Kamu telah menyelesaikan kuis \"__QUIZ__\".",
+          "bodyWithScore": "Kuis selesai dengan nilai __SCORE__.",
+          "body": "Kamu telah menyelesaikan satu kuis.",
+          "aria": "Notifikasi: Kuis selesai__QUIZ____SCORE__."
+        },
+        "assignmentSubmitted": {
+          "title": "Tugas Dikumpulkan",
+          "bodyWithAssignment": "Tugas \"__ASSIGNMENT__\" berhasil dikumpulkan.",
+          "body": "Tugas berhasil dikumpulkan.",
+          "ariaWithAssignment": "Notifikasi: Tugas dikumpulkan — __ASSIGNMENT__.",
+          "aria": "Notifikasi: Tugas dikumpulkan."
+        },
+        "classJoined": {
+          "title": "Bergabung ke Kelas",
+          "bodyWithCourse": "Kamu berhasil bergabung ke kelas \"__COURSE__\".",
+          "body": "Kamu berhasil bergabung ke kelas baru.",
+          "ariaWithCourse": "Notifikasi: Bergabung ke kelas — __COURSE__.",
+          "aria": "Notifikasi: Bergabung ke kelas."
+        },
+        "aiTutor": {
+          "title": "Sesi AI Tutor",
+          "body": "Sesi belajar dengan AI Tutor telah dimulai.",
+          "aria": "Notifikasi: Sesi AI Tutor."
+        },
+        "invitationAccepted": {
+          "title": "Undangan Diterima",
+          "bodyWithActor": "__ACTOR__ telah menerima undangan dan bergabung ke platform.",
+          "body": "Undangan berhasil diterima.",
+          "ariaWithActor": "Notifikasi: Undangan diterima oleh __ACTOR__.",
+          "aria": "Notifikasi: Undangan diterima."
+        },
+        "moderationReport": {
+          "title": "Laporan Moderasi",
+          "body": "Konten baru dilaporkan untuk moderasi.",
+          "aria": "Notifikasi admin: Laporan moderasi baru."
+        },
+        "syncFailure": {
+          "title": "Gagal Sinkronisasi",
+          "body": "Terjadi kegagalan sinkronisasi data. Periksa log sistem.",
+          "aria": "Notifikasi admin: Gagal sinkronisasi data."
+        },
+        "systemAlert": {
+          "title": "Peringatan Sistem",
+          "body": "Ada peringatan sistem yang memerlukan perhatian.",
+          "aria": "Notifikasi admin: Peringatan sistem."
+        },
+        "userJoined": {
+          "title": "Pengguna Baru Bergabung",
+          "bodyWithActor": "__ACTOR__ baru saja bergabung ke platform.",
+          "body": "Pengguna baru bergabung ke platform.",
+          "ariaWithActor": "Notifikasi admin: Pengguna baru bergabung — __ACTOR__.",
+          "aria": "Notifikasi admin: Pengguna baru bergabung."
+        }
+      },
+      "messages": {
+        "grade": {
+          "title": "Nilai Diposting",
+          "bodyWithScore": "Nilai kamu__COURSE__ adalah __SCORE__.",
+          "body": "Nilai baru telah diposting__COURSE__.",
+          "aria": "Nilai diposting__COURSE__"
+        },
+        "assignmentDue": {
+          "title": "Pengingat Tugas",
+          "bodyWithAssignment": "Tugas \"__ASSIGNMENT__\" segera jatuh tempo.",
+          "body": "Ada tugas yang segera jatuh tempo.",
+          "aria": "Pengingat tugas__ASSIGNMENT__"
+        },
+        "quizAvailable": {
+          "title": "Kuis Tersedia",
+          "bodyWithQuiz": "Kuis \"__QUIZ__\" sudah bisa dikerjakan.",
+          "body": "Kuis baru tersedia untuk dikerjakan.",
+          "aria": "Kuis tersedia__QUIZ__"
+        },
+        "quizResult": {
+          "title": "Hasil Kuis",
+          "bodyWithScore": "Nilai kuis__QUIZ__ kamu adalah __SCORE__.",
+          "body": "Hasil kuis__QUIZ__ sudah tersedia.",
+          "aria": "Hasil kuis__QUIZ__"
+        },
+        "announcement": {
+          "title": "Pengumuman",
+          "body": "Ada pengumuman baru dari sekolah.",
+          "aria": "Pengumuman: __TITLE__"
+        },
+        "courseEnrolled": {
+          "title": "Terdaftar di Kursus",
+          "bodyWithCourse": "Kamu berhasil terdaftar di kursus \"__COURSE__\".",
+          "body": "Kamu berhasil terdaftar di kursus baru.",
+          "aria": "Terdaftar di kursus__COURSE__"
+        },
+        "badgeEarned": {
+          "title": "Lencana Baru",
+          "bodyWithBadge": "Selamat! Kamu mendapatkan lencana \"__BADGE__\".",
+          "body": "Selamat! Kamu mendapatkan lencana baru.",
+          "aria": "Lencana diperoleh__BADGE__"
+        },
+        "discussionReply": {
+          "title": "Balasan Baru",
+          "bodyWithActor": "__ACTOR__ membalas diskusi__THREAD__.",
+          "body": "Ada balasan baru di diskusi__THREAD__.",
+          "aria": "Balasan diskusi__THREAD__"
+        },
+        "messageReceived": {
+          "title": "Pesan Baru",
+          "bodyWithActor": "__ACTOR__ mengirimkan pesan kepada Anda.",
+          "body": "Anda menerima pesan baru.",
+          "aria": "Pesan baru__ACTOR__"
+        },
+        "system": {
+          "title": "Informasi Sistem",
+          "body": "Ada pembaruan sistem.",
+          "aria": "Sistem: __TITLE__"
+        },
+        "invitationAccepted": {
+          "title": "Undangan Diterima",
+          "bodyWithActor": "__ACTOR__ menerima undangan bergabung.",
+          "body": "Undangan berhasil diterima.",
+          "ariaWithActor": "Undangan diterima oleh __ACTOR__",
+          "aria": "Undangan diterima"
+        },
+        "moderationReport": {
+          "title": "Laporan Moderasi",
+          "body": "Ada konten yang dilaporkan untuk moderasi.",
+          "aria": "Laporan moderasi baru"
+        },
+        "syncFailure": {
+          "title": "Gagal Sinkronisasi",
+          "body": "Terjadi kegagalan sinkronisasi. Periksa log sistem.",
+          "aria": "Gagal sinkronisasi data"
+        },
+        "userJoined": {
+          "title": "Pengguna Baru",
+          "bodyWithActor": "__ACTOR__ baru bergabung ke platform.",
+          "body": "Pengguna baru bergabung ke platform.",
+          "ariaWithActor": "Pengguna baru bergabung — __ACTOR__",
+          "aria": "Pengguna baru bergabung"
+        }
+      }
+    }
   }
 }

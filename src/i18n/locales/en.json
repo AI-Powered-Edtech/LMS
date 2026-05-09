@@ -900,5 +900,194 @@
       "title": "No new notifications",
       "description": "You will see notifications here"
     }
+  },
+  "notifications": {
+    "formatter": {
+      "typeLabels": {
+        "gradePosted": "Grade Posted",
+        "grade": "Grade",
+        "assignmentDue": "Assignment Due",
+        "quizAvailable": "Quiz Available",
+        "quizResult": "Quiz Result",
+        "announcement": "Announcement",
+        "courseEnrolled": "Course Enrollment",
+        "badgeEarned": "Badge Earned",
+        "discussionReply": "Discussion Reply",
+        "messageReceived": "New Message",
+        "system": "System",
+        "systemAlert": "System Alert",
+        "invitationAccepted": "Invitation Accepted",
+        "moderationReport": "Moderation Report",
+        "syncFailure": "Sync Failed",
+        "userJoined": "New User"
+      },
+      "scorePrefix": "score",
+      "forCourse": "for",
+      "fromActor": "from",
+      "newLabel": "new",
+      "newInfo": "new information",
+      "defaults": {
+        "title": "Notification",
+        "body": "You have a new notification.",
+        "aria": "New notification.",
+        "ariaShort": "New notification"
+      },
+      "time": {
+        "justNow": "just now",
+        "minutesAgo": "__COUNT__ minutes ago",
+        "hoursAgo": "__COUNT__ hours ago",
+        "yesterday": "yesterday",
+        "daysAgo": "__COUNT__ days ago"
+      },
+      "events": {
+        "lessonCompleted": {
+          "title": "Lesson Completed",
+          "bodyWithCourse": "You completed a lesson in \"__COURSE__\".",
+          "body": "You completed one lesson.",
+          "ariaWithCourse": "Notification: Lesson completed in __COURSE__.",
+          "aria": "Notification: Lesson completed."
+        },
+        "quizCompleted": {
+          "title": "Quiz Completed",
+          "bodyWithQuizScore": "Quiz \"__QUIZ__\" completed with a score of __SCORE__.",
+          "bodyWithQuiz": "You completed the quiz \"__QUIZ__\".",
+          "bodyWithScore": "Quiz completed with a score of __SCORE__.",
+          "body": "You completed one quiz.",
+          "aria": "Notification: Quiz completed__QUIZ____SCORE__."
+        },
+        "assignmentSubmitted": {
+          "title": "Assignment Submitted",
+          "bodyWithAssignment": "Assignment \"__ASSIGNMENT__\" was submitted successfully.",
+          "body": "Assignment was submitted successfully.",
+          "ariaWithAssignment": "Notification: Assignment submitted — __ASSIGNMENT__.",
+          "aria": "Notification: Assignment submitted."
+        },
+        "classJoined": {
+          "title": "Joined Class",
+          "bodyWithCourse": "You joined the class \"__COURSE__\" successfully.",
+          "body": "You joined a new class successfully.",
+          "ariaWithCourse": "Notification: Joined class — __COURSE__.",
+          "aria": "Notification: Joined class."
+        },
+        "aiTutor": {
+          "title": "AI Tutor Session",
+          "body": "Your AI Tutor learning session has started.",
+          "aria": "Notification: AI Tutor session."
+        },
+        "invitationAccepted": {
+          "title": "Invitation Accepted",
+          "bodyWithActor": "__ACTOR__ accepted the invitation and joined the platform.",
+          "body": "Invitation accepted successfully.",
+          "ariaWithActor": "Notification: Invitation accepted by __ACTOR__.",
+          "aria": "Notification: Invitation accepted."
+        },
+        "moderationReport": {
+          "title": "Moderation Report",
+          "body": "New content was reported for moderation.",
+          "aria": "Admin notification: New moderation report."
+        },
+        "syncFailure": {
+          "title": "Sync Failed",
+          "body": "A data sync failure occurred. Check system logs.",
+          "aria": "Admin notification: Data sync failed."
+        },
+        "systemAlert": {
+          "title": "System Alert",
+          "body": "A system alert needs attention.",
+          "aria": "Admin notification: System alert."
+        },
+        "userJoined": {
+          "title": "New User Joined",
+          "bodyWithActor": "__ACTOR__ just joined the platform.",
+          "body": "A new user joined the platform.",
+          "ariaWithActor": "Admin notification: New user joined — __ACTOR__.",
+          "aria": "Admin notification: New user joined."
+        }
+      },
+      "messages": {
+        "grade": {
+          "title": "Grade Posted",
+          "bodyWithScore": "Your grade__COURSE__ is __SCORE__.",
+          "body": "A new grade has been posted__COURSE__.",
+          "aria": "Grade posted__COURSE__"
+        },
+        "assignmentDue": {
+          "title": "Assignment Reminder",
+          "bodyWithAssignment": "Assignment \"__ASSIGNMENT__\" is due soon.",
+          "body": "An assignment is due soon.",
+          "aria": "Assignment reminder__ASSIGNMENT__"
+        },
+        "quizAvailable": {
+          "title": "Quiz Available",
+          "bodyWithQuiz": "Quiz \"__QUIZ__\" is ready to take.",
+          "body": "A new quiz is available to take.",
+          "aria": "Quiz available__QUIZ__"
+        },
+        "quizResult": {
+          "title": "Quiz Result",
+          "bodyWithScore": "Your quiz__QUIZ__ score is __SCORE__.",
+          "body": "Quiz results__QUIZ__ are now available.",
+          "aria": "Quiz result__QUIZ__"
+        },
+        "announcement": {
+          "title": "Announcement",
+          "body": "There is a new announcement from the school.",
+          "aria": "Announcement: __TITLE__"
+        },
+        "courseEnrolled": {
+          "title": "Enrolled in Course",
+          "bodyWithCourse": "You enrolled in the course \"__COURSE__\" successfully.",
+          "body": "You enrolled in a new course successfully.",
+          "aria": "Enrolled in course__COURSE__"
+        },
+        "badgeEarned": {
+          "title": "New Badge",
+          "bodyWithBadge": "Congratulations! You earned the \"__BADGE__\" badge.",
+          "body": "Congratulations! You earned a new badge.",
+          "aria": "Badge earned__BADGE__"
+        },
+        "discussionReply": {
+          "title": "New Reply",
+          "bodyWithActor": "__ACTOR__ replied to discussion__THREAD__.",
+          "body": "There is a new reply in discussion__THREAD__.",
+          "aria": "Discussion reply__THREAD__"
+        },
+        "messageReceived": {
+          "title": "New Message",
+          "bodyWithActor": "__ACTOR__ sent you a message.",
+          "body": "You received a new message.",
+          "aria": "New message__ACTOR__"
+        },
+        "system": {
+          "title": "System Information",
+          "body": "There is a system update.",
+          "aria": "System: __TITLE__"
+        },
+        "invitationAccepted": {
+          "title": "Invitation Accepted",
+          "bodyWithActor": "__ACTOR__ accepted the invitation to join.",
+          "body": "Invitation accepted successfully.",
+          "ariaWithActor": "Invitation accepted by __ACTOR__",
+          "aria": "Invitation accepted"
+        },
+        "moderationReport": {
+          "title": "Moderation Report",
+          "body": "Content was reported for moderation.",
+          "aria": "New moderation report"
+        },
+        "syncFailure": {
+          "title": "Sync Failed",
+          "body": "A sync failure occurred. Check system logs.",
+          "aria": "Data sync failed"
+        },
+        "userJoined": {
+          "title": "New User",
+          "bodyWithActor": "__ACTOR__ joined the platform.",
+          "body": "A new user joined the platform.",
+          "ariaWithActor": "New user joined — __ACTOR__",
+          "aria": "New user joined"
+        }
+      }
+    }
   }
 }

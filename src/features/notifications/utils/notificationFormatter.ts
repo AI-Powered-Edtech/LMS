@@ -1,201 +1,278 @@
 /**
- * notificationFormatter — Format notification messages into human-readable Bahasa Indonesia.
+ * notificationFormatter — format notification messages into localized, human-readable text.
  *
  * Converts raw notification type + metadata into user-facing text.
- * Handles all event types from both student/teacher and admin contexts.
+ * Handles event types from both student/teacher and admin contexts.
  */
 
-import type { NotificationType } from '../types'
+import i18n from "@/i18n";
+
+import type { NotificationType } from "../types";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
 export interface NotificationMeta {
   /** Actor / sender display name */
-  actorName?: string
+  actorName?: string;
   /** Course or class name */
-  courseName?: string
+  courseName?: string;
   /** Assignment title */
-  assignmentTitle?: string
+  assignmentTitle?: string;
   /** Quiz title */
-  quizTitle?: string
+  quizTitle?: string;
   /** Score value (0–100) */
-  score?: number
+  score?: number;
   /** Badge name for gamification */
-  badgeName?: string
+  badgeName?: string;
   /** Reply thread or post title */
-  threadTitle?: string
+  threadTitle?: string;
   /** Any additional context string */
-  context?: string
+  context?: string;
 }
 
 export interface FormattedNotification {
   /** Short title for the notification (1 line) */
-  title: string
+  title: string;
   /** Longer descriptive body message */
-  body: string
+  body: string;
   /** Aria label combining title + body for screen readers */
-  ariaLabel: string
+  ariaLabel: string;
 }
 
 // ─── Label maps ───────────────────────────────────────────────────────────────
 
 /** Icon color class per notification type for visual hints */
-export const NOTIFICATION_TYPE_COLOR: Partial<Record<NotificationType, string>> = {
-  grade_posted: 'text-green-500',
-  grade: 'text-green-500',
-  assignment_due: 'text-orange-500',
-  quiz_available: 'text-purple-500',
-  quiz_result: 'text-purple-500',
-  announcement: 'text-blue-500',
-  course_enrolled: 'text-indigo-500',
-  badge_earned: 'text-yellow-500',
-  discussion_reply: 'text-teal-500',
-  message_received: 'text-cyan-500',
-  system: 'text-slate-500',
-  system_alert: 'text-yellow-500',
-  invitation_accepted: 'text-green-500',
-  moderation_report: 'text-red-500',
-  sync_failure: 'text-orange-500',
-  user_joined: 'text-blue-500',
+export const NOTIFICATION_TYPE_COLOR: Partial<
+  Record<NotificationType, string>
+> = {
+  grade_posted: "text-green-500",
+  grade: "text-green-500",
+  assignment_due: "text-orange-500",
+  quiz_available: "text-purple-500",
+  quiz_result: "text-purple-500",
+  announcement: "text-blue-500",
+  course_enrolled: "text-indigo-500",
+  badge_earned: "text-yellow-500",
+  discussion_reply: "text-teal-500",
+  message_received: "text-cyan-500",
+  system: "text-slate-500",
+  system_alert: "text-yellow-500",
+  invitation_accepted: "text-green-500",
+  moderation_report: "text-red-500",
+  sync_failure: "text-orange-500",
+  user_joined: "text-blue-500",
+};
+
+const TYPE_LABEL_KEYS: Record<NotificationType, string> = {
+  grade_posted: "notifications.formatter.typeLabels.gradePosted",
+  grade: "notifications.formatter.typeLabels.grade",
+  assignment_due: "notifications.formatter.typeLabels.assignmentDue",
+  quiz_available: "notifications.formatter.typeLabels.quizAvailable",
+  quiz_result: "notifications.formatter.typeLabels.quizResult",
+  announcement: "notifications.formatter.typeLabels.announcement",
+  course_enrolled: "notifications.formatter.typeLabels.courseEnrolled",
+  badge_earned: "notifications.formatter.typeLabels.badgeEarned",
+  discussion_reply: "notifications.formatter.typeLabels.discussionReply",
+  message_received: "notifications.formatter.typeLabels.messageReceived",
+  system: "notifications.formatter.typeLabels.system",
+  system_alert: "notifications.formatter.typeLabels.systemAlert",
+  invitation_accepted: "notifications.formatter.typeLabels.invitationAccepted",
+  moderation_report: "notifications.formatter.typeLabels.moderationReport",
+  sync_failure: "notifications.formatter.typeLabels.syncFailure",
+  user_joined: "notifications.formatter.typeLabels.userJoined",
+};
+
+function tt(key: string, vars?: Record<string, string | number>): string {
+  let value = i18n.t(key);
+  if (typeof value !== "string") value = String(value);
+  if (!vars) return value;
+  return Object.entries(vars).reduce(
+    (text, [name, replacement]) =>
+      text.replaceAll(`__${name.toUpperCase()}__`, String(replacement)),
+    value,
+  );
 }
 
-/** Short type label in Bahasa Indonesia */
-export const NOTIFICATION_TYPE_LABEL: Record<NotificationType, string> = {
-  grade_posted: 'Nilai Diposting',
-  grade: 'Nilai',
-  assignment_due: 'Batas Waktu Tugas',
-  quiz_available: 'Kuis Tersedia',
-  quiz_result: 'Hasil Kuis',
-  announcement: 'Pengumuman',
-  course_enrolled: 'Pendaftaran Kursus',
-  badge_earned: 'Lencana Diperoleh',
-  discussion_reply: 'Balasan Diskusi',
-  message_received: 'Pesan Masuk',
-  system: 'Sistem',
-  system_alert: 'Peringatan Sistem',
-  invitation_accepted: 'Undangan Diterima',
-  moderation_report: 'Laporan Moderasi',
-  sync_failure: 'Gagal Sinkronisasi',
-  user_joined: 'Pengguna Baru',
-}
+/** Short localized type label. Kept as a getter-backed object for export compatibility. */
+export const NOTIFICATION_TYPE_LABEL = Object.fromEntries(
+  Object.entries(TYPE_LABEL_KEYS).map(([type, key]) => [type, tt(key)]),
+) as Record<NotificationType, string>;
 
 // ─── Event type formatter (from telemetry / event bus) ────────────────────────
 
 type LMSEventType =
-  | 'LESSON_COMPLETED'
-  | 'QUIZ_COMPLETED'
-  | 'ASSIGNMENT_SUBMITTED'
-  | 'CLASS_JOINED'
-  | 'AI_TUTOR_INTERACTION'
-  | 'INVITATION_ACCEPTED'
-  | 'MODERATION_REPORT'
-  | 'SYNC_FAILURE'
-  | 'SYSTEM_ALERT'
-  | 'USER_JOINED'
+  | "LESSON_COMPLETED"
+  | "QUIZ_COMPLETED"
+  | "ASSIGNMENT_SUBMITTED"
+  | "CLASS_JOINED"
+  | "AI_TUTOR_INTERACTION"
+  | "INVITATION_ACCEPTED"
+  | "MODERATION_REPORT"
+  | "SYNC_FAILURE"
+  | "SYSTEM_ALERT"
+  | "USER_JOINED";
 
 /**
- * Format a system event type into a human-readable Bahasa Indonesia notification message.
+ * Format a system event type into a human-readable localized notification message.
  * Used when generating notifications from the event bus.
  */
 export function formatEventNotification(
   eventType: LMSEventType,
-  meta: NotificationMeta = {}
+  meta: NotificationMeta = {},
 ): FormattedNotification {
-  const { actorName, courseName, assignmentTitle, quizTitle, score, context } = meta
+  const { actorName, courseName, assignmentTitle, quizTitle, score, context } =
+    meta;
 
   switch (eventType) {
-    case 'LESSON_COMPLETED':
+    case "LESSON_COMPLETED":
       return {
-        title: 'Pelajaran Selesai',
+        title: tt("notifications.formatter.events.lessonCompleted.title"),
         body: courseName
-          ? `Kamu telah menyelesaikan pelajaran di "${courseName}".`
-          : 'Kamu telah menyelesaikan satu pelajaran.',
-        ariaLabel: `Notifikasi: Pelajaran selesai${courseName ? ` di ${courseName}` : ''}.`,
-      }
+          ? tt(
+              "notifications.formatter.events.lessonCompleted.bodyWithCourse",
+              { course: courseName },
+            )
+          : tt("notifications.formatter.events.lessonCompleted.body"),
+        ariaLabel: courseName
+          ? tt(
+              "notifications.formatter.events.lessonCompleted.ariaWithCourse",
+              { course: courseName },
+            )
+          : tt("notifications.formatter.events.lessonCompleted.aria"),
+      };
 
-    case 'QUIZ_COMPLETED':
+    case "QUIZ_COMPLETED":
       return {
-        title: 'Kuis Selesai',
+        title: tt("notifications.formatter.events.quizCompleted.title"),
         body: quizTitle
           ? score !== undefined
-            ? `Kuis "${quizTitle}" selesai dengan nilai ${score}.`
-            : `Kamu telah menyelesaikan kuis "${quizTitle}".`
+            ? tt(
+                "notifications.formatter.events.quizCompleted.bodyWithQuizScore",
+                {
+                  quiz: quizTitle,
+                  score,
+                },
+              )
+            : tt("notifications.formatter.events.quizCompleted.bodyWithQuiz", {
+                quiz: quizTitle,
+              })
           : score !== undefined
-            ? `Kuis selesai dengan nilai ${score}.`
-            : 'Kamu telah menyelesaikan satu kuis.',
-        ariaLabel: `Notifikasi: Kuis selesai${quizTitle ? ` — ${quizTitle}` : ''}${score !== undefined ? `, nilai ${score}` : ''}.`,
-      }
+            ? tt("notifications.formatter.events.quizCompleted.bodyWithScore", {
+                score,
+              })
+            : tt("notifications.formatter.events.quizCompleted.body"),
+        ariaLabel: tt("notifications.formatter.events.quizCompleted.aria", {
+          quiz: quizTitle ? ` — ${quizTitle}` : "",
+          score:
+            score !== undefined
+              ? `, ${tt("notifications.formatter.scorePrefix")} ${score}`
+              : "",
+        }),
+      };
 
-    case 'ASSIGNMENT_SUBMITTED':
+    case "ASSIGNMENT_SUBMITTED":
       return {
-        title: 'Tugas Dikumpulkan',
+        title: tt("notifications.formatter.events.assignmentSubmitted.title"),
         body: assignmentTitle
-          ? `Tugas "${assignmentTitle}" berhasil dikumpulkan.`
-          : 'Tugas berhasil dikumpulkan.',
-        ariaLabel: `Notifikasi: Tugas dikumpulkan${assignmentTitle ? ` — ${assignmentTitle}` : ''}.`,
-      }
+          ? tt(
+              "notifications.formatter.events.assignmentSubmitted.bodyWithAssignment",
+              {
+                assignment: assignmentTitle,
+              },
+            )
+          : tt("notifications.formatter.events.assignmentSubmitted.body"),
+        ariaLabel: assignmentTitle
+          ? tt(
+              "notifications.formatter.events.assignmentSubmitted.ariaWithAssignment",
+              {
+                assignment: assignmentTitle,
+              },
+            )
+          : tt("notifications.formatter.events.assignmentSubmitted.aria"),
+      };
 
-    case 'CLASS_JOINED':
+    case "CLASS_JOINED":
       return {
-        title: 'Bergabung ke Kelas',
+        title: tt("notifications.formatter.events.classJoined.title"),
         body: courseName
-          ? `Kamu berhasil bergabung ke kelas "${courseName}".`
-          : 'Kamu berhasil bergabung ke kelas baru.',
-        ariaLabel: `Notifikasi: Bergabung ke kelas${courseName ? ` — ${courseName}` : ''}.`,
-      }
+          ? tt("notifications.formatter.events.classJoined.bodyWithCourse", {
+              course: courseName,
+            })
+          : tt("notifications.formatter.events.classJoined.body"),
+        ariaLabel: courseName
+          ? tt("notifications.formatter.events.classJoined.ariaWithCourse", {
+              course: courseName,
+            })
+          : tt("notifications.formatter.events.classJoined.aria"),
+      };
 
-    case 'AI_TUTOR_INTERACTION':
+    case "AI_TUTOR_INTERACTION":
       return {
-        title: 'Sesi AI Tutor',
-        body: context ?? 'Sesi belajar dengan AI Tutor telah dimulai.',
-        ariaLabel: 'Notifikasi: Sesi AI Tutor.',
-      }
+        title: tt("notifications.formatter.events.aiTutor.title"),
+        body: context ?? tt("notifications.formatter.events.aiTutor.body"),
+        ariaLabel: tt("notifications.formatter.events.aiTutor.aria"),
+      };
 
-    case 'INVITATION_ACCEPTED':
+    case "INVITATION_ACCEPTED":
       return {
-        title: 'Undangan Diterima',
+        title: tt("notifications.formatter.events.invitationAccepted.title"),
         body: actorName
-          ? `${actorName} telah menerima undangan dan bergabung ke platform.`
-          : 'Undangan berhasil diterima.',
-        ariaLabel: `Notifikasi: Undangan diterima${actorName ? ` oleh ${actorName}` : ''}.`,
-      }
+          ? tt(
+              "notifications.formatter.events.invitationAccepted.bodyWithActor",
+              { actor: actorName },
+            )
+          : tt("notifications.formatter.events.invitationAccepted.body"),
+        ariaLabel: actorName
+          ? tt(
+              "notifications.formatter.events.invitationAccepted.ariaWithActor",
+              { actor: actorName },
+            )
+          : tt("notifications.formatter.events.invitationAccepted.aria"),
+      };
 
-    case 'MODERATION_REPORT':
+    case "MODERATION_REPORT":
       return {
-        title: 'Laporan Moderasi',
-        body: context ?? 'Konten baru dilaporkan untuk moderasi.',
-        ariaLabel: 'Notifikasi admin: Laporan moderasi baru.',
-      }
+        title: tt("notifications.formatter.events.moderationReport.title"),
+        body:
+          context ?? tt("notifications.formatter.events.moderationReport.body"),
+        ariaLabel: tt("notifications.formatter.events.moderationReport.aria"),
+      };
 
-    case 'SYNC_FAILURE':
+    case "SYNC_FAILURE":
       return {
-        title: 'Gagal Sinkronisasi',
-        body: context ?? 'Terjadi kegagalan sinkronisasi data. Periksa log sistem.',
-        ariaLabel: 'Notifikasi admin: Gagal sinkronisasi data.',
-      }
+        title: tt("notifications.formatter.events.syncFailure.title"),
+        body: context ?? tt("notifications.formatter.events.syncFailure.body"),
+        ariaLabel: tt("notifications.formatter.events.syncFailure.aria"),
+      };
 
-    case 'SYSTEM_ALERT':
+    case "SYSTEM_ALERT":
       return {
-        title: 'Peringatan Sistem',
-        body: context ?? 'Ada peringatan sistem yang memerlukan perhatian.',
-        ariaLabel: 'Notifikasi admin: Peringatan sistem.',
-      }
+        title: tt("notifications.formatter.events.systemAlert.title"),
+        body: context ?? tt("notifications.formatter.events.systemAlert.body"),
+        ariaLabel: tt("notifications.formatter.events.systemAlert.aria"),
+      };
 
-    case 'USER_JOINED':
+    case "USER_JOINED":
       return {
-        title: 'Pengguna Baru Bergabung',
+        title: tt("notifications.formatter.events.userJoined.title"),
         body: actorName
-          ? `${actorName} baru saja bergabung ke platform.`
-          : 'Pengguna baru bergabung ke platform.',
-        ariaLabel: `Notifikasi admin: Pengguna baru bergabung${actorName ? ` — ${actorName}` : ''}.`,
-      }
+          ? tt("notifications.formatter.events.userJoined.bodyWithActor", {
+              actor: actorName,
+            })
+          : tt("notifications.formatter.events.userJoined.body"),
+        ariaLabel: actorName
+          ? tt("notifications.formatter.events.userJoined.ariaWithActor", {
+              actor: actorName,
+            })
+          : tt("notifications.formatter.events.userJoined.aria"),
+      };
 
     default:
       return {
-        title: 'Notifikasi',
-        body: context ?? 'Anda memiliki notifikasi baru.',
-        ariaLabel: 'Notifikasi baru.',
-      }
+        title: tt("notifications.formatter.defaults.title"),
+        body: context ?? tt("notifications.formatter.defaults.body"),
+        ariaLabel: tt("notifications.formatter.defaults.aria"),
+      };
   }
 }
 
@@ -207,207 +284,308 @@ export function formatNotificationMessage(
   type: NotificationType,
   title: string,
   message: string,
-  meta: NotificationMeta = {}
+  meta: NotificationMeta = {},
 ): FormattedNotification {
-  // If both title and message are already meaningful, use them directly
   if (title && message) {
     return {
       title,
       body: message,
       ariaLabel: `${title}: ${message}`,
-    }
+    };
   }
 
-  // Fallback: generate from type
-  const { actorName, courseName, assignmentTitle, quizTitle, score, badgeName, threadTitle } = meta
+  const {
+    actorName,
+    courseName,
+    assignmentTitle,
+    quizTitle,
+    score,
+    badgeName,
+    threadTitle,
+  } = meta;
 
   switch (type) {
-    case 'grade_posted':
-    case 'grade':
+    case "grade_posted":
+    case "grade":
       return {
-        title: title || 'Nilai Diposting',
+        title: title || tt("notifications.formatter.messages.grade.title"),
         body:
           message ||
           (score !== undefined
-            ? `Nilai kamu${courseName ? ` untuk ${courseName}` : ''} adalah ${score}.`
-            : `Nilai baru telah diposting${courseName ? ` untuk ${courseName}` : ''}.`),
-        ariaLabel: `Nilai diposting${courseName ? ` — ${courseName}` : ''}`,
-      }
+            ? tt("notifications.formatter.messages.grade.bodyWithScore", {
+                course: courseName
+                  ? ` ${tt("notifications.formatter.forCourse")} ${courseName}`
+                  : "",
+                score,
+              })
+            : tt("notifications.formatter.messages.grade.body", {
+                course: courseName
+                  ? ` ${tt("notifications.formatter.forCourse")} ${courseName}`
+                  : "",
+              })),
+        ariaLabel: tt("notifications.formatter.messages.grade.aria", {
+          course: courseName ? ` — ${courseName}` : "",
+        }),
+      };
 
-    case 'assignment_due':
+    case "assignment_due":
       return {
-        title: title || 'Pengingat Tugas',
+        title:
+          title || tt("notifications.formatter.messages.assignmentDue.title"),
         body:
           message ||
           (assignmentTitle
-            ? `Tugas "${assignmentTitle}" segera jatuh tempo.`
-            : 'Ada tugas yang segera jatuh tempo.'),
-        ariaLabel: `Pengingat tugas${assignmentTitle ? ` — ${assignmentTitle}` : ''}`,
-      }
+            ? tt(
+                "notifications.formatter.messages.assignmentDue.bodyWithAssignment",
+                {
+                  assignment: assignmentTitle,
+                },
+              )
+            : tt("notifications.formatter.messages.assignmentDue.body")),
+        ariaLabel: tt("notifications.formatter.messages.assignmentDue.aria", {
+          assignment: assignmentTitle ? ` — ${assignmentTitle}` : "",
+        }),
+      };
 
-    case 'quiz_available':
+    case "quiz_available":
       return {
-        title: title || 'Kuis Tersedia',
+        title:
+          title || tt("notifications.formatter.messages.quizAvailable.title"),
         body:
           message ||
           (quizTitle
-            ? `Kuis "${quizTitle}" sudah bisa dikerjakan.`
-            : 'Kuis baru tersedia untuk dikerjakan.'),
-        ariaLabel: `Kuis tersedia${quizTitle ? ` — ${quizTitle}` : ''}`,
-      }
+            ? tt(
+                "notifications.formatter.messages.quizAvailable.bodyWithQuiz",
+                { quiz: quizTitle },
+              )
+            : tt("notifications.formatter.messages.quizAvailable.body")),
+        ariaLabel: tt("notifications.formatter.messages.quizAvailable.aria", {
+          quiz: quizTitle ? ` — ${quizTitle}` : "",
+        }),
+      };
 
-    case 'quiz_result':
+    case "quiz_result":
       return {
-        title: title || 'Hasil Kuis',
+        title: title || tt("notifications.formatter.messages.quizResult.title"),
         body:
           message ||
           (score !== undefined
-            ? `Nilai kuis${quizTitle ? ` "${quizTitle}"` : ''} kamu adalah ${score}.`
-            : `Hasil kuis${quizTitle ? ` "${quizTitle}"` : ''} sudah tersedia.`),
-        ariaLabel: `Hasil kuis${quizTitle ? ` — ${quizTitle}` : ''}`,
-      }
+            ? tt("notifications.formatter.messages.quizResult.bodyWithScore", {
+                quiz: quizTitle ? ` "${quizTitle}"` : "",
+                score,
+              })
+            : tt("notifications.formatter.messages.quizResult.body", {
+                quiz: quizTitle ? ` "${quizTitle}"` : "",
+              })),
+        ariaLabel: tt("notifications.formatter.messages.quizResult.aria", {
+          quiz: quizTitle ? ` — ${quizTitle}` : "",
+        }),
+      };
 
-    case 'announcement':
+    case "announcement":
       return {
-        title: title || 'Pengumuman',
-        body: message || 'Ada pengumuman baru dari sekolah.',
-        ariaLabel: `Pengumuman: ${title || 'baru'}`,
-      }
+        title:
+          title || tt("notifications.formatter.messages.announcement.title"),
+        body:
+          message || tt("notifications.formatter.messages.announcement.body"),
+        ariaLabel: tt("notifications.formatter.messages.announcement.aria", {
+          title: title || tt("notifications.formatter.newLabel"),
+        }),
+      };
 
-    case 'course_enrolled':
+    case "course_enrolled":
       return {
-        title: title || 'Terdaftar di Kursus',
+        title:
+          title || tt("notifications.formatter.messages.courseEnrolled.title"),
         body:
           message ||
           (courseName
-            ? `Kamu berhasil terdaftar di kursus "${courseName}".`
-            : 'Kamu berhasil terdaftar di kursus baru.'),
-        ariaLabel: `Terdaftar di kursus${courseName ? ` — ${courseName}` : ''}`,
-      }
+            ? tt(
+                "notifications.formatter.messages.courseEnrolled.bodyWithCourse",
+                { course: courseName },
+              )
+            : tt("notifications.formatter.messages.courseEnrolled.body")),
+        ariaLabel: tt("notifications.formatter.messages.courseEnrolled.aria", {
+          course: courseName ? ` — ${courseName}` : "",
+        }),
+      };
 
-    case 'badge_earned':
+    case "badge_earned":
       return {
-        title: title || 'Lencana Baru',
+        title:
+          title || tt("notifications.formatter.messages.badgeEarned.title"),
         body:
           message ||
           (badgeName
-            ? `Selamat! Kamu mendapatkan lencana "${badgeName}".`
-            : 'Selamat! Kamu mendapatkan lencana baru.'),
-        ariaLabel: `Lencana diperoleh${badgeName ? ` — ${badgeName}` : ''}`,
-      }
+            ? tt("notifications.formatter.messages.badgeEarned.bodyWithBadge", {
+                badge: badgeName,
+              })
+            : tt("notifications.formatter.messages.badgeEarned.body")),
+        ariaLabel: tt("notifications.formatter.messages.badgeEarned.aria", {
+          badge: badgeName ? ` — ${badgeName}` : "",
+        }),
+      };
 
-    case 'discussion_reply':
+    case "discussion_reply":
       return {
-        title: title || 'Balasan Baru',
+        title:
+          title || tt("notifications.formatter.messages.discussionReply.title"),
         body:
           message ||
           (actorName
-            ? `${actorName} membalas diskusi${threadTitle ? ` "${threadTitle}"` : ''}.`
-            : `Ada balasan baru di diskusi${threadTitle ? ` "${threadTitle}"` : ''}.`),
-        ariaLabel: `Balasan diskusi${threadTitle ? ` — ${threadTitle}` : ''}`,
-      }
+            ? tt(
+                "notifications.formatter.messages.discussionReply.bodyWithActor",
+                {
+                  actor: actorName,
+                  thread: threadTitle ? ` "${threadTitle}"` : "",
+                },
+              )
+            : tt("notifications.formatter.messages.discussionReply.body", {
+                thread: threadTitle ? ` "${threadTitle}"` : "",
+              })),
+        ariaLabel: tt("notifications.formatter.messages.discussionReply.aria", {
+          thread: threadTitle ? ` — ${threadTitle}` : "",
+        }),
+      };
 
-    case 'message_received':
+    case "message_received":
       return {
-        title: title || 'Pesan Baru',
-        body:
-          message ||
-          (actorName ? `${actorName} mengirimkan pesan kepada Anda.` : 'Anda menerima pesan baru.'),
-        ariaLabel: `Pesan baru${actorName ? ` dari ${actorName}` : ''}`,
-      }
-
-    case 'system':
-    case 'system_alert':
-      return {
-        title: title || 'Informasi Sistem',
-        body: message || 'Ada pembaruan sistem.',
-        ariaLabel: `Sistem: ${title || 'informasi baru'}`,
-      }
-
-    case 'invitation_accepted':
-      return {
-        title: title || 'Undangan Diterima',
-        body:
-          message ||
-          (actorName ? `${actorName} menerima undangan bergabung.` : 'Undangan berhasil diterima.'),
-        ariaLabel: `Undangan diterima${actorName ? ` oleh ${actorName}` : ''}`,
-      }
-
-    case 'moderation_report':
-      return {
-        title: title || 'Laporan Moderasi',
-        body: message || 'Ada konten yang dilaporkan untuk moderasi.',
-        ariaLabel: 'Laporan moderasi baru',
-      }
-
-    case 'sync_failure':
-      return {
-        title: title || 'Gagal Sinkronisasi',
-        body: message || 'Terjadi kegagalan sinkronisasi. Periksa log sistem.',
-        ariaLabel: 'Gagal sinkronisasi data',
-      }
-
-    case 'user_joined':
-      return {
-        title: title || 'Pengguna Baru',
+        title:
+          title || tt("notifications.formatter.messages.messageReceived.title"),
         body:
           message ||
           (actorName
-            ? `${actorName} baru bergabung ke platform.`
-            : 'Pengguna baru bergabung ke platform.'),
-        ariaLabel: `Pengguna baru bergabung${actorName ? ` — ${actorName}` : ''}`,
-      }
+            ? tt(
+                "notifications.formatter.messages.messageReceived.bodyWithActor",
+                { actor: actorName },
+              )
+            : tt("notifications.formatter.messages.messageReceived.body")),
+        ariaLabel: tt("notifications.formatter.messages.messageReceived.aria", {
+          actor: actorName
+            ? ` ${tt("notifications.formatter.fromActor")} ${actorName}`
+            : "",
+        }),
+      };
+
+    case "system":
+    case "system_alert":
+      return {
+        title: title || tt("notifications.formatter.messages.system.title"),
+        body: message || tt("notifications.formatter.messages.system.body"),
+        ariaLabel: tt("notifications.formatter.messages.system.aria", {
+          title: title || tt("notifications.formatter.newInfo"),
+        }),
+      };
+
+    case "invitation_accepted":
+      return {
+        title:
+          title ||
+          tt("notifications.formatter.messages.invitationAccepted.title"),
+        body:
+          message ||
+          (actorName
+            ? tt(
+                "notifications.formatter.messages.invitationAccepted.bodyWithActor",
+                { actor: actorName },
+              )
+            : tt("notifications.formatter.messages.invitationAccepted.body")),
+        ariaLabel: actorName
+          ? tt(
+              "notifications.formatter.messages.invitationAccepted.ariaWithActor",
+              { actor: actorName },
+            )
+          : tt("notifications.formatter.messages.invitationAccepted.aria"),
+      };
+
+    case "moderation_report":
+      return {
+        title:
+          title ||
+          tt("notifications.formatter.messages.moderationReport.title"),
+        body:
+          message ||
+          tt("notifications.formatter.messages.moderationReport.body"),
+        ariaLabel: tt("notifications.formatter.messages.moderationReport.aria"),
+      };
+
+    case "sync_failure":
+      return {
+        title:
+          title || tt("notifications.formatter.messages.syncFailure.title"),
+        body:
+          message || tt("notifications.formatter.messages.syncFailure.body"),
+        ariaLabel: tt("notifications.formatter.messages.syncFailure.aria"),
+      };
+
+    case "user_joined":
+      return {
+        title: title || tt("notifications.formatter.messages.userJoined.title"),
+        body:
+          message ||
+          (actorName
+            ? tt("notifications.formatter.messages.userJoined.bodyWithActor", {
+                actor: actorName,
+              })
+            : tt("notifications.formatter.messages.userJoined.body")),
+        ariaLabel: actorName
+          ? tt("notifications.formatter.messages.userJoined.ariaWithActor", {
+              actor: actorName,
+            })
+          : tt("notifications.formatter.messages.userJoined.aria"),
+      };
 
     default:
       return {
-        title: title || 'Notifikasi',
-        body: message || 'Anda memiliki notifikasi baru.',
-        ariaLabel: title || 'Notifikasi baru',
-      }
+        title: title || tt("notifications.formatter.defaults.title"),
+        body: message || tt("notifications.formatter.defaults.body"),
+        ariaLabel: title || tt("notifications.formatter.defaults.ariaShort"),
+      };
   }
 }
 
 // ─── Date group helpers ───────────────────────────────────────────────────────
 
-export type DateGroup = 'Hari Ini' | 'Kemarin' | 'Minggu Lalu' | 'Lebih Lama'
+export type DateGroup = "Hari Ini" | "Kemarin" | "Minggu Lalu" | "Lebih Lama";
 
 /**
  * Returns the date group label for a given ISO date string.
  */
 export function getDateGroup(dateStr: string): DateGroup {
-  const now = new Date()
-  const date = new Date(dateStr)
+  const now = new Date();
+  const date = new Date(dateStr);
 
-  const diffMs = now.getTime() - date.getTime()
-  const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24))
+  const diffMs = now.getTime() - date.getTime();
+  const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
 
-  // Same calendar day
   if (
     date.getFullYear() === now.getFullYear() &&
     date.getMonth() === now.getMonth() &&
     date.getDate() === now.getDate()
   ) {
-    return 'Hari Ini'
+    return "Hari Ini";
   }
 
-  if (diffDays === 1) return 'Kemarin'
-  if (diffDays <= 7) return 'Minggu Lalu'
-  return 'Lebih Lama'
+  if (diffDays === 1) return "Kemarin";
+  if (diffDays <= 7) return "Minggu Lalu";
+  return "Lebih Lama";
 }
 
 /**
- * Relative time label in Bahasa Indonesia.
+ * Relative time label in the active language.
  */
 export function relativeTime(dateStr: string): string {
-  const diff = Date.now() - new Date(dateStr).getTime()
-  const seconds = Math.floor(diff / 1000)
-  const minutes = Math.floor(seconds / 60)
-  const hours = Math.floor(minutes / 60)
-  const days = Math.floor(hours / 24)
+  const diff = Date.now() - new Date(dateStr).getTime();
+  const seconds = Math.floor(diff / 1000);
+  const minutes = Math.floor(seconds / 60);
+  const hours = Math.floor(minutes / 60);
+  const days = Math.floor(hours / 24);
 
-  if (seconds < 60) return 'baru saja'
-  if (minutes < 60) return `${minutes} menit lalu`
-  if (hours < 24) return `${hours} jam lalu`
-  if (days === 1) return 'kemarin'
-  return `${days} hari lalu`
+  if (seconds < 60) return tt("notifications.formatter.time.justNow");
+  if (minutes < 60)
+    return tt("notifications.formatter.time.minutesAgo", { count: minutes });
+  if (hours < 24)
+    return tt("notifications.formatter.time.hoursAgo", { count: hours });
+  if (days === 1) return tt("notifications.formatter.time.yesterday");
+  return tt("notifications.formatter.time.daysAgo", { count: days });
 }
