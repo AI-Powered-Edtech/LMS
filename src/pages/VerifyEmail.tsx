@@ -1,125 +1,137 @@
-import { useEffect, useState } from 'react'
-import { Link, useNavigate, useSearchParams } from 'react-router-dom'
+import { useEffect, useState } from "react";
+import { useTranslation } from "react-i18next";
+import { Link, useNavigate, useSearchParams } from "react-router-dom";
 
-import { authService } from '@/features/auth/api/authService'
-import { usePageTitle } from '@/hooks/usePageTitle'
-import { getAuthProvider } from '@/services/auth'
-import { addBreadcrumb, captureError } from '@/utils/sentry'
+import { authService } from "@/features/auth/api/authService";
+import { usePageTitle } from "@/hooks/usePageTitle";
+import { getAuthProvider } from "@/services/auth";
+import { addBreadcrumb, captureError } from "@/utils/sentry";
 
-import { useAuth } from '../contexts/AuthContext'
+import { useAuth } from "../contexts/AuthContext";
 
 type VerifyState =
-  | { status: 'idle' }
-  | { status: 'verifying' }
-  | { status: 'verified' }
-  | { status: 'error'; message: string }
+  | { status: "idle" }
+  | { status: "verifying" }
+  | { status: "verified" }
+  | { status: "error"; message: string };
 
 type ResendState =
-  | { status: 'idle' }
-  | { status: 'loading' }
-  | { status: 'success' }
-  | { status: 'error'; message: string }
+  | { status: "idle" }
+  | { status: "loading" }
+  | { status: "success" }
+  | { status: "error"; message: string };
 
 export function VerifyEmail() {
-  usePageTitle('Verifikasi Email')
-  const navigate = useNavigate()
-  const [searchParams] = useSearchParams()
-  const { user, signOut, emailVerified } = useAuth()
-  const [verifyState, setVerifyState] = useState<VerifyState>({ status: 'idle' })
-  const [resendState, setResendState] = useState<ResendState>({ status: 'idle' })
+  const { t } = useTranslation();
+  usePageTitle(t("auth.pages.verifyEmailPageTitle"));
+  const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const { user, signOut, emailVerified } = useAuth();
+  const [verifyState, setVerifyState] = useState<VerifyState>({
+    status: "idle",
+  });
+  const [resendState, setResendState] = useState<ResendState>({
+    status: "idle",
+  });
 
   useEffect(() => {
-    const code = searchParams.get('code')
-    const tokenHash = searchParams.get('token_hash')
-    const type = searchParams.get('type')
+    const code = searchParams.get("code");
+    const tokenHash = searchParams.get("token_hash");
+    const type = searchParams.get("type");
 
-    if (!code && !(tokenHash && type === 'signup')) {
+    if (!code && !(tokenHash && type === "signup")) {
       if (emailVerified) {
-        navigate('/app', { replace: true })
+        navigate("/app", { replace: true });
       }
-      return
+      return;
     }
 
-    let active = true
-    setVerifyState({ status: 'verifying' })
+    let active = true;
+    setVerifyState({ status: "verifying" });
 
     void (async () => {
       try {
-        addBreadcrumb('Email verification started', 'auth')
+        addBreadcrumb("Email verification started", "auth");
         if (code) {
-          const { error } = await getAuthProvider().exchangeCodeForSession(code)
-          if (error) throw error
+          const { error } =
+            await getAuthProvider().exchangeCodeForSession(code);
+          if (error) throw error;
         } else if (tokenHash) {
           const { error: verifyError } = await getAuthProvider().verifyOtp({
             token_hash: tokenHash,
-            type: 'signup',
-          })
-          if (verifyError) throw verifyError
+            type: "signup",
+          });
+          if (verifyError) throw verifyError;
         }
 
-        if (!active) return
-        setVerifyState({ status: 'verified' })
-        const bootstrap = await authService.getAuthBootstrap()
-        const destination = authService.resolvePostAuthDestination(bootstrap)
-        addBreadcrumb('Email verification redirect resolved', 'auth', { destination })
+        if (!active) return;
+        setVerifyState({ status: "verified" });
+        const bootstrap = await authService.getAuthBootstrap();
+        const destination = authService.resolvePostAuthDestination(bootstrap);
+        addBreadcrumb("Email verification redirect resolved", "auth", {
+          destination,
+        });
         setTimeout(() => {
-          void navigate(destination, { replace: true })
-        }, 1500)
+          void navigate(destination, { replace: true });
+        }, 1500);
       } catch (err) {
-        captureError(err, { context: 'VerifyEmail.confirmation' })
-        if (!active) return
+        captureError(err, { context: "VerifyEmail.confirmation" });
+        if (!active) return;
         setVerifyState({
-          status: 'error',
+          status: "error",
           message:
             err instanceof Error
               ? err.message
-              : 'Link verifikasi tidak valid atau sudah kedaluwarsa.',
-        })
+              : t("auth.pages.verifyEmailInvalidOrExpired"),
+        });
       }
-    })()
+    })();
 
     return () => {
-      active = false
-    }
-  }, [navigate, searchParams, emailVerified])
+      active = false;
+    };
+  }, [navigate, searchParams, emailVerified, t]);
 
   const handleResend = async () => {
     if (!user?.email) {
       setResendState({
-        status: 'error',
-        message:
-          'Sesi tidak valid. Silakan login terlebih dahulu untuk meminta email verifikasi ulang.',
-      })
-      return
+        status: "error",
+        message: t("auth.pages.verifyEmailInvalidSession"),
+      });
+      return;
     }
 
-    setResendState({ status: 'loading' })
+    setResendState({ status: "loading" });
 
     try {
       const { error: resendError } = await getAuthProvider().resend({
-        type: 'signup',
+        type: "signup",
         email: user.email,
-      })
+      });
 
       if (resendError) {
-        setResendState({ status: 'error', message: resendError.message })
+        setResendState({ status: "error", message: resendError.message });
       } else {
-        setResendState({ status: 'success' })
+        setResendState({ status: "success" });
       }
     } catch (err: unknown) {
       setResendState({
-        status: 'error',
-        message: err instanceof Error ? err.message : 'Gagal mengirim ulang email verifikasi.',
-      })
+        status: "error",
+        message:
+          err instanceof Error
+            ? err.message
+            : t("auth.pages.verifyEmailResendError"),
+      });
     }
-  }
+  };
 
-  const hasValidEmail = !!user?.email
+  const hasValidEmail = !!user?.email;
 
-  const isVerifying = verifyState.status === 'verifying'
-  const isVerified = verifyState.status === 'verified'
-  const isError = verifyState.status === 'error'
-  const errorMessage = verifyState.status === 'error' ? verifyState.message : ''
+  const isVerifying = verifyState.status === "verifying";
+  const isVerified = verifyState.status === "verified";
+  const isError = verifyState.status === "error";
+  const errorMessage =
+    verifyState.status === "error" ? verifyState.message : "";
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-50 via-slate-100 to-slate-50 dark:from-slate-900 dark:via-slate-800 dark:to-slate-900 p-4">
@@ -128,25 +140,25 @@ export function VerifyEmail() {
           <span className="text-5xl inline-block mb-4">📧</span>
           <h1 className="text-slate-900 dark:text-slate-100 text-2xl font-bold mt-2 mb-1">
             {isVerified
-              ? 'Email Terverifikasi'
+              ? t("auth.pages.verifyEmailVerifiedTitle")
               : isVerifying
-                ? 'Memverifikasi Email'
+                ? t("auth.pages.verifyEmailVerifyingTitle")
                 : isError
-                  ? 'Verifikasi Gagal'
-                  : 'Verifikasi Email'}
+                  ? t("auth.pages.verifyEmailFailedTitle")
+                  : t("auth.pages.verifyEmailPageTitle")}
           </h1>
           <p className="text-slate-500 dark:text-slate-400 text-sm leading-relaxed m-0">
             {isVerified
-              ? 'Email Anda sudah berhasil diverifikasi.'
+              ? t("auth.pages.verifyEmailVerifiedDescription")
               : isVerifying
-                ? 'Sedang memproses link verifikasi Anda.'
+                ? t("auth.pages.verifyEmailProcessingDescription")
                 : isError
-                  ? 'Link verifikasi tidak valid atau sudah kedaluwarsa.'
-                  : 'Kami telah mengirim email verifikasi ke'}
+                  ? t("auth.pages.verifyEmailInvalidOrExpired")
+                  : t("auth.pages.verifyEmailSentTo")}
           </p>
           {!isVerified && !isVerifying && !isError && (
             <p className="text-slate-900 dark:text-slate-100 font-bold text-lg mt-2 mb-6">
-              {user?.email ?? 'your@email.com'}
+              {user?.email ?? t("auth.pages.emailPlaceholder")}
             </p>
           )}
         </div>
@@ -158,7 +170,7 @@ export function VerifyEmail() {
                 1
               </span>
               <p className="text-slate-700 dark:text-slate-300 text-sm font-medium m-0">
-                Buka inbox email kamu
+                {t("auth.pages.verifyEmailOpenInbox")}
               </p>
             </div>
             <div className="flex items-center gap-3">
@@ -166,7 +178,7 @@ export function VerifyEmail() {
                 2
               </span>
               <p className="text-slate-700 dark:text-slate-300 text-sm font-medium m-0">
-                Klik link "Confirm your mail"
+                {t("auth.pages.verifyEmailClickConfirm")}
               </p>
             </div>
             <div className="flex items-center gap-3">
@@ -174,7 +186,7 @@ export function VerifyEmail() {
                 3
               </span>
               <p className="text-slate-700 dark:text-slate-300 text-sm font-medium m-0">
-                Kembali ke halaman ini dan refresh
+                {t("auth.pages.verifyEmailReturnRefresh")}
               </p>
             </div>
           </div>
@@ -188,13 +200,13 @@ export function VerifyEmail() {
 
         {isVerified ? (
           <div className="bg-emerald-50 dark:bg-emerald-900/20 text-emerald-700 dark:text-emerald-400 p-3 rounded-lg text-sm font-bold text-center mb-4 border border-emerald-200 dark:border-emerald-800/50">
-            ✅ Verifikasi berhasil. Mengarahkan ke aplikasi...
+            {t("auth.pages.verifyEmailSuccessRedirect")}
           </div>
-        ) : resendState.status === 'success' ? (
+        ) : resendState.status === "success" ? (
           <div className="bg-emerald-50 dark:bg-emerald-900/20 text-emerald-700 dark:text-emerald-400 p-3 rounded-lg text-sm font-bold text-center mb-4 border border-emerald-200 dark:border-emerald-800/50">
-            ✅ Email verifikasi telah dikirim ulang!
+            {t("auth.pages.verifyEmailResentSuccess")}
           </div>
-        ) : resendState.status === 'error' ? (
+        ) : resendState.status === "error" ? (
           <div className="bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 p-3 rounded-lg text-sm font-medium text-center mb-4 border border-red-200 dark:border-red-800/50">
             {resendState.message}
           </div>
@@ -202,20 +214,22 @@ export function VerifyEmail() {
           <button
             className="bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 font-bold py-2 px-4 rounded-lg border border-slate-200 dark:border-slate-700 hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors w-full text-sm mb-6"
             onClick={handleResend}
-            disabled={resendState.status === 'loading' || isVerifying}
+            disabled={resendState.status === "loading" || isVerifying}
           >
-            {resendState.status === 'loading' ? 'Mengirim...' : '📤 Kirim Ulang Email Verifikasi'}
+            {resendState.status === "loading"
+              ? t("auth.pages.sending")
+              : t("auth.pages.verifyEmailResendButton")}
           </button>
         ) : (
           <div className="bg-slate-100 dark:bg-slate-800 rounded-lg p-4 text-center mb-4 border border-slate-200 dark:border-slate-700">
             <p className="text-slate-600 dark:text-slate-400 text-sm mb-3">
-              Anda belum masuk ke akun. Silakan login untuk meminta email verifikasi ulang.
+              {t("auth.pages.verifyEmailLoginRequired")}
             </p>
             <Link
               to="/login"
               className="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-lg transition-colors text-sm"
             >
-              🔑 Masuk ke Akun
+              {t("auth.pages.verifyEmailLoginButton")}
             </Link>
           </div>
         )}
@@ -228,7 +242,7 @@ export function VerifyEmail() {
                 onClick={() => window.location.reload()}
                 disabled={isVerifying}
               >
-                🔄 Refresh Halaman
+                {t("auth.pages.verifyEmailRefreshPage")}
               </button>
             )}
 
@@ -236,13 +250,15 @@ export function VerifyEmail() {
               className="w-full p-3 bg-transparent hover:bg-slate-50 dark:hover:bg-slate-800 text-slate-500 dark:text-slate-400 font-medium rounded-lg transition-colors border border-transparent hover:border-slate-200 dark:hover:border-slate-700"
               onClick={signOut}
             >
-              Logout & Gunakan Email Lain
+              {t("auth.pages.verifyEmailUseDifferentEmail")}
             </button>
           </div>
         )}
 
-        <p className="text-center mb-6">Cek folder spam jika tidak menemukan email.</p>
+        <p className="text-center mb-6">
+          {t("auth.pages.verifyEmailCheckSpam")}
+        </p>
       </div>
     </div>
-  )
+  );
 }
