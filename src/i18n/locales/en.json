@@ -1600,5 +1600,45 @@
         "confirm": "Yes, Skip"
       }
     }
+  },
+  "onboardingChecklist": {
+    "title": "Account Setup",
+    "collapse": "Hide list",
+    "expand": "Show list",
+    "dismiss": "Dismiss for now",
+    "progress": {
+      "text": "__DONE__ of __TOTAL__ completed",
+      "aria": "Onboarding: __DONE__ of __TOTAL__ completed"
+    },
+    "step": {
+      "markIncomplete": "Mark \"__TITLE__\" as incomplete",
+      "markComplete": "Complete \"__TITLE__\""
+    },
+    "steps": {
+      "create_course": {
+        "title": "Create your first course",
+        "description": "Start by building learning content"
+      },
+      "invite_teacher": {
+        "title": "Invite teachers",
+        "description": "Add members to your teaching team"
+      },
+      "invite_students": {
+        "title": "Invite students",
+        "description": "Enroll students into the platform"
+      },
+      "setup_grading": {
+        "title": "Configure grading scale",
+        "description": "Set up your grading system"
+      },
+      "enable_gamification": {
+        "title": "Enable gamification",
+        "description": "Motivate students with points and badges"
+      }
+    }
+  },
+  "onboardingLayout": {
+    "welcomeTitle": "Welcome to EduSync!",
+    "signedInAs": "Signed in as"
   }
 }

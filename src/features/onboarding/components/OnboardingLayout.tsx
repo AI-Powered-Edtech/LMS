@@ -1,11 +1,13 @@
-import type { ReactNode } from 'react'
+import type { ReactNode } from "react";
+import { useTranslation } from "react-i18next";
 
 interface OnboardingLayoutProps {
-  children: ReactNode
-  email?: string
+  children: ReactNode;
+  email?: string;
 }
 
 export function OnboardingLayout({ children, email }: OnboardingLayoutProps) {
+  const { t } = useTranslation();
   return (
     <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-slate-900 via-blue-950/40 to-slate-900 p-4">
       <div className="max-w-lg w-full">
@@ -26,16 +28,17 @@ export function OnboardingLayout({ children, email }: OnboardingLayoutProps) {
             </svg>
           </div>
           <h1 className="text-3xl font-black text-white mb-2 tracking-tight">
-            Selamat Datang di EduSync!
+            {t("onboardingLayout.welcomeTitle")}
           </h1>
           {email && (
             <p className="text-slate-400 text-sm">
-              Masuk sebagai <span className="text-white font-medium">{email}</span>
+              {t("onboardingLayout.signedInAs")}{" "}
+              <span className="text-white font-medium">{email}</span>
             </p>
           )}
         </div>
         {children}
       </div>
     </div>
-  )
+  );
 }

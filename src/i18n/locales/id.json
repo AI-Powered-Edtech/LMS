@@ -1600,5 +1600,45 @@
         "confirm": "Ya, Lewati"
       }
     }
+  },
+  "onboardingChecklist": {
+    "title": "Penyiapan Akun",
+    "collapse": "Sembunyikan daftar",
+    "expand": "Tampilkan daftar",
+    "dismiss": "Tutup sementara",
+    "progress": {
+      "text": "__DONE__ dari __TOTAL__ selesai",
+      "aria": "Onboarding: __DONE__ dari __TOTAL__ selesai"
+    },
+    "step": {
+      "markIncomplete": "Tandai \"__TITLE__\" belum selesai",
+      "markComplete": "Selesaikan \"__TITLE__\""
+    },
+    "steps": {
+      "create_course": {
+        "title": "Buat kursus pertama",
+        "description": "Mulai dengan membuat konten pembelajaran"
+      },
+      "invite_teacher": {
+        "title": "Undang guru",
+        "description": "Tambahkan anggota tim pengajar"
+      },
+      "invite_students": {
+        "title": "Undang siswa",
+        "description": "Daftarkan siswa ke platform"
+      },
+      "setup_grading": {
+        "title": "Atur skala penilaian",
+        "description": "Konfigurasi sistem nilai"
+      },
+      "enable_gamification": {
+        "title": "Aktifkan gamifikasi",
+        "description": "Motivasi siswa dengan poin dan lencana"
+      }
+    }
+  },
+  "onboardingLayout": {
+    "welcomeTitle": "Selamat Datang di EduSync!",
+    "signedInAs": "Masuk sebagai"
   }
 }
