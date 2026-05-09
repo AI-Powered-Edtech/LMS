@@ -1941,5 +1941,16 @@
       "totalProjection": "Total Projected Final Grade",
       "totalSubtitle": "Combination of actual scores and What-If scores"
     }
+  },
+  "gradebookMobile": {
+    "types": {
+      "quiz": "Quiz",
+      "assignment": "Assignment",
+      "essay": "Essay",
+      "project": "Project"
+    },
+    "noStudentsFound": "No students found",
+    "gradeAssignments": "Assignment Grades (__COUNT__)",
+    "nis": "ID: __NIS__"
   }
 }

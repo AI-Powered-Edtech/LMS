@@ -1941,5 +1941,16 @@
       "totalProjection": "Total Proyeksi Nilai Akhir",
       "totalSubtitle": "Gabungan nilai asli dan skor What-If"
     }
+  },
+  "gradebookMobile": {
+    "types": {
+      "quiz": "Kuis",
+      "assignment": "Tugas",
+      "essay": "Esai",
+      "project": "Proyek"
+    },
+    "noStudentsFound": "Tidak ada siswa yang ditemukan",
+    "gradeAssignments": "Nilai Tugas (__COUNT__)",
+    "nis": "NIS: __NIS__"
   }
 }
