@@ -664,5 +664,49 @@
       "deselectAll": "Batalkan Semua",
       "selectedCount": "{count} dipilih"
     }
+  },
+  "assignmentsPage": {
+    "pageTitle": "Tugas",
+    "title": "Tugas Kelas",
+    "teacherSubtitle": "Kelola assignment native dengan attempt, reminder, dan analytics.",
+    "studentSubtitle": "Lihat detail tugas, submit attempt, dan pantau hasil penilaian Anda.",
+    "createNew": "Buat Tugas Baru",
+    "dueDate": "Tenggat",
+    "grade": "Nilai",
+    "noInstructions": "Instruksi belum diberikan. Hubungi guru untuk informasi lebih lanjut.",
+    "sendReminder": "Kirim pengingat ({count})",
+    "teacherAttachments": "Lampiran Guru",
+    "loadingLatest": "Memuat data assignment terbaru...",
+    "toasts": {
+      "loadDetailError": "Gagal memuat detail assignment.",
+      "submitSuccess": "Attempt berhasil disubmit.",
+      "submitError": "Gagal menyerahkan tugas.",
+      "unsubmitSuccess": "Submit dibatalkan.",
+      "unsubmitError": "Gagal membatalkan submit.",
+      "createSuccess": "Tugas berhasil dibuat.",
+      "createError": "Gagal membuat tugas.",
+      "reminderSuccess": "Pengingat dikirim ke {count} siswa.",
+      "reminderError": "Gagal mengirim pengingat."
+    },
+    "group": {
+      "title": "Tugas Kelompok",
+      "description": "Tugas ini dikerjakan secara berkelompok. Buka ruang kolaborasi untuk melihat anggota kelompok dan mengerjakan tugas bersama.",
+      "openCollaboration": "Buka Ruang Kolaborasi"
+    },
+    "analytics": {
+      "submissionRate": "Submission Rate",
+      "graded": "Sudah Dinilai",
+      "late": "Telat",
+      "averageScore": "Rata-rata Nilai",
+      "scoreDistribution": "Distribusi Nilai"
+    },
+    "reminder": {
+      "notSubmitted": "{count} siswa belum submit",
+      "description": "Gunakan tombol pengingat untuk menghubungi siswa yang masih berstatus not submitted."
+    },
+    "empty": {
+      "title": "Pilih Tugas",
+      "description": "Pilih tugas dari daftar di sebelah kiri untuk melihat detail, attempt, atau status grading."
+    }
   }
 }

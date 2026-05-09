@@ -664,5 +664,49 @@
       "deselectAll": "Deselect All",
       "selectedCount": "{count} selected"
     }
+  },
+  "assignmentsPage": {
+    "pageTitle": "Assignments",
+    "title": "Class Assignments",
+    "teacherSubtitle": "Manage native assignments with attempts, reminders, and analytics.",
+    "studentSubtitle": "View assignment details, submit attempts, and track your grading results.",
+    "createNew": "Create New Assignment",
+    "dueDate": "Due",
+    "grade": "Grade",
+    "noInstructions": "No instructions have been provided. Contact the teacher for more information.",
+    "sendReminder": "Send reminder ({count})",
+    "teacherAttachments": "Teacher Attachments",
+    "loadingLatest": "Loading latest assignment data...",
+    "toasts": {
+      "loadDetailError": "Failed to load assignment details.",
+      "submitSuccess": "Attempt submitted successfully.",
+      "submitError": "Failed to turn in assignment.",
+      "unsubmitSuccess": "Submission canceled.",
+      "unsubmitError": "Failed to cancel submission.",
+      "createSuccess": "Assignment created successfully.",
+      "createError": "Failed to create assignment.",
+      "reminderSuccess": "Reminder sent to {count} students.",
+      "reminderError": "Failed to send reminder."
+    },
+    "group": {
+      "title": "Group Assignment",
+      "description": "This assignment is completed in groups. Open the collaboration space to view group members and work together.",
+      "openCollaboration": "Open Collaboration Space"
+    },
+    "analytics": {
+      "submissionRate": "Submission Rate",
+      "graded": "Graded",
+      "late": "Late",
+      "averageScore": "Average Score",
+      "scoreDistribution": "Score Distribution"
+    },
+    "reminder": {
+      "notSubmitted": "{count} students have not submitted",
+      "description": "Use the reminder button to contact students who are still marked as not submitted."
+    },
+    "empty": {
+      "title": "Select Assignment",
+      "description": "Select an assignment from the list on the left to view details, attempts, or grading status."
+    }
   }
 }
