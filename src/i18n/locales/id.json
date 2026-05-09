@@ -1186,5 +1186,303 @@
     "accountDeletion": "Hapus Akun",
     "peerReviews": "Peer Review",
     "surveyRespond": "Isi Survei"
+  },
+  "navigation": {
+    "items": {
+      "dashboardTeacher": {
+        "name": "Pusat Mengajar"
+      },
+      "ruangBelajar": {
+        "name": "Ruang Belajar"
+      },
+      "socialHubLink": {
+        "name": "Sosial & Info"
+      },
+      "gamificationHubLink": {
+        "name": "Gamifikasi"
+      },
+      "settings": {
+        "name": "Pengaturan"
+      },
+      "adminHubLink": {
+        "name": "Administrasi"
+      },
+      "adminUsersSidebar": {
+        "name": "Manajemen Pengguna"
+      },
+      "adminBillingSidebar": {
+        "name": "Tagihan"
+      },
+      "adminSettingsSidebar": {
+        "name": "Pengaturan"
+      },
+      "courseBuilder": {
+        "name": "Manajemen Materi",
+        "description": "Atur modul, materi, dan alur belajar siswa."
+      },
+      "gradebook": {
+        "name": "Buku Nilai",
+        "description": "Sistem pencatatan dan rekap nilai siswa."
+      },
+      "quizGradebook": {
+        "name": "Buku Nilai Kuis",
+        "description": "Rekap nilai dan statistik kuis otomatis."
+      },
+      "quizManager": {
+        "name": "Manajemen Kuis",
+        "description": "Buat, kelola, dan publish kuis untuk kelas."
+      },
+      "assignmentGradebook": {
+        "name": "Buku Nilai Tugas",
+        "description": "Nilai dan berikan umpan balik tugas siswa."
+      },
+      "aiCreator": {
+        "name": "Kreator AI",
+        "description": "Buat kuis & materi otomatis dari dokumen/video."
+      },
+      "analytics": {
+        "name": "Dasbor Analitik",
+        "description": "Visualisasi data & prediksi risiko siswa."
+      },
+      "lessonMonitor": {
+        "name": "Monitor Pelajaran",
+        "description": "Pantau progress siswa secara real-time."
+      },
+      "attendance": {
+        "name": "Scan Absensi",
+        "description": "Scan otomatis buku absensi siswa menggunakan AI."
+      },
+      "grader": {
+        "name": "SpeedGrader",
+        "description": "Penilaian esai dengan matriks rubrik transparan."
+      },
+      "groupAssignmentTeacher": {
+        "name": "Tugas Kelompok",
+        "description": "Kelola dan pantau tugas kolaborasi kelompok siswa."
+      },
+      "leaderboardTeacher": {
+        "name": "Papan Peringkat",
+        "description": "Lihat peringkat XP dan poin siswa di kelas."
+      },
+      "lesson": {
+        "name": "Smart Player",
+        "description": "Video & artikel dengan auto-completion tracking."
+      },
+      "quiz": {
+        "name": "Kuis",
+        "description": "Kerjakan kuis dan ujian online."
+      },
+      "assignments": {
+        "name": "Pusat Tugas",
+        "description": "Kumpulkan dan kelola tugas harian."
+      },
+      "assignmentsTeacher": {
+        "name": "Pusat Tugas",
+        "description": "Kelola dan nilai tugas harian siswa."
+      },
+      "groupAssignment": {
+        "name": "Tugas Kelompok",
+        "description": "Kolaborasi tugas kelompok."
+      },
+      "gradesStudent": {
+        "name": "Nilai Saya",
+        "description": "Lihat nilai tugas dan simulasi proyeksi nilai akhir."
+      },
+      "attendanceStudent": {
+        "name": "Kehadiran",
+        "description": "Rekap kehadiran berdasarkan data absensi guru."
+      },
+      "peerReview": {
+        "name": "Peer Review",
+        "description": "Nilai dan berikan umpan balik tugas sesama siswa."
+      },
+      "forum": {
+        "name": "Forum Diskusi",
+        "description": "Ruang tanya jawab dan kolaborasi sosial."
+      },
+      "calendar": {
+        "name": "Jadwal",
+        "description": "Jadwal pelajaran dan agenda akademik."
+      },
+      "announcements": {
+        "name": "Pengumuman",
+        "description": "Papan informasi dan berita sekolah."
+      },
+      "leaderboard": {
+        "name": "Papan Peringkat",
+        "description": "Peringkat siswa, XP, dan liga gamifikasi."
+      },
+      "certificates": {
+        "name": "Sertifikat",
+        "description": "Galeri sertifikat kelulusan dan pencapaian."
+      },
+      "documents": {
+        "name": "Surat & Dokumen",
+        "description": "Smart editor & approval surat berjenjang."
+      },
+      "adminAnalytics": {
+        "name": "Analitik",
+        "description": "Dashboard analitik pembelajaran."
+      },
+      "finance": {
+        "name": "Keuangan & SPP",
+        "description": "Manajemen keuangan sekolah dan SPP."
+      },
+      "ppdb": {
+        "name": "PPDB Online",
+        "description": "Penerimaan Peserta Didik Baru."
+      },
+      "administration": {
+        "name": "Administrasi",
+        "description": "Pengaturan umum sekolah."
+      },
+      "billing": {
+        "name": "Tagihan Siswa",
+        "description": "Kelola tagihan dan riwayat pembayaran."
+      },
+      "ltiManagement": {
+        "name": "Integrasi LTI",
+        "description": "Kelola platform LTI 1.3 (Canvas, Moodle)."
+      },
+      "profile": {
+        "name": "Profil Pengguna",
+        "description": "Kelola informasi akun dan preferensi."
+      },
+      "settingsDir": {
+        "name": "Pengaturan",
+        "description": "Konfigurasi aplikasi dan notifikasi."
+      },
+      "semesterManagement": {
+        "name": "Manajemen Semester",
+        "description": "Kelola semester akademik, clone kursus, dan kenaikan kelas."
+      },
+      "academicYears": {
+        "name": "Tahun Ajaran",
+        "description": "Atur tahun ajaran dan tetapkan tahun aktif."
+      },
+      "rombelManagement": {
+        "name": "Manajemen Rombel",
+        "description": "Kelola rombongan belajar dan wali kelas per tahun ajaran."
+      },
+      "subjectsManagement": {
+        "name": "Mata Pelajaran",
+        "description": "Mapel + capaian pembelajaran (CP/ATP) Kurmer per fase."
+      },
+      "timetableManagement": {
+        "name": "Jadwal Pelajaran",
+        "description": "Editor grid jadwal mingguan per rombel."
+      },
+      "raporKurmer": {
+        "name": "Rapor Kurmer",
+        "description": "Daftar rapor + workflow tanda tangan."
+      },
+      "bosTracking": {
+        "name": "BOS Tracking",
+        "description": "Pelacakan pengeluaran dana BOS per kategori Permendikbud."
+      },
+      "ppdbJalur": {
+        "name": "PPDB — Jalur",
+        "description": "Atur jalur pendaftaran (zonasi/afirmasi/prestasi) + kuota."
+      },
+      "p5Projects": {
+        "name": "Projek P5",
+        "description": "Projek Penguatan Profil Pelajar Pancasila."
+      },
+      "integrations": {
+        "name": "Integrasi",
+        "description": "Midtrans, WhatsApp, Email, Dapodik, Bank VA."
+      },
+      "principalInsights": {
+        "name": "Wawasan Bulanan",
+        "description": "Ringkasan AI bulanan untuk kepala sekolah."
+      },
+      "counselingNotes": {
+        "name": "Catatan Konseling",
+        "description": "Catatan sesi konseling oleh Guru BK."
+      },
+      "akmStimuli": {
+        "name": "Stimulus AKM",
+        "description": "Bank stimulus untuk soal-soal AKM."
+      },
+      "bankVa": {
+        "name": "Virtual Account Bank",
+        "description": "Tetapkan VA bank per siswa untuk SPP direct."
+      },
+      "parentLinks": {
+        "name": "Tautan Ortu — Siswa",
+        "description": "Hubungkan akun orang tua ke siswa untuk parent dashboard."
+      },
+      "semanticSearch": {
+        "name": "Pencarian Semantik",
+        "description": "Cari materi, pengumuman, rapor lintas modul."
+      },
+      "rombelAttendance": {
+        "name": "Absen Rombel",
+        "description": "Absen pagi per rombel × tanggal (H/S/I/A)."
+      }
+    },
+    "adminGroups": {
+      "main": {
+        "title": "Utama",
+        "items": {
+          "dashboard": "Dasbor",
+          "adminHub": "Admin Hub"
+        }
+      },
+      "usersClasses": {
+        "title": "Pengguna & Kelas",
+        "items": {
+          "users": "Pengguna",
+          "classes": "Kelas",
+          "courses": "Kursus"
+        }
+      },
+      "academic": {
+        "title": "Akademik",
+        "items": {
+          "semester": "Manajemen Semester"
+        }
+      },
+      "finance": {
+        "title": "Keuangan",
+        "items": {
+          "billing": "Tagihan",
+          "finance": "Keuangan"
+        }
+      },
+      "system": {
+        "title": "Sistem",
+        "items": {
+          "systemHealth": "Kesehatan Sistem",
+          "ltiIntegration": "Integrasi LTI",
+          "settings": "Pengaturan"
+        }
+      }
+    },
+    "sidebar": {
+      "menuLabel": "Menu utama",
+      "signOut": "Keluar"
+    },
+    "mobileSidebar": {
+      "close": "Tutup menu"
+    },
+    "adminSidebar": {
+      "menuLabel": "Menu admin",
+      "navLabel": "Navigasi admin",
+      "groupPrefix": "Grup navigasi",
+      "signOut": "Keluar"
+    },
+    "bottomNav": {
+      "navLabel": "Navigasi utama",
+      "unreadAria": "__COUNT__ item belum dibaca",
+      "dashboardTeacher": "Dasbor",
+      "homeStudent": "Beranda",
+      "quizStudent": "Kuis",
+      "dashboardAdmin": "Dasbor",
+      "assignments": "Tugas",
+      "calendar": "Jadwal",
+      "announcements": "Pengumuman",
+      "menu": "Menu"
+    }
   }
 }

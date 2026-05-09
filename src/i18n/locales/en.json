@@ -1186,5 +1186,303 @@
     "accountDeletion": "Delete Account",
     "peerReviews": "Peer Reviews",
     "surveyRespond": "Take Survey"
+  },
+  "navigation": {
+    "items": {
+      "dashboardTeacher": {
+        "name": "Teaching Hub"
+      },
+      "ruangBelajar": {
+        "name": "Learning Hub"
+      },
+      "socialHubLink": {
+        "name": "Social & Info"
+      },
+      "gamificationHubLink": {
+        "name": "Gamification"
+      },
+      "settings": {
+        "name": "Settings"
+      },
+      "adminHubLink": {
+        "name": "Administration"
+      },
+      "adminUsersSidebar": {
+        "name": "User Management"
+      },
+      "adminBillingSidebar": {
+        "name": "Billing"
+      },
+      "adminSettingsSidebar": {
+        "name": "Settings"
+      },
+      "courseBuilder": {
+        "name": "Course Builder",
+        "description": "Organize modules, materials, and student learning paths."
+      },
+      "gradebook": {
+        "name": "Gradebook",
+        "description": "System for recording and summarizing student grades."
+      },
+      "quizGradebook": {
+        "name": "Quiz Gradebook",
+        "description": "Auto-graded quiz scores and statistics."
+      },
+      "quizManager": {
+        "name": "Quiz Manager",
+        "description": "Create, manage, and publish quizzes for classes."
+      },
+      "assignmentGradebook": {
+        "name": "Assignment Gradebook",
+        "description": "Grade and give feedback on student assignments."
+      },
+      "aiCreator": {
+        "name": "AI Creator",
+        "description": "Auto-generate quizzes & materials from documents/videos."
+      },
+      "analytics": {
+        "name": "Analytics Dashboard",
+        "description": "Data visualization & student risk prediction."
+      },
+      "lessonMonitor": {
+        "name": "Lesson Monitor",
+        "description": "Monitor student progress in real time."
+      },
+      "attendance": {
+        "name": "Scan Attendance",
+        "description": "Auto-scan student attendance books using AI."
+      },
+      "grader": {
+        "name": "SpeedGrader",
+        "description": "Essay grading with transparent rubric matrix."
+      },
+      "groupAssignmentTeacher": {
+        "name": "Group Assignment",
+        "description": "Manage and monitor student group collaboration assignments."
+      },
+      "leaderboardTeacher": {
+        "name": "Leaderboard",
+        "description": "View student XP and points rankings in class."
+      },
+      "lesson": {
+        "name": "Smart Player",
+        "description": "Videos & articles with auto-completion tracking."
+      },
+      "quiz": {
+        "name": "Quizzes",
+        "description": "Take quizzes and online exams."
+      },
+      "assignments": {
+        "name": "Assignment Center",
+        "description": "Submit and manage daily assignments."
+      },
+      "assignmentsTeacher": {
+        "name": "Assignment Center",
+        "description": "Manage and grade daily student assignments."
+      },
+      "groupAssignment": {
+        "name": "Group Assignment",
+        "description": "Group assignment collaboration."
+      },
+      "gradesStudent": {
+        "name": "My Grades",
+        "description": "View assignment grades and final-grade projection."
+      },
+      "attendanceStudent": {
+        "name": "Attendance",
+        "description": "Attendance summary based on teacher records."
+      },
+      "peerReview": {
+        "name": "Peer Review",
+        "description": "Grade and give feedback on peer assignments."
+      },
+      "forum": {
+        "name": "Discussion Forum",
+        "description": "Q&A space and social collaboration."
+      },
+      "calendar": {
+        "name": "Schedule",
+        "description": "Lesson schedule and academic agenda."
+      },
+      "announcements": {
+        "name": "Announcements",
+        "description": "School information and news board."
+      },
+      "leaderboard": {
+        "name": "Leaderboard",
+        "description": "Student rankings, XP, and gamification leagues."
+      },
+      "certificates": {
+        "name": "Certificates",
+        "description": "Gallery of graduation and achievement certificates."
+      },
+      "documents": {
+        "name": "Letters & Documents",
+        "description": "Smart editor & tiered letter approval."
+      },
+      "adminAnalytics": {
+        "name": "Analytics",
+        "description": "Learning analytics dashboard."
+      },
+      "finance": {
+        "name": "Finance & Tuition",
+        "description": "School finance and tuition management."
+      },
+      "ppdb": {
+        "name": "Online Admissions",
+        "description": "New student admissions."
+      },
+      "administration": {
+        "name": "Administration",
+        "description": "General school settings."
+      },
+      "billing": {
+        "name": "Student Billing",
+        "description": "Manage tuition bills and payment history."
+      },
+      "ltiManagement": {
+        "name": "LTI Integration",
+        "description": "Manage LTI 1.3 platforms (Canvas, Moodle)."
+      },
+      "profile": {
+        "name": "User Profile",
+        "description": "Manage account info and preferences."
+      },
+      "settingsDir": {
+        "name": "Settings",
+        "description": "App and notification configuration."
+      },
+      "semesterManagement": {
+        "name": "Semester Management",
+        "description": "Manage academic semesters, course cloning, and grade promotion."
+      },
+      "academicYears": {
+        "name": "Academic Years",
+        "description": "Set academic years and assign the active year."
+      },
+      "rombelManagement": {
+        "name": "Class Group Management",
+        "description": "Manage class groups and homeroom teachers per academic year."
+      },
+      "subjectsManagement": {
+        "name": "Subjects",
+        "description": "Subjects + Kurmer learning outcomes (CP/ATP) per phase."
+      },
+      "timetableManagement": {
+        "name": "Timetable",
+        "description": "Weekly grid timetable editor per class group."
+      },
+      "raporKurmer": {
+        "name": "Kurmer Report Cards",
+        "description": "Report card list + signature workflow."
+      },
+      "bosTracking": {
+        "name": "BOS Tracking",
+        "description": "BOS fund expense tracking by Permendikbud category."
+      },
+      "ppdbJalur": {
+        "name": "Admissions — Pathways",
+        "description": "Configure admission pathways (zoning/affirmative/achievement) + quotas."
+      },
+      "p5Projects": {
+        "name": "P5 Projects",
+        "description": "Pancasila Student Profile Strengthening Projects."
+      },
+      "integrations": {
+        "name": "Integrations",
+        "description": "Midtrans, WhatsApp, Email, Dapodik, Bank VA."
+      },
+      "principalInsights": {
+        "name": "Monthly Insights",
+        "description": "Monthly AI summary for school principals."
+      },
+      "counselingNotes": {
+        "name": "Counseling Notes",
+        "description": "Counseling session notes by guidance counselor."
+      },
+      "akmStimuli": {
+        "name": "AKM Stimuli",
+        "description": "Stimulus bank for AKM questions."
+      },
+      "bankVa": {
+        "name": "Bank Virtual Account",
+        "description": "Assign bank VAs per student for direct tuition payments."
+      },
+      "parentLinks": {
+        "name": "Parent — Student Links",
+        "description": "Link parent accounts to students for the parent dashboard."
+      },
+      "semanticSearch": {
+        "name": "Semantic Search",
+        "description": "Search materials, announcements, and report cards across modules."
+      },
+      "rombelAttendance": {
+        "name": "Class Group Attendance",
+        "description": "Morning attendance per class group × date (P/S/E/A)."
+      }
+    },
+    "adminGroups": {
+      "main": {
+        "title": "Main",
+        "items": {
+          "dashboard": "Dashboard",
+          "adminHub": "Admin Hub"
+        }
+      },
+      "usersClasses": {
+        "title": "Users & Classes",
+        "items": {
+          "users": "Users",
+          "classes": "Classes",
+          "courses": "Courses"
+        }
+      },
+      "academic": {
+        "title": "Academic",
+        "items": {
+          "semester": "Semester Management"
+        }
+      },
+      "finance": {
+        "title": "Finance",
+        "items": {
+          "billing": "Billing",
+          "finance": "Finance"
+        }
+      },
+      "system": {
+        "title": "System",
+        "items": {
+          "systemHealth": "System Health",
+          "ltiIntegration": "LTI Integration",
+          "settings": "Settings"
+        }
+      }
+    },
+    "sidebar": {
+      "menuLabel": "Main menu",
+      "signOut": "Sign out"
+    },
+    "mobileSidebar": {
+      "close": "Close menu"
+    },
+    "adminSidebar": {
+      "menuLabel": "Admin menu",
+      "navLabel": "Admin navigation",
+      "groupPrefix": "Navigation group",
+      "signOut": "Sign out"
+    },
+    "bottomNav": {
+      "navLabel": "Main navigation",
+      "unreadAria": "__COUNT__ unread items",
+      "dashboardTeacher": "Dashboard",
+      "homeStudent": "Home",
+      "quizStudent": "Quizzes",
+      "dashboardAdmin": "Dashboard",
+      "assignments": "Assignments",
+      "calendar": "Schedule",
+      "announcements": "Announcements",
+      "menu": "Menu"
+    }
   }
 }

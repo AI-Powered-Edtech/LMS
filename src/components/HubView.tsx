@@ -1,24 +1,25 @@
-import { ArrowRight, Inbox } from 'lucide-react'
-import { motion } from 'motion/react'
-import { Link } from 'react-router-dom'
+import { ArrowRight, Inbox } from "lucide-react";
+import { motion } from "motion/react";
+import { Link } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 
-import { NavItem } from '@/shared/config/navigation'
-import { cn } from '@/utils/cn'
+import { NavItem } from "@/shared/config/navigation";
+import { cn } from "@/utils/cn";
 
 interface HubViewProps {
-  title: string
-  description: string
-  items: NavItem[]
+  title: string;
+  description: string;
+  items: NavItem[];
   /** Optional custom title shown when items array is empty. */
-  emptyTitle?: string
+  emptyTitle?: string;
   /** Optional explanation shown when items array is empty. */
-  emptyDescription?: string
+  emptyDescription?: string;
   /**
    * Heading level for the section title. Defaults to h1 (when HubView is the
    * page's primary heading). Pass 'h2' when HubView is rendered as a section
    * under a page that already has a higher-level h1.
    */
-  headingLevel?: 'h1' | 'h2'
+  headingLevel?: "h1" | "h2";
 }
 
 export function HubView({
@@ -27,9 +28,10 @@ export function HubView({
   items,
   emptyTitle,
   emptyDescription,
-  headingLevel = 'h1',
+  headingLevel = "h1",
 }: HubViewProps) {
-  const HeadingTag = headingLevel
+  const { t } = useTranslation();
+  const HeadingTag = headingLevel;
   return (
     <div className="max-w-6xl mx-auto space-y-8 pb-12 px-4 md:px-6 lg:px-8">
       {(title || description) && (
@@ -41,7 +43,9 @@ export function HubView({
               </HeadingTag>
             )}
             {description && (
-              <p className="text-slate-500 dark:text-slate-400 mt-2 text-lg">{description}</p>
+              <p className="text-slate-500 dark:text-slate-400 mt-2 text-lg">
+                {description}
+              </p>
             )}
           </div>
         </div>
@@ -53,11 +57,11 @@ export function HubView({
             <Inbox className="w-7 h-7" strokeWidth={1.5} />
           </div>
           <h2 className="text-lg font-semibold text-slate-800 dark:text-slate-100">
-            {emptyTitle ?? 'Belum ada item untuk ditampilkan'}
+            {emptyTitle ?? "Belum ada item untuk ditampilkan"}
           </h2>
           <p className="mt-2 text-sm text-slate-500 dark:text-slate-400 max-w-xl mx-auto leading-relaxed">
             {emptyDescription ??
-              'Halaman ini akan otomatis terisi saat admin mengaktifkan modul atau saat Anda terdaftar di kelas/peran yang sesuai.'}
+              "Halaman ini akan otomatis terisi saat admin mengaktifkan modul atau saat Anda terdaftar di kelas/peran yang sesuai."}
           </p>
         </div>
       ) : (
@@ -73,8 +77,8 @@ export function HubView({
               <Link
                 to={page.path}
                 className={cn(
-                  'relative block h-full bg-white dark:bg-slate-800 p-6 rounded-[24px] border border-slate-200/60 dark:border-slate-700 shadow-sm hover:shadow-xl hover:shadow-blue-500/5 transition-all duration-300 group overflow-hidden',
-                  'hover:-translate-y-1 hover:border-blue-200 dark:hover:border-blue-700'
+                  "relative block h-full bg-white dark:bg-slate-800 p-6 rounded-[24px] border border-slate-200/60 dark:border-slate-700 shadow-sm hover:shadow-xl hover:shadow-blue-500/5 transition-all duration-300 group overflow-hidden",
+                  "hover:-translate-y-1 hover:border-blue-200 dark:hover:border-blue-700",
                 )}
               >
                 {/* Subtle background gradient that appears on hover */}
@@ -84,10 +88,10 @@ export function HubView({
                   <div className="flex items-start justify-between mb-6">
                     <div
                       className={cn(
-                        'w-14 h-14 rounded-2xl flex items-center justify-center border shadow-sm transition-transform duration-300 group-hover:scale-110 group-hover:rotate-3',
-                        page.bg || 'bg-slate-50',
-                        page.color || 'text-slate-700',
-                        page.border || 'border-slate-200'
+                        "w-14 h-14 rounded-2xl flex items-center justify-center border shadow-sm transition-transform duration-300 group-hover:scale-110 group-hover:rotate-3",
+                        page.bg || "bg-slate-50",
+                        page.color || "text-slate-700",
+                        page.border || "border-slate-200",
                       )}
                     >
                       <page.icon className="w-7 h-7" strokeWidth={1.5} />
@@ -99,7 +103,7 @@ export function HubView({
 
                   <div className="flex items-center gap-2 mb-2">
                     <h3 className="text-xl font-bold text-slate-900 dark:text-white group-hover:text-blue-700 dark:group-hover:text-blue-400 transition-colors">
-                      {page.name}
+                      {t(page.name)}
                     </h3>
                     {page.notification && (
                       <span className="flex h-5 w-5 items-center justify-center rounded-full bg-red-500 text-[10px] font-bold text-white shadow-sm animate-pulse">
@@ -108,7 +112,7 @@ export function HubView({
                     )}
                   </div>
                   <p className="text-slate-500 dark:text-slate-400 text-sm leading-relaxed font-medium">
-                    {page.description}
+                    {page.description ? t(page.description) : null}
                   </p>
                 </div>
               </Link>
@@ -117,5 +121,5 @@ export function HubView({
         </div>
       )}
     </div>
-  )
+  );
 }
