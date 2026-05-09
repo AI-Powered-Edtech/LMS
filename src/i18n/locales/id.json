@@ -557,5 +557,15 @@
       "assignToClass": "Tugaskan ke Kelas",
       "edit": "Edit Materi"
     }
+  },
+  "dashboards": {
+    "pageTitle": "Dasbor",
+    "customTitle": "Dashboard Kustom",
+    "createTitle": "Buat Dashboard Baru",
+    "editTitle": "Edit: {name}",
+    "customDescription": "Kelola tampilan analitik kustom untuk kelasmu",
+    "createDescription": "Susun widget analitik sesuai kebutuhanmu",
+    "editDescription": "Edit konfigurasi dashboard",
+    "editButton": "Edit Dashboard"
   }
 }

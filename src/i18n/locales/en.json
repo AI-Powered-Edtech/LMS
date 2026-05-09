@@ -557,5 +557,15 @@
       "assignToClass": "Assign to Class",
       "edit": "Edit Material"
     }
+  },
+  "dashboards": {
+    "pageTitle": "Dashboards",
+    "customTitle": "Custom Dashboards",
+    "createTitle": "Create New Dashboard",
+    "editTitle": "Edit: {name}",
+    "customDescription": "Manage custom analytics views for your classes",
+    "createDescription": "Arrange analytics widgets to match your needs",
+    "editDescription": "Edit dashboard configuration",
+    "editButton": "Edit Dashboard"
   }
 }
