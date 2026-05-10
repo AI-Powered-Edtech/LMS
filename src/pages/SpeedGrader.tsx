@@ -2,6 +2,7 @@ import { AlertCircle, FileText, Loader2, Save, Sparkles } from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Link, useSearchParams } from "react-router-dom";
 
+import { ConfirmDialog } from "@/components/ui";
 import { useAuth } from "@/contexts/AuthContext";
 import { aiGraderService } from "@/features/assignments/api/aiGraderService";
 import type {
@@ -59,6 +60,7 @@ export function SpeedGrader() {
   const [mobileActiveTab, setMobileActiveTab] = useState<
     "document" | "penilaian"
   >("document");
+  const [confirmAIOverwriteOpen, setConfirmAIOverwriteOpen] = useState(false);
   const documentRef = useRef<HTMLDivElement>(null);
 
   const queueStudents = useMemo(() => queue?.students ?? [], [queue?.students]);
@@ -311,7 +313,7 @@ export function SpeedGrader() {
     }
   };
 
-  const handleAIGrading = async () => {
+  const runAIGrading = async () => {
     if (!latestAttempt?.submission_text?.trim()) {
       addToast({
         type: "error",
@@ -321,13 +323,7 @@ export function SpeedGrader() {
       return;
     }
 
-    if (
-      feedback.trim().length > 0 &&
-      !window.confirm("Tumpuk feedback AI di atas feedback yang ada?")
-    ) {
-      return;
-    }
-
+    setConfirmAIOverwriteOpen(false);
     setIsAIGrading(true);
     try {
       const aiResponse = await aiGraderService.gradeEssay({
@@ -359,6 +355,15 @@ export function SpeedGrader() {
     }
   };
 
+  const handleAIGrading = async () => {
+    if (feedback.trim().length > 0) {
+      setConfirmAIOverwriteOpen(true);
+      return;
+    }
+
+    await runAIGrading();
+  };
+
   const selectedStudent = speedGraderStudents[currentStudentIdx];
 
   if (!selectedStudent || !currentQueueStudent) {
@@ -373,6 +378,16 @@ export function SpeedGrader() {
 
   return (
     <div className="h-full flex flex-col bg-slate-50 dark:bg-slate-950 relative">
+      <ConfirmDialog
+        open={confirmAIOverwriteOpen}
+        title="Tumpuk feedback AI?"
+        description="Feedback AI baru akan menggantikan feedback yang sedang ada di editor."
+        confirmLabel="Tumpuk Feedback"
+        variant="warning"
+        isLoading={isAIGrading}
+        onCancel={() => setConfirmAIOverwriteOpen(false)}
+        onConfirm={runAIGrading}
+      />
       <SaveStatusToast status={saveStatus} />
 
       <GraderTopBar
@@ -425,6 +440,7 @@ export function SpeedGrader() {
 
         <div className="flex flex-wrap items-center gap-3">
           <select
+            aria-label="Pilih attempt"
             value={selectedAttemptId ?? ""}
             onChange={(event) => setSelectedAttemptId(event.target.value)}
             className="rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 px-3 py-2 text-sm font-medium text-slate-700 dark:text-slate-200"

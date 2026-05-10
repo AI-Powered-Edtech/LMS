@@ -1,36 +1,47 @@
-import { GitBranch, Loader2, Plus } from 'lucide-react'
-import { useState } from 'react'
+import { GitBranch, Loader2, Plus } from "lucide-react";
+import { useState } from "react";
+
+import { ConfirmDialog } from "@/components/ui";
 
 import {
   useCreatePathRule,
   useDeletePathRule,
   usePathRules,
   useUpdatePathRule,
-} from '../queries/adaptivePathQueries'
-import type { LessonNode, PathRule, PathRuleInsert } from '../types'
-import { PathRuleCard } from './PathRuleCard'
-import { PathRuleEditor } from './PathRuleEditor'
+} from "../queries/adaptivePathQueries";
+import type { LessonNode, PathRule, PathRuleInsert } from "../types";
+import { PathRuleCard } from "./PathRuleCard";
+import { PathRuleEditor } from "./PathRuleEditor";
 
 interface PathRuleListProps {
-  courseId: string
-  tenantId: string
+  courseId: string;
+  tenantId: string;
   /** Optional: flat list of lessons for this course to show titles */
-  lessons?: LessonNode[]
+  lessons?: LessonNode[];
 }
 
-export function PathRuleList({ courseId, tenantId, lessons = [] }: PathRuleListProps) {
-  const { data: rules, isLoading, isError } = usePathRules(courseId, tenantId)
-  const createMutation = useCreatePathRule()
-  const updateMutation = useUpdatePathRule()
-  const deleteMutation = useDeletePathRule()
+export function PathRuleList({
+  courseId,
+  tenantId,
+  lessons = [],
+}: PathRuleListProps) {
+  const { data: rules, isLoading, isError } = usePathRules(courseId, tenantId);
+  const createMutation = useCreatePathRule();
+  const updateMutation = useUpdatePathRule();
+  const deleteMutation = useDeletePathRule();
 
-  const [editorOpen, setEditorOpen] = useState(false)
-  const [editingRule, setEditingRule] = useState<PathRule | undefined>(undefined)
+  const [editorOpen, setEditorOpen] = useState(false);
+  const [editingRule, setEditingRule] = useState<PathRule | undefined>(
+    undefined,
+  );
+  const [pendingDeleteRule, setPendingDeleteRule] = useState<PathRule | null>(
+    null,
+  );
 
   const getLessonTitle = (lessonId: string) => {
-    const lesson = lessons.find((l) => l.id === lessonId)
-    return lesson?.title ?? lessonId
-  }
+    const lesson = lessons.find((l) => l.id === lessonId);
+    return lesson?.title ?? lessonId;
+  };
 
   const handleSave = (ruleData: PathRuleInsert) => {
     if (editingRule) {
@@ -38,57 +49,65 @@ export function PathRuleList({ courseId, tenantId, lessons = [] }: PathRuleListP
         { ruleId: editingRule.id, data: ruleData, tenantId },
         {
           onSuccess: () => {
-            setEditorOpen(false)
-            setEditingRule(undefined)
+            setEditorOpen(false);
+            setEditingRule(undefined);
           },
-        }
-      )
+        },
+      );
     } else {
       createMutation.mutate(
         { rule: { ...ruleData, course_id: courseId }, tenantId },
         {
           onSuccess: () => {
-            setEditorOpen(false)
-            setEditingRule(undefined)
+            setEditorOpen(false);
+            setEditingRule(undefined);
           },
-        }
-      )
+        },
+      );
     }
-  }
+  };
 
   const handleEdit = (rule: PathRule) => {
-    setEditingRule(rule)
-    setEditorOpen(true)
-  }
+    setEditingRule(rule);
+    setEditorOpen(true);
+  };
 
   const handleDelete = (rule: PathRule) => {
-    if (!confirm(`Hapus aturan "${rule.label || 'ini'}"? Tindakan ini tidak dapat dibatalkan.`))
-      return
-    deleteMutation.mutate({ ruleId: rule.id, tenantId, courseId })
-  }
+    setPendingDeleteRule(rule);
+  };
+
+  const confirmDeleteRule = () => {
+    if (!pendingDeleteRule) return;
+    deleteMutation.mutate(
+      { ruleId: pendingDeleteRule.id, tenantId, courseId },
+      { onSettled: () => setPendingDeleteRule(null) },
+    );
+  };
 
   const handleToggleActive = (rule: PathRule) => {
     updateMutation.mutate({
       ruleId: rule.id,
       data: { is_active: !rule.is_active },
       tenantId,
-    })
-  }
+    });
+  };
 
   const handleAddNew = () => {
-    setEditingRule(undefined)
-    setEditorOpen(true)
-  }
+    setEditingRule(undefined);
+    setEditorOpen(true);
+  };
 
   const isMutating =
-    createMutation.isPending || updateMutation.isPending || deleteMutation.isPending
+    createMutation.isPending ||
+    updateMutation.isPending ||
+    deleteMutation.isPending;
 
   if (isLoading) {
     return (
       <div className="flex items-center justify-center py-10">
         <Loader2 className="w-5 h-5 text-slate-400 animate-spin" />
       </div>
-    )
+    );
   }
 
   if (isError) {
@@ -96,11 +115,22 @@ export function PathRuleList({ courseId, tenantId, lessons = [] }: PathRuleListP
       <p className="text-sm text-red-600 dark:text-red-400 py-6 text-center">
         Gagal memuat aturan jalur. Silakan muat ulang halaman.
       </p>
-    )
+    );
   }
 
   return (
     <div className="space-y-4">
+      <ConfirmDialog
+        open={pendingDeleteRule !== null}
+        title="Hapus aturan alur?"
+        description={`Aturan "${pendingDeleteRule?.label || "ini"}" akan dihapus. Tindakan ini tidak dapat dibatalkan.`}
+        confirmLabel="Hapus"
+        variant="danger"
+        isLoading={deleteMutation.isPending}
+        onCancel={() => setPendingDeleteRule(null)}
+        onConfirm={confirmDeleteRule}
+      />
+
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
@@ -131,8 +161,8 @@ export function PathRuleList({ courseId, tenantId, lessons = [] }: PathRuleListP
             Belum ada aturan jalur
           </p>
           <p className="text-xs text-slate-400 dark:text-slate-500 mt-1 max-w-xs">
-            Tambahkan aturan untuk mengarahkan siswa ke materi yang sesuai berdasarkan performa
-            mereka.
+            Tambahkan aturan untuk mengarahkan siswa ke materi yang sesuai
+            berdasarkan performa mereka.
           </p>
         </div>
       )}
@@ -162,12 +192,12 @@ export function PathRuleList({ courseId, tenantId, lessons = [] }: PathRuleListP
           rule={editingRule}
           onSave={handleSave}
           onClose={() => {
-            setEditorOpen(false)
-            setEditingRule(undefined)
+            setEditorOpen(false);
+            setEditingRule(undefined);
           }}
           isSaving={isMutating}
         />
       )}
     </div>
-  )
+  );
 }

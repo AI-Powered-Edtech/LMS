@@ -1,10 +1,11 @@
-import { Calendar, Clock, Edit2, Loader2, Plus } from 'lucide-react'
-import { useState } from 'react'
+import { Calendar, Clock, Edit2, Loader2, Plus } from "lucide-react";
+import { useState } from "react";
 
 import {
   Badge,
   Button,
   Card,
+  ConfirmDialog,
   EmptyState,
   Input,
   Modal,
@@ -13,60 +14,64 @@ import {
   ModalHeader,
   Select,
   useToast,
-} from '@/components/ui'
+} from "@/components/ui";
+import { useLocaleFormatters } from "@/hooks/useLocaleFormatters";
 
 import {
   useCloseSemester,
   useCreateSemester,
   useSemesters,
   useUpdateSemester,
-} from '../queries/useSemesters'
-import type { Semester, SemesterFormData } from '../types'
+} from "../queries/useSemesters";
+import type { Semester, SemesterFormData } from "../types";
 
 const statusLabels: Record<string, string> = {
-  draft: 'Draf',
-  active: 'Aktif',
-  closing: 'Menutup',
-  closed: 'Tertutup',
-}
+  draft: "Draf",
+  active: "Aktif",
+  closing: "Menutup",
+  closed: "Tertutup",
+};
 
 const statusColors: Record<string, string> = {
-  draft: 'bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-200',
-  active: 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200',
-  closing: 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200',
-  closed: 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200',
-}
+  draft: "bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-200",
+  active: "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200",
+  closing:
+    "bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200",
+  closed: "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200",
+};
 
 function SemesterForm({
   initial,
   onSubmit,
   onCancel,
 }: {
-  initial?: Semester
-  onSubmit: (data: SemesterFormData) => void
-  onCancel: () => void
+  initial?: Semester;
+  onSubmit: (data: SemesterFormData) => void;
+  onCancel: () => void;
 }) {
-  const [name, setName] = useState(initial?.name ?? '')
-  const [academicYear, setAcademicYear] = useState(initial?.academic_year ?? '')
-  const [term, setTerm] = useState<string>(initial?.term?.toString() ?? '1')
-  const [startDate, setStartDate] = useState(initial?.start_date ?? '')
-  const [endDate, setEndDate] = useState(initial?.end_date ?? '')
+  const [name, setName] = useState(initial?.name ?? "");
+  const [academicYear, setAcademicYear] = useState(
+    initial?.academic_year ?? "",
+  );
+  const [term, setTerm] = useState<string>(initial?.term?.toString() ?? "1");
+  const [startDate, setStartDate] = useState(initial?.start_date ?? "");
+  const [endDate, setEndDate] = useState(initial?.end_date ?? "");
 
   const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault()
+    e.preventDefault();
     onSubmit({
       name,
       academic_year: academicYear,
       term: parseInt(term) as 1 | 2,
       start_date: startDate,
       end_date: endDate,
-    })
-  }
+    });
+  };
 
   const termOptions = [
-    { value: '1', label: 'Ganjil (1)' },
-    { value: '2', label: 'Genap (2)' },
-  ]
+    { value: "1", label: "Ganjil (1)" },
+    { value: "2", label: "Genap (2)" },
+  ];
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
@@ -131,73 +136,82 @@ function SemesterForm({
         <Button variant="secondary" onClick={onCancel} type="button">
           Batal
         </Button>
-        <Button type="submit">{initial ? 'Simpan Perubahan' : 'Buat Semester'}</Button>
+        <Button type="submit">
+          {initial ? "Simpan Perubahan" : "Buat Semester"}
+        </Button>
       </div>
     </form>
-  )
+  );
 }
 
 export function SemesterManager() {
-  const { data: semesters, isLoading } = useSemesters()
-  const createMutation = useCreateSemester()
-  const updateMutation = useUpdateSemester()
-  const closeMutation = useCloseSemester()
-  const [modalOpen, setModalOpen] = useState(false)
-  const [editing, setEditing] = useState<Semester | null>(null)
-  const { addToast } = useToast()
+  const { data: semesters, isLoading } = useSemesters();
+  const createMutation = useCreateSemester();
+  const updateMutation = useUpdateSemester();
+  const closeMutation = useCloseSemester();
+  const [modalOpen, setModalOpen] = useState(false);
+  const [editing, setEditing] = useState<Semester | null>(null);
+  const [pendingClose, setPendingClose] = useState<Semester | null>(null);
+  const { addToast } = useToast();
+  const { formatDate } = useLocaleFormatters();
 
   const handleCreate = (data: SemesterFormData) => {
     createMutation.mutate(data, {
       onSuccess: () => {
-        setModalOpen(false)
-        addToast?.({ type: 'success', message: 'Semester berhasil dibuat' })
+        setModalOpen(false);
+        addToast?.({ type: "success", message: "Semester berhasil dibuat" });
       },
-    })
-  }
+    });
+  };
 
   const handleUpdate = (data: SemesterFormData) => {
-    if (!editing) return
+    if (!editing) return;
     updateMutation.mutate(
       { id: editing.id, data },
       {
         onSuccess: () => {
-          setModalOpen(false)
-          setEditing(null)
-          addToast?.({ type: 'success', message: 'Semester berhasil diperbarui' })
+          setModalOpen(false);
+          setEditing(null);
+          addToast?.({
+            type: "success",
+            message: "Semester berhasil diperbarui",
+          });
         },
-      }
-    )
-  }
+      },
+    );
+  };
 
   const handleClose = (semester: Semester) => {
-    if (
-      confirm(
-        `Apakah Anda yakin ingin menutup semester "${semester.name}"? Tindakan ini tidak dapat dibatalkan.`
-      )
-    ) {
-      closeMutation.mutate(semester.id, {
-        onSuccess: () => {
-          addToast?.({ type: 'success', message: 'Semester berhasil ditutup' })
-        },
-      })
-    }
-  }
+    setPendingClose(semester);
+  };
+
+  const confirmCloseSemester = () => {
+    if (!pendingClose) return;
+    closeMutation.mutate(pendingClose.id, {
+      onSuccess: () => {
+        setPendingClose(null);
+        addToast?.({ type: "success", message: "Semester berhasil ditutup" });
+      },
+    });
+  };
 
   const handleEdit = (semester: Semester) => {
-    setEditing(semester)
-    setModalOpen(true)
-  }
+    setEditing(semester);
+    setModalOpen(true);
+  };
 
   const handleModalClose = () => {
-    setModalOpen(false)
-    setEditing(null)
-  }
+    setModalOpen(false);
+    setEditing(null);
+  };
 
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Manajemen Semester</h1>
+          <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
+            Manajemen Semester
+          </h1>
           <p className="text-sm text-gray-500 dark:text-gray-400">
             Kelola semester akademik dan proses penutupan
           </p>
@@ -250,33 +264,40 @@ export function SemesterManager() {
                 </thead>
                 <tbody>
                   {semesters?.map((semester) => (
-                    <tr key={semester.id} className="border-b dark:border-gray-700">
-                      <td className="py-3 px-2 font-medium dark:text-gray-200">{semester.name}</td>
-                      <td className="py-3 px-2 dark:text-gray-300">{semester.academic_year}</td>
+                    <tr
+                      key={semester.id}
+                      className="border-b dark:border-gray-700"
+                    >
+                      <td className="py-3 px-2 font-medium dark:text-gray-200">
+                        {semester.name}
+                      </td>
+                      <td className="py-3 px-2 dark:text-gray-300">
+                        {semester.academic_year}
+                      </td>
                       <td className="py-3 px-2 dark:text-gray-300">
                         <div className="flex items-center gap-1">
                           <Clock className="h-3 w-3" />
-                          {new Date(semester.start_date).toLocaleDateString('id-ID', {
-                            day: 'numeric',
-                            month: 'short',
-                            year: 'numeric',
-                          })}{' '}
-                          -{' '}
-                          {new Date(semester.end_date).toLocaleDateString('id-ID', {
-                            day: 'numeric',
-                            month: 'short',
-                            year: 'numeric',
+                          {formatDate(semester.start_date, {
+                            day: "numeric",
+                            month: "short",
+                            year: "numeric",
+                          })}{" "}
+                          -{" "}
+                          {formatDate(semester.end_date, {
+                            day: "numeric",
+                            month: "short",
+                            year: "numeric",
                           })}
                         </div>
                       </td>
                       <td className="py-3 px-2">
-                        <Badge className={statusColors[semester.status] ?? ''}>
+                        <Badge className={statusColors[semester.status] ?? ""}>
                           {statusLabels[semester.status] ?? semester.status}
                         </Badge>
                       </td>
                       <td className="py-3 px-2 text-right">
                         <div className="flex justify-end gap-2">
-                          {semester.status !== 'closed' && (
+                          {semester.status !== "closed" && (
                             <Button
                               variant="secondary"
                               size="sm"
@@ -285,7 +306,7 @@ export function SemesterManager() {
                               <Edit2 className="h-4 w-4" />
                             </Button>
                           )}
-                          {semester.status === 'active' && (
+                          {semester.status === "active" && (
                             <Button
                               variant="secondary"
                               size="sm"
@@ -306,9 +327,20 @@ export function SemesterManager() {
         </div>
       </Card>
 
+      <ConfirmDialog
+        open={pendingClose !== null}
+        title="Tutup semester?"
+        description={`Semester "${pendingClose?.name ?? ""}" akan ditutup. Tindakan ini tidak dapat dibatalkan.`}
+        confirmLabel="Tutup Semester"
+        variant="danger"
+        isLoading={closeMutation.isPending}
+        onCancel={() => setPendingClose(null)}
+        onConfirm={confirmCloseSemester}
+      />
+
       <Modal open={modalOpen} onClose={handleModalClose} size="md">
         <ModalHeader
-          title={editing ? 'Edit Semester' : 'Buat Semester Baru'}
+          title={editing ? "Edit Semester" : "Buat Semester Baru"}
           onClose={handleModalClose}
         />
         <ModalBody>
@@ -323,5 +355,5 @@ export function SemesterManager() {
         </ModalFooter>
       </Modal>
     </div>
-  )
+  );
 }

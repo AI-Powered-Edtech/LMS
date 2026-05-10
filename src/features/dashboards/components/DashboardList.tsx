@@ -1,46 +1,73 @@
-import { Edit2, Loader2, Plus, Share2, Star, Trash2 } from 'lucide-react'
-import { motion } from 'motion/react'
-import { useState } from 'react'
+import { Edit2, Loader2, Plus, Share2, Star, Trash2 } from "lucide-react";
+import { motion } from "motion/react";
+import { useState } from "react";
 
-import { cn } from '@/utils/cn'
+import { ConfirmDialog } from "@/components/ui";
+import { cn } from "@/utils/cn";
 
-import { useDashboards, useDeleteDashboard } from '../queries/dashboardQueries'
-import type { DashboardConfig } from '../types'
+import { useDashboards, useDeleteDashboard } from "../queries/dashboardQueries";
+import type { DashboardConfig } from "../types";
 
 interface DashboardListProps {
-  onEdit: (dashboard: DashboardConfig) => void
-  onCreate: () => void
-  onView: (dashboard: DashboardConfig) => void
+  onEdit: (dashboard: DashboardConfig) => void;
+  onCreate: () => void;
+  onView: (dashboard: DashboardConfig) => void;
 }
 
-export function DashboardList({ onEdit, onCreate, onView }: DashboardListProps) {
-  const { data: dashboards, isLoading } = useDashboards()
-  const { mutate: deleteDashboard, isPending: isDeleting } = useDeleteDashboard()
-  const [deletingId, setDeletingId] = useState<string | null>(null)
+export function DashboardList({
+  onEdit,
+  onCreate,
+  onView,
+}: DashboardListProps) {
+  const { data: dashboards, isLoading } = useDashboards();
+  const { mutate: deleteDashboard, isPending: isDeleting } =
+    useDeleteDashboard();
+  const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [pendingDeleteId, setPendingDeleteId] = useState<string | null>(null);
 
   const handleDelete = (id: string) => {
-    if (!confirm('Hapus dashboard ini?')) return
-    setDeletingId(id)
-    deleteDashboard(id, {
-      onSettled: () => setDeletingId(null),
-    })
-  }
+    setPendingDeleteId(id);
+  };
+
+  const confirmDelete = () => {
+    if (!pendingDeleteId) return;
+    setDeletingId(pendingDeleteId);
+    deleteDashboard(pendingDeleteId, {
+      onSettled: () => {
+        setDeletingId(null);
+        setPendingDeleteId(null);
+      },
+    });
+  };
 
   if (isLoading) {
     return (
       <div className="flex items-center justify-center py-16">
         <Loader2 className="h-8 w-8 animate-spin text-slate-400" />
       </div>
-    )
+    );
   }
 
-  const list = dashboards ?? []
+  const list = dashboards ?? [];
 
   return (
     <div className="space-y-6">
+      <ConfirmDialog
+        open={pendingDeleteId !== null}
+        title="Hapus dashboard?"
+        description="Dashboard tersimpan akan dihapus dari daftar."
+        confirmLabel="Hapus"
+        variant="danger"
+        isLoading={isDeleting}
+        onCancel={() => setPendingDeleteId(null)}
+        onConfirm={confirmDelete}
+      />
+
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-lg font-bold text-slate-900 dark:text-white">Daftar Dashboard</h2>
+          <h2 className="text-lg font-bold text-slate-900 dark:text-white">
+            Daftar Dashboard
+          </h2>
           <p className="text-sm text-slate-500 dark:text-slate-400 mt-0.5">
             {list.length} dashboard tersimpan
           </p>
@@ -61,12 +88,14 @@ export function DashboardList({ onEdit, onCreate, onView }: DashboardListProps) 
           className="flex flex-col items-center justify-center gap-4 rounded-2xl border-2 border-dashed border-slate-200 dark:border-slate-700 p-16 cursor-pointer hover:border-indigo-300 transition-colors"
           onClick={onCreate}
           onKeyDown={(e) => {
-            if (e.key === 'Enter' || e.key === ' ') onCreate()
+            if (e.key === "Enter" || e.key === " ") onCreate();
           }}
         >
           <Plus className="h-12 w-12 text-slate-300 dark:text-slate-600" />
           <div className="text-center">
-            <p className="font-semibold text-slate-700 dark:text-slate-300">Belum ada dashboard</p>
+            <p className="font-semibold text-slate-700 dark:text-slate-300">
+              Belum ada dashboard
+            </p>
             <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">
               Buat dashboard kustom pertamamu
             </p>
@@ -120,8 +149,8 @@ export function DashboardList({ onEdit, onCreate, onView }: DashboardListProps) 
                 <button
                   onClick={() => onEdit(dashboard)}
                   className={cn(
-                    'flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-semibold',
-                    'text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors'
+                    "flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-semibold",
+                    "text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors",
                   )}
                 >
                   <Edit2 className="h-3.5 w-3.5" />
@@ -131,8 +160,8 @@ export function DashboardList({ onEdit, onCreate, onView }: DashboardListProps) 
                   onClick={() => handleDelete(dashboard.id)}
                   disabled={isDeleting && deletingId === dashboard.id}
                   className={cn(
-                    'flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-semibold',
-                    'text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors disabled:opacity-50'
+                    "flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-semibold",
+                    "text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors disabled:opacity-50",
                   )}
                 >
                   {isDeleting && deletingId === dashboard.id ? (
@@ -148,5 +177,5 @@ export function DashboardList({ onEdit, onCreate, onView }: DashboardListProps) 
         </div>
       )}
     </div>
-  )
+  );
 }
