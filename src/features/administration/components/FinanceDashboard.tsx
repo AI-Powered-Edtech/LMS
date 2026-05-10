@@ -8,9 +8,9 @@
  *  4. Quick Actions   — extracted to FinanceExportPanel
  */
 
-import { useQueryClient } from '@tanstack/react-query'
-import { Loader2, TrendingUp } from 'lucide-react'
-import { useState } from 'react'
+import { useQueryClient } from "@tanstack/react-query";
+import { Loader2, TrendingUp } from "lucide-react";
+import { useState } from "react";
 import {
   Bar,
   BarChart,
@@ -20,72 +20,78 @@ import {
   Tooltip,
   XAxis,
   YAxis,
-} from 'recharts'
+} from "recharts";
 
-import { useToast } from '@/hooks/useToast'
-import { formatCurrency as formatRupiah } from '@/shared/utils/format-id'
-import { cn } from '@/utils/cn'
+import { ConfirmDialog } from "@/components/ui";
+import { useToast } from "@/hooks/useToast";
+import { formatCurrency as formatRupiah } from "@/shared/utils/format-id";
+import { cn } from "@/utils/cn";
 
-import { reconcileInvoicePayment } from '../api/financeApi'
-import { useFinanceData } from '../hooks/useFinanceData'
-import type { InvoiceFilter, InvoiceStatusFilter } from '../types/finance'
-import { exportFinanceToCSV } from '../utils/financeExport'
-import { AddInvoiceModal } from './finance/AddInvoiceModal'
-import { FinanceExportPanel } from './finance/FinanceExportPanel'
-import { FinanceReconcileModal } from './finance/FinanceReconcileModal'
-import { FinanceSummaryCards } from './finance/FinanceSummaryCards'
-import { FinanceTransactionTable } from './finance/FinanceTransactionTable'
+import { reconcileInvoicePayment } from "../api/financeApi";
+import { useFinanceData } from "../hooks/useFinanceData";
+import type { InvoiceFilter, InvoiceStatusFilter } from "../types/finance";
+import { exportFinanceToCSV } from "../utils/financeExport";
+import { AddInvoiceModal } from "./finance/AddInvoiceModal";
+import { FinanceExportPanel } from "./finance/FinanceExportPanel";
+import { FinanceReconcileModal } from "./finance/FinanceReconcileModal";
+import { FinanceSummaryCards } from "./finance/FinanceSummaryCards";
+import { FinanceTransactionTable } from "./finance/FinanceTransactionTable";
 
-const PAGE_SIZE = 10
+const PAGE_SIZE = 10;
 
 interface ChartTooltipPayloadEntry {
-  name: string
-  value: number
-  color: string
+  name: string;
+  value: number;
+  color: string;
 }
 
 interface ChartTooltipProps {
-  active?: boolean
-  payload?: ChartTooltipPayloadEntry[]
-  label?: string
-  isDark?: boolean
+  active?: boolean;
+  payload?: ChartTooltipPayloadEntry[];
+  label?: string;
+  isDark?: boolean;
 }
 
 function ChartTooltip({ active, payload, label, isDark }: ChartTooltipProps) {
-  if (!active || !payload || payload.length === 0) return null
+  if (!active || !payload || payload.length === 0) return null;
   return (
     <div
       className={cn(
-        'rounded-xl border px-4 py-3 shadow-lg text-sm',
+        "rounded-xl border px-4 py-3 shadow-lg text-sm",
         isDark
-          ? 'bg-slate-800 border-slate-700 text-slate-100'
-          : 'bg-white border-slate-200 text-slate-900'
+          ? "bg-slate-800 border-slate-700 text-slate-100"
+          : "bg-white border-slate-200 text-slate-900",
       )}
     >
       <p className="font-semibold mb-2">{label}</p>
       {payload.map((entry) => (
         <p key={entry.name} style={{ color: entry.color }}>
-          {entry.name}: <span className="font-bold">{formatRupiah(entry.value)}</span>
+          {entry.name}:{" "}
+          <span className="font-bold">{formatRupiah(entry.value)}</span>
         </p>
       ))}
     </div>
-  )
+  );
 }
 
 export function FinanceDashboard() {
   const [filter, setFilter] = useState<InvoiceFilter>({
-    status: 'all',
-    search: '',
+    status: "all",
+    search: "",
     page: 1,
     pageSize: PAGE_SIZE,
-  })
-  const [searchInput, setSearchInput] = useState('')
-  const [addModalOpen, setAddModalOpen] = useState(false)
-  const [reminderModalOpen, setReminderModalOpen] = useState(false)
-  const [isMarkingPaid, setIsMarkingPaid] = useState(false)
+  });
+  const [searchInput, setSearchInput] = useState("");
+  const [addModalOpen, setAddModalOpen] = useState(false);
+  const [reminderModalOpen, setReminderModalOpen] = useState(false);
+  const [isMarkingPaid, setIsMarkingPaid] = useState(false);
+  const [pendingPaidInvoice, setPendingPaidInvoice] = useState<{
+    invoiceId: string;
+    amount: number;
+  } | null>(null);
 
-  const queryClient = useQueryClient()
-  const addToast = useToast((s) => s.addToast)
+  const queryClient = useQueryClient();
+  const addToast = useToast((s) => s.addToast);
 
   const {
     overviewStats,
@@ -95,56 +101,63 @@ export function FinanceDashboard() {
     isLoading,
     isOverviewLoading,
     isMonthlyLoading,
-  } = useFinanceData(filter)
+  } = useFinanceData(filter);
 
-  const totalPages = Math.max(1, Math.ceil(totalCount / PAGE_SIZE))
+  const totalPages = Math.max(1, Math.ceil(totalCount / PAGE_SIZE));
 
   function handleSearch() {
-    setFilter((f) => ({ ...f, search: searchInput, page: 1 }))
+    setFilter((f) => ({ ...f, search: searchInput, page: 1 }));
   }
 
   function handleStatusChange(status: InvoiceStatusFilter) {
-    setFilter((f) => ({ ...f, status, page: 1 }))
+    setFilter((f) => ({ ...f, status, page: 1 }));
   }
 
   function handleExport() {
-    exportFinanceToCSV(invoices)
+    exportFinanceToCSV(invoices);
   }
 
-  async function handleMarkAsPaid(invoiceId: string, amount: number) {
-    if (!confirm('Tandai tagihan ini sebagai sudah dibayar?')) return
-    setIsMarkingPaid(true)
+  function handleMarkAsPaid(invoiceId: string, amount: number) {
+    setPendingPaidInvoice({ invoiceId, amount });
+  }
+
+  async function confirmMarkAsPaid() {
+    if (!pendingPaidInvoice) return;
+    setIsMarkingPaid(true);
     try {
       await reconcileInvoicePayment({
-        invoiceId,
-        amount,
-        method: 'transfer',
-        notes: 'Dilunasi dari dashboard keuangan',
-      })
-      await queryClient.invalidateQueries({ queryKey: ['finance'] })
-      addToast({ message: 'Tagihan berhasil ditandai lunas', type: 'success' })
+        invoiceId: pendingPaidInvoice.invoiceId,
+        amount: pendingPaidInvoice.amount,
+        method: "transfer",
+        notes: "Dilunasi dari dashboard keuangan",
+      });
+      await queryClient.invalidateQueries({ queryKey: ["finance"] });
+      addToast({ message: "Tagihan berhasil ditandai lunas", type: "success" });
     } catch (err) {
       addToast({
-        message: 'Gagal menandai tagihan: ' + (err as Error).message,
-        type: 'error',
-      })
+        message: "Gagal menandai tagihan: " + (err as Error).message,
+        type: "error",
+      });
     } finally {
-      setIsMarkingPaid(false)
+      setIsMarkingPaid(false);
+      setPendingPaidInvoice(null);
     }
   }
 
   const unpaidCount = invoices.filter((inv) => {
-    const s = (inv.status ?? '').toLowerCase()
-    return !['paid', 'lunas'].includes(s)
-  }).length
+    const s = (inv.status ?? "").toLowerCase();
+    return !["paid", "lunas"].includes(s);
+  }).length;
 
-  const isDark = document.documentElement.classList.contains('dark')
+  const isDark = document.documentElement.classList.contains("dark");
 
   return (
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
         <div>
-          <h1 className="text-2xl font-bold text-slate-900 dark:text-slate-100">Keuangan & SPP</h1>
+          <h1 className="text-2xl font-bold text-slate-900 dark:text-slate-100">
+            Keuangan & SPP
+          </h1>
           <p className="text-sm text-slate-500 dark:text-slate-400 mt-0.5">
             Pantau tagihan, pembayaran, dan laporan keuangan sekolah
           </p>
@@ -156,7 +169,10 @@ export function FinanceDashboard() {
         </div>
       </div>
 
-      <FinanceSummaryCards overviewStats={overviewStats} loading={isOverviewLoading} />
+      <FinanceSummaryCards
+        overviewStats={overviewStats}
+        loading={isOverviewLoading}
+      />
 
       <FinanceTransactionTable
         invoices={invoices}
@@ -196,15 +212,18 @@ export function FinanceDashboard() {
         ) : (
           <div className="h-72">
             <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={monthlyData} margin={{ top: 4, right: 16, left: 8, bottom: 4 }}>
+              <BarChart
+                data={monthlyData}
+                margin={{ top: 4, right: 16, left: 8, bottom: 4 }}
+              >
                 <CartesianGrid
                   strokeDasharray="3 3"
-                  stroke={isDark ? '#334155' : '#e2e8f0'}
+                  stroke={isDark ? "#334155" : "#e2e8f0"}
                   vertical={false}
                 />
                 <XAxis
                   dataKey="month_label"
-                  tick={{ fill: isDark ? '#94a3b8' : '#64748b', fontSize: 12 }}
+                  tick={{ fill: isDark ? "#94a3b8" : "#64748b", fontSize: 12 }}
                   axisLine={false}
                   tickLine={false}
                 />
@@ -216,20 +235,27 @@ export function FinanceDashboard() {
                         ? `${(v / 1_000).toFixed(0)}rb`
                         : String(v)
                   }
-                  tick={{ fill: isDark ? '#94a3b8' : '#64748b', fontSize: 11 }}
+                  tick={{ fill: isDark ? "#94a3b8" : "#64748b", fontSize: 11 }}
                   axisLine={false}
                   tickLine={false}
                   width={52}
                 />
                 <Tooltip
                   content={<ChartTooltip isDark={isDark} />}
-                  cursor={{ fill: isDark ? 'rgba(255,255,255,0.04)' : 'rgba(0,0,0,0.04)' }}
+                  cursor={{
+                    fill: isDark
+                      ? "rgba(255,255,255,0.04)"
+                      : "rgba(0,0,0,0.04)",
+                  }}
                 />
                 <Legend
                   formatter={(value: string) =>
-                    value === 'total' ? 'Total Tagihan' : 'Sudah Dibayar'
+                    value === "total" ? "Total Tagihan" : "Sudah Dibayar"
                   }
-                  wrapperStyle={{ fontSize: 12, color: isDark ? '#94a3b8' : '#64748b' }}
+                  wrapperStyle={{
+                    fontSize: 12,
+                    color: isDark ? "#94a3b8" : "#64748b",
+                  }}
                 />
                 <Bar
                   dataKey="total"
@@ -259,20 +285,35 @@ export function FinanceDashboard() {
         onReminder={() => setReminderModalOpen(true)}
       />
 
+      <ConfirmDialog
+        open={pendingPaidInvoice !== null}
+        title="Tandai tagihan lunas?"
+        description="Pembayaran akan direkonsiliasi sebagai transfer dari dashboard keuangan."
+        confirmLabel="Tandai lunas"
+        variant="warning"
+        isLoading={isMarkingPaid}
+        onCancel={() => setPendingPaidInvoice(null)}
+        onConfirm={confirmMarkAsPaid}
+      />
+
       {addModalOpen && (
         <AddInvoiceModal
           onClose={() => setAddModalOpen(false)}
-          onSuccess={() => queryClient.invalidateQueries({ queryKey: ['finance'] })}
+          onSuccess={() =>
+            queryClient.invalidateQueries({ queryKey: ["finance"] })
+          }
         />
       )}
       {reminderModalOpen && (
         <FinanceReconcileModal
           invoiceIds={[]}
           unpaidCount={unpaidCount}
-          onComplete={() => queryClient.invalidateQueries({ queryKey: ['finance'] })}
+          onComplete={() =>
+            queryClient.invalidateQueries({ queryKey: ["finance"] })
+          }
           onClose={() => setReminderModalOpen(false)}
         />
       )}
     </div>
-  )
+  );
 }

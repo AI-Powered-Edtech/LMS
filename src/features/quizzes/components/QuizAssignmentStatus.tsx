@@ -1,68 +1,72 @@
-import { format } from 'date-fns'
-import { id } from 'date-fns/locale'
-import { AlertCircle, Calendar, Loader2, Plus, Trash2 } from 'lucide-react'
-import { useEffect, useState } from 'react'
+import { format } from "date-fns";
+import { id } from "date-fns/locale";
+import { AlertCircle, Calendar, Loader2, Plus, Trash2 } from "lucide-react";
+import { useEffect, useState } from "react";
 
-import { EmptyState } from '@/components/ui'
-import { useAuth } from '@/contexts/AuthContext'
-import { QuizAssignment, quizService } from '@/features/quizzes'
-import { useToast } from '@/hooks/useToast'
-import { logger } from '@/utils/logger'
+import { ConfirmDialog, EmptyState } from "@/components/ui";
+import { useAuth } from "@/contexts/AuthContext";
+import { QuizAssignment, quizService } from "@/features/quizzes";
+import { useToast } from "@/hooks/useToast";
+import { logger } from "@/utils/logger";
 
 interface QuizAssignmentStatusProps {
-  quizId: string
-  onAssignClick: () => void
+  quizId: string;
+  onAssignClick: () => void;
 }
 
-export function QuizAssignmentStatus({ quizId, onAssignClick }: QuizAssignmentStatusProps) {
-  const { tenantId } = useAuth()
-  const { addToast } = useToast()
-  const [assignments, setAssignments] = useState<QuizAssignment[]>([])
-  const [isLoading, setIsLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
+export function QuizAssignmentStatus({
+  quizId,
+  onAssignClick,
+}: QuizAssignmentStatusProps) {
+  const { tenantId } = useAuth();
+  const { addToast } = useToast();
+  const [assignments, setAssignments] = useState<QuizAssignment[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [pendingRemoveAssignmentId, setPendingRemoveAssignmentId] = useState<
+    string | null
+  >(null);
 
   const loadAssignments = async () => {
-    if (!tenantId) return
-    setIsLoading(true)
-    setError(null)
+    if (!tenantId) return;
+    setIsLoading(true);
+    setError(null);
     try {
-      const data = await quizService.getAssignmentsByQuiz(quizId, tenantId)
-      setAssignments(data)
+      const data = await quizService.getAssignmentsByQuiz(quizId, tenantId);
+      setAssignments(data);
     } catch (err: unknown) {
-      if (import.meta.env.DEV) logger.error('Failed to load assignments:', err)
-      setError(err instanceof Error ? err.message : 'Gagal memuat status assignment')
+      if (import.meta.env.DEV) logger.error("Failed to load assignments:", err);
+      setError(
+        err instanceof Error ? err.message : "Gagal memuat status assignment",
+      );
     } finally {
-      setIsLoading(false)
+      setIsLoading(false);
     }
-  }
+  };
 
   /* eslint-disable react-hooks/exhaustive-deps */
   useEffect(() => {
-    void loadAssignments()
-  }, [quizId, tenantId])
+    void loadAssignments();
+  }, [quizId, tenantId]);
   /* eslint-enable react-hooks/exhaustive-deps */
 
-  const handleRemoveAssignment = async (assignmentId: string) => {
-    if (!tenantId) return
-    if (
-      !confirm(
-        'Hapus assignment untuk kelas ini? Siswa di kelas tersebut tidak akan bisa mengakses kuis ini lagi.'
-      )
-    )
-      return
+  const removeAssignment = async (assignmentId: string) => {
+    if (!tenantId) return;
 
     try {
-      await quizService.removeQuizAssignment(assignmentId, tenantId)
-      setAssignments((prev) => prev.filter((a) => a.id !== assignmentId))
+      await quizService.removeQuizAssignment(assignmentId, tenantId);
+      setAssignments((prev) => prev.filter((a) => a.id !== assignmentId));
     } catch (err: unknown) {
       addToast({
-        type: 'error',
+        type: "error",
         message:
-          'Gagal menghapus assignment: ' +
-          (err instanceof Error ? err.message : 'Kesalahan tidak diketahui'),
-      })
+          "Gagal menghapus assignment: " +
+          (err instanceof Error ? err.message : "Kesalahan tidak diketahui"),
+      });
+    } finally {
+      setPendingRemoveAssignmentId(null);
     }
-  }
+  };
 
   if (isLoading) {
     return (
@@ -70,7 +74,7 @@ export function QuizAssignmentStatus({ quizId, onAssignClick }: QuizAssignmentSt
         <Loader2 className="w-5 h-5 animate-spin" />
         <span className="ml-2 text-sm">Memuat status...</span>
       </div>
-    )
+    );
   }
 
   if (error) {
@@ -79,7 +83,7 @@ export function QuizAssignmentStatus({ quizId, onAssignClick }: QuizAssignmentSt
         <AlertCircle className="w-4 h-4 shrink-0" />
         {error}
       </div>
-    )
+    );
   }
 
   return (
@@ -107,26 +111,32 @@ export function QuizAssignmentStatus({ quizId, onAssignClick }: QuizAssignmentSt
         <div className="space-y-3">
           {assignments.map((assignment) => {
             const statusColors = {
-              active: 'bg-emerald-100 text-emerald-700 border-emerald-200',
-              scheduled: 'bg-amber-100 text-amber-700 border-amber-200',
-              ended: 'bg-slate-100 text-slate-700 border-slate-200',
-              draft: 'bg-slate-100 text-slate-500 border-slate-200',
-            }
+              active: "bg-emerald-100 text-emerald-700 border-emerald-200",
+              scheduled: "bg-amber-100 text-amber-700 border-amber-200",
+              ended: "bg-slate-100 text-slate-700 border-slate-200",
+              draft: "bg-slate-100 text-slate-500 border-slate-200",
+            };
 
             const statusLabels = {
-              active: 'Aktif',
-              scheduled: 'Dijadwalkan',
-              ended: 'Berakhir',
-              draft: 'Draft',
-            }
+              active: "Aktif",
+              scheduled: "Dijadwalkan",
+              ended: "Berakhir",
+              draft: "Draft",
+            };
 
-            const now = new Date()
-            let displayStatus = assignment.status
-            if (displayStatus === 'active') {
-              if (assignment.available_from && new Date(assignment.available_from) > now) {
-                displayStatus = 'scheduled'
-              } else if (assignment.due_at && new Date(assignment.due_at) < now) {
-                displayStatus = 'ended'
+            const now = new Date();
+            let displayStatus = assignment.status;
+            if (displayStatus === "active") {
+              if (
+                assignment.available_from &&
+                new Date(assignment.available_from) > now
+              ) {
+                displayStatus = "scheduled";
+              } else if (
+                assignment.due_at &&
+                new Date(assignment.due_at) < now
+              ) {
+                displayStatus = "ended";
               }
             }
 
@@ -137,8 +147,8 @@ export function QuizAssignmentStatus({ quizId, onAssignClick }: QuizAssignmentSt
               >
                 <div>
                   <h4 className="font-bold text-slate-800 dark:text-white flex items-center gap-2">
-                    {(assignment as unknown as { classes?: { name: string } }).classes?.name ||
-                      'Kelas Tidak Diketahui'}
+                    {(assignment as unknown as { classes?: { name: string } })
+                      .classes?.name || "Kelas Tidak Diketahui"}
                     <span
                       className={`text-[10px] uppercase font-bold px-2 py-0.5 rounded-full border ${statusColors[displayStatus as keyof typeof statusColors]}`}
                     >
@@ -150,24 +160,32 @@ export function QuizAssignmentStatus({ quizId, onAssignClick }: QuizAssignmentSt
                     <div className="flex items-center gap-1">
                       <Calendar className="w-3.5 h-3.5" />
                       {assignment.available_from
-                        ? format(new Date(assignment.available_from), 'd MMM yyyy HH:mm', {
-                            locale: id,
-                          })
-                        : 'Mulai sekarang'}
+                        ? format(
+                            new Date(assignment.available_from),
+                            "d MMM yyyy HH:mm",
+                            {
+                              locale: id,
+                            },
+                          )
+                        : "Mulai sekarang"}
                     </div>
                     <span>—</span>
                     <div className="flex items-center gap-1">
                       <Calendar className="w-3.5 h-3.5" />
                       {assignment.due_at
-                        ? format(new Date(assignment.due_at), 'd MMM yyyy HH:mm', { locale: id })
-                        : 'Tidak ada batas'}
+                        ? format(
+                            new Date(assignment.due_at),
+                            "d MMM yyyy HH:mm",
+                            { locale: id },
+                          )
+                        : "Tidak ada batas"}
                     </div>
                   </div>
                 </div>
 
                 <div className="flex items-center gap-2 self-end sm:self-auto">
                   <button
-                    onClick={() => handleRemoveAssignment(assignment.id)}
+                    onClick={() => setPendingRemoveAssignmentId(assignment.id)}
                     className="p-2 text-slate-400 dark:text-slate-500 hover:text-red-600 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors"
                     title="Hapus Penugasan"
                     aria-label="Hapus penugasan"
@@ -176,10 +194,23 @@ export function QuizAssignmentStatus({ quizId, onAssignClick }: QuizAssignmentSt
                   </button>
                 </div>
               </div>
-            )
+            );
           })}
         </div>
       )}
+
+      <ConfirmDialog
+        open={pendingRemoveAssignmentId !== null}
+        title="Hapus assignment?"
+        description="Siswa di kelas tersebut tidak akan bisa mengakses kuis ini lagi."
+        confirmLabel="Hapus"
+        variant="danger"
+        onCancel={() => setPendingRemoveAssignmentId(null)}
+        onConfirm={() => {
+          if (!pendingRemoveAssignmentId) return;
+          void removeAssignment(pendingRemoveAssignmentId);
+        }}
+      />
     </div>
-  )
+  );
 }

@@ -1,61 +1,73 @@
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { Plus, Search, Shield, Trash2, User } from 'lucide-react'
-import { useState } from 'react'
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { Plus, Search, Shield, Trash2, User } from "lucide-react";
+import { useState } from "react";
 
-import { useAuth } from '@/contexts/AuthContext'
+import { ConfirmDialog } from "@/components/ui";
+import { useAuth } from "@/contexts/AuthContext";
 import {
   type Collaborator,
   collaboratorService,
-} from '@/features/course-builder/api/collaboratorService'
-import { useDebounce } from '@/hooks/useDebounce'
-import { useToast } from '@/hooks/useToast'
+} from "@/features/course-builder/api/collaboratorService";
+import { useDebounce } from "@/hooks/useDebounce";
+import { useToast } from "@/hooks/useToast";
 
-import { courseKeys } from '../queries/courseKeys'
+import { courseKeys } from "../queries/courseKeys";
 
 export function CourseCollaborators({ courseId }: { courseId: string }) {
-  const { tenantId } = useAuth()
-  const addToast = useToast((s) => s.addToast)
-  const queryClient = useQueryClient()
-  const [search, setSearch] = useState('')
-  const debouncedSearch = useDebounce(search, 300)
-  const [selectedRole, setSelectedRole] = useState<Collaborator['role']>('reviewer')
+  const { tenantId } = useAuth();
+  const addToast = useToast((s) => s.addToast);
+  const queryClient = useQueryClient();
+  const [search, setSearch] = useState("");
+  const debouncedSearch = useDebounce(search, 300);
+  const [selectedRole, setSelectedRole] =
+    useState<Collaborator["role"]>("reviewer");
+  const [pendingRemoveId, setPendingRemoveId] = useState<string | null>(null);
 
   const { data: collaborators, isLoading } = useQuery({
     queryKey: courseKeys.collaborators(tenantId!, courseId),
     queryFn: () => collaboratorService.fetchCollaborators(courseId, tenantId!),
     enabled: !!courseId && !!tenantId,
-  })
+  });
 
   const { data: searchResults } = useQuery({
-    queryKey: ['teachers-search', tenantId, debouncedSearch],
+    queryKey: ["teachers-search", tenantId, debouncedSearch],
     queryFn: () => collaboratorService.searchUsers(debouncedSearch, tenantId!),
     enabled: !!debouncedSearch && !!tenantId,
-  })
+  });
 
   const addCollabMut = useMutation({
     mutationFn: (userId: string) =>
-      collaboratorService.addCollaborator(courseId, userId, selectedRole, tenantId!),
+      collaboratorService.addCollaborator(
+        courseId,
+        userId,
+        selectedRole,
+        tenantId!,
+      ),
     onSuccess: () => {
       void queryClient.invalidateQueries({
         queryKey: courseKeys.collaborators(tenantId!, courseId),
-      })
-      addToast({ type: 'success', message: 'Kolaborator ditambahkan' })
-      setSearch('')
+      });
+      addToast({ type: "success", message: "Kolaborator ditambahkan" });
+      setSearch("");
     },
     onError: (err: Error) => {
-      addToast({ type: 'error', message: err.message || 'Gagal menambahkan kolaborator' })
+      addToast({
+        type: "error",
+        message: err.message || "Gagal menambahkan kolaborator",
+      });
     },
-  })
+  });
 
   const removeCollabMut = useMutation({
-    mutationFn: (id: string) => collaboratorService.removeCollaborator(id, tenantId!),
+    mutationFn: (id: string) =>
+      collaboratorService.removeCollaborator(id, tenantId!),
     onSuccess: () => {
       void queryClient.invalidateQueries({
         queryKey: courseKeys.collaborators(tenantId!, courseId),
-      })
-      addToast({ type: 'success', message: 'Kolaborator dihapus' })
+      });
+      addToast({ type: "success", message: "Kolaborator dihapus" });
     },
-  })
+  });
 
   return (
     <div className="space-y-6">
@@ -98,7 +110,9 @@ export function CourseCollaborators({ courseId }: { courseId: string }) {
           </div>
           <select
             value={selectedRole}
-            onChange={(e) => setSelectedRole(e.target.value as Collaborator['role'])}
+            onChange={(e) =>
+              setSelectedRole(e.target.value as Collaborator["role"])
+            }
             className="px-3 py-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-sm font-medium"
             aria-label="Peran kolaborator"
           >
@@ -132,23 +146,28 @@ export function CourseCollaborators({ courseId }: { courseId: string }) {
                   </div>
                   <div>
                     <div className="text-sm font-bold dark:text-slate-200">
-                      {c.profile?.full_name || 'User'}
+                      {c.profile?.full_name || "User"}
                     </div>
-                    <div className="text-xs text-slate-500">{c.profile?.email}</div>
+                    <div className="text-xs text-slate-500">
+                      {c.profile?.email}
+                    </div>
                   </div>
                 </div>
                 <div className="flex items-center gap-4">
                   <div className="flex items-center gap-1.5 px-2.5 py-1 bg-slate-100 dark:bg-slate-700 rounded-md text-xs font-medium text-slate-600 dark:text-slate-300">
                     <Shield className="w-3 h-3" />
                     <span>
-                      {{ author: 'Penulis', reviewer: 'Peninjau', publisher: 'Penerbit' }[c.role]}
+                      {
+                        {
+                          author: "Penulis",
+                          reviewer: "Peninjau",
+                          publisher: "Penerbit",
+                        }[c.role]
+                      }
                     </span>
                   </div>
                   <button
-                    onClick={() => {
-                      if (!confirm('Hapus kolaborator ini dari kursus?')) return
-                      removeCollabMut.mutate(c.id)
-                    }}
+                    onClick={() => setPendingRemoveId(c.id)}
                     className="p-1.5 text-slate-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-md transition-colors"
                     aria-label="Hapus kolaborator"
                   >
@@ -160,6 +179,22 @@ export function CourseCollaborators({ courseId }: { courseId: string }) {
           </div>
         )}
       </div>
+
+      <ConfirmDialog
+        open={pendingRemoveId !== null}
+        title="Hapus kolaborator?"
+        description="Kolaborator ini tidak lagi dapat membantu mengelola kursus."
+        confirmLabel="Hapus"
+        variant="danger"
+        isLoading={removeCollabMut.isPending}
+        onCancel={() => setPendingRemoveId(null)}
+        onConfirm={() => {
+          if (!pendingRemoveId) return;
+          removeCollabMut.mutate(pendingRemoveId, {
+            onSettled: () => setPendingRemoveId(null),
+          });
+        }}
+      />
     </div>
-  )
+  );
 }
