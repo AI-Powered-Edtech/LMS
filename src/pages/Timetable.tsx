@@ -1,87 +1,115 @@
-import { Calendar } from 'lucide-react'
-import { useMemo, useState } from 'react'
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { Calendar } from "lucide-react";
+import { useMemo, useState } from "react";
 
-import { Card } from '@/components/ui/Card'
+import {
+  Button,
+  ConfirmDialog,
+  Modal,
+  ModalBody,
+  ModalFooter,
+  ModalHeader,
+} from "@/components/ui";
+import { Card } from "@/components/ui/Card";
+import { useAuth } from "@/contexts/AuthContext";
+import { useActiveAcademicYear } from "@/features/academic-years/hooks/useAcademicYears";
+import { useRombelList } from "@/features/rombel/hooks/useRombel";
+import { useSubjects } from "@/features/subjects/hooks/useSubjects";
+import {
+  timetableService,
+  type TimetableSlot,
+} from "@/features/timetable/api/timetableService";
+import { usePageTitle } from "@/hooks/usePageTitle";
+import { useToast } from "@/hooks/useToast";
 
-import { useAuth } from '@/contexts/AuthContext'
-import { useActiveAcademicYear } from '@/features/academic-years/hooks/useAcademicYears'
-import { useRombelList } from '@/features/rombel/hooks/useRombel'
-import { useSubjects } from '@/features/subjects/hooks/useSubjects'
-import { timetableService, type TimetableSlot } from '@/features/timetable/api/timetableService'
-import { useToast } from '@/hooks/useToast'
-import { usePageTitle } from '@/hooks/usePageTitle'
-import { useQuery, useQueryClient } from '@tanstack/react-query'
-
-const WEEKDAYS = ['Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu']
-const PERIODS = [1, 2, 3, 4, 5, 6, 7, 8]
+const WEEKDAYS = ["Senin", "Selasa", "Rabu", "Kamis", "Jumat", "Sabtu"];
+const PERIODS = [1, 2, 3, 4, 5, 6, 7, 8];
 
 export function Timetable() {
-  usePageTitle('Jadwal Pelajaran')
-  const { tenantId } = useAuth()
-  const { addToast } = useToast()
-  const { data: activeYear } = useActiveAcademicYear()
-  const { data: rombels = [] } = useRombelList(activeYear?.id ?? null)
-  const { data: subjects = [] } = useSubjects()
-  const qc = useQueryClient()
+  usePageTitle("Jadwal Pelajaran");
+  const { tenantId } = useAuth();
+  const { addToast } = useToast();
+  const { data: activeYear } = useActiveAcademicYear();
+  const { data: rombels = [] } = useRombelList(activeYear?.id ?? null);
+  const { data: subjects = [] } = useSubjects();
+  const qc = useQueryClient();
 
-  const [selectedRombelId, setSelectedRombelId] = useState<string>('')
+  const [selectedRombelId, setSelectedRombelId] = useState<string>("");
+  const [pendingDeleteSlot, setPendingDeleteSlot] =
+    useState<TimetableSlot | null>(null);
+  const [pendingAddSlot, setPendingAddSlot] = useState<{
+    weekday: number;
+    period: number;
+  } | null>(null);
+  const [selectedSubjectId, setSelectedSubjectId] = useState("");
   const { data: slots = [] } = useQuery({
-    queryKey: ['timetable_slots', selectedRombelId, activeYear?.id],
+    queryKey: ["timetable_slots", selectedRombelId, activeYear?.id],
     queryFn: () =>
       selectedRombelId && tenantId
-        ? timetableService.listForRombel(tenantId, selectedRombelId, activeYear?.id)
+        ? timetableService.listForRombel(
+            tenantId,
+            selectedRombelId,
+            activeYear?.id,
+          )
         : Promise.resolve([]),
     enabled: !!selectedRombelId && !!tenantId,
-  })
+  });
 
   const slotMap = useMemo(() => {
-    const m = new Map<string, TimetableSlot>()
-    for (const s of slots) m.set(`${s.weekday}:${s.period_start}`, s)
-    return m
-  }, [slots])
+    const m = new Map<string, TimetableSlot>();
+    for (const s of slots) m.set(`${s.weekday}:${s.period_start}`, s);
+    return m;
+  }, [slots]);
 
-  async function handleCellClick(weekday: number, period: number) {
-    if (!selectedRombelId || !tenantId) return
-    const existing = slotMap.get(`${weekday}:${period}`)
+  function handleCellClick(weekday: number, period: number) {
+    if (!selectedRombelId || !tenantId) return;
+    const existing = slotMap.get(`${weekday}:${period}`);
     if (existing) {
-      if (!window.confirm(`Hapus slot di ${WEEKDAYS[weekday - 1]} jam ke-${period}?`)) return
-      try {
-        await timetableService.delete(existing.id, tenantId)
-        addToast({ type: 'success', message: 'Slot dihapus' })
-        void qc.invalidateQueries({ queryKey: ['timetable_slots'] })
-      } catch (err) {
-        addToast({ type: 'error', message: 'Gagal menghapus slot' })
-      }
-      return
+      setPendingDeleteSlot(existing);
+      return;
     }
-    const subjectCode = window.prompt('Kode mapel (contoh: MAT-WAJIB):')
-    if (!subjectCode) return
-    const subject = subjects.find((s) => s.code === subjectCode)
-    if (!subject) {
-      addToast({ type: 'error', message: 'Mapel tidak ditemukan' })
-      return
+    setPendingAddSlot({ weekday, period });
+    setSelectedSubjectId("");
+  }
+
+  async function confirmDeleteSlot() {
+    if (!pendingDeleteSlot || !tenantId) return;
+    try {
+      await timetableService.delete(pendingDeleteSlot.id, tenantId);
+      addToast({ type: "success", message: "Slot dihapus" });
+      setPendingDeleteSlot(null);
+      void qc.invalidateQueries({ queryKey: ["timetable_slots"] });
+    } catch {
+      addToast({ type: "error", message: "Gagal menghapus slot" });
     }
+  }
+
+  async function confirmAddSlot(e: React.FormEvent) {
+    e.preventDefault();
+    if (!pendingAddSlot || !selectedSubjectId || !tenantId) return;
     try {
       await timetableService.upsert({
         tenant_id: tenantId,
         academic_year_id: activeYear?.id ?? null,
         rombel_id: selectedRombelId,
-        subject_id: subject.id,
+        subject_id: selectedSubjectId,
         teacher_id: null,
-        weekday,
-        period_start: period,
-        period_end: period,
+        weekday: pendingAddSlot.weekday,
+        period_start: pendingAddSlot.period,
+        period_end: pendingAddSlot.period,
         room_label: null,
         note: null,
-      })
-      addToast({ type: 'success', message: 'Slot ditambahkan' })
-      void qc.invalidateQueries({ queryKey: ['timetable_slots'] })
+      });
+      addToast({ type: "success", message: "Slot ditambahkan" });
+      setPendingAddSlot(null);
+      setSelectedSubjectId("");
+      void qc.invalidateQueries({ queryKey: ["timetable_slots"] });
     } catch (err) {
       addToast({
-        type: 'error',
-        message: 'Gagal menambah slot',
-        description: err instanceof Error ? err.message : 'Terjadi kesalahan',
-      })
+        type: "error",
+        message: "Gagal menambah slot",
+        description: err instanceof Error ? err.message : "Terjadi kesalahan",
+      });
     }
   }
 
@@ -97,10 +125,83 @@ export function Timetable() {
         </p>
       </div>
 
+      <ConfirmDialog
+        open={pendingDeleteSlot !== null}
+        title="Hapus slot jadwal?"
+        description={
+          pendingDeleteSlot
+            ? `Slot ${WEEKDAYS[pendingDeleteSlot.weekday - 1]} jam ke-${pendingDeleteSlot.period_start} akan dihapus.`
+            : undefined
+        }
+        confirmLabel="Hapus"
+        variant="danger"
+        onCancel={() => setPendingDeleteSlot(null)}
+        onConfirm={confirmDeleteSlot}
+      />
+
+      <Modal
+        open={pendingAddSlot !== null}
+        onClose={() => setPendingAddSlot(null)}
+      >
+        <form onSubmit={confirmAddSlot}>
+          <ModalHeader
+            title="Tambah slot jadwal"
+            onClose={() => setPendingAddSlot(null)}
+          />
+          <ModalBody>
+            <div className="space-y-3">
+              <p className="text-sm text-slate-600 dark:text-slate-300">
+                Pilih mapel untuk{" "}
+                {pendingAddSlot ? WEEKDAYS[pendingAddSlot.weekday - 1] : ""} jam
+                ke-{pendingAddSlot?.period}.
+              </p>
+              <label
+                htmlFor="timetable-subject"
+                className="block text-sm font-medium text-slate-700 dark:text-slate-300"
+              >
+                Mata pelajaran
+              </label>
+              <select
+                id="timetable-subject"
+                value={selectedSubjectId}
+                onChange={(e) => setSelectedSubjectId(e.target.value)}
+                className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm dark:border-slate-700 dark:bg-slate-900"
+                required
+              >
+                <option value="">— pilih mapel —</option>
+                {subjects.map((subject) => (
+                  <option key={subject.id} value={subject.id}>
+                    {subject.code} — {subject.name}
+                  </option>
+                ))}
+              </select>
+            </div>
+          </ModalBody>
+          <ModalFooter>
+            <Button variant="ghost" onClick={() => setPendingAddSlot(null)}>
+              Batal
+            </Button>
+            <Button
+              type="submit"
+              variant="primary"
+              disabled={!selectedSubjectId}
+            >
+              Tambahkan
+            </Button>
+          </ModalFooter>
+        </form>
+      </Modal>
+
       <Card>
         <div className="flex items-center gap-4 mb-4">
-          <label className="text-sm font-medium text-slate-700 dark:text-slate-300">Rombel:</label>
+          <label
+            htmlFor="timetable-rombel"
+            className="text-sm font-medium text-slate-700 dark:text-slate-300"
+          >
+            Rombel:
+          </label>
           <select
+            id="timetable-rombel"
             value={selectedRombelId}
             onChange={(e) => setSelectedRombelId(e.target.value)}
             className="w-64"
@@ -143,9 +244,11 @@ export function Timetable() {
                       {p}
                     </td>
                     {WEEKDAYS.map((_, idx) => {
-                      const wd = idx + 1
-                      const slot = slotMap.get(`${wd}:${p}`)
-                      const subj = slot ? subjects.find((s) => s.id === slot.subject_id) : undefined
+                      const wd = idx + 1;
+                      const slot = slotMap.get(`${wd}:${p}`);
+                      const subj = slot
+                        ? subjects.find((s) => s.id === slot.subject_id)
+                        : undefined;
                       return (
                         <td
                           key={wd}
@@ -154,13 +257,13 @@ export function Timetable() {
                           <button
                             type="button"
                             onClick={() => handleCellClick(wd, p)}
-                            className={`w-full h-12 px-2 text-xs transition-colors ${slot ? 'bg-blue-50 dark:bg-blue-900/20 hover:bg-blue-100 dark:hover:bg-blue-900/30 text-blue-900 dark:text-blue-200 font-medium' : 'hover:bg-slate-50 dark:hover:bg-slate-800/40 text-slate-400'}`}
+                            className={`w-full h-12 px-2 text-xs transition-colors ${slot ? "bg-blue-50 dark:bg-blue-900/20 hover:bg-blue-100 dark:hover:bg-blue-900/30 text-blue-900 dark:text-blue-200 font-medium" : "hover:bg-slate-50 dark:hover:bg-slate-800/40 text-slate-400"}`}
                             aria-label={`${WEEKDAYS[idx]} jam ke-${p}`}
                           >
-                            {subj?.code ?? '+'}
+                            {subj?.code ?? "+"}
                           </button>
                         </td>
-                      )
+                      );
                     })}
                   </tr>
                 ))}
@@ -170,5 +273,5 @@ export function Timetable() {
         )}
       </Card>
     </div>
-  )
+  );
 }

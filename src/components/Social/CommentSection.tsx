@@ -108,7 +108,7 @@ const CommentItem = memo(function CommentItem({
               className="mt-2"
             >
               <textarea
-                autoFocus
+                aria-label="Ubah komentar"
                 value={editContent}
                 onChange={(e) => onSetEditContent(e.target.value)}
                 className="w-full p-2 bg-white border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 outline-none resize-none"
@@ -230,7 +230,7 @@ const CommentItem = memo(function CommentItem({
               >
                 <input
                   type="text"
-                  autoFocus
+                  aria-label="Tulis balasan"
                   value={newComment}
                   onChange={(e) => onSetNewComment(e.target.value)}
                   placeholder="Tulis balasan..."
