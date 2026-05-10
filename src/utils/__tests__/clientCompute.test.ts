@@ -1,8 +1,9 @@
-import { describe, it, expect, vi, afterEach, beforeEach } from 'vitest'
+import { afterEach, beforeEach,describe, expect, it, vi } from 'vitest'
+
 import {
+  calculateStreak,
   computeLevel,
   computeXPToNextLevel,
-  calculateStreak,
   rankLeaderboard,
 } from '../clientCompute'
 

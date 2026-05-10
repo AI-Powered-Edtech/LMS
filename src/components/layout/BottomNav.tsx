@@ -8,8 +8,8 @@ import {
   LayoutGrid,
   Megaphone,
 } from "lucide-react";
-import { Link, useLocation } from "react-router-dom";
 import { useTranslation } from "react-i18next";
+import { Link, useLocation } from "react-router-dom";
 
 import { useAuth } from "@/contexts/AuthContext";
 import { useNavBadges } from "@/hooks/useNavBadges";

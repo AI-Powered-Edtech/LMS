@@ -11,8 +11,8 @@ import {
 } from "lucide-react";
 import { motion } from "motion/react";
 import { useCallback, useMemo, useState } from "react";
-import { useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
+import { useNavigate } from "react-router-dom";
 
 import { Button } from "@/components/ui";
 import { useAuth } from "@/contexts/AuthContext";
@@ -107,7 +107,7 @@ export function TeacherDashboard() {
       out.push(c);
     }
     if (dupCount > 0 && import.meta.env.DEV) {
-      // eslint-disable-next-line no-console
+
       console.warn(
         `[TeacherDashboard] Dropped ${dupCount} duplicate classroom row(s) before render. ` +
           `Investigate upstream source (classroomService.fetchClassrooms / realtime cache merge).`,
