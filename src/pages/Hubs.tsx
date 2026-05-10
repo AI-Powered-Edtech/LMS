@@ -1,10 +1,10 @@
+import { useTranslation } from "react-i18next";
+
 import { HubView } from "@/components/HubView";
 import { useAuth } from "@/contexts/AuthContext";
 import { useStudentXPProfile } from "@/features/gamification/queries/gamificationQueries";
 import { ModuleId, useModuleConfig } from "@/hooks/useModuleConfig";
 import { usePageTitle } from "@/hooks/usePageTitle";
-import { useTranslation } from "react-i18next";
-
 import { navigationItems } from "@/shared/config/navigation";
 
 /**

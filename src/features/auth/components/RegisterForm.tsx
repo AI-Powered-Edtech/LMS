@@ -1,7 +1,7 @@
 import { Eye, EyeOff, GraduationCap, Home, Ticket, User } from "lucide-react";
 import { useState } from "react";
-import { useTranslation } from "react-i18next";
 import type { UseFormReturn } from "react-hook-form";
+import { useTranslation } from "react-i18next";
 
 import { FormField } from "@/components/ui/FormField";
 import type {

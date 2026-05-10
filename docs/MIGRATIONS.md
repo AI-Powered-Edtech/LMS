@@ -56,3 +56,65 @@ Konsistensi antara daftar di atas dengan file fisik di `edusync-api/migrations/`
 ```
 
 Lihat juga [`docs/DATABASE.md`](./DATABASE.md) untuk dokumentasi skema, RLS policy, dan indexing strategy.
+| 018_fix_backend_schema_bugs.sql         | 2024-03-01 | Fix schema bugs |
+| 019_audit_fixes.sql                     | 2024-03-01 | Audit fixes |
+| 020_fix_rpc_signatures.sql              | 2024-03-01 | Fix RPC signatures |
+| 021_rpc_json.sql                        | 2024-03-01 | RPC JSON |
+| 022_align_table_columns.sql             | 2024-03-01 | Align table columns |
+| 023_rpc_stubs.sql                       | 2024-03-01 | RPC Stubs |
+| 024_course_review_workflow.sql          | 2024-03-01 | Course review workflow |
+| 025_personal_and_multi_tenant.sql       | 2024-03-01 | Personal and multi-tenant |
+| 026_join_code_and_slugify.sql           | 2024-03-01 | Join code and slugify |
+| 027_p2_backlog.sql                      | 2024-03-01 | P2 Backlog |
+| 028_p3_tenant_settings_and_roles.sql    | 2024-03-01 | Tenant settings and roles |
+| 029_add_admin_notification_types.sql    | 2024-03-01 | Admin notification types |
+| 030_admin_stub_tables_and_rpcs.sql      | 2024-03-01 | Admin stub tables and RPCs |
+| 031_qa_schema_gaps.sql                  | 2024-03-01 | QA schema gaps |
+| 032_qa_rpcs.sql                         | 2024-03-01 | QA RPCs |
+| 033_fix_search_questions_return_json.sql | 2024-03-01 | Fix search questions |
+| 034_lesson_progress_monitor_rpc.sql     | 2024-03-01 | Lesson progress monitor |
+| 035_admin_backfill.sql                  | 2024-03-01 | Admin backfill |
+| 036_confirm_demo_seed_users.sql         | 2024-03-01 | Confirm demo users |
+| 037_qa_sweep_fixes.sql                  | 2024-03-01 | QA sweep fixes |
+| 037_seed_modules_missing_rpcs_and_auth_uid.sql | 2024-03-01 | Seed modules missing RPCs |
+| 038_fix_get_tenant_users_user_id_alias.sql | 2024-03-01 | Fix get tenant users |
+| 039_academic_years.sql                  | 2024-03-01 | Academic years |
+| 040_semesters_link_academic_year.sql    | 2024-03-01 | Semesters link academic year |
+| 041_grade_levels.sql                    | 2024-03-01 | Grade levels |
+| 042_rombel.sql                          | 2024-03-01 | Rombel |
+| 043_subjects_and_curriculum_items.sql   | 2024-03-01 | Subjects and curriculum items |
+| 044_timetable_slots.sql                 | 2024-03-01 | Timetable slots |
+| 045_dossiers.sql                        | 2024-03-01 | Dossiers |
+| 046_rbac_10_role_matrix.sql             | 2024-03-01 | RBAC 1.0 role matrix |
+| 047_cp_tagging.sql                      | 2024-03-01 | CP tagging |
+| 048_gradebook_dual_mode.sql             | 2024-03-01 | Gradebook dual mode |
+| 049_nilai_per_cp.sql                    | 2024-03-01 | Nilai per CP |
+| 050_akm_question_type.sql               | 2024-03-01 | AKM question type |
+| 051_p5_module.sql                       | 2024-03-01 | P5 module |
+| 052_domain_events_outbox.sql            | 2024-03-01 | Domain events outbox |
+| 053_rapor_kurmer.sql                    | 2024-03-01 | Rapor kurmer |
+| 054_finance_midtrans.sql                | 2024-03-01 | Finance midtrans |
+| 055_bos_expense_tracking.sql            | 2024-03-01 | BOS expense tracking |
+| 056_ppdb_flow.sql                       | 2024-03-01 | PPDB flow |
+| 057_integrations.sql                    | 2024-03-01 | Integrations |
+| 058_ai_polish.sql                       | 2024-03-01 | AI polish |
+| 059_audit_rate_limit_perf.sql           | 2024-03-01 | Audit rate limit perf |
+| 060_counseling_parent_links_sikap.sql   | 2024-03-01 | Counseling parent links |
+| 061_app_audit_triggers.sql              | 2024-03-01 | App audit triggers |
+| 062_rapor_autogen_rpc.sql               | 2024-03-01 | Rapor autogen RPC |
+| 063_rombel_attendance.sql               | 2024-03-01 | Rombel attendance |
+| 064_stub_tables.sql                     | 2024-03-01 | Stub tables |
+| 065_gradebook_baseline.sql              | 2024-03-01 | Gradebook baseline |
+| 066_role_enum_completeness.sql          | 2024-03-01 | Role enum completeness |
+| 067_idempotent_auto_modules.sql         | 2024-03-01 | Idempotent auto modules |
+| 068_sync_user_roles_to_granular.sql     | 2024-03-01 | Sync user roles |
+| 069_classes_rombel_id.sql               | 2024-03-01 | Classes rombel id |
+| 070_event_handler_idempotency.sql       | 2024-03-01 | Event handler idempotency |
+| 071_ai_rate_limit.sql                   | 2024-03-01 | AI rate limit |
+| 072_parent_invoices_rpc.sql             | 2024-03-01 | Parent invoices RPC |
+| 073_refresh_tokens_session_metadata.sql | 2024-03-01 | Refresh tokens session metadata |
+| 074_tenant_invites_and_settings.sql     | 2024-03-01 | Tenant invites and settings |
+| 075_tenant_invites_global_unique_code.sql | 2024-03-01 | Tenant invites global unique code |
+| 076_invalidate_refresh_tokens_post_rotation.sql | 2024-03-01 | Invalidate refresh tokens post rotation |
+| 077_plagiarism_checks.sql               | 2024-03-01 | Plagiarism checks |
+| 078_scorm_runtime_data.sql              | 2024-03-01 | SCORM runtime data |
