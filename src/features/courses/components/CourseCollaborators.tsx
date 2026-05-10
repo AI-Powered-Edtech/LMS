@@ -95,6 +95,7 @@ export function CourseCollaborators({ courseId }: { courseId: string }) {
                   <button
                     key={user.id}
                     role="option"
+                    aria-selected="false"
                     onClick={() => addCollabMut.mutate(user.id)}
                     className="w-full text-left px-4 py-3 hover:bg-slate-50 dark:hover:bg-slate-700/50 flex items-center justify-between"
                   >

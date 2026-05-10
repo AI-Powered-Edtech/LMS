@@ -1,59 +1,68 @@
-import { BookOpen, Loader2, Plus, ToggleLeft, ToggleRight, Trash2 } from 'lucide-react'
-import { motion } from 'motion/react'
-import { useState } from 'react'
+import {
+  BookOpen,
+  Loader2,
+  Plus,
+  ToggleLeft,
+  ToggleRight,
+  Trash2,
+} from "lucide-react";
+import { motion } from "motion/react";
+import { useState } from "react";
 
-import type { LearningGuide } from '@/features/guidance'
-import { useDeleteGuide, useGuideList } from '@/features/guidance'
-import { cn } from '@/utils/cn'
+import { ConfirmDialog } from "@/components/ui";
+import type { LearningGuide } from "@/features/guidance";
+import { useDeleteGuide, useGuideList } from "@/features/guidance";
+import { cn } from "@/utils/cn";
 
-import { GuideBuilder } from './GuideBuilder'
+import { GuideBuilder } from "./GuideBuilder";
 
 interface Props {
-  courseId: string
+  courseId: string;
 }
 
 const GUIDE_TYPE_LABELS: Record<string, string> = {
-  tooltip: 'Tooltip',
-  banner: 'Banner',
-  walkthrough: 'Walkthrough',
-  checkpoint: 'Checkpoint',
-}
+  tooltip: "Tooltip",
+  banner: "Banner",
+  walkthrough: "Walkthrough",
+  checkpoint: "Checkpoint",
+};
 
 const SEGMENT_LABELS: Record<string, string> = {
-  all: 'Semua',
-  at_risk: 'Berisiko',
-  low: 'Rendah',
-  medium: 'Sedang',
-  high: 'Tinggi',
-  struggling: 'Kesulitan',
-}
+  all: "Semua",
+  at_risk: "Berisiko",
+  low: "Rendah",
+  medium: "Sedang",
+  high: "Tinggi",
+  struggling: "Kesulitan",
+};
 
 export function GuideAnalytics({ courseId }: Props) {
-  const [showBuilder, setShowBuilder] = useState(false)
-  const [editingGuide, setEditingGuide] = useState<LearningGuide | null>(null)
+  const [showBuilder, setShowBuilder] = useState(false);
+  const [editingGuide, setEditingGuide] = useState<LearningGuide | null>(null);
+  const [pendingDeleteGuideId, setPendingDeleteGuideId] = useState<
+    string | null
+  >(null);
 
-  const { data: guides = [], isLoading } = useGuideList('lesson', undefined)
-  const { mutate: deleteGuide } = useDeleteGuide()
+  const { data: guides = [], isLoading } = useGuideList("lesson", undefined);
+  const { mutate: deleteGuide } = useDeleteGuide();
 
   // Filter guides that target lessons within this course
   // (server-side filtering would be ideal, but we filter client-side for now)
-  const courseGuides = guides
+  const courseGuides = guides;
 
   const handleEdit = (guide: LearningGuide) => {
-    setEditingGuide(guide)
-    setShowBuilder(true)
-  }
+    setEditingGuide(guide);
+    setShowBuilder(true);
+  };
 
   const handleDelete = (guideId: string) => {
-    if (confirm('Hapus panduan ini?')) {
-      deleteGuide(guideId)
-    }
-  }
+    setPendingDeleteGuideId(guideId);
+  };
 
   const handleBuilderClose = () => {
-    setShowBuilder(false)
-    setEditingGuide(null)
-  }
+    setShowBuilder(false);
+    setEditingGuide(null);
+  };
 
   return (
     <div className="rounded-xl border border-slate-200 bg-white p-5 dark:border-slate-700 dark:bg-slate-900">
@@ -67,8 +76,8 @@ export function GuideAnalytics({ courseId }: Props) {
         </div>
         <button
           onClick={() => {
-            setEditingGuide(null)
-            setShowBuilder(true)
+            setEditingGuide(null);
+            setShowBuilder(true);
           }}
           className="flex items-center gap-1.5 rounded-lg bg-teal-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-teal-700 transition-colors"
         >
@@ -81,11 +90,15 @@ export function GuideAnalytics({ courseId }: Props) {
       {showBuilder && (
         <motion.div
           initial={{ opacity: 0, height: 0 }}
-          animate={{ opacity: 1, height: 'auto' }}
+          animate={{ opacity: 1, height: "auto" }}
           exit={{ opacity: 0, height: 0 }}
           className="mb-5 overflow-hidden"
         >
-          <GuideBuilder courseId={courseId} guide={editingGuide} onClose={handleBuilderClose} />
+          <GuideBuilder
+            courseId={courseId}
+            guide={editingGuide}
+            onClose={handleBuilderClose}
+          />
         </motion.div>
       )}
 
@@ -140,11 +153,12 @@ export function GuideAnalytics({ courseId }: Props) {
                       )}
                       <button
                         onClick={() => handleEdit(guide)}
+                        aria-label={`Edit panduan ${guide.title}`}
                         className={cn(
-                          'text-left font-medium hover:text-teal-600 dark:hover:text-teal-400 transition-colors truncate max-w-[180px]',
+                          "text-left font-medium hover:text-teal-600 dark:hover:text-teal-400 transition-colors truncate max-w-[180px]",
                           guide.is_active
-                            ? 'text-slate-800 dark:text-white'
-                            : 'text-slate-400 line-through'
+                            ? "text-slate-800 dark:text-white"
+                            : "text-slate-400 line-through",
                         )}
                       >
                         {guide.title}
@@ -172,7 +186,7 @@ export function GuideAnalytics({ courseId }: Props) {
                     <button
                       onClick={() => handleDelete(guide.id)}
                       className="text-slate-300 hover:text-red-500 dark:text-slate-600 dark:hover:text-red-400 transition-colors"
-                      aria-label="Hapus"
+                      aria-label={`Hapus panduan ${guide.title}`}
                     >
                       <Trash2 className="h-4 w-4" />
                     </button>
@@ -183,6 +197,21 @@ export function GuideAnalytics({ courseId }: Props) {
           </table>
         </div>
       )}
+
+      <ConfirmDialog
+        open={pendingDeleteGuideId !== null}
+        title="Hapus panduan?"
+        description="Panduan belajar ini akan dihapus dari daftar."
+        confirmLabel="Hapus"
+        variant="danger"
+        onCancel={() => setPendingDeleteGuideId(null)}
+        onConfirm={() => {
+          if (!pendingDeleteGuideId) return;
+          deleteGuide(pendingDeleteGuideId, {
+            onSettled: () => setPendingDeleteGuideId(null),
+          });
+        }}
+      />
     </div>
-  )
+  );
 }

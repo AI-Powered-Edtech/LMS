@@ -3,50 +3,52 @@
 // Task 30.5
 // ==========================================================================
 
-import { useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 
-import { Badge } from '@/components/ui/Badge'
-import { Button } from '@/components/ui/Button'
-import { Card } from '@/components/ui/Card'
-import { Spinner } from '@/components/ui/Spinner'
+import { ConfirmDialog } from "@/components/ui";
+import { Badge } from "@/components/ui/Badge";
+import { Button } from "@/components/ui/Button";
+import { Card } from "@/components/ui/Card";
+import { Spinner } from "@/components/ui/Spinner";
+import { useLocaleFormatters } from "@/hooks/useLocaleFormatters";
 
-import { useSurveys } from '../hooks/useExecutiveData'
-import type { CreateSurveyInput, SatisfactionSurvey } from '../types'
-import { SurveyBuilder } from './SurveyBuilder'
-import { SurveyResults } from './SurveyResults'
+import { useSurveys } from "../hooks/useExecutiveData";
+import type { CreateSurveyInput, SatisfactionSurvey } from "../types";
+import { SurveyBuilder } from "./SurveyBuilder";
+import { SurveyResults } from "./SurveyResults";
 
 // ── Constants ──────────────────────────────────────────────────
 
-const STATUS_VARIANTS: Record<string, 'success' | 'warning' | 'neutral'> = {
-  active: 'success',
-  draft: 'warning',
-  closed: 'neutral',
-}
+const STATUS_VARIANTS: Record<string, "success" | "warning" | "neutral"> = {
+  active: "success",
+  draft: "warning",
+  closed: "neutral",
+};
 
 const STATUS_LABELS: Record<string, string> = {
-  active: 'Aktif',
-  draft: 'Draft',
-  closed: 'Ditutup',
-}
+  active: "Aktif",
+  draft: "Draft",
+  closed: "Ditutup",
+};
 
 const AUDIENCE_LABELS: Record<string, string> = {
-  teachers: 'Guru',
-  students: 'Siswa',
-  parents: 'Orang Tua',
-  all: 'Semua',
-}
+  teachers: "Guru",
+  students: "Siswa",
+  parents: "Orang Tua",
+  all: "Semua",
+};
 
 // ── Survey Card ────────────────────────────────────────────────
 
 interface SurveyCardProps {
-  survey: SatisfactionSurvey
-  onView: () => void
-  onEdit: () => void
-  onPublish: () => void
-  onClose: () => void
-  onDelete: () => void
-  isUpdating: boolean
+  survey: SatisfactionSurvey;
+  onView: () => void;
+  onEdit: () => void;
+  onPublish: () => void;
+  onClose: () => void;
+  onDelete: () => void;
+  isUpdating: boolean;
 }
 
 function SurveyCard({
@@ -58,11 +60,12 @@ function SurveyCard({
   onDelete,
   isUpdating,
 }: SurveyCardProps) {
-  const createdAt = new Date(survey.created_at).toLocaleDateString('id-ID', {
-    day: 'numeric',
-    month: 'short',
-    year: 'numeric',
-  })
+  const { formatDate } = useLocaleFormatters();
+  const createdAt = formatDate(survey.created_at, {
+    day: "numeric",
+    month: "short",
+    year: "numeric",
+  });
 
   return (
     <Card className="flex flex-col gap-3">
@@ -78,7 +81,9 @@ function SurveyCard({
             <Badge variant="info" size="sm">
               {AUDIENCE_LABELS[survey.target_audience]}
             </Badge>
-            <span className="text-xs text-slate-400 dark:text-slate-500">{createdAt}</span>
+            <span className="text-xs text-slate-400 dark:text-slate-500">
+              {createdAt}
+            </span>
           </div>
         </div>
       </div>
@@ -89,8 +94,8 @@ function SurveyCard({
           <>
             <span>·</span>
             <span>
-              {new Date(survey.start_date).toLocaleDateString('id-ID')}
-              {survey.end_date ? ` – ${new Date(survey.end_date).toLocaleDateString('id-ID')}` : ''}
+              {formatDate(survey.start_date)}
+              {survey.end_date ? ` – ${formatDate(survey.end_date)}` : ""}
             </span>
           </>
         )}
@@ -101,20 +106,30 @@ function SurveyCard({
           📊 Lihat Hasil
         </Button>
 
-        {survey.status === 'draft' && (
+        {survey.status === "draft" && (
           <>
             <Button variant="ghost" size="sm" onClick={onEdit}>
               ✏️ Edit
             </Button>
-            <Button variant="primary" size="sm" onClick={onPublish} disabled={isUpdating}>
+            <Button
+              variant="primary"
+              size="sm"
+              onClick={onPublish}
+              disabled={isUpdating}
+            >
               {isUpdating ? <Spinner size="sm" /> : null}
               Publikasikan
             </Button>
           </>
         )}
 
-        {survey.status === 'active' && (
-          <Button variant="secondary" size="sm" onClick={onClose} disabled={isUpdating}>
+        {survey.status === "active" && (
+          <Button
+            variant="secondary"
+            size="sm"
+            onClick={onClose}
+            disabled={isUpdating}
+          >
             {isUpdating ? <Spinner size="sm" /> : null}
             Tutup Survey
           </Button>
@@ -131,7 +146,7 @@ function SurveyCard({
         </Button>
       </div>
     </Card>
-  )
+  );
 }
 
 // ── Empty State ────────────────────────────────────────────────
@@ -142,10 +157,12 @@ function EmptySurveys({ onCreateNew }: { onCreateNew: () => void }) {
       <div className="flex flex-col items-center gap-4 py-12 text-center">
         <span className="text-5xl">📋</span>
         <div>
-          <h3 className="text-lg font-bold text-slate-800 dark:text-slate-100">Belum Ada Survey</h3>
+          <h3 className="text-lg font-bold text-slate-800 dark:text-slate-100">
+            Belum Ada Survey
+          </h3>
           <p className="text-sm text-slate-500 dark:text-slate-400 mt-1 max-w-sm">
-            Buat survey kepuasan untuk mendapatkan masukan dari guru, siswa, dan orang tua tentang
-            platform EduSync.
+            Buat survey kepuasan untuk mendapatkan masukan dari guru, siswa, dan
+            orang tua tentang platform EduSync.
           </p>
         </div>
         <Button variant="primary" onClick={onCreateNew}>
@@ -153,13 +170,13 @@ function EmptySurveys({ onCreateNew }: { onCreateNew: () => void }) {
         </Button>
       </div>
     </Card>
-  )
+  );
 }
 
 // ── Main Component ─────────────────────────────────────────────
 
 export function SurveyPage() {
-  const navigate = useNavigate()
+  const navigate = useNavigate();
 
   const {
     surveys,
@@ -174,82 +191,94 @@ export function SurveyPage() {
     isClosing,
     deleteSurvey,
     isDeleting,
-  } = useSurveys()
+  } = useSurveys();
 
-  const [showBuilder, setShowBuilder] = useState(false)
-  const [editingSurvey, setEditingSurvey] = useState<SatisfactionSurvey | null>(null)
-  const [viewingSurvey, setViewingSurvey] = useState<SatisfactionSurvey | null>(null)
-  const [pendingPublish, setPendingPublish] = useState<string | null>(null)
+  const [showBuilder, setShowBuilder] = useState(false);
+  const [editingSurvey, setEditingSurvey] = useState<SatisfactionSurvey | null>(
+    null,
+  );
+  const [viewingSurvey, setViewingSurvey] = useState<SatisfactionSurvey | null>(
+    null,
+  );
+  const [pendingPublish, setPendingPublish] = useState<string | null>(null);
+  const [pendingDeleteSurveyId, setPendingDeleteSurveyId] = useState<
+    string | null
+  >(null);
 
-  const activeSurveys = surveys.filter((s) => s.status === 'active')
+  const activeSurveys = surveys.filter((s) => s.status === "active");
 
   const handleCreate = async (input: CreateSurveyInput) => {
-    await createSurvey(input)
-  }
+    await createSurvey(input);
+  };
 
   const handleCreateAndPublish = async (input: CreateSurveyInput) => {
-    const created = await createSurvey(input)
-    await publishSurvey(created.id)
-  }
+    const created = await createSurvey(input);
+    await publishSurvey(created.id);
+  };
 
   const handleUpdate = async (input: CreateSurveyInput) => {
-    if (!editingSurvey) return
-    await updateSurvey({ id: editingSurvey.id, input })
-  }
+    if (!editingSurvey) return;
+    await updateSurvey({ id: editingSurvey.id, input });
+  };
 
   const handleUpdateAndPublish = async (input: CreateSurveyInput) => {
-    if (!editingSurvey) return
-    await updateSurvey({ id: editingSurvey.id, input })
-    await publishSurvey(editingSurvey.id)
-  }
+    if (!editingSurvey) return;
+    await updateSurvey({ id: editingSurvey.id, input });
+    await publishSurvey(editingSurvey.id);
+  };
 
   const handlePublish = async (id: string) => {
-    setPendingPublish(id)
+    setPendingPublish(id);
     try {
-      await publishSurvey(id)
+      await publishSurvey(id);
     } finally {
-      setPendingPublish(null)
+      setPendingPublish(null);
     }
-  }
+  };
 
   const handleClose = async (id: string) => {
-    await closeSurvey(id)
-  }
+    await closeSurvey(id);
+  };
 
   const handleDelete = async (id: string) => {
-    if (!confirm('Hapus survey ini? Tindakan ini tidak dapat dibatalkan.')) return
-    await deleteSurvey(id)
-    if (viewingSurvey?.id === id) setViewingSurvey(null)
-  }
+    await deleteSurvey(id);
+    if (viewingSurvey?.id === id) setViewingSurvey(null);
+    setPendingDeleteSurveyId(null);
+  };
 
   const handleOpenBuilder = () => {
-    setEditingSurvey(null)
-    setShowBuilder(true)
-  }
+    setEditingSurvey(null);
+    setShowBuilder(true);
+  };
 
   const handleEditSurvey = (survey: SatisfactionSurvey) => {
-    setEditingSurvey(survey)
-    setShowBuilder(true)
-  }
+    setEditingSurvey(survey);
+    setShowBuilder(true);
+  };
 
   // If viewing results, show results panel
   if (viewingSurvey) {
     return (
       <div className="min-h-full space-y-6">
-        <SurveyResults survey={viewingSurvey} onClose={() => setViewingSurvey(null)} />
+        <SurveyResults
+          survey={viewingSurvey}
+          onClose={() => setViewingSurvey(null)}
+        />
         <SurveyBuilder
           open={showBuilder}
           onClose={() => {
-            setShowBuilder(false)
-            setEditingSurvey(null)
+            setShowBuilder(false);
+            setEditingSurvey(null);
           }}
           survey={editingSurvey}
           onSave={editingSurvey ? handleUpdate : handleCreate}
-          onPublish={editingSurvey ? handleUpdateAndPublish : handleCreateAndPublish}
+          onPublish={
+            editingSurvey ? handleUpdateAndPublish : handleCreateAndPublish
+          }
           isSaving={isCreating}
         />
       </div>
-    )
+    );
   }
 
   return (
@@ -259,7 +288,7 @@ export function SurveyPage() {
         <div>
           <div className="flex items-center gap-2 mb-1">
             <button
-              onClick={() => navigate('/app/principal')}
+              onClick={() => navigate("/app/principal")}
               className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition-colors text-sm"
             >
               ← Kembali
@@ -287,7 +316,7 @@ export function SurveyPage() {
               {activeSurveys.length} survey aktif saat ini
             </p>
             <p className="text-xs text-emerald-600 dark:text-emerald-400">
-              {activeSurveys.map((s) => s.title).join(', ')}
+              {activeSurveys.map((s) => s.title).join(", ")}
             </p>
           </div>
         </div>
@@ -325,25 +354,45 @@ export function SurveyPage() {
               onEdit={() => handleEditSurvey(survey)}
               onPublish={() => handlePublish(survey.id)}
               onClose={() => handleClose(survey.id)}
-              onDelete={() => handleDelete(survey.id)}
-              isUpdating={(pendingPublish === survey.id && isPublishing) || isClosing || isDeleting}
+              onDelete={() => setPendingDeleteSurveyId(survey.id)}
+              isUpdating={
+                (pendingPublish === survey.id && isPublishing) ||
+                isClosing ||
+                isDeleting
+              }
             />
           ))}
         </div>
       )}
 
+      <ConfirmDialog
+        open={pendingDeleteSurveyId !== null}
+        title="Hapus survey?"
+        description="Tindakan ini tidak dapat dibatalkan dan survey akan hilang dari daftar."
+        confirmLabel="Hapus"
+        variant="danger"
+        isLoading={isDeleting}
+        onCancel={() => setPendingDeleteSurveyId(null)}
+        onConfirm={() => {
+          if (!pendingDeleteSurveyId) return;
+          void handleDelete(pendingDeleteSurveyId);
+        }}
+      />
+
       {/* ── Survey Builder Modal ── */}
       <SurveyBuilder
         open={showBuilder}
         onClose={() => {
-          setShowBuilder(false)
-          setEditingSurvey(null)
+          setShowBuilder(false);
+          setEditingSurvey(null);
         }}
         survey={editingSurvey}
         onSave={editingSurvey ? handleUpdate : handleCreate}
-        onPublish={editingSurvey ? handleUpdateAndPublish : handleCreateAndPublish}
+        onPublish={
+          editingSurvey ? handleUpdateAndPublish : handleCreateAndPublish
+        }
         isSaving={isCreating}
       />
     </div>
-  )
+  );
 }
