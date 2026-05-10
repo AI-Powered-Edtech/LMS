@@ -9,6 +9,7 @@ import {
 } from "lucide-react";
 import { useCallback, useRef, useState } from "react";
 
+import { ConfirmDialog } from "@/components/ui";
 import { useAuth } from "@/contexts/AuthContext";
 import { useBuilder } from "@/contexts/BuilderContext";
 import { storageService } from "@/features/storage";
@@ -94,6 +95,7 @@ export function FileBlockEditor({ blockId }: FileBlockEditorProps) {
   const [uploadFileSize, setUploadFileSize] = useState<number | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [isDragOver, setIsDragOver] = useState(false);
+  const [confirmDeleteOpen, setConfirmDeleteOpen] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
 
   const block = state.activeLesson?.blocks.find((b) => b.id === blockId);
@@ -154,10 +156,7 @@ export function FileBlockEditor({ blockId }: FileBlockEditorProps) {
   );
 
   const handleDelete = async () => {
-    if (
-      !confirm("Hapus file ini? File akan dihapus permanen dari penyimpanan.")
-    )
-      return;
+    setConfirmDeleteOpen(false);
     const storageObjectId = (block as unknown as { storage_object_id?: string })
       ?.storage_object_id;
 
@@ -242,7 +241,7 @@ export function FileBlockEditor({ blockId }: FileBlockEditorProps) {
             </button>
             <button
               type="button"
-              onClick={handleDelete}
+              onClick={() => setConfirmDeleteOpen(true)}
               disabled={isUploading}
               className="px-4 py-2 text-sm font-medium text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-900/30 hover:bg-red-100 dark:hover:bg-red-900/50 rounded-lg transition-colors disabled:opacity-50"
             >
@@ -256,6 +255,16 @@ export function FileBlockEditor({ blockId }: FileBlockEditorProps) {
             {error}
           </p>
         )}
+
+        <ConfirmDialog
+          open={confirmDeleteOpen}
+          title="Hapus file?"
+          description="File akan dihapus permanen dari penyimpanan jika metadata file tersedia."
+          confirmLabel="Hapus"
+          variant="danger"
+          onCancel={() => setConfirmDeleteOpen(false)}
+          onConfirm={handleDelete}
+        />
       </div>
     );
   }

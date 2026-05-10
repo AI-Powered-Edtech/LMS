@@ -7,114 +7,121 @@ import {
   RefreshCw,
   Trash2,
   Upload,
-} from 'lucide-react'
-import { useCallback, useRef, useState } from 'react'
+} from "lucide-react";
+import { useCallback, useRef, useState } from "react";
 
-import { useAuth } from '@/contexts/AuthContext'
-import { useBuilder } from '@/contexts/BuilderContext'
-import { readVilSession } from '@/services/auth/vilSession'
-import { db } from '@/services/db'
+import { ConfirmDialog } from "@/components/ui";
+import { useAuth } from "@/contexts/AuthContext";
+import { useBuilder } from "@/contexts/BuilderContext";
+import { readVilSession } from "@/services/auth/vilSession";
+import { db } from "@/services/db";
 
 interface ScormBlockEditorProps {
-  blockId: string
+  blockId: string;
 }
 
-const MAX_ZIP_SIZE = 100 * 1024 * 1024 // 100MB
+const MAX_ZIP_SIZE = 100 * 1024 * 1024; // 100MB
 
 interface ScormExtractResponse {
-  success: boolean
-  scorm_package_id: string
-  title: string
-  scorm_version: '1.2' | '2004'
-  entry_point: string
-  files_extracted: number
-  upload_errors: number
-  error?: string
+  success: boolean;
+  scorm_package_id: string;
+  title: string;
+  scorm_version: "1.2" | "2004";
+  entry_point: string;
+  files_extracted: number;
+  upload_errors: number;
+  error?: string;
 }
 
 export function ScormBlockEditor({ blockId }: ScormBlockEditorProps) {
-  const { state, actions } = useBuilder()
-  const { user, tenantId } = useAuth()
-  const [isUploading, setIsUploading] = useState(false)
-  const [uploadProgress, setUploadProgress] = useState<string | null>(null)
-  const [error, setError] = useState<string | null>(null)
-  const [isDragOver, setIsDragOver] = useState(false)
-  const inputRef = useRef<HTMLInputElement>(null)
+  const { state, actions } = useBuilder();
+  const { user, tenantId } = useAuth();
+  const [isUploading, setIsUploading] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  const [isDragOver, setIsDragOver] = useState(false);
+  const [confirmRemoveOpen, setConfirmRemoveOpen] = useState(false);
+  const inputRef = useRef<HTMLInputElement>(null);
 
-  const block = state.activeLesson?.blocks.find((b) => b.id === blockId)
+  const block = state.activeLesson?.blocks.find((b) => b.id === blockId);
 
   const scormMeta = block?.metadata as
     | {
-        scorm_package_id?: string
-        scorm_version?: string
-        entry_point?: string
-        file_count?: number
+        scorm_package_id?: string;
+        scorm_version?: string;
+        entry_point?: string;
+        file_count?: number;
       }
-    | undefined
+    | undefined;
 
-  const hasPackage = !!scormMeta?.scorm_package_id
+  const hasPackage = !!scormMeta?.scorm_package_id;
 
   const handleUpload = useCallback(
     async (file: File) => {
       if (!state.courseId || !state.activeLesson) {
-        setError('Kursus atau materi belum dimuat')
-        return
+        setError("Kursus atau materi belum dimuat");
+        return;
       }
 
       if (!user || !tenantId) {
-        setError('Sesi tidak valid. Silakan login ulang.')
-        return
+        setError("Sesi tidak valid. Silakan login ulang.");
+        return;
       }
 
-      setError(null)
+      setError(null);
 
       // Validate file type
-      if (!file.name.toLowerCase().endsWith('.zip')) {
-        setError('Hanya file ZIP yang didukung untuk paket SCORM.')
-        return
+      if (!file.name.toLowerCase().endsWith(".zip")) {
+        setError("Hanya file ZIP yang didukung untuk paket SCORM.");
+        return;
       }
 
       // Validate file size
       if (file.size > MAX_ZIP_SIZE) {
-        setError(`Ukuran file maksimal ${MAX_ZIP_SIZE / 1024 / 1024}MB.`)
-        return
+        setError(`Ukuran file maksimal ${MAX_ZIP_SIZE / 1024 / 1024}MB.`);
+        return;
       }
 
-      setIsUploading(true)
-      setUploadProgress('Mengunggah paket SCORM...')
+      setIsUploading(true);
+      setUploadProgress("Mengunggah paket SCORM...");
 
       try {
-        const formData = new FormData()
-        formData.append('file', file)
-        formData.append('lesson_id', state.activeLesson.id)
-        formData.append('course_id', state.courseId)
+        const formData = new FormData();
+        formData.append("file", file);
+        formData.append("lesson_id", state.activeLesson.id);
+        formData.append("course_id", state.courseId);
 
-        setUploadProgress('Mengekstrak dan memvalidasi manifest...')
+        setUploadProgress("Mengekstrak dan memvalidasi manifest...");
 
-        const apiUrl = import.meta.env.VITE_API_URL ?? ''
-        const token = readVilSession()?.access_token
+        const apiUrl = import.meta.env.VITE_API_URL ?? "";
+        const token = readVilSession()?.access_token;
 
         const res = await fetch(`${apiUrl}/api/v1/scorm/extract`, {
-          method: 'POST',
+          method: "POST",
           headers: {
             // Do NOT set Content-Type — browser sets it automatically for FormData (multipart/form-data)
             ...(token ? { Authorization: `Bearer ${token}` } : {}),
           },
           body: formData,
-        })
+        });
 
         if (!res.ok) {
-          const errBody = await res.json().catch(() => ({ error: 'Gagal memproses paket SCORM.' }))
-          throw new Error((errBody as ScormExtractResponse).error || 'Gagal memproses paket SCORM.')
+          const errBody = await res
+            .json()
+            .catch(() => ({ error: "Gagal memproses paket SCORM." }));
+          throw new Error(
+            (errBody as ScormExtractResponse).error ||
+              "Gagal memproses paket SCORM.",
+          );
         }
 
-        const data: ScormExtractResponse = await res.json()
+        const data: ScormExtractResponse = await res.json();
 
         if (!data?.success) {
-          throw new Error(data?.error || 'Gagal memproses paket SCORM.')
+          throw new Error(data?.error || "Gagal memproses paket SCORM.");
         }
 
-        setUploadProgress('Menyimpan metadata...')
+        setUploadProgress("Menyimpan metadata...");
 
         // Update block metadata with SCORM package info
         actions.updateBlock(blockId, {
@@ -126,31 +133,32 @@ export function ScormBlockEditor({ blockId }: ScormBlockEditorProps) {
             entry_point: data.entry_point,
             file_count: data.files_extracted,
           },
-        })
+        });
 
-        setUploadProgress(null)
+        setUploadProgress(null);
       } catch (err) {
-        const message = err instanceof Error ? err.message : 'Gagal mengunggah paket SCORM.'
-        setError(message)
-        setUploadProgress(null)
+        const message =
+          err instanceof Error ? err.message : "Gagal mengunggah paket SCORM.";
+        setError(message);
+        setUploadProgress(null);
       } finally {
-        setIsUploading(false)
+        setIsUploading(false);
       }
     },
-    [state.courseId, state.activeLesson, blockId, user, tenantId, actions]
-  )
+    [state.courseId, state.activeLesson, blockId, user, tenantId, actions],
+  );
 
-  const handleRemovePackage = async (): Promise<void> => {
-    if (!confirm('Hapus paket SCORM dari blok ini?')) return
+  const confirmRemovePackage = async (): Promise<void> => {
+    setConfirmRemoveOpen(false);
 
     // Remove the scorm_packages record (cascade will clean up runtime data)
     if (scormMeta?.scorm_package_id) {
       try {
         await db
-          .from('scorm_packages')
+          .from("scorm_packages")
           .delete()
-          .eq('id', scormMeta.scorm_package_id)
-          .eq('tenant_id', tenantId!)
+          .eq("id", scormMeta.scorm_package_id)
+          .eq("tenant_id", tenantId!);
       } catch {
         // Non-fatal — metadata will be cleared regardless
       }
@@ -160,34 +168,34 @@ export function ScormBlockEditor({ blockId }: ScormBlockEditorProps) {
       title: null,
       content: null,
       metadata: {},
-    })
-  }
+    });
+  };
 
   const handleDragOver = (e: React.DragEvent): void => {
-    e.preventDefault()
-    setIsDragOver(true)
-  }
+    e.preventDefault();
+    setIsDragOver(true);
+  };
 
   const handleDragLeave = (e: React.DragEvent): void => {
-    e.preventDefault()
-    setIsDragOver(false)
-  }
+    e.preventDefault();
+    setIsDragOver(false);
+  };
 
   const handleDrop = (e: React.DragEvent): void => {
-    e.preventDefault()
-    setIsDragOver(false)
-    const file = e.dataTransfer.files[0]
-    if (file) void handleUpload(file)
-  }
+    e.preventDefault();
+    setIsDragOver(false);
+    const file = e.dataTransfer.files[0];
+    if (file) void handleUpload(file);
+  };
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>): void => {
-    const file = e.target.files?.[0]
-    if (file) void handleUpload(file)
+    const file = e.target.files?.[0];
+    if (file) void handleUpload(file);
     // Reset input so the same file can be re-selected
-    if (inputRef.current) inputRef.current.value = ''
-  }
+    if (inputRef.current) inputRef.current.value = "";
+  };
 
-  if (!block) return null
+  if (!block) return null;
 
   // ── Uploaded state ──────────────────────────────────────────
   if (hasPackage) {
@@ -199,7 +207,7 @@ export function ScormBlockEditor({ blockId }: ScormBlockEditorProps) {
           </div>
           <div className="flex-1 min-w-0">
             <p className="font-semibold text-slate-800 dark:text-slate-200 truncate">
-              {block.title || 'Modul SCORM'}
+              {block.title || "Modul SCORM"}
             </p>
             <div className="flex items-center gap-3 mt-1">
               <span className="text-xs font-medium text-emerald-600 dark:text-emerald-400 bg-emerald-100 dark:bg-emerald-900 px-2 py-0.5 rounded-full">
@@ -230,7 +238,7 @@ export function ScormBlockEditor({ blockId }: ScormBlockEditorProps) {
           </button>
           <button
             type="button"
-            onClick={handleRemovePackage}
+            onClick={() => setConfirmRemoveOpen(true)}
             disabled={isUploading}
             className="px-4 py-2 text-sm font-medium text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-950/50 hover:bg-red-100 dark:hover:bg-red-900/50 rounded-lg transition-colors disabled:opacity-50 flex items-center gap-2"
           >
@@ -245,6 +253,7 @@ export function ScormBlockEditor({ blockId }: ScormBlockEditorProps) {
           accept=".zip"
           onChange={handleFileChange}
           className="hidden"
+          aria-label="Pilih paket SCORM"
         />
 
         {error && (
@@ -253,8 +262,18 @@ export function ScormBlockEditor({ blockId }: ScormBlockEditorProps) {
             {error}
           </div>
         )}
+
+        <ConfirmDialog
+          open={confirmRemoveOpen}
+          title="Hapus paket SCORM?"
+          description="Paket SCORM akan dilepas dari blok ini. Data runtime terkait akan ikut dibersihkan bila paket tersimpan di server."
+          confirmLabel="Hapus"
+          variant="danger"
+          onCancel={() => setConfirmRemoveOpen(false)}
+          onConfirm={confirmRemovePackage}
+        />
       </div>
-    )
+    );
   }
 
   // ── Empty / Uploading state ─────────────────────────────────
@@ -266,21 +285,21 @@ export function ScormBlockEditor({ blockId }: ScormBlockEditorProps) {
         aria-disabled={isUploading}
         onClick={() => !isUploading && inputRef.current?.click()}
         onKeyDown={(e) => {
-          if (e.key === 'Enter' || e.key === ' ') {
-            e.preventDefault()
-            if (!isUploading) inputRef.current?.click()
+          if (e.key === "Enter" || e.key === " ") {
+            e.preventDefault();
+            if (!isUploading) inputRef.current?.click();
           }
         }}
         onDragOver={handleDragOver}
         onDragLeave={handleDragLeave}
         onDrop={handleDrop}
         className={[
-          'relative flex flex-col items-center justify-center py-12 rounded-xl border-2 border-dashed cursor-pointer transition-all',
+          "relative flex flex-col items-center justify-center py-12 rounded-xl border-2 border-dashed cursor-pointer transition-all",
           isDragOver
-            ? 'border-teal-400 bg-teal-50 dark:border-teal-500 dark:bg-teal-950/30'
-            : 'border-slate-300 dark:border-slate-600 hover:border-slate-400 dark:hover:border-slate-500 bg-slate-50 dark:bg-slate-800/50',
-          isUploading ? 'pointer-events-none' : '',
-        ].join(' ')}
+            ? "border-teal-400 bg-teal-50 dark:border-teal-500 dark:bg-teal-950/30"
+            : "border-slate-300 dark:border-slate-600 hover:border-slate-400 dark:hover:border-slate-500 bg-slate-50 dark:bg-slate-800/50",
+          isUploading ? "pointer-events-none" : "",
+        ].join(" ")}
       >
         <input
           ref={inputRef}
@@ -288,13 +307,14 @@ export function ScormBlockEditor({ blockId }: ScormBlockEditorProps) {
           accept=".zip"
           onChange={handleFileChange}
           className="hidden"
+          aria-label="Pilih paket SCORM"
         />
 
         {isUploading ? (
           <>
             <Loader2 className="w-8 h-8 text-teal-600 dark:text-teal-400 animate-spin mb-3" />
             <p className="text-sm font-medium text-slate-700 dark:text-slate-300">
-              {uploadProgress || 'Memproses...'}
+              {uploadProgress || "Memproses..."}
             </p>
             <p className="text-xs text-slate-400 dark:text-slate-500 mt-1">
               Proses ini mungkin memerlukan beberapa saat untuk paket besar
@@ -328,5 +348,5 @@ export function ScormBlockEditor({ blockId }: ScormBlockEditorProps) {
         </div>
       )}
     </div>
-  )
+  );
 }

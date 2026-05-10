@@ -1,60 +1,80 @@
-import { Calendar, FileText, Loader2, Play, Trash2 } from 'lucide-react'
-import { motion } from 'motion/react'
-import { useState } from 'react'
+import { Calendar, FileText, Loader2, Play, Trash2 } from "lucide-react";
+import { motion } from "motion/react";
+import { useState } from "react";
 
-import { cn } from '@/utils/cn'
+import { ConfirmDialog } from "@/components/ui";
+import { useLocaleFormatters } from "@/hooks/useLocaleFormatters";
+import { cn } from "@/utils/cn";
 
-import { useDeleteReport, useGenerateReportData, useReports } from '../queries/reportQueries'
-import type { ScheduledReport } from '../types'
-import { ExportButton } from './ExportButton'
+import {
+  useDeleteReport,
+  useGenerateReportData,
+  useReports,
+} from "../queries/reportQueries";
+import type { ScheduledReport } from "../types";
+import { ExportButton } from "./ExportButton";
 
 const REPORT_TYPE_LABELS: Record<string, string> = {
-  dashboard: 'Dasbor',
-  student_list: 'Daftar Siswa',
-  course_summary: 'Ringkasan Kursus',
-  engagement: 'Keterlibatan',
-}
+  dashboard: "Dasbor",
+  student_list: "Daftar Siswa",
+  course_summary: "Ringkasan Kursus",
+  engagement: "Keterlibatan",
+};
 
 const SCHEDULE_LABELS: Record<string, string> = {
-  none: 'Manual',
-  weekly: 'Mingguan',
-  monthly: 'Bulanan',
-}
+  none: "Manual",
+  weekly: "Mingguan",
+  monthly: "Bulanan",
+};
 
 export function ReportList() {
-  const { data: reports, isLoading } = useReports()
-  const { mutate: deleteReport, isPending: isDeleting } = useDeleteReport()
-  const { mutate: generateData, isPending: isGenerating } = useGenerateReportData()
-  const [generatedData, setGeneratedData] = useState<Record<string, Record<string, unknown>[]>>({})
-  const [deletingId, setDeletingId] = useState<string | null>(null)
-  const [generatingId, setGeneratingId] = useState<string | null>(null)
+  const { data: reports, isLoading } = useReports();
+  const { mutate: deleteReport, isPending: isDeleting } = useDeleteReport();
+  const { mutate: generateData, isPending: isGenerating } =
+    useGenerateReportData();
+  const [generatedData, setGeneratedData] = useState<
+    Record<string, Record<string, unknown>[]>
+  >({});
+  const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [pendingDeleteId, setPendingDeleteId] = useState<string | null>(null);
+  const [generatingId, setGeneratingId] = useState<string | null>(null);
+  const { formatDate } = useLocaleFormatters();
 
   const handleDelete = (id: string) => {
-    if (!confirm('Hapus laporan ini?')) return
-    setDeletingId(id)
-    deleteReport(id, { onSettled: () => setDeletingId(null) })
-  }
+    setPendingDeleteId(id);
+  };
+
+  const confirmDelete = () => {
+    if (!pendingDeleteId) return;
+    setDeletingId(pendingDeleteId);
+    deleteReport(pendingDeleteId, {
+      onSettled: () => {
+        setDeletingId(null);
+        setPendingDeleteId(null);
+      },
+    });
+  };
 
   const handleGenerate = (report: ScheduledReport) => {
-    setGeneratingId(report.id)
+    setGeneratingId(report.id);
     generateData(report.id, {
       onSuccess: (data) => {
-        setGeneratedData((prev) => ({ ...prev, [report.id]: data }))
-        setGeneratingId(null)
+        setGeneratedData((prev) => ({ ...prev, [report.id]: data }));
+        setGeneratingId(null);
       },
       onError: () => setGeneratingId(null),
-    })
-  }
+    });
+  };
 
   if (isLoading) {
     return (
       <div className="flex items-center justify-center py-12">
         <Loader2 className="h-6 w-6 animate-spin text-slate-400" />
       </div>
-    )
+    );
   }
 
-  const list = reports ?? []
+  const list = reports ?? [];
 
   if (list.length === 0) {
     return (
@@ -62,13 +82,24 @@ export function ReportList() {
         <FileText className="h-10 w-10" />
         <p className="text-sm font-medium">Belum ada laporan tersimpan</p>
       </div>
-    )
+    );
   }
 
   return (
     <div className="space-y-3">
+      <ConfirmDialog
+        open={pendingDeleteId !== null}
+        title="Hapus laporan?"
+        description="Laporan tersimpan akan dihapus dari daftar. Tindakan ini tidak dapat dibatalkan."
+        confirmLabel="Hapus"
+        variant="danger"
+        isLoading={isDeleting}
+        onCancel={() => setPendingDeleteId(null)}
+        onConfirm={confirmDelete}
+      />
+
       {list.map((report, i) => {
-        const reportData = generatedData[report.id]
+        const reportData = generatedData[report.id];
         return (
           <motion.div
             key={report.id}
@@ -87,10 +118,10 @@ export function ReportList() {
                 </span>
                 <span
                   className={cn(
-                    'flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-medium',
-                    report.schedule === 'none'
-                      ? 'bg-slate-100 dark:bg-slate-800 text-slate-500'
-                      : 'bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400'
+                    "flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-medium",
+                    report.schedule === "none"
+                      ? "bg-slate-100 dark:bg-slate-800 text-slate-500"
+                      : "bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400",
                   )}
                 >
                   <Calendar className="h-3 w-3" />
@@ -99,7 +130,7 @@ export function ReportList() {
               </div>
               {report.last_generated_at && (
                 <p className="text-xs text-slate-400 dark:text-slate-500 mt-1">
-                  Terakhir dibuat: {new Date(report.last_generated_at).toLocaleDateString('id-ID')}
+                  Terakhir dibuat: {formatDate(report.last_generated_at)}
                 </p>
               )}
               {reportData && (
@@ -126,7 +157,7 @@ export function ReportList() {
               {reportData && reportData.length > 0 && (
                 <ExportButton
                   data={reportData}
-                  filename={report.name.replace(/\s+/g, '_').toLowerCase()}
+                  filename={report.name.replace(/\s+/g, "_").toLowerCase()}
                   format={report.export_format}
                   label="Unduh"
                   className="text-xs py-1.5"
@@ -146,8 +177,8 @@ export function ReportList() {
               </button>
             </div>
           </motion.div>
-        )
+        );
       })}
     </div>
-  )
+  );
 }
