@@ -3,8 +3,9 @@
 // Task 30.4
 // ==========================================================================
 
-import { useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useState } from "react";
+import { useTranslation } from "react-i18next";
+import { useNavigate } from "react-router-dom";
 import {
   Bar,
   BarChart,
@@ -15,88 +16,114 @@ import {
   Tooltip,
   XAxis,
   YAxis,
-} from 'recharts'
+} from "recharts";
 
-import { Badge } from '@/components/ui/Badge'
-import { Button } from '@/components/ui/Button'
-import { Card } from '@/components/ui/Card'
-import { Input } from '@/components/ui/Input'
-import { Modal, ModalBody, ModalFooter, ModalHeader } from '@/components/ui/Modal'
-import { Spinner } from '@/components/ui/Spinner'
-import { useTheme } from '@/contexts/ThemeContext'
+import { Badge } from "@/components/ui/Badge";
+import { Button } from "@/components/ui/Button";
+import { Card } from "@/components/ui/Card";
+import { Input } from "@/components/ui/Input";
+import {
+  Modal,
+  ModalBody,
+  ModalFooter,
+  ModalHeader,
+} from "@/components/ui/Modal";
+import { Spinner } from "@/components/ui/Spinner";
+import { useTheme } from "@/contexts/ThemeContext";
 
-import { useBaselineMetrics, useExecutiveData } from '../hooks/useExecutiveData'
-import type { SchoolBaselineMetrics } from '../types'
+import {
+  useBaselineMetrics,
+  useExecutiveData,
+} from "../hooks/useExecutiveData";
+import type { SchoolBaselineMetrics } from "../types";
 
 // ── Formatters ─────────────────────────────────────────────────
 
 const fmtCurrency = (n: number) =>
-  new Intl.NumberFormat('id-ID', {
-    style: 'currency',
-    currency: 'IDR',
+  new Intl.NumberFormat("id-ID", {
+    style: "currency",
+    currency: "IDR",
     maximumFractionDigits: 0,
-  }).format(n)
+  }).format(n);
 
-const fmtPercent = (n: number) => `${n.toFixed(1)}%`
+const fmtPercent = (n: number) => `${n.toFixed(1)}%`;
 
 // ── Edit Baseline Modal ────────────────────────────────────────
 
 interface EditBaselineModalProps {
-  open: boolean
-  onClose: () => void
-  current: SchoolBaselineMetrics | null
+  open: boolean;
+  onClose: () => void;
+  current: SchoolBaselineMetrics | null;
   onSave: (
-    data: Omit<SchoolBaselineMetrics, 'id' | 'tenant_id' | 'created_at' | 'updated_at'>
-  ) => Promise<void>
-  isSaving: boolean
+    data: Omit<
+      SchoolBaselineMetrics,
+      "id" | "tenant_id" | "created_at" | "updated_at"
+    >,
+  ) => Promise<void>;
+  isSaving: boolean;
 }
 
-function EditBaselineModal({ open, onClose, current, onSave, isSaving }: EditBaselineModalProps) {
+function EditBaselineModal({
+  open,
+  onClose,
+  current,
+  onSave,
+  isSaving,
+}: EditBaselineModalProps) {
+  const { t } = useTranslation();
   const [form, setForm] = useState<{
-    baseline_date: string
-    avg_grade_before: string
-    attendance_rate_before: string
-    paper_cost_monthly_rp: string
-    teacher_grading_hours_weekly: string
-    notes: string
+    baseline_date: string;
+    avg_grade_before: string;
+    attendance_rate_before: string;
+    paper_cost_monthly_rp: string;
+    teacher_grading_hours_weekly: string;
+    notes: string;
   }>({
-    baseline_date: current?.baseline_date ?? '',
-    avg_grade_before: current?.avg_grade_before?.toString() ?? '',
-    attendance_rate_before: current?.attendance_rate_before?.toString() ?? '',
-    paper_cost_monthly_rp: current?.paper_cost_monthly_rp?.toString() ?? '',
-    teacher_grading_hours_weekly: current?.teacher_grading_hours_weekly?.toString() ?? '',
-    notes: current?.notes ?? '',
-  })
-  const [error, setError] = useState<string | null>(null)
+    baseline_date: current?.baseline_date ?? "",
+    avg_grade_before: current?.avg_grade_before?.toString() ?? "",
+    attendance_rate_before: current?.attendance_rate_before?.toString() ?? "",
+    paper_cost_monthly_rp: current?.paper_cost_monthly_rp?.toString() ?? "",
+    teacher_grading_hours_weekly:
+      current?.teacher_grading_hours_weekly?.toString() ?? "",
+    notes: current?.notes ?? "",
+  });
+  const [error, setError] = useState<string | null>(null);
 
   const handleSave = async () => {
     if (!form.baseline_date) {
-      setError('Tanggal baseline wajib diisi.')
-      return
+      setError(t("beforeAfterAnalytics.modal.errors.baselineDateRequired"));
+      return;
     }
-    setError(null)
+    setError(null);
     await onSave({
       baseline_date: form.baseline_date,
-      avg_grade_before: form.avg_grade_before ? Number(form.avg_grade_before) : null,
+      avg_grade_before: form.avg_grade_before
+        ? Number(form.avg_grade_before)
+        : null,
       attendance_rate_before: form.attendance_rate_before
         ? Number(form.attendance_rate_before)
         : null,
-      paper_cost_monthly_rp: form.paper_cost_monthly_rp ? Number(form.paper_cost_monthly_rp) : null,
+      paper_cost_monthly_rp: form.paper_cost_monthly_rp
+        ? Number(form.paper_cost_monthly_rp)
+        : null,
       teacher_grading_hours_weekly: form.teacher_grading_hours_weekly
         ? Number(form.teacher_grading_hours_weekly)
         : null,
       notes: form.notes || null,
-    })
-    onClose()
-  }
+    });
+    onClose();
+  };
 
   return (
     <Modal open={open} onClose={onClose} size="lg">
-      <ModalHeader onClose={onClose}>Edit Data Baseline (Sebelum LMS)</ModalHeader>
+      <ModalHeader onClose={onClose}>
+        {t("beforeAfterAnalytics.modal.title")}
+      </ModalHeader>
       <ModalBody>
         <p className="text-sm text-slate-500 dark:text-slate-400 mb-4">
-          Masukkan data rata-rata sekolah <strong>sebelum</strong> menggunakan EduSync LMS. Data ini
-          akan dibandingkan dengan kondisi saat ini.
+          {t("beforeAfterAnalytics.modal.descriptionBefore")}{" "}
+          <strong>{t("beforeAfterAnalytics.modal.before")}</strong>{" "}
+          {t("beforeAfterAnalytics.modal.descriptionAfter")}
         </p>
 
         {error && (
@@ -108,96 +135,128 @@ function EditBaselineModal({ open, onClose, current, onSave, isSaving }: EditBas
         <div className="space-y-4">
           <div>
             <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
-              Tanggal Baseline <span className="text-red-500">*</span>
+              {t("beforeAfterAnalytics.modal.fields.baselineDate")}{" "}
+              <span className="text-red-500">*</span>
             </label>
             <Input
               type="date"
               value={form.baseline_date}
-              onChange={(e) => setForm((f) => ({ ...f, baseline_date: e.target.value }))}
+              onChange={(e) =>
+                setForm((f) => ({ ...f, baseline_date: e.target.value }))
+              }
             />
             <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
-              Tanggal mulai penggunaan LMS (sebagai titik pembanding)
+              {t("beforeAfterAnalytics.modal.help.baselineDate")}
             </p>
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
               <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
-                Rata-rata Nilai Sebelum LMS
+                {t("beforeAfterAnalytics.modal.fields.avgGradeBefore")}
               </label>
               <Input
                 type="number"
                 min={0}
                 max={100}
                 step={0.1}
-                placeholder="Contoh: 72"
+                placeholder={t(
+                  "beforeAfterAnalytics.modal.placeholders.avgGrade",
+                )}
                 value={form.avg_grade_before}
-                onChange={(e) => setForm((f) => ({ ...f, avg_grade_before: e.target.value }))}
-              />
-              <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">Skala 0–100</p>
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
-                Tingkat Kehadiran Sebelum LMS (%)
-              </label>
-              <Input
-                type="number"
-                min={0}
-                max={100}
-                step={0.1}
-                placeholder="Contoh: 78"
-                value={form.attendance_rate_before}
-                onChange={(e) => setForm((f) => ({ ...f, attendance_rate_before: e.target.value }))}
-              />
-              <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">Persentase 0–100</p>
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
-                Biaya Kertas per Bulan (Rp)
-              </label>
-              <Input
-                type="number"
-                min={0}
-                placeholder="Contoh: 2000000"
-                value={form.paper_cost_monthly_rp}
-                onChange={(e) => setForm((f) => ({ ...f, paper_cost_monthly_rp: e.target.value }))}
+                onChange={(e) =>
+                  setForm((f) => ({ ...f, avg_grade_before: e.target.value }))
+                }
               />
               <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
-                Estimasi pengeluaran kertas/bulan
+                {t("beforeAfterAnalytics.modal.help.scale")}
               </p>
             </div>
 
             <div>
               <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
-                Jam Koreksi Guru per Minggu
+                {t("beforeAfterAnalytics.modal.fields.attendanceBefore")}
+              </label>
+              <Input
+                type="number"
+                min={0}
+                max={100}
+                step={0.1}
+                placeholder={t(
+                  "beforeAfterAnalytics.modal.placeholders.attendance",
+                )}
+                value={form.attendance_rate_before}
+                onChange={(e) =>
+                  setForm((f) => ({
+                    ...f,
+                    attendance_rate_before: e.target.value,
+                  }))
+                }
+              />
+              <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
+                {t("beforeAfterAnalytics.modal.help.percent")}
+              </p>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
+                {t("beforeAfterAnalytics.modal.fields.paperCost")}
+              </label>
+              <Input
+                type="number"
+                min={0}
+                placeholder={t(
+                  "beforeAfterAnalytics.modal.placeholders.paperCost",
+                )}
+                value={form.paper_cost_monthly_rp}
+                onChange={(e) =>
+                  setForm((f) => ({
+                    ...f,
+                    paper_cost_monthly_rp: e.target.value,
+                  }))
+                }
+              />
+              <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
+                {t("beforeAfterAnalytics.modal.help.paperCost")}
+              </p>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
+                {t("beforeAfterAnalytics.modal.fields.gradingHours")}
               </label>
               <Input
                 type="number"
                 min={0}
                 step={0.5}
-                placeholder="Contoh: 20"
+                placeholder={t(
+                  "beforeAfterAnalytics.modal.placeholders.gradingHours",
+                )}
                 value={form.teacher_grading_hours_weekly}
                 onChange={(e) =>
-                  setForm((f) => ({ ...f, teacher_grading_hours_weekly: e.target.value }))
+                  setForm((f) => ({
+                    ...f,
+                    teacher_grading_hours_weekly: e.target.value,
+                  }))
                 }
               />
               <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
-                Rata-rata jam/minggu per guru
+                {t("beforeAfterAnalytics.modal.help.gradingHours")}
               </p>
             </div>
           </div>
 
           <div>
             <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
-              Catatan (Opsional)
+              {t("beforeAfterAnalytics.modal.fields.notes")}
             </label>
             <textarea
               rows={3}
-              placeholder="Catatan tambahan tentang kondisi sebelum LMS..."
+              placeholder={t("beforeAfterAnalytics.modal.placeholders.notes")}
               value={form.notes}
-              onChange={(e) => setForm((f) => ({ ...f, notes: e.target.value }))}
+              onChange={(e) =>
+                setForm((f) => ({ ...f, notes: e.target.value }))
+              }
               className="w-full rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 px-3 py-2 text-sm text-slate-900 dark:text-slate-100 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"
             />
           </div>
@@ -205,27 +264,27 @@ function EditBaselineModal({ open, onClose, current, onSave, isSaving }: EditBas
       </ModalBody>
       <ModalFooter>
         <Button variant="ghost" onClick={onClose} disabled={isSaving}>
-          Batal
+          {t("beforeAfterAnalytics.modal.buttons.cancel")}
         </Button>
         <Button variant="primary" onClick={handleSave} disabled={isSaving}>
           {isSaving ? <Spinner size="sm" /> : null}
-          Simpan Data Baseline
+          {t("beforeAfterAnalytics.modal.buttons.save")}
         </Button>
       </ModalFooter>
     </Modal>
-  )
+  );
 }
 
 // ── Comparison Card ────────────────────────────────────────────
 
 interface ComparisonCardProps {
-  icon: string
-  label: string
-  before: string | null
-  after: string | null
-  delta: string | null
-  isPositive: boolean // apakah perubahan ini positif?
-  color: string
+  icon: string;
+  label: string;
+  before: string | null;
+  after: string | null;
+  delta: string | null;
+  isPositive: boolean; // apakah perubahan ini positif?
+  color: string;
 }
 
 function ComparisonCard({
@@ -237,16 +296,19 @@ function ComparisonCard({
   isPositive,
   color,
 }: ComparisonCardProps) {
-  const trendIcon = delta ? (isPositive ? '↑' : '↓') : null
+  const { t } = useTranslation();
+  const trendIcon = delta ? (isPositive ? "↑" : "↓") : null;
   const trendColor = delta
     ? isPositive
-      ? 'text-emerald-600 dark:text-emerald-400'
-      : 'text-red-600 dark:text-red-400'
-    : ''
+      ? "text-emerald-600 dark:text-emerald-400"
+      : "text-red-600 dark:text-red-400"
+    : "";
 
   return (
     <Card className="flex flex-col gap-3">
-      <div className={`w-10 h-10 rounded-xl flex items-center justify-center text-xl ${color}`}>
+      <div
+        className={`w-10 h-10 rounded-xl flex items-center justify-center text-xl ${color}`}
+      >
         {icon}
       </div>
       <p className="text-xs font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wide">
@@ -254,16 +316,30 @@ function ComparisonCard({
       </p>
       <div className="flex items-end gap-2">
         <div className="flex-1">
-          <p className="text-xs text-slate-400 dark:text-slate-500 mb-0.5">Sebelum LMS</p>
+          <p className="text-xs text-slate-400 dark:text-slate-500 mb-0.5">
+            {t("beforeAfterAnalytics.comparison.before")}
+          </p>
           <p className="text-lg font-bold text-slate-600 dark:text-slate-400">
-            {before ?? <span className="text-slate-400 text-sm">Belum diisi</span>}
+            {before ?? (
+              <span className="text-slate-400 text-sm">
+                {t("beforeAfterAnalytics.comparison.notFilled")}
+              </span>
+            )}
           </p>
         </div>
-        <span className="text-slate-300 dark:text-slate-600 text-xl mb-1">→</span>
+        <span className="text-slate-300 dark:text-slate-600 text-xl mb-1">
+          →
+        </span>
         <div className="flex-1">
-          <p className="text-xs text-slate-400 dark:text-slate-500 mb-0.5">Sekarang</p>
+          <p className="text-xs text-slate-400 dark:text-slate-500 mb-0.5">
+            {t("beforeAfterAnalytics.comparison.now")}
+          </p>
           <p className="text-lg font-bold text-slate-900 dark:text-slate-100">
-            {after ?? <span className="text-slate-400 text-sm">Tidak ada data</span>}
+            {after ?? (
+              <span className="text-slate-400 text-sm">
+                {t("beforeAfterAnalytics.comparison.noData")}
+              </span>
+            )}
           </p>
         </div>
       </div>
@@ -273,15 +349,15 @@ function ComparisonCard({
         </div>
       )}
     </Card>
-  )
+  );
 }
 
 // ── ROI Summary ────────────────────────────────────────────────
 
 interface ROISummaryProps {
-  baseline: SchoolBaselineMetrics | null
-  currentPaperCostSaved: number
-  currentTeacherHoursSaved: number
+  baseline: SchoolBaselineMetrics | null;
+  currentPaperCostSaved: number;
+  currentTeacherHoursSaved: number;
 }
 
 function ROISummary({
@@ -289,72 +365,78 @@ function ROISummary({
   currentPaperCostSaved,
   currentTeacherHoursSaved,
 }: ROISummaryProps) {
-  const paperBefore = baseline?.paper_cost_monthly_rp ?? 0
-  const paperNow = Math.max(0, paperBefore - currentPaperCostSaved)
-  const paperSaving = paperBefore - paperNow
+  const { t } = useTranslation();
+  const paperBefore = baseline?.paper_cost_monthly_rp ?? 0;
+  const paperNow = Math.max(0, paperBefore - currentPaperCostSaved);
+  const paperSaving = paperBefore - paperNow;
 
-  const hoursBefore = baseline?.teacher_grading_hours_weekly ?? 0
-  const hoursNow = Math.max(0, hoursBefore - currentTeacherHoursSaved)
-  const hoursSaving = hoursBefore - hoursNow
+  const hoursBefore = baseline?.teacher_grading_hours_weekly ?? 0;
+  const hoursNow = Math.max(0, hoursBefore - currentTeacherHoursSaved);
+  const hoursSaving = hoursBefore - hoursNow;
 
-  if (!baseline) return null
+  if (!baseline) return null;
 
   return (
     <Card>
       <div className="flex items-center gap-2 mb-4">
         <span className="text-xl">💰</span>
         <h3 className="text-base font-bold text-slate-800 dark:text-slate-100">
-          Ringkasan Penghematan (ROI)
+          {t("beforeAfterAnalytics.roi.title")}
         </h3>
       </div>
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <div className="p-4 rounded-xl bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-100 dark:border-emerald-800/30">
           <p className="text-xs font-medium text-emerald-600 dark:text-emerald-400 uppercase tracking-wide">
-            Penghematan Kertas/Bulan
+            {t("beforeAfterAnalytics.roi.paperSaving")}
           </p>
           <p className="text-2xl font-bold text-emerald-700 dark:text-emerald-300 mt-1">
             {fmtCurrency(paperSaving)}
           </p>
           <p className="text-xs text-emerald-600 dark:text-emerald-400 mt-1">
-            Dari {fmtCurrency(paperBefore)} → {fmtCurrency(paperNow)}/bulan
+            {t("beforeAfterAnalytics.roi.paperFromTo")
+              .replace("__BEFORE__", fmtCurrency(paperBefore))
+              .replace("__AFTER__", fmtCurrency(paperNow))}
           </p>
         </div>
         <div className="p-4 rounded-xl bg-blue-50 dark:bg-blue-900/20 border border-blue-100 dark:border-blue-800/30">
           <p className="text-xs font-medium text-blue-600 dark:text-blue-400 uppercase tracking-wide">
-            Efisiensi Waktu Guru/Minggu
+            {t("beforeAfterAnalytics.roi.teacherEfficiency")}
           </p>
           <p className="text-2xl font-bold text-blue-700 dark:text-blue-300 mt-1">
-            {hoursSaving.toFixed(1)} jam
+            {hoursSaving.toFixed(1)} {t("beforeAfterAnalytics.units.hours")}
           </p>
           <p className="text-xs text-blue-600 dark:text-blue-400 mt-1">
-            Dari {hoursBefore.toFixed(1)} jam → {hoursNow.toFixed(1)} jam/minggu
+            {t("beforeAfterAnalytics.roi.hoursFromTo")
+              .replace("__BEFORE__", hoursBefore.toFixed(1))
+              .replace("__AFTER__", hoursNow.toFixed(1))}
           </p>
         </div>
       </div>
     </Card>
-  )
+  );
 }
 
 // ── Bar Chart ──────────────────────────────────────────────────
 
 interface ComparisonChartProps {
-  data: Array<{ metric: string; sebelum: number; sesudah: number }>
-  isDark: boolean
+  data: Array<{ metric: string; sebelum: number; sesudah: number }>;
+  isDark: boolean;
 }
 
 function ComparisonChart({ data, isDark }: ComparisonChartProps) {
-  const gridColor = isDark ? '#334155' : '#e2e8f0'
-  const tickColor = isDark ? '#94a3b8' : '#64748b'
-  const tooltipBg = isDark ? '#1e293b' : '#ffffff'
-  const tooltipBorder = isDark ? '#334155' : '#e2e8f0'
-  const tooltipText = isDark ? '#f1f5f9' : '#0f172a'
+  const { t } = useTranslation();
+  const gridColor = isDark ? "#334155" : "#e2e8f0";
+  const tickColor = isDark ? "#94a3b8" : "#64748b";
+  const tooltipBg = isDark ? "#1e293b" : "#ffffff";
+  const tooltipBorder = isDark ? "#334155" : "#e2e8f0";
+  const tooltipText = isDark ? "#f1f5f9" : "#0f172a";
 
   if (data.length === 0) {
     return (
       <div className="flex items-center justify-center h-48 text-slate-400 dark:text-slate-500">
-        <p className="text-sm">Isi data baseline untuk melihat perbandingan.</p>
+        <p className="text-sm">{t("beforeAfterAnalytics.chart.empty")}</p>
       </div>
-    )
+    );
   }
 
   return (
@@ -367,84 +449,104 @@ function ComparisonChart({ data, isDark }: ComparisonChartProps) {
           contentStyle={{
             backgroundColor: tooltipBg,
             border: `1px solid ${tooltipBorder}`,
-            borderRadius: '0.5rem',
+            borderRadius: "0.5rem",
             color: tooltipText,
             fontSize: 12,
           }}
         />
-        <Legend wrapperStyle={{ fontSize: 12, color: tickColor, paddingTop: 8 }} />
-        <Bar dataKey="sebelum" name="Sebelum LMS" fill="#94a3b8" radius={[4, 4, 0, 0]}>
+        <Legend
+          wrapperStyle={{ fontSize: 12, color: tickColor, paddingTop: 8 }}
+        />
+        <Bar
+          dataKey="sebelum"
+          name={t("beforeAfterAnalytics.chart.before")}
+          fill="#94a3b8"
+          radius={[4, 4, 0, 0]}
+        >
           {data.map((_, index) => (
-            <Cell key={index} fill={isDark ? '#475569' : '#94a3b8'} />
+            <Cell key={index} fill={isDark ? "#475569" : "#94a3b8"} />
           ))}
         </Bar>
-        <Bar dataKey="sesudah" name="Sesudah LMS" fill="#3b82f6" radius={[4, 4, 0, 0]}>
+        <Bar
+          dataKey="sesudah"
+          name={t("beforeAfterAnalytics.chart.after")}
+          fill="#3b82f6"
+          radius={[4, 4, 0, 0]}
+        >
           {data.map((_, index) => (
             <Cell key={index} fill="#3b82f6" />
           ))}
         </Bar>
       </BarChart>
     </ResponsiveContainer>
-  )
+  );
 }
 
 // ── Main Component ─────────────────────────────────────────────
 
 export function BeforeAfterAnalytics() {
-  const navigate = useNavigate()
-  const { resolvedTheme } = useTheme()
-  const isDark = resolvedTheme === 'dark'
+  const { t } = useTranslation();
+  const navigate = useNavigate();
+  const { resolvedTheme } = useTheme();
+  const isDark = resolvedTheme === "dark";
 
   const {
     data: baseline,
     isLoading: isBaselineLoading,
     saveBaseline,
     isSaving,
-  } = useBaselineMetrics()
-  const { overview, roiMetrics, isLoading: isOverviewLoading } = useExecutiveData()
+  } = useBaselineMetrics();
+  const {
+    overview,
+    roiMetrics,
+    isLoading: isOverviewLoading,
+  } = useExecutiveData();
 
-  const [showEditModal, setShowEditModal] = useState(false)
+  const [showEditModal, setShowEditModal] = useState(false);
 
-  const isLoading = isBaselineLoading || isOverviewLoading
+  const isLoading = isBaselineLoading || isOverviewLoading;
 
   // Current "after" values from real data
-  const currentAvgGrade = overview?.avg_quiz_score ?? null
+  const currentAvgGrade = overview?.avg_quiz_score ?? null;
   const currentAttendance = overview
     ? overview.total_students > 0
       ? (overview.active_students / overview.total_students) * 100
       : null
-    : null
-  const currentPaperCostSaved = roiMetrics?.paper_saved_cost ?? 0
-  const currentTeacherHoursSaved = roiMetrics?.teacher_time_saved_hours ?? 0
+    : null;
+  const currentPaperCostSaved = roiMetrics?.paper_saved_cost ?? 0;
+  const currentTeacherHoursSaved = roiMetrics?.teacher_time_saved_hours ?? 0;
 
   // Compute paper cost "now" = baseline - saved
   const paperCostNow = baseline?.paper_cost_monthly_rp
     ? Math.max(0, baseline.paper_cost_monthly_rp - currentPaperCostSaved)
-    : null
+    : null;
   const teacherHoursNow = baseline?.teacher_grading_hours_weekly
-    ? Math.max(0, baseline.teacher_grading_hours_weekly - currentTeacherHoursSaved)
-    : null
+    ? Math.max(
+        0,
+        baseline.teacher_grading_hours_weekly - currentTeacherHoursSaved,
+      )
+    : null;
 
   // Delta helpers
   const gradeDelta =
     baseline?.avg_grade_before != null && currentAvgGrade != null
       ? currentAvgGrade - baseline.avg_grade_before
-      : null
+      : null;
 
   const attendanceDelta =
     baseline?.attendance_rate_before != null && currentAttendance != null
       ? currentAttendance - baseline.attendance_rate_before
-      : null
+      : null;
 
   const paperDelta =
     baseline?.paper_cost_monthly_rp != null && paperCostNow != null
       ? baseline.paper_cost_monthly_rp - paperCostNow
-      : null
+      : null;
 
   const hoursDelta =
     baseline?.teacher_grading_hours_weekly != null && teacherHoursNow != null
       ? baseline.teacher_grading_hours_weekly - teacherHoursNow
-      : null
+      : null;
 
   // Chart data (only normalized percentage-like values for fair comparison)
   const chartData = baseline
@@ -452,7 +554,7 @@ export function BeforeAfterAnalytics() {
         ...(baseline.avg_grade_before != null && currentAvgGrade != null
           ? [
               {
-                metric: 'Nilai (/100)',
+                metric: t("beforeAfterAnalytics.metrics.grade"),
                 sebelum: baseline.avg_grade_before,
                 sesudah: currentAvgGrade,
               },
@@ -461,14 +563,14 @@ export function BeforeAfterAnalytics() {
         ...(baseline.attendance_rate_before != null && currentAttendance != null
           ? [
               {
-                metric: 'Kehadiran (%)',
+                metric: t("beforeAfterAnalytics.metrics.attendance"),
                 sebelum: baseline.attendance_rate_before,
                 sesudah: Number(currentAttendance.toFixed(1)),
               },
             ]
           : []),
       ]
-    : []
+    : [];
 
   return (
     <div className="min-h-full space-y-6">
@@ -477,32 +579,36 @@ export function BeforeAfterAnalytics() {
         <div>
           <div className="flex items-center gap-2">
             <button
-              onClick={() => navigate('/app/principal')}
+              onClick={() => navigate("/app/principal")}
               className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition-colors text-sm"
             >
-              ← Kembali
+              {t("beforeAfterAnalytics.header.back")}
             </button>
           </div>
           <h1 className="text-xl sm:text-2xl font-bold text-slate-900 dark:text-slate-100 flex items-center gap-2 mt-1">
             <span>📊</span>
-            <span>Analitik Sebelum &amp; Sesudah LMS</span>
+            <span>{t("beforeAfterAnalytics.header.title")}</span>
           </h1>
           <p className="text-sm text-slate-500 dark:text-slate-400 mt-0.5">
-            Perbandingan kondisi sekolah sebelum dan sesudah implementasi EduSync
+            {t("beforeAfterAnalytics.header.subtitle")}
           </p>
         </div>
         <div className="flex items-center gap-2">
           {baseline && (
             <Badge variant="info" size="sm">
-              Baseline:{' '}
-              {new Date(baseline.baseline_date).toLocaleDateString('id-ID', {
-                month: 'long',
-                year: 'numeric',
+              {t("beforeAfterAnalytics.header.baseline")}{" "}
+              {new Date(baseline.baseline_date).toLocaleDateString("id-ID", {
+                month: "long",
+                year: "numeric",
               })}
             </Badge>
           )}
-          <Button variant="primary" size="sm" onClick={() => setShowEditModal(true)}>
-            ✏️ Edit Data Baseline
+          <Button
+            variant="primary"
+            size="sm"
+            onClick={() => setShowEditModal(true)}
+          >
+            {t("beforeAfterAnalytics.header.editBaseline")}
           </Button>
         </div>
       </div>
@@ -521,15 +627,14 @@ export function BeforeAfterAnalytics() {
             <span className="text-5xl">📋</span>
             <div>
               <h3 className="text-lg font-bold text-slate-800 dark:text-slate-100">
-                Belum Ada Data Baseline
+                {t("beforeAfterAnalytics.noBaseline.title")}
               </h3>
               <p className="text-sm text-slate-500 dark:text-slate-400 mt-1 max-w-sm">
-                Tambahkan data kondisi sekolah sebelum menggunakan EduSync untuk melihat
-                perbandingan dampak nyata LMS.
+                {t("beforeAfterAnalytics.noBaseline.description")}
               </p>
             </div>
             <Button variant="primary" onClick={() => setShowEditModal(true)}>
-              Tambah Data Baseline
+              {t("beforeAfterAnalytics.noBaseline.button")}
             </Button>
           </div>
         </Card>
@@ -540,12 +645,23 @@ export function BeforeAfterAnalytics() {
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
           <ComparisonCard
             icon="⭐"
-            label="Rata-rata Nilai"
-            before={baseline?.avg_grade_before != null ? `${baseline.avg_grade_before}/100` : null}
-            after={currentAvgGrade != null ? `${currentAvgGrade.toFixed(1)}/100` : null}
+            label={t("beforeAfterAnalytics.cards.avgGrade")}
+            before={
+              baseline?.avg_grade_before != null
+                ? `${baseline.avg_grade_before}/100`
+                : null
+            }
+            after={
+              currentAvgGrade != null
+                ? `${currentAvgGrade.toFixed(1)}/100`
+                : null
+            }
             delta={
               gradeDelta != null
-                ? `${gradeDelta > 0 ? '+' : ''}${gradeDelta.toFixed(1)} poin`
+                ? t("beforeAfterAnalytics.delta.points").replace(
+                    "__VALUE__",
+                    `${gradeDelta > 0 ? "+" : ""}${gradeDelta.toFixed(1)}`,
+                  )
                 : null
             }
             isPositive={gradeDelta != null && gradeDelta > 0}
@@ -553,16 +669,18 @@ export function BeforeAfterAnalytics() {
           />
           <ComparisonCard
             icon="🎓"
-            label="Tingkat Kehadiran"
+            label={t("beforeAfterAnalytics.cards.attendance")}
             before={
               baseline?.attendance_rate_before != null
                 ? fmtPercent(baseline.attendance_rate_before)
                 : null
             }
-            after={currentAttendance != null ? fmtPercent(currentAttendance) : null}
+            after={
+              currentAttendance != null ? fmtPercent(currentAttendance) : null
+            }
             delta={
               attendanceDelta != null
-                ? `${attendanceDelta > 0 ? '+' : ''}${attendanceDelta.toFixed(1)}%`
+                ? `${attendanceDelta > 0 ? "+" : ""}${attendanceDelta.toFixed(1)}%`
                 : null
             }
             isPositive={attendanceDelta != null && attendanceDelta > 0}
@@ -570,27 +688,45 @@ export function BeforeAfterAnalytics() {
           />
           <ComparisonCard
             icon="📄"
-            label="Biaya Kertas/Bulan"
+            label={t("beforeAfterAnalytics.cards.paperCost")}
             before={
               baseline?.paper_cost_monthly_rp != null
                 ? fmtCurrency(baseline.paper_cost_monthly_rp)
                 : null
             }
             after={paperCostNow != null ? fmtCurrency(paperCostNow) : null}
-            delta={paperDelta != null ? `Hemat ${fmtCurrency(paperDelta)}` : null}
+            delta={
+              paperDelta != null
+                ? t("beforeAfterAnalytics.delta.savedCurrency").replace(
+                    "__VALUE__",
+                    fmtCurrency(paperDelta),
+                  )
+                : null
+            }
             isPositive={paperDelta != null && paperDelta > 0}
             color="bg-emerald-50 dark:bg-emerald-900/30"
           />
           <ComparisonCard
             icon="⏱️"
-            label="Jam Koreksi/Minggu"
+            label={t("beforeAfterAnalytics.cards.gradingHours")}
             before={
               baseline?.teacher_grading_hours_weekly != null
-                ? `${baseline.teacher_grading_hours_weekly} jam`
+                ? `${baseline.teacher_grading_hours_weekly} ${t("beforeAfterAnalytics.units.hours")}`
                 : null
             }
-            after={teacherHoursNow != null ? `${teacherHoursNow.toFixed(1)} jam` : null}
-            delta={hoursDelta != null ? `Hemat ${hoursDelta.toFixed(1)} jam` : null}
+            after={
+              teacherHoursNow != null
+                ? `${teacherHoursNow.toFixed(1)} ${t("beforeAfterAnalytics.units.hours")}`
+                : null
+            }
+            delta={
+              hoursDelta != null
+                ? t("beforeAfterAnalytics.delta.savedHours").replace(
+                    "__VALUE__",
+                    hoursDelta.toFixed(1),
+                  )
+                : null
+            }
             isPositive={hoursDelta != null && hoursDelta > 0}
             color="bg-violet-50 dark:bg-violet-900/30"
           />
@@ -602,10 +738,10 @@ export function BeforeAfterAnalytics() {
         <Card>
           <div className="mb-4">
             <h2 className="text-base font-bold text-slate-800 dark:text-slate-100">
-              Perbandingan Visual
+              {t("beforeAfterAnalytics.visual.title")}
             </h2>
             <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
-              Perbandingan metrik utama sebelum dan sesudah implementasi LMS
+              {t("beforeAfterAnalytics.visual.subtitle")}
             </p>
           </div>
           <ComparisonChart data={chartData} isDark={isDark} />
@@ -625,9 +761,11 @@ export function BeforeAfterAnalytics() {
       {!isLoading && baseline?.notes && (
         <Card>
           <h3 className="text-sm font-semibold text-slate-700 dark:text-slate-300 mb-2">
-            Catatan Baseline
+            {t("beforeAfterAnalytics.notes.title")}
           </h3>
-          <p className="text-sm text-slate-600 dark:text-slate-400">{baseline.notes}</p>
+          <p className="text-sm text-slate-600 dark:text-slate-400">
+            {baseline.notes}
+          </p>
         </Card>
       )}
 
@@ -640,5 +778,5 @@ export function BeforeAfterAnalytics() {
         isSaving={isSaving}
       />
     </div>
-  )
+  );
 }

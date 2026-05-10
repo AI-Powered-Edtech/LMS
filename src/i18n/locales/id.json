@@ -2305,5 +2305,98 @@
       "downloadCsv": "Unduh CSV",
       "printPdf": "Cetak / PDF"
     }
+  },
+  "beforeAfterAnalytics": {
+    "modal": {
+      "title": "Edit Data Baseline (Sebelum LMS)",
+      "descriptionBefore": "Masukkan data rata-rata sekolah",
+      "before": "sebelum",
+      "descriptionAfter": "menggunakan EduSync LMS. Data ini akan dibandingkan dengan kondisi saat ini.",
+      "errors": {
+        "baselineDateRequired": "Tanggal baseline wajib diisi."
+      },
+      "fields": {
+        "baselineDate": "Tanggal Baseline",
+        "avgGradeBefore": "Rata-rata Nilai Sebelum LMS",
+        "attendanceBefore": "Tingkat Kehadiran Sebelum LMS (%)",
+        "paperCost": "Biaya Kertas per Bulan (Rp)",
+        "gradingHours": "Jam Koreksi Guru per Minggu",
+        "notes": "Catatan (Opsional)"
+      },
+      "placeholders": {
+        "avgGrade": "Contoh: 72",
+        "attendance": "Contoh: 78",
+        "paperCost": "Contoh: 2000000",
+        "gradingHours": "Contoh: 20",
+        "notes": "Catatan tambahan tentang kondisi sebelum LMS..."
+      },
+      "help": {
+        "baselineDate": "Tanggal mulai penggunaan LMS (sebagai titik pembanding)",
+        "scale": "Skala 0–100",
+        "percent": "Persentase 0–100",
+        "paperCost": "Estimasi pengeluaran kertas/bulan",
+        "gradingHours": "Rata-rata jam/minggu per guru"
+      },
+      "buttons": {
+        "cancel": "Batal",
+        "save": "Simpan Data Baseline"
+      }
+    },
+    "comparison": {
+      "before": "Sebelum LMS",
+      "now": "Sekarang",
+      "notFilled": "Belum diisi",
+      "noData": "Tidak ada data"
+    },
+    "roi": {
+      "title": "Ringkasan Penghematan (ROI)",
+      "paperSaving": "Penghematan Kertas/Bulan",
+      "teacherEfficiency": "Efisiensi Waktu Guru/Minggu",
+      "paperFromTo": "Dari __BEFORE__ → __AFTER__/bulan",
+      "hoursFromTo": "Dari __BEFORE__ jam → __AFTER__ jam/minggu"
+    },
+    "units": {
+      "hours": "jam",
+      "hoursPerWeek": "jam/minggu"
+    },
+    "chart": {
+      "empty": "Isi data baseline untuk melihat perbandingan.",
+      "before": "Sebelum LMS",
+      "after": "Sesudah LMS"
+    },
+    "header": {
+      "back": "← Kembali",
+      "title": "Analitik Sebelum & Sesudah LMS",
+      "subtitle": "Perbandingan kondisi sekolah sebelum dan sesudah implementasi EduSync",
+      "baseline": "Baseline:",
+      "editBaseline": "✏️ Edit Data Baseline"
+    },
+    "noBaseline": {
+      "title": "Belum Ada Data Baseline",
+      "description": "Tambahkan data kondisi sekolah sebelum menggunakan EduSync untuk melihat perbandingan dampak nyata LMS.",
+      "button": "Tambah Data Baseline"
+    },
+    "visual": {
+      "title": "Perbandingan Visual",
+      "subtitle": "Perbandingan metrik utama sebelum dan sesudah implementasi LMS"
+    },
+    "notes": {
+      "title": "Catatan Baseline"
+    },
+    "metrics": {
+      "grade": "Nilai (/100)",
+      "attendance": "Kehadiran (%)"
+    },
+    "cards": {
+      "avgGrade": "Rata-rata Nilai",
+      "attendance": "Tingkat Kehadiran",
+      "paperCost": "Biaya Kertas/Bulan",
+      "gradingHours": "Jam Koreksi/Minggu"
+    },
+    "delta": {
+      "points": "__VALUE__ poin",
+      "savedCurrency": "Hemat __VALUE__",
+      "savedHours": "Hemat __VALUE__ jam"
+    }
   }
 }

@@ -2305,5 +2305,98 @@
       "downloadCsv": "Download CSV",
       "printPdf": "Print / PDF"
     }
+  },
+  "beforeAfterAnalytics": {
+    "modal": {
+      "title": "Edit Baseline Data (Before LMS)",
+      "descriptionBefore": "Enter the school's average data",
+      "before": "before",
+      "descriptionAfter": "using EduSync LMS. This data will be compared with the current condition.",
+      "errors": {
+        "baselineDateRequired": "Baseline date is required."
+      },
+      "fields": {
+        "baselineDate": "Baseline Date",
+        "avgGradeBefore": "Average Grade Before LMS",
+        "attendanceBefore": "Attendance Rate Before LMS (%)",
+        "paperCost": "Monthly Paper Cost (IDR)",
+        "gradingHours": "Teacher Grading Hours per Week",
+        "notes": "Notes (Optional)"
+      },
+      "placeholders": {
+        "avgGrade": "Example: 72",
+        "attendance": "Example: 78",
+        "paperCost": "Example: 2000000",
+        "gradingHours": "Example: 20",
+        "notes": "Additional notes about conditions before LMS..."
+      },
+      "help": {
+        "baselineDate": "LMS start date (as comparison point)",
+        "scale": "Scale 0–100",
+        "percent": "Percentage 0–100",
+        "paperCost": "Estimated monthly paper expense",
+        "gradingHours": "Average hours/week per teacher"
+      },
+      "buttons": {
+        "cancel": "Cancel",
+        "save": "Save Baseline Data"
+      }
+    },
+    "comparison": {
+      "before": "Before LMS",
+      "now": "Now",
+      "notFilled": "Not filled yet",
+      "noData": "No data"
+    },
+    "roi": {
+      "title": "Savings Summary (ROI)",
+      "paperSaving": "Paper Savings/Month",
+      "teacherEfficiency": "Teacher Time Efficiency/Week",
+      "paperFromTo": "From __BEFORE__ → __AFTER__/month",
+      "hoursFromTo": "From __BEFORE__ hours → __AFTER__ hours/week"
+    },
+    "units": {
+      "hours": "hours",
+      "hoursPerWeek": "hours/week"
+    },
+    "chart": {
+      "empty": "Fill in baseline data to view the comparison.",
+      "before": "Before LMS",
+      "after": "After LMS"
+    },
+    "header": {
+      "back": "← Back",
+      "title": "Before & After LMS Analytics",
+      "subtitle": "Compare school conditions before and after EduSync implementation",
+      "baseline": "Baseline:",
+      "editBaseline": "✏️ Edit Baseline Data"
+    },
+    "noBaseline": {
+      "title": "No Baseline Data Yet",
+      "description": "Add school condition data before using EduSync to see the real LMS impact comparison.",
+      "button": "Add Baseline Data"
+    },
+    "visual": {
+      "title": "Visual Comparison",
+      "subtitle": "Compare key metrics before and after LMS implementation"
+    },
+    "notes": {
+      "title": "Baseline Notes"
+    },
+    "metrics": {
+      "grade": "Grade (/100)",
+      "attendance": "Attendance (%)"
+    },
+    "cards": {
+      "avgGrade": "Average Grade",
+      "attendance": "Attendance Rate",
+      "paperCost": "Paper Cost/Month",
+      "gradingHours": "Grading Hours/Week"
+    },
+    "delta": {
+      "points": "__VALUE__ points",
+      "savedCurrency": "Saved __VALUE__",
+      "savedHours": "Saved __VALUE__ hours"
+    }
   }
 }
