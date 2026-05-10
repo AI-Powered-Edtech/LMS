@@ -113,7 +113,10 @@ export function Rapor() {
 
       <Card>
         <div className="flex items-center gap-4 mb-4">
-          <label className="flex items-center gap-3 text-sm font-medium text-slate-700 dark:text-slate-300">
+          <label
+            htmlFor="rapor-rombel"
+            className="flex items-center gap-3 text-sm font-medium text-slate-700 dark:text-slate-300"
+          >
             <span>Rombel:</span>
             <select
               id="rapor-rombel"

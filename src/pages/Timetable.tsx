@@ -155,7 +155,10 @@ export function Timetable() {
                 {pendingAddSlot ? WEEKDAYS[pendingAddSlot.weekday - 1] : ""} jam
                 ke-{pendingAddSlot?.period}.
               </p>
-              <label className="block text-sm font-medium text-slate-700 dark:text-slate-300">
+              <label
+                htmlFor="timetable-subject"
+                className="block text-sm font-medium text-slate-700 dark:text-slate-300"
+              >
                 <span className="mb-1 block">Mata pelajaran</span>
                 <select
                   id="timetable-subject"
@@ -191,7 +194,10 @@ export function Timetable() {
 
       <Card>
         <div className="flex items-center gap-4 mb-4">
-          <label className="flex items-center gap-3 text-sm font-medium text-slate-700 dark:text-slate-300">
+          <label
+            htmlFor="timetable-rombel"
+            className="flex items-center gap-3 text-sm font-medium text-slate-700 dark:text-slate-300"
+          >
             <span>Rombel:</span>
             <select
               id="timetable-rombel"
