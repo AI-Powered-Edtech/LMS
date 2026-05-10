@@ -508,17 +508,18 @@ export const Courses: React.FC = () => {
                 >
                   {/* Judul Materi */}
                   <div>
-                    <label
-                      htmlFor="course-title"
-                      className="flex items-center gap-2 text-sm font-bold text-gray-700 dark:text-gray-300 mb-2"
-                    >
-                      <FileText className="w-4 h-4 text-gray-400" />
+                    <div className="flex items-center gap-2 text-sm font-bold text-gray-700 dark:text-gray-300 mb-2">
+                      <FileText
+                        className="w-4 h-4 text-gray-400"
+                        aria-hidden="true"
+                      />
                       {t("courses.create.titleLabel")}{" "}
                       <span className="text-red-500">*</span>
-                    </label>
+                    </div>
                     <input
                       id="course-title"
                       type="text"
+                      aria-label={t("courses.create.titleLabel")}
                       required
                       maxLength={255}
                       value={newTitle}
@@ -531,17 +532,18 @@ export const Courses: React.FC = () => {
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     {/* Mata Pelajaran */}
                     <div>
-                      <label
-                        htmlFor="course-subject"
-                        className="flex items-center gap-2 text-sm font-bold text-gray-700 dark:text-gray-300 mb-2"
-                      >
-                        <BookOpen className="w-4 h-4 text-gray-400" />
+                      <div className="flex items-center gap-2 text-sm font-bold text-gray-700 dark:text-gray-300 mb-2">
+                        <BookOpen
+                          className="w-4 h-4 text-gray-400"
+                          aria-hidden="true"
+                        />
                         {t("courses.create.subjectLabel")}
-                      </label>
+                      </div>
                       <div className="relative">
                         <input
                           id="course-subject"
                           type="text"
+                          aria-label={t("courses.create.subjectLabel")}
                           maxLength={100}
                           value={newSubject}
                           onChange={(e) => setNewSubject(e.target.value)}
@@ -554,16 +556,17 @@ export const Courses: React.FC = () => {
 
                     {/* Tingkat / Level */}
                     <div>
-                      <label
-                        htmlFor="course-level"
-                        className="flex items-center gap-2 text-sm font-bold text-gray-700 dark:text-gray-300 mb-2"
-                      >
-                        <LayoutList className="w-4 h-4 text-gray-400" />
+                      <div className="flex items-center gap-2 text-sm font-bold text-gray-700 dark:text-gray-300 mb-2">
+                        <LayoutList
+                          className="w-4 h-4 text-gray-400"
+                          aria-hidden="true"
+                        />
                         {t("courses.create.levelLabel")}
-                      </label>
+                      </div>
                       <div className="relative">
                         <select
                           id="course-level"
+                          aria-label={t("courses.create.levelLabel")}
                           value={newLevel}
                           onChange={(e) => setNewLevel(e.target.value)}
                           className="w-full pl-4 pr-10 py-3.5 border border-gray-200 dark:border-gray-600/80 rounded-xl bg-gray-50/50 dark:bg-gray-700/30 text-gray-900 dark:text-white focus:bg-white dark:focus:bg-gray-700 focus:ring-4 focus:ring-indigo-500/20 focus:border-indigo-500 outline-none transition-all font-medium appearance-none shadow-sm cursor-pointer"
@@ -594,15 +597,16 @@ export const Courses: React.FC = () => {
 
                   {/* Deskripsi */}
                   <div>
-                    <label
-                      htmlFor="course-description"
-                      className="flex items-center gap-2 text-sm font-bold text-gray-700 dark:text-gray-300 mb-2"
-                    >
-                      <FileText className="w-4 h-4 text-gray-400" />
+                    <div className="flex items-center gap-2 text-sm font-bold text-gray-700 dark:text-gray-300 mb-2">
+                      <FileText
+                        className="w-4 h-4 text-gray-400"
+                        aria-hidden="true"
+                      />
                       {t("courses.create.shortDescriptionLabel")}
-                    </label>
+                    </div>
                     <textarea
                       id="course-description"
+                      aria-label={t("courses.create.shortDescriptionLabel")}
                       rows={3}
                       value={newDescription}
                       onChange={(e) => setNewDescription(e.target.value)}
