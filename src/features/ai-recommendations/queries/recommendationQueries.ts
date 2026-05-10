@@ -1,25 +1,31 @@
-import { useQuery } from '@tanstack/react-query'
+import { useQuery } from "@tanstack/react-query";
 
-import { STALE } from '@/utils/queryConstants'
+import { STALE } from "@/utils/queryConstants";
 
-import { aiRecommendationService } from '../api/recommendationService'
+import { aiRecommendationService } from "../api/recommendationService";
 
 // Key factory — includes tenantId for multi-tenant cache isolation
 const aiRecommendationQueryKeys = {
   byCourse: (tenantId: string, courseId: string) =>
-    ['ai-recommendations', tenantId, 'course', courseId] as const,
-}
+    ["ai-recommendations", tenantId, "course", courseId] as const,
+};
 
-export { aiRecommendationQueryKeys }
+export { aiRecommendationQueryKeys };
 
 /**
  * Fetches AI learning path recommendations for a given course.
  * Automatically disabled when courseId or tenantId are missing.
  * Fails silently — errors are not surfaced to the student.
  */
-export function useAiRecommendations(courseId: string | null, tenantId: string | null) {
+export function useAiRecommendations(
+  courseId: string | null,
+  tenantId: string | null,
+) {
   return useQuery({
-    queryKey: aiRecommendationQueryKeys.byCourse(tenantId ?? '', courseId ?? ''),
+    queryKey: aiRecommendationQueryKeys.byCourse(
+      tenantId ?? "",
+      courseId ?? "",
+    ),
     queryFn: () => aiRecommendationService.getRecommendations(courseId!),
     enabled: !!courseId && !!tenantId,
     staleTime: STALE.MODERATE,
@@ -30,5 +36,5 @@ export function useAiRecommendations(courseId: string | null, tenantId: string |
     // AI recommendation endpoint is best-effort and has inline fallback UI;
     // do not surface failures via the global toast.
     meta: { suppressGlobalErrorToast: true },
-  })
+  });
 }

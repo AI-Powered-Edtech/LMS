@@ -7,29 +7,29 @@ import {
   PenLine,
   Search,
   XCircle,
-} from 'lucide-react'
-import { useMemo } from 'react'
+} from "lucide-react";
+import { useMemo } from "react";
 
-import { EmptyState, OptimizedImage } from '@/components/ui'
-import { VirtualTable } from '@/components/ui/VirtualTable'
-import { AssignmentResultRow } from '@/features/quizzes'
+import { EmptyState, OptimizedImage } from "@/components/ui";
+import { VirtualTable } from "@/components/ui/VirtualTable";
+import { AssignmentResultRow } from "@/features/quizzes";
 import {
   formatDuration,
   getScoreBg,
   getScoreColor,
-} from '@/features/quizzes/hooks/useQuizGradebookState'
-import { cn } from '@/utils/cn'
+} from "@/features/quizzes/hooks/useQuizGradebookState";
+import { cn } from "@/utils/cn";
 
 interface QuizGradebookTableProps {
-  filteredAttempts: AssignmentResultRow[]
-  selectedAssignment: string
-  selectedAssignmentTitle: string | undefined
-  passingScore: number
-  isLoading: boolean
-  searchQuery: string
-  error: string | null
-  onSearchChange: (value: string) => void
-  onOpenAttemptDetail: (attempt: AssignmentResultRow) => void
+  filteredAttempts: AssignmentResultRow[];
+  selectedAssignment: string;
+  selectedAssignmentTitle: string | undefined;
+  passingScore: number;
+  isLoading: boolean;
+  searchQuery: string;
+  error: string | null;
+  onSearchChange: (value: string) => void;
+  onOpenAttemptDetail: (attempt: AssignmentResultRow) => void;
 }
 
 export function QuizGradebookTable({
@@ -46,8 +46,8 @@ export function QuizGradebookTable({
   const attemptColumns = useMemo(
     () => [
       {
-        key: 'student_name',
-        header: 'Siswa',
+        key: "student_name",
+        header: "Siswa",
         render: (attempt: AssignmentResultRow) => (
           <div
             role="button"
@@ -55,7 +55,8 @@ export function QuizGradebookTable({
             className="flex items-center gap-3 cursor-pointer"
             onClick={() => onOpenAttemptDetail(attempt)}
             onKeyDown={(e) => {
-              if (e.key === 'Enter' || e.key === ' ') onOpenAttemptDetail(attempt)
+              if (e.key === "Enter" || e.key === " ")
+                onOpenAttemptDetail(attempt);
             }}
           >
             <div className="w-8 h-8 rounded-full bg-slate-200 overflow-hidden shrink-0">
@@ -65,31 +66,31 @@ export function QuizGradebookTable({
               />
             </div>
             <span className="font-semibold text-slate-800 dark:text-slate-200 text-sm">
-              {attempt.student_name || 'Siswa'}
+              {attempt.student_name || "Siswa"}
             </span>
           </div>
         ),
       },
       {
-        key: 'score',
-        header: 'Skor',
+        key: "score",
+        header: "Skor",
         render: (attempt: AssignmentResultRow) => (
           <div className="flex justify-center">
             <span
               className={cn(
-                'inline-flex items-center justify-center w-14 h-8 rounded-lg text-sm',
+                "inline-flex items-center justify-center w-14 h-8 rounded-lg text-sm",
                 getScoreBg(attempt.score, passingScore),
-                getScoreColor(attempt.score, passingScore)
+                getScoreColor(attempt.score, passingScore),
               )}
             >
-              {attempt.score ?? '-'}
+              {attempt.score ?? "-"}
             </span>
           </div>
         ),
       },
       {
-        key: 'status',
-        header: 'Status',
+        key: "status",
+        header: "Status",
         render: (attempt: AssignmentResultRow) => (
           <div className="flex flex-col items-center gap-1">
             {attempt.passed === true ? (
@@ -103,7 +104,7 @@ export function QuizGradebookTable({
             ) : (
               <span className="text-xs text-slate-400">Belum dinilai</span>
             )}
-            {attempt.status === 'submitted' && attempt.passed === null && (
+            {attempt.status === "submitted" && attempt.passed === null && (
               <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-amber-100 text-amber-700 rounded-full text-[10px] font-bold">
                 <PenLine className="w-2.5 h-2.5" />
                 Perlu Dinilai
@@ -113,8 +114,8 @@ export function QuizGradebookTable({
         ),
       },
       {
-        key: 'time_spent',
-        header: 'Waktu',
+        key: "time_spent",
+        header: "Waktu",
         render: (attempt: AssignmentResultRow) => (
           <div className="flex justify-center text-sm text-slate-600 dark:text-slate-400">
             <span className="inline-flex items-center gap-1">
@@ -125,30 +126,30 @@ export function QuizGradebookTable({
         ),
       },
       {
-        key: 'submitted_at',
-        header: 'Diserahkan',
+        key: "submitted_at",
+        header: "Diserahkan",
         render: (attempt: AssignmentResultRow) => (
           <div className="text-center text-sm text-slate-500 dark:text-slate-400">
             {attempt.submitted_at
-              ? new Date(attempt.submitted_at).toLocaleString('id-ID', {
-                  day: 'numeric',
-                  month: 'short',
-                  hour: '2-digit',
-                  minute: '2-digit',
+              ? new Date(attempt.submitted_at).toLocaleString("id-ID", {
+                  day: "numeric",
+                  month: "short",
+                  hour: "2-digit",
+                  minute: "2-digit",
                 })
-              : '-'}
+              : "-"}
           </div>
         ),
       },
       {
-        key: 'actions',
-        header: 'Aksi',
+        key: "actions",
+        header: "Aksi",
         render: (attempt: AssignmentResultRow) => (
           <div className="flex justify-center">
             <button
               onClick={(e) => {
-                e.stopPropagation()
-                onOpenAttemptDetail(attempt)
+                e.stopPropagation();
+                onOpenAttemptDetail(attempt);
               }}
               className="inline-flex items-center gap-1 px-3 py-1.5 text-xs font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-900/30 hover:bg-blue-100 dark:hover:bg-blue-900/50 rounded-lg transition-colors"
             >
@@ -159,8 +160,8 @@ export function QuizGradebookTable({
         ),
       },
     ],
-    [passingScore, onOpenAttemptDetail]
-  )
+    [passingScore, onOpenAttemptDetail],
+  );
 
   return (
     <div
@@ -214,9 +215,11 @@ export function QuizGradebookTable({
           columns={attemptColumns}
           rowHeight={52}
           maxHeight={550}
-          getRowKey={(attempt) => attempt.attempt_id ?? String(attempt.student_id)}
+          getRowKey={(attempt) =>
+            attempt.attempt_id ?? String(attempt.student_id)
+          }
         />
       )}
     </div>
-  )
+  );
 }

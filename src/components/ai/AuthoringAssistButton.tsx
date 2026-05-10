@@ -1,22 +1,27 @@
-import { Loader2, Sparkles } from 'lucide-react'
-import { useState } from 'react'
+import { Loader2, Sparkles } from "lucide-react";
+import { useState } from "react";
 
-import { Button } from '@/components/ui/Button'
-import { Modal, ModalBody, ModalFooter, ModalHeader } from '@/components/ui/Modal'
-import { useAuth } from '@/contexts/AuthContext'
-import { aiProvider } from '@/services/ai/aiProvider'
-import { db } from '@/services/db'
-import { useToast } from '@/hooks/useToast'
+import { Button } from "@/components/ui/Button";
+import {
+  Modal,
+  ModalBody,
+  ModalFooter,
+  ModalHeader,
+} from "@/components/ui/Modal";
+import { useAuth } from "@/contexts/AuthContext";
+import { useToast } from "@/hooks/useToast";
+import { aiProvider } from "@/services/ai/aiProvider";
+import { db } from "@/services/db";
 
 interface AuthoringAssistButtonProps {
-  targetType: 'course' | 'lesson' | 'quiz' | 'assignment'
-  targetId: string
+  targetType: "course" | "lesson" | "quiz" | "assignment";
+  targetId: string;
   /** What you want suggested. Inserted into the prompt as the user-instruction. */
-  prompt: string
+  prompt: string;
   /** Friendly label shown on the button. */
-  label?: string
+  label?: string;
   /** Called with the AI suggestion when accepted. */
-  onAccept: (suggestion: string) => void
+  onAccept: (suggestion: string) => void;
 }
 
 /**
@@ -29,40 +34,40 @@ export function AuthoringAssistButton({
   targetType,
   targetId,
   prompt,
-  label = 'Bantu AI',
+  label = "Bantu AI",
   onAccept,
 }: AuthoringAssistButtonProps) {
-  const { tenantId, user } = useAuth()
-  const { addToast } = useToast()
-  const [isLoading, setIsLoading] = useState(false)
-  const [isOpen, setIsOpen] = useState(false)
-  const [response, setResponse] = useState('')
-  const [draftId, setDraftId] = useState<string | null>(null)
+  const { tenantId, user } = useAuth();
+  const { addToast } = useToast();
+  const [isLoading, setIsLoading] = useState(false);
+  const [isOpen, setIsOpen] = useState(false);
+  const [response, setResponse] = useState("");
+  const [draftId, setDraftId] = useState<string | null>(null);
 
   async function handleGenerate() {
-    setIsLoading(true)
+    setIsLoading(true);
     try {
       const result = await aiProvider.complete({
-        provider: 'groq',
+        provider: "groq",
         messages: [
           {
-            role: 'system',
+            role: "system",
             content:
-              'Anda asisten guru yang membantu menulis konten pembelajaran dalam Bahasa Indonesia. Tulis singkat, jelas, sesuai usia siswa SMA. Jangan tambah komentar di luar konten yang diminta.',
+              "Anda asisten guru yang membantu menulis konten pembelajaran dalam Bahasa Indonesia. Tulis singkat, jelas, sesuai usia siswa SMA. Jangan tambah komentar di luar konten yang diminta.",
           },
-          { role: 'user', content: prompt },
+          { role: "user", content: prompt },
         ],
         maxTokens: 600,
         temperature: 0.7,
         metadata: { target_type: targetType, target_id: targetId },
-      })
-      setResponse(result.content)
-      setIsOpen(true)
+      });
+      setResponse(result.content);
+      setIsOpen(true);
 
       // Log draft (best-effort).
       if (tenantId) {
         const { data, error } = await db
-          .from('authoring_assist_drafts')
+          .from("authoring_assist_drafts")
           .insert({
             tenant_id: tenantId,
             author_id: user?.id ?? null,
@@ -75,34 +80,40 @@ export function AuthoringAssistButton({
             tokens_input: result.tokensInput,
             tokens_output: result.tokensOutput,
           })
-          .select('id')
-          .single()
-        if (!error && data) setDraftId((data as { id: string }).id)
+          .select("id")
+          .single();
+        if (!error && data) setDraftId((data as { id: string }).id);
       }
     } catch (err) {
       addToast({
-        type: 'error',
-        message: 'Bantuan AI gagal',
-        description: err instanceof Error ? err.message : 'Terjadi kesalahan',
-      })
+        type: "error",
+        message: "Bantuan AI gagal",
+        description: err instanceof Error ? err.message : "Terjadi kesalahan",
+      });
     } finally {
-      setIsLoading(false)
+      setIsLoading(false);
     }
   }
 
   async function handleAccept() {
-    onAccept(response)
-    setIsOpen(false)
+    onAccept(response);
+    setIsOpen(false);
     if (draftId) {
-      await db.from('authoring_assist_drafts').update({ accepted: true }).eq('id', draftId)
+      await db
+        .from("authoring_assist_drafts")
+        .update({ accepted: true })
+        .eq("id", draftId);
     }
-    addToast({ type: 'success', message: 'Saran diterapkan' })
+    addToast({ type: "success", message: "Saran diterapkan" });
   }
 
   async function handleReject() {
-    setIsOpen(false)
+    setIsOpen(false);
     if (draftId) {
-      await db.from('authoring_assist_drafts').update({ accepted: false }).eq('id', draftId)
+      await db
+        .from("authoring_assist_drafts")
+        .update({ accepted: false })
+        .eq("id", draftId);
     }
   }
 
@@ -114,9 +125,15 @@ export function AuthoringAssistButton({
         size="sm"
         onClick={handleGenerate}
         disabled={isLoading}
-        icon={isLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Sparkles className="w-4 h-4" />}
+        icon={
+          isLoading ? (
+            <Loader2 className="w-4 h-4 animate-spin" />
+          ) : (
+            <Sparkles className="w-4 h-4" />
+          )
+        }
       >
-        {isLoading ? 'Memproses...' : label}
+        {isLoading ? "Memproses..." : label}
       </Button>
 
       <Modal open={isOpen} onClose={handleReject}>
@@ -137,5 +154,5 @@ export function AuthoringAssistButton({
         </ModalFooter>
       </Modal>
     </>
-  )
+  );
 }

@@ -1,71 +1,91 @@
-import { Activity, Award, Clock, FileText, LayoutDashboard, Loader2, Radio, X } from 'lucide-react'
-import { AnimatePresence, motion } from 'motion/react'
-import { useCallback, useMemo, useState } from 'react'
-import { Link } from 'react-router-dom'
+import {
+  Activity,
+  Award,
+  Clock,
+  FileText,
+  LayoutDashboard,
+  Loader2,
+  Radio,
+  X,
+} from "lucide-react";
+import { AnimatePresence, motion } from "motion/react";
+import { useCallback, useMemo, useState } from "react";
+import { Link } from "react-router-dom";
 
-import { BadgeManager } from '@/features/gamification/components/BadgeManager'
-import { ReportList } from '@/features/reports/components/ReportList'
-import { ReportScheduler } from '@/features/reports/components/ReportScheduler'
-import { cn } from '@/utils/cn'
+import { BadgeManager } from "@/features/gamification/components/BadgeManager";
+import { ReportList } from "@/features/reports/components/ReportList";
+import { ReportScheduler } from "@/features/reports/components/ReportScheduler";
+import { cn } from "@/utils/cn";
 
 import {
   useCourseDashboard,
   useLessonDashboard,
   useStudentSignals,
-} from '../queries/analyticsQueries'
-import { relativeTime } from '../utils/formatters'
-import { ActiveNowIndicator } from './ActiveNowIndicator'
-import { CohortBuilder } from './CohortBuilder'
-import { CourseOverviewCard } from './CourseOverviewCard'
-import { EarlyWarningPanel } from './EarlyWarningPanel'
-import { EngagementDashboard } from './EngagementDashboard'
-import { FunnelComparison } from './FunnelComparison'
-import { GuideAnalytics } from './GuideAnalytics'
-import { LessonBreakdownTable } from './LessonBreakdownTable'
-import { LiveActivityFeed } from './LiveActivityFeed'
-import { LiveLessonMap } from './LiveLessonMap'
-import { PathAnalysisDashboard } from './PathAnalysisDashboard'
-import { StruggleAlertBanner } from './StruggleAlertBanner'
-import { StudentProgressTable } from './StudentProgressTable'
+} from "../queries/analyticsQueries";
+import { relativeTime } from "../utils/formatters";
+import { ActiveNowIndicator } from "./ActiveNowIndicator";
+import { CohortBuilder } from "./CohortBuilder";
+import { CourseOverviewCard } from "./CourseOverviewCard";
+import { EarlyWarningPanel } from "./EarlyWarningPanel";
+import { EngagementDashboard } from "./EngagementDashboard";
+import { FunnelComparison } from "./FunnelComparison";
+import { GuideAnalytics } from "./GuideAnalytics";
+import { LessonBreakdownTable } from "./LessonBreakdownTable";
+import { LiveActivityFeed } from "./LiveActivityFeed";
+import { LiveLessonMap } from "./LiveLessonMap";
+import { PathAnalysisDashboard } from "./PathAnalysisDashboard";
+import { StruggleAlertBanner } from "./StruggleAlertBanner";
+import { StudentProgressTable } from "./StudentProgressTable";
 
 interface TeacherAnalyticsDashboardProps {
-  courseId: string
+  courseId: string;
 }
 
-type Tab = 'overview' | 'live' | 'reports'
+type Tab = "overview" | "live" | "reports";
 
-export function TeacherAnalyticsDashboard({ courseId }: TeacherAnalyticsDashboardProps) {
-  const [selectedLessonId, setSelectedLessonId] = useState<string | null>(null)
-  const [activeTab, setActiveTab] = useState<Tab>('overview')
-  const [activeUserCount, setActiveUserCount] = useState(0)
-  const [activeLessonIds, setActiveLessonIds] = useState<Set<string>>(new Set())
+export function TeacherAnalyticsDashboard({
+  courseId,
+}: TeacherAnalyticsDashboardProps) {
+  const [selectedLessonId, setSelectedLessonId] = useState<string | null>(null);
+  const [activeTab, setActiveTab] = useState<Tab>("overview");
+  const [activeUserCount, setActiveUserCount] = useState(0);
+  const [activeLessonIds, setActiveLessonIds] = useState<Set<string>>(
+    new Set(),
+  );
 
-  const { data: courseData, isLoading: courseLoading } = useCourseDashboard(courseId)
+  const { data: courseData, isLoading: courseLoading } =
+    useCourseDashboard(courseId);
 
-  const { data: lessonData, isLoading: lessonLoading } = useLessonDashboard(courseId)
+  const { data: lessonData, isLoading: lessonLoading } =
+    useLessonDashboard(courseId);
 
   const { data: studentData, isLoading: studentLoading } = useStudentSignals(
     courseId,
-    selectedLessonId ?? undefined
-  )
+    selectedLessonId ?? undefined,
+  );
 
   // ⚡ Perf: memoize .find() lookup — only recalc when lessonData or selection changes
   const selectedLessonTitle = useMemo(() => {
-    return lessonData?.find((l) => l.lesson_id === selectedLessonId)?.lesson_title
-  }, [lessonData, selectedLessonId])
+    return lessonData?.find((l) => l.lesson_id === selectedLessonId)
+      ?.lesson_title;
+  }, [lessonData, selectedLessonId]);
 
   // ⚡ Perf: stabilize callback ref passed to LessonBreakdownTable (large table)
   const handleLessonSelect = useCallback((lessonId: string) => {
-    setSelectedLessonId((prev) => (prev === lessonId ? null : lessonId))
-  }, [])
+    setSelectedLessonId((prev) => (prev === lessonId ? null : lessonId));
+  }, []);
 
-  const isAnyLoading = courseLoading || lessonLoading
+  const isAnyLoading = courseLoading || lessonLoading;
 
   const tabs: { id: Tab; label: string; icon: React.ReactNode }[] = [
-    { id: 'overview', label: 'Overview', icon: <Activity className="h-4 w-4" /> },
-    { id: 'live', label: 'Live', icon: <Radio className="h-4 w-4" /> },
-    { id: 'reports', label: 'Laporan', icon: <FileText className="h-4 w-4" /> },
-  ]
+    {
+      id: "overview",
+      label: "Overview",
+      icon: <Activity className="h-4 w-4" />,
+    },
+    { id: "live", label: "Live", icon: <Radio className="h-4 w-4" /> },
+    { id: "reports", label: "Laporan", icon: <FileText className="h-4 w-4" /> },
+  ];
 
   return (
     <div className="mx-auto max-w-7xl space-y-6 p-4 sm:p-6">
@@ -100,7 +120,10 @@ export function TeacherAnalyticsDashboard({ courseId }: TeacherAnalyticsDashboar
       </div>
 
       {/* Tabs */}
-      <div className="flex gap-1 rounded-xl bg-slate-100 dark:bg-slate-800 p-1" role="tablist">
+      <div
+        className="flex gap-1 rounded-xl bg-slate-100 dark:bg-slate-800 p-1"
+        role="tablist"
+      >
         {tabs.map((tab) => (
           <button
             key={tab.id}
@@ -108,15 +131,15 @@ export function TeacherAnalyticsDashboard({ courseId }: TeacherAnalyticsDashboar
             aria-selected={activeTab === tab.id}
             onClick={() => setActiveTab(tab.id)}
             className={cn(
-              'flex items-center gap-2 flex-1 justify-center rounded-lg px-4 py-2 text-sm font-semibold transition-all',
+              "flex items-center gap-2 flex-1 justify-center rounded-lg px-4 py-2 text-sm font-semibold transition-all",
               activeTab === tab.id
-                ? 'bg-white dark:bg-slate-700 text-slate-900 dark:text-white shadow-sm'
-                : 'text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-300'
+                ? "bg-white dark:bg-slate-700 text-slate-900 dark:text-white shadow-sm"
+                : "text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-300",
             )}
           >
             {tab.icon}
             {tab.label}
-            {tab.id === 'live' && activeUserCount > 0 && (
+            {tab.id === "live" && activeUserCount > 0 && (
               <span className="ml-1 rounded-full bg-emerald-500 w-2 h-2 shrink-0" />
             )}
           </button>
@@ -124,7 +147,7 @@ export function TeacherAnalyticsDashboard({ courseId }: TeacherAnalyticsDashboar
       </div>
 
       {/* Overview Tab */}
-      {activeTab === 'overview' && (
+      {activeTab === "overview" && (
         <div className="space-y-6">
           {/* Struggle Banner */}
           {lessonData && lessonData.length > 0 && (
@@ -135,7 +158,10 @@ export function TeacherAnalyticsDashboard({ courseId }: TeacherAnalyticsDashboar
           <EarlyWarningPanel courseId={courseId} />
 
           {/* Overview Stats */}
-          <CourseOverviewCard data={courseData ?? null} isLoading={courseLoading} />
+          <CourseOverviewCard
+            data={courseData ?? null}
+            isLoading={courseLoading}
+          />
 
           {/* Lesson Breakdown */}
           <LessonBreakdownTable
@@ -164,7 +190,9 @@ export function TeacherAnalyticsDashboard({ courseId }: TeacherAnalyticsDashboar
           <div className="rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 p-4 sm:p-6">
             <div className="mb-4 flex items-center gap-2">
               <Award className="h-5 w-5 text-yellow-500" />
-              <h2 className="text-lg font-bold text-slate-900 dark:text-white">Pencapaian</h2>
+              <h2 className="text-lg font-bold text-slate-900 dark:text-white">
+                Pencapaian
+              </h2>
             </div>
             <BadgeManager />
           </div>
@@ -174,25 +202,25 @@ export function TeacherAnalyticsDashboard({ courseId }: TeacherAnalyticsDashboar
             {selectedLessonId && (
               <motion.div
                 initial={{ opacity: 0, height: 0 }}
-                animate={{ opacity: 1, height: 'auto' }}
+                animate={{ opacity: 1, height: "auto" }}
                 exit={{ opacity: 0, height: 0 }}
                 transition={{ duration: 0.25 }}
               >
                 <div className="space-y-3">
                   <div className="flex items-center justify-between">
                     <h3 className="text-base font-semibold text-slate-800 dark:text-white">
-                      Siswa &mdash;{' '}
+                      Siswa &mdash;{" "}
                       <span className="text-indigo-600 dark:text-indigo-400">
-                        {selectedLessonTitle ?? 'Pelajaran'}
+                        {selectedLessonTitle ?? "Pelajaran"}
                       </span>
                     </h3>
                     <button
                       onClick={() => setSelectedLessonId(null)}
                       className={cn(
-                        'flex items-center gap-1 rounded-lg px-3 py-1.5 text-xs font-medium',
-                        'text-slate-500 hover:bg-slate-100 hover:text-slate-700',
-                        'dark:text-slate-400 dark:hover:bg-slate-800 dark:hover:text-slate-200',
-                        'transition-colors'
+                        "flex items-center gap-1 rounded-lg px-3 py-1.5 text-xs font-medium",
+                        "text-slate-500 hover:bg-slate-100 hover:text-slate-700",
+                        "dark:text-slate-400 dark:hover:bg-slate-800 dark:hover:text-slate-200",
+                        "transition-colors",
                       )}
                     >
                       <X className="h-3.5 w-3.5" />
@@ -214,25 +242,30 @@ export function TeacherAnalyticsDashboard({ courseId }: TeacherAnalyticsDashboar
           {courseData?.last_aggregated_at && !isAnyLoading && (
             <div className="flex items-center gap-2 text-xs text-slate-400 dark:text-slate-500">
               <Clock className="h-3.5 w-3.5" />
-              <span>Diperbarui: {relativeTime(courseData.last_aggregated_at)}</span>
+              <span>
+                Diperbarui: {relativeTime(courseData.last_aggregated_at)}
+              </span>
             </div>
           )}
         </div>
       )}
 
       {/* Live Tab */}
-      {activeTab === 'live' && (
+      {activeTab === "live" && (
         <div className="space-y-6">
           <LiveActivityFeed
             onActiveUsersChange={setActiveUserCount}
             onActiveLessonsChange={setActiveLessonIds}
           />
-          <LiveLessonMap courseId={courseId} activeLessonIds={activeLessonIds} />
+          <LiveLessonMap
+            courseId={courseId}
+            activeLessonIds={activeLessonIds}
+          />
         </div>
       )}
 
       {/* Reports Tab */}
-      {activeTab === 'reports' && (
+      {activeTab === "reports" && (
         <div className="space-y-6">
           <ReportScheduler />
           <div className="rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 p-4 sm:p-6">
@@ -245,5 +278,5 @@ export function TeacherAnalyticsDashboard({ courseId }: TeacherAnalyticsDashboar
         </div>
       )}
     </div>
-  )
+  );
 }

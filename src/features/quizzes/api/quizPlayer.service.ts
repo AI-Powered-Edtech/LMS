@@ -212,7 +212,15 @@ export async function getStudentQuizAssignments(
 
   // Get student's enrolled classes
   const { data: enrollments, error: enrollmentError } = await db
-    .from<Array<{ id: string; class_id: string; student_id: string; status: string; joined_at: string }>>("enrollments")
+    .from<
+      Array<{
+        id: string;
+        class_id: string;
+        student_id: string;
+        status: string;
+        joined_at: string;
+      }>
+    >("enrollments")
     .select("class_id")
     .eq("student_id", session.user.id)
     .eq("tenant_id", tenantId)

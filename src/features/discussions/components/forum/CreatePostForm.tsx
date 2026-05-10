@@ -1,16 +1,24 @@
-import { AlertTriangle, EyeOff, Send } from 'lucide-react'
-import { AnimatePresence, motion } from 'motion/react'
-import { useState } from 'react'
+import { AlertTriangle, EyeOff, Send } from "lucide-react";
+import { AnimatePresence, motion } from "motion/react";
+import { useState } from "react";
 
-import { OptimizedImage } from '@/components/ui'
-import { checkProfanity, FORUM_CATEGORIES } from '@/features/discussions/utils/forumUtils'
+import { OptimizedImage } from "@/components/ui";
+import {
+  checkProfanity,
+  FORUM_CATEGORIES,
+} from "@/features/discussions/utils/forumUtils";
 
 interface CreatePostFormProps {
-  onSubmit: (data: { title: string; content: string; category: string; isAnon: boolean }) => void
-  isPending: boolean
-  avatar: string
-  isAnonymous: boolean
-  onAnonymousChange: (checked: boolean) => void
+  onSubmit: (data: {
+    title: string;
+    content: string;
+    category: string;
+    isAnon: boolean;
+  }) => void;
+  isPending: boolean;
+  avatar: string;
+  isAnonymous: boolean;
+  onAnonymousChange: (checked: boolean) => void;
 }
 
 export function CreatePostForm({
@@ -20,24 +28,24 @@ export function CreatePostForm({
   isAnonymous,
   onAnonymousChange,
 }: CreatePostFormProps) {
-  const [title, setTitle] = useState('')
-  const [content, setContent] = useState('')
-  const [category, setCategory] = useState('Umum')
-  const [profanityWarning, setProfanityWarning] = useState(false)
+  const [title, setTitle] = useState("");
+  const [content, setContent] = useState("");
+  const [category, setCategory] = useState("Umum");
+  const [profanityWarning, setProfanityWarning] = useState(false);
 
   const handlePost = () => {
-    if (!title.trim() || !content.trim()) return
+    if (!title.trim() || !content.trim()) return;
 
     if (checkProfanity(title) || checkProfanity(content)) {
-      setProfanityWarning(true)
-      setTimeout(() => setProfanityWarning(false), 3000)
-      return
+      setProfanityWarning(true);
+      setTimeout(() => setProfanityWarning(false), 3000);
+      return;
     }
 
-    onSubmit({ title, content, category, isAnon: isAnonymous })
-    setTitle('')
-    setContent('')
-  }
+    onSubmit({ title, content, category, isAnon: isAnonymous });
+    setTitle("");
+    setContent("");
+  };
 
   return (
     <div className="bg-white dark:bg-slate-800 p-4 md:p-6 rounded-3xl shadow-sm border border-slate-200 dark:border-slate-700 relative overflow-hidden">
@@ -69,12 +77,13 @@ export function CreatePostForm({
             {profanityWarning && (
               <motion.div
                 initial={{ opacity: 0, height: 0 }}
-                animate={{ opacity: 1, height: 'auto' }}
+                animate={{ opacity: 1, height: "auto" }}
                 exit={{ opacity: 0, height: 0 }}
                 className="bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 px-4 py-3 rounded-xl text-sm font-medium flex items-center gap-2 border border-red-200 dark:border-red-800"
               >
                 <AlertTriangle className="w-4 h-4" />
-                Pesan Anda mengandung kata-kata yang tidak pantas. Harap gunakan bahasa yang sopan.
+                Pesan Anda mengandung kata-kata yang tidak pantas. Harap gunakan
+                bahasa yang sopan.
               </motion.div>
             )}
           </AnimatePresence>
@@ -86,7 +95,7 @@ export function CreatePostForm({
                 onChange={(e) => setCategory(e.target.value)}
                 className="bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-600 text-slate-700 dark:text-slate-300 text-sm rounded-xl px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 font-medium"
               >
-                {FORUM_CATEGORIES.filter((c) => c !== 'Semua').map((cat) => (
+                {FORUM_CATEGORIES.filter((c) => c !== "Semua").map((cat) => (
                   <option key={cat} value={cat}>
                     {cat}
                   </option>
@@ -110,11 +119,11 @@ export function CreatePostForm({
               className="w-full sm:w-auto px-6 py-2.5 bg-blue-600 hover:bg-blue-700 disabled:bg-slate-200 disabled:text-slate-400 dark:disabled:bg-slate-700 dark:disabled:text-slate-500 text-white rounded-xl font-bold flex items-center justify-center gap-2 transition-all shadow-sm"
             >
               <Send className="w-4 h-4" />
-              {isPending ? 'Memposting...' : 'Posting Pertanyaan'}
+              {isPending ? "Memposting..." : "Posting Pertanyaan"}
             </button>
           </div>
         </div>
       </div>
     </div>
-  )
+  );
 }

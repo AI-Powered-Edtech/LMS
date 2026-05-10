@@ -2,26 +2,30 @@
 // ChildSwitcher — Tab switcher untuk berpindah antar anak
 // ==========================================================================
 
-import { cn } from '@/utils/cn'
+import { cn } from "@/utils/cn";
 
-import type { ChildInfo } from '../types'
+import type { ChildInfo } from "../types";
 
 interface ChildSwitcherProps {
-  children: ChildInfo[]
-  selectedId: string | null
-  onSelect: (studentId: string) => void
+  children: ChildInfo[];
+  selectedId: string | null;
+  onSelect: (studentId: string) => void;
 }
 
 function getInitials(name: string): string {
   return name
-    .split(' ')
+    .split(" ")
     .slice(0, 2)
-    .map((w) => w[0]?.toUpperCase() ?? '')
-    .join('')
+    .map((w) => w[0]?.toUpperCase() ?? "")
+    .join("");
 }
 
-export function ChildSwitcher({ children: childList, selectedId, onSelect }: ChildSwitcherProps) {
-  if (childList.length <= 1) return null
+export function ChildSwitcher({
+  children: childList,
+  selectedId,
+  onSelect,
+}: ChildSwitcherProps) {
+  if (childList.length <= 1) return null;
 
   return (
     <div
@@ -30,7 +34,7 @@ export function ChildSwitcher({ children: childList, selectedId, onSelect }: Chi
       aria-label="Pilih anak"
     >
       {childList.map((child) => {
-        const isSelected = child.student_id === selectedId
+        const isSelected = child.student_id === selectedId;
 
         return (
           <button
@@ -39,22 +43,22 @@ export function ChildSwitcher({ children: childList, selectedId, onSelect }: Chi
             aria-selected={isSelected}
             onClick={() => onSelect(child.student_id)}
             className={cn(
-              'flex-shrink-0 flex items-center gap-2 px-3 py-2 rounded-xl',
-              'text-sm font-medium transition-all duration-200',
-              'min-h-[44px] min-w-[44px]',
-              'focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-1',
+              "flex-shrink-0 flex items-center gap-2 px-3 py-2 rounded-xl",
+              "text-sm font-medium transition-all duration-200",
+              "min-h-[44px] min-w-[44px]",
+              "focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-1",
               isSelected
-                ? 'bg-blue-600 text-white shadow-sm shadow-blue-200 dark:shadow-blue-900/30'
-                : 'bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700'
+                ? "bg-blue-600 text-white shadow-sm shadow-blue-200 dark:shadow-blue-900/30"
+                : "bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700",
             )}
           >
             {/* Avatar / Initials */}
             <span
               className={cn(
-                'w-7 h-7 rounded-full flex-shrink-0 flex items-center justify-center text-xs font-bold overflow-hidden',
+                "w-7 h-7 rounded-full flex-shrink-0 flex items-center justify-center text-xs font-bold overflow-hidden",
                 isSelected
-                  ? 'bg-blue-500 text-white'
-                  : 'bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300'
+                  ? "bg-blue-500 text-white"
+                  : "bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300",
               )}
               aria-hidden="true"
             >
@@ -72,10 +76,12 @@ export function ChildSwitcher({ children: childList, selectedId, onSelect }: Chi
             </span>
 
             {/* Nama */}
-            <span className="truncate max-w-[100px]">{child.student_name.split(' ')[0]}</span>
+            <span className="truncate max-w-[100px]">
+              {child.student_name.split(" ")[0]}
+            </span>
           </button>
-        )
+        );
       })}
     </div>
-  )
+  );
 }

@@ -1,8 +1,8 @@
 // EduSync LMS — Offline Queue with Retry & Conflict Resolution
 // Builds on top of existing offlineStorage.ts IndexedDB infrastructure
 
-import { db } from '@/services/db'
-import { captureError } from '@/utils/sentry'
+import { db } from "@/services/db";
+import { captureError } from "@/utils/sentry";
 
 import {
   addToSyncQueue,
@@ -10,60 +10,60 @@ import {
   markSynced,
   type SyncQueueItem,
   updateQueueItem,
-} from './offlineStorage'
+} from "./offlineStorage";
 
 // ---------------------------------------------------------------------------
 // Types
 // ---------------------------------------------------------------------------
 
 export type QueueOperationType =
-  | 'quiz-submission'
-  | 'assignment-upload'
-  | 'grade-update'
-  | 'attendance-mark'
-  | 'message-send'
-  | 'form-submit'
-  | 'xapi-statement'
+  | "quiz-submission"
+  | "assignment-upload"
+  | "grade-update"
+  | "attendance-mark"
+  | "message-send"
+  | "form-submit"
+  | "xapi-statement";
 
 export interface QueuePayload extends Record<string, unknown> {
-  idempotencyKey?: string
-  maxRetries?: number
-  conflictStrategy?: 'client-wins' | 'server-wins' | 'manual'
-  nextRetryAt?: number | null
-  lastError?: string | null
+  idempotencyKey?: string;
+  maxRetries?: number;
+  conflictStrategy?: "client-wins" | "server-wins" | "manual";
+  nextRetryAt?: number | null;
+  lastError?: string | null;
 }
 
 export interface QueuedOperation {
-  id: string
-  type: QueueOperationType
-  payload: QueuePayload
+  id: string;
+  type: QueueOperationType;
+  payload: QueuePayload;
   /** Idempotency key to prevent duplicate processing */
-  idempotencyKey: string
-  createdAt: number
-  attempts: number
-  maxRetries: number
+  idempotencyKey: string;
+  createdAt: number;
+  attempts: number;
+  maxRetries: number;
   /** Exponential backoff delay in ms for next retry */
-  nextRetryAt: number | null
+  nextRetryAt: number | null;
   /** Last error message */
-  lastError: string | null
+  lastError: string | null;
   /** Conflict resolution strategy if server data differs */
-  conflictStrategy: 'client-wins' | 'server-wins' | 'manual' | null
+  conflictStrategy: "client-wins" | "server-wins" | "manual" | null;
 }
 
 export interface SyncResult {
-  synced: number
-  failed: number
-  conflicts: number
-  permanent: number
+  synced: number;
+  failed: number;
+  conflicts: number;
+  permanent: number;
 }
 
 // ---------------------------------------------------------------------------
 // Constants
 // ---------------------------------------------------------------------------
 
-const MAX_RETRIES = 5
-const BASE_BACKOFF_MS = 2000
-const MAX_BACKOFF_MS = 300000 // 5 minutes
+const MAX_RETRIES = 5;
+const BASE_BACKOFF_MS = 2000;
+const MAX_BACKOFF_MS = 300000; // 5 minutes
 
 // ---------------------------------------------------------------------------
 // Queue Management
@@ -77,9 +77,9 @@ const MAX_BACKOFF_MS = 300000 // 5 minutes
 export function generateIdempotencyKey(
   type: QueueOperationType,
   entityId: string,
-  userId: string
+  userId: string,
 ): string {
-  return `${type}:${entityId}:${userId}`
+  return `${type}:${entityId}:${userId}`;
 }
 
 /**
@@ -92,27 +92,27 @@ export async function queueOperation(
   payload: Record<string, unknown>,
   idempotencyKey: string,
   options?: {
-    maxRetries?: number
-    conflictStrategy?: 'client-wins' | 'server-wins' | 'manual'
-  }
+    maxRetries?: number;
+    conflictStrategy?: "client-wins" | "server-wins" | "manual";
+  },
 ): Promise<string> {
-  const id = crypto.randomUUID()
-  const item: Omit<SyncQueueItem, 'attempts'> = {
+  const id = crypto.randomUUID();
+  const item: Omit<SyncQueueItem, "attempts"> = {
     id,
     type,
     payload: {
       ...payload,
       idempotencyKey,
       maxRetries: options?.maxRetries ?? MAX_RETRIES,
-      conflictStrategy: options?.conflictStrategy ?? 'client-wins',
+      conflictStrategy: options?.conflictStrategy ?? "client-wins",
       nextRetryAt: null,
       lastError: null,
     },
     createdAt: Date.now(),
-  }
+  };
 
-  await addToSyncQueue(item)
-  return id
+  await addToSyncQueue(item);
+  return id;
 }
 
 /**
@@ -120,9 +120,9 @@ export async function queueOperation(
  * Delay = min(base * 2^attempt + random_jitter, max)
  */
 function calculateBackoff(attempt: number): number {
-  const base = BASE_BACKOFF_MS * Math.pow(2, attempt)
-  const jitter = Math.random() * 1000
-  return Math.min(base + jitter, MAX_BACKOFF_MS)
+  const base = BASE_BACKOFF_MS * Math.pow(2, attempt);
+  const jitter = Math.random() * 1000;
+  return Math.min(base + jitter, MAX_BACKOFF_MS);
 }
 
 // ---------------------------------------------------------------------------
@@ -134,133 +134,139 @@ function calculateBackoff(attempt: number): number {
  * Returns true if the operation was successfully synced.
  */
 async function processOperation(
-  item: SyncQueueItem
-): Promise<'success' | 'retry' | 'conflict' | 'permanent'> {
-  const payload = item.payload as QueuePayload
+  item: SyncQueueItem,
+): Promise<"success" | "retry" | "conflict" | "permanent"> {
+  const payload = item.payload as QueuePayload;
 
-  const maxRetries = payload.maxRetries ?? MAX_RETRIES
-  const attempts = item.attempts
+  const maxRetries = payload.maxRetries ?? MAX_RETRIES;
+  const attempts = item.attempts;
 
   if (attempts >= maxRetries) {
-    return 'permanent'
+    return "permanent";
   }
 
   try {
-    let result: { error: unknown } | null = null
+    let result: { error: unknown } | null = null;
 
     switch (item.type) {
-      case 'quiz-submission': {
+      case "quiz-submission": {
         const { error } = await db
-          .from('quiz_attempts_v2')
+          .from("quiz_attempts_v2")
           .update({
             answers: payload.answers,
             completed_at: new Date().toISOString(),
             submitted_late: payload.submitted_late ?? true,
           })
-          .eq('id', payload.attemptId)
-        result = { error }
-        break
+          .eq("id", payload.attemptId);
+        result = { error };
+        break;
       }
 
-      case 'assignment-upload': {
+      case "assignment-upload": {
         const { error } = await db
-          .from('assignment_submissions')
+          .from("assignment_submissions")
           .update({
             file_url: payload.fileUrl,
             submitted_at: new Date().toISOString(),
           })
-          .eq('id', payload.submissionId)
-        result = { error }
-        break
+          .eq("id", payload.submissionId);
+        result = { error };
+        break;
       }
 
-      case 'grade-update': {
+      case "grade-update": {
         const { error } = await db
-          .from('gradebook_entries')
+          .from("gradebook_entries")
           .update({
             score: payload.score,
             feedback: payload.feedback,
             graded_at: new Date().toISOString(),
           })
-          .eq('id', payload.entryId)
-        result = { error }
-        break
+          .eq("id", payload.entryId);
+        result = { error };
+        break;
       }
 
-      case 'attendance-mark': {
+      case "attendance-mark": {
         const { error } = await db
-          .from('attendance_records')
+          .from("attendance_records")
           .update({
             status: payload.status,
             marked_at: new Date().toISOString(),
           })
-          .eq('id', payload.recordId)
-        result = { error }
-        break
+          .eq("id", payload.recordId);
+        result = { error };
+        break;
       }
 
-      case 'message-send': {
-        const { error } = await db.from('messages').insert({
+      case "message-send": {
+        const { error } = await db.from("messages").insert({
           sender_id: payload.senderId,
           recipient_id: payload.recipientId,
           content: payload.content,
           sent_at: new Date().toISOString(),
-        })
-        result = { error }
-        break
+        });
+        result = { error };
+        break;
       }
 
-      case 'form-submit': {
-        const { error } = await db.from(payload.tableName as string).insert(payload.data as never)
-        result = { error }
-        break
+      case "form-submit": {
+        const { error } = await db
+          .from(payload.tableName as string)
+          .insert(payload.data as never);
+        result = { error };
+        break;
       }
 
-      case 'xapi-statement': {
-        const { error } = await db.rpc('record_xapi_statement', {
+      case "xapi-statement": {
+        const { error } = await db.rpc("record_xapi_statement", {
           p_verb: payload.verb,
           p_object_type: payload.objectType,
           p_object_id: payload.objectId,
           p_result: payload.result as Record<string, unknown>,
           p_context: payload.context as Record<string, unknown>,
-        })
-        result = { error }
-        break
+        });
+        result = { error };
+        break;
       }
 
       default:
-        return 'permanent'
+        return "permanent";
     }
 
     if (result?.error) {
-      const err = result.error as { code?: string; message?: string }
+      const err = result.error as { code?: string; message?: string };
 
       // Check for conflict (optimistic locking failure)
-      if (err.code === 'PGRST116' || err.message?.includes('conflict')) {
-        return 'conflict'
+      if (err.code === "PGRST116" || err.message?.includes("conflict")) {
+        return "conflict";
       }
 
       // Network errors should retry
-      if (err.code === 'NETWORK_ERROR' || !err.code) {
-        return 'retry'
+      if (err.code === "NETWORK_ERROR" || !err.code) {
+        return "retry";
       }
 
       // Validation errors are permanent
-      if (err.code === '23505' || err.code === '23503' || err.code === '23502') {
-        return 'permanent'
+      if (
+        err.code === "23505" ||
+        err.code === "23503" ||
+        err.code === "23502"
+      ) {
+        return "permanent";
       }
 
-      return 'retry'
+      return "retry";
     }
 
-    return 'success'
+    return "success";
   } catch (err) {
     captureError(err as Error, {
-      context: 'offlineQueue.processOperation',
+      context: "offlineQueue.processOperation",
       operationType: item.type,
       attempts,
-    })
-    return 'retry'
+    });
+    return "retry";
   }
 }
 
@@ -269,48 +275,58 @@ async function processOperation(
  * Returns a summary of results.
  */
 export async function processSyncQueue(): Promise<SyncResult> {
-  const pending = await getPendingSubmissions()
-  const result: SyncResult = { synced: 0, failed: 0, conflicts: 0, permanent: 0 }
+  const pending = await getPendingSubmissions();
+  const result: SyncResult = {
+    synced: 0,
+    failed: 0,
+    conflicts: 0,
+    permanent: 0,
+  };
 
   for (const item of pending) {
     // Skip items already at max retries (quarantined)
-    const payload = item.payload as QueuePayload
-    const maxRetries = payload?.maxRetries ?? MAX_RETRIES
-    if (item.attempts >= maxRetries) continue
+    const payload = item.payload as QueuePayload;
+    const maxRetries = payload?.maxRetries ?? MAX_RETRIES;
+    if (item.attempts >= maxRetries) continue;
 
-    const outcome = await processOperation(item)
+    const outcome = await processOperation(item);
 
     switch (outcome) {
-      case 'success':
-        await markSynced(item.id)
-        result.synced++
-        break
+      case "success":
+        await markSynced(item.id);
+        result.synced++;
+        break;
 
-      case 'conflict':
-        result.conflicts++
+      case "conflict":
+        result.conflicts++;
         // Update item with conflict flag for UI to handle
-        break
+        break;
 
-      case 'retry':
-        result.failed++
+      case "retry":
+        result.failed++;
         // Increment attempts for exponential backoff tracking
-        await updateQueueItem(item.id, { attempts: item.attempts + 1 })
-        break
+        await updateQueueItem(item.id, { attempts: item.attempts + 1 });
+        break;
 
-      case 'permanent':
+      case "permanent":
         // Do NOT delete (markSynced) quarantined items, just mark them as failed
-        await updateQueueItem(item.id, { attempts: maxRetries })
-        result.permanent++
-        captureError(new Error(`Queue operation permanently failed (quarantined): ${item.type}`), {
-          context: 'offlineQueue',
-          itemId: item.id,
-          attempts: item.attempts + 1,
-        })
-        break
+        await updateQueueItem(item.id, { attempts: maxRetries });
+        result.permanent++;
+        captureError(
+          new Error(
+            `Queue operation permanently failed (quarantined): ${item.type}`,
+          ),
+          {
+            context: "offlineQueue",
+            itemId: item.id,
+            attempts: item.attempts + 1,
+          },
+        );
+        break;
     }
   }
 
-  return result
+  return result;
 }
 
 /**
@@ -318,15 +334,15 @@ export async function processSyncQueue(): Promise<SyncResult> {
  * Called after a sync attempt that had failures.
  */
 function scheduleNextSync(failedCount: number, attempt: number): void {
-  if (failedCount === 0) return
+  if (failedCount === 0) return;
 
-  const delay = calculateBackoff(attempt)
+  const delay = calculateBackoff(attempt);
   setTimeout(async () => {
-    const result = await processSyncQueue()
+    const result = await processSyncQueue();
     if (result.failed > 0) {
-      scheduleNextSync(result.failed, attempt + 1)
+      scheduleNextSync(result.failed, attempt + 1);
     }
-  }, delay)
+  }, delay);
 }
 
 /**
@@ -336,26 +352,26 @@ function scheduleNextSync(failedCount: number, attempt: number): void {
  */
 export function startOfflineSync(): () => void {
   const handleOnline = async (): Promise<void> => {
-    const result = await processSyncQueue()
+    const result = await processSyncQueue();
     if (result.failed > 0) {
-      scheduleNextSync(result.failed, 0)
+      scheduleNextSync(result.failed, 0);
     }
-  }
+  };
 
-  window.addEventListener('online', handleOnline)
+  window.addEventListener("online", handleOnline);
 
   // Also try to sync on visibility change (user returns to tab)
   const handleVisibility = (): void => {
-    if (document.visibilityState === 'visible' && navigator.onLine) {
-      void processSyncQueue()
+    if (document.visibilityState === "visible" && navigator.onLine) {
+      void processSyncQueue();
     }
-  }
+  };
 
-  document.addEventListener('visibilitychange', handleVisibility)
+  document.addEventListener("visibilitychange", handleVisibility);
 
   // Return cleanup function
   return () => {
-    window.removeEventListener('online', handleOnline)
-    document.removeEventListener('visibilitychange', handleVisibility)
-  }
+    window.removeEventListener("online", handleOnline);
+    document.removeEventListener("visibilitychange", handleVisibility);
+  };
 }

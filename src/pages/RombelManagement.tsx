@@ -1,37 +1,44 @@
-import { GraduationCap, Plus, Users } from 'lucide-react'
-import { useState } from 'react'
+import { GraduationCap, Plus, Users } from "lucide-react";
+import { useState } from "react";
 
-import { Button } from '@/components/ui/Button'
-import { Card } from '@/components/ui/Card'
-import { Input } from '@/components/ui/Input'
-import { Modal, ModalBody, ModalFooter, ModalHeader } from '@/components/ui/Modal'
-import { useActiveAcademicYear } from '@/features/academic-years/hooks/useAcademicYears'
+import { Button } from "@/components/ui/Button";
+import { Card } from "@/components/ui/Card";
+import { Input } from "@/components/ui/Input";
+import {
+  Modal,
+  ModalBody,
+  ModalFooter,
+  ModalHeader,
+} from "@/components/ui/Modal";
+import { useActiveAcademicYear } from "@/features/academic-years/hooks/useAcademicYears";
 import {
   useCreateRombel,
   useRombelList,
   useRombelMembers,
-} from '@/features/rombel/hooks/useRombel'
-import { useToast } from '@/hooks/useToast'
-import { usePageTitle } from '@/hooks/usePageTitle'
+} from "@/features/rombel/hooks/useRombel";
+import { usePageTitle } from "@/hooks/usePageTitle";
+import { useToast } from "@/hooks/useToast";
 
 export function RombelManagement() {
-  usePageTitle('Manajemen Rombel')
-  const { addToast } = useToast()
-  const { data: activeYear } = useActiveAcademicYear()
-  const { data: rombels = [], isLoading } = useRombelList(activeYear?.id ?? null)
-  const create = useCreateRombel()
+  usePageTitle("Manajemen Rombel");
+  const { addToast } = useToast();
+  const { data: activeYear } = useActiveAcademicYear();
+  const { data: rombels = [], isLoading } = useRombelList(
+    activeYear?.id ?? null,
+  );
+  const create = useCreateRombel();
 
-  const [selectedId, setSelectedId] = useState<string | null>(null)
-  const { data: members = [] } = useRombelMembers(selectedId)
+  const [selectedId, setSelectedId] = useState<string | null>(null);
+  const { data: members = [] } = useRombelMembers(selectedId);
 
-  const [isCreateOpen, setIsCreateOpen] = useState(false)
-  const [code, setCode] = useState('')
-  const [name, setName] = useState('')
-  const [capacity, setCapacity] = useState('36')
+  const [isCreateOpen, setIsCreateOpen] = useState(false);
+  const [code, setCode] = useState("");
+  const [name, setName] = useState("");
+  const [capacity, setCapacity] = useState("36");
 
   async function handleCreate(e: React.FormEvent) {
-    e.preventDefault()
-    if (!code || !name) return
+    e.preventDefault();
+    if (!code || !name) return;
     try {
       await create.mutateAsync({
         academicYearId: activeYear?.id ?? null,
@@ -40,18 +47,18 @@ export function RombelManagement() {
         name,
         waliKelasId: null,
         capacity: Number.parseInt(capacity, 10) || 36,
-      })
-      addToast({ type: 'success', message: `Rombel ${code} dibuat` })
-      setIsCreateOpen(false)
-      setCode('')
-      setName('')
-      setCapacity('36')
+      });
+      addToast({ type: "success", message: `Rombel ${code} dibuat` });
+      setIsCreateOpen(false);
+      setCode("");
+      setName("");
+      setCapacity("36");
     } catch (err) {
       addToast({
-        type: 'error',
-        message: 'Gagal membuat rombel',
-        description: err instanceof Error ? err.message : 'Terjadi kesalahan',
-      })
+        type: "error",
+        message: "Gagal membuat rombel",
+        description: err instanceof Error ? err.message : "Terjadi kesalahan",
+      });
     }
   }
 
@@ -66,7 +73,7 @@ export function RombelManagement() {
           <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">
             {activeYear
               ? `Tahun ajaran aktif: ${activeYear.label}`
-              : 'Belum ada tahun ajaran aktif. Tetapkan tahun aktif terlebih dahulu di menu Tahun Ajaran.'}
+              : "Belum ada tahun ajaran aktif. Tetapkan tahun aktif terlebih dahulu di menu Tahun Ajaran."}
           </p>
         </div>
         <Button
@@ -85,9 +92,13 @@ export function RombelManagement() {
             Daftar Rombel
           </h2>
           {isLoading ? (
-            <div className="py-8 text-center text-sm text-slate-500">Memuat...</div>
+            <div className="py-8 text-center text-sm text-slate-500">
+              Memuat...
+            </div>
           ) : rombels.length === 0 ? (
-            <div className="py-8 text-center text-sm text-slate-500">Belum ada rombel.</div>
+            <div className="py-8 text-center text-sm text-slate-500">
+              Belum ada rombel.
+            </div>
           ) : (
             <ul className="divide-y divide-slate-100 dark:divide-slate-800">
               {rombels.map((r) => (
@@ -97,25 +108,27 @@ export function RombelManagement() {
                     onClick={() => setSelectedId(r.id)}
                     className={`w-full text-left p-3 rounded-lg transition-colors ${
                       selectedId === r.id
-                        ? 'bg-emerald-50 dark:bg-emerald-900/20'
-                        : 'hover:bg-slate-50 dark:hover:bg-slate-800/40'
+                        ? "bg-emerald-50 dark:bg-emerald-900/20"
+                        : "hover:bg-slate-50 dark:hover:bg-slate-800/40"
                     }`}
                   >
                     <div className="flex items-center justify-between">
                       <div>
-                        <p className="font-medium text-slate-900 dark:text-white">{r.name}</p>
+                        <p className="font-medium text-slate-900 dark:text-white">
+                          {r.name}
+                        </p>
                         <p className="text-xs text-slate-500">
                           {r.code} · kapasitas {r.capacity}
                         </p>
                       </div>
                       <span
                         className={`text-xs px-2 py-0.5 rounded-full font-medium ${
-                          r.status === 'active'
-                            ? 'bg-emerald-100 text-emerald-800 dark:bg-emerald-900/30 dark:text-emerald-300'
-                            : 'bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-300'
+                          r.status === "active"
+                            ? "bg-emerald-100 text-emerald-800 dark:bg-emerald-900/30 dark:text-emerald-300"
+                            : "bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-300"
                         }`}
                       >
-                        {r.status === 'active' ? 'Aktif' : 'Diarsipkan'}
+                        {r.status === "active" ? "Aktif" : "Diarsipkan"}
                       </span>
                     </div>
                   </button>
@@ -135,7 +148,9 @@ export function RombelManagement() {
               Pilih rombel di samping untuk melihat anggota.
             </div>
           ) : members.length === 0 ? (
-            <div className="py-8 text-center text-sm text-slate-500">Belum ada anggota.</div>
+            <div className="py-8 text-center text-sm text-slate-500">
+              Belum ada anggota.
+            </div>
           ) : (
             <p className="text-sm text-slate-700 dark:text-slate-300">
               {members.length} siswa terdaftar.
@@ -146,7 +161,10 @@ export function RombelManagement() {
 
       <Modal open={isCreateOpen} onClose={() => setIsCreateOpen(false)}>
         <form onSubmit={handleCreate}>
-          <ModalHeader title="Rombel Baru" onClose={() => setIsCreateOpen(false)} />
+          <ModalHeader
+            title="Rombel Baru"
+            onClose={() => setIsCreateOpen(false)}
+          />
           <ModalBody>
             <div className="space-y-4">
               <Input
@@ -179,11 +197,11 @@ export function RombelManagement() {
               Batal
             </Button>
             <Button type="submit" variant="primary" disabled={create.isPending}>
-              {create.isPending ? 'Menyimpan...' : 'Simpan'}
+              {create.isPending ? "Menyimpan..." : "Simpan"}
             </Button>
           </ModalFooter>
         </form>
       </Modal>
     </div>
-  )
+  );
 }

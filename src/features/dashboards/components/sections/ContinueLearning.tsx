@@ -1,35 +1,35 @@
-import { ArrowRight, BookOpen, Play } from 'lucide-react'
-import { motion } from 'motion/react'
-import { useNavigate } from 'react-router-dom'
+import { ArrowRight, BookOpen, Play } from "lucide-react";
+import { motion } from "motion/react";
+import { useNavigate } from "react-router-dom";
 
-import { Badge, Card, EmptyState, SkeletonCard } from '@/components/ui'
+import { Badge, Card, EmptyState, SkeletonCard } from "@/components/ui";
 
 interface CourseItem {
-  id: string
-  title?: string
-  description?: string
-  status?: string
-  progress_pct?: number
-  progress?: number
-  completed_lessons?: number
-  total_lessons?: number
+  id: string;
+  title?: string;
+  description?: string;
+  status?: string;
+  progress_pct?: number;
+  progress?: number;
+  completed_lessons?: number;
+  total_lessons?: number;
 }
 
 interface ContinueLearningProps {
-  courses: CourseItem[]
-  loading: boolean
-  onJoinClass: () => void
+  courses: CourseItem[];
+  loading: boolean;
+  onJoinClass: () => void;
 }
 
 function CourseProgressBar({ course }: { course: CourseItem }) {
   const pct =
-    typeof course.progress_pct === 'number'
+    typeof course.progress_pct === "number"
       ? course.progress_pct
-      : typeof course.progress === 'number'
+      : typeof course.progress === "number"
         ? course.progress
-        : 0
-  const completed = course.completed_lessons ?? 0
-  const total = course.total_lessons ?? 0
+        : 0;
+  const completed = course.completed_lessons ?? 0;
+  const total = course.total_lessons ?? 0;
 
   return (
     <>
@@ -51,14 +51,18 @@ function CourseProgressBar({ course }: { course: CourseItem }) {
           ? `${completed}/${total} Pelajaran`
           : pct > 0
             ? `${pct}% Selesai`
-            : 'Mulai Belajar'}
+            : "Mulai Belajar"}
       </p>
     </>
-  )
+  );
 }
 
-export function ContinueLearning({ courses, loading, onJoinClass }: ContinueLearningProps) {
-  const navigate = useNavigate()
+export function ContinueLearning({
+  courses,
+  loading,
+  onJoinClass,
+}: ContinueLearningProps) {
+  const navigate = useNavigate();
 
   return (
     <div className="space-y-4">
@@ -78,11 +82,16 @@ export function ContinueLearning({ courses, loading, onJoinClass }: ContinueLear
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
           {courses.slice(0, 4).map((course) => (
             <motion.div key={course.id} whileHover={{ y: -4 }}>
-              <Card hover onClick={() => navigate(`/app/student/courses/${course.id}`)}>
+              <Card
+                hover
+                onClick={() => navigate(`/app/student/courses/${course.id}`)}
+              >
                 <div className="aspect-video rounded-xl bg-gradient-to-br from-indigo-500 to-purple-600 mb-4 flex items-center justify-center overflow-hidden relative group/thumb">
                   <BookOpen className="w-10 h-10 text-white/50" />
                   <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/60 to-transparent py-2 px-3 flex items-center justify-between opacity-0 group-hover/thumb:opacity-100 transition-opacity">
-                    <span className="text-white text-xs font-bold tracking-wide">Lanjutkan</span>
+                    <span className="text-white text-xs font-bold tracking-wide">
+                      Lanjutkan
+                    </span>
                     <Play className="w-3.5 h-3.5 text-white" />
                   </div>
                 </div>
@@ -108,10 +117,10 @@ export function ContinueLearning({ courses, loading, onJoinClass }: ContinueLear
             icon={<BookOpen className="w-12 h-12" />}
             title="Belum ada materi"
             description="Gabung ke kelas untuk mulai belajar."
-            action={{ label: 'Gabung Kelas', onClick: onJoinClass }}
+            action={{ label: "Gabung Kelas", onClick: onJoinClass }}
           />
         </Card>
       )}
     </div>
-  )
+  );
 }

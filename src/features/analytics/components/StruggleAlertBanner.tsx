@@ -1,25 +1,34 @@
-import { AlertTriangle } from 'lucide-react'
-import { motion } from 'motion/react'
-import { useMemo } from 'react'
+import { AlertTriangle } from "lucide-react";
+import { motion } from "motion/react";
+import { useMemo } from "react";
 
-import type { LessonAnalytics } from '../types'
+import type { LessonAnalytics } from "../types";
 
 interface StruggleAlertBannerProps {
-  lessonAnalytics: LessonAnalytics[]
+  lessonAnalytics: LessonAnalytics[];
 }
 
-export function StruggleAlertBanner({ lessonAnalytics }: StruggleAlertBannerProps) {
+export function StruggleAlertBanner({
+  lessonAnalytics,
+}: StruggleAlertBannerProps) {
   // ⚡ Perf: memoize filter/reduce chain — prevents recalculation on every parent re-render
-  const { lessonsWithStruggle, totalStruggling, totalHighRisk } = useMemo(() => {
-    const filtered = lessonAnalytics.filter((l) => l.struggling_students > 0)
-    return {
-      lessonsWithStruggle: filtered,
-      totalStruggling: filtered.reduce((sum, l) => sum + l.struggling_students, 0),
-      totalHighRisk: filtered.reduce((sum, l) => sum + l.high_risk_students, 0),
-    }
-  }, [lessonAnalytics])
+  const { lessonsWithStruggle, totalStruggling, totalHighRisk } =
+    useMemo(() => {
+      const filtered = lessonAnalytics.filter((l) => l.struggling_students > 0);
+      return {
+        lessonsWithStruggle: filtered,
+        totalStruggling: filtered.reduce(
+          (sum, l) => sum + l.struggling_students,
+          0,
+        ),
+        totalHighRisk: filtered.reduce(
+          (sum, l) => sum + l.high_risk_students,
+          0,
+        ),
+      };
+    }, [lessonAnalytics]);
 
-  if (lessonsWithStruggle.length === 0) return null
+  if (lessonsWithStruggle.length === 0) return null;
 
   return (
     <motion.div
@@ -40,14 +49,15 @@ export function StruggleAlertBanner({ lessonAnalytics }: StruggleAlertBannerProp
           )}
         </p>
         <p className="mt-0.5 text-xs text-amber-700 dark:text-amber-400">
-          Terdeteksi di {lessonsWithStruggle.length} pelajaran:{' '}
+          Terdeteksi di {lessonsWithStruggle.length} pelajaran:{" "}
           {lessonsWithStruggle
             .slice(0, 3)
             .map((l) => l.lesson_title)
-            .join(', ')}
-          {lessonsWithStruggle.length > 3 && `, +${lessonsWithStruggle.length - 3} lainnya`}
+            .join(", ")}
+          {lessonsWithStruggle.length > 3 &&
+            `, +${lessonsWithStruggle.length - 3} lainnya`}
         </p>
       </div>
     </motion.div>
-  )
+  );
 }

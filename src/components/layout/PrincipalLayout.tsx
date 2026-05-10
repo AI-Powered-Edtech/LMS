@@ -3,28 +3,35 @@
 // Header + Sidebar minimal + Main content area
 // ==========================================================================
 
-import { useState } from 'react'
-import { NavLink, Outlet, useNavigate } from 'react-router-dom'
+import { useState } from "react";
+import { NavLink, Outlet, useNavigate } from "react-router-dom";
 
-import { useAuth } from '@/contexts/AuthContext'
+import { useAuth } from "@/contexts/AuthContext";
 
 const NAV_ITEMS = [
-  { to: '/app/principal', label: 'Dashboard', icon: '📊', end: true },
-  { to: '/app/principal/settings', label: 'Pengaturan', icon: '⚙️', end: false },
-] as const
+  { to: "/app/principal", label: "Dashboard", icon: "📊", end: true },
+  {
+    to: "/app/principal/settings",
+    label: "Pengaturan",
+    icon: "⚙️",
+    end: false,
+  },
+] as const;
 
 export function PrincipalLayout() {
-  const { profile, activeTenant, signOut } = useAuth()
-  const navigate = useNavigate()
-  const [sidebarOpen, setSidebarOpen] = useState(false)
+  const { profile, activeTenant, signOut } = useAuth();
+  const navigate = useNavigate();
+  const [sidebarOpen, setSidebarOpen] = useState(false);
 
-  const userName = profile ? `${profile.first_name} ${profile.last_name}`.trim() : 'Kepala Sekolah'
-  const schoolName = activeTenant?.name ?? 'EduSync'
+  const userName = profile
+    ? `${profile.first_name} ${profile.last_name}`.trim()
+    : "Kepala Sekolah";
+  const schoolName = activeTenant?.name ?? "EduSync";
 
   const handleSignOut = async () => {
-    await signOut()
-    void navigate('/login', { replace: true })
-  }
+    await signOut();
+    void navigate("/login", { replace: true });
+  };
 
   return (
     <div className="flex h-[100dvh] overflow-hidden bg-slate-50 font-sans text-slate-900 transition-colors duration-300 dark:bg-slate-950 dark:text-slate-100">
@@ -44,7 +51,7 @@ export function PrincipalLayout() {
           bg-white dark:bg-slate-900 border-r border-slate-200 dark:border-slate-700/60
           shadow-lg lg:shadow-none
           transition-transform duration-300
-          ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'}
+          ${sidebarOpen ? "translate-x-0" : "-translate-x-full"}
           lg:relative lg:translate-x-0 lg:flex
         `}
       >
@@ -54,8 +61,12 @@ export function PrincipalLayout() {
             E
           </div>
           <div className="min-w-0">
-            <p className="text-sm font-bold text-slate-900 dark:text-slate-100 truncate">EduSync</p>
-            <p className="text-xs text-slate-500 dark:text-slate-400 truncate">{schoolName}</p>
+            <p className="text-sm font-bold text-slate-900 dark:text-slate-100 truncate">
+              EduSync
+            </p>
+            <p className="text-xs text-slate-500 dark:text-slate-400 truncate">
+              {schoolName}
+            </p>
           </div>
         </div>
 
@@ -70,8 +81,8 @@ export function PrincipalLayout() {
               className={({ isActive }) =>
                 `flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-200 ${
                   isActive
-                    ? 'bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300'
-                    : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-slate-100'
+                    ? "bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300"
+                    : "text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-slate-100"
                 }`
               }
             >
@@ -93,7 +104,9 @@ export function PrincipalLayout() {
               <p className="text-sm font-semibold text-slate-800 dark:text-slate-200 truncate">
                 {userName}
               </p>
-              <p className="text-xs text-slate-500 dark:text-slate-400 truncate">Kepala Sekolah</p>
+              <p className="text-xs text-slate-500 dark:text-slate-400 truncate">
+                Kepala Sekolah
+              </p>
             </div>
           </div>
           <button
@@ -123,7 +136,11 @@ export function PrincipalLayout() {
               stroke="currentColor"
               strokeWidth={2}
             >
-              <path strokeLinecap="round" strokeLinejoin="round" d="M4 6h16M4 12h16M4 18h16" />
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                d="M4 6h16M4 12h16M4 18h16"
+              />
             </svg>
           </button>
 
@@ -182,5 +199,5 @@ export function PrincipalLayout() {
         </main>
       </div>
     </div>
-  )
+  );
 }

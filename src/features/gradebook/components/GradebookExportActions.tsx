@@ -10,32 +10,37 @@
  * - Error states with retry
  */
 
-import { Download, FileSpreadsheet, FileText, Loader2 } from 'lucide-react'
-import { useState } from 'react'
+import { Download, FileSpreadsheet, FileText, Loader2 } from "lucide-react";
+import { useState } from "react";
 
-import { useExportReport } from '@/features/gradebook/hooks/useExportReport'
-import { cn } from '@/utils/cn'
-import { logger } from '@/utils/logger'
+import { useExportReport } from "@/features/gradebook/hooks/useExportReport";
+import { cn } from "@/utils/cn";
+import { logger } from "@/utils/logger";
 
-export type ExportFormat = 'csv' | 'excel' | 'pdf'
+export type ExportFormat = "csv" | "excel" | "pdf";
 
 interface GradebookExportActionsProps {
-  courseId?: string
-  startDate?: string
-  endDate?: string
-  className?: string
+  courseId?: string;
+  startDate?: string;
+  endDate?: string;
+  className?: string;
 }
 
 const FORMAT_OPTIONS: {
-  value: ExportFormat
-  label: string
-  icon: typeof FileText
-  mimeType: string
+  value: ExportFormat;
+  label: string;
+  icon: typeof FileText;
+  mimeType: string;
 }[] = [
-  { value: 'csv', label: 'CSV', icon: FileSpreadsheet, mimeType: 'text/csv' },
-  { value: 'excel', label: 'Excel', icon: FileSpreadsheet, mimeType: 'application/vnd.ms-excel' },
-  { value: 'pdf', label: 'PDF', icon: FileText, mimeType: 'application/pdf' },
-]
+  { value: "csv", label: "CSV", icon: FileSpreadsheet, mimeType: "text/csv" },
+  {
+    value: "excel",
+    label: "Excel",
+    icon: FileSpreadsheet,
+    mimeType: "application/vnd.ms-excel",
+  },
+  { value: "pdf", label: "PDF", icon: FileText, mimeType: "application/pdf" },
+];
 
 export function GradebookExportActions({
   courseId,
@@ -43,34 +48,34 @@ export function GradebookExportActions({
   endDate,
   className,
 }: GradebookExportActionsProps) {
-  const [open, setOpen] = useState(false)
+  const [open, setOpen] = useState(false);
 
   const { exportReport, isLoading, progress, error, reset } = useExportReport({
     onCompleted: (job) => {
       // Auto-download when completed
       if (job.downloadUrl) {
-        window.open(job.downloadUrl, '_blank')
+        window.open(job.downloadUrl, "_blank");
       }
     },
-  })
+  });
 
   const handleExport = async (format: ExportFormat) => {
-    setOpen(false)
-    reset()
+    setOpen(false);
+    reset();
 
     try {
-      await exportReport('grades', format, {
+      await exportReport("grades", format, {
         course_id: courseId,
         start_date: startDate,
         end_date: endDate,
-      })
+      });
     } catch (err) {
-      logger.error('[GradebookExport] Export failed:', err)
+      logger.error("[GradebookExport] Export failed:", err);
     }
-  }
+  };
 
   return (
-    <div className={cn('relative', className)}>
+    <div className={cn("relative", className)}>
       {/* Export Button */}
       <button
         onClick={() => setOpen(!open)}
@@ -117,7 +122,9 @@ export function GradebookExportActions({
               <p className="text-sm font-medium text-slate-700 dark:text-slate-300">
                 Mempersiapkan export...
               </p>
-              <p className="text-xs text-slate-500 dark:text-slate-400">{progress}% selesai</p>
+              <p className="text-xs text-slate-500 dark:text-slate-400">
+                {progress}% selesai
+              </p>
             </div>
           </div>
 
@@ -146,9 +153,11 @@ export function GradebookExportActions({
 
       {}
       {/* Click Outside to Close */}
-      {open && <div className="fixed inset-0 z-40" onClick={() => setOpen(false)} />}
+      {open && (
+        <div className="fixed inset-0 z-40" onClick={() => setOpen(false)} />
+      )}
     </div>
-  )
+  );
 }
 
-export default GradebookExportActions
+export default GradebookExportActions;

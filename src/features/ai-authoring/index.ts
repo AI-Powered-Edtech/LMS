@@ -13,7 +13,7 @@ export type {
   GenerateFromLessonConfig,
   GenerateFromLessonResponse,
   QuestionType,
-} from './types'
+} from "./types";
 export {
   BLOOM_DESCRIPTIONS,
   BLOOM_LABELS,
@@ -21,7 +21,7 @@ export {
   isQuizQuestion,
   QUESTION_TYPE_COLORS,
   QUESTION_TYPE_LABELS,
-} from './types'
+} from "./types";
 
 // ─── React Query Hooks & Keys ─────────────────────────────────────────────────
 export {
@@ -32,7 +32,7 @@ export {
   useGenerateFromLesson,
   useMarkContentUsed,
   useUpdateGenerationQuestions,
-} from './queries/aiAuthoringQueries'
+} from "./queries/aiAuthoringQueries";
 
 // ─── Service ──────────────────────────────────────────────────────────────────
-export { aiAuthoringService } from './api/aiAuthoringService'
+export { aiAuthoringService } from "./api/aiAuthoringService";

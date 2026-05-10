@@ -1,22 +1,32 @@
-import { ChevronDown, Download, Filter, Mail, RefreshCw, Search, Upload, UserPlus, Users } from 'lucide-react'
-import { useState } from 'react'
+import {
+  ChevronDown,
+  Download,
+  Filter,
+  Mail,
+  RefreshCw,
+  Search,
+  Upload,
+  UserPlus,
+  Users,
+} from "lucide-react";
+import { useState } from "react";
 
-import { ChangeRoleModal } from '@/components/admin/ChangeRoleModal'
-import { InviteUserModal } from '@/components/admin/InviteUserModal'
-import { AdministrationSkeleton } from '@/features/administration/components/AdministrationSkeleton'
-import { BulkImportWizard } from '@/features/administration/components/BulkImportWizard'
-import { InvitationsTable } from '@/features/administration/components/InvitationsTable'
-import { UserTable } from '@/features/administration/components/UserTable'
-import { useUserManagementState } from '@/features/administration/hooks/useUserManagementState'
-import { useToast } from '@/hooks/useToast'
-import { usePageTitle } from '@/hooks/usePageTitle'
-import { defaultCsvFilename, exportCsv } from '@/shared/utils/export-table'
-import { cn } from '@/utils/cn'
+import { ChangeRoleModal } from "@/components/admin/ChangeRoleModal";
+import { InviteUserModal } from "@/components/admin/InviteUserModal";
+import { AdministrationSkeleton } from "@/features/administration/components/AdministrationSkeleton";
+import { BulkImportWizard } from "@/features/administration/components/BulkImportWizard";
+import { InvitationsTable } from "@/features/administration/components/InvitationsTable";
+import { UserTable } from "@/features/administration/components/UserTable";
+import { useUserManagementState } from "@/features/administration/hooks/useUserManagementState";
+import { usePageTitle } from "@/hooks/usePageTitle";
+import { useToast } from "@/hooks/useToast";
+import { defaultCsvFilename, exportCsv } from "@/shared/utils/export-table";
+import { cn } from "@/utils/cn";
 
 export function UserManagement() {
-  usePageTitle('Manajemen Pengguna')
-  const addToast = useToast((s) => s.addToast)
-  const [showBulkImportWizard, setShowBulkImportWizard] = useState(false)
+  usePageTitle("Manajemen Pengguna");
+  const addToast = useToast((s) => s.addToast);
+  const [showBulkImportWizard, setShowBulkImportWizard] = useState(false);
   const {
     tab,
     setTab,
@@ -45,29 +55,32 @@ export function UserManagement() {
     copyInviteLink,
     formatDate,
     getInitials,
-  } = useUserManagementState()
+  } = useUserManagementState();
 
   const handleExportCsv = () => {
     try {
       const rows = users.map((u) => ({
-        Nama: `${u.first_name ?? ''} ${u.last_name ?? ''}`.trim(),
+        Nama: `${u.first_name ?? ""} ${u.last_name ?? ""}`.trim(),
         Email: u.email,
-        Roles: (u.roles ?? []).join('|'),
-        Aktif: u.is_active ? 'Ya' : 'Tidak',
-        'Dibuat Pada': u.created_at ?? '',
-      }))
-      exportCsv(defaultCsvFilename('users'), rows)
-      addToast({ type: 'success', message: 'Daftar pengguna berhasil diekspor ke CSV.' })
+        Roles: (u.roles ?? []).join("|"),
+        Aktif: u.is_active ? "Ya" : "Tidak",
+        "Dibuat Pada": u.created_at ?? "",
+      }));
+      exportCsv(defaultCsvFilename("users"), rows);
+      addToast({
+        type: "success",
+        message: "Daftar pengguna berhasil diekspor ke CSV.",
+      });
     } catch (err) {
       addToast({
-        type: 'warning',
-        message: err instanceof Error ? err.message : 'Gagal mengekspor CSV.',
-      })
+        type: "warning",
+        message: err instanceof Error ? err.message : "Gagal mengekspor CSV.",
+      });
     }
-  }
+  };
 
   if (loading && users.length === 0 && invitations.length === 0) {
-    return <AdministrationSkeleton />
+    return <AdministrationSkeleton />;
   }
 
   return (
@@ -115,13 +128,19 @@ export function UserManagement() {
       {/* Stats */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         <div className="bg-white dark:bg-slate-800 p-4 rounded-xl border border-slate-200 dark:border-slate-700">
-          <p className="text-xs text-slate-500 dark:text-slate-400 font-medium">Total Users</p>
-          <p className="text-2xl font-bold text-slate-900 dark:text-slate-100">{totalCount}</p>
+          <p className="text-xs text-slate-500 dark:text-slate-400 font-medium">
+            Total Users
+          </p>
+          <p className="text-2xl font-bold text-slate-900 dark:text-slate-100">
+            {totalCount}
+          </p>
         </div>
         <div className="bg-white dark:bg-slate-800 p-4 rounded-xl border border-slate-200 dark:border-slate-700">
-          <p className="text-xs text-slate-500 dark:text-slate-400 font-medium">Undangan Pending</p>
+          <p className="text-xs text-slate-500 dark:text-slate-400 font-medium">
+            Undangan Pending
+          </p>
           <p className="text-2xl font-bold text-amber-600">
-            {invitations.filter((i) => i.status === 'pending').length}
+            {invitations.filter((i) => i.status === "pending").length}
           </p>
         </div>
         <div className="bg-white dark:bg-slate-800 p-4 rounded-xl border border-slate-200 dark:border-slate-700">
@@ -137,7 +156,7 @@ export function UserManagement() {
             Admin (halaman ini)
           </p>
           <p className="text-2xl font-bold text-purple-600">
-            {users.filter((u) => u.roles.includes('ADMIN')).length}
+            {users.filter((u) => u.roles.includes("ADMIN")).length}
           </p>
         </div>
       </div>
@@ -146,23 +165,23 @@ export function UserManagement() {
       <div className="bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-sm overflow-hidden">
         <div className="flex border-b border-slate-200 dark:border-slate-700">
           <button
-            onClick={() => setTab('users')}
+            onClick={() => setTab("users")}
             className={cn(
-              'flex-1 px-6 py-3.5 text-sm font-semibold transition-colors flex items-center justify-center gap-2',
-              tab === 'users'
-                ? 'text-blue-600 dark:text-blue-400 border-b-2 border-blue-600 dark:border-blue-400 bg-blue-50/30 dark:bg-blue-900/20'
-                : 'text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200'
+              "flex-1 px-6 py-3.5 text-sm font-semibold transition-colors flex items-center justify-center gap-2",
+              tab === "users"
+                ? "text-blue-600 dark:text-blue-400 border-b-2 border-blue-600 dark:border-blue-400 bg-blue-50/30 dark:bg-blue-900/20"
+                : "text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200",
             )}
           >
             <Users className="w-4 h-4" /> Pengguna ({totalCount})
           </button>
           <button
-            onClick={() => setTab('invitations')}
+            onClick={() => setTab("invitations")}
             className={cn(
-              'flex-1 px-6 py-3.5 text-sm font-semibold transition-colors flex items-center justify-center gap-2',
-              tab === 'invitations'
-                ? 'text-blue-600 dark:text-blue-400 border-b-2 border-blue-600 dark:border-blue-400 bg-blue-50/30 dark:bg-blue-900/20'
-                : 'text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200'
+              "flex-1 px-6 py-3.5 text-sm font-semibold transition-colors flex items-center justify-center gap-2",
+              tab === "invitations"
+                ? "text-blue-600 dark:text-blue-400 border-b-2 border-blue-600 dark:border-blue-400 bg-blue-50/30 dark:bg-blue-900/20"
+                : "text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200",
             )}
           >
             <Mail className="w-4 h-4" /> Undangan ({invitations.length})
@@ -170,7 +189,7 @@ export function UserManagement() {
         </div>
 
         {/* Users Tab */}
-        {tab === 'users' && (
+        {tab === "users" && (
           <>
             {/* Search & Filter */}
             <div className="p-4 border-b border-slate-100 dark:border-slate-700 flex flex-col sm:flex-row gap-3">
@@ -201,8 +220,8 @@ export function UserManagement() {
               </div>
               <button
                 onClick={() => {
-                  setCursor(null)
-                  void fetchUsers()
+                  setCursor(null);
+                  void fetchUsers();
                 }}
                 className="p-2.5 border border-slate-200 dark:border-slate-700 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-700"
                 title="Refresh"
@@ -231,7 +250,7 @@ export function UserManagement() {
                   disabled={loading}
                   className="px-6 py-2 text-sm font-medium text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/30 rounded-xl transition-colors disabled:opacity-50"
                 >
-                  {loading ? 'Memuat...' : 'Muat Lebih Banyak'}
+                  {loading ? "Memuat..." : "Muat Lebih Banyak"}
                 </button>
               </div>
             )}
@@ -239,7 +258,7 @@ export function UserManagement() {
         )}
 
         {/* Invitations Tab */}
-        {tab === 'invitations' && (
+        {tab === "invitations" && (
           <InvitationsTable
             invitations={invitations}
             loading={loading}
@@ -255,9 +274,9 @@ export function UserManagement() {
         <BulkImportWizard
           onClose={() => setShowBulkImportWizard(false)}
           onSuccess={() => {
-            setShowBulkImportWizard(false)
-            void fetchUsers()
-            void fetchInvitations()
+            setShowBulkImportWizard(false);
+            void fetchUsers();
+            void fetchInvitations();
           }}
         />
       )}
@@ -269,7 +288,9 @@ export function UserManagement() {
           onClose={() => setRoleModal(null)}
           onConfirm={handleRoleChange}
           userName={`${roleModal.user.first_name} ${roleModal.user.last_name}`}
-          currentRoles={roleModal.user.roles as ('STUDENT' | 'TEACHER' | 'ADMIN')[]}
+          currentRoles={
+            roleModal.user.roles as ("STUDENT" | "TEACHER" | "ADMIN")[]
+          }
         />
       )}
       <InviteUserModal
@@ -278,5 +299,5 @@ export function UserManagement() {
         onSuccess={() => fetchInvitations()}
       />
     </div>
-  )
+  );
 }

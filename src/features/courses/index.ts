@@ -1,5 +1,5 @@
-export { courseService } from './api/courseService'
-export * from './hooks/useCourseReadiness'
-export * from './queries/courseKeys'
-export * from './queries/courseQueries'
-export * from './types'
+export { courseService } from "./api/courseService";
+export * from "./hooks/useCourseReadiness";
+export * from "./queries/courseKeys";
+export * from "./queries/courseQueries";
+export * from "./types";

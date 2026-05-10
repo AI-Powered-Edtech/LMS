@@ -1,24 +1,29 @@
-import { Type } from 'lucide-react'
+import { Type } from "lucide-react";
 
-import { cn } from '@/utils/cn'
+import { cn } from "@/utils/cn";
 
-import type { LessonDraftBlock } from '../../types'
+import type { LessonDraftBlock } from "../../types";
 
 interface BlockPreviewCardProps {
-  block: LessonDraftBlock
-  index: number
-  selected: boolean
-  onToggle: () => void
+  block: LessonDraftBlock;
+  index: number;
+  selected: boolean;
+  onToggle: () => void;
 }
 
-export function BlockPreviewCard({ block, index, selected, onToggle }: BlockPreviewCardProps) {
+export function BlockPreviewCard({
+  block,
+  index,
+  selected,
+  onToggle,
+}: BlockPreviewCardProps) {
   return (
     <div
       className={cn(
-        'rounded-xl border transition-all',
+        "rounded-xl border transition-all",
         selected
-          ? 'border-indigo-300 dark:border-indigo-700 bg-indigo-50/50 dark:bg-indigo-950/30'
-          : 'border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800'
+          ? "border-indigo-300 dark:border-indigo-700 bg-indigo-50/50 dark:bg-indigo-950/30"
+          : "border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800",
       )}
     >
       <div className="flex items-start gap-3 px-3 py-3">
@@ -40,10 +45,10 @@ export function BlockPreviewCard({ block, index, selected, onToggle }: BlockPrev
           )}
           <p className="text-xs text-slate-500 dark:text-slate-400 line-clamp-3 leading-relaxed">
             {block.content.slice(0, 200)}
-            {block.content.length > 200 ? '...' : ''}
+            {block.content.length > 200 ? "..." : ""}
           </p>
         </div>
       </div>
     </div>
-  )
+  );
 }

@@ -1,31 +1,31 @@
-import { AlertCircle, AlertTriangle, LogIn, RefreshCcw } from 'lucide-react'
-import { Component, ErrorInfo, ReactNode } from 'react'
+import { AlertCircle, AlertTriangle, LogIn, RefreshCcw } from "lucide-react";
+import { Component, ErrorInfo, ReactNode } from "react";
 
-import { logger } from '@/utils/logger'
-import { captureError } from '@/utils/sentry'
+import { logger } from "@/utils/logger";
+import { captureError } from "@/utils/sentry";
 
 interface Props {
-  children?: ReactNode
-  fallback?: ReactNode
-  onRetry?: () => void
-  featureName?: string
+  children?: ReactNode;
+  fallback?: ReactNode;
+  onRetry?: () => void;
+  featureName?: string;
 }
 
 interface State {
-  hasError: boolean
-  error?: Error
+  hasError: boolean;
+  error?: Error;
 }
 
 /** Check whether the error is caused by a stale dynamic import (code-split chunk). */
 function isChunkLoadError(error?: Error): boolean {
-  if (!error) return false
-  const msg = error.message || ''
+  if (!error) return false;
+  const msg = error.message || "";
   return (
-    msg.includes('Failed to fetch dynamically imported module') ||
-    msg.includes('Importing a module script failed') ||
-    msg.includes('Loading chunk') ||
-    msg.includes('Loading CSS chunk')
-  )
+    msg.includes("Failed to fetch dynamically imported module") ||
+    msg.includes("Importing a module script failed") ||
+    msg.includes("Loading chunk") ||
+    msg.includes("Loading CSS chunk")
+  );
 }
 
 /**
@@ -33,14 +33,14 @@ function isChunkLoadError(error?: Error): boolean {
  * rendered outside its required React context provider.
  */
 function isContextError(error?: Error): boolean {
-  if (!error) return false
-  const msg = error.message.toLowerCase()
+  if (!error) return false;
+  const msg = error.message.toLowerCase();
   return (
-    (msg.includes('must be used within') && msg.includes('provider')) ||
-    (msg.includes('cannot read properties of null') &&
-      (msg.includes('usecontext') || msg.includes('use'))) ||
-    (msg.includes('cannot read properties of undefined') && msg.includes('use'))
-  )
+    (msg.includes("must be used within") && msg.includes("provider")) ||
+    (msg.includes("cannot read properties of null") &&
+      (msg.includes("usecontext") || msg.includes("use"))) ||
+    (msg.includes("cannot read properties of undefined") && msg.includes("use"))
+  );
 }
 
 /**
@@ -48,20 +48,20 @@ function isContextError(error?: Error): boolean {
  * Since this is a class component (can't use hooks), we inspect the error object.
  */
 function isAuthError(error?: Error): boolean {
-  if (!error) return false
-  const msg = error.message.toLowerCase()
+  if (!error) return false;
+  const msg = error.message.toLowerCase();
   const authPatterns = [
-    'jwt',
-    'jwt expired',
-    'invalid claim',
-    'auth session missing',
-    'refresh_token_not_found',
-    'invalid refresh token',
-    'session_not_found',
-    'not authenticated',
-    'pgrst301',
-  ]
-  return authPatterns.some((pattern) => msg.includes(pattern))
+    "jwt",
+    "jwt expired",
+    "invalid claim",
+    "auth session missing",
+    "refresh_token_not_found",
+    "invalid refresh token",
+    "session_not_found",
+    "not authenticated",
+    "pgrst301",
+  ];
+  return authPatterns.some((pattern) => msg.includes(pattern));
 }
 
 /**
@@ -71,37 +71,41 @@ function isAuthError(error?: Error): boolean {
 export class FeatureErrorBoundary extends Component<Props, State> {
   public state: State = {
     hasError: false,
-  }
+  };
 
   public static getDerivedStateFromError(error: Error): State {
-    return { hasError: true, error }
+    return { hasError: true, error };
   }
 
   public componentDidCatch(error: Error, errorInfo: ErrorInfo) {
     // Report to Sentry — this was missing, so production crashes were unreported
     captureError(error, {
-      context: 'FeatureErrorBoundary',
-      featureName: this.props.featureName ?? 'unknown',
-      componentStack: errorInfo.componentStack ?? '',
-    })
+      context: "FeatureErrorBoundary",
+      featureName: this.props.featureName ?? "unknown",
+      componentStack: errorInfo.componentStack ?? "",
+    });
     if (import.meta.env.DEV)
-      logger.error(`Error in ${this.props.featureName || 'halaman'}:`, error, errorInfo)
+      logger.error(
+        `Error in ${this.props.featureName || "halaman"}:`,
+        error,
+        errorInfo,
+      );
   }
 
   private handleRetry = () => {
     if (this.props.onRetry) {
-      this.props.onRetry()
+      this.props.onRetry();
     } else {
-      window.location.reload()
+      window.location.reload();
     }
-  }
+  };
 
   public render() {
-    const fn = this.props.featureName || 'halaman ini'
+    const fn = this.props.featureName || "halaman ini";
     if (this.state.hasError) {
       // Use custom fallback if provided
       if (this.props.fallback) {
-        return this.props.fallback
+        return this.props.fallback;
       }
 
       // Stale chunk / dynamic import failure — prompt user to refresh
@@ -115,8 +119,8 @@ export class FeatureErrorBoundary extends Component<Props, State> {
               Versi baru tersedia
             </h2>
             <p className="text-slate-500 dark:text-slate-400 mb-6 max-w-sm">
-              Aplikasi telah diperbarui sejak terakhir Anda membuka halaman ini. Silakan muat ulang
-              untuk melanjutkan.
+              Aplikasi telah diperbarui sejak terakhir Anda membuka halaman ini.
+              Silakan muat ulang untuk melanjutkan.
             </p>
             <button
               onClick={() => window.location.reload()}
@@ -126,7 +130,7 @@ export class FeatureErrorBoundary extends Component<Props, State> {
               Perbarui Halaman
             </button>
           </div>
-        )
+        );
       }
 
       // Context/provider error — component mounted outside required provider
@@ -140,7 +144,8 @@ export class FeatureErrorBoundary extends Component<Props, State> {
               Komponen tidak dapat dimuat
             </h2>
             <p className="text-slate-500 dark:text-slate-400 mb-6 max-w-sm">
-              Komponen ini dimuat di luar context yang diperlukan. Coba muat ulang halaman.
+              Komponen ini dimuat di luar context yang diperlukan. Coba muat
+              ulang halaman.
             </p>
             <button
               onClick={() => window.location.reload()}
@@ -150,7 +155,7 @@ export class FeatureErrorBoundary extends Component<Props, State> {
               Muat Ulang Halaman
             </button>
           </div>
-        )
+        );
       }
 
       // Auth/session error — prompt user to re-login
@@ -174,7 +179,7 @@ export class FeatureErrorBoundary extends Component<Props, State> {
               Masuk Kembali
             </a>
           </div>
-        )
+        );
       }
 
       // Default fallback UI
@@ -188,7 +193,7 @@ export class FeatureErrorBoundary extends Component<Props, State> {
           </h2>
           <p className="text-slate-500 dark:text-slate-400 mb-6 max-w-sm">
             {import.meta.env.DEV
-              ? this.state.error?.message || 'Terjadi kesalahan tidak terduga.'
+              ? this.state.error?.message || "Terjadi kesalahan tidak terduga."
               : `Maaf, terjadi kesalahan saat memuat ${fn}. Coba muat ulang atau coba lagi nanti.`}
           </p>
           <button
@@ -199,9 +204,9 @@ export class FeatureErrorBoundary extends Component<Props, State> {
             Coba Muat Ulang
           </button>
         </div>
-      )
+      );
     }
 
-    return this.props.children
+    return this.props.children;
   }
 }

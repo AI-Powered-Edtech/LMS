@@ -1,11 +1,11 @@
-import { X } from 'lucide-react'
-import { motion } from 'motion/react'
+import { X } from "lucide-react";
+import { motion } from "motion/react";
 
-import type { ApplicableGuide } from '../types'
+import type { ApplicableGuide } from "../types";
 
 interface Props {
-  guide: ApplicableGuide
-  onDismiss: () => void
+  guide: ApplicableGuide;
+  onDismiss: () => void;
 }
 
 export function BannerGuide({ guide, onDismiss }: Props) {
@@ -18,7 +18,9 @@ export function BannerGuide({ guide, onDismiss }: Props) {
       className="flex items-start gap-3 rounded-lg border border-blue-200 bg-blue-50 p-4 dark:border-blue-800/60 dark:bg-blue-900/20"
     >
       <div className="flex-1 min-w-0">
-        <p className="text-sm font-semibold text-blue-800 dark:text-blue-300 mb-1">{guide.title}</p>
+        <p className="text-sm font-semibold text-blue-800 dark:text-blue-300 mb-1">
+          {guide.title}
+        </p>
         <p className="text-sm text-blue-700 dark:text-blue-400 leading-relaxed whitespace-pre-wrap">
           {guide.content}
         </p>
@@ -31,5 +33,5 @@ export function BannerGuide({ guide, onDismiss }: Props) {
         <X className="h-4 w-4" />
       </button>
     </motion.div>
-  )
+  );
 }

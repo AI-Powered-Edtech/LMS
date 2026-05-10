@@ -1,16 +1,16 @@
-import type { RealtimeProvider } from './types'
+import type { RealtimeProvider } from "./types";
 
-let activeRealtimeProvider: RealtimeProvider | null = null
+let activeRealtimeProvider: RealtimeProvider | null = null;
 
 export function setRealtimeProvider(provider: RealtimeProvider): void {
-  activeRealtimeProvider = provider
+  activeRealtimeProvider = provider;
 }
 
 export function getRealtimeProvider(): RealtimeProvider {
   if (!activeRealtimeProvider) {
     throw new Error(
-      '[RealtimeProvider] Not initialized. Call setRealtimeProvider() before using realtime features.'
-    )
+      "[RealtimeProvider] Not initialized. Call setRealtimeProvider() before using realtime features.",
+    );
   }
-  return activeRealtimeProvider
+  return activeRealtimeProvider;
 }

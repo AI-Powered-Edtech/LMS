@@ -1,7 +1,7 @@
 // Public API for the plagiarism feature module
-export { plagiarismService } from './api/plagiarismService'
-export { PlagiarismBadge } from './components/PlagiarismBadge'
-export { PlagiarismCheckButton } from './components/PlagiarismCheckButton'
+export { plagiarismService } from "./api/plagiarismService";
+export { PlagiarismBadge } from "./components/PlagiarismBadge";
+export { PlagiarismCheckButton } from "./components/PlagiarismCheckButton";
 export type {
   CheckPlagiarismResult,
   PlagiarismCheck,
@@ -9,4 +9,4 @@ export type {
   PlagiarismProvider,
   PlagiarismReportData,
   PlagiarismStatus,
-} from './types'
+} from "./types";

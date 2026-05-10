@@ -1,12 +1,12 @@
 // Quiz Player Queries - React Query hooks for student quiz flow
 // Part of the Quiz Engine Refactor
 
-import { useQuery } from '@tanstack/react-query'
+import { useQuery } from "@tanstack/react-query";
 
-import { GC, STALE } from '@/utils/queryConstants'
+import { GC, STALE } from "@/utils/queryConstants";
 
-import * as quizPlayerService from '../api/quizPlayer.service'
-import { QuizKeys } from './queryKeys'
+import * as quizPlayerService from "../api/quizPlayer.service";
+import { QuizKeys } from "./queryKeys";
 
 // ============================================
 // Query Hooks
@@ -17,12 +17,12 @@ import { QuizKeys } from './queryKeys'
  */
 export function useStudentQuizAssignments(tenantId: string | undefined) {
   return useQuery({
-    queryKey: QuizKeys.studentAssignments(tenantId ?? ''),
+    queryKey: QuizKeys.studentAssignments(tenantId ?? ""),
     queryFn: () => quizPlayerService.getStudentQuizAssignments(tenantId!),
     enabled: !!tenantId,
     staleTime: STALE.DYNAMIC,
     gcTime: GC.NORMAL,
-  })
+  });
 }
 
 /**
@@ -30,10 +30,10 @@ export function useStudentQuizAssignments(tenantId: string | undefined) {
  */
 export function useUserAttempts(tenantId: string | undefined) {
   return useQuery({
-    queryKey: QuizKeys.userAttempts(tenantId ?? ''),
+    queryKey: QuizKeys.userAttempts(tenantId ?? ""),
     queryFn: () => quizPlayerService.getUserAttempts(tenantId!),
     enabled: !!tenantId,
     staleTime: STALE.DYNAMIC,
     gcTime: GC.NORMAL,
-  })
+  });
 }

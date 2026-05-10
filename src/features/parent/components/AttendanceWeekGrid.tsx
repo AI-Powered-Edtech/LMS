@@ -2,61 +2,64 @@
 // AttendanceWeekGrid — Grid kehadiran 5 hari (Senin-Jumat)
 // ==========================================================================
 
-import { Card } from '@/components/ui/Card'
-import { Skeleton } from '@/components/ui/Skeleton'
-import { cn } from '@/utils/cn'
+import { Card } from "@/components/ui/Card";
+import { Skeleton } from "@/components/ui/Skeleton";
+import { cn } from "@/utils/cn";
 
-import type { AttendanceDay } from '../types'
+import type { AttendanceDay } from "../types";
 
 interface AttendanceWeekGridProps {
-  attendance: AttendanceDay[]
-  isLoading?: boolean
+  attendance: AttendanceDay[];
+  isLoading?: boolean;
 }
 
 // Label hari (Senin-Jumat)
-const DAY_LABELS = ['Sen', 'Sel', 'Rab', 'Kam', 'Jum'] as const
+const DAY_LABELS = ["Sen", "Sel", "Rab", "Kam", "Jum"] as const;
 
 const STATUS_CONFIG = {
   hadir: {
-    emoji: '✅',
-    label: 'Hadir',
-    bg: 'bg-green-50 dark:bg-green-950/30',
-    border: 'border-green-200 dark:border-green-800/40',
-    text: 'text-green-700 dark:text-green-300',
+    emoji: "✅",
+    label: "Hadir",
+    bg: "bg-green-50 dark:bg-green-950/30",
+    border: "border-green-200 dark:border-green-800/40",
+    text: "text-green-700 dark:text-green-300",
   },
   sakit: {
-    emoji: '🤒',
-    label: 'Sakit',
-    bg: 'bg-blue-50 dark:bg-blue-950/30',
-    border: 'border-blue-200 dark:border-blue-800/40',
-    text: 'text-blue-700 dark:text-blue-300',
+    emoji: "🤒",
+    label: "Sakit",
+    bg: "bg-blue-50 dark:bg-blue-950/30",
+    border: "border-blue-200 dark:border-blue-800/40",
+    text: "text-blue-700 dark:text-blue-300",
   },
   izin: {
-    emoji: '📝',
-    label: 'Izin',
-    bg: 'bg-yellow-50 dark:bg-yellow-950/30',
-    border: 'border-yellow-200 dark:border-yellow-800/40',
-    text: 'text-yellow-700 dark:text-yellow-300',
+    emoji: "📝",
+    label: "Izin",
+    bg: "bg-yellow-50 dark:bg-yellow-950/30",
+    border: "border-yellow-200 dark:border-yellow-800/40",
+    text: "text-yellow-700 dark:text-yellow-300",
   },
   alpha: {
-    emoji: '❌',
-    label: 'Alpha',
-    bg: 'bg-red-50 dark:bg-red-950/30',
-    border: 'border-red-200 dark:border-red-800/40',
-    text: 'text-red-700 dark:text-red-300',
+    emoji: "❌",
+    label: "Alpha",
+    bg: "bg-red-50 dark:bg-red-950/30",
+    border: "border-red-200 dark:border-red-800/40",
+    text: "text-red-700 dark:text-red-300",
   },
-} as const
+} as const;
 
 /** Cek apakah tanggal belum terjadi (hari ini ke depan) */
 function isFutureDay(dateStr: string): boolean {
-  const today = new Date()
-  today.setHours(0, 0, 0, 0)
-  return new Date(dateStr) > today
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  return new Date(dateStr) > today;
 }
 
-export function AttendanceWeekGrid({ attendance, isLoading }: AttendanceWeekGridProps) {
+export function AttendanceWeekGrid({
+  attendance,
+  isLoading,
+}: AttendanceWeekGridProps) {
   // Pastikan selalu 5 slot — pad jika kurang
-  const slots = attendance.slice(0, 5)
+  const slots = attendance.slice(0, 5);
 
   return (
     <Card padding="sm" className="space-y-3">
@@ -88,38 +91,44 @@ export function AttendanceWeekGrid({ attendance, isLoading }: AttendanceWeekGrid
 
       {/* Grid */}
       {!isLoading && slots.length > 0 && (
-        <div className="grid grid-cols-5 gap-1.5" role="list" aria-label="Kehadiran minggu ini">
+        <div
+          className="grid grid-cols-5 gap-1.5"
+          role="list"
+          aria-label="Kehadiran minggu ini"
+        >
           {slots.map((day, idx) => {
-            const isFuture = isFutureDay(day.date)
-            const config = STATUS_CONFIG[day.status]
-            const dayLabel = DAY_LABELS[idx] ?? '?'
+            const isFuture = isFutureDay(day.date);
+            const config = STATUS_CONFIG[day.status];
+            const dayLabel = DAY_LABELS[idx] ?? "?";
 
             return (
               <div
                 key={day.date}
                 role="listitem"
-                aria-label={`${dayLabel}: ${isFuture ? 'Belum terjadi' : config.label}`}
+                aria-label={`${dayLabel}: ${isFuture ? "Belum terjadi" : config.label}`}
                 className={cn(
-                  'flex flex-col items-center justify-center rounded-xl border py-2 px-1',
-                  'min-h-[60px]',
+                  "flex flex-col items-center justify-center rounded-xl border py-2 px-1",
+                  "min-h-[60px]",
                   isFuture
-                    ? 'bg-slate-50 dark:bg-slate-800/30 border-slate-200 dark:border-slate-700/40 opacity-50'
-                    : cn(config.bg, config.border)
+                    ? "bg-slate-50 dark:bg-slate-800/30 border-slate-200 dark:border-slate-700/40 opacity-50"
+                    : cn(config.bg, config.border),
                 )}
               >
                 <span className="text-[10px] font-semibold text-slate-500 dark:text-slate-400 mb-1">
                   {dayLabel}
                 </span>
                 <span className="text-xl leading-none" aria-hidden="true">
-                  {isFuture ? '—' : config.emoji}
+                  {isFuture ? "—" : config.emoji}
                 </span>
                 {!isFuture && (
-                  <span className={cn('text-[9px] font-medium mt-1', config.text)}>
+                  <span
+                    className={cn("text-[9px] font-medium mt-1", config.text)}
+                  >
                     {config.label}
                   </span>
                 )}
               </div>
-            )
+            );
           })}
         </div>
       )}
@@ -143,5 +152,5 @@ export function AttendanceWeekGrid({ attendance, isLoading }: AttendanceWeekGrid
         </div>
       )}
     </Card>
-  )
+  );
 }

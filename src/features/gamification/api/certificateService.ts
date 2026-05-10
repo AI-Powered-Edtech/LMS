@@ -1,11 +1,11 @@
-import { readVilSession } from '@/services/auth/vilSession'
+import { readVilSession } from "@/services/auth/vilSession";
 
 interface CertificatePdfParams {
-  studentName: string
-  courseTitle: string
-  completionDate: string
-  tenantName: string
-  certificateNumber: string
+  studentName: string;
+  courseTitle: string;
+  completionDate: string;
+  tenantName: string;
+  certificateNumber: string;
 }
 
 /**
@@ -19,42 +19,46 @@ export const certificateService = {
    */
   async generatePdf(params: CertificatePdfParams): Promise<Blob> {
     try {
-      const apiUrl = import.meta.env.VITE_API_URL ?? ''
-      const token = readVilSession()?.access_token
+      const apiUrl = import.meta.env.VITE_API_URL ?? "";
+      const token = readVilSession()?.access_token;
 
       const url = apiUrl
         ? `${apiUrl}/api/v1/pdf/certificate`
-        : new URL('/api/v1/pdf/certificate', window.location.origin).toString()
+        : new URL("/api/v1/pdf/certificate", window.location.origin).toString();
       const response = await fetch(url, {
-        method: 'POST',
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
           ...(token ? { Authorization: `Bearer ${token}` } : {}),
         },
         body: JSON.stringify({
-          type: 'certificate',
+          type: "certificate",
           data: params,
         }),
-      })
+      });
 
       if (!response.ok) {
         if (response.status === 404) {
-          throw new Error('Layanan pembuatan sertifikat sedang tidak tersedia. Coba lagi nanti.')
+          throw new Error(
+            "Layanan pembuatan sertifikat sedang tidak tersedia. Coba lagi nanti.",
+          );
         }
-        throw new Error(`HTTP ${response.status}`)
+        throw new Error(`HTTP ${response.status}`);
       }
 
-      return response.blob()
+      return response.blob();
     } catch (err: unknown) {
-      const error = err as { message?: string; code?: string }
+      const error = err as { message?: string; code?: string };
       if (
-        error.message?.includes('not found') ||
-        error.code === 'PGRST202' ||
-        error.message?.includes('404')
+        error.message?.includes("not found") ||
+        error.code === "PGRST202" ||
+        error.message?.includes("404")
       ) {
-        throw new Error('Layanan pembuatan sertifikat sedang tidak tersedia. Coba lagi nanti.')
+        throw new Error(
+          "Layanan pembuatan sertifikat sedang tidak tersedia. Coba lagi nanti.",
+        );
       }
-      throw err
+      throw err;
     }
   },
-}
+};

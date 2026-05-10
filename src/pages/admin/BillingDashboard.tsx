@@ -18,7 +18,10 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useDebounce } from "@/hooks/useDebounce";
 import { usePageTitle } from "@/hooks/usePageTitle";
 import { db } from "@/services/db";
-import { formatCurrency, formatDate as formatDateId } from "@/shared/utils/format-id";
+import {
+  formatCurrency,
+  formatDate as formatDateId,
+} from "@/shared/utils/format-id";
 import { cn } from "@/utils/cn";
 
 // --- UTILS ---

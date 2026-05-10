@@ -1,54 +1,63 @@
-import { BookOpen, FolderTree, Plus } from 'lucide-react'
-import { useState } from 'react'
+import { BookOpen, FolderTree, Plus } from "lucide-react";
+import { useState } from "react";
 
-import { Button } from '@/components/ui/Button'
-import { Card } from '@/components/ui/Card'
-import { Input } from '@/components/ui/Input'
-import { Modal, ModalBody, ModalFooter, ModalHeader } from '@/components/ui/Modal'
-
+import { Button } from "@/components/ui/Button";
+import { Card } from "@/components/ui/Card";
+import { Input } from "@/components/ui/Input";
+import {
+  Modal,
+  ModalBody,
+  ModalFooter,
+  ModalHeader,
+} from "@/components/ui/Modal";
 import {
   useCreateSubject,
   useCurriculumItems,
   useSubjects,
-} from '@/features/subjects/hooks/useSubjects'
-import { useToast } from '@/hooks/useToast'
-import { usePageTitle } from '@/hooks/usePageTitle'
+} from "@/features/subjects/hooks/useSubjects";
+import { usePageTitle } from "@/hooks/usePageTitle";
+import { useToast } from "@/hooks/useToast";
 
 export function Subjects() {
-  usePageTitle('Mata Pelajaran & CP/ATP')
-  const { addToast } = useToast()
-  const { data: subjects = [], isLoading } = useSubjects()
-  const createSubject = useCreateSubject()
+  usePageTitle("Mata Pelajaran & CP/ATP");
+  const { addToast } = useToast();
+  const { data: subjects = [], isLoading } = useSubjects();
+  const createSubject = useCreateSubject();
 
-  const [selectedId, setSelectedId] = useState<string | null>(null)
-  const { data: items = [] } = useCurriculumItems(selectedId)
+  const [selectedId, setSelectedId] = useState<string | null>(null);
+  const { data: items = [] } = useCurriculumItems(selectedId);
 
-  const [isOpen, setIsOpen] = useState(false)
-  const [code, setCode] = useState('')
-  const [name, setName] = useState('')
-  const [schoolBand, setSchoolBand] = useState<'SD' | 'SMP' | 'SMA'>('SMA')
-  const [phase, setPhase] = useState<'A' | 'B' | 'C' | 'D' | 'E' | 'F' | ''>('E')
+  const [isOpen, setIsOpen] = useState(false);
+  const [code, setCode] = useState("");
+  const [name, setName] = useState("");
+  const [schoolBand, setSchoolBand] = useState<"SD" | "SMP" | "SMA">("SMA");
+  const [phase, setPhase] = useState<"A" | "B" | "C" | "D" | "E" | "F" | "">(
+    "E",
+  );
 
   async function handleCreate(e: React.FormEvent) {
-    e.preventDefault()
-    if (!code || !name) return
+    e.preventDefault();
+    if (!code || !name) return;
     try {
       await createSubject.mutateAsync({
         code,
         name,
         schoolBand,
-        phase: phase === '' ? null : phase,
-      })
-      addToast({ type: 'success', message: `Mata pelajaran ${name} ditambahkan` })
-      setIsOpen(false)
-      setCode('')
-      setName('')
+        phase: phase === "" ? null : phase,
+      });
+      addToast({
+        type: "success",
+        message: `Mata pelajaran ${name} ditambahkan`,
+      });
+      setIsOpen(false);
+      setCode("");
+      setName("");
     } catch (err) {
       addToast({
-        type: 'error',
-        message: 'Gagal menambah mata pelajaran',
-        description: err instanceof Error ? err.message : 'Terjadi kesalahan',
-      })
+        type: "error",
+        message: "Gagal menambah mata pelajaran",
+        description: err instanceof Error ? err.message : "Terjadi kesalahan",
+      });
     }
   }
 
@@ -64,7 +73,11 @@ export function Subjects() {
             Kelola katalog mapel dan struktur CP/ATP Kurmer per fase.
           </p>
         </div>
-        <Button variant="primary" icon={<Plus className="w-4 h-4" />} onClick={() => setIsOpen(true)}>
+        <Button
+          variant="primary"
+          icon={<Plus className="w-4 h-4" />}
+          onClick={() => setIsOpen(true)}
+        >
           Tambah Mapel
         </Button>
       </div>
@@ -75,9 +88,13 @@ export function Subjects() {
             Daftar Mapel
           </h2>
           {isLoading ? (
-            <div className="py-8 text-center text-sm text-slate-500">Memuat...</div>
+            <div className="py-8 text-center text-sm text-slate-500">
+              Memuat...
+            </div>
           ) : subjects.length === 0 ? (
-            <div className="py-8 text-center text-sm text-slate-500">Belum ada mata pelajaran.</div>
+            <div className="py-8 text-center text-sm text-slate-500">
+              Belum ada mata pelajaran.
+            </div>
           ) : (
             <ul className="divide-y divide-slate-100 dark:divide-slate-800">
               {subjects.map((s) => (
@@ -85,14 +102,18 @@ export function Subjects() {
                   <button
                     type="button"
                     onClick={() => setSelectedId(s.id)}
-                    className={`w-full text-left p-3 rounded-lg ${selectedId === s.id ? 'bg-violet-50 dark:bg-violet-900/20' : 'hover:bg-slate-50 dark:hover:bg-slate-800/40'}`}
+                    className={`w-full text-left p-3 rounded-lg ${selectedId === s.id ? "bg-violet-50 dark:bg-violet-900/20" : "hover:bg-slate-50 dark:hover:bg-slate-800/40"}`}
                   >
                     <div className="flex items-center justify-between">
                       <div>
-                        <p className="font-medium text-slate-900 dark:text-white">{s.name}</p>
+                        <p className="font-medium text-slate-900 dark:text-white">
+                          {s.name}
+                        </p>
                         <p className="text-xs text-slate-500">
                           {s.code} · {s.school_band}
-                          {s.is_kurmer_phase ? ` · Fase ${s.is_kurmer_phase}` : ''}
+                          {s.is_kurmer_phase
+                            ? ` · Fase ${s.is_kurmer_phase}`
+                            : ""}
                         </p>
                       </div>
                     </div>
@@ -121,7 +142,7 @@ export function Subjects() {
               {items.map((it) => (
                 <li
                   key={it.id}
-                  className={`p-2 rounded ${it.item_type === 'CP' ? 'bg-violet-50 dark:bg-violet-900/10 font-medium' : 'pl-6 text-slate-600 dark:text-slate-400'}`}
+                  className={`p-2 rounded ${it.item_type === "CP" ? "bg-violet-50 dark:bg-violet-900/10 font-medium" : "pl-6 text-slate-600 dark:text-slate-400"}`}
                 >
                   <span className="text-xs text-slate-500 mr-2">{it.code}</span>
                   {it.title}
@@ -134,7 +155,10 @@ export function Subjects() {
 
       <Modal open={isOpen} onClose={() => setIsOpen(false)}>
         <form onSubmit={handleCreate}>
-          <ModalHeader title="Mata Pelajaran Baru" onClose={() => setIsOpen(false)} />
+          <ModalHeader
+            title="Mata Pelajaran Baru"
+            onClose={() => setIsOpen(false)}
+          />
           <ModalBody>
             <div className="space-y-4">
               <Input
@@ -153,7 +177,9 @@ export function Subjects() {
               />
               <select
                 value={schoolBand}
-                onChange={(e) => setSchoolBand(e.target.value as 'SD' | 'SMP' | 'SMA')}
+                onChange={(e) =>
+                  setSchoolBand(e.target.value as "SD" | "SMP" | "SMA")
+                }
               >
                 <option value="SD">SD</option>
                 <option value="SMP">SMP</option>
@@ -177,12 +203,16 @@ export function Subjects() {
             <Button variant="ghost" onClick={() => setIsOpen(false)}>
               Batal
             </Button>
-            <Button type="submit" variant="primary" disabled={createSubject.isPending}>
-              {createSubject.isPending ? 'Menyimpan...' : 'Simpan'}
+            <Button
+              type="submit"
+              variant="primary"
+              disabled={createSubject.isPending}
+            >
+              {createSubject.isPending ? "Menyimpan..." : "Simpan"}
             </Button>
           </ModalFooter>
         </form>
       </Modal>
     </div>
-  )
+  );
 }

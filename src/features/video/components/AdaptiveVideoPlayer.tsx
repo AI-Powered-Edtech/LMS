@@ -1,36 +1,36 @@
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useRef, useState } from "react";
 
-import { cn } from '@/utils/cn'
+import { cn } from "@/utils/cn";
 
 /** WebVTT caption track descriptor */
 export interface CaptionTrack {
-  src: string
-  srclang: string
-  label: string
-  default?: boolean
+  src: string;
+  srclang: string;
+  label: string;
+  default?: boolean;
 }
 
 interface AdaptiveVideoPlayerProps {
-  hlsUrl?: string | null
-  mp4Url?: string | null
-  thumbnailUrl?: string | null
-  onProgress?: (pct: number) => void
-  onEnded?: () => void
-  controls?: boolean
-  className?: string
-  onTimeUpdate?: () => void
-  onPlay?: () => void
-  onSeeking?: () => void
-  onCanPlay?: () => void
-  onWaiting?: () => void
-  onStalled?: () => void
-  onError?: () => void
+  hlsUrl?: string | null;
+  mp4Url?: string | null;
+  thumbnailUrl?: string | null;
+  onProgress?: (pct: number) => void;
+  onEnded?: () => void;
+  controls?: boolean;
+  className?: string;
+  onTimeUpdate?: () => void;
+  onPlay?: () => void;
+  onSeeking?: () => void;
+  onCanPlay?: () => void;
+  onWaiting?: () => void;
+  onStalled?: () => void;
+  onError?: () => void;
   /** Ref forwarded to the underlying <video> element */
-  videoRef?: React.RefObject<HTMLVideoElement | null>
-  controlsList?: string
-  'aria-label'?: string
+  videoRef?: React.RefObject<HTMLVideoElement | null>;
+  controlsList?: string;
+  "aria-label"?: string;
   /** Optional WebVTT caption tracks */
-  captions?: CaptionTrack[]
+  captions?: CaptionTrack[];
 }
 
 /**
@@ -57,91 +57,98 @@ export function AdaptiveVideoPlayer({
   onError,
   videoRef: externalRef,
   controlsList,
-  'aria-label': ariaLabel,
+  "aria-label": ariaLabel,
   captions,
 }: AdaptiveVideoPlayerProps) {
-  const internalRef = useRef<HTMLVideoElement>(null)
-  const videoRef = externalRef ?? internalRef
-   
-  const hlsRef = useRef<any>(null)
-  const [isHlsActive, setIsHlsActive] = useState(false)
-  const [qualities, setQualities] = useState<string[]>([])
-  const [quality, setQuality] = useState<string>('auto')
+  const internalRef = useRef<HTMLVideoElement>(null);
+  const videoRef = externalRef ?? internalRef;
+
+  const hlsRef = useRef<any>(null);
+  const [isHlsActive, setIsHlsActive] = useState(false);
+  const [qualities, setQualities] = useState<string[]>([]);
+  const [quality, setQuality] = useState<string>("auto");
 
   useEffect(() => {
-    if (!hlsUrl) return
+    if (!hlsUrl) return;
 
-    let destroyed = false
+    let destroyed = false;
 
-    void import('hls.js').then(({ default: Hls }) => {
-      if (destroyed) return
+    void import("hls.js").then(({ default: Hls }) => {
+      if (destroyed) return;
 
       if (Hls.isSupported() && videoRef.current) {
-        setIsHlsActive(true)
+        setIsHlsActive(true);
 
         const hls = new Hls({
           enableWorker: true,
           lowLatencyMode: false,
           backBufferLength: 90,
-        })
+        });
 
-        hls.loadSource(hlsUrl)
-        hls.attachMedia(videoRef.current)
+        hls.loadSource(hlsUrl);
+        hls.attachMedia(videoRef.current);
 
         hls.on(
           Hls.Events.MANIFEST_PARSED,
           (_: unknown, data: { levels: Array<{ height?: number }> }) => {
             const levelLabels = data.levels.map((l, i) =>
-              l.height ? `${l.height}p` : `Level ${i}`
-            )
-            setQualities(['auto', ...levelLabels])
-          }
-        )
+              l.height ? `${l.height}p` : `Level ${i}`,
+            );
+            setQualities(["auto", ...levelLabels]);
+          },
+        );
 
-        hlsRef.current = hls
-      } else if (videoRef.current?.canPlayType('application/vnd.apple.mpegurl')) {
+        hlsRef.current = hls;
+      } else if (
+        videoRef.current?.canPlayType("application/vnd.apple.mpegurl")
+      ) {
         // Safari: native HLS support
-        videoRef.current.src = hlsUrl
-        setIsHlsActive(true)
+        videoRef.current.src = hlsUrl;
+        setIsHlsActive(true);
       }
-    })
+    });
 
     return () => {
-      destroyed = true
+      destroyed = true;
       if (hlsRef.current) {
-        hlsRef.current.destroy()
-        hlsRef.current = null
+        hlsRef.current.destroy();
+        hlsRef.current = null;
       }
-      setIsHlsActive(false)
-      setQualities([])
-    }
-  }, [hlsUrl, videoRef])
+      setIsHlsActive(false);
+      setQualities([]);
+    };
+  }, [hlsUrl, videoRef]);
 
   function handleTimeUpdate() {
-    const video = videoRef.current
-    if (!video || !video.duration) return
-    const pct = Math.round((video.currentTime / video.duration) * 100)
-    onProgress?.(pct)
-    onTimeUpdateProp?.()
+    const video = videoRef.current;
+    if (!video || !video.duration) return;
+    const pct = Math.round((video.currentTime / video.duration) * 100);
+    onProgress?.(pct);
+    onTimeUpdateProp?.();
   }
 
   function handleQualityChange(e: React.ChangeEvent<HTMLSelectElement>) {
-    const val = e.target.value
-    setQuality(val)
-    if (!hlsRef.current) return
-    if (val === 'auto') {
-      hlsRef.current.currentLevel = -1
+    const val = e.target.value;
+    setQuality(val);
+    if (!hlsRef.current) return;
+    if (val === "auto") {
+      hlsRef.current.currentLevel = -1;
     } else {
-      const idx = qualities.indexOf(val) - 1
-      hlsRef.current.currentLevel = idx
+      const idx = qualities.indexOf(val) - 1;
+      hlsRef.current.currentLevel = idx;
     }
   }
 
   // For non-HLS or when HLS.js is not attaching (e.g. Safari native), set src directly
-  const videoSrc = !isHlsActive ? mp4Url || hlsUrl || undefined : undefined
+  const videoSrc = !isHlsActive ? mp4Url || hlsUrl || undefined : undefined;
 
   return (
-    <div className={cn('relative w-full bg-black overflow-hidden group', className)}>
+    <div
+      className={cn(
+        "relative w-full bg-black overflow-hidden group",
+        className,
+      )}
+    >
       <video
         ref={videoRef}
         src={videoSrc ?? undefined}
@@ -157,7 +164,7 @@ export function AdaptiveVideoPlayer({
         onError={onError}
         className="w-full h-full object-cover"
         controlsList={controlsList}
-        aria-label={ariaLabel ?? 'Video pelajaran'}
+        aria-label={ariaLabel ?? "Video pelajaran"}
       >
         {captions?.map((track) => (
           <track
@@ -182,12 +189,12 @@ export function AdaptiveVideoPlayer({
           >
             {qualities.map((q) => (
               <option key={q} value={q}>
-                {q === 'auto' ? 'Otomatis' : q}
+                {q === "auto" ? "Otomatis" : q}
               </option>
             ))}
           </select>
         </div>
       )}
     </div>
-  )
+  );
 }

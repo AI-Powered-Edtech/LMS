@@ -1,173 +1,185 @@
-import { readVilSession } from '@/services/auth/vilSession'
+import { readVilSession } from "@/services/auth/vilSession";
 
-import { getVilHttpBaseUrl } from './baseUrl'
+import { getVilHttpBaseUrl } from "./baseUrl";
 
-type JsonRecord = Record<string, unknown>
+type JsonRecord = Record<string, unknown>;
 
-type DivergenceSeverity = 'info' | 'warn' | 'error'
+type DivergenceSeverity = "info" | "warn" | "error";
 
 interface ShadowComparisonConfig<TPrimary, TShadow> {
-  flowName: string
-  endpoint: string
-  method: string
-  shadowMode: 'read' | 'write'
-  primaryBackend: 'vil'
-  shadowBackend: 'vil'
-  requestSignature: unknown
-  requestId: string
+  flowName: string;
+  endpoint: string;
+  method: string;
+  shadowMode: "read" | "write";
+  primaryBackend: "vil";
+  shadowBackend: "vil";
+  requestSignature: unknown;
+  requestId: string;
   primaryResult: {
-    data: TPrimary | null
-    error?: { message?: string | null; status?: number } | null
-  }
+    data: TPrimary | null;
+    error?: { message?: string | null; status?: number } | null;
+  };
   shadowRequest: () => Promise<{
-    data: TShadow | null
-    error?: { message?: string | null; status?: number } | null
-  }>
-  normalizePrimary?: (value: TPrimary | null) => unknown
-  normalizeShadow?: (value: TShadow | null) => unknown
+    data: TShadow | null;
+    error?: { message?: string | null; status?: number } | null;
+  }>;
+  normalizePrimary?: (value: TPrimary | null) => unknown;
+  normalizeShadow?: (value: TShadow | null) => unknown;
 }
 
 interface DivergenceEventPayload {
-  request_id: string
-  timestamp: string
-  tenant_id: string | null
-  user_id: string | null
-  role: string | null
-  flow_name: string
-  endpoint: string
-  method: string
-  primary_backend: 'vil'
-  shadow_backend: 'vil'
-  normalized_request_signature: string
-  result_hash_primary: string | null
-  result_hash_shadow: string | null
-  diff_summary: string
-  severity: DivergenceSeverity
-  primary_status?: number
-  shadow_status?: number
-  sampled_primary_payload?: unknown
-  sampled_shadow_payload?: unknown
+  request_id: string;
+  timestamp: string;
+  tenant_id: string | null;
+  user_id: string | null;
+  role: string | null;
+  flow_name: string;
+  endpoint: string;
+  method: string;
+  primary_backend: "vil";
+  shadow_backend: "vil";
+  normalized_request_signature: string;
+  result_hash_primary: string | null;
+  result_hash_shadow: string | null;
+  diff_summary: string;
+  severity: DivergenceSeverity;
+  primary_status?: number;
+  shadow_status?: number;
+  sampled_primary_payload?: unknown;
+  sampled_shadow_payload?: unknown;
 }
 
-const DEFAULT_BASE_URL = getVilHttpBaseUrl()
-const SHADOW_MODE = import.meta.env.VITE_VIL_SHADOW_MODE || 'off'
-const SHADOW_SAMPLE_RATE = Number(import.meta.env.VITE_VIL_SHADOW_SAMPLE_RATE || '1')
-const INCLUDE_PAYLOAD = import.meta.env.VITE_VIL_SHADOW_INCLUDE_PAYLOAD === 'true'
+const DEFAULT_BASE_URL = getVilHttpBaseUrl();
+const SHADOW_MODE = import.meta.env.VITE_VIL_SHADOW_MODE || "off";
+const SHADOW_SAMPLE_RATE = Number(
+  import.meta.env.VITE_VIL_SHADOW_SAMPLE_RATE || "1",
+);
+const INCLUDE_PAYLOAD =
+  import.meta.env.VITE_VIL_SHADOW_INCLUDE_PAYLOAD === "true";
 
 function stableStringify(value: unknown): string {
-  if (value === null || value === undefined) return 'null'
+  if (value === null || value === undefined) return "null";
 
   if (Array.isArray(value)) {
-    return `[${value.map((item) => stableStringify(item)).join(',')}]`
+    return `[${value.map((item) => stableStringify(item)).join(",")}]`;
   }
 
-  if (typeof value === 'object') {
-    const object = value as JsonRecord
-    const keys = Object.keys(object).sort()
-    return `{${keys.map((key) => `${JSON.stringify(key)}:${stableStringify(object[key])}`).join(',')}}`
+  if (typeof value === "object") {
+    const object = value as JsonRecord;
+    const keys = Object.keys(object).sort();
+    return `{${keys.map((key) => `${JSON.stringify(key)}:${stableStringify(object[key])}`).join(",")}}`;
   }
 
-  return JSON.stringify(value)
+  return JSON.stringify(value);
 }
 
 function hashString(input: string): string {
-  let hash = 2166136261
+  let hash = 2166136261;
 
   for (let index = 0; index < input.length; index += 1) {
-    hash ^= input.charCodeAt(index)
-    hash = Math.imul(hash, 16777619)
+    hash ^= input.charCodeAt(index);
+    hash = Math.imul(hash, 16777619);
   }
 
-  return (hash >>> 0).toString(16).padStart(8, '0')
+  return (hash >>> 0).toString(16).padStart(8, "0");
 }
 
 function normalizeUnknown(value: unknown): unknown {
-  if (value === undefined) return null
-  return value
+  if (value === undefined) return null;
+  return value;
 }
 
 function summaryFromValues(primary: unknown, shadow: unknown): string {
   if (stableStringify(primary) === stableStringify(shadow)) {
-    return 'match'
+    return "match";
   }
 
   if (Array.isArray(primary) && Array.isArray(shadow)) {
-    return `array_mismatch primary=${primary.length} shadow=${shadow.length}`
+    return `array_mismatch primary=${primary.length} shadow=${shadow.length}`;
   }
 
-  if (primary && shadow && typeof primary === 'object' && typeof shadow === 'object') {
-    const primaryKeys = Object.keys(primary as JsonRecord).sort()
-    const shadowKeys = Object.keys(shadow as JsonRecord).sort()
-    return `object_mismatch primary_keys=${primaryKeys.join('|')} shadow_keys=${shadowKeys.join('|')}`
+  if (
+    primary &&
+    shadow &&
+    typeof primary === "object" &&
+    typeof shadow === "object"
+  ) {
+    const primaryKeys = Object.keys(primary as JsonRecord).sort();
+    const shadowKeys = Object.keys(shadow as JsonRecord).sort();
+    return `object_mismatch primary_keys=${primaryKeys.join("|")} shadow_keys=${shadowKeys.join("|")}`;
   }
 
-  return `value_mismatch primary_type=${typeof primary} shadow_type=${typeof shadow}`
+  return `value_mismatch primary_type=${typeof primary} shadow_type=${typeof shadow}`;
 }
 
-function shouldRunShadow(mode: 'read' | 'write'): boolean {
-  if (SHADOW_MODE === 'all') return true
-  if (SHADOW_MODE === 'read' && mode === 'read') return true
-  if (SHADOW_MODE === 'write' && mode === 'write') return true
-  return false
+function shouldRunShadow(mode: "read" | "write"): boolean {
+  if (SHADOW_MODE === "all") return true;
+  if (SHADOW_MODE === "read" && mode === "read") return true;
+  if (SHADOW_MODE === "write" && mode === "write") return true;
+  return false;
 }
 
 function shouldSample(requestId: string): boolean {
-  if (SHADOW_SAMPLE_RATE >= 1) return true
-  if (SHADOW_SAMPLE_RATE <= 0) return false
+  if (SHADOW_SAMPLE_RATE >= 1) return true;
+  if (SHADOW_SAMPLE_RATE <= 0) return false;
 
-  const sampleBucket = parseInt(hashString(requestId).slice(0, 4), 16) / 0xffff
-  return sampleBucket <= SHADOW_SAMPLE_RATE
+  const sampleBucket = parseInt(hashString(requestId).slice(0, 4), 16) / 0xffff;
+  return sampleBucket <= SHADOW_SAMPLE_RATE;
 }
 
 function buildActorContext(): {
-  tenantId: string | null
-  userId: string | null
-  role: string | null
+  tenantId: string | null;
+  userId: string | null;
+  role: string | null;
 } {
-  const session = readVilSession()
+  const session = readVilSession();
   return {
     tenantId:
-      typeof session?.user?.user_metadata?.tenant_id === 'string'
+      typeof session?.user?.user_metadata?.tenant_id === "string"
         ? session.user.user_metadata.tenant_id
         : null,
     userId: session?.user?.id ?? null,
     role:
-      typeof session?.user?.app_metadata?.role === 'string' ? session.user.app_metadata.role : null,
-  }
+      typeof session?.user?.app_metadata?.role === "string"
+        ? session.user.app_metadata.role
+        : null,
+  };
 }
 
 function generateUuidV4FromCrypto(): string {
-  const bytes = new Uint8Array(16)
-  crypto.getRandomValues(bytes)
+  const bytes = new Uint8Array(16);
+  crypto.getRandomValues(bytes);
 
-  bytes[6] = (bytes[6] & 0x0f) | 0x40
-  bytes[8] = (bytes[8] & 0x3f) | 0x80
+  bytes[6] = (bytes[6] & 0x0f) | 0x40;
+  bytes[8] = (bytes[8] & 0x3f) | 0x80;
 
-  const hex = Array.from(bytes, (byte) => byte.toString(16).padStart(2, '0')).join('')
-  return `${hex.slice(0, 8)}-${hex.slice(8, 12)}-${hex.slice(12, 16)}-${hex.slice(16, 20)}-${hex.slice(20)}`
+  const hex = Array.from(bytes, (byte) =>
+    byte.toString(16).padStart(2, "0"),
+  ).join("");
+  return `${hex.slice(0, 8)}-${hex.slice(8, 12)}-${hex.slice(12, 16)}-${hex.slice(16, 20)}-${hex.slice(20)}`;
 }
 
 export function createRequestId(): string {
-  if (typeof crypto.randomUUID === 'function') {
-    return `vil-${crypto.randomUUID()}`
+  if (typeof crypto.randomUUID === "function") {
+    return `vil-${crypto.randomUUID()}`;
   }
-  return `vil-${generateUuidV4FromCrypto()}`
+  return `vil-${generateUuidV4FromCrypto()}`;
 }
 
 export function buildRequestHeaders(
   base: HeadersInit = {},
-  options?: { withAuth?: boolean; requestId?: string }
+  options?: { withAuth?: boolean; requestId?: string },
 ): HeadersInit {
-  const session = readVilSession()
+  const session = readVilSession();
 
   return {
-    'Content-Type': 'application/json',
+    "Content-Type": "application/json",
     ...(options?.withAuth && session?.access_token
       ? { Authorization: `Bearer ${session.access_token}` }
       : {}),
-    ...(options?.requestId ? { 'X-Request-Id': options.requestId } : {}),
+    ...(options?.requestId ? { "X-Request-Id": options.requestId } : {}),
     ...base,
-  }
+  };
 }
 
 export async function runShadowComparison<TPrimary, TShadow>({
@@ -185,30 +197,32 @@ export async function runShadowComparison<TPrimary, TShadow>({
   normalizeShadow,
 }: ShadowComparisonConfig<TPrimary, TShadow>): Promise<void> {
   if (!shouldRunShadow(shadowMode)) {
-    return
+    return;
   }
 
   if (!shouldSample(requestId)) {
-    return
+    return;
   }
 
-  const actor = buildActorContext()
+  const actor = buildActorContext();
   const primaryValue = normalizeUnknown(
-    normalizePrimary ? normalizePrimary(primaryResult.data) : primaryResult.data
-  )
+    normalizePrimary
+      ? normalizePrimary(primaryResult.data)
+      : primaryResult.data,
+  );
 
   try {
-    const shadowResult = await shadowRequest()
+    const shadowResult = await shadowRequest();
     const shadowValue = normalizeUnknown(
-      normalizeShadow ? normalizeShadow(shadowResult.data) : shadowResult.data
-    )
-    const diffSummary = summaryFromValues(primaryValue, shadowValue)
+      normalizeShadow ? normalizeShadow(shadowResult.data) : shadowResult.data,
+    );
+    const diffSummary = summaryFromValues(primaryValue, shadowValue);
     const severity: DivergenceSeverity =
-      diffSummary === 'match'
-        ? 'info'
+      diffSummary === "match"
+        ? "info"
         : primaryResult.error || shadowResult.error
-          ? 'error'
-          : 'warn'
+          ? "error"
+          : "warn";
 
     const payload: DivergenceEventPayload = {
       request_id: requestId,
@@ -228,21 +242,22 @@ export async function runShadowComparison<TPrimary, TShadow>({
       severity,
       primary_status: primaryResult.error?.status,
       shadow_status: shadowResult.error?.status ?? undefined,
-      ...(INCLUDE_PAYLOAD && diffSummary !== 'match'
+      ...(INCLUDE_PAYLOAD && diffSummary !== "match"
         ? {
             sampled_primary_payload: primaryValue,
             sampled_shadow_payload: shadowValue,
           }
         : {}),
-    }
+    };
 
     await fetch(`${DEFAULT_BASE_URL}/api/v1/internal/divergence-events`, {
-      method: 'POST',
+      method: "POST",
       headers: buildRequestHeaders({}, { withAuth: true, requestId }),
       body: JSON.stringify(payload),
-    }).catch(() => undefined)
+    }).catch(() => undefined);
   } catch (error) {
-    const message = error instanceof Error ? error.message : 'shadow_request_failed'
+    const message =
+      error instanceof Error ? error.message : "shadow_request_failed";
     const payload: DivergenceEventPayload = {
       request_id: requestId,
       timestamp: new Date().toISOString(),
@@ -258,19 +273,19 @@ export async function runShadowComparison<TPrimary, TShadow>({
       result_hash_primary: hashString(stableStringify(primaryValue)),
       result_hash_shadow: null,
       diff_summary: message,
-      severity: 'error',
+      severity: "error",
       primary_status: primaryResult.error?.status,
       ...(INCLUDE_PAYLOAD
         ? {
             sampled_primary_payload: primaryValue,
           }
         : {}),
-    }
+    };
 
     await fetch(`${DEFAULT_BASE_URL}/api/v1/internal/divergence-events`, {
-      method: 'POST',
+      method: "POST",
       headers: buildRequestHeaders({}, { withAuth: true, requestId }),
       body: JSON.stringify(payload),
-    }).catch(() => undefined)
+    }).catch(() => undefined);
   }
 }

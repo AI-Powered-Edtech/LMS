@@ -1,11 +1,11 @@
-import { Award, Clock, FileText } from 'lucide-react'
-import { motion } from 'motion/react'
+import { Award, Clock, FileText } from "lucide-react";
+import { motion } from "motion/react";
 
-import type { Assignment } from '@/features/assignments/api/assignmentService'
+import type { Assignment } from "@/features/assignments/api/assignmentService";
 
 interface AssignmentCardProps {
-  assignment: Assignment
-  onSelect: (assignment: Assignment) => void
+  assignment: Assignment;
+  onSelect: (assignment: Assignment) => void;
 }
 
 export function AssignmentCard({ assignment, onSelect }: AssignmentCardProps) {
@@ -29,13 +29,13 @@ export function AssignmentCard({ assignment, onSelect }: AssignmentCardProps) {
         {assignment.due_date && (
           <span className="flex items-center gap-1.5 text-rose-500">
             <Clock className="w-3.5 h-3.5" />
-            {new Date(assignment.due_date).toLocaleDateString('id-ID', {
-              day: 'numeric',
-              month: 'short',
+            {new Date(assignment.due_date).toLocaleDateString("id-ID", {
+              day: "numeric",
+              month: "short",
             })}
           </span>
         )}
       </div>
     </motion.button>
-  )
+  );
 }

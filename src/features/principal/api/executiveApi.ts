@@ -3,8 +3,8 @@
 //
 // Query API for Principal Executive Dashboard.
 // ==========================================================================
-import { db } from '@/services/db'
-import { logger } from '@/utils/logger'
+import { db } from "@/services/db";
+import { logger } from "@/utils/logger";
 
 import type {
   ExecutiveOverview,
@@ -12,7 +12,7 @@ import type {
   PrincipalSettings,
   ROIMetrics,
   SchoolBaselineMetrics,
-} from '../types'
+} from "../types";
 
 // ── Executive Overview ─────────────────────────────────────────
 
@@ -27,14 +27,17 @@ import type {
  * An extra `from_cache` boolean is included for debug / staleness indicators.
  */
 export async function getExecutiveOverviewCached(
-  tenantId: string
+  tenantId: string,
 ): Promise<ExecutiveOverview & { from_cache: boolean }> {
-  const { data: cached, error: cachedError } = await db.rpc('get_principal_overview_cached', {
-    p_tenant_id: tenantId,
-  })
+  const { data: cached, error: cachedError } = await db.rpc(
+    "get_principal_overview_cached",
+    {
+      p_tenant_id: tenantId,
+    },
+  );
 
   if (!cachedError && cached && (cached as unknown[]).length > 0) {
-    const row = (cached as Record<string, unknown>[])[0]
+    const row = (cached as Record<string, unknown>[])[0];
     return {
       total_students: Number(row.total_students ?? 0),
       active_students: Number(row.active_students ?? 0),
@@ -44,33 +47,39 @@ export async function getExecutiveOverviewCached(
       avg_quiz_score: Number(row.avg_quiz_score ?? 0),
       adoption_rate: Number(row.adoption_rate ?? 0),
       from_cache: true,
-    }
+    };
   }
 
   if (import.meta.env.DEV && cachedError) {
-    logger.warn('[Principal] get_principal_overview_cached miss — falling back:', cachedError)
+    logger.warn(
+      "[Principal] get_principal_overview_cached miss — falling back:",
+      cachedError,
+    );
   }
 
   // Fallback to real-time RPC
-  const realtime = await getExecutiveOverview(tenantId)
-  return { ...realtime, from_cache: false }
+  const realtime = await getExecutiveOverview(tenantId);
+  return { ...realtime, from_cache: false };
 }
 
 /**
  * Calls the get_executive_overview() RPC created in Wave 3.
  */
-export async function getExecutiveOverview(tenantId: string): Promise<ExecutiveOverview> {
-  const { data, error } = await db.rpc('get_executive_overview', {
+export async function getExecutiveOverview(
+  tenantId: string,
+): Promise<ExecutiveOverview> {
+  const { data, error } = await db.rpc("get_executive_overview", {
     p_tenant_id: tenantId,
-  })
+  });
 
   if (error) {
-    if (import.meta.env.DEV) logger.error('[Principal] get_executive_overview error:', error)
-    throw new Error('Gagal memuat ringkasan eksekutif. Silakan coba lagi.')
+    if (import.meta.env.DEV)
+      logger.error("[Principal] get_executive_overview error:", error);
+    throw new Error("Gagal memuat ringkasan eksekutif. Silakan coba lagi.");
   }
 
   // RPC returns a single row
-  const row = Array.isArray(data) ? data[0] : data
+  const row = Array.isArray(data) ? data[0] : data;
   if (!row) {
     // Return safe defaults if no data
     return {
@@ -81,7 +90,7 @@ export async function getExecutiveOverview(tenantId: string): Promise<ExecutiveO
       total_courses: 0,
       avg_quiz_score: 0,
       adoption_rate: 0,
-    }
+    };
   }
 
   return {
@@ -92,7 +101,7 @@ export async function getExecutiveOverview(tenantId: string): Promise<ExecutiveO
     total_courses: Number(row.total_courses ?? 0),
     avg_quiz_score: Number(row.avg_quiz_score ?? 0),
     adoption_rate: Number(row.adoption_rate ?? 0),
-  }
+  };
 }
 
 // ── Monthly Trend ──────────────────────────────────────────────
@@ -102,58 +111,67 @@ export async function getExecutiveOverview(tenantId: string): Promise<ExecutiveO
  */
 export async function getMonthlyTrend(
   tenantId: string,
-  months: number = 6
+  months: number = 6,
 ): Promise<MonthlyTrend[]> {
-  const { data, error } = await db.rpc('get_principal_monthly_trend_cached', {
+  const { data, error } = await db.rpc("get_principal_monthly_trend_cached", {
     p_tenant_id: tenantId,
     p_months: months,
-  })
+  });
 
   if (error) {
-    if (import.meta.env.DEV) logger.error('[Principal] getMonthlyTrend error:', error)
+    if (import.meta.env.DEV)
+      logger.error("[Principal] getMonthlyTrend error:", error);
     // Return empty array instead of throwing — graceful degradation
-    return []
+    return [];
   }
 
   return ((data ?? []) as Record<string, unknown>[]).map((row) => ({
-    month: String(row.month_label ?? row.month_key ?? ''),
+    month: String(row.month_label ?? row.month_key ?? ""),
     active_students: Number(row.active_students ?? 0),
     lesson_completions: Number(row.lesson_completions ?? 0),
     quiz_attempts: Number(row.quiz_attempts ?? 0),
-  }))
+  }));
 }
 
 // ── Principal Settings ─────────────────────────────────────────
 
-export async function getPrincipalSettings(tenantId: string): Promise<PrincipalSettings | null> {
+export async function getPrincipalSettings(
+  tenantId: string,
+): Promise<PrincipalSettings | null> {
   const { data, error } = await db
-    .from('principal_settings')
-    .select('*')
-    .eq('tenant_id', tenantId)
-    .maybeSingle()
+    .from("principal_settings")
+    .select("*")
+    .eq("tenant_id", tenantId)
+    .maybeSingle();
 
   if (error) {
-    if (import.meta.env.DEV) logger.error('[Principal] getPrincipalSettings error:', error)
-    return null
+    if (import.meta.env.DEV)
+      logger.error("[Principal] getPrincipalSettings error:", error);
+    return null;
   }
 
-  return data as PrincipalSettings | null
+  return data as PrincipalSettings | null;
 }
 
 export async function updatePrincipalSettings(
   tenantId: string,
-  settings: Partial<PrincipalSettings>
+  settings: Partial<PrincipalSettings>,
 ): Promise<void> {
   const { error } = await db
-    .from('principal_settings')
+    .from("principal_settings")
     .upsert(
-      { ...settings, tenant_id: tenantId, updated_at: new Date().toISOString() },
-      { onConflict: 'tenant_id' }
-    )
+      {
+        ...settings,
+        tenant_id: tenantId,
+        updated_at: new Date().toISOString(),
+      },
+      { onConflict: "tenant_id" },
+    );
 
   if (error) {
-    if (import.meta.env.DEV) logger.error('[Principal] updatePrincipalSettings error:', error)
-    throw new Error('Gagal menyimpan pengaturan. Silakan coba lagi.')
+    if (import.meta.env.DEV)
+      logger.error("[Principal] updatePrincipalSettings error:", error);
+    throw new Error("Gagal menyimpan pengaturan. Silakan coba lagi.");
   }
 }
 
@@ -169,38 +187,42 @@ export async function updatePrincipalSettings(
  */
 export async function getROIMetrics(tenantId: string): Promise<ROIMetrics> {
   // Fetch activity counts for the last 30 days
-  const { data, error } = await db.rpc('get_tenant_activity_counts', {
+  const { data, error } = await db.rpc("get_tenant_activity_counts", {
     p_tenant_id: tenantId,
     p_days: 30,
-  })
+  });
 
   if (error) {
-    if (import.meta.env.DEV) logger.error('[Principal] getROIMetrics error:', error)
+    if (import.meta.env.DEV)
+      logger.error("[Principal] getROIMetrics error:", error);
     return {
       paper_saved_sheets: 0,
       paper_saved_cost: 0,
       teacher_time_saved_hours: 0,
       digital_adoption_score: 0,
-    }
+    };
   }
 
-  const counts = (data as { event_type: string; count: number }[]) ?? []
+  const counts = (data as { event_type: string; count: number }[]) ?? [];
 
-  const lessonCompletions = counts.find((c) => c.event_type === 'LESSON_COMPLETED')?.count ?? 0
-  const quizAttempts = counts.find((c) => c.event_type === 'QUIZ_SUBMITTED')?.count ?? 0
-  const assignmentsGraded = counts.find((c) => c.event_type === 'ASSIGNMENT_GRADED')?.count ?? 0
+  const lessonCompletions =
+    counts.find((c) => c.event_type === "LESSON_COMPLETED")?.count ?? 0;
+  const quizAttempts =
+    counts.find((c) => c.event_type === "QUIZ_SUBMITTED")?.count ?? 0;
+  const assignmentsGraded =
+    counts.find((c) => c.event_type === "ASSIGNMENT_GRADED")?.count ?? 0;
 
-  const paperSavedSheets = quizAttempts * 2 + lessonCompletions * 1
-  const paperSavedCost = paperSavedSheets * 500
-  const teacherTimeSavedHours = (assignmentsGraded * 10) / 60
+  const paperSavedSheets = quizAttempts * 2 + lessonCompletions * 1;
+  const paperSavedCost = paperSavedSheets * 500;
+  const teacherTimeSavedHours = (assignmentsGraded * 10) / 60;
 
   // Get adoption rate from executive overview
-  let adoptionScore = 0
+  let adoptionScore = 0;
   try {
-    const overview = await getExecutiveOverview(tenantId)
-    adoptionScore = overview.adoption_rate
+    const overview = await getExecutiveOverview(tenantId);
+    adoptionScore = overview.adoption_rate;
   } catch {
-    adoptionScore = 0
+    adoptionScore = 0;
   }
 
   return {
@@ -208,7 +230,7 @@ export async function getROIMetrics(tenantId: string): Promise<ROIMetrics> {
     paper_saved_cost: paperSavedCost,
     teacher_time_saved_hours: Math.round(teacherTimeSavedHours * 10) / 10,
     digital_adoption_score: adoptionScore,
-  }
+  };
 }
 
 // ── Baseline Metrics ───────────────────────────────────────────
@@ -216,19 +238,22 @@ export async function getROIMetrics(tenantId: string): Promise<ROIMetrics> {
 /**
  * Fetch baseline metrics (data "sebelum LMS") dari school_baseline_metrics.
  */
-export async function getBaselineMetrics(tenantId: string): Promise<SchoolBaselineMetrics | null> {
+export async function getBaselineMetrics(
+  tenantId: string,
+): Promise<SchoolBaselineMetrics | null> {
   const { data, error } = await db
-    .from('school_baseline_metrics')
-    .select('*')
-    .eq('tenant_id', tenantId)
-    .maybeSingle()
+    .from("school_baseline_metrics")
+    .select("*")
+    .eq("tenant_id", tenantId)
+    .maybeSingle();
 
   if (error) {
-    if (import.meta.env.DEV) logger.error('[Principal] getBaselineMetrics error:', error)
-    return null
+    if (import.meta.env.DEV)
+      logger.error("[Principal] getBaselineMetrics error:", error);
+    return null;
   }
 
-  return data as SchoolBaselineMetrics | null
+  return data as SchoolBaselineMetrics | null;
 }
 
 /**
@@ -236,17 +261,21 @@ export async function getBaselineMetrics(tenantId: string): Promise<SchoolBaseli
  */
 export async function saveBaselineMetrics(
   tenantId: string,
-  data: Omit<SchoolBaselineMetrics, 'id' | 'tenant_id' | 'created_at' | 'updated_at'>
+  data: Omit<
+    SchoolBaselineMetrics,
+    "id" | "tenant_id" | "created_at" | "updated_at"
+  >,
 ): Promise<void> {
   const { error } = await db
-    .from('school_baseline_metrics')
+    .from("school_baseline_metrics")
     .upsert(
       { ...data, tenant_id: tenantId, updated_at: new Date().toISOString() },
-      { onConflict: 'tenant_id' }
-    )
+      { onConflict: "tenant_id" },
+    );
 
   if (error) {
-    if (import.meta.env.DEV) logger.error('[Principal] saveBaselineMetrics error:', error)
-    throw new Error('Gagal menyimpan data baseline. Silakan coba lagi.')
+    if (import.meta.env.DEV)
+      logger.error("[Principal] saveBaselineMetrics error:", error);
+    throw new Error("Gagal menyimpan data baseline. Silakan coba lagi.");
   }
 }

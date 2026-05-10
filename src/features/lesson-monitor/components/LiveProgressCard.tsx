@@ -1,21 +1,23 @@
-import { BookOpen, Clock, TrendingUp, Users } from 'lucide-react'
+import { BookOpen, Clock, TrendingUp, Users } from "lucide-react";
 
-import type { LiveProgressCardData } from '../types'
+import type { LiveProgressCardData } from "../types";
 
 interface LiveProgressCardProps {
-  data: LiveProgressCardData
+  data: LiveProgressCardData;
 }
 
 export function LiveProgressCard({ data }: LiveProgressCardProps) {
   const completionRate =
-    data.totalStudents > 0 ? Math.round((data.completedStudents / data.totalStudents) * 100) : 0
+    data.totalStudents > 0
+      ? Math.round((data.completedStudents / data.totalStudents) * 100)
+      : 0;
 
   const progressColor =
     completionRate >= 80
-      ? 'text-green-600'
+      ? "text-green-600"
       : completionRate >= 60
-        ? 'text-yellow-600'
-        : 'text-red-600'
+        ? "text-yellow-600"
+        : "text-red-600";
 
   return (
     <div className="bg-white dark:bg-slate-800 rounded-3xl border border-slate-200 dark:border-slate-700 shadow-sm p-6">
@@ -24,7 +26,9 @@ export function LiveProgressCard({ data }: LiveProgressCardProps) {
           <h3 className="text-lg font-bold text-slate-900 dark:text-slate-100 mb-1">
             {data.lessonTitle}
           </h3>
-          <p className="text-sm text-slate-500 dark:text-slate-400">{data.courseName}</p>
+          <p className="text-sm text-slate-500 dark:text-slate-400">
+            {data.courseName}
+          </p>
         </div>
         <div className="flex items-center gap-1 px-3 py-1 bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 rounded-full text-xs font-bold">
           <div className="w-2 h-2 bg-blue-500 rounded-full animate-pulse"></div>
@@ -34,7 +38,9 @@ export function LiveProgressCard({ data }: LiveProgressCardProps) {
 
       <div className="grid grid-cols-2 gap-4 mb-4">
         <div className="text-center">
-          <div className={`text-2xl font-black ${progressColor}`}>{completionRate}%</div>
+          <div className={`text-2xl font-black ${progressColor}`}>
+            {completionRate}%
+          </div>
           <div className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
             Selesai
           </div>
@@ -53,7 +59,9 @@ export function LiveProgressCard({ data }: LiveProgressCardProps) {
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
             <Users className="w-4 h-4 text-green-500" />
-            <span className="text-sm font-medium text-slate-700 dark:text-slate-300">Selesai</span>
+            <span className="text-sm font-medium text-slate-700 dark:text-slate-300">
+              Selesai
+            </span>
           </div>
           <span className="text-sm font-bold text-slate-900 dark:text-slate-100">
             {data.completedStudents}/{data.totalStudents}
@@ -97,5 +105,5 @@ export function LiveProgressCard({ data }: LiveProgressCardProps) {
         </div>
       </div>
     </div>
-  )
+  );
 }

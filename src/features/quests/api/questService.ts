@@ -3,13 +3,13 @@
  * All database calls for the Learning Quests system.
  */
 
-import { db } from '@/services/db'
-import { logger } from '@/utils/logger'
+import { db } from "@/services/db";
+import { logger } from "@/utils/logger";
 
-import type { Quest, QuestDefinition } from '../types'
+import type { Quest, QuestDefinition } from "../types";
 
 const QUEST_DEFINITION_COLUMNS =
-  'id, title, description, quest_type, icon, conditions, xp_reward, sort_order, is_active, tenant_id'
+  "id, title, description, quest_type, icon, conditions, xp_reward, sort_order, is_active, tenant_id";
 
 export const questService = {
   /**
@@ -17,23 +17,23 @@ export const questService = {
    * Uses SECURITY DEFINER function — tenant and user isolation enforced server-side.
    */
   async getActiveQuestsWithProgress(tenantId: string): Promise<Quest[]> {
-    const { data, error } = await db.rpc('get_active_quests_with_progress', {
+    const { data, error } = await db.rpc("get_active_quests_with_progress", {
       p_tenant_id: tenantId,
-    })
+    });
 
     if (error) {
       // RPC not yet deployed — degrade gracefully
-      if (error.code === 'PGRST202' || error.code === '42883') {
+      if (error.code === "PGRST202" || error.code === "42883") {
         if (import.meta.env.DEV)
           logger.warn(
-            '[questService] get_active_quests_with_progress RPC not found — migration needed.'
-          )
-        return []
+            "[questService] get_active_quests_with_progress RPC not found — migration needed.",
+          );
+        return [];
       }
-      throw error
+      throw error;
     }
 
-    return (data ?? []) as Quest[]
+    return (data ?? []) as Quest[];
   },
 
   /**
@@ -42,36 +42,36 @@ export const questService = {
    */
   async getQuestDefinitions(tenantId: string): Promise<QuestDefinition[]> {
     const { data, error } = await db
-      .from('quests')
+      .from("quests")
       .select(QUEST_DEFINITION_COLUMNS)
-      .eq('tenant_id', tenantId)
-      .order('sort_order', { ascending: true })
-      .order('created_at', { ascending: true })
-      .limit(100)
+      .eq("tenant_id", tenantId)
+      .order("sort_order", { ascending: true })
+      .order("created_at", { ascending: true })
+      .limit(100);
 
     if (error) {
-      if (error.code === '42P01') return [] // table not yet created
-      throw error
+      if (error.code === "42P01") return []; // table not yet created
+      throw error;
     }
 
-    return (data ?? []) as QuestDefinition[]
+    return (data ?? []) as QuestDefinition[];
   },
 
   /**
    * Create a new quest definition (teacher/admin).
    */
   async createQuest(
-    quest: Omit<Partial<QuestDefinition>, 'id' | 'tenant_id'>,
-    tenantId: string
+    quest: Omit<Partial<QuestDefinition>, "id" | "tenant_id">,
+    tenantId: string,
   ): Promise<QuestDefinition> {
     const { data, error } = await db
-      .from('quests')
+      .from("quests")
       .insert({ ...quest, tenant_id: tenantId })
       .select(QUEST_DEFINITION_COLUMNS)
-      .single()
+      .single();
 
-    if (error) throw error
-    return (data as unknown) as QuestDefinition
+    if (error) throw error;
+    return data as unknown as QuestDefinition;
   },
 
   /**
@@ -79,19 +79,19 @@ export const questService = {
    */
   async updateQuest(
     questId: string,
-    updates: Partial<Omit<QuestDefinition, 'id' | 'tenant_id'>>,
-    tenantId: string
+    updates: Partial<Omit<QuestDefinition, "id" | "tenant_id">>,
+    tenantId: string,
   ): Promise<QuestDefinition> {
     const { data, error } = await db
-      .from('quests')
+      .from("quests")
       .update(updates)
-      .eq('id', questId)
-      .eq('tenant_id', tenantId)
+      .eq("id", questId)
+      .eq("tenant_id", tenantId)
       .select(QUEST_DEFINITION_COLUMNS)
-      .single()
+      .single();
 
-    if (error) throw error
-    return (data as unknown) as QuestDefinition
+    if (error) throw error;
+    return data as unknown as QuestDefinition;
   },
 
   /**
@@ -100,11 +100,11 @@ export const questService = {
    */
   async deleteQuest(questId: string, tenantId: string): Promise<void> {
     const { error } = await db
-      .from('quests')
+      .from("quests")
       .update({ is_active: false })
-      .eq('id', questId)
-      .eq('tenant_id', tenantId)
+      .eq("id", questId)
+      .eq("tenant_id", tenantId);
 
-    if (error) throw error
+    if (error) throw error;
   },
-}
+};

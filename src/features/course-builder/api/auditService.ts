@@ -1,28 +1,28 @@
-import { db } from '@/services/db'
-import { logDevError, logDevWarn } from '@/utils/logDevError'
+import { db } from "@/services/db";
+import { logDevError, logDevWarn } from "@/utils/logDevError";
 
 // ============================================================
 // Types
 // ============================================================
 
 export type CourseActionType =
-  | 'publish'
-  | 'unpublish'
-  | 'submit_review'
-  | 'approve'
-  | 'restore_version'
-  | 'add_collaborator'
-  | 'remove_collaborator'
-  | 'archive'
+  | "publish"
+  | "unpublish"
+  | "submit_review"
+  | "approve"
+  | "restore_version"
+  | "add_collaborator"
+  | "remove_collaborator"
+  | "archive";
 
 export interface CourseActionLog {
-  id: string
-  tenant_id: string
-  course_id: string
-  user_id: string | null
-  action_type: CourseActionType
-  metadata: Record<string, unknown>
-  created_at: string
+  id: string;
+  tenant_id: string;
+  course_id: string;
+  user_id: string | null;
+  action_type: CourseActionType;
+  metadata: Record<string, unknown>;
+  created_at: string;
 }
 
 // ============================================================
@@ -40,36 +40,36 @@ export const auditService = {
   async logCourseAction(
     courseId: string,
     actionType: CourseActionType,
-    metadata: Record<string, unknown> = {}
+    metadata: Record<string, unknown> = {},
   ): Promise<void> {
     // getSession() reads from memory — no network call
-    const { data: sessionData } = await db.auth.getSession()
-    const userId = sessionData?.session?.user?.id
+    const { data: sessionData } = await db.auth.getSession();
+    const userId = sessionData?.session?.user?.id;
 
     // If no authenticated user, skip insert rather than writing an invalid UUID
     if (!userId) {
       logDevWarn(
-        'auditService',
-        `Skipping audit log for "${actionType}" — no authenticated session.`
-      )
-      return
+        "auditService",
+        `Skipping audit log for "${actionType}" — no authenticated session.`,
+      );
+      return;
     }
 
-    const { error } = await db.from('course_action_logs').insert({
+    const { error } = await db.from("course_action_logs").insert({
       course_id: courseId,
       action_type: actionType,
       metadata,
       // tenant_id is set automatically by trigger auto_set_tenant_id_from_course
       user_id: userId,
-    })
+    });
 
     if (error) {
       // Non-fatal — audit logging must never block the primary action
       logDevWarn(
-        'auditService',
+        "auditService",
         `Failed to log action "${actionType}" for course ${courseId}:`,
-        error.message
-      )
+        error.message,
+      );
     }
   },
 
@@ -80,22 +80,28 @@ export const auditService = {
   async fetchCourseActivityFeed(
     courseId: string,
     tenantId: string,
-    limit = 20
+    limit = 20,
   ): Promise<CourseActionLog[]> {
     const { data, error } = await db
-      .from('course_action_logs')
-      .select('id, tenant_id, course_id, user_id, action_type, metadata, created_at')
-      .eq('course_id', courseId)
-      .eq('tenant_id', tenantId)
-      .order('created_at', { ascending: false })
-      .limit(limit)
+      .from("course_action_logs")
+      .select(
+        "id, tenant_id, course_id, user_id, action_type, metadata, created_at",
+      )
+      .eq("course_id", courseId)
+      .eq("tenant_id", tenantId)
+      .order("created_at", { ascending: false })
+      .limit(limit);
 
     if (error) {
-      logDevError('auditService', 'Error fetching course activity feed:', error)
-      throw error
+      logDevError(
+        "auditService",
+        "Error fetching course activity feed:",
+        error,
+      );
+      throw error;
     }
 
-    return (data ?? []) as CourseActionLog[]
+    return (data ?? []) as CourseActionLog[];
   },
 
   /**
@@ -104,19 +110,19 @@ export const auditService = {
    * Returns false if auth is missing or on any error.
    */
   async checkBuilderAccess(courseId: string): Promise<boolean> {
-    const { data, error } = await db.rpc('rpc_check_builder_access', {
+    const { data, error } = await db.rpc("rpc_check_builder_access", {
       p_course_id: courseId,
-    })
+    });
 
     if (error) {
       logDevWarn(
-        'auditService',
+        "auditService",
         `Builder access check failed for course ${courseId}:`,
-        error.message
-      )
-      return false
+        error.message,
+      );
+      return false;
     }
 
-    return data === true
+    return data === true;
   },
-}
+};

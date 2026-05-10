@@ -1,10 +1,10 @@
-import { validate } from '../lib/validate'
-import { ModuleRowSchema } from '../schemas'
-import { mapLesson } from './lessonMappers'
-import { DomainModule } from './moduleTypes'
+import { validate } from "../lib/validate";
+import { ModuleRowSchema } from "../schemas";
+import { mapLesson } from "./lessonMappers";
+import { DomainModule } from "./moduleTypes";
 
 export function mapModule(row: unknown): DomainModule {
-  const r = validate(ModuleRowSchema, row, 'ModuleRow')
+  const r = validate(ModuleRowSchema, row, "ModuleRow");
   return {
     id: r.id,
     courseId: r.course_id,
@@ -12,5 +12,5 @@ export function mapModule(row: unknown): DomainModule {
     orderIndex: r.order,
     tenantId: r.tenant_id,
     lessons: r.lessons ? r.lessons.map(mapLesson) : [],
-  }
+  };
 }

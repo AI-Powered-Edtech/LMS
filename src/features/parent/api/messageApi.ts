@@ -58,7 +58,9 @@ async function fetchProfiles(userIds: string[]): Promise<ProfileLookup> {
   if (userIds.length === 0) return {};
 
   const { data, error } = await db
-    .from<Array<{ id: string; full_name: string | null; email: string | null }>>("profiles")
+    .from<
+      Array<{ id: string; full_name: string | null; email: string | null }>
+    >("profiles")
     .select("id, full_name, avatar_url")
     .in("id", userIds);
 

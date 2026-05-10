@@ -1,22 +1,22 @@
-import { CheckCircle2, Download, XCircle } from 'lucide-react'
+import { CheckCircle2, Download, XCircle } from "lucide-react";
 
-import { cn } from '@/utils/cn'
+import { cn } from "@/utils/cn";
 
-import type { BulkImportRow } from '../../api/bulkImportService'
+import type { BulkImportRow } from "../../api/bulkImportService";
 
 interface ImportResultRow extends BulkImportRow {
-  _rowIndex: number
-  status: 'berhasil' | 'gagal'
-  reason?: string
+  _rowIndex: number;
+  status: "berhasil" | "gagal";
+  reason?: string;
 }
 
 interface BulkImportResultStepProps {
-  successCount: number
-  failedCount: number
-  importResults: ImportResultRow[]
-  onDownloadReport: () => void
-  onRetry: () => void
-  onClose: () => void
+  successCount: number;
+  failedCount: number;
+  importResults: ImportResultRow[];
+  onDownloadReport: () => void;
+  onRetry: () => void;
+  onClose: () => void;
 }
 
 export function BulkImportResultStep({
@@ -33,7 +33,9 @@ export function BulkImportResultStep({
         <div className="bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-200 dark:border-emerald-800 rounded-xl p-4 text-center">
           <CheckCircle2 className="w-8 h-8 text-emerald-600 mx-auto mb-2" />
           <p className="text-3xl font-bold text-emerald-600">{successCount}</p>
-          <p className="text-sm text-emerald-700 dark:text-emerald-400 mt-0.5">Berhasil Diimpor</p>
+          <p className="text-sm text-emerald-700 dark:text-emerald-400 mt-0.5">
+            Berhasil Diimpor
+          </p>
         </div>
         <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-xl p-4 text-center">
           <XCircle className="w-8 h-8 text-red-500 mx-auto mb-2" />
@@ -53,14 +55,16 @@ export function BulkImportResultStep({
             <table className="w-full text-xs">
               <thead>
                 <tr className="border-b border-slate-100 dark:border-slate-800">
-                  {['Email', 'Nama', 'Peran', 'Status', 'Keterangan'].map((h) => (
-                    <th
-                      key={h}
-                      className="px-3 py-2 text-left font-semibold text-slate-500 dark:text-slate-400"
-                    >
-                      {h}
-                    </th>
-                  ))}
+                  {["Email", "Nama", "Peran", "Status", "Keterangan"].map(
+                    (h) => (
+                      <th
+                        key={h}
+                        className="px-3 py-2 text-left font-semibold text-slate-500 dark:text-slate-400"
+                      >
+                        {h}
+                      </th>
+                    ),
+                  )}
                 </tr>
               </thead>
               <tbody>
@@ -68,8 +72,8 @@ export function BulkImportResultStep({
                   <tr
                     key={i}
                     className={cn(
-                      'border-b border-slate-100 dark:border-slate-800',
-                      r.status === 'gagal' && 'bg-red-50/50 dark:bg-red-900/10'
+                      "border-b border-slate-100 dark:border-slate-800",
+                      r.status === "gagal" && "bg-red-50/50 dark:bg-red-900/10",
                     )}
                   >
                     <td className="px-3 py-1.5 font-mono text-slate-700 dark:text-slate-300">
@@ -78,9 +82,11 @@ export function BulkImportResultStep({
                     <td className="px-3 py-1.5 text-slate-600 dark:text-slate-400">
                       {r.full_name}
                     </td>
-                    <td className="px-3 py-1.5 text-slate-600 dark:text-slate-400">{r.role}</td>
+                    <td className="px-3 py-1.5 text-slate-600 dark:text-slate-400">
+                      {r.role}
+                    </td>
                     <td className="px-3 py-1.5">
-                      {r.status === 'berhasil' ? (
+                      {r.status === "berhasil" ? (
                         <span className="flex items-center gap-1 text-emerald-600">
                           <CheckCircle2 className="w-3 h-3" /> Berhasil
                         </span>
@@ -91,7 +97,7 @@ export function BulkImportResultStep({
                       )}
                     </td>
                     <td className="px-3 py-1.5 text-slate-500 dark:text-slate-400 italic">
-                      {r.reason ?? '-'}
+                      {r.reason ?? "-"}
                     </td>
                   </tr>
                 ))}
@@ -125,5 +131,5 @@ export function BulkImportResultStep({
         </button>
       </div>
     </div>
-  )
+  );
 }

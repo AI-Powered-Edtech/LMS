@@ -1,89 +1,107 @@
-import { AlertTriangle, Calendar, CheckCircle, FileText, Loader2 } from 'lucide-react'
-import { useEffect, useState } from 'react'
+import {
+  AlertTriangle,
+  Calendar,
+  CheckCircle,
+  FileText,
+  Loader2,
+} from "lucide-react";
+import { useEffect, useState } from "react";
 
-import { useAuth } from '@/contexts/AuthContext'
-import { useBuilder } from '@/contexts/BuilderContext'
+import { useAuth } from "@/contexts/AuthContext";
+import { useBuilder } from "@/contexts/BuilderContext";
 import {
   type AssignmentBlockData,
   builderAssignmentService,
-} from '@/features/courses/api/builder/assignmentBuilderService'
-import { cn } from '@/utils/cn'
+} from "@/features/courses/api/builder/assignmentBuilderService";
+import { cn } from "@/utils/cn";
 
-export function AssignmentBlockEditor({ blockId: _blockId }: { blockId: string }) {
-  const { tenantId } = useAuth()
-  const { state } = useBuilder()
+export function AssignmentBlockEditor({
+  blockId: _blockId,
+}: {
+  blockId: string;
+}) {
+  const { tenantId } = useAuth();
+  const { state } = useBuilder();
   const activeLesson = state.modules
     .flatMap((m) => m.lessons)
-    .find((l) => l.id === state.activeLesson?.id)
+    .find((l) => l.id === state.activeLesson?.id);
 
-  const [isLoading, setIsLoading] = useState(true)
-  const [isSaving, setIsSaving] = useState(false)
-  const [error, setError] = useState<string | null>(null)
-  const [savedAssignmentId, setSavedAssignmentId] = useState<string | undefined>(undefined)
+  const [isLoading, setIsLoading] = useState(true);
+  const [isSaving, setIsSaving] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [savedAssignmentId, setSavedAssignmentId] = useState<
+    string | undefined
+  >(undefined);
 
   const [assignmentData, setAssignmentData] = useState<AssignmentBlockData>({
-    title: 'Tugas Baru',
-    instructions: '',
+    title: "Tugas Baru",
+    instructions: "",
     max_points: 100,
     max_attempts: 1,
     is_published: false,
     due_date: null,
-  })
+  });
 
   /* eslint-disable react-hooks/exhaustive-deps */
   useEffect(() => {
-    if (!activeLesson) return
+    if (!activeLesson) return;
     async function load() {
       try {
         const data = await builderAssignmentService.getAssignmentByLesson(
           activeLesson!.id,
-          tenantId!
-        )
+          tenantId!,
+        );
         if (data) {
-          setSavedAssignmentId(data.id)
+          setSavedAssignmentId(data.id);
           setAssignmentData({
             id: data.id,
-            title: data.title || '',
-            instructions: data.instructions || '',
+            title: data.title || "",
+            instructions: data.instructions || "",
             max_points: data.max_points || 100,
             max_attempts: data.max_attempts || 1,
             is_published: data.is_published || false,
-            due_date: data.due_date ? new Date(data.due_date).toISOString().split('T')[0] : null,
-          })
+            due_date: data.due_date
+              ? new Date(data.due_date).toISOString().split("T")[0]
+              : null,
+          });
         }
       } catch (err: unknown) {
-        setError(err instanceof Error ? err.message : 'Kesalahan tidak diketahui')
+        setError(
+          err instanceof Error ? err.message : "Kesalahan tidak diketahui",
+        );
       } finally {
-        setIsLoading(false)
+        setIsLoading(false);
       }
     }
-    void load()
-  }, [activeLesson?.id])
+    void load();
+  }, [activeLesson?.id]);
   /* eslint-enable react-hooks/exhaustive-deps */
 
   const handleSave = async () => {
-    if (!activeLesson) return
-    setIsSaving(true)
-    setError(null)
+    if (!activeLesson) return;
+    setIsSaving(true);
+    setError(null);
     try {
       const payload: AssignmentBlockData = {
         ...assignmentData,
         id: savedAssignmentId,
-      }
+      };
       const result = await builderAssignmentService.saveAssignmentData(
         activeLesson.id,
-        state.courseId ?? '',
+        state.courseId ?? "",
         activeLesson.tenantId,
-        payload
-      )
-      setSavedAssignmentId(result.id)
-      setAssignmentData((prev) => ({ ...prev, id: result.id }))
+        payload,
+      );
+      setSavedAssignmentId(result.id);
+      setAssignmentData((prev) => ({ ...prev, id: result.id }));
     } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : 'Kesalahan tidak diketahui')
+      setError(
+        err instanceof Error ? err.message : "Kesalahan tidak diketahui",
+      );
     } finally {
-      setIsSaving(false)
+      setIsSaving(false);
     }
-  }
+  };
 
   if (isLoading) {
     return (
@@ -91,7 +109,7 @@ export function AssignmentBlockEditor({ blockId: _blockId }: { blockId: string }
         <Loader2 className="w-5 h-5 animate-spin mr-2" />
         <span className="text-sm">Memuat data tugas...</span>
       </div>
-    )
+    );
   }
 
   return (
@@ -103,13 +121,15 @@ export function AssignmentBlockEditor({ blockId: _blockId }: { blockId: string }
             <FileText className="w-6 h-6" />
           </div>
           <div>
-            <h3 className="text-lg font-black text-slate-800 tracking-tight">Pengaturan Tugas</h3>
+            <h3 className="text-lg font-black text-slate-800 tracking-tight">
+              Pengaturan Tugas
+            </h3>
             <div
               className={cn(
-                'inline-flex items-center gap-1.5 text-[10px] font-black uppercase tracking-[0.1em] px-3 py-1 rounded-full mt-1 shadow-sm',
+                "inline-flex items-center gap-1.5 text-[10px] font-black uppercase tracking-[0.1em] px-3 py-1 rounded-full mt-1 shadow-sm",
                 assignmentData.is_published
-                  ? 'bg-indigo-500 text-white shadow-indigo-100'
-                  : 'bg-slate-200 text-slate-500'
+                  ? "bg-indigo-500 text-white shadow-indigo-100"
+                  : "bg-slate-200 text-slate-500",
               )}
             >
               {assignmentData.is_published ? (
@@ -117,7 +137,7 @@ export function AssignmentBlockEditor({ blockId: _blockId }: { blockId: string }
               ) : (
                 <AlertTriangle className="w-3.5 h-3.5" />
               )}
-              {assignmentData.is_published ? 'Terbit' : 'Draft'}
+              {assignmentData.is_published ? "Terbit" : "Draft"}
             </div>
           </div>
         </div>
@@ -131,17 +151,22 @@ export function AssignmentBlockEditor({ blockId: _blockId }: { blockId: string }
               aria-checked={assignmentData.is_published}
               aria-label="Publikasi tugas"
               onClick={() =>
-                setAssignmentData({ ...assignmentData, is_published: !assignmentData.is_published })
+                setAssignmentData({
+                  ...assignmentData,
+                  is_published: !assignmentData.is_published,
+                })
               }
               className={cn(
-                'relative inline-flex h-6 w-11 items-center rounded-full transition-all focus:outline-none ring-offset-2 focus:ring-2 focus:ring-indigo-100',
-                assignmentData.is_published ? 'bg-indigo-500' : 'bg-slate-200'
+                "relative inline-flex h-6 w-11 items-center rounded-full transition-all focus:outline-none ring-offset-2 focus:ring-2 focus:ring-indigo-100",
+                assignmentData.is_published ? "bg-indigo-500" : "bg-slate-200",
               )}
             >
               <span
                 className={cn(
-                  'inline-block h-4 w-4 transform rounded-full bg-white transition-transform shadow-sm',
-                  assignmentData.is_published ? 'translate-x-6' : 'translate-x-1'
+                  "inline-block h-4 w-4 transform rounded-full bg-white transition-transform shadow-sm",
+                  assignmentData.is_published
+                    ? "translate-x-6"
+                    : "translate-x-1",
                 )}
               />
             </button>
@@ -156,7 +181,9 @@ export function AssignmentBlockEditor({ blockId: _blockId }: { blockId: string }
             ) : (
               <CheckCircle className="w-3.5 h-3.5 group-hover:scale-110 transition-transform" />
             )}
-            <span aria-live="polite">{isSaving ? 'Menyimpan...' : 'SIMPAN PERUBAHAN'}</span>
+            <span aria-live="polite">
+              {isSaving ? "Menyimpan..." : "SIMPAN PERUBAHAN"}
+            </span>
           </button>
         </div>
       </div>
@@ -184,7 +211,9 @@ export function AssignmentBlockEditor({ blockId: _blockId }: { blockId: string }
             id="assignment-title"
             type="text"
             value={assignmentData.title}
-            onChange={(e) => setAssignmentData({ ...assignmentData, title: e.target.value })}
+            onChange={(e) =>
+              setAssignmentData({ ...assignmentData, title: e.target.value })
+            }
             className="w-full px-5 py-3 bg-white border border-slate-200 rounded-[18px] focus:ring-4 focus:ring-indigo-50 focus:border-indigo-300 outline-none transition-all font-bold text-slate-700 placeholder:text-slate-400 shadow-sm"
             placeholder="Masukkan judul tugas..."
           />
@@ -198,8 +227,13 @@ export function AssignmentBlockEditor({ blockId: _blockId }: { blockId: string }
           </label>
           <textarea
             id="assignment-instructions"
-            value={assignmentData.instructions || ''}
-            onChange={(e) => setAssignmentData({ ...assignmentData, instructions: e.target.value })}
+            value={assignmentData.instructions || ""}
+            onChange={(e) =>
+              setAssignmentData({
+                ...assignmentData,
+                instructions: e.target.value,
+              })
+            }
             rows={6}
             className="w-full px-5 py-3 bg-white border border-slate-200 rounded-[24px] focus:ring-4 focus:ring-indigo-50 focus:border-indigo-300 outline-none transition-all resize-none font-medium text-slate-600 placeholder:text-slate-400 shadow-sm leading-relaxed"
             placeholder="Masukkan instruksi lengkap untuk dikerjakan siswa..."
@@ -219,7 +253,10 @@ export function AssignmentBlockEditor({ blockId: _blockId }: { blockId: string }
               min="1"
               value={assignmentData.max_points}
               onChange={(e) =>
-                setAssignmentData({ ...assignmentData, max_points: parseInt(e.target.value) || 0 })
+                setAssignmentData({
+                  ...assignmentData,
+                  max_points: parseInt(e.target.value) || 0,
+                })
               }
               className="w-full px-5 py-3 bg-white border border-slate-200 rounded-[18px] focus:ring-4 focus:ring-indigo-50 focus:border-indigo-300 outline-none transition-all font-black text-slate-700 shadow-sm"
             />
@@ -257,9 +294,12 @@ export function AssignmentBlockEditor({ blockId: _blockId }: { blockId: string }
             <input
               id="assignment-due-date"
               type="date"
-              value={assignmentData.due_date || ''}
+              value={assignmentData.due_date || ""}
               onChange={(e) =>
-                setAssignmentData({ ...assignmentData, due_date: e.target.value || null })
+                setAssignmentData({
+                  ...assignmentData,
+                  due_date: e.target.value || null,
+                })
               }
               className="w-full px-5 py-3 pl-11 bg-white border border-slate-200 rounded-[18px] focus:ring-4 focus:ring-indigo-50 focus:border-indigo-300 outline-none transition-all font-bold text-slate-700 shadow-sm"
             />
@@ -268,5 +308,5 @@ export function AssignmentBlockEditor({ blockId: _blockId }: { blockId: string }
         </div>
       </div>
     </div>
-  )
+  );
 }

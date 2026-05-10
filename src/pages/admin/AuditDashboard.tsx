@@ -1,4 +1,4 @@
-import { useVirtualizer } from '@tanstack/react-virtual'
+import { useVirtualizer } from "@tanstack/react-virtual";
 import {
   ArrowRight,
   ChevronDown,
@@ -14,21 +14,21 @@ import {
   Shield,
   UserMinus,
   UserPlus,
-} from 'lucide-react'
-import React, { useCallback, useEffect, useRef, useState } from 'react'
+} from "lucide-react";
+import React, { useCallback, useEffect, useRef, useState } from "react";
 
-import { EmptyState } from '@/components/ui'
+import { EmptyState } from "@/components/ui";
 import {
   administrationService,
   type AuditLog,
-} from '@/features/administration/api/administrationService'
-import { AdministrationSkeleton } from '@/features/administration/components/AdministrationSkeleton'
-import { exportAuditLogsToCSV } from '@/features/administration/utils/auditExport'
-import { usePageTitle } from '@/hooks/usePageTitle'
-import { useToast } from '@/hooks/useToast'
-import { cn } from '@/utils/cn'
-import { logger } from '@/utils/logger'
-import { captureError } from '@/utils/sentry'
+} from "@/features/administration/api/administrationService";
+import { AdministrationSkeleton } from "@/features/administration/components/AdministrationSkeleton";
+import { exportAuditLogsToCSV } from "@/features/administration/utils/auditExport";
+import { usePageTitle } from "@/hooks/usePageTitle";
+import { useToast } from "@/hooks/useToast";
+import { cn } from "@/utils/cn";
+import { logger } from "@/utils/logger";
+import { captureError } from "@/utils/sentry";
 
 const ACTION_CONFIG: Record<
   string,
@@ -36,153 +36,157 @@ const ACTION_CONFIG: Record<
 > = {
   ROLE_CHANGED: {
     icon: <Shield className="w-4 h-4" />,
-    color: 'text-blue-600',
-    bg: 'bg-blue-50 border-blue-200',
-    label: 'Role Diubah',
+    color: "text-blue-600",
+    bg: "bg-blue-50 border-blue-200",
+    label: "Role Diubah",
   },
   USER_DEACTIVATED: {
     icon: <UserMinus className="w-4 h-4" />,
-    color: 'text-red-600',
-    bg: 'bg-red-50 border-red-200',
-    label: 'Pengguna Dinonaktifkan',
+    color: "text-red-600",
+    bg: "bg-red-50 border-red-200",
+    label: "Pengguna Dinonaktifkan",
   },
   USER_ACTIVATED: {
     icon: <UserPlus className="w-4 h-4" />,
-    color: 'text-green-600',
-    bg: 'bg-green-50 border-green-200',
-    label: 'Pengguna Diaktifkan',
+    color: "text-green-600",
+    bg: "bg-green-50 border-green-200",
+    label: "Pengguna Diaktifkan",
   },
   INVITATION_SENT: {
     icon: <Mail className="w-4 h-4" />,
-    color: 'text-purple-600',
-    bg: 'bg-purple-50 border-purple-200',
-    label: 'Undangan Terkirim',
+    color: "text-purple-600",
+    bg: "bg-purple-50 border-purple-200",
+    label: "Undangan Terkirim",
   },
   PASSWORD_RESET: {
     icon: <KeyRound className="w-4 h-4" />,
-    color: 'text-amber-600',
-    bg: 'bg-amber-50 border-amber-200',
-    label: 'Atur Ulang Kata Sandi',
+    color: "text-amber-600",
+    bg: "bg-amber-50 border-amber-200",
+    label: "Atur Ulang Kata Sandi",
   },
-}
+};
 
 const DEFAULT_ACTION_CONFIG = {
   icon: <FileText className="w-4 h-4" />,
-  color: 'text-slate-600 dark:text-slate-400',
-  bg: 'bg-slate-50 dark:bg-slate-700/50 border-slate-200 dark:border-slate-700',
-  label: 'Aktivitas',
-}
+  color: "text-slate-600 dark:text-slate-400",
+  bg: "bg-slate-50 dark:bg-slate-700/50 border-slate-200 dark:border-slate-700",
+  label: "Aktivitas",
+};
 
 const ACTION_OPTIONS = [
-  { value: '', label: 'Semua Aktivitas' },
-  { value: 'ROLE_CHANGED', label: 'Role Diubah' },
-  { value: 'USER_DEACTIVATED', label: 'Pengguna Dinonaktifkan' },
-  { value: 'USER_ACTIVATED', label: 'Pengguna Diaktifkan' },
-  { value: 'INVITATION_SENT', label: 'Undangan Terkirim' },
-  { value: 'PASSWORD_RESET', label: 'Atur Ulang Kata Sandi' },
-]
+  { value: "", label: "Semua Aktivitas" },
+  { value: "ROLE_CHANGED", label: "Role Diubah" },
+  { value: "USER_DEACTIVATED", label: "Pengguna Dinonaktifkan" },
+  { value: "USER_ACTIVATED", label: "Pengguna Diaktifkan" },
+  { value: "INVITATION_SENT", label: "Undangan Terkirim" },
+  { value: "PASSWORD_RESET", label: "Atur Ulang Kata Sandi" },
+];
 
 export function AuditDashboard() {
-  usePageTitle('Dasbor Audit')
-  const addToast = useToast((s) => s.addToast)
-  const [logs, setLogs] = useState<AuditLog[]>([])
-  const [loading, setLoading] = useState(true)
-  const [actionFilter, setActionFilter] = useState('')
-  const [totalCount, setTotalCount] = useState(0)
-  const [cursor, setCursor] = useState<string | null>(null)
-  const [hasMore, setHasMore] = useState(false)
-  const [isExporting, setIsExporting] = useState(false)
+  usePageTitle("Dasbor Audit");
+  const addToast = useToast((s) => s.addToast);
+  const [logs, setLogs] = useState<AuditLog[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [actionFilter, setActionFilter] = useState("");
+  const [totalCount, setTotalCount] = useState(0);
+  const [cursor, setCursor] = useState<string | null>(null);
+  const [hasMore, setHasMore] = useState(false);
+  const [isExporting, setIsExporting] = useState(false);
 
-  const PAGE_SIZE = 30
+  const PAGE_SIZE = 30;
 
   const handleExportCSV = useCallback(async () => {
-    setIsExporting(true)
+    setIsExporting(true);
     try {
-      exportAuditLogsToCSV(logs)
-      addToast({ type: 'success', message: 'Log audit berhasil diekspor' })
+      exportAuditLogsToCSV(logs);
+      addToast({ type: "success", message: "Log audit berhasil diekspor" });
     } catch (err) {
-      captureError(err, { context: 'AuditDashboard.exportCSV' })
-      addToast({ type: 'error', message: 'Gagal mengekspor log audit. Coba lagi.' })
+      captureError(err, { context: "AuditDashboard.exportCSV" });
+      addToast({
+        type: "error",
+        message: "Gagal mengekspor log audit. Coba lagi.",
+      });
     } finally {
-      setIsExporting(false)
+      setIsExporting(false);
     }
-  }, [logs, addToast])
+  }, [logs, addToast]);
 
   const fetchLogs = useCallback(
     async (newCursor?: string) => {
-      setLoading(true)
+      setLoading(true);
       try {
         const results = await administrationService.getAuditLogs({
           action: actionFilter || null,
           cursor: newCursor || null,
           limit: PAGE_SIZE,
-        })
+        });
 
         if (newCursor) {
-          setLogs((prev) => [...prev, ...results])
+          setLogs((prev) => [...prev, ...results]);
         } else {
-          setLogs(results)
+          setLogs(results);
         }
 
         if (results.length > 0) {
-          setTotalCount(results[0].total_count)
-          setCursor(results[results.length - 1].created_at)
-          setHasMore(results.length === PAGE_SIZE)
+          setTotalCount(results[0].total_count);
+          setCursor(results[results.length - 1].created_at);
+          setHasMore(results.length === PAGE_SIZE);
         } else {
-          if (!newCursor) setTotalCount(0)
-          setHasMore(false)
+          if (!newCursor) setTotalCount(0);
+          setHasMore(false);
         }
       } catch (err) {
-        if (import.meta.env.DEV) logger.error('Failed to fetch audit logs:', err)
-        captureError(err, { context: 'AuditDashboard.fetchAuditLogs' })
+        if (import.meta.env.DEV)
+          logger.error("Failed to fetch audit logs:", err);
+        captureError(err, { context: "AuditDashboard.fetchAuditLogs" });
       } finally {
-        setLoading(false)
+        setLoading(false);
       }
     },
-    [actionFilter]
-  )
+    [actionFilter],
+  );
 
-  const parentRef = useRef<HTMLDivElement>(null)
+  const parentRef = useRef<HTMLDivElement>(null);
 
   const rowVirtualizer = useVirtualizer({
     count: logs.length,
     getScrollElement: () => parentRef.current,
     estimateSize: () => 72,
-  })
+  });
 
   /* eslint-disable react-hooks/exhaustive-deps */
   useEffect(() => {
-    setCursor(null)
-    void fetchLogs()
-  }, [actionFilter])
+    setCursor(null);
+    void fetchLogs();
+  }, [actionFilter]);
   /* eslint-enable react-hooks/exhaustive-deps */
 
   const formatTime = (dateStr: string) => {
-    const d = new Date(dateStr)
-    const now = new Date()
-    const diff = now.getTime() - d.getTime()
-    const mins = Math.floor(diff / 60000)
-    const hours = Math.floor(diff / 3600000)
-    const days = Math.floor(diff / 86400000)
+    const d = new Date(dateStr);
+    const now = new Date();
+    const diff = now.getTime() - d.getTime();
+    const mins = Math.floor(diff / 60000);
+    const hours = Math.floor(diff / 3600000);
+    const days = Math.floor(diff / 86400000);
 
-    if (mins < 1) return 'Baru saja'
-    if (mins < 60) return `${mins} menit lalu`
-    if (hours < 24) return `${hours} jam lalu`
-    if (days < 7) return `${days} hari lalu`
-    return d.toLocaleDateString('id-ID', {
-      day: 'numeric',
-      month: 'short',
-      year: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit',
-    })
-  }
+    if (mins < 1) return "Baru saja";
+    if (mins < 60) return `${mins} menit lalu`;
+    if (hours < 24) return `${hours} jam lalu`;
+    if (days < 7) return `${days} hari lalu`;
+    return d.toLocaleDateString("id-ID", {
+      day: "numeric",
+      month: "short",
+      year: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
+    });
+  };
 
   const renderDetails = (log: AuditLog) => {
-    const d = log.details
-    if (!d || Object.keys(d).length === 0) return null
+    const d = log.details;
+    if (!d || Object.keys(d).length === 0) return null;
 
-    if (log.action === 'ROLE_CHANGED' && d.old_role && d.new_role) {
+    if (log.action === "ROLE_CHANGED" && d.old_role && d.new_role) {
       return (
         <div className="flex items-center gap-1.5 text-xs mt-1">
           <span className="px-1.5 py-0.5 bg-slate-100 rounded font-medium">
@@ -193,38 +197,38 @@ export function AuditDashboard() {
             {String(d.new_role)}
           </span>
         </div>
-      )
+      );
     }
 
     if (d.is_active !== undefined) {
       return (
         <span
           className={cn(
-            'text-xs font-medium mt-1 inline-block',
-            d.is_active ? 'text-green-600' : 'text-red-600'
+            "text-xs font-medium mt-1 inline-block",
+            d.is_active ? "text-green-600" : "text-red-600",
           )}
         >
-          Status → {d.is_active ? 'Aktif' : 'Nonaktif'}
+          Status → {d.is_active ? "Aktif" : "Nonaktif"}
         </span>
-      )
+      );
     }
 
-    return null
-  }
+    return null;
+  };
 
   const getInitials = (name: string) => {
     return (
       name
-        .split(' ')
-        .map((n) => n[0] || '')
-        .join('')
+        .split(" ")
+        .map((n) => n[0] || "")
+        .join("")
         .toUpperCase()
-        .slice(0, 2) || '??'
-    )
-  }
+        .slice(0, 2) || "??"
+    );
+  };
 
   if (loading && logs.length === 0) {
-    return <AdministrationSkeleton />
+    return <AdministrationSkeleton />;
   }
 
   return (
@@ -250,11 +254,11 @@ export function AuditDashboard() {
             onClick={handleExportCSV}
             disabled={isExporting || logs.length === 0}
             className={cn(
-              'flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold transition-all',
-              'focus-visible:ring-2 focus-visible:ring-blue-500 outline-none',
+              "flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold transition-all",
+              "focus-visible:ring-2 focus-visible:ring-blue-500 outline-none",
               logs.length > 0 && !isExporting
-                ? 'bg-blue-600 dark:bg-blue-500 text-white hover:bg-blue-700 dark:hover:bg-blue-600'
-                : 'bg-slate-100 dark:bg-slate-800 text-slate-400 dark:text-slate-600 cursor-not-allowed'
+                ? "bg-blue-600 dark:bg-blue-500 text-white hover:bg-blue-700 dark:hover:bg-blue-600"
+                : "bg-slate-100 dark:bg-slate-800 text-slate-400 dark:text-slate-600 cursor-not-allowed",
             )}
             title="Ekspor log audit ke CSV"
           >
@@ -288,8 +292,8 @@ export function AuditDashboard() {
           </div>
           <button
             onClick={() => {
-              setCursor(null)
-              void fetchLogs()
+              setCursor(null);
+              void fetchLogs();
             }}
             className="p-2.5 border border-slate-200 dark:border-slate-700 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-700"
             title="Muat Ulang"
@@ -318,21 +322,21 @@ export function AuditDashboard() {
             <div
               style={{
                 height: `${rowVirtualizer.getTotalSize()}px`,
-                width: '100%',
-                position: 'relative',
+                width: "100%",
+                position: "relative",
               }}
             >
               {rowVirtualizer.getVirtualItems().map((vRow) => {
-                const log = logs[vRow.index]
-                const cfg = ACTION_CONFIG[log.action] || DEFAULT_ACTION_CONFIG
+                const log = logs[vRow.index];
+                const cfg = ACTION_CONFIG[log.action] || DEFAULT_ACTION_CONFIG;
                 return (
                   <div
                     key={log.log_id}
                     style={{
-                      position: 'absolute',
+                      position: "absolute",
                       top: 0,
                       left: 0,
-                      width: '100%',
+                      width: "100%",
                       transform: `translateY(${vRow.start}px)`,
                     }}
                     className="px-6 py-4 hover:bg-slate-50/50 transition-colors flex items-start gap-4"
@@ -340,9 +344,9 @@ export function AuditDashboard() {
                     {/* Icon */}
                     <div
                       className={cn(
-                        'w-10 h-10 rounded-xl flex items-center justify-center shrink-0 border',
+                        "w-10 h-10 rounded-xl flex items-center justify-center shrink-0 border",
                         cfg.bg,
-                        cfg.color
+                        cfg.color,
                       )}
                     >
                       {cfg.icon}
@@ -361,8 +365,8 @@ export function AuditDashboard() {
                             </span>
                             {log.target_name && (
                               <>
-                                {' '}
-                                →{' '}
+                                {" "}
+                                →{" "}
                                 <span className="font-medium text-slate-700 dark:text-slate-300">
                                   {log.target_name}
                                 </span>
@@ -382,7 +386,7 @@ export function AuditDashboard() {
                       {getInitials(log.actor_name)}
                     </div>
                   </div>
-                )
+                );
               })}
             </div>
           )}
@@ -396,11 +400,11 @@ export function AuditDashboard() {
               disabled={loading}
               className="px-6 py-2 text-sm font-medium text-blue-600 hover:bg-blue-50 rounded-xl transition-colors disabled:opacity-50"
             >
-              {loading ? 'Memuat...' : 'Muat Lebih Banyak'}
+              {loading ? "Memuat..." : "Muat Lebih Banyak"}
             </button>
           </div>
         )}
       </div>
     </div>
-  )
+  );
 }

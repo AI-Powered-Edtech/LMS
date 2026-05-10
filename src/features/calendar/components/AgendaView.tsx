@@ -1,32 +1,47 @@
-import { Bell, CheckCircle2, Circle, Clock, Download, MapPin, Paperclip, Video } from 'lucide-react'
-import { motion } from 'motion/react'
+import {
+  Bell,
+  CheckCircle2,
+  Circle,
+  Clock,
+  Download,
+  MapPin,
+  Paperclip,
+  Video,
+} from "lucide-react";
+import { motion } from "motion/react";
 
-import type { CalendarEvent } from '@/features/calendar/hooks/useCalendarQueries'
+import type { CalendarEvent } from "@/features/calendar/hooks/useCalendarQueries";
 import {
   DAYS_OF_WEEK,
   getCountdown,
   getEventColor,
   getPriorityIcon,
-} from '@/features/calendar/utils/calendarUtils'
-import { cn } from '@/utils/cn'
-import { downloadICal } from '@/utils/icalExport'
-import { translateEventType } from '@/utils/statusTranslations'
+} from "@/features/calendar/utils/calendarUtils";
+import { cn } from "@/utils/cn";
+import { downloadICal } from "@/utils/icalExport";
+import { translateEventType } from "@/utils/statusTranslations";
 
 interface AgendaViewProps {
-  events: CalendarEvent[]
-  today: Date
-  onToggleCompletion: (id: string) => void
+  events: CalendarEvent[];
+  today: Date;
+  onToggleCompletion: (id: string) => void;
 }
 
-export function AgendaView({ events, today, onToggleCompletion }: AgendaViewProps) {
+export function AgendaView({
+  events,
+  today,
+  onToggleCompletion,
+}: AgendaViewProps) {
   const upcomingEvents = [...events]
     .filter((e) => e.date.getTime() >= today.getTime())
-    .sort((a, b) => a.date.getTime() - b.date.getTime())
+    .sort((a, b) => a.date.getTime() - b.date.getTime());
 
   return (
     <div className="bg-white dark:bg-slate-800 rounded-3xl border border-slate-200 dark:border-slate-700 p-6 shadow-sm">
       <div className="flex items-center justify-between mb-6">
-        <h2 className="text-xl font-bold text-slate-800 dark:text-slate-100">Agenda Mendatang</h2>
+        <h2 className="text-xl font-bold text-slate-800 dark:text-slate-100">
+          Agenda Mendatang
+        </h2>
         {upcomingEvents.length > 0 && (
           <button
             type="button"
@@ -54,7 +69,7 @@ export function AgendaView({ events, today, onToggleCompletion }: AgendaViewProp
           </div>
         )}
         {upcomingEvents.map((event, index) => {
-          const countdown = getCountdown(event.date, today)
+          const countdown = getCountdown(event.date, today);
           return (
             <motion.div
               key={event.id}
@@ -62,10 +77,10 @@ export function AgendaView({ events, today, onToggleCompletion }: AgendaViewProp
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: index * 0.05 }}
               className={cn(
-                'flex gap-4 p-4 rounded-2xl border transition-all',
+                "flex gap-4 p-4 rounded-2xl border transition-all",
                 event.completed
-                  ? 'bg-slate-50 dark:bg-slate-900/50 border-slate-100 dark:border-slate-700 opacity-75'
-                  : 'bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 hover:border-blue-300 dark:hover:border-blue-600 hover:shadow-md'
+                  ? "bg-slate-50 dark:bg-slate-900/50 border-slate-100 dark:border-slate-700 opacity-75"
+                  : "bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 hover:border-blue-300 dark:hover:border-blue-600 hover:shadow-md",
               )}
             >
               <div className="flex flex-col items-center justify-center min-w-[60px] px-2 border-r border-slate-100 dark:border-slate-700">
@@ -76,7 +91,7 @@ export function AgendaView({ events, today, onToggleCompletion }: AgendaViewProp
                   {event.date.getDate()}
                 </span>
                 <span className="text-xs font-bold text-slate-500 dark:text-slate-400">
-                  {event.date.toLocaleString('id-ID', { month: 'short' })}
+                  {event.date.toLocaleString("id-ID", { month: "short" })}
                 </span>
               </div>
               <div className="flex-1 min-w-0">
@@ -85,9 +100,9 @@ export function AgendaView({ events, today, onToggleCompletion }: AgendaViewProp
                     <div className="flex items-center gap-2 mb-1">
                       <span
                         className={cn(
-                          'text-[10px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wider',
-                          getEventColor(event.type).split(' ')[0],
-                          'text-white'
+                          "text-[10px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wider",
+                          getEventColor(event.type).split(" ")[0],
+                          "text-white",
                         )}
                       >
                         {translateEventType(event.type)}
@@ -102,16 +117,16 @@ export function AgendaView({ events, today, onToggleCompletion }: AgendaViewProp
                     </div>
                     <h4
                       className={cn(
-                        'font-bold text-lg truncate',
+                        "font-bold text-lg truncate",
                         event.completed
-                          ? 'text-slate-500 dark:text-slate-400 line-through'
-                          : 'text-slate-900 dark:text-slate-100'
+                          ? "text-slate-500 dark:text-slate-400 line-through"
+                          : "text-slate-900 dark:text-slate-100",
                       )}
                     >
                       {event.title}
                     </h4>
                   </div>
-                  {(event.type === 'assignment' || event.type === 'exam') && (
+                  {(event.type === "assignment" || event.type === "exam") && (
                     <button
                       onClick={() => onToggleCompletion(event.id)}
                       className="shrink-0 p-2 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-full transition-colors"
@@ -127,15 +142,17 @@ export function AgendaView({ events, today, onToggleCompletion }: AgendaViewProp
                 <div className="flex flex-wrap items-center gap-4 mt-3 text-sm text-slate-600 dark:text-slate-400">
                   <div className="flex items-center gap-1.5">
                     <Clock className="w-4 h-4 text-slate-400 dark:text-slate-500" />
-                    {event.time} {event.endTime ? `- ${event.endTime}` : ''}
+                    {event.time} {event.endTime ? `- ${event.endTime}` : ""}
                   </div>
                   <div className="flex items-center gap-1.5">
-                    {event.location.includes('Zoom') ? (
+                    {event.location.includes("Zoom") ? (
                       <Video className="w-4 h-4 text-slate-400 dark:text-slate-500" />
                     ) : (
                       <MapPin className="w-4 h-4 text-slate-400 dark:text-slate-500" />
                     )}
-                    <span className="truncate max-w-[150px]">{event.location}</span>
+                    <span className="truncate max-w-[150px]">
+                      {event.location}
+                    </span>
                   </div>
                   {event.hasAttachment && (
                     <div className="flex items-center gap-1.5 text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-900/20 px-2 py-0.5 rounded-md">
@@ -146,9 +163,9 @@ export function AgendaView({ events, today, onToggleCompletion }: AgendaViewProp
                 </div>
               </div>
             </motion.div>
-          )
+          );
         })}
       </div>
     </div>
-  )
+  );
 }

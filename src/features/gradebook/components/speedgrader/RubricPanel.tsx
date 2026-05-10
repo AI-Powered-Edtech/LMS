@@ -1,40 +1,47 @@
-import { AlertCircle, ClipboardList, Loader2, MessageSquare, Save, Sparkles } from 'lucide-react'
-import { useState } from 'react'
+import {
+  AlertCircle,
+  ClipboardList,
+  Loader2,
+  MessageSquare,
+  Save,
+  Sparkles,
+} from "lucide-react";
+import { useState } from "react";
 
-import { OptimizedImage } from '@/components/ui'
-import type { RubricScore } from '@/features/rubrics'
+import { OptimizedImage } from "@/components/ui";
+import type { RubricScore } from "@/features/rubrics";
 import {
   RubricScoringGrid,
   useRubricByAssignment,
   useRubricScores,
   useScoreSubmission,
-} from '@/features/rubrics'
-import { useToast } from '@/hooks/useToast'
-import { cn } from '@/utils/cn'
+} from "@/features/rubrics";
+import { useToast } from "@/hooks/useToast";
+import { cn } from "@/utils/cn";
 
-import type { SpeedGraderStudent } from './types'
-import { QUICK_COMMENTS } from './types'
+import type { SpeedGraderStudent } from "./types";
+import { QUICK_COMMENTS } from "./types";
 
 interface RubricPanelProps {
-  currentStudent: SpeedGraderStudent
-  feedback: string
-  totalScore: number
-  manualScore: number
-  effectiveScore: number
-  maxScore: number
-  latePenaltyPercent: number
-  isLoading: boolean
-  isAIGrading: boolean
+  currentStudent: SpeedGraderStudent;
+  feedback: string;
+  totalScore: number;
+  manualScore: number;
+  effectiveScore: number;
+  maxScore: number;
+  latePenaltyPercent: number;
+  isLoading: boolean;
+  isAIGrading: boolean;
   // Dynamic rubric props
-  submissionId: string | null
-  assignmentId: string | null
-  tenantId: string | null
-  onFeedbackChange: (feedback: string) => void
-  onManualScoreChange: (score: number) => void
-  onAIGrade: () => void
-  onSaveAndNext: (status: 'graded' | 'needs_revision') => void
+  submissionId: string | null;
+  assignmentId: string | null;
+  tenantId: string | null;
+  onFeedbackChange: (feedback: string) => void;
+  onManualScoreChange: (score: number) => void;
+  onAIGrade: () => void;
+  onSaveAndNext: (status: "graded" | "needs_revision") => void;
   /** Di mobile, action footer disembunyikan karena digantikan fixed bottom bar di halaman */
-  isMobile?: boolean
+  isMobile?: boolean;
 }
 
 function StudentInfoHeader({
@@ -46,42 +53,44 @@ function StudentInfoHeader({
   maxScore,
   isLoading,
 }: {
-  student: SpeedGraderStudent
-  earnedScore: number
-  effectiveScore: number
-  totalRubricPoints: number
-  hasRubric: boolean
-  maxScore: number
-  isLoading: boolean
+  student: SpeedGraderStudent;
+  earnedScore: number;
+  effectiveScore: number;
+  totalRubricPoints: number;
+  hasRubric: boolean;
+  maxScore: number;
+  isLoading: boolean;
 }) {
-  if (!student) return null
+  if (!student) return null;
   return (
     <div className="p-6 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between bg-slate-50/50 dark:bg-slate-900/50">
       <div className="flex items-center gap-3">
         <div className="w-10 h-10 bg-slate-200 dark:bg-slate-700 rounded-full flex items-center justify-center overflow-hidden border-2 border-white dark:border-slate-800 shadow-sm">
           <OptimizedImage
-            src={`https://api.dicebear.com/7.x/avataaars/svg?seed=${student?.name || ''}`}
+            src={`https://api.dicebear.com/7.x/avataaars/svg?seed=${student?.name || ""}`}
             alt=""
             className="w-full h-full object-cover"
           />
         </div>
         <div>
-          <h3 className="font-bold text-slate-900 dark:text-white">{student?.name}</h3>
+          <h3 className="font-bold text-slate-900 dark:text-white">
+            {student?.name}
+          </h3>
           <span
             className={cn(
-              'text-xs font-bold px-2 py-0.5 rounded-full',
-              student.gradeEntry.status === 'graded'
-                ? 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400'
-                : student.gradeEntry.status === 'needs_revision'
-                  ? 'bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400'
-                  : 'bg-yellow-100 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-400'
+              "text-xs font-bold px-2 py-0.5 rounded-full",
+              student.gradeEntry.status === "graded"
+                ? "bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400"
+                : student.gradeEntry.status === "needs_revision"
+                  ? "bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400"
+                  : "bg-yellow-100 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-400",
             )}
           >
-            {student.gradeEntry.status === 'graded'
-              ? 'Sudah Dinilai'
-              : student.gradeEntry.status === 'needs_revision'
-                ? 'Perlu Revisi'
-                : 'Belum Dinilai'}
+            {student.gradeEntry.status === "graded"
+              ? "Sudah Dinilai"
+              : student.gradeEntry.status === "needs_revision"
+                ? "Perlu Revisi"
+                : "Belum Dinilai"}
           </span>
         </div>
       </div>
@@ -100,11 +109,11 @@ function StudentInfoHeader({
           </div>
         )}
         <div className="text-xs font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider">
-          {hasRubric ? 'Nilai Rubrik' : 'Nilai Efektif'}
+          {hasRubric ? "Nilai Rubrik" : "Nilai Efektif"}
         </div>
       </div>
     </div>
-  )
+  );
 }
 
 function RubricSkeleton() {
@@ -121,7 +130,7 @@ function RubricSkeleton() {
         </div>
       ))}
     </div>
-  )
+  );
 }
 
 export function RubricPanel({
@@ -142,50 +151,55 @@ export function RubricPanel({
   onSaveAndNext,
   isMobile = false,
 }: RubricPanelProps) {
-  const addToast = useToast((s) => s.addToast)
+  const addToast = useToast((s) => s.addToast);
 
   // Fetch rubric for this assignment
-  const { data: rubric, isLoading: isRubricLoading } = useRubricByAssignment(assignmentId, tenantId)
+  const { data: rubric, isLoading: isRubricLoading } = useRubricByAssignment(
+    assignmentId,
+    tenantId,
+  );
 
   // Fetch existing scores for this submission
   const { data: existingScores, isLoading: isScoresLoading } = useRubricScores(
     submissionId,
-    tenantId
-  )
+    tenantId,
+  );
 
   // Local scores state — initialised from server data
-  const [scores, setScores] = useState<RubricScore[]>([])
-  const [scoresInitialized, setScoresInitialized] = useState<string | null>(null)
+  const [scores, setScores] = useState<RubricScore[]>([]);
+  const [scoresInitialized, setScoresInitialized] = useState<string | null>(
+    null,
+  );
 
   // Re-init when submission changes
   if (submissionId && submissionId !== scoresInitialized && existingScores) {
-    setScores(existingScores)
-    setScoresInitialized(submissionId)
+    setScores(existingScores);
+    setScoresInitialized(submissionId);
   }
 
-  const scoreSubmission = useScoreSubmission()
+  const scoreSubmission = useScoreSubmission();
 
-  const isContentLoading = isLoading || isRubricLoading || isScoresLoading
+  const isContentLoading = isLoading || isRubricLoading || isScoresLoading;
 
-  const earnedScore = scores.reduce((sum, s) => sum + Number(s.score), 0)
-  const totalRubricPoints = rubric?.total_points ?? 0
+  const earnedScore = scores.reduce((sum, s) => sum + Number(s.score), 0);
+  const totalRubricPoints = rubric?.total_points ?? 0;
 
   const addQuickComment = (comment: string) => {
-    onFeedbackChange(feedback ? `${feedback}\n${comment}` : comment)
-  }
+    onFeedbackChange(feedback ? `${feedback}\n${comment}` : comment);
+  };
 
-  const handleSaveAndNext = async (status: 'graded' | 'needs_revision') => {
+  const handleSaveAndNext = async (status: "graded" | "needs_revision") => {
     // Persist rubric scores if we have a submission and rubric
     if (submissionId && rubric && scores.length > 0) {
       try {
-        await scoreSubmission.mutateAsync({ submissionId, scores })
+        await scoreSubmission.mutateAsync({ submissionId, scores });
       } catch {
-        addToast({ type: 'error', message: 'Gagal menyimpan skor rubrik.' })
-        return
+        addToast({ type: "error", message: "Gagal menyimpan skor rubrik." });
+        return;
       }
     }
-    onSaveAndNext(status)
-  }
+    onSaveAndNext(status);
+  };
 
   return (
     <div className="w-full bg-white dark:bg-slate-900 border-t md:border-t-0 md:border-l border-slate-200 dark:border-slate-700 flex flex-col shrink-0 z-20 shadow-[-4px_0_24px_rgba(0,0,0,0.02)]">
@@ -206,7 +220,9 @@ export function RubricPanel({
         ) : (
           <>
             <div className="flex items-center justify-between mb-2">
-              <h3 className="font-bold text-slate-800 dark:text-white">Rubrik Penilaian</h3>
+              <h3 className="font-bold text-slate-800 dark:text-white">
+                Rubrik Penilaian
+              </h3>
               <button
                 onClick={onAIGrade}
                 disabled={isAIGrading}
@@ -217,7 +233,7 @@ export function RubricPanel({
                 ) : (
                   <Sparkles className="w-3.5 h-3.5" />
                 )}
-                {isAIGrading ? 'AI Menilai...' : 'Auto-Grade AI'}
+                {isAIGrading ? "AI Menilai..." : "Auto-Grade AI"}
               </button>
             </div>
 
@@ -231,8 +247,9 @@ export function RubricPanel({
                       Penilaian manual
                     </p>
                     <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
-                      Tugas ini belum memiliki rubrik. Masukkan nilai manual, lalu sistem akan
-                      menghitung nilai efektif setelah penalti keterlambatan.
+                      Tugas ini belum memiliki rubrik. Masukkan nilai manual,
+                      lalu sistem akan menghitung nilai efektif setelah penalti
+                      keterlambatan.
                     </p>
                   </div>
                 </div>
@@ -246,19 +263,25 @@ export function RubricPanel({
                       min="0"
                       max={maxScore}
                       value={Number.isNaN(manualScore) ? 0 : manualScore}
-                      onChange={(event) => onManualScoreChange(Number(event.target.value || 0))}
+                      onChange={(event) =>
+                        onManualScoreChange(Number(event.target.value || 0))
+                      }
                       className="w-full rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 px-4 py-2.5 text-sm font-bold text-slate-800 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
                     />
                   </label>
                   <div className="rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 p-3 text-sm">
                     <div className="flex items-center justify-between">
-                      <span className="text-slate-500 dark:text-slate-400">Nilai efektif</span>
+                      <span className="text-slate-500 dark:text-slate-400">
+                        Nilai efektif
+                      </span>
                       <span className="font-bold text-slate-900 dark:text-white">
                         {effectiveScore}/{maxScore}
                       </span>
                     </div>
                     <div className="flex items-center justify-between mt-2">
-                      <span className="text-slate-500 dark:text-slate-400">Penalti terlambat</span>
+                      <span className="text-slate-500 dark:text-slate-400">
+                        Penalti terlambat
+                      </span>
                       <span className="font-bold text-slate-900 dark:text-white">
                         {latePenaltyPercent}%
                       </span>
@@ -269,7 +292,13 @@ export function RubricPanel({
             )}
 
             {/* Rubric scoring grid */}
-            {rubric && <RubricScoringGrid rubric={rubric} scores={scores} onChange={setScores} />}
+            {rubric && (
+              <RubricScoringGrid
+                rubric={rubric}
+                scores={scores}
+                onChange={setScores}
+              />
+            )}
 
             {/* General Feedback */}
             <div className="pt-4 border-t border-slate-100 dark:border-slate-800">
@@ -278,7 +307,7 @@ export function RubricPanel({
                 Umpan Balik (Opsional)
               </h4>
               <textarea
-                value={feedback ?? ''}
+                value={feedback ?? ""}
                 onChange={(e) => onFeedbackChange(e.target.value)}
                 placeholder="Berikan komentar tambahan untuk siswa..."
                 className="w-full h-24 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl p-3 text-sm focus:ring-2 focus:ring-blue-500 focus:bg-white dark:focus:bg-slate-800 dark:text-white transition-all resize-none"
@@ -303,7 +332,7 @@ export function RubricPanel({
       {!isMobile && (
         <div className="p-6 border-t border-slate-100 dark:border-slate-800 bg-white dark:bg-slate-900 flex gap-2">
           <button
-            onClick={() => handleSaveAndNext('needs_revision')}
+            onClick={() => handleSaveAndNext("needs_revision")}
             disabled={isLoading || scoreSubmission.isPending}
             className="flex-1 py-3 bg-red-50 dark:bg-red-900/20 hover:bg-red-100 dark:hover:bg-red-900/40 text-red-600 dark:text-red-400 rounded-xl font-bold flex items-center justify-center gap-2 transition-all active:scale-95 disabled:opacity-50"
           >
@@ -311,7 +340,7 @@ export function RubricPanel({
             Minta Revisi
           </button>
           <button
-            onClick={() => handleSaveAndNext('graded')}
+            onClick={() => handleSaveAndNext("graded")}
             disabled={isLoading || scoreSubmission.isPending}
             className="flex-1 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-bold flex items-center justify-center gap-2 transition-all shadow-sm shadow-blue-200 dark:shadow-none active:scale-95 disabled:opacity-50"
           >
@@ -325,5 +354,5 @@ export function RubricPanel({
         </div>
       )}
     </div>
-  )
+  );
 }

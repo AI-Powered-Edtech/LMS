@@ -1,35 +1,35 @@
-import { AlertCircle, Bell, BookOpen, Settings2, Users } from 'lucide-react'
-import { useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { AlertCircle, Bell, BookOpen, Settings2, Users } from "lucide-react";
+import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 
-import { Card, EmptyState, Skeleton } from '@/components/ui'
-import { StruggleConfigPanel } from '@/features/struggle/components/StruggleConfigPanel'
+import { Card, EmptyState, Skeleton } from "@/components/ui";
+import { StruggleConfigPanel } from "@/features/struggle/components/StruggleConfigPanel";
 import {
   useMarkAlertsRead,
   useStruggleAlerts,
-} from '@/features/struggle/queries/useStruggleQueries'
-import { relativeTime } from '@/features/struggle/utils/struggleHelpers'
-import { usePageTitle } from '@/hooks/usePageTitle'
-import { useRoleBasedPath } from '@/hooks/useRoleBasedPath'
+} from "@/features/struggle/queries/useStruggleQueries";
+import { relativeTime } from "@/features/struggle/utils/struggleHelpers";
+import { usePageTitle } from "@/hooks/usePageTitle";
+import { useRoleBasedPath } from "@/hooks/useRoleBasedPath";
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Severity badge
 // ─────────────────────────────────────────────────────────────────────────────
-function SeverityBadge({ severity }: { severity: 'medium' | 'high' }) {
-  if (severity === 'high') {
+function SeverityBadge({ severity }: { severity: "medium" | "high" }) {
+  if (severity === "high") {
     return (
       <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-bold bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400">
         <AlertCircle className="w-3 h-3" />
         Darurat
       </span>
-    )
+    );
   }
   return (
     <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-bold bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400">
       <AlertCircle className="w-3 h-3" />
       Perhatian
     </span>
-  )
+  );
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -37,7 +37,11 @@ function SeverityBadge({ severity }: { severity: 'medium' | 'high' }) {
 // ─────────────────────────────────────────────────────────────────────────────
 function AlertListSkeleton() {
   return (
-    <div className="space-y-3" aria-busy="true" aria-label="Memuat data siswa...">
+    <div
+      className="space-y-3"
+      aria-busy="true"
+      aria-label="Memuat data siswa..."
+    >
       {Array.from({ length: 5 }).map((_, i) => (
         <div
           key={i}
@@ -53,41 +57,45 @@ function AlertListSkeleton() {
         </div>
       ))}
     </div>
-  )
+  );
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Main page
 // ─────────────────────────────────────────────────────────────────────────────
 export function StruggleDashboard() {
-  usePageTitle('Deteksi Kesulitan Belajar')
-  const navigate = useNavigate()
-  const getPath = useRoleBasedPath()
+  usePageTitle("Deteksi Kesulitan Belajar");
+  const navigate = useNavigate();
+  const getPath = useRoleBasedPath();
 
-  const [showConfig, setShowConfig] = useState(false)
-  const [filterUnread, setFilterUnread] = useState(false)
+  const [showConfig, setShowConfig] = useState(false);
+  const [filterUnread, setFilterUnread] = useState(false);
 
   const { data: alerts = [], isLoading } = useStruggleAlerts({
     unreadOnly: filterUnread,
     limit: 50,
-  })
-  const markRead = useMarkAlertsRead()
+  });
+  const markRead = useMarkAlertsRead();
 
-  const unreadCount = alerts.filter((a) => !a.read_at).length
-  const highCount = alerts.filter((a) => a.severity === 'high').length
+  const unreadCount = alerts.filter((a) => !a.read_at).length;
+  const highCount = alerts.filter((a) => a.severity === "high").length;
 
   function handleMarkAllRead() {
-    const ids = alerts.filter((a) => !a.read_at).map((a) => a.alert_id)
-    if (ids.length > 0) markRead.mutate(ids)
+    const ids = alerts.filter((a) => !a.read_at).map((a) => a.alert_id);
+    if (ids.length > 0) markRead.mutate(ids);
   }
 
-  function handleAlertClick(courseId: string, lessonId: string, alertId: string) {
+  function handleAlertClick(
+    courseId: string,
+    lessonId: string,
+    alertId: string,
+  ) {
     if (!alerts.find((a) => a.alert_id === alertId)?.read_at) {
-      markRead.mutate([alertId])
+      markRead.mutate([alertId]);
     }
     void navigate(
-      `${getPath('/app/teacher/course-analytics', '/app/admin/analytics')}?courseId=${courseId}&lessonId=${lessonId}`
-    )
+      `${getPath("/app/teacher/course-analytics", "/app/admin/analytics")}?courseId=${courseId}&lessonId=${lessonId}`,
+    );
   }
 
   return (
@@ -104,7 +112,8 @@ export function StruggleDashboard() {
               </span>
             </h1>
             <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
-              Pantau siswa yang membutuhkan bantuan ekstra berdasarkan sinyal belajar mereka.
+              Pantau siswa yang membutuhkan bantuan ekstra berdasarkan sinyal
+              belajar mereka.
             </p>
           </div>
 
@@ -120,14 +129,20 @@ export function StruggleDashboard() {
         </header>
 
         {/* ── Stats row ── */}
-        <section aria-label="Ringkasan status" className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+        <section
+          aria-label="Ringkasan status"
+          className="grid grid-cols-1 sm:grid-cols-3 gap-4"
+        >
           <Card className="flex items-center gap-4 p-4">
             <span className="w-10 h-10 rounded-xl bg-amber-100 dark:bg-amber-900/30 flex items-center justify-center shrink-0">
-              <Users className="w-5 h-5 text-amber-600 dark:text-amber-400" aria-hidden="true" />
+              <Users
+                className="w-5 h-5 text-amber-600 dark:text-amber-400"
+                aria-hidden="true"
+              />
             </span>
             <div>
               <p className="text-2xl font-bold text-slate-900 dark:text-slate-100">
-                {isLoading ? '—' : alerts.length}
+                {isLoading ? "—" : alerts.length}
               </p>
               <p className="text-xs text-slate-500 dark:text-slate-400 font-medium">
                 Total alert aktif
@@ -137,11 +152,14 @@ export function StruggleDashboard() {
 
           <Card className="flex items-center gap-4 p-4">
             <span className="w-10 h-10 rounded-xl bg-red-100 dark:bg-red-900/30 flex items-center justify-center shrink-0">
-              <AlertCircle className="w-5 h-5 text-red-600 dark:text-red-400" aria-hidden="true" />
+              <AlertCircle
+                className="w-5 h-5 text-red-600 dark:text-red-400"
+                aria-hidden="true"
+              />
             </span>
             <div>
               <p className="text-2xl font-bold text-slate-900 dark:text-slate-100">
-                {isLoading ? '—' : highCount}
+                {isLoading ? "—" : highCount}
               </p>
               <p className="text-xs text-slate-500 dark:text-slate-400 font-medium">
                 Status darurat
@@ -151,13 +169,18 @@ export function StruggleDashboard() {
 
           <Card className="flex items-center gap-4 p-4">
             <span className="w-10 h-10 rounded-xl bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center shrink-0">
-              <Bell className="w-5 h-5 text-blue-600 dark:text-blue-400" aria-hidden="true" />
+              <Bell
+                className="w-5 h-5 text-blue-600 dark:text-blue-400"
+                aria-hidden="true"
+              />
             </span>
             <div>
               <p className="text-2xl font-bold text-slate-900 dark:text-slate-100">
-                {isLoading ? '—' : unreadCount}
+                {isLoading ? "—" : unreadCount}
               </p>
-              <p className="text-xs text-slate-500 dark:text-slate-400 font-medium">Belum dibaca</p>
+              <p className="text-xs text-slate-500 dark:text-slate-400 font-medium">
+                Belum dibaca
+              </p>
             </div>
           </Card>
         </section>
@@ -196,7 +219,7 @@ export function StruggleDashboard() {
                   disabled={unreadCount === 0 || markRead.isPending}
                   className="text-xs font-semibold px-3 py-1.5 rounded-lg bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-400 hover:bg-blue-100 dark:hover:bg-blue-900/40 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
                 >
-                  {markRead.isPending ? 'Memproses...' : 'Tandai semua dibaca'}
+                  {markRead.isPending ? "Memproses..." : "Tandai semua dibaca"}
                 </button>
               </div>
             </div>
@@ -217,48 +240,56 @@ export function StruggleDashboard() {
                     title="Tidak ada siswa yang kesulitan"
                     description={
                       filterUnread
-                        ? 'Semua alert sudah dibaca. Hapus filter untuk melihat riwayat lengkap.'
-                        : 'Semua siswa tampak belajar dengan baik saat ini.'
+                        ? "Semua alert sudah dibaca. Hapus filter untuk melihat riwayat lengkap."
+                        : "Semua siswa tampak belajar dengan baik saat ini."
                     }
                   />
                 </div>
               ) : (
-                <ul role="list" aria-label="Daftar alert siswa kesulitan" className="space-y-2">
+                <ul
+                  role="list"
+                  aria-label="Daftar alert siswa kesulitan"
+                  className="space-y-2"
+                >
                   {alerts.map((alert) => {
-                    const isUnread = !alert.read_at
-                    const isHigh = alert.severity === 'high'
+                    const isUnread = !alert.read_at;
+                    const isHigh = alert.severity === "high";
                     return (
                       <li key={alert.alert_id}>
                         <button
                           onClick={() =>
-                            handleAlertClick(alert.course_id, alert.lesson_id, alert.alert_id)
+                            handleAlertClick(
+                              alert.course_id,
+                              alert.lesson_id,
+                              alert.alert_id,
+                            )
                           }
                           aria-label={`Lihat detail ${alert.student_name} — ${alert.lesson_title}`}
                           className={[
-                            'w-full text-left flex items-start gap-4 p-4 rounded-xl border-l-4 transition-all group',
+                            "w-full text-left flex items-start gap-4 p-4 rounded-xl border-l-4 transition-all group",
                             isHigh
-                              ? 'border-l-red-500 hover:bg-red-50 dark:hover:bg-red-950/20'
-                              : 'border-l-amber-400 hover:bg-amber-50 dark:hover:bg-amber-950/20',
+                              ? "border-l-red-500 hover:bg-red-50 dark:hover:bg-red-950/20"
+                              : "border-l-amber-400 hover:bg-amber-50 dark:hover:bg-amber-950/20",
                             isUnread
-                              ? 'bg-slate-50 dark:bg-slate-800/50 border border-slate-100 dark:border-slate-800 border-l-4'
-                              : 'bg-white dark:bg-slate-900 border border-transparent',
-                          ].join(' ')}
+                              ? "bg-slate-50 dark:bg-slate-800/50 border border-slate-100 dark:border-slate-800 border-l-4"
+                              : "bg-white dark:bg-slate-900 border border-transparent",
+                          ].join(" ")}
                         >
                           {/* Avatar initials */}
                           <span
                             aria-hidden="true"
                             className={[
-                              'shrink-0 w-10 h-10 rounded-full flex items-center justify-center text-sm font-bold',
+                              "shrink-0 w-10 h-10 rounded-full flex items-center justify-center text-sm font-bold",
                               isHigh
-                                ? 'bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400'
-                                : 'bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-400',
-                            ].join(' ')}
+                                ? "bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400"
+                                : "bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-400",
+                            ].join(" ")}
                           >
                             {alert.student_name
-                              .split(' ')
+                              .split(" ")
                               .slice(0, 2)
                               .map((n) => n[0])
-                              .join('')
+                              .join("")
                               .toUpperCase()}
                           </span>
 
@@ -281,8 +312,10 @@ export function StruggleDashboard() {
                               {alert.course_title}
                             </p>
                             <p className="text-xs text-slate-400 dark:text-slate-500 mt-0.5">
-                              Skor kesulitan:{' '}
-                              <span className="font-semibold">{alert.struggle_score}</span>
+                              Skor kesulitan:{" "}
+                              <span className="font-semibold">
+                                {alert.struggle_score}
+                              </span>
                               <span className="mx-1 opacity-50">·</span>
                               {relativeTime(alert.created_at)}
                             </p>
@@ -294,7 +327,7 @@ export function StruggleDashboard() {
                           </div>
                         </button>
                       </li>
-                    )
+                    );
                   })}
                 </ul>
               )}
@@ -303,5 +336,5 @@ export function StruggleDashboard() {
         </section>
       </div>
     </main>
-  )
+  );
 }

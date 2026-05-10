@@ -1,66 +1,73 @@
-import { CheckCircle } from 'lucide-react'
-import { AnimatePresence, motion } from 'motion/react'
-import { useEffect, useMemo, useState } from 'react'
+import { CheckCircle } from "lucide-react";
+import { AnimatePresence, motion } from "motion/react";
+import { useEffect, useMemo, useState } from "react";
 
-import { useInteractiveProgress } from '../hooks/useInteractiveProgress'
-import type { FlashcardData } from '../types'
-import { scoreFlashcard } from '../utils/interactiveScoring'
+import { useInteractiveProgress } from "../hooks/useInteractiveProgress";
+import type { FlashcardData } from "../types";
+import { scoreFlashcard } from "../utils/interactiveScoring";
 
 interface FlashcardBlockProps {
-  data: FlashcardData
-  blockId: string
-  lessonId: string
+  data: FlashcardData;
+  blockId: string;
+  lessonId: string;
 }
 
-export function FlashcardBlock({ data, blockId, lessonId }: FlashcardBlockProps) {
-  const { progress, markComplete, isCompleted } = useInteractiveProgress(blockId, lessonId)
-  const [flippedIds, setFlippedIds] = useState<Set<string>>(new Set())
+export function FlashcardBlock({
+  data,
+  blockId,
+  lessonId,
+}: FlashcardBlockProps) {
+  const { progress, markComplete, isCompleted } = useInteractiveProgress(
+    blockId,
+    lessonId,
+  );
+  const [flippedIds, setFlippedIds] = useState<Set<string>>(new Set());
 
   const cards = useMemo(() => {
-    if (!data?.cards) return []
+    if (!data?.cards) return [];
     if (data.shuffleOnLoad) {
-      return [...data.cards].sort(() => Math.random() - 0.5)
+      return [...data.cards].sort(() => Math.random() - 0.5);
     }
-    return [...data.cards].sort((a, b) => a.order - b.order)
+    return [...data.cards].sort((a, b) => a.order - b.order);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [data?.cards?.length, data?.shuffleOnLoad])
+  }, [data?.cards?.length, data?.shuffleOnLoad]);
 
   // Restore progress from DB
   useEffect(() => {
     if (progress?.interaction_data?.flippedIds) {
-      const saved = progress.interaction_data.flippedIds as string[]
-      setFlippedIds(new Set(saved))
+      const saved = progress.interaction_data.flippedIds as string[];
+      setFlippedIds(new Set(saved));
     }
-  }, [progress])
+  }, [progress]);
 
   const handleFlip = (cardId: string) => {
-    if (isCompleted) return
+    if (isCompleted) return;
     setFlippedIds((prev) => {
-      const next = new Set(prev)
+      const next = new Set(prev);
       if (next.has(cardId)) {
-        next.delete(cardId)
+        next.delete(cardId);
       } else {
-        next.add(cardId)
+        next.add(cardId);
       }
 
-      const { score, flippedCount, totalCount } = scoreFlashcard(data, next)
+      const { score, flippedCount, totalCount } = scoreFlashcard(data, next);
 
       if (flippedCount === totalCount && totalCount > 0) {
-        markComplete({ flippedIds: Array.from(next) }, score)
+        markComplete({ flippedIds: Array.from(next) }, score);
       }
 
-      return next
-    })
-  }
+      return next;
+    });
+  };
 
-  const { flippedCount, totalCount } = scoreFlashcard(data, flippedIds)
+  const { flippedCount, totalCount } = scoreFlashcard(data, flippedIds);
 
   if (!cards.length) {
     return (
       <div className="px-6 py-4 text-sm text-slate-500 dark:text-slate-400 italic">
         Belum ada kartu yang ditambahkan.
       </div>
-    )
+    );
   }
 
   return (
@@ -83,36 +90,38 @@ export function FlashcardBlock({ data, blockId, lessonId }: FlashcardBlockProps)
         <motion.div
           className="h-full bg-indigo-500 dark:bg-indigo-400 rounded-full"
           initial={{ width: 0 }}
-          animate={{ width: `${totalCount > 0 ? (flippedCount / totalCount) * 100 : 0}%` }}
-          transition={{ type: 'spring', stiffness: 200, damping: 20 }}
+          animate={{
+            width: `${totalCount > 0 ? (flippedCount / totalCount) * 100 : 0}%`,
+          }}
+          transition={{ type: "spring", stiffness: 200, damping: 20 }}
         />
       </div>
 
       {/* Cards grid */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
         {cards.map((card) => {
-          const flipped = isCompleted || flippedIds.has(card.id)
+          const flipped = isCompleted || flippedIds.has(card.id);
           return (
             <div
               key={card.id}
               className="relative cursor-pointer"
-              style={{ perspective: '1000px', height: '160px' }}
+              style={{ perspective: "1000px", height: "160px" }}
               onClick={() => handleFlip(card.id)}
               role="button"
               aria-label={`Kartu: ${card.front}`}
               tabIndex={0}
-              onKeyDown={(e) => e.key === 'Enter' && handleFlip(card.id)}
+              onKeyDown={(e) => e.key === "Enter" && handleFlip(card.id)}
             >
               <motion.div
                 className="relative w-full h-full"
-                style={{ transformStyle: 'preserve-3d' }}
+                style={{ transformStyle: "preserve-3d" }}
                 animate={{ rotateY: flipped ? 180 : 0 }}
-                transition={{ duration: 0.5, ease: 'easeInOut' }}
+                transition={{ duration: 0.5, ease: "easeInOut" }}
               >
                 {/* Front */}
                 <div
                   className="absolute inset-0 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 flex items-center justify-center p-4 text-center shadow-sm"
-                  style={{ backfaceVisibility: 'hidden' }}
+                  style={{ backfaceVisibility: "hidden" }}
                 >
                   <p className="text-sm font-medium text-slate-800 dark:text-slate-100 leading-relaxed">
                     {card.front}
@@ -125,7 +134,10 @@ export function FlashcardBlock({ data, blockId, lessonId }: FlashcardBlockProps)
                 {/* Back */}
                 <div
                   className="absolute inset-0 rounded-xl border border-indigo-200 dark:border-indigo-700 bg-indigo-50 dark:bg-indigo-900/40 flex items-center justify-center p-4 text-center shadow-sm"
-                  style={{ backfaceVisibility: 'hidden', transform: 'rotateY(180deg)' }}
+                  style={{
+                    backfaceVisibility: "hidden",
+                    transform: "rotateY(180deg)",
+                  }}
                 >
                   {isCompleted && (
                     <CheckCircle className="absolute top-2 right-2 w-4 h-4 text-emerald-500" />
@@ -136,7 +148,7 @@ export function FlashcardBlock({ data, blockId, lessonId }: FlashcardBlockProps)
                 </div>
               </motion.div>
             </div>
-          )
+          );
         })}
       </div>
 
@@ -154,5 +166,5 @@ export function FlashcardBlock({ data, blockId, lessonId }: FlashcardBlockProps)
         )}
       </AnimatePresence>
     </div>
-  )
+  );
 }

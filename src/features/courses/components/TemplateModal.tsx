@@ -1,43 +1,57 @@
-import { format } from 'date-fns'
-import { id } from 'date-fns/locale'
-import { Book, CheckCircle, FileText, FolderOpen, Import, Loader2, Search } from 'lucide-react'
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { format } from "date-fns";
+import { id } from "date-fns/locale";
+import {
+  Book,
+  CheckCircle,
+  FileText,
+  FolderOpen,
+  Import,
+  Loader2,
+  Search,
+} from "lucide-react";
+import { useEffect, useMemo, useRef, useState } from "react";
 
-import { Modal, ModalHeader } from '@/components/ui/Modal'
-import { useDebounce } from '@/hooks/useDebounce'
-import { logDevError } from '@/utils/logDevError'
+import { Modal, ModalHeader } from "@/components/ui/Modal";
+import { useDebounce } from "@/hooks/useDebounce";
+import { logDevError } from "@/utils/logDevError";
 
-import { useImportTemplate, useTemplates } from '../queries/useTemplates'
+import { useImportTemplate, useTemplates } from "../queries/useTemplates";
 
 interface TemplateModalProps {
-  isOpen: boolean
-  onClose: () => void
-  type: 'course' | 'module' | 'lesson'
-  targetId: string // The ID where this template will be imported (courseId for course/module, moduleId for lesson)
-  order?: number
+  isOpen: boolean;
+  onClose: () => void;
+  type: "course" | "module" | "lesson";
+  targetId: string; // The ID where this template will be imported (courseId for course/module, moduleId for lesson)
+  order?: number;
 }
 
-export function TemplateModal({ isOpen, onClose, type, targetId, order }: TemplateModalProps) {
-  const { data: templates, isLoading } = useTemplates(type)
-  const importTemplateMutation = useImportTemplate()
-  const [searchQuery, setSearchQuery] = useState('')
-  const [selectedId, setSelectedId] = useState<string | null>(null)
+export function TemplateModal({
+  isOpen,
+  onClose,
+  type,
+  targetId,
+  order,
+}: TemplateModalProps) {
+  const { data: templates, isLoading } = useTemplates(type);
+  const importTemplateMutation = useImportTemplate();
+  const [searchQuery, setSearchQuery] = useState("");
+  const [selectedId, setSelectedId] = useState<string | null>(null);
 
   // ⚡ Perf: Debounce search input to avoid re-filtering on every keystroke
-  const debouncedSearch = useDebounce(searchQuery, 300)
+  const debouncedSearch = useDebounce(searchQuery, 300);
 
   // Reset state when modal closes
-  const prevOpenRef = useRef(isOpen)
+  const prevOpenRef = useRef(isOpen);
   useEffect(() => {
     if (prevOpenRef.current && !isOpen) {
-      setSearchQuery('')
-      setSelectedId(null)
+      setSearchQuery("");
+      setSelectedId(null);
     }
-    prevOpenRef.current = isOpen
-  }, [isOpen])
+    prevOpenRef.current = isOpen;
+  }, [isOpen]);
 
   const handleImport = async () => {
-    if (!selectedId) return
+    if (!selectedId) return;
 
     try {
       await importTemplateMutation.mutateAsync({
@@ -45,25 +59,25 @@ export function TemplateModal({ isOpen, onClose, type, targetId, order }: Templa
         targetId,
         order,
         // For course/module templates, targetId IS the courseId — pass it for narrow cache invalidation
-        courseId: type !== 'lesson' ? targetId : undefined,
-      })
-      onClose()
+        courseId: type !== "lesson" ? targetId : undefined,
+      });
+      onClose();
     } catch (error) {
-      logDevError('TemplateModal', 'Failed to import template', error)
+      logDevError("TemplateModal", "Failed to import template", error);
     }
-  }
+  };
 
   const typeLabels = {
-    course: 'Kursus',
-    module: 'Modul',
-    lesson: 'Pelajaran',
-  }
+    course: "Kursus",
+    module: "Modul",
+    lesson: "Pelajaran",
+  };
 
   const typeIcons = {
     course: <Book className="w-5 h-5" />,
     module: <FolderOpen className="w-5 h-5" />,
     lesson: <FileText className="w-5 h-5" />,
-  }
+  };
 
   // ⚡ Perf: Memoize filteredTemplates — was recomputed on every render without useMemo
   const filteredTemplates = useMemo(
@@ -71,14 +85,20 @@ export function TemplateModal({ isOpen, onClose, type, targetId, order }: Templa
       templates?.filter(
         (t) =>
           t.title.toLowerCase().includes(debouncedSearch.toLowerCase()) ||
-          (t.description && t.description.toLowerCase().includes(debouncedSearch.toLowerCase()))
+          (t.description &&
+            t.description
+              .toLowerCase()
+              .includes(debouncedSearch.toLowerCase())),
       ) || [],
-    [templates, debouncedSearch]
-  )
+    [templates, debouncedSearch],
+  );
 
   return (
     <Modal open={isOpen} onClose={onClose} size="lg">
-      <ModalHeader title={`Gunakan Template ${typeLabels[type]}`} onClose={onClose} />
+      <ModalHeader
+        title={`Gunakan Template ${typeLabels[type]}`}
+        onClose={onClose}
+      />
 
       <div className="flex flex-col h-[60vh] max-h-[600px]">
         <div className="p-4 border-b border-slate-100 dark:border-slate-800 shrink-0">
@@ -110,7 +130,7 @@ export function TemplateModal({ isOpen, onClose, type, targetId, order }: Templa
               </p>
               <p className="text-xs text-slate-500 dark:text-slate-400">
                 {searchQuery
-                  ? 'Coba gunakan kata kunci pencarian yang lain.'
+                  ? "Coba gunakan kata kunci pencarian yang lain."
                   : `Anda belum memiliki template ${typeLabels[type].toLowerCase()}. Simpan ${typeLabels[type].toLowerCase()} yang sudah ada sebagai template.`}
               </p>
             </div>
@@ -122,9 +142,9 @@ export function TemplateModal({ isOpen, onClose, type, targetId, order }: Templa
                   role="button"
                   tabIndex={0}
                   onKeyDown={(e) => {
-                    if (e.key === 'Enter' || e.key === ' ') {
-                      e.preventDefault()
-                      setSelectedId(template.id)
+                    if (e.key === "Enter" || e.key === " ") {
+                      e.preventDefault();
+                      setSelectedId(template.id);
                     }
                   }}
                   onClick={() => setSelectedId(template.id)}
@@ -132,8 +152,8 @@ export function TemplateModal({ isOpen, onClose, type, targetId, order }: Templa
                     relative p-4 rounded-xl border transition-all cursor-pointer text-left
                     ${
                       selectedId === template.id
-                        ? 'bg-indigo-50/50 dark:bg-indigo-900/20 border-indigo-500 shadow-sm shadow-indigo-100 dark:shadow-none ring-1 ring-indigo-500/20'
-                        : 'bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800 hover:border-indigo-300 dark:hover:border-indigo-700 hover:shadow-sm'
+                        ? "bg-indigo-50/50 dark:bg-indigo-900/20 border-indigo-500 shadow-sm shadow-indigo-100 dark:shadow-none ring-1 ring-indigo-500/20"
+                        : "bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800 hover:border-indigo-300 dark:hover:border-indigo-700 hover:shadow-sm"
                     }
                   `}
                 >
@@ -143,8 +163,8 @@ export function TemplateModal({ isOpen, onClose, type, targetId, order }: Templa
                       shrink-0 p-2 rounded-lg 
                       ${
                         selectedId === template.id
-                          ? 'bg-indigo-100 dark:bg-indigo-900/50 text-indigo-600 dark:text-indigo-400'
-                          : 'bg-slate-50 dark:bg-slate-800 text-slate-500 dark:text-slate-400'
+                          ? "bg-indigo-100 dark:bg-indigo-900/50 text-indigo-600 dark:text-indigo-400"
+                          : "bg-slate-50 dark:bg-slate-800 text-slate-500 dark:text-slate-400"
                       }
                     `}
                     >
@@ -152,18 +172,20 @@ export function TemplateModal({ isOpen, onClose, type, targetId, order }: Templa
                     </div>
                     <div className="min-w-0 flex-1">
                       <h4
-                        className={`font-bold text-sm truncate pr-6 ${selectedId === template.id ? 'text-indigo-900 dark:text-indigo-100' : 'text-slate-800 dark:text-slate-200'}`}
+                        className={`font-bold text-sm truncate pr-6 ${selectedId === template.id ? "text-indigo-900 dark:text-indigo-100" : "text-slate-800 dark:text-slate-200"}`}
                       >
                         {template.title}
                       </h4>
                       <p
-                        className={`text-xs mt-0.5 line-clamp-2 ${selectedId === template.id ? 'text-indigo-700/70 dark:text-indigo-300/70' : 'text-slate-500 dark:text-slate-400'}`}
+                        className={`text-xs mt-0.5 line-clamp-2 ${selectedId === template.id ? "text-indigo-700/70 dark:text-indigo-300/70" : "text-slate-500 dark:text-slate-400"}`}
                       >
-                        {template.description || 'Tidak ada deskripsi'}
+                        {template.description || "Tidak ada deskripsi"}
                       </p>
                       <p className="text-[10px] text-slate-400 mt-2 font-medium">
-                        Dibuat pada{' '}
-                        {format(new Date(template.created_at), 'dd MMM yyyy', { locale: id })}
+                        Dibuat pada{" "}
+                        {format(new Date(template.created_at), "dd MMM yyyy", {
+                          locale: id,
+                        })}
                       </p>
                     </div>
                   </div>
@@ -207,5 +229,5 @@ export function TemplateModal({ isOpen, onClose, type, targetId, order }: Templa
         </div>
       </div>
     </Modal>
-  )
+  );
 }

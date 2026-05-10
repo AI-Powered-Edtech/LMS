@@ -241,7 +241,7 @@ export const studentProgressService = {
             : (a.score ?? 0);
         })(),
         passed: a.passed ?? (a.score ?? 0) >= 70,
-        completedAt: new Date((a.submitted_at || a.started_at) ?? ''),
+        completedAt: new Date((a.submitted_at || a.started_at) ?? ""),
         answers: {},
       };
       if (!attemptsMap[a.quiz_id]) attemptsMap[a.quiz_id] = [];
@@ -319,7 +319,15 @@ export const studentProgressService = {
 
     if (studentId) {
       const { data: enrollments } = (await db
-        .from<Array<{ id: string; class_id: string; student_id: string; status: string; joined_at: string }>>("enrollments")
+        .from<
+          Array<{
+            id: string;
+            class_id: string;
+            student_id: string;
+            status: string;
+            joined_at: string;
+          }>
+        >("enrollments")
         .select("class_id")
         .eq("student_id", studentId)
         .eq("tenant_id", tenantId)) as {
@@ -395,16 +403,20 @@ export const studentProgressService = {
     completed: boolean,
     tenantId: string,
   ): Promise<void> {
-    const { error } = await db.from<Array<{ lesson_id: string; completed: boolean; completed_at?: string }>>("lesson_progress").upsert(
-      {
-        user_id: userId,
-        lesson_id: lessonId,
-        completed,
-        completed_at: completed ? new Date().toISOString() : null,
-        tenant_id: tenantId,
-      },
-      { onConflict: "user_id,lesson_id" },
-    );
+    const { error } = await db
+      .from<
+        Array<{ lesson_id: string; completed: boolean; completed_at?: string }>
+      >("lesson_progress")
+      .upsert(
+        {
+          user_id: userId,
+          lesson_id: lessonId,
+          completed,
+          completed_at: completed ? new Date().toISOString() : null,
+          tenant_id: tenantId,
+        },
+        { onConflict: "user_id,lesson_id" },
+      );
     if (error)
       if (import.meta.env.DEV)
         logger.error("Error updating lesson progress:", error);

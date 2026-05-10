@@ -3,4 +3,4 @@
  * This file exists to preserve the existing import path used by App.tsx:
  *   import { AppRoutes } from './app/routes'
  */
-export { AppRoutes } from './routes/index'
+export { AppRoutes } from "./routes/index";

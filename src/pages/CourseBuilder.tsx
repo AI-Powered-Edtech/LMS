@@ -1,14 +1,18 @@
-import { useEffect, useState } from 'react'
-import { useNavigate, useSearchParams } from 'react-router-dom'
+import { useEffect, useState } from "react";
+import { useNavigate, useSearchParams } from "react-router-dom";
 
-import { BuilderSidebar, BuilderTopBar, LessonBlockEditor } from '@/components/CourseBuilder'
-import { useAuth } from '@/contexts/AuthContext'
-import { BuilderProvider, useBuilder } from '@/contexts/BuilderContext'
-import { CourseBuilderAICopilotDrawer } from '@/features/ai-builder-copilot/components/CourseBuilderAICopilotDrawer'
-import { useAICopilotFeatureGate } from '@/features/ai-builder-copilot/hooks/useAICopilotFeatureGate'
-import { useBuilderAICopilotStore } from '@/features/ai-builder-copilot/store/builderAICopilot.store'
-import { CourseReleasePanel } from '@/features/courses/components/CourseReleasePanel'
-import { usePageTitle } from '@/hooks/usePageTitle'
+import {
+  BuilderSidebar,
+  BuilderTopBar,
+  LessonBlockEditor,
+} from "@/components/CourseBuilder";
+import { useAuth } from "@/contexts/AuthContext";
+import { BuilderProvider, useBuilder } from "@/contexts/BuilderContext";
+import { CourseBuilderAICopilotDrawer } from "@/features/ai-builder-copilot/components/CourseBuilderAICopilotDrawer";
+import { useAICopilotFeatureGate } from "@/features/ai-builder-copilot/hooks/useAICopilotFeatureGate";
+import { useBuilderAICopilotStore } from "@/features/ai-builder-copilot/store/builderAICopilot.store";
+import { CourseReleasePanel } from "@/features/courses/components/CourseReleasePanel";
+import { usePageTitle } from "@/hooks/usePageTitle";
 
 /**
  * CourseBuilderPage — The actual builder UI.
@@ -16,51 +20,53 @@ import { usePageTitle } from '@/hooks/usePageTitle'
  */
 function CourseBuilderPage() {
   // P1 fix: set title di awal agar tidak flicker dari halaman sebelumnya
-  usePageTitle('Pembuat Kursus')
-  const [searchParams] = useSearchParams()
-  const navigate = useNavigate()
-  const { activeRole } = useAuth()
-  const courseId = searchParams.get('courseId')
-  const { state, actions } = useBuilder()
-  const { enabled: copilotEnabled } = useAICopilotFeatureGate()
-  const copilotIsOpen = useBuilderAICopilotStore((s) => s.isOpen)
-  const openCopilotDrawer = useBuilderAICopilotStore((s) => s.openDrawer)
-  const closeCopilotDrawer = useBuilderAICopilotStore((s) => s.closeDrawer)
-  const [activePanel, setActivePanel] = useState<'none' | 'release' | 'copilot'>('none')
+  usePageTitle("Pembuat Kursus");
+  const [searchParams] = useSearchParams();
+  const navigate = useNavigate();
+  const { activeRole } = useAuth();
+  const courseId = searchParams.get("courseId");
+  const { state, actions } = useBuilder();
+  const { enabled: copilotEnabled } = useAICopilotFeatureGate();
+  const copilotIsOpen = useBuilderAICopilotStore((s) => s.isOpen);
+  const openCopilotDrawer = useBuilderAICopilotStore((s) => s.openDrawer);
+  const closeCopilotDrawer = useBuilderAICopilotStore((s) => s.closeDrawer);
+  const [activePanel, setActivePanel] = useState<
+    "none" | "release" | "copilot"
+  >("none");
 
-  const releasePanelOpen = activePanel === 'release'
-  const drawerOpen = activePanel === 'copilot'
+  const releasePanelOpen = activePanel === "release";
+  const drawerOpen = activePanel === "copilot";
 
   const toggleReleasePanel = () =>
-    setActivePanel((prev) => (prev === 'release' ? 'none' : 'release'))
+    setActivePanel((prev) => (prev === "release" ? "none" : "release"));
 
   const toggleCopilot = () => {
-    if (activePanel === 'copilot') {
-      setActivePanel('none')
-      closeCopilotDrawer()
-      return
+    if (activePanel === "copilot") {
+      setActivePanel("none");
+      closeCopilotDrawer();
+      return;
     }
 
-    setActivePanel('copilot')
-    openCopilotDrawer()
-  }
+    setActivePanel("copilot");
+    openCopilotDrawer();
+  };
 
   // Auto-load course from URL param
   useEffect(() => {
     if (courseId && !state.courseId && !state.loadingCourse && !state.error) {
-      void actions.loadCourse(courseId)
+      void actions.loadCourse(courseId);
     }
-  }, [courseId, state.courseId, state.loadingCourse, state.error, actions])
+  }, [courseId, state.courseId, state.loadingCourse, state.error, actions]);
 
   useEffect(() => {
-    if (copilotIsOpen && activePanel !== 'copilot') {
-      setActivePanel('copilot')
+    if (copilotIsOpen && activePanel !== "copilot") {
+      setActivePanel("copilot");
     }
 
-    if (!copilotIsOpen && activePanel === 'copilot') {
-      setActivePanel('none')
+    if (!copilotIsOpen && activePanel === "copilot") {
+      setActivePanel("none");
     }
-  }, [activePanel, copilotIsOpen])
+  }, [activePanel, copilotIsOpen]);
 
   if (!courseId) {
     return (
@@ -88,13 +94,17 @@ function CourseBuilderPage() {
             Belum ada materi yang dipilih
           </p>
           <p className="text-sm text-slate-500 dark:text-slate-400 mb-6">
-            Silakan pilih kelas atau materi yang ingin Anda buat dan edit melalui halaman Kelola
-            Materi.
+            Silakan pilih kelas atau materi yang ingin Anda buat dan edit
+            melalui halaman Kelola Materi.
           </p>
           <button
             data-testid="coursebuilder-back-button"
             onClick={() =>
-              navigate(activeRole === 'admin' ? '/app/admin/courses' : '/app/teacher/courses')
+              navigate(
+                activeRole === "admin"
+                  ? "/app/admin/courses"
+                  : "/app/teacher/courses",
+              )
             }
             className="min-h-[44px] px-6 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-medium transition-colors shadow-sm"
           >
@@ -102,11 +112,11 @@ function CourseBuilderPage() {
           </button>
         </div>
       </div>
-    )
+    );
   }
 
   if (state.error) {
-    console.error('BUILDER ERROR:', state.error);
+    console.error("BUILDER ERROR:", state.error);
     return (
       <div className="flex items-center justify-center h-[80vh]">
         <div className="text-center">
@@ -128,10 +138,12 @@ function CourseBuilderPage() {
           <h2 className="text-xl font-bold text-slate-900 dark:text-white mb-2">
             Terjadi Kesalahan
           </h2>
-          <p className="text-sm text-red-500 dark:text-red-400">{state.error}</p>
+          <p className="text-sm text-red-500 dark:text-red-400">
+            {state.error}
+          </p>
         </div>
       </div>
-    )
+    );
   }
 
   return (
@@ -167,20 +179,20 @@ function CourseBuilderPage() {
         {drawerOpen && (
           <CourseBuilderAICopilotDrawer
             onClose={() => {
-              setActivePanel('none')
-              closeCopilotDrawer()
+              setActivePanel("none");
+              closeCopilotDrawer();
             }}
           />
         )}
         {releasePanelOpen && (
           <CourseReleasePanel
             data-testid="coursebuilder-release-panel"
-            onClose={() => setActivePanel('none')}
+            onClose={() => setActivePanel("none")}
           />
         )}
       </div>
     </div>
-  )
+  );
 }
 
 /**
@@ -188,10 +200,10 @@ function CourseBuilderPage() {
  * Wraps the builder in BuilderProvider context.
  */
 export function CourseBuilder() {
-  usePageTitle('Pembuat Kursus')
+  usePageTitle("Pembuat Kursus");
   return (
     <BuilderProvider>
       <CourseBuilderPage />
     </BuilderProvider>
-  )
+  );
 }

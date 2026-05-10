@@ -1,4 +1,4 @@
-import type { Variants } from 'motion/react'
+import type { Variants } from "motion/react";
 
 export const staggerContainer: Variants = {
   hidden: { opacity: 0 },
@@ -8,13 +8,13 @@ export const staggerContainer: Variants = {
       staggerChildren: 0.06,
     },
   },
-}
+};
 
 export const staggerItem: Variants = {
   hidden: { opacity: 0, y: 12 },
   show: {
     opacity: 1,
     y: 0,
-    transition: { duration: 0.3, ease: 'easeOut' },
+    transition: { duration: 0.3, ease: "easeOut" },
   },
-}
+};

@@ -1,14 +1,16 @@
-import type { AuthProvider } from './types'
+import type { AuthProvider } from "./types";
 
-let activeAuthProvider: AuthProvider | null = null
+let activeAuthProvider: AuthProvider | null = null;
 
 export function setAuthProvider(provider: AuthProvider): void {
-  activeAuthProvider = provider
+  activeAuthProvider = provider;
 }
 
 export function getAuthProvider(): AuthProvider {
   if (!activeAuthProvider) {
-    throw new Error('[AuthProvider] Not initialized. Call setAuthProvider() first.')
+    throw new Error(
+      "[AuthProvider] Not initialized. Call setAuthProvider() first.",
+    );
   }
-  return activeAuthProvider
+  return activeAuthProvider;
 }

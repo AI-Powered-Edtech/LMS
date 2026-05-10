@@ -2,36 +2,43 @@
 // Shows graded answers with explanations after quiz submission
 // Only displays when show_correct_answers is enabled
 
-import { ArrowLeft, CheckCircle, HelpCircle, XCircle } from 'lucide-react'
+import { ArrowLeft, CheckCircle, HelpCircle, XCircle } from "lucide-react";
 
-import { cn } from '@/utils/cn'
+import { cn } from "@/utils/cn";
 
-import type { QuestionType, QuizAttemptQuestion } from '../../types/quizzes.types'
+import type {
+  QuestionType,
+  QuizAttemptQuestion,
+} from "../../types/quizzes.types";
 
 interface QuizAnswerReviewProps {
-  questions: QuizAttemptQuestion[]
-  showCorrectAnswers: boolean
-  onBack: () => void
+  questions: QuizAttemptQuestion[];
+  showCorrectAnswers: boolean;
+  onBack: () => void;
 }
 
-export function QuizAnswerReview({ questions, showCorrectAnswers, onBack }: QuizAnswerReviewProps) {
+export function QuizAnswerReview({
+  questions,
+  showCorrectAnswers,
+  onBack,
+}: QuizAnswerReviewProps) {
   // Get the question type label
   const getQuestionTypeLabel = (type: QuestionType): string => {
     switch (type) {
-      case 'MCQ':
-        return 'Pilihan Ganda'
-      case 'TRUE_FALSE':
-        return 'Benar / Salah'
-      case 'MULTIPLE_SELECT':
-        return 'Pilihan Banyak'
-      case 'SHORT_ANSWER':
-        return 'Jawaban Singkat'
-      case 'ESSAY':
-        return 'Esai'
+      case "MCQ":
+        return "Pilihan Ganda";
+      case "TRUE_FALSE":
+        return "Benar / Salah";
+      case "MULTIPLE_SELECT":
+        return "Pilihan Banyak";
+      case "SHORT_ANSWER":
+        return "Jawaban Singkat";
+      case "ESSAY":
+        return "Esai";
       default:
-        return 'Soal'
+        return "Soal";
     }
-  }
+  };
 
   return (
     <div className="max-w-4xl mx-auto space-y-6 flex-1 w-full pb-10">
@@ -44,7 +51,9 @@ export function QuizAnswerReview({ questions, showCorrectAnswers, onBack }: Quiz
           <ArrowLeft className="w-5 h-5" />
         </button>
         <div>
-          <h1 className="text-2xl font-bold text-slate-900 dark:text-white">Review Jawaban</h1>
+          <h1 className="text-2xl font-bold text-slate-900 dark:text-white">
+            Review Jawaban
+          </h1>
           <p className="text-sm font-medium text-slate-500 dark:text-slate-400">
             Berikut adalah jawaban Anda beserta penjelasan
           </p>
@@ -54,44 +63,46 @@ export function QuizAnswerReview({ questions, showCorrectAnswers, onBack }: Quiz
       {/* Questions List */}
       <div className="space-y-6">
         {questions.map((question, index) => {
-          const qType = question.question_type || 'MCQ'
-          const isCorrect = question.is_correct ?? false
+          const qType = question.question_type || "MCQ";
+          const isCorrect = question.is_correct ?? false;
 
           // Get correct option IDs from question_snapshot
           const correctOptionIds =
             question.question_snapshot?.options
               ?.filter((opt) => opt.is_correct)
-              ?.map((opt) => opt.id) || []
+              ?.map((opt) => opt.id) || [];
 
           // Get student's selected option IDs
-          const studentOptionIds = question.selected_option_ids || []
+          const studentOptionIds = question.selected_option_ids || [];
 
           // Get student's text answer
-          const studentTextAnswer = question.text_answer || ''
+          const studentTextAnswer = question.text_answer || "";
 
           return (
             <div
               key={question.question_id}
               className={cn(
-                'bg-white dark:bg-slate-800 rounded-3xl border-2 shadow-sm overflow-hidden',
+                "bg-white dark:bg-slate-800 rounded-3xl border-2 shadow-sm overflow-hidden",
                 isCorrect
-                  ? 'border-green-200 dark:border-green-800'
-                  : 'border-red-200 dark:border-red-800'
+                  ? "border-green-200 dark:border-green-800"
+                  : "border-red-200 dark:border-red-800",
               )}
             >
               {/* Question Header */}
               <div
                 className={cn(
-                  'p-4 md:p-6 border-b',
-                  isCorrect ? 'bg-green-50 dark:bg-green-900/20' : 'bg-red-50 dark:bg-red-900/20'
+                  "p-4 md:p-6 border-b",
+                  isCorrect
+                    ? "bg-green-50 dark:bg-green-900/20"
+                    : "bg-red-50 dark:bg-red-900/20",
                 )}
               >
                 <div className="flex items-start gap-4">
                   {/* Status Icon */}
                   <div
                     className={cn(
-                      'w-10 h-10 rounded-xl flex items-center justify-center shrink-0',
-                      isCorrect ? 'bg-green-100' : 'bg-red-100'
+                      "w-10 h-10 rounded-xl flex items-center justify-center shrink-0",
+                      isCorrect ? "bg-green-100" : "bg-red-100",
                     )}
                   >
                     {isCorrect ? (
@@ -108,13 +119,13 @@ export function QuizAnswerReview({ questions, showCorrectAnswers, onBack }: Quiz
                       </span>
                       <span
                         className={cn(
-                          'px-2 py-0.5 rounded-lg text-xs font-bold',
+                          "px-2 py-0.5 rounded-lg text-xs font-bold",
                           isCorrect
-                            ? 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300'
-                            : 'bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300'
+                            ? "bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300"
+                            : "bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300",
                         )}
                       >
-                        {isCorrect ? 'Benar' : 'Salah'}
+                        {isCorrect ? "Benar" : "Salah"}
                       </span>
                       {question.points_earned !== null && (
                         <span className="text-xs font-bold text-slate-500 dark:text-slate-400">
@@ -130,16 +141,16 @@ export function QuizAnswerReview({ questions, showCorrectAnswers, onBack }: Quiz
                     <div className="mt-2 flex items-center gap-2">
                       <span
                         className={cn(
-                          'inline-block px-2 py-0.5 rounded-lg text-xs font-bold uppercase tracking-wider',
-                          qType === 'ESSAY'
-                            ? 'bg-purple-100 text-purple-700'
-                            : qType === 'SHORT_ANSWER'
-                              ? 'bg-amber-100 text-amber-700'
-                              : qType === 'MULTIPLE_SELECT'
-                                ? 'bg-cyan-100 text-cyan-700'
-                                : qType === 'TRUE_FALSE'
-                                  ? 'bg-teal-100 text-teal-700'
-                                  : 'bg-blue-100 text-blue-700'
+                          "inline-block px-2 py-0.5 rounded-lg text-xs font-bold uppercase tracking-wider",
+                          qType === "ESSAY"
+                            ? "bg-purple-100 text-purple-700"
+                            : qType === "SHORT_ANSWER"
+                              ? "bg-amber-100 text-amber-700"
+                              : qType === "MULTIPLE_SELECT"
+                                ? "bg-cyan-100 text-cyan-700"
+                                : qType === "TRUE_FALSE"
+                                  ? "bg-teal-100 text-teal-700"
+                                  : "bg-blue-100 text-blue-700",
                         )}
                       >
                         {getQuestionTypeLabel(qType)}
@@ -157,7 +168,7 @@ export function QuizAnswerReview({ questions, showCorrectAnswers, onBack }: Quiz
               {/* Answer Section */}
               <div className="p-4 md:p-6">
                 {/* For MCQ, TRUE_FALSE, MULTIPLE_SELECT */}
-                {['MCQ', 'TRUE_FALSE', 'MULTIPLE_SELECT'].includes(qType) && (
+                {["MCQ", "TRUE_FALSE", "MULTIPLE_SELECT"].includes(qType) && (
                   <div className="space-y-3">
                     {/* Student's Answer */}
                     <div>
@@ -166,21 +177,25 @@ export function QuizAnswerReview({ questions, showCorrectAnswers, onBack }: Quiz
                       </p>
                       <div className="space-y-2">
                         {question.quiz_options?.map((option) => {
-                          const isSelected = studentOptionIds.includes(option.id)
-                          const isOptionCorrectAnswer = correctOptionIds.includes(option.id)
+                          const isSelected = studentOptionIds.includes(
+                            option.id,
+                          );
+                          const isOptionCorrectAnswer =
+                            correctOptionIds.includes(option.id);
 
-                          if (!isSelected && !isOptionCorrectAnswer) return null
+                          if (!isSelected && !isOptionCorrectAnswer)
+                            return null;
 
                           return (
                             <div
                               key={option.id}
                               className={cn(
-                                'p-3 rounded-xl border-2 flex items-center gap-3',
+                                "p-3 rounded-xl border-2 flex items-center gap-3",
                                 isSelected && isOptionCorrectAnswer
-                                  ? 'border-green-500 dark:border-green-700 bg-green-50 dark:bg-green-900/20'
+                                  ? "border-green-500 dark:border-green-700 bg-green-50 dark:bg-green-900/20"
                                   : isSelected && !isOptionCorrectAnswer
-                                    ? 'border-red-500 dark:border-red-700 bg-red-50 dark:bg-red-900/20'
-                                    : 'border-green-300 dark:border-green-800 bg-green-50 dark:bg-green-900/20'
+                                    ? "border-red-500 dark:border-red-700 bg-red-50 dark:bg-red-900/20"
+                                    : "border-green-300 dark:border-green-800 bg-green-50 dark:bg-green-900/20",
                               )}
                             >
                               {isSelected && isOptionCorrectAnswer && (
@@ -194,10 +209,10 @@ export function QuizAnswerReview({ questions, showCorrectAnswers, onBack }: Quiz
                               )}
                               <span
                                 className={cn(
-                                  'font-medium',
+                                  "font-medium",
                                   isSelected
-                                    ? 'text-slate-900 dark:text-white'
-                                    : 'text-green-700 dark:text-green-300'
+                                    ? "text-slate-900 dark:text-white"
+                                    : "text-green-700 dark:text-green-300",
                                 )}
                               >
                                 {option.text}
@@ -213,7 +228,7 @@ export function QuizAnswerReview({ questions, showCorrectAnswers, onBack }: Quiz
                                 </span>
                               )}
                             </div>
-                          )
+                          );
                         })}
                       </div>
                     </div>
@@ -243,27 +258,31 @@ export function QuizAnswerReview({ questions, showCorrectAnswers, onBack }: Quiz
                 )}
 
                 {/* For SHORT_ANSWER and ESSAY */}
-                {['SHORT_ANSWER', 'ESSAY'].includes(qType) && (
+                {["SHORT_ANSWER", "ESSAY"].includes(qType) && (
                   <div>
                     <p className="text-sm font-bold text-slate-700 dark:text-slate-300 mb-2">
                       Jawaban Anda:
                     </p>
                     <div
                       className={cn(
-                        'p-4 rounded-xl border-2',
+                        "p-4 rounded-xl border-2",
                         isCorrect
-                          ? 'border-green-300 dark:border-green-800 bg-green-50 dark:bg-green-900/20'
-                          : 'border-amber-300 dark:border-amber-800 bg-amber-50 dark:bg-amber-900/20'
+                          ? "border-green-300 dark:border-green-800 bg-green-50 dark:bg-green-900/20"
+                          : "border-amber-300 dark:border-amber-800 bg-amber-50 dark:bg-amber-900/20",
                       )}
                     >
                       <p className="text-sm text-slate-800 dark:text-slate-200 whitespace-pre-wrap">
-                        {studentTextAnswer || '(Tidak ada jawaban)'}
+                        {studentTextAnswer || "(Tidak ada jawaban)"}
                       </p>
                     </div>
                     {question.grader_comment && (
                       <div className="mt-3 p-3 bg-purple-50 rounded-xl border border-purple-200">
-                        <p className="text-sm font-bold text-purple-800 mb-1">Komentar Penilai:</p>
-                        <p className="text-sm text-purple-700">{question.grader_comment}</p>
+                        <p className="text-sm font-bold text-purple-800 mb-1">
+                          Komentar Penilai:
+                        </p>
+                        <p className="text-sm text-purple-700">
+                          {question.grader_comment}
+                        </p>
                       </div>
                     )}
                   </div>
@@ -283,7 +302,7 @@ export function QuizAnswerReview({ questions, showCorrectAnswers, onBack }: Quiz
                 )}
               </div>
             </div>
-          )
+          );
         })}
       </div>
 
@@ -298,5 +317,5 @@ export function QuizAnswerReview({ questions, showCorrectAnswers, onBack }: Quiz
         </button>
       </div>
     </div>
-  )
+  );
 }

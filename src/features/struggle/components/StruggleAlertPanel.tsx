@@ -1,35 +1,44 @@
-import { AlertCircle, Bell } from 'lucide-react'
-import { AnimatePresence, motion } from 'motion/react'
-import { useNavigate } from 'react-router-dom'
+import { AlertCircle, Bell } from "lucide-react";
+import { AnimatePresence, motion } from "motion/react";
+import { useNavigate } from "react-router-dom";
 
-import { EmptyState, Skeleton } from '@/components/ui'
+import { EmptyState, Skeleton } from "@/components/ui";
 
-import { useMarkAlertsRead, useStruggleAlerts } from '../queries/useStruggleQueries'
-import { relativeTime } from '../utils/struggleHelpers'
+import {
+  useMarkAlertsRead,
+  useStruggleAlerts,
+} from "../queries/useStruggleQueries";
+import { relativeTime } from "../utils/struggleHelpers";
 
 interface Props {
-  onClose: () => void
+  onClose: () => void;
 }
 
 export function StruggleAlertPanel({ onClose }: Props) {
-  const navigate = useNavigate()
-  const { data: alerts = [], isLoading } = useStruggleAlerts({ limit: 30 })
-  const markRead = useMarkAlertsRead()
+  const navigate = useNavigate();
+  const { data: alerts = [], isLoading } = useStruggleAlerts({ limit: 30 });
+  const markRead = useMarkAlertsRead();
 
-  const unreadAlerts = alerts.filter((a) => !a.read_at)
+  const unreadAlerts = alerts.filter((a) => !a.read_at);
 
   function handleMarkAllRead() {
-    const ids = unreadAlerts.map((a) => a.alert_id)
-    if (ids.length > 0) markRead.mutate(ids)
+    const ids = unreadAlerts.map((a) => a.alert_id);
+    if (ids.length > 0) markRead.mutate(ids);
   }
 
-  function handleAlertClick(courseId: string, lessonId: string, alertId: string) {
+  function handleAlertClick(
+    courseId: string,
+    lessonId: string,
+    alertId: string,
+  ) {
     // Mark this single alert as read
     if (!alerts.find((a) => a.alert_id === alertId)?.read_at) {
-      markRead.mutate([alertId])
+      markRead.mutate([alertId]);
     }
-    void navigate(`/app/teacher/course-analytics?courseId=${courseId}&lessonId=${lessonId}`)
-    onClose()
+    void navigate(
+      `/app/teacher/course-analytics?courseId=${courseId}&lessonId=${lessonId}`,
+    );
+    onClose();
   }
 
   return (
@@ -59,7 +68,9 @@ export function StruggleAlertPanel({ onClose }: Props) {
         ) : alerts.length === 0 ? (
           <div className="py-10">
             <EmptyState
-              icon={<Bell className="w-8 h-8 text-slate-300 dark:text-slate-600" />}
+              icon={
+                <Bell className="w-8 h-8 text-slate-300 dark:text-slate-600" />
+              }
               title="Tidak ada notifikasi baru"
               description=""
             />
@@ -67,8 +78,8 @@ export function StruggleAlertPanel({ onClose }: Props) {
         ) : (
           <AnimatePresence initial={false}>
             {alerts.map((alert) => {
-              const isHigh = alert.severity === 'high'
-              const isUnread = !alert.read_at
+              const isHigh = alert.severity === "high";
+              const isUnread = !alert.read_at;
               return (
                 <motion.button
                   key={alert.alert_id}
@@ -76,14 +87,22 @@ export function StruggleAlertPanel({ onClose }: Props) {
                   initial={{ opacity: 0, x: 8 }}
                   animate={{ opacity: 1, x: 0 }}
                   exit={{ opacity: 0, x: -8 }}
-                  onClick={() => handleAlertClick(alert.course_id, alert.lesson_id, alert.alert_id)}
+                  onClick={() =>
+                    handleAlertClick(
+                      alert.course_id,
+                      alert.lesson_id,
+                      alert.alert_id,
+                    )
+                  }
                   className={[
-                    'w-full text-left flex gap-3 px-4 py-3 border-l-4 transition-colors',
+                    "w-full text-left flex gap-3 px-4 py-3 border-l-4 transition-colors",
                     isHigh
-                      ? 'border-l-red-500 hover:bg-red-50 dark:hover:bg-red-950/30'
-                      : 'border-l-amber-400 hover:bg-amber-50 dark:hover:bg-amber-950/30',
-                    isUnread ? 'bg-slate-50 dark:bg-slate-800/50' : 'bg-white dark:bg-slate-900',
-                  ].join(' ')}
+                      ? "border-l-red-500 hover:bg-red-50 dark:hover:bg-red-950/30"
+                      : "border-l-amber-400 hover:bg-amber-50 dark:hover:bg-amber-950/30",
+                    isUnread
+                      ? "bg-slate-50 dark:bg-slate-800/50"
+                      : "bg-white dark:bg-slate-900",
+                  ].join(" ")}
                 >
                   {/* Severity icon */}
                   <span className="shrink-0 mt-0.5 text-lg leading-none">
@@ -112,11 +131,11 @@ export function StruggleAlertPanel({ onClose }: Props) {
                     <span className="shrink-0 mt-1.5 w-2 h-2 rounded-full bg-blue-500 dark:bg-blue-400" />
                   )}
                 </motion.button>
-              )
+              );
             })}
           </AnimatePresence>
         )}
       </div>
     </div>
-  )
+  );
 }

@@ -11,10 +11,10 @@ export type {
   QuizMode,
   StudentQuizAssignment,
   SubmitAnswer,
-} from './types/quizzes.types'
+} from "./types/quizzes.types";
 
 // Backward-compat namespace (mirrors legacy services/quizService.ts export)
-export * as quizService from './api/quizzes.service'
+export * as quizService from "./api/quizzes.service";
 
 // Hooks
-export { useOfflineQuiz } from './hooks/useOfflineQuiz'
+export { useOfflineQuiz } from "./hooks/useOfflineQuiz";

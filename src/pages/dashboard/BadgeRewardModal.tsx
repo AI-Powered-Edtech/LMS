@@ -1,21 +1,23 @@
-import { Star, Trophy } from 'lucide-react'
-import { motion } from 'motion/react'
+import { Star, Trophy } from "lucide-react";
+import { motion } from "motion/react";
 
-import { Button, Modal, ModalBody } from '@/components/ui'
-import { useReducedMotion } from '@/hooks/useReducedMotion'
+import { Button, Modal, ModalBody } from "@/components/ui";
+import { useReducedMotion } from "@/hooks/useReducedMotion";
 
 interface BadgeRewardModalProps {
-  open: boolean
-  onClose: () => void
+  open: boolean;
+  onClose: () => void;
 }
 
 export function BadgeRewardModal({ open, onClose }: BadgeRewardModalProps) {
-  const reducedMotion = useReducedMotion()
+  const reducedMotion = useReducedMotion();
 
   return (
     <Modal open={open} onClose={onClose} size="sm">
       <ModalBody className="text-center py-8">
-        <h3 className="text-2xl font-bold text-slate-900 dark:text-white mb-2">Hadiah Diterima!</h3>
+        <h3 className="text-2xl font-bold text-slate-900 dark:text-white mb-2">
+          Hadiah Diterima!
+        </h3>
         <p className="text-slate-500 dark:text-slate-400 mb-8">
           Kamu mendapatkan 10 XP karena login hari ini.
         </p>
@@ -24,7 +26,9 @@ export function BadgeRewardModal({ open, onClose }: BadgeRewardModalProps) {
           <motion.div
             animate={reducedMotion ? {} : { rotateY: 360 }}
             transition={
-              reducedMotion ? { duration: 0 } : { duration: 3, repeat: Infinity, ease: 'linear' }
+              reducedMotion
+                ? { duration: 0 }
+                : { duration: 3, repeat: Infinity, ease: "linear" }
             }
             className="w-full h-full preserve-3d"
           >
@@ -42,5 +46,5 @@ export function BadgeRewardModal({ open, onClose }: BadgeRewardModalProps) {
         </Button>
       </ModalBody>
     </Modal>
-  )
+  );
 }

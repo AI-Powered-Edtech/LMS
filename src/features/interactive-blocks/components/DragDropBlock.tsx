@@ -1,83 +1,94 @@
-import { DragDropContext, Draggable, Droppable, type DropResult } from '@hello-pangea/dnd'
-import { CheckCircle, GripVertical, XCircle } from 'lucide-react'
-import { AnimatePresence, motion } from 'motion/react'
-import { useEffect, useState } from 'react'
+import {
+  DragDropContext,
+  Draggable,
+  Droppable,
+  type DropResult,
+} from "@hello-pangea/dnd";
+import { CheckCircle, GripVertical, XCircle } from "lucide-react";
+import { AnimatePresence, motion } from "motion/react";
+import { useEffect, useState } from "react";
 
-import { Button } from '@/components/ui'
-import { useToast } from '@/hooks/useToast'
+import { Button } from "@/components/ui";
+import { useToast } from "@/hooks/useToast";
 
-import { useInteractiveProgress } from '../hooks/useInteractiveProgress'
-import type { DragDropData } from '../types'
-import { scoreDragDrop } from '../utils/interactiveScoring'
+import { useInteractiveProgress } from "../hooks/useInteractiveProgress";
+import type { DragDropData } from "../types";
+import { scoreDragDrop } from "../utils/interactiveScoring";
 
 interface DragDropBlockProps {
-  data: DragDropData
-  blockId: string
-  lessonId: string
+  data: DragDropData;
+  blockId: string;
+  lessonId: string;
 }
 
-const UNASSIGNED_ID = '__unassigned__'
+const UNASSIGNED_ID = "__unassigned__";
 
 export function DragDropBlock({ data, blockId, lessonId }: DragDropBlockProps) {
-  const { progress, markComplete, isCompleted } = useInteractiveProgress(blockId, lessonId)
-  const addToast = useToast((s) => s.addToast)
+  const { progress, markComplete, isCompleted } = useInteractiveProgress(
+    blockId,
+    lessonId,
+  );
+  const addToast = useToast((s) => s.addToast);
 
   // placed: itemId → categoryId
   const [placed, setPlaced] = useState<Record<string, string>>(() => {
-    const initial: Record<string, string> = {}
-    ;(data?.items ?? []).forEach((item) => {
-      initial[item.id] = UNASSIGNED_ID
-    })
-    return initial
-  })
+    const initial: Record<string, string> = {};
+    (data?.items ?? []).forEach((item) => {
+      initial[item.id] = UNASSIGNED_ID;
+    });
+    return initial;
+  });
 
-  const [checked, setChecked] = useState(false)
+  const [checked, setChecked] = useState(false);
 
   // Restore from DB progress
   useEffect(() => {
     if (progress?.interaction_data?.placed) {
-      setPlaced(progress.interaction_data.placed as Record<string, string>)
-      if (progress.is_completed) setChecked(true)
+      setPlaced(progress.interaction_data.placed as Record<string, string>);
+      if (progress.is_completed) setChecked(true);
     }
-  }, [progress])
+  }, [progress]);
 
   const onDragEnd = (result: DropResult) => {
-    if (!result.destination || isCompleted) return
-    const { draggableId, destination } = result
-    setPlaced((prev) => ({ ...prev, [draggableId]: destination.droppableId }))
-    setChecked(false)
-  }
+    if (!result.destination || isCompleted) return;
+    const { draggableId, destination } = result;
+    setPlaced((prev) => ({ ...prev, [draggableId]: destination.droppableId }));
+    setChecked(false);
+  };
 
   const handleCheck = () => {
-    const { score, correctCount, totalCount } = scoreDragDrop(data, placed)
-    setChecked(true)
+    const { score, correctCount, totalCount } = scoreDragDrop(data, placed);
+    setChecked(true);
     if (correctCount === totalCount && totalCount > 0) {
-      markComplete({ placed }, score)
-      addToast({ type: 'success', message: 'Semua item berada di kategori yang tepat!' })
+      markComplete({ placed }, score);
+      addToast({
+        type: "success",
+        message: "Semua item berada di kategori yang tepat!",
+      });
     } else {
       addToast({
-        type: 'info',
+        type: "info",
         message: `${correctCount} dari ${totalCount} item benar. Coba lagi!`,
-      })
+      });
     }
-  }
+  };
 
   const getItemsForZone = (zoneId: string) =>
-    (data?.items ?? []).filter((item) => placed[item.id] === zoneId)
+    (data?.items ?? []).filter((item) => placed[item.id] === zoneId);
 
-  const getItemResult = (itemId: string): 'correct' | 'incorrect' | null => {
-    if (!checked) return null
-    const item = data.items.find((i) => i.id === itemId)
-    if (!item) return null
-    return placed[itemId] === item.categoryId ? 'correct' : 'incorrect'
-  }
+  const getItemResult = (itemId: string): "correct" | "incorrect" | null => {
+    if (!checked) return null;
+    const item = data.items.find((i) => i.id === itemId);
+    if (!item) return null;
+    return placed[itemId] === item.categoryId ? "correct" : "incorrect";
+  };
 
   if (!data?.items?.length || !data?.categories?.length) {
     return (
       <div className="px-6 py-4 text-sm text-slate-500 dark:text-slate-400 italic">
         Data drag &amp; drop belum lengkap.
       </div>
-    )
+    );
   }
 
   return (
@@ -96,8 +107,8 @@ export function DragDropBlock({ data, blockId, lessonId }: DragDropBlockProps) {
                   {...provided.droppableProps}
                   className={`min-h-[60px] rounded-lg border-2 border-dashed p-2 space-y-2 transition-colors ${
                     snapshot.isDraggingOver
-                      ? 'border-indigo-400 bg-indigo-50 dark:bg-indigo-900/20'
-                      : 'border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/50'
+                      ? "border-indigo-400 bg-indigo-50 dark:bg-indigo-900/20"
+                      : "border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/50"
                   }`}
                 >
                   {getItemsForZone(UNASSIGNED_ID).map((item, idx) => (
@@ -130,7 +141,7 @@ export function DragDropBlock({ data, blockId, lessonId }: DragDropBlockProps) {
               <div key={cat.id}>
                 <div
                   className="text-xs font-medium px-2 py-1 rounded-t-md text-white"
-                  style={{ backgroundColor: cat.color || '#6366f1' }}
+                  style={{ backgroundColor: cat.color || "#6366f1" }}
                 >
                   {cat.label}
                 </div>
@@ -141,8 +152,8 @@ export function DragDropBlock({ data, blockId, lessonId }: DragDropBlockProps) {
                       {...provided.droppableProps}
                       className={`min-h-[48px] rounded-b-lg rounded-tr-lg border-2 border-t-0 p-2 flex flex-wrap gap-2 transition-colors ${
                         snapshot.isDraggingOver
-                          ? 'border-indigo-400 bg-indigo-50 dark:bg-indigo-900/20'
-                          : 'border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800'
+                          ? "border-indigo-400 bg-indigo-50 dark:bg-indigo-900/20"
+                          : "border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800"
                       }`}
                     >
                       {getItemsForZone(cat.id).map((item, idx) => (
@@ -189,7 +200,7 @@ export function DragDropBlock({ data, blockId, lessonId }: DragDropBlockProps) {
         </AnimatePresence>
       </div>
     </div>
-  )
+  );
 }
 
 function DraggableItem({
@@ -199,11 +210,11 @@ function DraggableItem({
   result,
   disabled,
 }: {
-  id: string
-  label: string
-  index: number
-  result: 'correct' | 'incorrect' | null
-  disabled: boolean
+  id: string;
+  label: string;
+  index: number;
+  result: "correct" | "incorrect" | null;
+  disabled: boolean;
 }) {
   return (
     <Draggable draggableId={id} index={index} isDragDisabled={disabled}>
@@ -213,22 +224,29 @@ function DraggableItem({
           {...provided.draggableProps}
           className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-sm font-medium select-none transition-colors border ${
             snapshot.isDragging
-              ? 'shadow-lg bg-indigo-100 dark:bg-indigo-800 border-indigo-300 dark:border-indigo-600'
-              : result === 'correct'
-                ? 'bg-emerald-50 dark:bg-emerald-900/30 border-emerald-300 dark:border-emerald-600 text-emerald-700 dark:text-emerald-300'
-                : result === 'incorrect'
-                  ? 'bg-red-50 dark:bg-red-900/30 border-red-300 dark:border-red-600 text-red-700 dark:text-red-300'
-                  : 'bg-white dark:bg-slate-700 border-slate-200 dark:border-slate-600 text-slate-700 dark:text-slate-200'
+              ? "shadow-lg bg-indigo-100 dark:bg-indigo-800 border-indigo-300 dark:border-indigo-600"
+              : result === "correct"
+                ? "bg-emerald-50 dark:bg-emerald-900/30 border-emerald-300 dark:border-emerald-600 text-emerald-700 dark:text-emerald-300"
+                : result === "incorrect"
+                  ? "bg-red-50 dark:bg-red-900/30 border-red-300 dark:border-red-600 text-red-700 dark:text-red-300"
+                  : "bg-white dark:bg-slate-700 border-slate-200 dark:border-slate-600 text-slate-700 dark:text-slate-200"
           }`}
         >
-          <span {...provided.dragHandleProps} className="text-slate-400 dark:text-slate-500">
+          <span
+            {...provided.dragHandleProps}
+            className="text-slate-400 dark:text-slate-500"
+          >
             <GripVertical className="w-3.5 h-3.5" />
           </span>
           <span className="flex-1">{label}</span>
-          {result === 'correct' && <CheckCircle className="w-3.5 h-3.5 text-emerald-500" />}
-          {result === 'incorrect' && <XCircle className="w-3.5 h-3.5 text-red-500" />}
+          {result === "correct" && (
+            <CheckCircle className="w-3.5 h-3.5 text-emerald-500" />
+          )}
+          {result === "incorrect" && (
+            <XCircle className="w-3.5 h-3.5 text-red-500" />
+          )}
         </div>
       )}
     </Draggable>
-  )
+  );
 }

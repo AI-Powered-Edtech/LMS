@@ -6,35 +6,39 @@
 //   surveyId: string — ID survei yang akan diisi
 // ==========================================================================
 
-import { CheckCircle, Loader2, Star } from 'lucide-react'
-import { useEffect, useState } from 'react'
+import { CheckCircle, Loader2, Star } from "lucide-react";
+import { useEffect, useState } from "react";
 
-import { getSurveyById, hasRespondedToSurvey, submitSurveyResponse } from '../api/surveyApi'
-import type { SatisfactionSurvey, SurveyQuestion } from '../types'
+import {
+  getSurveyById,
+  hasRespondedToSurvey,
+  submitSurveyResponse,
+} from "../api/surveyApi";
+import type { SatisfactionSurvey, SurveyQuestion } from "../types";
 
 // ── Props ───────────────────────────────────────────────────────
 
 interface SurveyResponseFormProps {
-  surveyId: string
+  surveyId: string;
   /** Callback opsional setelah submit berhasil */
-  onSubmitted?: () => void
+  onSubmitted?: () => void;
 }
 
 // ── Sub-komponen: Rating Stars ──────────────────────────────────
 
 interface StarRatingProps {
-  questionId: string
-  value: number
-  onChange: (questionId: string, value: number) => void
+  questionId: string;
+  value: number;
+  onChange: (questionId: string, value: number) => void;
 }
 
 function StarRating({ questionId, value, onChange }: StarRatingProps) {
-  const [hovered, setHovered] = useState(0)
+  const [hovered, setHovered] = useState(0);
 
   return (
     <div className="flex gap-1" role="group" aria-label="Penilaian bintang">
       {[1, 2, 3, 4, 5].map((star) => {
-        const filled = star <= (hovered || value)
+        const filled = star <= (hovered || value);
         return (
           <button
             key={star}
@@ -44,17 +48,19 @@ function StarRating({ questionId, value, onChange }: StarRatingProps) {
             onMouseEnter={() => setHovered(star)}
             onMouseLeave={() => setHovered(0)}
             className={[
-              'p-0.5 transition-transform hover:scale-110 focus:outline-none focus:ring-2 focus:ring-amber-400 rounded',
-              filled ? 'text-amber-400 dark:text-amber-300' : 'text-slate-300 dark:text-slate-600',
-            ].join(' ')}
+              "p-0.5 transition-transform hover:scale-110 focus:outline-none focus:ring-2 focus:ring-amber-400 rounded",
+              filled
+                ? "text-amber-400 dark:text-amber-300"
+                : "text-slate-300 dark:text-slate-600",
+            ].join(" ")}
           >
             <Star
               className="w-7 h-7"
-              fill={filled ? 'currentColor' : 'none'}
+              fill={filled ? "currentColor" : "none"}
               strokeWidth={filled ? 0 : 1.5}
             />
           </button>
-        )
+        );
       })}
       {value > 0 && (
         <span className="ml-2 self-center text-sm font-medium text-amber-600 dark:text-amber-400">
@@ -62,15 +68,15 @@ function StarRating({ questionId, value, onChange }: StarRatingProps) {
         </span>
       )}
     </div>
-  )
+  );
 }
 
 // ── Sub-komponen: YesNo Buttons ─────────────────────────────────
 
 interface YesNoButtonsProps {
-  questionId: string
-  value: boolean | null
-  onChange: (questionId: string, value: boolean) => void
+  questionId: string;
+  value: boolean | null;
+  onChange: (questionId: string, value: boolean) => void;
 }
 
 function YesNoButtons({ questionId, value, onChange }: YesNoButtonsProps) {
@@ -80,11 +86,11 @@ function YesNoButtons({ questionId, value, onChange }: YesNoButtonsProps) {
         type="button"
         onClick={() => onChange(questionId, true)}
         className={[
-          'px-5 py-2 rounded-lg text-sm font-medium border transition-colors focus:outline-none focus:ring-2 focus:ring-emerald-500',
+          "px-5 py-2 rounded-lg text-sm font-medium border transition-colors focus:outline-none focus:ring-2 focus:ring-emerald-500",
           value === true
-            ? 'bg-emerald-600 border-emerald-600 text-white dark:bg-emerald-500 dark:border-emerald-500'
-            : 'bg-white border-slate-300 text-slate-700 hover:border-emerald-400 hover:text-emerald-700 dark:bg-slate-800 dark:border-slate-600 dark:text-slate-200 dark:hover:border-emerald-400',
-        ].join(' ')}
+            ? "bg-emerald-600 border-emerald-600 text-white dark:bg-emerald-500 dark:border-emerald-500"
+            : "bg-white border-slate-300 text-slate-700 hover:border-emerald-400 hover:text-emerald-700 dark:bg-slate-800 dark:border-slate-600 dark:text-slate-200 dark:hover:border-emerald-400",
+        ].join(" ")}
       >
         Ya
       </button>
@@ -92,34 +98,41 @@ function YesNoButtons({ questionId, value, onChange }: YesNoButtonsProps) {
         type="button"
         onClick={() => onChange(questionId, false)}
         className={[
-          'px-5 py-2 rounded-lg text-sm font-medium border transition-colors focus:outline-none focus:ring-2 focus:ring-rose-500',
+          "px-5 py-2 rounded-lg text-sm font-medium border transition-colors focus:outline-none focus:ring-2 focus:ring-rose-500",
           value === false
-            ? 'bg-rose-600 border-rose-600 text-white dark:bg-rose-500 dark:border-rose-500'
-            : 'bg-white border-slate-300 text-slate-700 hover:border-rose-400 hover:text-rose-700 dark:bg-slate-800 dark:border-slate-600 dark:text-slate-200 dark:hover:border-rose-400',
-        ].join(' ')}
+            ? "bg-rose-600 border-rose-600 text-white dark:bg-rose-500 dark:border-rose-500"
+            : "bg-white border-slate-300 text-slate-700 hover:border-rose-400 hover:text-rose-700 dark:bg-slate-800 dark:border-slate-600 dark:text-slate-200 dark:hover:border-rose-400",
+        ].join(" ")}
       >
         Tidak
       </button>
     </div>
-  )
+  );
 }
 
 // ── Sub-komponen: Question Item ─────────────────────────────────
 
 interface QuestionItemProps {
-  question: SurveyQuestion
-  index: number
-  answers: Record<string, string | number | boolean>
-  onAnswer: (questionId: string, value: string | number | boolean) => void
+  question: SurveyQuestion;
+  index: number;
+  answers: Record<string, string | number | boolean>;
+  onAnswer: (questionId: string, value: string | number | boolean) => void;
 }
 
-function QuestionItem({ question, index, answers, onAnswer }: QuestionItemProps) {
-  const currentValue = answers[question.id]
+function QuestionItem({
+  question,
+  index,
+  answers,
+  onAnswer,
+}: QuestionItemProps) {
+  const currentValue = answers[question.id];
 
   return (
     <div className="py-5 border-b border-slate-100 dark:border-slate-700 last:border-b-0">
       <p className="text-sm font-medium text-slate-700 dark:text-slate-200 mb-3">
-        <span className="text-slate-400 dark:text-slate-500 mr-1.5">{index + 1}.</span>
+        <span className="text-slate-400 dark:text-slate-500 mr-1.5">
+          {index + 1}.
+        </span>
         {question.text}
         {question.required && (
           <span className="ml-1 text-rose-500" aria-label="wajib diisi">
@@ -128,120 +141,128 @@ function QuestionItem({ question, index, answers, onAnswer }: QuestionItemProps)
         )}
       </p>
 
-      {question.type === 'rating' && (
+      {question.type === "rating" && (
         <StarRating
           questionId={question.id}
-          value={typeof currentValue === 'number' ? currentValue : 0}
+          value={typeof currentValue === "number" ? currentValue : 0}
           onChange={onAnswer}
         />
       )}
 
-      {question.type === 'yesno' && (
+      {question.type === "yesno" && (
         <YesNoButtons
           questionId={question.id}
-          value={typeof currentValue === 'boolean' ? currentValue : null}
+          value={typeof currentValue === "boolean" ? currentValue : null}
           onChange={onAnswer}
         />
       )}
 
-      {question.type === 'text' && (
+      {question.type === "text" && (
         <textarea
           rows={3}
           placeholder="Tulis jawaban Anda di sini..."
-          value={typeof currentValue === 'string' ? currentValue : ''}
+          value={typeof currentValue === "string" ? currentValue : ""}
           onChange={(e) => onAnswer(question.id, e.target.value)}
           className={[
-            'w-full px-3 py-2 text-sm rounded-lg border resize-none',
-            'bg-white dark:bg-slate-800',
-            'text-slate-800 dark:text-slate-100',
-            'placeholder:text-slate-400 dark:placeholder:text-slate-500',
-            'border-slate-300 dark:border-slate-600',
-            'focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500',
-            'transition-colors',
-          ].join(' ')}
+            "w-full px-3 py-2 text-sm rounded-lg border resize-none",
+            "bg-white dark:bg-slate-800",
+            "text-slate-800 dark:text-slate-100",
+            "placeholder:text-slate-400 dark:placeholder:text-slate-500",
+            "border-slate-300 dark:border-slate-600",
+            "focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500",
+            "transition-colors",
+          ].join(" ")}
         />
       )}
     </div>
-  )
+  );
 }
 
 // ── Main Component ──────────────────────────────────────────────
 
-export function SurveyResponseForm({ surveyId, onSubmitted }: SurveyResponseFormProps) {
-  const [survey, setSurvey] = useState<SatisfactionSurvey | null>(null)
-  const [isLoading, setIsLoading] = useState(true)
-  const [alreadyResponded, setAlreadyResponded] = useState(false)
-  const [answers, setAnswers] = useState<Record<string, string | number | boolean>>({})
-  const [isSubmitting, setIsSubmitting] = useState(false)
-  const [submitSuccess, setSubmitSuccess] = useState(false)
-  const [error, setError] = useState<string | null>(null)
+export function SurveyResponseForm({
+  surveyId,
+  onSubmitted,
+}: SurveyResponseFormProps) {
+  const [survey, setSurvey] = useState<SatisfactionSurvey | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [alreadyResponded, setAlreadyResponded] = useState(false);
+  const [answers, setAnswers] = useState<
+    Record<string, string | number | boolean>
+  >({});
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [submitSuccess, setSubmitSuccess] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   // Muat data survei dan cek status respons
   useEffect(() => {
-    let cancelled = false
+    let cancelled = false;
 
     async function load() {
-      setIsLoading(true)
-      setError(null)
+      setIsLoading(true);
+      setError(null);
       try {
         const [surveyData, responded] = await Promise.all([
           getSurveyById(surveyId),
           hasRespondedToSurvey(surveyId),
-        ])
-        if (cancelled) return
-        setSurvey(surveyData)
-        setAlreadyResponded(responded)
+        ]);
+        if (cancelled) return;
+        setSurvey(surveyData);
+        setAlreadyResponded(responded);
       } catch (err) {
-        if (cancelled) return
-        setError(err instanceof Error ? err.message : 'Gagal memuat survei.')
+        if (cancelled) return;
+        setError(err instanceof Error ? err.message : "Gagal memuat survei.");
       } finally {
-        if (!cancelled) setIsLoading(false)
+        if (!cancelled) setIsLoading(false);
       }
     }
 
-    void load()
+    void load();
     return () => {
-      cancelled = true
-    }
-  }, [surveyId])
+      cancelled = true;
+    };
+  }, [surveyId]);
 
-  const handleAnswer = (questionId: string, value: string | number | boolean) => {
-    setAnswers((prev) => ({ ...prev, [questionId]: value }))
-  }
+  const handleAnswer = (
+    questionId: string,
+    value: string | number | boolean,
+  ) => {
+    setAnswers((prev) => ({ ...prev, [questionId]: value }));
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    if (!survey) return
+    e.preventDefault();
+    if (!survey) return;
 
     // Validasi pertanyaan wajib
     const unanswered = survey.questions.filter((q) => {
-      if (!q.required) return false
-      const val = answers[q.id]
-      if (val === undefined || val === null || val === '') return true
-      return false
-    })
+      if (!q.required) return false;
+      const val = answers[q.id];
+      if (val === undefined || val === null || val === "") return true;
+      return false;
+    });
 
     if (unanswered.length > 0) {
       setError(
-        `Harap jawab semua pertanyaan wajib (${unanswered.length} pertanyaan belum dijawab).`
-      )
-      return
+        `Harap jawab semua pertanyaan wajib (${unanswered.length} pertanyaan belum dijawab).`,
+      );
+      return;
     }
 
-    setIsSubmitting(true)
-    setError(null)
+    setIsSubmitting(true);
+    setError(null);
 
     try {
-      await submitSurveyResponse(surveyId, answers)
-      setSubmitSuccess(true)
-      setAlreadyResponded(true)
-      onSubmitted?.()
+      await submitSurveyResponse(surveyId, answers);
+      setSubmitSuccess(true);
+      setAlreadyResponded(true);
+      onSubmitted?.();
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Gagal mengirim respons.')
+      setError(err instanceof Error ? err.message : "Gagal mengirim respons.");
     } finally {
-      setIsSubmitting(false)
+      setIsSubmitting(false);
     }
-  }
+  };
 
   // ── Loading State ───────────────────────────────────────────
 
@@ -249,9 +270,11 @@ export function SurveyResponseForm({ surveyId, onSubmitted }: SurveyResponseForm
     return (
       <div className="flex items-center justify-center py-16">
         <Loader2 className="w-8 h-8 text-indigo-500 animate-spin" />
-        <span className="ml-3 text-slate-600 dark:text-slate-400">Memuat survei...</span>
+        <span className="ml-3 text-slate-600 dark:text-slate-400">
+          Memuat survei...
+        </span>
       </div>
-    )
+    );
   }
 
   // ── Error State ─────────────────────────────────────────────
@@ -267,20 +290,22 @@ export function SurveyResponseForm({ surveyId, onSubmitted }: SurveyResponseForm
           Coba lagi
         </button>
       </div>
-    )
+    );
   }
 
   if (!survey) {
     return (
       <div className="rounded-xl border border-slate-200 dark:border-slate-700 p-6 text-center">
-        <p className="text-slate-500 dark:text-slate-400">Survei tidak ditemukan.</p>
+        <p className="text-slate-500 dark:text-slate-400">
+          Survei tidak ditemukan.
+        </p>
       </div>
-    )
+    );
   }
 
   // ── Survey Closed ───────────────────────────────────────────
 
-  if (survey.status !== 'active') {
+  if (survey.status !== "active") {
     return (
       <div className="rounded-xl border border-amber-200 bg-amber-50 dark:bg-amber-950/30 dark:border-amber-800 p-8 text-center">
         <p className="text-amber-700 dark:text-amber-400 font-semibold text-lg mb-1">
@@ -290,7 +315,7 @@ export function SurveyResponseForm({ surveyId, onSubmitted }: SurveyResponseForm
           Survei ini sudah ditutup atau belum aktif.
         </p>
       </div>
-    )
+    );
   }
 
   // ── Already Responded / Success State ──────────────────────
@@ -306,17 +331,17 @@ export function SurveyResponseForm({ surveyId, onSubmitted }: SurveyResponseForm
           Anda sudah mengisi survei ini. Respons Anda telah tercatat.
         </p>
       </div>
-    )
+    );
   }
 
   // ── Form ────────────────────────────────────────────────────
 
   const audienceLabel: Record<string, string> = {
-    teachers: 'Guru',
-    students: 'Siswa',
-    parents: 'Orang Tua',
-    all: 'Semua',
-  }
+    teachers: "Guru",
+    students: "Siswa",
+    parents: "Orang Tua",
+    all: "Semua",
+  };
 
   return (
     <form onSubmit={handleSubmit} noValidate>
@@ -332,9 +357,11 @@ export function SurveyResponseForm({ surveyId, onSubmitted }: SurveyResponseForm
             </span>
           )}
         </div>
-        <h1 className="text-xl font-bold text-slate-900 dark:text-slate-50 mt-2">{survey.title}</h1>
+        <h1 className="text-xl font-bold text-slate-900 dark:text-slate-50 mt-2">
+          {survey.title}
+        </h1>
         <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">
-          Jawab semua pertanyaan di bawah ini dengan jujur. Tanda{' '}
+          Jawab semua pertanyaan di bawah ini dengan jujur. Tanda{" "}
           <span className="text-rose-500">*</span> menandakan pertanyaan wajib.
         </p>
       </div>
@@ -365,19 +392,19 @@ export function SurveyResponseForm({ surveyId, onSubmitted }: SurveyResponseForm
           type="submit"
           disabled={isSubmitting}
           className={[
-            'inline-flex items-center gap-2 px-6 py-2.5 rounded-lg text-sm font-semibold',
-            'bg-indigo-600 text-white',
-            'hover:bg-indigo-700 active:bg-indigo-800',
-            'dark:bg-indigo-500 dark:hover:bg-indigo-600',
-            'focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 dark:focus:ring-offset-slate-900',
-            'disabled:opacity-60 disabled:cursor-not-allowed',
-            'transition-colors',
-          ].join(' ')}
+            "inline-flex items-center gap-2 px-6 py-2.5 rounded-lg text-sm font-semibold",
+            "bg-indigo-600 text-white",
+            "hover:bg-indigo-700 active:bg-indigo-800",
+            "dark:bg-indigo-500 dark:hover:bg-indigo-600",
+            "focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 dark:focus:ring-offset-slate-900",
+            "disabled:opacity-60 disabled:cursor-not-allowed",
+            "transition-colors",
+          ].join(" ")}
         >
           {isSubmitting && <Loader2 className="w-4 h-4 animate-spin" />}
-          {isSubmitting ? 'Mengirim...' : 'Kirim Jawaban'}
+          {isSubmitting ? "Mengirim..." : "Kirim Jawaban"}
         </button>
       </div>
     </form>
-  )
+  );
 }

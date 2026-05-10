@@ -7,49 +7,49 @@ import {
   HelpCircle,
   Menu,
   PlayCircle,
-} from 'lucide-react'
-import { Info, MessageSquare, Sparkles } from 'lucide-react'
+} from "lucide-react";
+import { Info, MessageSquare, Sparkles } from "lucide-react";
 
-import { Breadcrumb } from '@/components/ui'
-import { SmartNextButton } from '@/features/recommendations'
-import { cn } from '@/utils/cn'
+import { Breadcrumb } from "@/components/ui";
+import { SmartNextButton } from "@/features/recommendations";
+import { cn } from "@/utils/cn";
 
-import type { Lesson } from '../../index'
+import type { Lesson } from "../../index";
 
-type ActiveTab = 'content' | 'discussion' | 'ai_tutor'
+type ActiveTab = "content" | "discussion" | "ai_tutor";
 
 interface LessonTopBarProps {
-  lesson: Lesson
-  moduleTitle: string
-  moduleLessons: Lesson[]
-  currentLessonIndex: number
-  completedLessonCount: number
-  status: string
-  progressPercentage: number
-  courseId?: string
-  lessonId?: string | null
-  prevLesson: Lesson | null
-  nextLesson: Lesson | null
-  isLastLesson: boolean
-  activeTab: ActiveTab
-  onSelectLesson: (id: string) => void
-  onCompletionMet: () => void
-  onMobileSidebarOpen: () => void
-  onTabChange: (tab: ActiveTab) => void
+  lesson: Lesson;
+  moduleTitle: string;
+  moduleLessons: Lesson[];
+  currentLessonIndex: number;
+  completedLessonCount: number;
+  status: string;
+  progressPercentage: number;
+  courseId?: string;
+  lessonId?: string | null;
+  prevLesson: Lesson | null;
+  nextLesson: Lesson | null;
+  isLastLesson: boolean;
+  activeTab: ActiveTab;
+  onSelectLesson: (id: string) => void;
+  onCompletionMet: () => void;
+  onMobileSidebarOpen: () => void;
+  onTabChange: (tab: ActiveTab) => void;
 }
 
 function getLessonTypeIcon(type: string) {
   switch (type) {
-    case 'video':
-      return <PlayCircle className="w-4 h-4" />
-    case 'article':
-      return <FileText className="w-4 h-4" />
-    case 'quiz':
-      return <HelpCircle className="w-4 h-4 text-purple-500" />
-    case 'assignment':
-      return <FileText className="w-4 h-4 text-rose-500" />
+    case "video":
+      return <PlayCircle className="w-4 h-4" />;
+    case "article":
+      return <FileText className="w-4 h-4" />;
+    case "quiz":
+      return <HelpCircle className="w-4 h-4 text-purple-500" />;
+    case "assignment":
+      return <FileText className="w-4 h-4 text-rose-500" />;
     default:
-      return <AlertTriangle className="w-4 h-4" />
+      return <AlertTriangle className="w-4 h-4" />;
   }
 }
 
@@ -86,12 +86,14 @@ export function LessonTopBar({
             </button>
             <Breadcrumb
               items={[
-                { label: 'Dashboard', href: '/app/student/dashboard' },
+                { label: "Dashboard", href: "/app/student/dashboard" },
                 {
-                  label: 'Kursus',
-                  href: courseId ? `/app/student/courses/${courseId}` : '/app/student/courses',
+                  label: "Kursus",
+                  href: courseId
+                    ? `/app/student/courses/${courseId}`
+                    : "/app/student/courses",
                 },
-                { label: moduleTitle || 'Modul' },
+                { label: moduleTitle || "Modul" },
                 { label: lesson.title },
               ]}
             />
@@ -110,7 +112,9 @@ export function LessonTopBar({
               >
                 <div
                   className="h-full bg-blue-500 rounded-full transition-all duration-300"
-                  style={{ width: `${(completedLessonCount / moduleLessons.length) * 100}%` }}
+                  style={{
+                    width: `${(completedLessonCount / moduleLessons.length) * 100}%`,
+                  }}
                 />
               </div>
               <span className="text-sm text-slate-500 dark:text-slate-400">
@@ -138,7 +142,7 @@ export function LessonTopBar({
             </button>
           )}
 
-          {status === 'completed' ? (
+          {status === "completed" ? (
             <div className="flex items-center gap-2 flex-wrap">
               <div className="flex items-center gap-2 px-6 py-2.5 rounded-full border border-green-200 dark:border-green-800 bg-green-50 dark:bg-green-900/30 text-green-600 dark:text-green-400 font-bold text-sm shadow-sm transition-all hover:bg-green-100 dark:hover:bg-green-900/50">
                 <CheckCircle className="w-4 h-4" />
@@ -146,8 +150,8 @@ export function LessonTopBar({
               </div>
               {nextLesson ? (
                 <SmartNextButton
-                  courseId={courseId ?? ''}
-                  currentLessonId={lessonId ?? ''}
+                  courseId={courseId ?? ""}
+                  currentLessonId={lessonId ?? ""}
                   sequentialNextLessonId={nextLesson.id}
                   className="rounded-full px-6 py-2.5 text-sm font-bold shadow-sm"
                 />
@@ -162,13 +166,14 @@ export function LessonTopBar({
             <button
               onClick={onCompletionMet}
               disabled={
-                status === 'loading' || (lesson.type === 'video' && progressPercentage < 95)
+                status === "loading" ||
+                (lesson.type === "video" && progressPercentage < 95)
               }
               className={cn(
-                'flex items-center gap-2 px-6 py-2.5 rounded-full font-bold text-sm shadow-sm border transition-all',
-                progressPercentage >= 95 || lesson.type !== 'video'
-                  ? 'border-green-600 text-green-600 dark:border-green-500 dark:text-green-400 hover:bg-green-50 dark:hover:bg-green-900/20'
-                  : 'border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-400 dark:text-slate-500 cursor-not-allowed hidden'
+                "flex items-center gap-2 px-6 py-2.5 rounded-full font-bold text-sm shadow-sm border transition-all",
+                progressPercentage >= 95 || lesson.type !== "video"
+                  ? "border-green-600 text-green-600 dark:border-green-500 dark:text-green-400 hover:bg-green-50 dark:hover:bg-green-900/20"
+                  : "border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-400 dark:text-slate-500 cursor-not-allowed hidden",
               )}
             >
               <CheckCircle className="w-5 h-5" />
@@ -179,18 +184,22 @@ export function LessonTopBar({
       </div>
 
       {/* Navigation Tabs */}
-      <div className="flex px-8 gap-1" role="tablist" aria-label="Navigasi Pelajaran">
+      <div
+        className="flex px-8 gap-1"
+        role="tablist"
+        aria-label="Navigasi Pelajaran"
+      >
         <button
           role="tab"
           id="tab-content"
-          aria-selected={activeTab === 'content'}
+          aria-selected={activeTab === "content"}
           aria-controls="panel-content"
-          onClick={() => onTabChange('content')}
+          onClick={() => onTabChange("content")}
           className={cn(
-            'px-4 py-3 text-sm font-bold flex items-center gap-2 transition-all border-b-2',
-            activeTab === 'content'
-              ? 'border-blue-600 text-blue-600'
-              : 'border-transparent text-slate-400 hover:text-slate-600 dark:hover:text-slate-300'
+            "px-4 py-3 text-sm font-bold flex items-center gap-2 transition-all border-b-2",
+            activeTab === "content"
+              ? "border-blue-600 text-blue-600"
+              : "border-transparent text-slate-400 hover:text-slate-600 dark:hover:text-slate-300",
           )}
         >
           <Info className="w-4 h-4" />
@@ -199,14 +208,14 @@ export function LessonTopBar({
         <button
           role="tab"
           id="tab-discussion"
-          aria-selected={activeTab === 'discussion'}
+          aria-selected={activeTab === "discussion"}
           aria-controls="panel-discussion"
-          onClick={() => onTabChange('discussion')}
+          onClick={() => onTabChange("discussion")}
           className={cn(
-            'px-4 py-3 text-sm font-bold flex items-center gap-2 transition-all border-b-2',
-            activeTab === 'discussion'
-              ? 'border-blue-600 text-blue-600'
-              : 'border-transparent text-slate-400 hover:text-slate-600 dark:hover:text-slate-300'
+            "px-4 py-3 text-sm font-bold flex items-center gap-2 transition-all border-b-2",
+            activeTab === "discussion"
+              ? "border-blue-600 text-blue-600"
+              : "border-transparent text-slate-400 hover:text-slate-600 dark:hover:text-slate-300",
           )}
         >
           <MessageSquare className="w-4 h-4" />
@@ -215,14 +224,14 @@ export function LessonTopBar({
         <button
           role="tab"
           id="tab-ai-tutor"
-          aria-selected={activeTab === 'ai_tutor'}
+          aria-selected={activeTab === "ai_tutor"}
           aria-controls="panel-ai-tutor"
-          onClick={() => onTabChange('ai_tutor')}
+          onClick={() => onTabChange("ai_tutor")}
           className={cn(
-            'px-4 py-3 text-sm font-bold flex items-center gap-2 transition-all border-b-2',
-            activeTab === 'ai_tutor'
-              ? 'border-violet-600 text-violet-600'
-              : 'border-transparent text-slate-400 hover:text-slate-600 dark:hover:text-slate-300'
+            "px-4 py-3 text-sm font-bold flex items-center gap-2 transition-all border-b-2",
+            activeTab === "ai_tutor"
+              ? "border-violet-600 text-violet-600"
+              : "border-transparent text-slate-400 hover:text-slate-600 dark:hover:text-slate-300",
           )}
         >
           <Sparkles className="w-4 h-4" />
@@ -230,5 +239,5 @@ export function LessonTopBar({
         </button>
       </div>
     </div>
-  )
+  );
 }

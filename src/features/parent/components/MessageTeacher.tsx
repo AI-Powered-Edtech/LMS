@@ -3,64 +3,70 @@
 // Wave 4 — Task 29.5 (Mobile-first)
 // ==========================================================================
 
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { useNavigate } from 'react-router-dom'
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useNavigate } from "react-router-dom";
 
-import { useAuth } from '@/contexts/AuthContext'
-import { cn } from '@/utils/cn'
+import { useAuth } from "@/contexts/AuthContext";
+import { cn } from "@/utils/cn";
 
-import type { MessageThread } from '../api/messageApi'
-import { getThreads, markThreadRead } from '../api/messageApi'
+import type { MessageThread } from "../api/messageApi";
+import { getThreads, markThreadRead } from "../api/messageApi";
 
 // ── Helpers ───────────────────────────────────────────────────────────────
 
 function formatRelativeTime(dateStr: string): string {
-  const date = new Date(dateStr)
-  const now = new Date()
-  const diffMs = now.getTime() - date.getTime()
-  const diffMin = Math.floor(diffMs / 60000)
-  const diffHour = Math.floor(diffMin / 60)
-  const diffDay = Math.floor(diffHour / 24)
+  const date = new Date(dateStr);
+  const now = new Date();
+  const diffMs = now.getTime() - date.getTime();
+  const diffMin = Math.floor(diffMs / 60000);
+  const diffHour = Math.floor(diffMin / 60);
+  const diffDay = Math.floor(diffHour / 24);
 
-  if (diffMin < 1) return 'Baru saja'
-  if (diffMin < 60) return `${diffMin} mnt lalu`
-  if (diffHour < 24) return `${diffHour} jam lalu`
-  if (diffDay < 7) return `${diffDay} hari lalu`
-  return date.toLocaleDateString('id-ID', { day: 'numeric', month: 'short' })
+  if (diffMin < 1) return "Baru saja";
+  if (diffMin < 60) return `${diffMin} mnt lalu`;
+  if (diffHour < 24) return `${diffHour} jam lalu`;
+  if (diffDay < 7) return `${diffDay} hari lalu`;
+  return date.toLocaleDateString("id-ID", { day: "numeric", month: "short" });
 }
 
 function getInitials(name: string): string {
   return name
-    .split(' ')
+    .split(" ")
     .slice(0, 2)
-    .map((w) => w[0]?.toUpperCase() ?? '')
-    .join('')
+    .map((w) => w[0]?.toUpperCase() ?? "")
+    .join("");
 }
 
 // ── Thread Item ───────────────────────────────────────────────────────────
 
-function ThreadItem({ thread, onClick }: { thread: MessageThread; onClick: () => void }) {
-  const hasUnread = thread.parent_unread_count > 0
-  const teacherName = thread.teacher_name ?? 'Guru'
-  const initials = getInitials(teacherName)
+function ThreadItem({
+  thread,
+  onClick,
+}: {
+  thread: MessageThread;
+  onClick: () => void;
+}) {
+  const hasUnread = thread.parent_unread_count > 0;
+  const teacherName = thread.teacher_name ?? "Guru";
+  const initials = getInitials(teacherName);
 
   return (
     <button
       onClick={onClick}
       className={cn(
-        'w-full flex items-center gap-3 px-4 py-3.5 text-left',
-        'transition-colors duration-150',
-        'active:bg-slate-100 dark:active:bg-slate-700/50',
-        'focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-inset'
+        "w-full flex items-center gap-3 px-4 py-3.5 text-left",
+        "transition-colors duration-150",
+        "active:bg-slate-100 dark:active:bg-slate-700/50",
+        "focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-inset",
       )}
     >
       {/* Avatar */}
       <div className="relative flex-shrink-0">
         <div
           className={cn(
-            'w-12 h-12 rounded-full flex items-center justify-center',
-            'text-sm font-bold overflow-hidden',
-            'bg-indigo-100 dark:bg-indigo-900/40 text-indigo-700 dark:text-indigo-300'
+            "w-12 h-12 rounded-full flex items-center justify-center",
+            "text-sm font-bold overflow-hidden",
+            "bg-indigo-100 dark:bg-indigo-900/40 text-indigo-700 dark:text-indigo-300",
           )}
         >
           {thread.teacher_avatar ? (
@@ -88,10 +94,10 @@ function ThreadItem({ thread, onClick }: { thread: MessageThread; onClick: () =>
         <div className="flex items-center justify-between gap-2 mb-0.5">
           <p
             className={cn(
-              'text-sm truncate',
+              "text-sm truncate",
               hasUnread
-                ? 'font-bold text-slate-900 dark:text-slate-100'
-                : 'font-medium text-slate-700 dark:text-slate-300'
+                ? "font-bold text-slate-900 dark:text-slate-100"
+                : "font-medium text-slate-700 dark:text-slate-300",
             )}
           >
             {teacherName}
@@ -105,17 +111,17 @@ function ThreadItem({ thread, onClick }: { thread: MessageThread; onClick: () =>
           {thread.subject ? (
             <p
               className={cn(
-                'text-xs truncate flex-1',
+                "text-xs truncate flex-1",
                 hasUnread
-                  ? 'text-slate-700 dark:text-slate-300'
-                  : 'text-slate-400 dark:text-slate-500'
+                  ? "text-slate-700 dark:text-slate-300"
+                  : "text-slate-400 dark:text-slate-500",
               )}
             >
               {thread.subject}
             </p>
           ) : (
             <p className="text-xs text-slate-400 dark:text-slate-500 truncate flex-1 italic">
-              Re: {thread.student_name ?? 'Siswa'}
+              Re: {thread.student_name ?? "Siswa"}
             </p>
           )}
           {hasUnread && (
@@ -130,7 +136,7 @@ function ThreadItem({ thread, onClick }: { thread: MessageThread; onClick: () =>
         </div>
       </div>
     </button>
-  )
+  );
 }
 
 // ── Empty State ────────────────────────────────────────────────────────────
@@ -150,7 +156,7 @@ function EmptyState() {
         </p>
       </div>
     </div>
-  )
+  );
 }
 
 // ── Loading Skeleton ──────────────────────────────────────────────────────
@@ -159,7 +165,10 @@ function ThreadsSkeleton() {
   return (
     <div className="divide-y divide-slate-100 dark:divide-slate-700/50">
       {[1, 2, 3].map((i) => (
-        <div key={i} className="flex items-center gap-3 px-4 py-3.5 animate-pulse">
+        <div
+          key={i}
+          className="flex items-center gap-3 px-4 py-3.5 animate-pulse"
+        >
           <div className="w-12 h-12 rounded-full bg-slate-200 dark:bg-slate-700 flex-shrink-0" />
           <div className="flex-1 space-y-2">
             <div className="h-4 bg-slate-200 dark:bg-slate-700 rounded w-2/3" />
@@ -168,15 +177,15 @@ function ThreadsSkeleton() {
         </div>
       ))}
     </div>
-  )
+  );
 }
 
 // ── Main Component ─────────────────────────────────────────────────────────
 
 export function MessageTeacher() {
-  const { user } = useAuth()
-  const navigate = useNavigate()
-  const queryClient = useQueryClient()
+  const { user } = useAuth();
+  const navigate = useNavigate();
+  const queryClient = useQueryClient();
 
   const {
     data: threads,
@@ -184,27 +193,32 @@ export function MessageTeacher() {
     error,
     refetch,
   } = useQuery({
-    queryKey: ['parent', 'threads', user?.id ?? ''],
+    queryKey: ["parent", "threads", user?.id ?? ""],
     queryFn: () => getThreads(user!.id),
     enabled: !!user?.id,
     refetchInterval: 30_000, // Refresh setiap 30 detik
-  })
+  });
 
   const { mutate: markRead } = useMutation({
-    mutationFn: (threadId: string) => markThreadRead(threadId, 'parent'),
+    mutationFn: (threadId: string) => markThreadRead(threadId, "parent"),
     onSuccess: () => {
-      void queryClient.invalidateQueries({ queryKey: ['parent', 'threads', user?.id ?? ''] })
+      void queryClient.invalidateQueries({
+        queryKey: ["parent", "threads", user?.id ?? ""],
+      });
     },
-  })
+  });
 
   function handleThreadClick(thread: MessageThread) {
     if (thread.parent_unread_count > 0) {
-      markRead(thread.id)
+      markRead(thread.id);
     }
-    void navigate(`/app/parent/pesan/${thread.id}`)
+    void navigate(`/app/parent/pesan/${thread.id}`);
   }
 
-  const totalUnread = (threads ?? []).reduce((sum, t) => sum + t.parent_unread_count, 0)
+  const totalUnread = (threads ?? []).reduce(
+    (sum, t) => sum + t.parent_unread_count,
+    0,
+  );
 
   return (
     <div className="-mx-4 -mt-4">
@@ -216,7 +230,9 @@ export function MessageTeacher() {
       >
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-base font-bold text-slate-900 dark:text-slate-100">Pesan</h1>
+            <h1 className="text-base font-bold text-slate-900 dark:text-slate-100">
+              Pesan
+            </h1>
             {totalUnread > 0 && (
               <p className="text-xs text-blue-600 dark:text-blue-400">
                 {totalUnread} pesan belum dibaca
@@ -238,7 +254,9 @@ export function MessageTeacher() {
           <ThreadsSkeleton />
         ) : error ? (
           <div className="py-12 text-center">
-            <p className="text-sm text-slate-500 dark:text-slate-400 mb-3">Gagal memuat pesan</p>
+            <p className="text-sm text-slate-500 dark:text-slate-400 mb-3">
+              Gagal memuat pesan
+            </p>
             <button
               onClick={() => refetch()}
               className="text-sm text-blue-600 dark:text-blue-400 font-medium"
@@ -250,10 +268,14 @@ export function MessageTeacher() {
           <EmptyState />
         ) : (
           threads.map((thread) => (
-            <ThreadItem key={thread.id} thread={thread} onClick={() => handleThreadClick(thread)} />
+            <ThreadItem
+              key={thread.id}
+              thread={thread}
+              onClick={() => handleThreadClick(thread)}
+            />
           ))
         )}
       </div>
     </div>
-  )
+  );
 }

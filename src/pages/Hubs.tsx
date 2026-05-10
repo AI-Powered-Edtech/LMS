@@ -1,10 +1,10 @@
+import { useTranslation } from "react-i18next";
+
 import { HubView } from "@/components/HubView";
 import { useAuth } from "@/contexts/AuthContext";
 import { useStudentXPProfile } from "@/features/gamification/queries/gamificationQueries";
 import { ModuleId, useModuleConfig } from "@/hooks/useModuleConfig";
 import { usePageTitle } from "@/hooks/usePageTitle";
-import { useTranslation } from "react-i18next";
-
 import { navigationItems } from "@/shared/config/navigation";
 
 /**
@@ -188,33 +188,30 @@ function GamificationSummary() {
         </div>
         {xpProfile.recent_xp && xpProfile.recent_xp.length > 0 ? (
           <div className="space-y-2">
-            {xpProfile.recent_xp
-              .slice(0, 3)
-              .map(
-                (
-                  tx: {
-                    xp_amount: number;
-                    source_type: string;
-                    created_at: string;
-                  },
-                  i: number,
-                ) => (
-                  <div
-                    key={i}
-                    className="flex items-center justify-between text-sm"
-                  >
-                    <span className="text-slate-600 dark:text-slate-400 truncate">
-                      {t(
-                        `hubs.gamification.summary.sources.${tx.source_type}`,
-                        { defaultValue: tx.source_type },
-                      )}
-                    </span>
-                    <span className="text-green-600 dark:text-green-400 font-bold shrink-0">
-                      +{tx.xp_amount} XP
-                    </span>
-                  </div>
-                ),
-              )}
+            {xpProfile.recent_xp.slice(0, 3).map(
+              (
+                tx: {
+                  xp_amount: number;
+                  source_type: string;
+                  created_at: string;
+                },
+                i: number,
+              ) => (
+                <div
+                  key={i}
+                  className="flex items-center justify-between text-sm"
+                >
+                  <span className="text-slate-600 dark:text-slate-400 truncate">
+                    {t(`hubs.gamification.summary.sources.${tx.source_type}`, {
+                      defaultValue: tx.source_type,
+                    })}
+                  </span>
+                  <span className="text-green-600 dark:text-green-400 font-bold shrink-0">
+                    +{tx.xp_amount} XP
+                  </span>
+                </div>
+              ),
+            )}
           </div>
         ) : (
           <p className="text-sm text-slate-400 dark:text-slate-500 mt-2">

@@ -22,38 +22,41 @@
  * ```
  */
 
-import { AlertCircle, RefreshCw } from 'lucide-react'
-import { Component, type ErrorInfo, type ReactNode } from 'react'
+import { AlertCircle, RefreshCw } from "lucide-react";
+import { Component, type ErrorInfo, type ReactNode } from "react";
 
-import { cn } from '@/utils/cn'
-import { logger } from '@/utils/logger'
-import { captureError } from '@/utils/sentry'
+import { cn } from "@/utils/cn";
+import { logger } from "@/utils/logger";
+import { captureError } from "@/utils/sentry";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
 interface ErrorBoundaryProps {
-  children: ReactNode
-  fallback?: ReactNode
-  onRetry?: () => void
-  className?: string
+  children: ReactNode;
+  fallback?: ReactNode;
+  onRetry?: () => void;
+  className?: string;
 }
 
 interface ErrorBoundaryState {
-  hasError: boolean
-  error: Error | null
-  errorInfo: ErrorInfo | null
+  hasError: boolean;
+  error: Error | null;
+  errorInfo: ErrorInfo | null;
 }
 
 // ─── Error Boundary Class Component ───────────────────────────────────────────
 
-export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundaryState> {
+export class ErrorBoundary extends Component<
+  ErrorBoundaryProps,
+  ErrorBoundaryState
+> {
   constructor(props: ErrorBoundaryProps) {
-    super(props)
+    super(props);
     this.state = {
       hasError: false,
       error: null,
       errorInfo: null,
-    }
+    };
   }
 
   static getDerivedStateFromError(error: Error): ErrorBoundaryState {
@@ -61,7 +64,7 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
       hasError: true,
       error,
       errorInfo: null,
-    }
+    };
   }
 
   componentDidCatch(error: Error, errorInfo: ErrorInfo): void {
@@ -71,20 +74,20 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
         componentStack: errorInfo.componentStack,
       },
       tags: {
-        component: 'ErrorBoundary',
+        component: "ErrorBoundary",
       },
-    })
+    });
 
     // Log to console in development
-    if (process.env.NODE_ENV === 'development') {
-      logger.error('ErrorBoundary caught error:', error)
-      logger.error('Component stack:', errorInfo.componentStack)
+    if (process.env.NODE_ENV === "development") {
+      logger.error("ErrorBoundary caught error:", error);
+      logger.error("Component stack:", errorInfo.componentStack);
     }
 
     this.setState({
       error,
       errorInfo,
-    })
+    });
   }
 
   handleRetry = (): void => {
@@ -92,19 +95,19 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
       hasError: false,
       error: null,
       errorInfo: null,
-    })
+    });
 
     // Call custom retry handler if provided
     if (this.props.onRetry) {
-      this.props.onRetry()
+      this.props.onRetry();
     }
-  }
+  };
 
   render(): ReactNode {
     if (this.state.hasError) {
       // Use custom fallback UI if provided
       if (this.props.fallback) {
-        return this.props.fallback
+        return this.props.fallback;
       }
 
       // Default fallback UI
@@ -115,33 +118,38 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
           onRetry={this.handleRetry}
           className={this.props.className}
         />
-      )
+      );
     }
 
-    return this.props.children
+    return this.props.children;
   }
 }
 
 // ─── Default Error Fallback ───────────────────────────────────────────────────
 
 interface DefaultErrorFallbackProps {
-  error: Error | null
-  errorInfo: ErrorInfo | null
-  onRetry: () => void
-  className?: string
+  error: Error | null;
+  errorInfo: ErrorInfo | null;
+  onRetry: () => void;
+  className?: string;
 }
 
-function DefaultErrorFallback({ error, errorInfo, onRetry, className }: DefaultErrorFallbackProps) {
-  const isDevelopment = process.env.NODE_ENV === 'development'
+function DefaultErrorFallback({
+  error,
+  errorInfo,
+  onRetry,
+  className,
+}: DefaultErrorFallbackProps) {
+  const isDevelopment = process.env.NODE_ENV === "development";
 
   return (
     <div
       role="alert"
       aria-live="assertive"
       className={cn(
-        'flex flex-col items-center justify-center min-h-[200px] p-8',
-        'bg-red-50 dark:bg-red-900/10 border border-red-200 dark:border-red-800 rounded-xl',
-        className
+        "flex flex-col items-center justify-center min-h-[200px] p-8",
+        "bg-red-50 dark:bg-red-900/10 border border-red-200 dark:border-red-800 rounded-xl",
+        className,
       )}
     >
       {/* Error Icon */}
@@ -154,8 +162,8 @@ function DefaultErrorFallback({ error, errorInfo, onRetry, className }: DefaultE
         Terjadi Kesalahan
       </h2>
       <p className="text-sm text-red-700 dark:text-red-300 text-center max-w-md mb-4">
-        Maaf, terjadi kesalahan saat memuat komponen ini. Silakan coba lagi atau hubungi dukungan
-        jika masalah berlanjut.
+        Maaf, terjadi kesalahan saat memuat komponen ini. Silakan coba lagi atau
+        hubungi dukungan jika masalah berlanjut.
       </p>
 
       {/* Retry Button */}
@@ -182,34 +190,36 @@ function DefaultErrorFallback({ error, errorInfo, onRetry, className }: DefaultE
             {errorInfo && (
               <div>
                 <strong>Component Stack:</strong>
-                <pre className="mt-1 whitespace-pre-wrap">{errorInfo.componentStack}</pre>
+                <pre className="mt-1 whitespace-pre-wrap">
+                  {errorInfo.componentStack}
+                </pre>
               </div>
             )}
           </div>
         </details>
       )}
     </div>
-  )
+  );
 }
 
 // ─── Higher-Order Component (HOC) ─────────────────────────────────────────────
 
 interface WithErrorBoundaryOptions {
-  fallback?: ReactNode
-  onRetry?: () => void
+  fallback?: ReactNode;
+  onRetry?: () => void;
 }
 
 export function withErrorBoundary<P extends object>(
   WrappedComponent: React.ComponentType<P>,
-  options: WithErrorBoundaryOptions = {}
+  options: WithErrorBoundaryOptions = {},
 ): React.FC<P> {
   return function WithErrorBoundary(props: P) {
     return (
       <ErrorBoundary fallback={options.fallback} onRetry={options.onRetry}>
         <WrappedComponent {...props} />
       </ErrorBoundary>
-    )
-  }
+    );
+  };
 }
 
-export default ErrorBoundary
+export default ErrorBoundary;

@@ -6,11 +6,11 @@ international schools but is NOT the primary locale.
 ## Usage in components
 
 ```tsx
-import { useT } from '@/shared/hooks/useT'
+import { useT } from "@/shared/hooks/useT";
 
 function SaveButton() {
-  const { t } = useT()
-  return <button>{t('common.save')}</button>
+  const { t } = useT();
+  return <button>{t("common.save")}</button>;
 }
 ```
 

@@ -1,4 +1,4 @@
-import { useToast } from '@/hooks/useToast'
+import { useToast } from "@/hooks/useToast";
 
 /**
  * Several backend endpoints (PDF reports, plagiarism, etc.) are mounted as
@@ -15,14 +15,18 @@ import { useToast } from '@/hooks/useToast'
  * Unit 3 decision): rather than hide every UI surface that calls a stub, we
  * surface the truth at the boundary.
  */
-export function detectStubResponse(payload: unknown, featureLabel: string): boolean {
-  if (typeof payload !== 'object' || payload === null) return false
-  const isStub = (payload as { stub?: unknown }).stub === true
-  if (!isStub) return false
+export function detectStubResponse(
+  payload: unknown,
+  featureLabel: string,
+): boolean {
+  if (typeof payload !== "object" || payload === null) return false;
+  const isStub = (payload as { stub?: unknown }).stub === true;
+  if (!isStub) return false;
   useToast.getState().addToast({
-    type: 'info',
+    type: "info",
     message: `${featureLabel} sedang dikembangkan`,
-    description: 'Backend masih mengembalikan data placeholder. Fitur penuh akan tersedia di fase berikutnya.',
-  })
-  return true
+    description:
+      "Backend masih mengembalikan data placeholder. Fitur penuh akan tersedia di fase berikutnya.",
+  });
+  return true;
 }

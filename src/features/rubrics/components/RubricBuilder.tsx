@@ -1,26 +1,34 @@
-import { DragDropContext, Draggable, Droppable, type DropResult } from '@hello-pangea/dnd'
-import { BookTemplate, Loader2, Plus, Save, X } from 'lucide-react'
-import { useState } from 'react'
+import {
+  DragDropContext,
+  Draggable,
+  Droppable,
+  type DropResult,
+} from "@hello-pangea/dnd";
+import { BookTemplate, Loader2, Plus, Save, X } from "lucide-react";
+import { useState } from "react";
 
-import { useToast } from '@/hooks/useToast'
-import { cn } from '@/utils/cn'
+import { useToast } from "@/hooks/useToast";
+import { cn } from "@/utils/cn";
 
-import { useRubricBuilder } from '../hooks/useRubricBuilder'
-import { useSaveRubric } from '../queries/rubricQueries'
-import type { Rubric, RubricInsert } from '../types'
-import { calculateTotalPoints, validateRubric } from '../utils/rubricCalculations'
-import { RubricCriterionRow } from './RubricCriterionRow'
-import { RubricTemplateModal } from './RubricTemplateModal'
+import { useRubricBuilder } from "../hooks/useRubricBuilder";
+import { useSaveRubric } from "../queries/rubricQueries";
+import type { Rubric, RubricInsert } from "../types";
+import {
+  calculateTotalPoints,
+  validateRubric,
+} from "../utils/rubricCalculations";
+import { RubricCriterionRow } from "./RubricCriterionRow";
+import { RubricTemplateModal } from "./RubricTemplateModal";
 
 interface RubricBuilderProps {
-  assignmentId?: string
-  initialRubric?: Rubric
-  onSave: (rubricId: string) => void
-  onCancel: () => void
+  assignmentId?: string;
+  initialRubric?: Rubric;
+  onSave: (rubricId: string) => void;
+  onCancel: () => void;
 }
 
 const INPUT_CLS =
-  'w-full px-4 py-2.5 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 dark:text-white dark:placeholder-slate-500 transition-colors'
+  "w-full px-4 py-2.5 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 dark:text-white dark:placeholder-slate-500 transition-colors";
 
 export function RubricBuilder({
   assignmentId,
@@ -28,9 +36,9 @@ export function RubricBuilder({
   onSave,
   onCancel,
 }: RubricBuilderProps) {
-  const addToast = useToast((s) => s.addToast)
-  const [showTemplateModal, setShowTemplateModal] = useState(false)
-  const saveRubric = useSaveRubric()
+  const addToast = useToast((s) => s.addToast);
+  const [showTemplateModal, setShowTemplateModal] = useState(false);
+  const saveRubric = useSaveRubric();
 
   const {
     state,
@@ -45,31 +53,31 @@ export function RubricBuilder({
     setTitle,
     setDescription,
     setIsTemplate,
-  } = useRubricBuilder(assignmentId)
+  } = useRubricBuilder(assignmentId);
 
   // Load initial rubric on first render
-  const [initialized, setInitialized] = useState(false)
+  const [initialized, setInitialized] = useState(false);
   if (!initialized && initialRubric) {
-    loadRubric(initialRubric)
-    setInitialized(true)
+    loadRubric(initialRubric);
+    setInitialized(true);
   }
 
-  const { rubric } = state
-  const totalPoints = calculateTotalPoints(rubric.criteria)
+  const { rubric } = state;
+  const totalPoints = calculateTotalPoints(rubric.criteria);
 
   const handleDragEnd = (result: DropResult) => {
-    if (!result.destination) return
-    const reordered = Array.from(rubric.criteria)
-    const [moved] = reordered.splice(result.source.index, 1)
-    reordered.splice(result.destination.index, 0, moved)
-    reorderCriteria(reordered.map((c, i) => ({ ...c, order: i })))
-  }
+    if (!result.destination) return;
+    const reordered = Array.from(rubric.criteria);
+    const [moved] = reordered.splice(result.source.index, 1);
+    reordered.splice(result.destination.index, 0, moved);
+    reorderCriteria(reordered.map((c, i) => ({ ...c, order: i })));
+  };
 
   const handleSave = async () => {
-    const errors = validateRubric(rubric)
+    const errors = validateRubric(rubric);
     if (errors.length > 0) {
-      addToast({ type: 'error', message: errors[0] })
-      return
+      addToast({ type: "error", message: errors[0] });
+      return;
     }
 
     try {
@@ -79,33 +87,39 @@ export function RubricBuilder({
         title: rubric.title,
         description: rubric.description,
         is_template: rubric.is_template,
-        created_by: '',
+        created_by: "",
         criteria: rubric.criteria.map((c, ci) => ({
           ...c,
           order: ci,
           levels: c.levels.map((l, li) => ({ ...l, order: li })),
         })),
-      }
+      };
 
-      const rubricId = await saveRubric.mutateAsync(payload)
-      addToast({ type: 'success', message: 'Rubrik berhasil disimpan.' })
-      onSave(rubricId)
+      const rubricId = await saveRubric.mutateAsync(payload);
+      addToast({ type: "success", message: "Rubrik berhasil disimpan." });
+      onSave(rubricId);
     } catch {
-      addToast({ type: 'error', message: 'Gagal menyimpan rubrik. Silakan coba lagi.' })
+      addToast({
+        type: "error",
+        message: "Gagal menyimpan rubrik. Silakan coba lagi.",
+      });
     }
-  }
+  };
 
   const handleTemplateSelect = (template: Rubric) => {
     const cloned: Rubric = {
       ...template,
-      id: '',
+      id: "",
       assignment_id: assignmentId ?? null,
       is_template: false,
-    }
-    loadRubric(cloned)
-    setShowTemplateModal(false)
-    addToast({ type: 'info', message: `Template "${template.title}" berhasil diimpor.` })
-  }
+    };
+    loadRubric(cloned);
+    setShowTemplateModal(false);
+    addToast({
+      type: "info",
+      message: `Template "${template.title}" berhasil diimpor.`,
+    });
+  };
 
   return (
     <div className="flex flex-col gap-6">
@@ -121,7 +135,7 @@ export function RubricBuilder({
               value={rubric.title}
               onChange={(e) => setTitle(e.target.value)}
               placeholder="Contoh: Rubrik Esai Argumentatif"
-              className={cn(INPUT_CLS, 'font-bold')}
+              className={cn(INPUT_CLS, "font-bold")}
             />
           </div>
           <div>
@@ -133,7 +147,7 @@ export function RubricBuilder({
               onChange={(e) => setDescription(e.target.value)}
               placeholder="Jelaskan tujuan rubrik ini..."
               rows={2}
-              className={cn(INPUT_CLS, 'resize-none')}
+              className={cn(INPUT_CLS, "resize-none")}
             />
           </div>
         </div>
@@ -143,13 +157,17 @@ export function RubricBuilder({
       <div className="flex items-center justify-between flex-wrap gap-3">
         <div className="flex items-center gap-4">
           <div className="flex items-center gap-2">
-            <span className="text-sm text-slate-500 dark:text-slate-400">Total Poin:</span>
+            <span className="text-sm text-slate-500 dark:text-slate-400">
+              Total Poin:
+            </span>
             <span className="text-lg font-black text-blue-600 dark:text-blue-400">
               {totalPoints}
             </span>
           </div>
           <div className="flex items-center gap-2">
-            <span className="text-sm text-slate-500 dark:text-slate-400">Kriteria:</span>
+            <span className="text-sm text-slate-500 dark:text-slate-400">
+              Kriteria:
+            </span>
             <span className="text-sm font-bold text-slate-700 dark:text-slate-300">
               {rubric.criteria.length}
             </span>
@@ -168,16 +186,16 @@ export function RubricBuilder({
               />
               <div
                 className={cn(
-                  'w-10 h-5 rounded-full transition-colors',
+                  "w-10 h-5 rounded-full transition-colors",
                   rubric.is_template
-                    ? 'bg-purple-500 dark:bg-purple-600'
-                    : 'bg-slate-200 dark:bg-slate-700'
+                    ? "bg-purple-500 dark:bg-purple-600"
+                    : "bg-slate-200 dark:bg-slate-700",
                 )}
               />
               <div
                 className={cn(
-                  'absolute top-0.5 left-0.5 w-4 h-4 bg-white rounded-full shadow transition-transform',
-                  rubric.is_template && 'translate-x-5'
+                  "absolute top-0.5 left-0.5 w-4 h-4 bg-white rounded-full shadow transition-transform",
+                  rubric.is_template && "translate-x-5",
                 )}
               />
             </div>
@@ -219,18 +237,26 @@ export function RubricBuilder({
                   </div>
                 )}
                 {rubric.criteria.map((criterion, index) => (
-                  <Draggable key={criterion.id} draggableId={criterion.id} index={index}>
+                  <Draggable
+                    key={criterion.id}
+                    draggableId={criterion.id}
+                    index={index}
+                  >
                     {(draggableProvided) => (
                       <RubricCriterionRow
                         criterion={criterion}
                         provided={draggableProvided}
-                        onUpdate={(updates) => updateCriterion(criterion.id, updates)}
+                        onUpdate={(updates) =>
+                          updateCriterion(criterion.id, updates)
+                        }
                         onDelete={() => deleteCriterion(criterion.id)}
                         onAddLevel={() => addLevel(criterion.id)}
                         onUpdateLevel={(levelId, updates) =>
                           updateLevel(criterion.id, levelId, updates)
                         }
-                        onDeleteLevel={(levelId) => deleteLevel(criterion.id, levelId)}
+                        onDeleteLevel={(levelId) =>
+                          deleteLevel(criterion.id, levelId)
+                        }
                       />
                     )}
                   </Draggable>
@@ -285,5 +311,5 @@ export function RubricBuilder({
         />
       )}
     </div>
-  )
+  );
 }

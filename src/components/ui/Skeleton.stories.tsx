@@ -1,43 +1,43 @@
-import type { Meta, StoryObj } from '@storybook/react'
+import type { Meta, StoryObj } from "@storybook/react";
 
-import { Skeleton, SkeletonCard } from './Skeleton'
+import { Skeleton, SkeletonCard } from "./Skeleton";
 
 const meta: Meta<typeof Skeleton> = {
-  title: 'UI/Skeleton',
+  title: "UI/Skeleton",
   component: Skeleton,
-  tags: ['autodocs'],
-}
+  tags: ["autodocs"],
+};
 
-export default meta
-type Story = StoryObj<typeof Skeleton>
+export default meta;
+type Story = StoryObj<typeof Skeleton>;
 
 export const Default: Story = {
   args: {
-    width: 'w-48',
-    height: 'h-5',
+    width: "w-48",
+    height: "h-5",
   },
-}
+};
 
 export const Square: Story = {
   args: {
-    width: 'w-20',
-    height: 'h-20',
-    className: 'rounded-xl',
+    width: "w-20",
+    height: "h-20",
+    className: "rounded-xl",
   },
-}
+};
 
 export const Circle: Story = {
   args: {
-    width: 'w-12',
-    height: 'h-12',
-    className: 'rounded-full',
+    width: "w-12",
+    height: "h-12",
+    className: "rounded-full",
   },
-}
+};
 
 export const FullWidth: Story = {
   args: {
-    width: 'w-full',
-    height: 'h-4',
+    width: "w-full",
+    height: "h-4",
   },
   decorators: [
     (StoryComponent) => (
@@ -46,7 +46,7 @@ export const FullWidth: Story = {
       </div>
     ),
   ],
-}
+};
 
 export const TextLines: Story = {
   render: () => (
@@ -56,15 +56,15 @@ export const TextLines: Story = {
       <Skeleton width="w-3/5" height="h-4" />
     </div>
   ),
-}
+};
 
 /* -- SkeletonCard stories -- */
 
 const cardMeta: Meta<typeof SkeletonCard> = {
-  title: 'UI/SkeletonCard',
+  title: "UI/SkeletonCard",
   component: SkeletonCard,
-  tags: ['autodocs'],
-}
+  tags: ["autodocs"],
+};
 
 export const CardDefault: StoryObj<typeof SkeletonCard> = {
   render: () => (
@@ -72,7 +72,7 @@ export const CardDefault: StoryObj<typeof SkeletonCard> = {
       <SkeletonCard />
     </div>
   ),
-}
+};
 
 export const CardWithMoreLines: StoryObj<typeof SkeletonCard> = {
   render: () => (
@@ -80,7 +80,7 @@ export const CardWithMoreLines: StoryObj<typeof SkeletonCard> = {
       <SkeletonCard lines={4} />
     </div>
   ),
-}
+};
 
 export const CardGrid: StoryObj<typeof SkeletonCard> = {
   render: () => (
@@ -91,7 +91,7 @@ export const CardGrid: StoryObj<typeof SkeletonCard> = {
       <SkeletonCard lines={1} />
     </div>
   ),
-}
+};
 
 // Re-export card meta for separate story section
-export { cardMeta }
+export { cardMeta };

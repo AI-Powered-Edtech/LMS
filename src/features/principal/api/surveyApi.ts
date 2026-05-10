@@ -121,7 +121,10 @@ export async function closeSurvey(id: string): Promise<void> {
 // ── Delete Survey ──────────────────────────────────────────────
 
 export async function deleteSurvey(id: string): Promise<void> {
-  const { error } = await db.from<any>("satisfaction_surveys").delete().eq("id", id);
+  const { error } = await db
+    .from<any>("satisfaction_surveys")
+    .delete()
+    .eq("id", id);
 
   if (error) {
     if (import.meta.env.DEV)

@@ -1,41 +1,42 @@
-import { AlertCircle } from 'lucide-react'
-import { useCallback, useState } from 'react'
+import { AlertCircle } from "lucide-react";
+import { useCallback, useState } from "react";
 
-import { cn } from '@/utils/cn'
+import { cn } from "@/utils/cn";
 
 export interface GroupSettings {
-  method: string
-  docCollab: 'single_doc' | 'shared_folder'
-  peerReview: boolean
+  method: string;
+  docCollab: "single_doc" | "shared_folder";
+  peerReview: boolean;
 }
 
 interface Props {
-  onSave: (settings: GroupSettings) => void
+  onSave: (settings: GroupSettings) => void;
 }
 
 export function GroupSettingsTab({ onSave }: Props) {
-  const [method, setMethod] = useState('')
-  const [docCollab, setDocCollab] = useState<GroupSettings['docCollab']>('single_doc')
-  const [peerReview, setPeerReview] = useState(true)
-  const [errors, setErrors] = useState<Record<string, string>>({})
-  const [touched, setTouched] = useState(false)
+  const [method, setMethod] = useState("");
+  const [docCollab, setDocCollab] =
+    useState<GroupSettings["docCollab"]>("single_doc");
+  const [peerReview, setPeerReview] = useState(true);
+  const [errors, setErrors] = useState<Record<string, string>>({});
+  const [touched, setTouched] = useState(false);
 
   const validate = useCallback(() => {
-    const newErrors: Record<string, string> = {}
+    const newErrors: Record<string, string> = {};
     if (!method) {
-      newErrors.method = 'Metode pembagian kelompok wajib dipilih.'
+      newErrors.method = "Metode pembagian kelompok wajib dipilih.";
     }
-    return newErrors
-  }, [method])
+    return newErrors;
+  }, [method]);
 
   const handleSave = () => {
-    setTouched(true)
-    const validationErrors = validate()
-    setErrors(validationErrors)
-    if (Object.keys(validationErrors).length > 0) return
+    setTouched(true);
+    const validationErrors = validate();
+    setErrors(validationErrors);
+    if (Object.keys(validationErrors).length > 0) return;
 
-    onSave({ method, docCollab, peerReview })
-  }
+    onSave({ method, docCollab, peerReview });
+  };
 
   return (
     <div className="bg-white dark:bg-slate-800 p-6 sm:p-8 rounded-3xl border border-slate-200 dark:border-slate-700 shadow-sm dark:shadow-none max-w-3xl">
@@ -54,30 +55,32 @@ export function GroupSettingsTab({ onSave }: Props) {
             id="group-method"
             value={method}
             onChange={(e) => {
-              setMethod(e.target.value)
+              setMethod(e.target.value);
               if (touched) {
                 setErrors((prev) => {
-                  const next = { ...prev }
-                  if (e.target.value) delete next.method
-                  else next.method = 'Metode pembagian kelompok wajib dipilih.'
-                  return next
-                })
+                  const next = { ...prev };
+                  if (e.target.value) delete next.method;
+                  else next.method = "Metode pembagian kelompok wajib dipilih.";
+                  return next;
+                });
               }
             }}
             aria-invalid={!!errors.method}
-            aria-describedby={errors.method ? 'group-method-error' : undefined}
+            aria-describedby={errors.method ? "group-method-error" : undefined}
             className={cn(
-              'w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-900 border rounded-xl',
-              'focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:focus:ring-indigo-400',
-              'text-slate-900 dark:text-slate-100',
+              "w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-900 border rounded-xl",
+              "focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:focus:ring-indigo-400",
+              "text-slate-900 dark:text-slate-100",
               errors.method
-                ? 'border-red-400 dark:border-red-500'
-                : 'border-slate-200 dark:border-slate-600'
+                ? "border-red-400 dark:border-red-500"
+                : "border-slate-200 dark:border-slate-600",
             )}
           >
             <option value="">— Pilih metode —</option>
             <option value="random">Otomatis (Acak)</option>
-            <option value="gcr_sync">Sinkronisasi dari Google Classroom (Kelompok Siswa)</option>
+            <option value="gcr_sync">
+              Sinkronisasi dari Google Classroom (Kelompok Siswa)
+            </option>
             <option value="manual">Pilih Manual</option>
             <option value="self_select">Siswa Memilih Sendiri</option>
           </select>
@@ -101,8 +104,8 @@ export function GroupSettingsTab({ onSave }: Props) {
               <input
                 type="radio"
                 name="doc_collab"
-                checked={docCollab === 'single_doc'}
-                onChange={() => setDocCollab('single_doc')}
+                checked={docCollab === "single_doc"}
+                onChange={() => setDocCollab("single_doc")}
                 className="mt-1 w-4 h-4 text-indigo-600 dark:text-indigo-400 focus:ring-indigo-500 dark:focus:ring-indigo-400"
               />
               <div>
@@ -118,8 +121,8 @@ export function GroupSettingsTab({ onSave }: Props) {
               <input
                 type="radio"
                 name="doc_collab"
-                checked={docCollab === 'shared_folder'}
-                onChange={() => setDocCollab('shared_folder')}
+                checked={docCollab === "shared_folder"}
+                onChange={() => setDocCollab("shared_folder")}
                 className="mt-1 w-4 h-4 text-indigo-600 dark:text-indigo-400 focus:ring-indigo-500 dark:focus:ring-indigo-400"
               />
               <div>
@@ -134,7 +137,9 @@ export function GroupSettingsTab({ onSave }: Props) {
           </div>
         </div>
         <div className="space-y-3">
-          <p className="text-sm font-bold text-slate-700 dark:text-slate-300">Penilaian Sejawat</p>
+          <p className="text-sm font-bold text-slate-700 dark:text-slate-300">
+            Penilaian Sejawat
+          </p>
           <label className="flex items-center gap-3 p-4 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-600 rounded-xl cursor-pointer hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors">
             <input
               type="checkbox"
@@ -147,7 +152,8 @@ export function GroupSettingsTab({ onSave }: Props) {
                 Wajibkan Penilaian Antar Anggota
               </p>
               <p className="text-xs text-slate-500 dark:text-slate-400">
-                Siswa harus menilai kontribusi anggota kelompoknya sebelum tugas dianggap selesai.
+                Siswa harus menilai kontribusi anggota kelompoknya sebelum tugas
+                dianggap selesai.
               </p>
             </div>
           </label>
@@ -162,5 +168,5 @@ export function GroupSettingsTab({ onSave }: Props) {
         </div>
       </div>
     </div>
-  )
+  );
 }

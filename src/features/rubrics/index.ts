@@ -1,8 +1,8 @@
 // ─── Service ──────────────────────────────────────────────────────────────────
-export { rubricService } from './api/rubricService'
+export { rubricService } from "./api/rubricService";
 
 // ─── Query keys ───────────────────────────────────────────────────────────────
-export { rubricKeys, rubricQueryKeys } from './queries/rubricKeys'
+export { rubricKeys, rubricQueryKeys } from "./queries/rubricKeys";
 
 // ─── Queries & mutations ──────────────────────────────────────────────────────
 export {
@@ -13,18 +13,18 @@ export {
   useRubricTemplates,
   useSaveRubric,
   useScoreSubmission,
-} from './queries/rubricQueries'
+} from "./queries/rubricQueries";
 
 // ─── Hooks ────────────────────────────────────────────────────────────────────
-export { useRubricBuilder } from './hooks/useRubricBuilder'
+export { useRubricBuilder } from "./hooks/useRubricBuilder";
 
 // ─── Components ───────────────────────────────────────────────────────────────
-export { RubricBuilder } from './components/RubricBuilder'
-export { RubricCriterionRow } from './components/RubricCriterionRow'
-export { RubricLevelCell } from './components/RubricLevelCell'
-export { RubricPreview } from './components/RubricPreview'
-export { RubricScoringGrid } from './components/RubricScoringGrid'
-export { RubricTemplateModal } from './components/RubricTemplateModal'
+export { RubricBuilder } from "./components/RubricBuilder";
+export { RubricCriterionRow } from "./components/RubricCriterionRow";
+export { RubricLevelCell } from "./components/RubricLevelCell";
+export { RubricPreview } from "./components/RubricPreview";
+export { RubricScoringGrid } from "./components/RubricScoringGrid";
+export { RubricTemplateModal } from "./components/RubricTemplateModal";
 
 // ─── Utils ────────────────────────────────────────────────────────────────────
 export {
@@ -33,7 +33,7 @@ export {
   calculateTotalPoints,
   isRubricComplete,
   validateRubric,
-} from './utils/rubricCalculations'
+} from "./utils/rubricCalculations";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 export type {
@@ -43,4 +43,4 @@ export type {
   RubricLevel,
   RubricScore,
   RubricTemplateSummary,
-} from './types'
+} from "./types";

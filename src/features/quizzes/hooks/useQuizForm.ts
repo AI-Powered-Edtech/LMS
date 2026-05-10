@@ -1,34 +1,34 @@
-import { valibotResolver } from '@hookform/resolvers/valibot'
-import { useForm } from 'react-hook-form'
+import { valibotResolver } from "@hookform/resolvers/valibot";
+import { useForm } from "react-hook-form";
 
 import {
   type QuizFormData,
-  type QuizQuestion,
   QuizFormSchema,
-} from '@/shared/schemas/forms'
+  type QuizQuestion,
+} from "@/shared/schemas/forms";
 
 // Re-export types for backward compat with QuizManager / QuizEditorView importers.
-export type { QuizFormData, QuizQuestion }
+export type { QuizFormData, QuizQuestion };
 
 // ─────────────────────────────────────────────────────────
 // Default form state
 // ─────────────────────────────────────────────────────────
 
 export const emptyForm: QuizFormData = {
-  title: '',
-  instructions: '',
-  mode: 'graded',
+  title: "",
+  instructions: "",
+  mode: "graded",
   time_limit_minutes: 15,
   max_attempts: 3,
   passing_score: 70,
   shuffle_questions: false,
   shuffle_options: false,
   show_correct_answers: false,
-  available_from: '',
-  due_at: '',
-  status: 'draft',
+  available_from: "",
+  due_at: "",
+  status: "draft",
   questions: [],
-}
+};
 
 /**
  * EduSync LMS — Quiz Form Hook
@@ -39,10 +39,10 @@ export function useQuizForm(initialForm: QuizFormData = emptyForm) {
   const formMethods = useForm<QuizFormData>({
     resolver: valibotResolver(QuizFormSchema),
     defaultValues: initialForm,
-    mode: 'onChange',
-  })
+    mode: "onChange",
+  });
 
   return {
     ...formMethods,
-  }
+  };
 }

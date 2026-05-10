@@ -1,7 +1,13 @@
-import React, { createContext, ReactNode, useCallback, useContext, useMemo } from 'react'
+import React, {
+  createContext,
+  ReactNode,
+  useCallback,
+  useContext,
+  useMemo,
+} from "react";
 
-import { getAuthProvider } from '@/services/auth'
-import { captureError } from '@/utils/sentry'
+import { getAuthProvider } from "@/services/auth";
+import { captureError } from "@/utils/sentry";
 
 import {
   getPermissions,
@@ -12,52 +18,52 @@ import {
   useRoleResolution,
   useSessionManagement,
   useTenantSwitching,
-} from './auth'
+} from "./auth";
 
 interface AuthUser {
-  id: string
-  email?: string
-  email_confirmed_at?: string
-  app_metadata?: Record<string, unknown>
-  user_metadata?: Record<string, unknown>
+  id: string;
+  email?: string;
+  email_confirmed_at?: string;
+  app_metadata?: Record<string, unknown>;
+  user_metadata?: Record<string, unknown>;
 }
 
 interface AuthSession {
-  access_token: string
-  refresh_token: string
-  expires_at?: number
-  user: AuthUser
+  access_token: string;
+  refresh_token: string;
+  expires_at?: number;
+  user: AuthUser;
 }
 
-export type { Permissions, Role, Tenant }
-export { getPermissions, getPrimaryRole }
+export type { Permissions, Role, Tenant };
+export { getPermissions, getPrimaryRole };
 
 export interface AuthContextType {
-  user: AuthUser | null
-  session: AuthSession | null
-  profile: ReturnType<typeof useRoleResolution>['profile']
-  tenantId: string | null
-  memberships: ReturnType<typeof useRoleResolution>['memberships']
-  activeTenant: Tenant | null
-  setActiveTenant: (tenantId: string) => Promise<void>
-  activeRole: Role | null
-  roles: Role[]
-  role: Role
-  permissions: Permissions
-  loading: boolean
-  authStatus: ReturnType<typeof useSessionManagement>['authStatus']
-  authError: string | null
+  user: AuthUser | null;
+  session: AuthSession | null;
+  profile: ReturnType<typeof useRoleResolution>["profile"];
+  tenantId: string | null;
+  memberships: ReturnType<typeof useRoleResolution>["memberships"];
+  activeTenant: Tenant | null;
+  setActiveTenant: (tenantId: string) => Promise<void>;
+  activeRole: Role | null;
+  roles: Role[];
+  role: Role;
+  permissions: Permissions;
+  loading: boolean;
+  authStatus: ReturnType<typeof useSessionManagement>["authStatus"];
+  authError: string | null;
   workspaceStatus:
-    | 'idle'
-    | 'loading'
-    | 'needs_onboarding'
-    | 'needs_selection'
-    | 'resolved'
-    | 'error'
-  bootstrapReady: boolean
-  emailVerified: boolean
-  sessionExpired: boolean
-  signIn: (email: string, password: string) => Promise<{ error: Error | null }>
+    | "idle"
+    | "loading"
+    | "needs_onboarding"
+    | "needs_selection"
+    | "resolved"
+    | "error";
+  bootstrapReady: boolean;
+  emailVerified: boolean;
+  sessionExpired: boolean;
+  signIn: (email: string, password: string) => Promise<{ error: Error | null }>;
   signUp: (
     email: string,
     password: string,
@@ -65,20 +71,22 @@ export interface AuthContextType {
     lastName: string,
     tenantId?: string,
     extras?: {
-      role?: 'student' | 'teacher'
-      tenantInviteCode?: string
-      createPersonalTenant?: boolean
-      displayName?: string
-    }
-  ) => Promise<{ error: Error | null }>
-  signOut: () => Promise<void>
-  signInWithGoogle: () => Promise<void>
-  clearAuthError: () => void
-  refreshAuthBootstrap: () => Promise<void>
-  hasRole: (role: Role) => boolean
+      role?: "student" | "teacher";
+      tenantInviteCode?: string;
+      createPersonalTenant?: boolean;
+      displayName?: string;
+    },
+  ) => Promise<{ error: Error | null }>;
+  signOut: () => Promise<void>;
+  signInWithGoogle: () => Promise<void>;
+  clearAuthError: () => void;
+  refreshAuthBootstrap: () => Promise<void>;
+  hasRole: (role: Role) => boolean;
 }
 
-export const AuthContext = createContext<AuthContextType | undefined>(undefined)
+export const AuthContext = createContext<AuthContextType | undefined>(
+  undefined,
+);
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const {
@@ -93,7 +101,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     signUp,
     signInWithGoogle,
     clearAuthError,
-  } = useSessionManagement()
+  } = useSessionManagement();
   const {
     profile,
     roles,
@@ -105,70 +113,77 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     loading: roleLoading,
     loadingMemberships,
     fetchUserData,
-  } = useRoleResolution(user)
+  } = useRoleResolution(user);
   const {
     tenantId,
     activeTenant,
     setActiveTenant: setActiveTenantRaw,
-  } = useTenantSwitching({ rawTenants, defaultTenantId })
+  } = useTenantSwitching({ rawTenants, defaultTenantId });
 
   const setActiveTenant = useCallback(
     async (id: string) => {
       try {
         if (!user) {
-          setActiveTenantRaw(id)
-          return
+          setActiveTenantRaw(id);
+          return;
         }
-        const { error } = await getAuthProvider().switchTenant({ tenantId: id })
+        const { error } = await getAuthProvider().switchTenant({
+          tenantId: id,
+        });
         if (error) {
-          throw new Error(error.message)
+          throw new Error(error.message);
         }
-        await fetchUserData(user.id)
-        setActiveTenantRaw(id)
+        await fetchUserData(user.id);
+        setActiveTenantRaw(id);
       } catch (err) {
-        captureError(err, { context: 'AuthContext.setActiveTenant', tenantId: id })
-        const { useToast } = await import('@/hooks/useToast')
+        captureError(err, {
+          context: "AuthContext.setActiveTenant",
+          tenantId: id,
+        });
+        const { useToast } = await import("@/hooks/useToast");
         useToast.getState().addToast({
-          type: 'error',
-          message: 'Gagal mengganti ruang kerja.',
-          description: err instanceof Error ? err.message : 'Silakan coba lagi.',
-        })
-        throw err
+          type: "error",
+          message: "Gagal mengganti ruang kerja.",
+          description:
+            err instanceof Error ? err.message : "Silakan coba lagi.",
+        });
+        throw err;
       }
     },
-    [fetchUserData, setActiveTenantRaw, user]
-  )
+    [fetchUserData, setActiveTenantRaw, user],
+  );
 
   const activeRole = React.useMemo(() => {
-    if (!activeTenant) return null
-    const membership = memberships.find((m) => m.tenant_id === activeTenant.id)
-    return membership?.role || null
-  }, [activeTenant, memberships])
+    if (!activeTenant) return null;
+    const membership = memberships.find((m) => m.tenant_id === activeTenant.id);
+    return membership?.role || null;
+  }, [activeTenant, memberships]);
 
-  const role = useMemo(() => getPrimaryRole(roles), [roles])
-  const permissions = useMemo(() => getPermissions(role), [role])
-  const emailVerified = !!user?.email_confirmed_at
+  const role = useMemo(() => getPrimaryRole(roles), [roles]);
+  const permissions = useMemo(() => getPermissions(role), [role]);
+  const emailVerified = !!user?.email_confirmed_at;
 
-  const hasRole = useCallback((r: Role) => roles.includes(r), [roles])
+  const hasRole = useCallback((r: Role) => roles.includes(r), [roles]);
   const refreshAuthBootstrap = useCallback(async () => {
-    if (!user) return
-    await fetchUserData(user.id)
-  }, [fetchUserData, user])
-  const resolvedAuthError = authError ?? bootstrapError
-  const workspaceStatus = useMemo<AuthContextType['workspaceStatus']>(() => {
-    if (!user) return 'idle'
-    if (sessionLoading || roleLoading || loadingMemberships) return 'loading'
+    if (!user) return;
+    await fetchUserData(user.id);
+  }, [fetchUserData, user]);
+  const resolvedAuthError = authError ?? bootstrapError;
+  const workspaceStatus = useMemo<AuthContextType["workspaceStatus"]>(() => {
+    if (!user) return "idle";
+    if (sessionLoading || roleLoading || loadingMemberships) return "loading";
 
     const activeMemberships = memberships.filter((membership) => {
-      const tenant = rawTenants[membership.tenant_id]
-      return membership.status === 'active' && tenant?.is_active
-    })
+      const tenant = rawTenants[membership.tenant_id];
+      return membership.status === "active" && tenant?.is_active;
+    });
 
-    if (activeTenant) return 'resolved'
-    if (resolvedAuthError) return 'error'
-    if (memberships.length > 0 && activeMemberships.length === 0) return 'error'
-    if (activeMemberships.length === 0) return 'needs_onboarding'
-    return activeMemberships.length > 1 ? 'needs_selection' : 'resolved'
+    if (activeTenant) return "resolved";
+    if (resolvedAuthError) return "error";
+    if (memberships.length > 0 && activeMemberships.length === 0)
+      return "error";
+    if (activeMemberships.length === 0) return "needs_onboarding";
+    return activeMemberships.length > 1 ? "needs_selection" : "resolved";
   }, [
     activeTenant,
     loadingMemberships,
@@ -178,7 +193,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     roleLoading,
     sessionLoading,
     user,
-  ])
+  ]);
 
   const contextValue = useMemo<AuthContextType>(
     () => ({
@@ -236,16 +251,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       clearAuthError,
       refreshAuthBootstrap,
       hasRole,
-    ]
-  )
+    ],
+  );
 
-  return <AuthContext.Provider value={contextValue}>{children}</AuthContext.Provider>
+  return (
+    <AuthContext.Provider value={contextValue}>{children}</AuthContext.Provider>
+  );
 }
 
 export function useAuth() {
-  const context = useContext(AuthContext)
+  const context = useContext(AuthContext);
   if (context === undefined) {
-    throw new Error('useAuth must be used within an AuthProvider')
+    throw new Error("useAuth must be used within an AuthProvider");
   }
-  return context
+  return context;
 }

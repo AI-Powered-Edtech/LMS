@@ -46,27 +46,27 @@ Semua tabel menggunakan `tenant_id` + RLS untuk isolasi multi-tenant.
 ### Membuat/mengedit rubrik (guru di CreateAssignmentModal)
 
 ```tsx
-import { RubricBuilder } from '@/features/rubrics'
-;<RubricBuilder
+import { RubricBuilder } from "@/features/rubrics";
+<RubricBuilder
   assignmentId={assignmentId}
   initialRubric={existingRubric}
-  onSave={(rubricId) => console.log('Saved:', rubricId)}
-  onCancel={() => setTab('detail')}
-/>
+  onSave={(rubricId) => console.log("Saved:", rubricId)}
+  onCancel={() => setTab("detail")}
+/>;
 ```
 
 ### Penilaian di SpeedGrader
 
 ```tsx
-import { RubricScoringGrid } from '@/features/rubrics'
-;<RubricScoringGrid rubric={rubric} scores={scores} onChange={setScores} />
+import { RubricScoringGrid } from "@/features/rubrics";
+<RubricScoringGrid rubric={rubric} scores={scores} onChange={setScores} />;
 ```
 
 ### Tampilan preview (siswa/review)
 
 ```tsx
-import { RubricPreview } from '@/features/rubrics'
-;<RubricPreview rubric={rubric} />
+import { RubricPreview } from "@/features/rubrics";
+<RubricPreview rubric={rubric} />;
 ```
 
 ## Catatan

@@ -1,87 +1,99 @@
-import { Flame, LogOut, Moon, Search, Star, Sun, UserCircle } from 'lucide-react'
-import { memo, useEffect, useRef, useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import {
+  Flame,
+  LogOut,
+  Moon,
+  Search,
+  Star,
+  Sun,
+  UserCircle,
+} from "lucide-react";
+import { memo, useEffect, useRef, useState } from "react";
+import { useNavigate } from "react-router-dom";
 
-import { TenantSwitcher } from '@/components/layout/TenantSwitcher'
-import { OptimizedImage } from '@/components/ui'
-import { Role, useAuth } from '@/contexts/AuthContext'
-import { useTheme } from '@/contexts/ThemeContext'
-import { LevelBadge } from '@/features/gamification/components/LevelBadge'
-import { useHeaderXPData } from '@/features/gamification/hooks/useHeaderXPData'
+import { TenantSwitcher } from "@/components/layout/TenantSwitcher";
+import { OptimizedImage } from "@/components/ui";
+import { Role, useAuth } from "@/contexts/AuthContext";
+import { useTheme } from "@/contexts/ThemeContext";
+import { LevelBadge } from "@/features/gamification/components/LevelBadge";
+import { useHeaderXPData } from "@/features/gamification/hooks/useHeaderXPData";
 import {
   AdminNotificationBell,
   NotificationBell as AppNotificationBell,
-} from '@/features/notifications'
-import { GlobalSearchModal } from '@/features/search'
-import { NotificationBell as StruggleBell } from '@/features/struggle'
-import { cn } from '@/utils/cn'
-import { logger } from '@/utils/logger'
-import { captureError } from '@/utils/sentry'
+} from "@/features/notifications";
+import { GlobalSearchModal } from "@/features/search";
+import { NotificationBell as StruggleBell } from "@/features/struggle";
+import { cn } from "@/utils/cn";
+import { logger } from "@/utils/logger";
+import { captureError } from "@/utils/sentry";
 
 interface HeaderProps {
-  onMenuClick?: () => void
+  onMenuClick?: () => void;
 }
 
 export const Header = memo(function Header({ onMenuClick }: HeaderProps) {
   // PERF: XP data di-fetch hanya untuk student (dihandle oleh useHeaderXPData).
   // Teacher dan admin tidak membayar query student-specific.
-  const { streak, hasLoggedInToday, totalXp, level, progress } = useHeaderXPData()
+  const { streak, hasLoggedInToday, totalXp, level, progress } =
+    useHeaderXPData();
 
-  const { role, profile, signOut, user } = useAuth()
-  const { resolvedTheme, toggleTheme } = useTheme()
-  const navigate = useNavigate()
-  const [isProfileOpen, setIsProfileOpen] = useState(false)
-  const [isSearchOpen, setIsSearchOpen] = useState(false)
-  const profileRef = useRef<HTMLDivElement>(null)
+  const { role, profile, signOut, user } = useAuth();
+  const { resolvedTheme, toggleTheme } = useTheme();
+  const navigate = useNavigate();
+  const [isProfileOpen, setIsProfileOpen] = useState(false);
+  const [isSearchOpen, setIsSearchOpen] = useState(false);
+  const profileRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
-      if (profileRef.current && !profileRef.current.contains(event.target as Node)) {
-        setIsProfileOpen(false)
+      if (
+        profileRef.current &&
+        !profileRef.current.contains(event.target as Node)
+      ) {
+        setIsProfileOpen(false);
       }
     }
     function handleEscapeKey(event: KeyboardEvent) {
-      if (event.key === 'Escape') setIsProfileOpen(false)
+      if (event.key === "Escape") setIsProfileOpen(false);
     }
-    document.addEventListener('mousedown', handleClickOutside)
-    document.addEventListener('keydown', handleEscapeKey)
+    document.addEventListener("mousedown", handleClickOutside);
+    document.addEventListener("keydown", handleEscapeKey);
     return () => {
-      document.removeEventListener('mousedown', handleClickOutside)
-      document.removeEventListener('keydown', handleEscapeKey)
-    }
-  }, [])
+      document.removeEventListener("mousedown", handleClickOutside);
+      document.removeEventListener("keydown", handleEscapeKey);
+    };
+  }, []);
 
   useEffect(() => {
     const handler = (e: KeyboardEvent) => {
-      if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
-        e.preventDefault()
-        setIsSearchOpen((prev) => !prev)
+      if ((e.metaKey || e.ctrlKey) && e.key === "k") {
+        e.preventDefault();
+        setIsSearchOpen((prev) => !prev);
       }
-    }
-    window.addEventListener('keydown', handler)
-    return () => window.removeEventListener('keydown', handler)
-  }, [])
+    };
+    window.addEventListener("keydown", handler);
+    return () => window.removeEventListener("keydown", handler);
+  }, []);
 
   const handleLogout = async () => {
     try {
-      await signOut()
+      await signOut();
     } catch (e) {
-      if (import.meta.env.DEV) logger.error('[Header] signOut error:', e)
-      captureError(e, { context: 'Header.handleLogout' })
+      if (import.meta.env.DEV) logger.error("[Header] signOut error:", e);
+      captureError(e, { context: "Header.handleLogout" });
     } finally {
-      void navigate('/login')
+      void navigate("/login");
     }
-  }
+  };
 
   const roleLabels: Record<Role, string> = {
-    student: 'Siswa',
-    teacher: 'Guru',
-    admin: 'Administrator',
-    parent: 'Orang Tua',
-    principal: 'Kepala Sekolah',
-  }
+    student: "Siswa",
+    teacher: "Guru",
+    admin: "Administrator",
+    parent: "Orang Tua",
+    principal: "Kepala Sekolah",
+  };
 
-  const isStudent = role === 'student'
+  const isStudent = role === "student";
 
   return (
     <header
@@ -103,7 +115,11 @@ export const Header = memo(function Header({ onMenuClick }: HeaderProps) {
               strokeWidth={2}
               viewBox="0 0 24 24"
             >
-              <path strokeLinecap="round" strokeLinejoin="round" d="M4 6h16M4 12h16M4 18h16" />
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                d="M4 6h16M4 12h16M4 18h16"
+              />
             </svg>
           </button>
         )}
@@ -121,7 +137,9 @@ export const Header = memo(function Header({ onMenuClick }: HeaderProps) {
         <Search className="w-4 h-4" />
         <span className="hidden md:inline">Cari...</span>
         <kbd className="hidden md:inline-flex items-center gap-0.5 ml-auto text-xs">
-          <span className="px-1.5 py-0.5 rounded bg-slate-200 dark:bg-slate-700 font-mono">⌘K</span>
+          <span className="px-1.5 py-0.5 rounded bg-slate-200 dark:bg-slate-700 font-mono">
+            ⌘K
+          </span>
         </kbd>
       </button>
 
@@ -133,16 +151,18 @@ export const Header = memo(function Header({ onMenuClick }: HeaderProps) {
             <div className="flex items-center gap-2">
               <Flame
                 className={cn(
-                  'w-6 h-6 transition-all duration-300',
+                  "w-6 h-6 transition-all duration-300",
                   hasLoggedInToday
-                    ? 'text-orange-500 fill-orange-500 drop-shadow-[0_0_8px_rgba(249,115,22,0.5)]'
-                    : 'text-slate-300 dark:text-slate-600 fill-slate-300 dark:fill-slate-600'
+                    ? "text-orange-500 fill-orange-500 drop-shadow-[0_0_8px_rgba(249,115,22,0.5)]"
+                    : "text-slate-300 dark:text-slate-600 fill-slate-300 dark:fill-slate-600",
                 )}
               />
               <span
                 className={cn(
-                  'font-bold',
-                  hasLoggedInToday ? 'text-orange-600' : 'text-slate-400 dark:text-slate-500'
+                  "font-bold",
+                  hasLoggedInToday
+                    ? "text-orange-600"
+                    : "text-slate-400 dark:text-slate-500",
                 )}
               >
                 {streak}
@@ -183,7 +203,7 @@ export const Header = memo(function Header({ onMenuClick }: HeaderProps) {
           aria-label="Ubah mode gelap"
           className="p-2.5 min-w-[44px] min-h-[44px] flex items-center justify-center rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
         >
-          {resolvedTheme === 'dark' ? (
+          {resolvedTheme === "dark" ? (
             <Sun className="w-5 h-5 text-amber-400" />
           ) : (
             <Moon className="w-5 h-5 text-slate-500" />
@@ -194,7 +214,7 @@ export const Header = memo(function Header({ onMenuClick }: HeaderProps) {
         <StruggleBell />
 
         {/* Admin Notification Center — admin only */}
-        {role === 'admin' && <AdminNotificationBell />}
+        {role === "admin" && <AdminNotificationBell />}
 
         {/* App Notification Bell — all roles */}
         <AppNotificationBell />
@@ -229,15 +249,17 @@ export const Header = memo(function Header({ onMenuClick }: HeaderProps) {
                 <p className="text-sm font-bold text-slate-900 dark:text-slate-100">
                   {profile?.first_name} {profile?.last_name}
                 </p>
-                <p className="text-xs text-slate-500 dark:text-slate-400">{roleLabels[role]}</p>
+                <p className="text-xs text-slate-500 dark:text-slate-400">
+                  {roleLabels[role]}
+                </p>
               </div>
               <div className="p-2 space-y-1">
                 <button
                   type="button"
                   role="menuitem"
                   onClick={() => {
-                    void navigate('/profile')
-                    setIsProfileOpen(false)
+                    void navigate("/profile");
+                    setIsProfileOpen(false);
                   }}
                   className="w-full flex items-center gap-2 px-3 py-2 text-sm font-bold text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition-colors text-left outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
                 >
@@ -249,7 +271,7 @@ export const Header = memo(function Header({ onMenuClick }: HeaderProps) {
                   type="button"
                   role="menuitem"
                   onClick={() => {
-                    void handleLogout()
+                    void handleLogout();
                   }}
                   className="w-full flex items-center gap-2 px-3 py-2 text-sm font-bold text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors text-left outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
                 >
@@ -261,7 +283,10 @@ export const Header = memo(function Header({ onMenuClick }: HeaderProps) {
           )}
         </div>
       </div>
-      <GlobalSearchModal isOpen={isSearchOpen} onClose={() => setIsSearchOpen(false)} />
+      <GlobalSearchModal
+        isOpen={isSearchOpen}
+        onClose={() => setIsSearchOpen(false)}
+      />
     </header>
-  )
-})
+  );
+});

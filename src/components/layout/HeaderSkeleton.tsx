@@ -17,19 +17,19 @@ export function HeaderSkeleton() {
         {/* XP skeleton */}
         <div
           className="w-16 h-6 rounded-lg animate-pulse bg-slate-200 dark:bg-slate-700"
-          style={{ animationDelay: '100ms' }}
+          style={{ animationDelay: "100ms" }}
         />
         {/* Notification bell skeleton */}
         <div
           className="w-9 h-9 rounded-full animate-pulse bg-slate-200 dark:bg-slate-700"
-          style={{ animationDelay: '200ms' }}
+          style={{ animationDelay: "200ms" }}
         />
         {/* Avatar skeleton */}
         <div
           className="w-9 h-9 rounded-full animate-pulse bg-slate-200 dark:bg-slate-700"
-          style={{ animationDelay: '300ms' }}
+          style={{ animationDelay: "300ms" }}
         />
       </div>
     </header>
-  )
+  );
 }

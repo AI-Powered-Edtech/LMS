@@ -1,18 +1,18 @@
-import { Calendar, ChevronDown } from 'lucide-react'
+import { Calendar, ChevronDown } from "lucide-react";
 
 interface ClassOption {
-  id: string
-  name: string
+  id: string;
+  name: string;
 }
 
 interface ForumParticipationFiltersProps {
-  classes: ClassOption[]
-  selectedClass: string
-  dateFrom: string
-  dateTo: string
-  onClassChange: (value: string) => void
-  onDateFromChange: (value: string) => void
-  onDateToChange: (value: string) => void
+  classes: ClassOption[];
+  selectedClass: string;
+  dateFrom: string;
+  dateTo: string;
+  onClassChange: (value: string) => void;
+  onDateFromChange: (value: string) => void;
+  onDateToChange: (value: string) => void;
 }
 
 export function ForumParticipationFilters({
@@ -77,5 +77,5 @@ export function ForumParticipationFilters({
         </div>
       </div>
     </div>
-  )
+  );
 }

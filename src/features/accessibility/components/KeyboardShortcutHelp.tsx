@@ -1,48 +1,48 @@
-import { Keyboard, X } from 'lucide-react'
-import { AnimatePresence, motion } from 'motion/react'
-import { useEffect, useState } from 'react'
+import { Keyboard, X } from "lucide-react";
+import { AnimatePresence, motion } from "motion/react";
+import { useEffect, useState } from "react";
 
 const SHORTCUTS = [
   {
-    group: 'Navigasi',
+    group: "Navigasi",
     items: [
-      { keys: ['Alt', '←'], description: 'Pelajaran sebelumnya' },
-      { keys: ['Alt', '→'], description: 'Pelajaran berikutnya' },
-      { keys: ['Alt', 'T'], description: 'Buka AI Tutor' },
-      { keys: ['Escape'], description: 'Tutup modal/panel' },
+      { keys: ["Alt", "←"], description: "Pelajaran sebelumnya" },
+      { keys: ["Alt", "→"], description: "Pelajaran berikutnya" },
+      { keys: ["Alt", "T"], description: "Buka AI Tutor" },
+      { keys: ["Escape"], description: "Tutup modal/panel" },
     ],
   },
   {
-    group: 'Aksesibilitas',
+    group: "Aksesibilitas",
     items: [
-      { keys: ['Shift', '?'], description: 'Tampilkan pintasan keyboard' },
-      { keys: ['Alt', 'H'], description: 'Toggle kontras tinggi' },
+      { keys: ["Shift", "?"], description: "Tampilkan pintasan keyboard" },
+      { keys: ["Alt", "H"], description: "Toggle kontras tinggi" },
     ],
   },
   {
-    group: 'Materi',
+    group: "Materi",
     items: [
-      { keys: ['Space', 'Enter'], description: 'Pilih/Konfirmasi' },
-      { keys: ['Tab'], description: 'Fokus berikutnya' },
-      { keys: ['Shift', 'Tab'], description: 'Fokus sebelumnya' },
+      { keys: ["Space", "Enter"], description: "Pilih/Konfirmasi" },
+      { keys: ["Tab"], description: "Fokus berikutnya" },
+      { keys: ["Shift", "Tab"], description: "Fokus sebelumnya" },
     ],
   },
-]
+];
 
 export function KeyboardShortcutHelp() {
-  const [isOpen, setIsOpen] = useState(false)
+  const [isOpen, setIsOpen] = useState(false);
 
   useEffect(() => {
     function handleKeyDown(e: KeyboardEvent) {
-      if (e.shiftKey && e.key === '?') {
-        e.preventDefault()
-        setIsOpen((v) => !v)
+      if (e.shiftKey && e.key === "?") {
+        e.preventDefault();
+        setIsOpen((v) => !v);
       }
-      if (e.key === 'Escape') setIsOpen(false)
+      if (e.key === "Escape") setIsOpen(false);
     }
-    window.addEventListener('keydown', handleKeyDown)
-    return () => window.removeEventListener('keydown', handleKeyDown)
-  }, [])
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, []);
 
   return (
     <>
@@ -101,7 +101,10 @@ export function KeyboardShortcutHelp() {
                     <dd>
                       <ul className="space-y-1.5">
                         {group.items.map((item) => (
-                          <li key={item.description} className="flex items-center justify-between">
+                          <li
+                            key={item.description}
+                            className="flex items-center justify-between"
+                          >
                             <span className="text-sm text-slate-700 dark:text-slate-300">
                               {item.description}
                             </span>
@@ -123,10 +126,10 @@ export function KeyboardShortcutHelp() {
                 ))}
               </dl>
               <p className="mt-4 text-xs text-slate-400 dark:text-slate-500">
-                Tekan{' '}
+                Tekan{" "}
                 <kbd className="px-1 py-0.5 text-xs font-mono bg-slate-100 dark:bg-slate-700 rounded border border-slate-200 dark:border-slate-600">
                   Shift+?
-                </kbd>{' '}
+                </kbd>{" "}
                 untuk membuka/menutup panel ini
               </p>
             </motion.div>
@@ -134,5 +137,5 @@ export function KeyboardShortcutHelp() {
         )}
       </AnimatePresence>
     </>
-  )
+  );
 }

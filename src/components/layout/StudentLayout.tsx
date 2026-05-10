@@ -7,4 +7,4 @@
  *
  * @see AppShell untuk implementasi aktual
  */
-export { AppShell as StudentLayout } from './AppShell'
+export { AppShell as StudentLayout } from "./AppShell";

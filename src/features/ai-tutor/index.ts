@@ -11,10 +11,10 @@ export {
   generateMessageId,
   getDifficultyColor,
   validateQuestion,
-} from './api/aiTutorService'
+} from "./api/aiTutorService";
 
 // Hooks exports
-export { useAiStream } from './hooks/useAiStream'
+export { useAiStream } from "./hooks/useAiStream";
 
 // Types exports
-export type { AITutorError, AITutorMessage, DifficultyLevel } from './types'
+export type { AITutorError, AITutorMessage, DifficultyLevel } from "./types";

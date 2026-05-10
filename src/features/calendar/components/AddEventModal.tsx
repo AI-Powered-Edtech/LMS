@@ -1,59 +1,67 @@
-import { X } from 'lucide-react'
-import { AnimatePresence, motion } from 'motion/react'
-import { useState } from 'react'
+import { X } from "lucide-react";
+import { AnimatePresence, motion } from "motion/react";
+import { useState } from "react";
 
-import type { CalendarEvent } from '@/features/calendar/hooks/useCalendarQueries'
-import type { EventType, Priority } from '@/features/calendar/utils/calendarUtils'
+import type { CalendarEvent } from "@/features/calendar/hooks/useCalendarQueries";
+import type {
+  EventType,
+  Priority,
+} from "@/features/calendar/utils/calendarUtils";
 
 interface AddEventModalProps {
-  isOpen: boolean
-  onClose: () => void
-  selectedDate: Date | null
-  onAddEvent: (event: Omit<CalendarEvent, 'id'>) => void
+  isOpen: boolean;
+  onClose: () => void;
+  selectedDate: Date | null;
+  onAddEvent: (event: Omit<CalendarEvent, "id">) => void;
 }
 
-export function AddEventModal({ isOpen, onClose, selectedDate, onAddEvent }: AddEventModalProps) {
+export function AddEventModal({
+  isOpen,
+  onClose,
+  selectedDate,
+  onAddEvent,
+}: AddEventModalProps) {
   const [newEvent, setNewEvent] = useState<Partial<CalendarEvent>>({
-    title: '',
-    type: 'event',
-    priority: 'medium',
-    time: '09:00',
-    endTime: '10:00',
+    title: "",
+    type: "event",
+    priority: "medium",
+    time: "09:00",
+    endTime: "10:00",
     duration: 60,
-    location: '',
-    description: '',
-  })
+    location: "",
+    description: "",
+  });
 
   const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault()
-    if (!newEvent.title || !selectedDate) return
+    e.preventDefault();
+    if (!newEvent.title || !selectedDate) return;
 
     onAddEvent({
       title: newEvent.title,
       date: selectedDate,
-      time: newEvent.time || '00:00',
+      time: newEvent.time || "00:00",
       endDate: newEvent.endDate || selectedDate,
       endTime: newEvent.endTime,
       duration: newEvent.duration,
-      type: (newEvent.type as EventType) || 'event',
-      location: newEvent.location || '',
-      description: newEvent.description || '',
-      priority: (newEvent.priority as Priority) || 'medium',
+      type: (newEvent.type as EventType) || "event",
+      location: newEvent.location || "",
+      description: newEvent.description || "",
+      priority: (newEvent.priority as Priority) || "medium",
       completed: false,
-    })
+    });
 
-    onClose()
+    onClose();
     setNewEvent({
-      title: '',
-      type: 'event',
-      priority: 'medium',
-      time: '09:00',
-      endTime: '10:00',
+      title: "",
+      type: "event",
+      priority: "medium",
+      time: "09:00",
+      endTime: "10:00",
       duration: 60,
-      location: '',
-      description: '',
-    })
-  }
+      location: "",
+      description: "",
+    });
+  };
 
   return (
     <AnimatePresence>
@@ -87,7 +95,9 @@ export function AddEventModal({ isOpen, onClose, selectedDate, onAddEvent }: Add
                   type="text"
                   required
                   value={newEvent.title}
-                  onChange={(e) => setNewEvent({ ...newEvent, title: e.target.value })}
+                  onChange={(e) =>
+                    setNewEvent({ ...newEvent, title: e.target.value })
+                  }
                   placeholder="Contoh: Rapat Proyek Akhir"
                   className="w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-600 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all text-slate-900 dark:text-slate-100"
                 />
@@ -99,7 +109,7 @@ export function AddEventModal({ isOpen, onClose, selectedDate, onAddEvent }: Add
                     Tanggal Mulai
                   </label>
                   <div className="w-full px-4 py-2.5 bg-slate-100 dark:bg-slate-700 border border-slate-200 dark:border-slate-600 rounded-xl text-slate-600 dark:text-slate-300 font-medium">
-                    {selectedDate?.toLocaleDateString('id-ID')}
+                    {selectedDate?.toLocaleDateString("id-ID")}
                   </div>
                 </div>
                 <div className="space-y-1.5">
@@ -109,13 +119,15 @@ export function AddEventModal({ isOpen, onClose, selectedDate, onAddEvent }: Add
                   <input
                     type="time"
                     value={newEvent.time}
-                    onChange={(e) => setNewEvent({ ...newEvent, time: e.target.value })}
+                    onChange={(e) =>
+                      setNewEvent({ ...newEvent, time: e.target.value })
+                    }
                     className="w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-600 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all text-slate-900 dark:text-slate-100"
                   />
                 </div>
               </div>
 
-              {newEvent.type === 'exam' && (
+              {newEvent.type === "exam" && (
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-1.5">
                     <label className="text-sm font-bold text-slate-700 dark:text-slate-300">
@@ -125,11 +137,14 @@ export function AddEventModal({ isOpen, onClose, selectedDate, onAddEvent }: Add
                       type="date"
                       value={
                         newEvent.endDate
-                          ? newEvent.endDate.toISOString().split('T')[0]
-                          : selectedDate?.toISOString().split('T')[0]
+                          ? newEvent.endDate.toISOString().split("T")[0]
+                          : selectedDate?.toISOString().split("T")[0]
                       }
                       onChange={(e) =>
-                        setNewEvent({ ...newEvent, endDate: new Date(e.target.value) })
+                        setNewEvent({
+                          ...newEvent,
+                          endDate: new Date(e.target.value),
+                        })
                       }
                       className="w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-600 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all text-slate-900 dark:text-slate-100"
                     />
@@ -141,7 +156,9 @@ export function AddEventModal({ isOpen, onClose, selectedDate, onAddEvent }: Add
                     <input
                       type="time"
                       value={newEvent.endTime}
-                      onChange={(e) => setNewEvent({ ...newEvent, endTime: e.target.value })}
+                      onChange={(e) =>
+                        setNewEvent({ ...newEvent, endTime: e.target.value })
+                      }
                       className="w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-600 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all text-slate-900 dark:text-slate-100"
                     />
                   </div>
@@ -154,7 +171,10 @@ export function AddEventModal({ isOpen, onClose, selectedDate, onAddEvent }: Add
                       min="1"
                       value={newEvent.duration}
                       onChange={(e) =>
-                        setNewEvent({ ...newEvent, duration: parseInt(e.target.value) })
+                        setNewEvent({
+                          ...newEvent,
+                          duration: parseInt(e.target.value),
+                        })
                       }
                       className="w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-600 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all text-slate-900 dark:text-slate-100"
                     />
@@ -170,7 +190,10 @@ export function AddEventModal({ isOpen, onClose, selectedDate, onAddEvent }: Add
                   <select
                     value={newEvent.type}
                     onChange={(e) =>
-                      setNewEvent({ ...newEvent, type: e.target.value as EventType })
+                      setNewEvent({
+                        ...newEvent,
+                        type: e.target.value as EventType,
+                      })
                     }
                     className="w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-600 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all font-medium text-slate-900 dark:text-slate-100"
                   >
@@ -187,7 +210,10 @@ export function AddEventModal({ isOpen, onClose, selectedDate, onAddEvent }: Add
                   <select
                     value={newEvent.priority}
                     onChange={(e) =>
-                      setNewEvent({ ...newEvent, priority: e.target.value as Priority })
+                      setNewEvent({
+                        ...newEvent,
+                        priority: e.target.value as Priority,
+                      })
                     }
                     className="w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-600 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all font-medium text-slate-900 dark:text-slate-100"
                   >
@@ -205,7 +231,9 @@ export function AddEventModal({ isOpen, onClose, selectedDate, onAddEvent }: Add
                 <input
                   type="text"
                   value={newEvent.location}
-                  onChange={(e) => setNewEvent({ ...newEvent, location: e.target.value })}
+                  onChange={(e) =>
+                    setNewEvent({ ...newEvent, location: e.target.value })
+                  }
                   placeholder="Ruang kelas atau link Zoom"
                   className="w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-600 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all text-slate-900 dark:text-slate-100"
                 />
@@ -218,7 +246,9 @@ export function AddEventModal({ isOpen, onClose, selectedDate, onAddEvent }: Add
                 <textarea
                   rows={3}
                   value={newEvent.description}
-                  onChange={(e) => setNewEvent({ ...newEvent, description: e.target.value })}
+                  onChange={(e) =>
+                    setNewEvent({ ...newEvent, description: e.target.value })
+                  }
                   placeholder="Tambahkan catatan atau instruksi..."
                   className="w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-600 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all resize-none text-slate-900 dark:text-slate-100"
                 />
@@ -244,5 +274,5 @@ export function AddEventModal({ isOpen, onClose, selectedDate, onAddEvent }: Add
         </div>
       )}
     </AnimatePresence>
-  )
+  );
 }

@@ -14,27 +14,27 @@ import {
   Users,
   WifiOff,
   XCircle,
-} from 'lucide-react'
-import { AnimatePresence, motion } from 'motion/react'
-import { useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+} from "lucide-react";
+import { AnimatePresence, motion } from "motion/react";
+import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 
-import { AssignCourseModal } from '@/components/Classroom/AssignCourseModal'
-import { Modal, ModalBody, ModalFooter, ModalHeader } from '@/components/ui'
-import { useAuth } from '@/contexts/AuthContext'
-import { useBuilder } from '@/contexts/BuilderContext'
-import { CourseSettingsModal } from '@/features/courses/components/CourseSettingsModal'
-import { CourseVersionHistoryDrawer } from '@/features/courses/components/CourseVersionHistoryDrawer'
-import { SaveTemplateModal } from '@/features/courses/components/SaveTemplateModal'
-import { useCourseReadiness } from '@/features/courses/hooks/useCourseReadiness'
-import { cn } from '@/utils/cn'
-import { translateCourseStatus } from '@/utils/statusTranslations'
+import { AssignCourseModal } from "@/components/Classroom/AssignCourseModal";
+import { Modal, ModalBody, ModalFooter, ModalHeader } from "@/components/ui";
+import { useAuth } from "@/contexts/AuthContext";
+import { useBuilder } from "@/contexts/BuilderContext";
+import { CourseSettingsModal } from "@/features/courses/components/CourseSettingsModal";
+import { CourseVersionHistoryDrawer } from "@/features/courses/components/CourseVersionHistoryDrawer";
+import { SaveTemplateModal } from "@/features/courses/components/SaveTemplateModal";
+import { useCourseReadiness } from "@/features/courses/hooks/useCourseReadiness";
+import { cn } from "@/utils/cn";
+import { translateCourseStatus } from "@/utils/statusTranslations";
 
 interface BuilderTopBarProps {
-  releasePanelOpen?: boolean
-  onToggleReleasePanel?: () => void
-  copilotOpen?: boolean
-  onToggleCopilot?: () => void
+  releasePanelOpen?: boolean;
+  onToggleReleasePanel?: () => void;
+  copilotOpen?: boolean;
+  onToggleCopilot?: () => void;
 }
 
 export function BuilderTopBar({
@@ -43,16 +43,18 @@ export function BuilderTopBar({
   copilotOpen,
   onToggleCopilot,
 }: BuilderTopBarProps) {
-  const { state, actions, mobile, offline } = useBuilder()
-  const { activeRole } = useAuth()
-  const navigate = useNavigate()
-  const [isAssignModalOpen, setIsAssignModalOpen] = useState(false)
-  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
-  const [isSettingsOpen, setIsSettingsOpen] = useState(false)
-  const [isVersionHistoryOpen, setIsVersionHistoryOpen] = useState(false)
-  const [isSaveTemplateOpen, setIsSaveTemplateOpen] = useState(false)
-  const [isConfirmOpen, setIsConfirmOpen] = useState(false)
-  const [pendingNavAction, setPendingNavAction] = useState<(() => void) | null>(null)
+  const { state, actions, mobile, offline } = useBuilder();
+  const { activeRole } = useAuth();
+  const navigate = useNavigate();
+  const [isAssignModalOpen, setIsAssignModalOpen] = useState(false);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [isSettingsOpen, setIsSettingsOpen] = useState(false);
+  const [isVersionHistoryOpen, setIsVersionHistoryOpen] = useState(false);
+  const [isSaveTemplateOpen, setIsSaveTemplateOpen] = useState(false);
+  const [isConfirmOpen, setIsConfirmOpen] = useState(false);
+  const [pendingNavAction, setPendingNavAction] = useState<(() => void) | null>(
+    null,
+  );
 
   // Compute readiness to show blocker badge on Rilis button
   const readiness = useCourseReadiness({
@@ -60,42 +62,49 @@ export function BuilderTopBar({
     courseTitle: state.courseTitle,
     courseDescription: state.courseDescription,
     courseStatus: state.courseStatus,
-    role: activeRole as 'student' | 'teacher' | 'admin' | 'parent' | 'principal' | null,
-  })
+    role: activeRole as
+      | "student"
+      | "teacher"
+      | "admin"
+      | "parent"
+      | "principal"
+      | null,
+  });
 
   const statusConfig = {
-    idle: { icon: null, text: '', color: '' },
+    idle: { icon: null, text: "", color: "" },
     saving: {
       icon: <Loader2 className="w-3.5 h-3.5 animate-spin" />,
-      text: 'Menyimpan...',
-      color: 'text-amber-500',
+      text: "Menyimpan...",
+      color: "text-amber-500",
     },
     saved: {
       icon: <CheckCircle className="w-3.5 h-3.5" />,
-      text: 'Tersimpan',
-      color: 'text-emerald-500',
+      text: "Tersimpan",
+      color: "text-emerald-500",
     },
     error: {
       icon: <AlertCircle className="w-3.5 h-3.5" />,
-      text: 'Gagal menyimpan',
-      color: 'text-red-500',
+      text: "Gagal menyimpan",
+      color: "text-red-500",
     },
-  }
+  };
 
-  const status = statusConfig[state.savingStatus]
+  const status = statusConfig[state.savingStatus];
 
-  const courseListPath = activeRole === 'admin' ? '/app/admin/courses' : '/app/teacher/courses'
+  const courseListPath =
+    activeRole === "admin" ? "/app/admin/courses" : "/app/teacher/courses";
 
   const handleExitWithConfirm = () => {
-    if (state.savingStatus === 'saving' || offline.isDirty) {
-      setPendingNavAction(() => () => navigate(courseListPath))
-      setIsConfirmOpen(true)
-      return
+    if (state.savingStatus === "saving" || offline.isDirty) {
+      setPendingNavAction(() => () => navigate(courseListPath));
+      setIsConfirmOpen(true);
+      return;
     }
-    void navigate(courseListPath)
-  }
+    void navigate(courseListPath);
+  };
 
-  const blockerCount = readiness.blockers.length
+  const blockerCount = readiness.blockers.length;
 
   return (
     <div className="h-20 bg-white/70 border-b border-slate-200/60 flex items-center justify-between px-8 shrink-0 sticky top-0 z-40 backdrop-blur-xl dark:bg-slate-900/70 dark:border-slate-800/60">
@@ -103,12 +112,12 @@ export function BuilderTopBar({
       <div className="flex items-center gap-6 min-w-0">
         <button
           onClick={() => {
-            if (state.savingStatus === 'saving' || offline.isDirty) {
-              setPendingNavAction(() => () => navigate(-1))
-              setIsConfirmOpen(true)
-              return
+            if (state.savingStatus === "saving" || offline.isDirty) {
+              setPendingNavAction(() => () => navigate(-1));
+              setIsConfirmOpen(true);
+              return;
             }
-            void navigate(-1)
+            void navigate(-1);
           }}
           className="p-2.5 hover:bg-white dark:hover:bg-slate-800 hover:shadow-sm border border-transparent hover:border-slate-100 dark:hover:border-slate-700 rounded-xl transition-all text-slate-500 group focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-500"
           title="Kembali"
@@ -122,18 +131,18 @@ export function BuilderTopBar({
         <div className="min-w-0 flex flex-col justify-center">
           <div className="flex items-center gap-3">
             <h1 className="text-xl font-black text-slate-800 dark:text-white tracking-tight truncate">
-              {state.courseTitle || 'Memuat Kursus...'}
+              {state.courseTitle || "Memuat Kursus..."}
             </h1>
             <div
               className={cn(
-                'px-3 py-1 text-[10px] font-black uppercase tracking-[0.1em] rounded-full shadow-sm',
-                state.courseStatus === 'published'
-                  ? 'bg-emerald-500 text-white shadow-emerald-100 dark:shadow-emerald-900/30'
-                  : state.courseStatus === 'in_review'
-                    ? 'bg-blue-500 text-white shadow-blue-100 dark:shadow-blue-900/30'
-                    : state.courseStatus === 'approved'
-                      ? 'bg-teal-500 text-white shadow-teal-100 dark:shadow-teal-900/30'
-                      : 'bg-amber-400 text-amber-900 shadow-amber-100 dark:shadow-amber-900/30'
+                "px-3 py-1 text-[10px] font-black uppercase tracking-[0.1em] rounded-full shadow-sm",
+                state.courseStatus === "published"
+                  ? "bg-emerald-500 text-white shadow-emerald-100 dark:shadow-emerald-900/30"
+                  : state.courseStatus === "in_review"
+                    ? "bg-blue-500 text-white shadow-blue-100 dark:shadow-blue-900/30"
+                    : state.courseStatus === "approved"
+                      ? "bg-teal-500 text-white shadow-teal-100 dark:shadow-teal-900/30"
+                      : "bg-amber-400 text-amber-900 shadow-amber-100 dark:shadow-amber-900/30",
               )}
             >
               {translateCourseStatus(state.courseStatus)}
@@ -157,15 +166,19 @@ export function BuilderTopBar({
               Offline
             </div>
           ) : (
-            state.savingStatus !== 'idle' && (
+            state.savingStatus !== "idle" && (
               <div
                 className={cn(
-                  'hidden md:flex items-center gap-2 px-4 py-2 bg-white/50 dark:bg-slate-800/50 rounded-xl border border-slate-100/50 dark:border-slate-700/50 shadow-sm text-xs font-bold uppercase tracking-widest',
-                  status.color
+                  "hidden md:flex items-center gap-2 px-4 py-2 bg-white/50 dark:bg-slate-800/50 rounded-xl border border-slate-100/50 dark:border-slate-700/50 shadow-sm text-xs font-bold uppercase tracking-widest",
+                  status.color,
                 )}
               >
                 {status.icon}
-                <span className={state.savingStatus === 'saving' ? 'animate-pulse' : ''}>
+                <span
+                  className={
+                    state.savingStatus === "saving" ? "animate-pulse" : ""
+                  }
+                >
                   {status.text}
                 </span>
               </div>
@@ -195,8 +208,8 @@ export function BuilderTopBar({
                   {onToggleCopilot && (
                     <button
                       onClick={() => {
-                        onToggleCopilot()
-                        setIsMobileMenuOpen(false)
+                        onToggleCopilot();
+                        setIsMobileMenuOpen(false);
                       }}
                       className="px-4 py-2 text-sm text-left hover:bg-slate-50 dark:hover:bg-slate-700 flex items-center gap-3 text-violet-600 dark:text-violet-400"
                     >
@@ -205,8 +218,8 @@ export function BuilderTopBar({
                   )}
                   <button
                     onClick={() => {
-                      onToggleReleasePanel?.()
-                      setIsMobileMenuOpen(false)
+                      onToggleReleasePanel?.();
+                      setIsMobileMenuOpen(false);
                     }}
                     className="px-4 py-2 text-sm text-left hover:bg-slate-50 dark:hover:bg-slate-700 flex items-center gap-3"
                   >
@@ -214,8 +227,8 @@ export function BuilderTopBar({
                   </button>
                   <button
                     onClick={() => {
-                      setIsSettingsOpen(true)
-                      setIsMobileMenuOpen(false)
+                      setIsSettingsOpen(true);
+                      setIsMobileMenuOpen(false);
                     }}
                     className="px-4 py-2 text-sm text-left hover:bg-slate-50 dark:hover:bg-slate-700 flex items-center gap-3"
                   >
@@ -223,8 +236,8 @@ export function BuilderTopBar({
                   </button>
                   <button
                     onClick={() => {
-                      setIsVersionHistoryOpen(true)
-                      setIsMobileMenuOpen(false)
+                      setIsVersionHistoryOpen(true);
+                      setIsMobileMenuOpen(false);
                     }}
                     className="px-4 py-2 text-sm text-left hover:bg-slate-50 dark:hover:bg-slate-700 flex items-center gap-3"
                   >
@@ -232,17 +245,18 @@ export function BuilderTopBar({
                   </button>
                   <button
                     onClick={() => {
-                      setIsSaveTemplateOpen(true)
-                      setIsMobileMenuOpen(false)
+                      setIsSaveTemplateOpen(true);
+                      setIsMobileMenuOpen(false);
                     }}
                     className="px-4 py-2 text-sm text-left hover:bg-slate-50 dark:hover:bg-slate-700 flex items-center gap-3"
                   >
-                    <BookCopy className="w-4 h-4 text-slate-500" /> Jadikan Template
+                    <BookCopy className="w-4 h-4 text-slate-500" /> Jadikan
+                    Template
                   </button>
                   <button
                     onClick={() => {
-                      setIsAssignModalOpen(true)
-                      setIsMobileMenuOpen(false)
+                      setIsAssignModalOpen(true);
+                      setIsMobileMenuOpen(false);
                     }}
                     className="px-4 py-2 text-sm text-left hover:bg-slate-50 dark:hover:bg-slate-700 flex items-center gap-3"
                   >
@@ -250,11 +264,11 @@ export function BuilderTopBar({
                   </button>
                   <div className="h-px bg-slate-100 dark:bg-slate-700 my-1" />
                   {/* Quick submit for review on mobile */}
-                  {state.courseStatus === 'draft' && (
+                  {state.courseStatus === "draft" && (
                     <button
                       onClick={() => {
-                        void actions.submitForReview()
-                        setIsMobileMenuOpen(false)
+                        void actions.submitForReview();
+                        setIsMobileMenuOpen(false);
                       }}
                       className="px-4 py-2 text-sm text-left hover:bg-slate-50 dark:hover:bg-slate-700 flex items-center gap-3 text-blue-600 dark:text-blue-400"
                     >
@@ -263,8 +277,8 @@ export function BuilderTopBar({
                   )}
                   <button
                     onClick={() => {
-                      setIsMobileMenuOpen(false)
-                      handleExitWithConfirm()
+                      setIsMobileMenuOpen(false);
+                      handleExitWithConfirm();
                     }}
                     className="px-4 py-2 text-sm text-left hover:bg-slate-50 dark:hover:bg-slate-700 flex items-center gap-3 text-rose-500"
                   >
@@ -303,7 +317,10 @@ export function BuilderTopBar({
             {/* Preview Button */}
             <button
               onClick={() => {
-                window.open(`/app/teacher/preview/${state.courseId}?preview=true`, '_blank')
+                window.open(
+                  `/app/teacher/preview/${state.courseId}?preview=true`,
+                  "_blank",
+                );
               }}
               disabled={!state.courseId}
               className="px-5 py-2.5 text-sm font-bold text-slate-600 dark:text-slate-300 bg-white dark:bg-slate-800 border border-slate-200/60 dark:border-slate-700 hover:text-indigo-600 dark:hover:text-indigo-400 hover:bg-white dark:hover:bg-slate-750 hover:shadow-md hover:-translate-y-0.5 rounded-xl transition-all flex items-center gap-2 shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
@@ -331,10 +348,10 @@ export function BuilderTopBar({
                 onClick={onToggleCopilot}
                 disabled={!state.courseId}
                 className={cn(
-                  'px-4 py-2 text-sm font-semibold rounded-xl transition-all flex items-center gap-2 shadow-sm disabled:opacity-50 disabled:cursor-not-allowed',
+                  "px-4 py-2 text-sm font-semibold rounded-xl transition-all flex items-center gap-2 shadow-sm disabled:opacity-50 disabled:cursor-not-allowed",
                   copilotOpen
-                    ? 'bg-violet-600 text-white shadow-violet-100 dark:shadow-violet-900/30'
-                    : 'text-slate-600 dark:text-slate-300 bg-white dark:bg-slate-800 border border-slate-200/60 dark:border-slate-700 hover:text-violet-600 dark:hover:text-violet-400 hover:bg-white dark:hover:bg-slate-750 hover:shadow-md hover:-translate-y-0.5'
+                    ? "bg-violet-600 text-white shadow-violet-100 dark:shadow-violet-900/30"
+                    : "text-slate-600 dark:text-slate-300 bg-white dark:bg-slate-800 border border-slate-200/60 dark:border-slate-700 hover:text-violet-600 dark:hover:text-violet-400 hover:bg-white dark:hover:bg-slate-750 hover:shadow-md hover:-translate-y-0.5",
                 )}
                 title="Asisten AI"
                 aria-label="Asisten AI"
@@ -353,15 +370,19 @@ export function BuilderTopBar({
             onClick={onToggleReleasePanel}
             disabled={!state.courseId}
             className={cn(
-              'relative px-5 py-2.5 text-sm font-black rounded-xl transition-all flex items-center gap-2 shadow-sm disabled:opacity-50 disabled:cursor-not-allowed',
+              "relative px-5 py-2.5 text-sm font-black rounded-xl transition-all flex items-center gap-2 shadow-sm disabled:opacity-50 disabled:cursor-not-allowed",
               releasePanelOpen
-                ? 'bg-indigo-600 text-white shadow-indigo-100 dark:shadow-indigo-900/30'
-                : 'bg-white dark:bg-slate-800 border border-slate-200/60 dark:border-slate-700 text-slate-700 dark:text-slate-200 hover:bg-indigo-50 dark:hover:bg-indigo-900/20 hover:text-indigo-600 dark:hover:text-indigo-400 hover:border-indigo-200 dark:hover:border-indigo-800 hover:shadow-md hover:-translate-y-0.5'
+                ? "bg-indigo-600 text-white shadow-indigo-100 dark:shadow-indigo-900/30"
+                : "bg-white dark:bg-slate-800 border border-slate-200/60 dark:border-slate-700 text-slate-700 dark:text-slate-200 hover:bg-indigo-50 dark:hover:bg-indigo-900/20 hover:text-indigo-600 dark:hover:text-indigo-400 hover:border-indigo-200 dark:hover:border-indigo-800 hover:shadow-md hover:-translate-y-0.5",
             )}
             aria-label="Panel Rilis"
             aria-pressed={releasePanelOpen}
           >
-            {releasePanelOpen ? <XCircle className="w-4 h-4" /> : <Shield className="w-4 h-4" />}
+            {releasePanelOpen ? (
+              <XCircle className="w-4 h-4" />
+            ) : (
+              <Shield className="w-4 h-4" />
+            )}
             Rilis
             {/* Blocker badge */}
             {blockerCount > 0 && !releasePanelOpen && (
@@ -387,22 +408,22 @@ export function BuilderTopBar({
       <AssignCourseModal
         isOpen={isAssignModalOpen}
         onClose={() => setIsAssignModalOpen(false)}
-        courseId={state.courseId || ''}
-        courseTitle={state.courseTitle || ''}
+        courseId={state.courseId || ""}
+        courseTitle={state.courseTitle || ""}
       />
 
       {/* Course Settings Modal */}
       <CourseSettingsModal
         isOpen={isSettingsOpen}
         onClose={() => setIsSettingsOpen(false)}
-        courseId={state.courseId || ''}
+        courseId={state.courseId || ""}
       />
 
       {/* Version History Drawer */}
       <CourseVersionHistoryDrawer
         isOpen={isVersionHistoryOpen}
         onClose={() => setIsVersionHistoryOpen(false)}
-        courseId={state.courseId || ''}
+        courseId={state.courseId || ""}
       />
 
       {/* Save as Template Modal */}
@@ -410,16 +431,24 @@ export function BuilderTopBar({
         isOpen={isSaveTemplateOpen}
         onClose={() => setIsSaveTemplateOpen(false)}
         type="course"
-        sourceId={state.courseId || ''}
-        defaultTitle={state.courseTitle || ''}
+        sourceId={state.courseId || ""}
+        defaultTitle={state.courseTitle || ""}
       />
 
       {/* Unsaved Changes Confirmation */}
-      <Modal open={isConfirmOpen} onClose={() => setIsConfirmOpen(false)} size="sm">
-        <ModalHeader title="Tinggalkan halaman?" onClose={() => setIsConfirmOpen(false)} />
+      <Modal
+        open={isConfirmOpen}
+        onClose={() => setIsConfirmOpen(false)}
+        size="sm"
+      >
+        <ModalHeader
+          title="Tinggalkan halaman?"
+          onClose={() => setIsConfirmOpen(false)}
+        />
         <ModalBody>
           <p className="text-sm text-slate-600 dark:text-slate-400">
-            Ada perubahan yang belum tersimpan. Yakin ingin meninggalkan halaman ini?
+            Ada perubahan yang belum tersimpan. Yakin ingin meninggalkan halaman
+            ini?
           </p>
         </ModalBody>
         <ModalFooter>
@@ -431,9 +460,9 @@ export function BuilderTopBar({
           </button>
           <button
             onClick={() => {
-              setIsConfirmOpen(false)
-              pendingNavAction?.()
-              setPendingNavAction(null)
+              setIsConfirmOpen(false);
+              pendingNavAction?.();
+              setPendingNavAction(null);
             }}
             className="px-4 py-2 text-sm font-medium bg-red-600 hover:bg-red-700 text-white rounded-lg transition-colors"
           >
@@ -442,5 +471,5 @@ export function BuilderTopBar({
         </ModalFooter>
       </Modal>
     </div>
-  )
+  );
 }

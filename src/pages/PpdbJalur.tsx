@@ -1,40 +1,47 @@
-import { GitBranch, Plus, RefreshCw } from 'lucide-react'
-import { useState } from 'react'
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { GitBranch, Plus, RefreshCw } from "lucide-react";
+import { useState } from "react";
 
-import { Button } from '@/components/ui/Button'
-import { Card } from '@/components/ui/Card'
-import { Input } from '@/components/ui/Input'
-import { Modal, ModalBody, ModalFooter, ModalHeader } from '@/components/ui/Modal'
-
-import { useAuth } from '@/contexts/AuthContext'
-import { ppdbAdminService } from '@/features/ppdb/api/ppdbAdminService'
-import { useToast } from '@/hooks/useToast'
-import { usePageTitle } from '@/hooks/usePageTitle'
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import { Button } from "@/components/ui/Button";
+import { Card } from "@/components/ui/Card";
+import { Input } from "@/components/ui/Input";
+import {
+  Modal,
+  ModalBody,
+  ModalFooter,
+  ModalHeader,
+} from "@/components/ui/Modal";
+import { useAuth } from "@/contexts/AuthContext";
+import { ppdbAdminService } from "@/features/ppdb/api/ppdbAdminService";
+import { usePageTitle } from "@/hooks/usePageTitle";
+import { useToast } from "@/hooks/useToast";
 
 export function PpdbJalur() {
-  usePageTitle('PPDB — Jalur Pendaftaran')
-  const { tenantId } = useAuth()
-  const { addToast } = useToast()
-  const qc = useQueryClient()
+  usePageTitle("PPDB — Jalur Pendaftaran");
+  const { tenantId } = useAuth();
+  const { addToast } = useToast();
+  const qc = useQueryClient();
 
   const { data: periods = [] } = useQuery({
-    queryKey: ['ppdb_periods', tenantId],
-    queryFn: () => (tenantId ? ppdbAdminService.listPeriods(tenantId) : Promise.resolve([])),
-    enabled: !!tenantId,
-  })
-  const [periodId, setPeriodId] = useState<string>('')
-  const { data: jalurList = [] } = useQuery({
-    queryKey: ['ppdb_jalur', tenantId, periodId],
+    queryKey: ["ppdb_periods", tenantId],
     queryFn: () =>
-      tenantId && periodId ? ppdbAdminService.listJalur(tenantId, periodId) : Promise.resolve([]),
+      tenantId ? ppdbAdminService.listPeriods(tenantId) : Promise.resolve([]),
+    enabled: !!tenantId,
+  });
+  const [periodId, setPeriodId] = useState<string>("");
+  const { data: jalurList = [] } = useQuery({
+    queryKey: ["ppdb_jalur", tenantId, periodId],
+    queryFn: () =>
+      tenantId && periodId
+        ? ppdbAdminService.listJalur(tenantId, periodId)
+        : Promise.resolve([]),
     enabled: !!tenantId && !!periodId,
-  })
+  });
 
-  const [isOpen, setIsOpen] = useState(false)
-  const [code, setCode] = useState('zonasi')
-  const [label, setLabel] = useState('')
-  const [quota, setQuota] = useState('30')
+  const [isOpen, setIsOpen] = useState(false);
+  const [code, setCode] = useState("zonasi");
+  const [label, setLabel] = useState("");
+  const [quota, setQuota] = useState("30");
 
   const create = useMutation({
     mutationFn: () =>
@@ -46,30 +53,35 @@ export function PpdbJalur() {
         quota: Number.parseInt(quota, 10) || 0,
       }),
     onSuccess: () => {
-      addToast({ type: 'success', message: `Jalur ${label} ditambahkan` })
-      setIsOpen(false)
-      setLabel('')
-      void qc.invalidateQueries({ queryKey: ['ppdb_jalur', tenantId, periodId] })
+      addToast({ type: "success", message: `Jalur ${label} ditambahkan` });
+      setIsOpen(false);
+      setLabel("");
+      void qc.invalidateQueries({
+        queryKey: ["ppdb_jalur", tenantId, periodId],
+      });
     },
     onError: (err) =>
       addToast({
-        type: 'error',
-        message: 'Gagal menambah jalur',
-        description: err instanceof Error ? err.message : 'Terjadi kesalahan',
+        type: "error",
+        message: "Gagal menambah jalur",
+        description: err instanceof Error ? err.message : "Terjadi kesalahan",
       }),
-  })
+  });
 
   const refresh = useMutation({
     mutationFn: () => ppdbAdminService.refreshRanks(periodId),
     onSuccess: (count) =>
-      addToast({ type: 'success', message: `Ranking diperbarui (${count} pendaftar)` }),
+      addToast({
+        type: "success",
+        message: `Ranking diperbarui (${count} pendaftar)`,
+      }),
     onError: (err) =>
       addToast({
-        type: 'error',
-        message: 'Gagal memperbarui ranking',
-        description: err instanceof Error ? err.message : 'Terjadi kesalahan',
+        type: "error",
+        message: "Gagal memperbarui ranking",
+        description: err instanceof Error ? err.message : "Terjadi kesalahan",
       }),
-  })
+  });
 
   return (
     <div className="w-full max-w-6xl mx-auto px-4 md:px-8 pt-8 pb-20 space-y-6">
@@ -80,7 +92,8 @@ export function PpdbJalur() {
             PPDB — Jalur Pendaftaran
           </h1>
           <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">
-            Atur jalur (zonasi, afirmasi, prestasi, mutasi) dan kuota per periode.
+            Atur jalur (zonasi, afirmasi, prestasi, mutasi) dan kuota per
+            periode.
           </p>
         </div>
         <div className="flex items-center gap-2">
@@ -105,8 +118,14 @@ export function PpdbJalur() {
 
       <Card>
         <div className="flex items-center gap-4 mb-4">
-          <label className="text-sm font-medium text-slate-700 dark:text-slate-300">Periode:</label>
-          <select value={periodId} onChange={(e) => setPeriodId(e.target.value)} className="w-72">
+          <label className="text-sm font-medium text-slate-700 dark:text-slate-300">
+            Periode:
+          </label>
+          <select
+            value={periodId}
+            onChange={(e) => setPeriodId(e.target.value)}
+            className="w-72"
+          >
             <option value="">— pilih periode —</option>
             {periods.map((p) => (
               <option key={p.id} value={p.id}>
@@ -121,7 +140,9 @@ export function PpdbJalur() {
             Pilih periode untuk melihat jalur.
           </div>
         ) : jalurList.length === 0 ? (
-          <div className="py-12 text-center text-sm text-slate-500">Belum ada jalur.</div>
+          <div className="py-12 text-center text-sm text-slate-500">
+            Belum ada jalur.
+          </div>
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
@@ -136,8 +157,12 @@ export function PpdbJalur() {
                 {jalurList.map((j) => (
                   <tr key={j.id}>
                     <td className="px-4 py-3 font-mono text-xs">{j.code}</td>
-                    <td className="px-4 py-3 font-medium text-slate-900 dark:text-white">{j.label}</td>
-                    <td className="px-4 py-3 text-right font-medium">{j.quota}</td>
+                    <td className="px-4 py-3 font-medium text-slate-900 dark:text-white">
+                      {j.label}
+                    </td>
+                    <td className="px-4 py-3 text-right font-medium">
+                      {j.quota}
+                    </td>
                   </tr>
                 ))}
               </tbody>
@@ -149,11 +174,14 @@ export function PpdbJalur() {
       <Modal open={isOpen} onClose={() => setIsOpen(false)}>
         <form
           onSubmit={(e) => {
-            e.preventDefault()
-            create.mutate()
+            e.preventDefault();
+            create.mutate();
           }}
         >
-          <ModalHeader title="Jalur PPDB Baru" onClose={() => setIsOpen(false)} />
+          <ModalHeader
+            title="Jalur PPDB Baru"
+            onClose={() => setIsOpen(false)}
+          />
           <ModalBody>
             <div className="space-y-4">
               <select value={code} onChange={(e) => setCode(e.target.value)}>
@@ -183,11 +211,11 @@ export function PpdbJalur() {
               Batal
             </Button>
             <Button type="submit" variant="primary" disabled={create.isPending}>
-              {create.isPending ? 'Menyimpan...' : 'Simpan'}
+              {create.isPending ? "Menyimpan..." : "Simpan"}
             </Button>
           </ModalFooter>
         </form>
       </Modal>
     </div>
-  )
+  );
 }

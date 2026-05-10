@@ -62,5 +62,5 @@ export function Confetti() {
         }
       `}</style>
     </div>
-  )
+  );
 }

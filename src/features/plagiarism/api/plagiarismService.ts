@@ -1,11 +1,11 @@
-import { readVilSession } from '@/services/auth/vilSession'
-import { db } from '@/services/db'
-import { logDevError } from '@/utils/logDevError'
+import { readVilSession } from "@/services/auth/vilSession";
+import { db } from "@/services/db";
+import { logDevError } from "@/utils/logDevError";
 
-import type { CheckPlagiarismResult, PlagiarismCheck } from '../types'
+import type { CheckPlagiarismResult, PlagiarismCheck } from "../types";
 
 const PLAGIARISM_COLUMNS =
-  'id, submission_id, provider, status, similarity_score, report_data, checked_by, tenant_id, created_at, updated_at'
+  "id, submission_id, provider, status, similarity_score, report_data, checked_by, tenant_id, created_at, updated_at";
 
 export const plagiarismService = {
   /**
@@ -21,51 +21,51 @@ export const plagiarismService = {
    * — so the existing PlagiarismBadge thresholds (<20, 20-50, >50) keep working.
    */
   async checkPlagiarism(submissionId: string): Promise<CheckPlagiarismResult> {
-    const token = readVilSession()?.access_token
+    const token = readVilSession()?.access_token;
     if (!token) {
-      throw new Error('Tidak terautentikasi')
+      throw new Error("Tidak terautentikasi");
     }
 
-    const apiUrl = import.meta.env.VITE_API_URL ?? ''
+    const apiUrl = import.meta.env.VITE_API_URL ?? "";
 
     const res = await fetch(`${apiUrl}/api/v1/plagiarism/check`, {
-      method: 'POST',
+      method: "POST",
       headers: {
-        'Content-Type': 'application/json',
+        "Content-Type": "application/json",
         Authorization: `Bearer ${token}`,
       },
       body: JSON.stringify({ submission_id: submissionId }),
-    })
+    });
 
     if (!res.ok) {
       const errBody = await res
         .json()
-        .catch(() => ({ error: 'Gagal menghubungi server' }))
-      throw new Error(errBody.error ?? 'Gagal memeriksa plagiarisme')
+        .catch(() => ({ error: "Gagal menghubungi server" }));
+      throw new Error(errBody.error ?? "Gagal memeriksa plagiarisme");
     }
 
     type BackendReport = {
-      report_id: string
-      overall_similarity: number
+      report_id: string;
+      overall_similarity: number;
       matches: Array<{
-        submission_id: string
-        student_name?: string
-        similarity: number
-        matched_text?: string[]
-      }>
-      status: 'clean' | 'suspicious' | 'high_risk'
-    }
-    const envelope = (await res.json()) as { data: BackendReport }
-    const report = envelope.data
+        submission_id: string;
+        student_name?: string;
+        similarity: number;
+        matched_text?: string[];
+      }>;
+      status: "clean" | "suspicious" | "high_risk";
+    };
+    const envelope = (await res.json()) as { data: BackendReport };
+    const report = envelope.data;
 
     return {
       similarity_score: Math.round((report.overall_similarity ?? 0) * 100),
-      status: 'completed',
+      status: "completed",
       matches: (report.matches ?? []).map((m) => ({
         submission_id: m.submission_id,
         similarity: Math.round((m.similarity ?? 0) * 100),
       })),
-    }
+    };
   },
 
   /**
@@ -74,38 +74,41 @@ export const plagiarismService = {
    */
   async getAllChecks(tenantId: string, limit = 50): Promise<PlagiarismCheck[]> {
     const { data, error } = await db
-      .from('plagiarism_checks')
+      .from("plagiarism_checks")
       .select(PLAGIARISM_COLUMNS)
-      .eq('tenant_id', tenantId)
-      .order('created_at', { ascending: false })
-      .limit(limit)
+      .eq("tenant_id", tenantId)
+      .order("created_at", { ascending: false })
+      .limit(limit);
 
     if (error) {
-      logDevError('plagiarismService', 'Error fetching all checks:', error)
-      return []
+      logDevError("plagiarismService", "Error fetching all checks:", error);
+      return [];
     }
 
-    return (data ?? []) as PlagiarismCheck[]
+    return (data ?? []) as PlagiarismCheck[];
   },
 
   /**
    * Fetches the latest plagiarism check result for a given submission.
    * Returns null if no check has been run yet.
    */
-  async getCheckResult(submissionId: string, tenantId: string): Promise<PlagiarismCheck | null> {
+  async getCheckResult(
+    submissionId: string,
+    tenantId: string,
+  ): Promise<PlagiarismCheck | null> {
     const { data, error } = await db
-      .from('plagiarism_checks')
+      .from("plagiarism_checks")
       .select(PLAGIARISM_COLUMNS)
-      .eq('submission_id', submissionId)
-      .eq('tenant_id', tenantId)
+      .eq("submission_id", submissionId)
+      .eq("tenant_id", tenantId)
       .limit(1)
-      .maybeSingle()
+      .maybeSingle();
 
     if (error) {
-      logDevError('plagiarismService', 'Error fetching check result:', error)
-      return null
+      logDevError("plagiarismService", "Error fetching check result:", error);
+      return null;
     }
 
-    return data as PlagiarismCheck | null
+    return data as PlagiarismCheck | null;
   },
-}
+};

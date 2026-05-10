@@ -1,13 +1,13 @@
-import { cn } from '@/utils/cn'
+import { cn } from "@/utils/cn";
 
 interface DiffPreviewProps {
-  original: string
-  transformed: string
+  original: string;
+  transformed: string;
 }
 
 export function DiffPreview({ original, transformed }: DiffPreviewProps) {
-  const origLines = original.split('\n')
-  const transLines = transformed.split('\n')
+  const origLines = original.split("\n");
+  const transLines = transformed.split("\n");
 
   return (
     <div className="rounded-xl border border-slate-200 dark:border-slate-700 overflow-hidden text-xs font-mono">
@@ -23,11 +23,11 @@ export function DiffPreview({ original, transformed }: DiffPreviewProps) {
             <div
               key={i}
               className={cn(
-                'py-0.5 leading-relaxed break-words',
-                'text-slate-600 dark:text-slate-400'
+                "py-0.5 leading-relaxed break-words",
+                "text-slate-600 dark:text-slate-400",
               )}
             >
-              {line || '\u00A0'}
+              {line || "\u00A0"}
             </div>
           ))}
         </div>
@@ -36,15 +36,15 @@ export function DiffPreview({ original, transformed }: DiffPreviewProps) {
             <div
               key={i}
               className={cn(
-                'py-0.5 leading-relaxed break-words',
-                'text-slate-700 dark:text-slate-300'
+                "py-0.5 leading-relaxed break-words",
+                "text-slate-700 dark:text-slate-300",
               )}
             >
-              {line || '\u00A0'}
+              {line || "\u00A0"}
             </div>
           ))}
         </div>
       </div>
     </div>
-  )
+  );
 }

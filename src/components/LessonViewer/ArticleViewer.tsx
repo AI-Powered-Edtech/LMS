@@ -1,29 +1,29 @@
-import { BookOpen, CheckCircle, Clock, Sparkles } from 'lucide-react'
-import { AnimatePresence, motion } from 'motion/react'
-import { useCallback, useEffect, useRef, useState } from 'react'
-import ReactMarkdown from 'react-markdown'
-import rehypeKatex from 'rehype-katex'
-import rehypeSanitize from 'rehype-sanitize'
-import remarkGfm from 'remark-gfm'
-import remarkMath from 'remark-math'
+import { BookOpen, CheckCircle, Clock, Sparkles } from "lucide-react";
+import { AnimatePresence, motion } from "motion/react";
+import { useCallback, useEffect, useRef, useState } from "react";
+import ReactMarkdown from "react-markdown";
+import rehypeKatex from "rehype-katex";
+import rehypeSanitize from "rehype-sanitize";
+import remarkGfm from "remark-gfm";
+import remarkMath from "remark-math";
 
-import { cn } from '@/utils/cn'
-import { katexSanitizeSchema } from '@/utils/sanitizeMarkdown'
+import { cn } from "@/utils/cn";
+import { katexSanitizeSchema } from "@/utils/sanitizeMarkdown";
 
 interface ArticleViewerProps {
-  content: string
-  minReadingTimeSeconds: number
-  isCompleted: boolean
-  onProgressUpdate: (percentage: number) => void
-  onCompletionMet: () => void
-  onStartViewing: () => void
+  content: string;
+  minReadingTimeSeconds: number;
+  isCompleted: boolean;
+  onProgressUpdate: (percentage: number) => void;
+  onCompletionMet: () => void;
+  onStartViewing: () => void;
 }
 
 function formatReadingTime(seconds: number): string {
-  if (seconds < 60) return seconds + 'dtk'
-  const m = Math.floor(seconds / 60)
-  const s = seconds % 60
-  return s > 0 ? m + 'm ' + s + 'dtk' : m + 'm'
+  if (seconds < 60) return seconds + "dtk";
+  const m = Math.floor(seconds / 60);
+  const s = seconds % 60;
+  return s > 0 ? m + "m " + s + "dtk" : m + "m";
 }
 
 export function ArticleViewer({
@@ -34,39 +34,48 @@ export function ArticleViewer({
   onCompletionMet,
   onStartViewing,
 }: ArticleViewerProps) {
-  const scrollRef = useRef<HTMLDivElement>(null)
-  const [readingTime, setReadingTime] = useState(0)
-  const [hasScrolledToBottom, setHasScrolledToBottom] = useState(false)
-  const [scrollPercent, setScrollPercent] = useState(0)
-  const hasCalledCompletion = useRef(false)
-  const hasStarted = useRef(false)
+  const scrollRef = useRef<HTMLDivElement>(null);
+  const [readingTime, setReadingTime] = useState(0);
+  const [hasScrolledToBottom, setHasScrolledToBottom] = useState(false);
+  const [scrollPercent, setScrollPercent] = useState(0);
+  const hasCalledCompletion = useRef(false);
+  const hasStarted = useRef(false);
 
   // Lazy-load KaTeX CSS for math rendering
   useEffect(() => {
-    void import('katex/dist/katex.min.css')
-  }, [])
+    void import("katex/dist/katex.min.css");
+  }, []);
 
   // Active Visibility Timer
   useEffect(() => {
-    if (isCompleted) return
+    if (isCompleted) return;
 
     const timer = setInterval(() => {
       if (!document.hidden) {
-        setReadingTime((prev) => prev + 1)
+        setReadingTime((prev) => prev + 1);
       }
-    }, 1000)
+    }, 1000);
 
-    return () => clearInterval(timer)
-  }, [isCompleted])
+    return () => clearInterval(timer);
+  }, [isCompleted]);
 
   // Calculate progress based on reading time and scroll
   useEffect(() => {
-    if (isCompleted) return
+    if (isCompleted) return;
 
-    const timeProgress = Math.min(Math.round((readingTime / minReadingTimeSeconds) * 50), 50)
-    const scrollProgress = hasScrolledToBottom ? 50 : 0
-    onProgressUpdate(timeProgress + scrollProgress)
-  }, [readingTime, minReadingTimeSeconds, hasScrolledToBottom, isCompleted, onProgressUpdate])
+    const timeProgress = Math.min(
+      Math.round((readingTime / minReadingTimeSeconds) * 50),
+      50,
+    );
+    const scrollProgress = hasScrolledToBottom ? 50 : 0;
+    onProgressUpdate(timeProgress + scrollProgress);
+  }, [
+    readingTime,
+    minReadingTimeSeconds,
+    hasScrolledToBottom,
+    isCompleted,
+    onProgressUpdate,
+  ]);
 
   // Check completion conditions
   useEffect(() => {
@@ -76,29 +85,40 @@ export function ArticleViewer({
       !isCompleted &&
       !hasCalledCompletion.current
     ) {
-      hasCalledCompletion.current = true
-      onCompletionMet()
+      hasCalledCompletion.current = true;
+      onCompletionMet();
     }
-  }, [hasScrolledToBottom, readingTime, minReadingTimeSeconds, isCompleted, onCompletionMet])
+  }, [
+    hasScrolledToBottom,
+    readingTime,
+    minReadingTimeSeconds,
+    isCompleted,
+    onCompletionMet,
+  ]);
 
   const handleScroll = useCallback(() => {
     if (!hasStarted.current) {
-      hasStarted.current = true
-      onStartViewing()
+      hasStarted.current = true;
+      onStartViewing();
     }
     if (scrollRef.current && !isCompleted) {
-      const { scrollTop, scrollHeight, clientHeight } = scrollRef.current
-      const maxScroll = scrollHeight - clientHeight
+      const { scrollTop, scrollHeight, clientHeight } = scrollRef.current;
+      const maxScroll = scrollHeight - clientHeight;
       if (maxScroll > 0) {
-        setScrollPercent(Math.min(Math.round((scrollTop / maxScroll) * 100), 100))
+        setScrollPercent(
+          Math.min(Math.round((scrollTop / maxScroll) * 100), 100),
+        );
       }
       if (scrollTop + clientHeight >= scrollHeight - 50) {
-        setHasScrolledToBottom(true)
+        setHasScrolledToBottom(true);
       }
     }
-  }, [isCompleted, onStartViewing])
+  }, [isCompleted, onStartViewing]);
 
-  const timeProgress = Math.min(Math.round((readingTime / minReadingTimeSeconds) * 100), 100)
+  const timeProgress = Math.min(
+    Math.round((readingTime / minReadingTimeSeconds) * 100),
+    100,
+  );
 
   return (
     <div
@@ -116,27 +136,27 @@ export function ArticleViewer({
               exit={{ opacity: 0, y: -8 }}
               transition={{ duration: 0.25 }}
               className={cn(
-                'sticky top-0 z-10 mb-8 px-5 py-4 rounded-xl text-sm font-medium shadow-sm',
-                'bg-gradient-to-r from-blue-50 to-indigo-50/50 border border-blue-200/80 text-blue-800',
-                'dark:from-blue-950/60 dark:to-indigo-950/40 dark:border-blue-800/60 dark:text-blue-300'
+                "sticky top-0 z-10 mb-8 px-5 py-4 rounded-xl text-sm font-medium shadow-sm",
+                "bg-gradient-to-r from-blue-50 to-indigo-50/50 border border-blue-200/80 text-blue-800",
+                "dark:from-blue-950/60 dark:to-indigo-950/40 dark:border-blue-800/60 dark:text-blue-300",
               )}
             >
               <div className="flex items-start gap-3">
                 <Sparkles className="w-5 h-5 text-blue-500 dark:text-blue-400 shrink-0 mt-0.5" />
                 <div className="flex-1">
                   <p className="text-slate-700 dark:text-slate-300">
-                    Sistem melacak progres membaca Anda. Gulir hingga bawah dan baca minimal{' '}
-                    <strong>{minReadingTimeSeconds}</strong> detik.
+                    Sistem melacak progres membaca Anda. Gulir hingga bawah dan
+                    baca minimal <strong>{minReadingTimeSeconds}</strong> detik.
                   </p>
 
                   {/* Requirement badges */}
                   <div className="mt-3 flex items-center gap-4 text-xs font-bold">
                     <span
                       className={cn(
-                        'flex items-center gap-1.5 transition-colors',
+                        "flex items-center gap-1.5 transition-colors",
                         hasScrolledToBottom
-                          ? 'text-green-600 dark:text-green-400'
-                          : 'text-slate-400 dark:text-slate-500'
+                          ? "text-green-600 dark:text-green-400"
+                          : "text-slate-400 dark:text-slate-500",
                       )}
                     >
                       <CheckCircle className="w-3.5 h-3.5" />
@@ -144,14 +164,14 @@ export function ArticleViewer({
                     </span>
                     <span
                       className={cn(
-                        'flex items-center gap-1.5 transition-colors',
+                        "flex items-center gap-1.5 transition-colors",
                         readingTime >= minReadingTimeSeconds
-                          ? 'text-green-600 dark:text-green-400'
-                          : 'text-slate-400 dark:text-slate-500'
+                          ? "text-green-600 dark:text-green-400"
+                          : "text-slate-400 dark:text-slate-500",
                       )}
                     >
                       <Clock className="w-3.5 h-3.5" />
-                      Waktu baca: {formatReadingTime(readingTime)} /{' '}
+                      Waktu baca: {formatReadingTime(readingTime)} /{" "}
                       {formatReadingTime(minReadingTimeSeconds)}
                     </span>
                   </div>
@@ -162,7 +182,7 @@ export function ArticleViewer({
                       className="h-full rounded-full bg-gradient-to-r from-blue-500 to-indigo-500"
                       initial={{ width: 0 }}
                       animate={{ width: `${timeProgress}%` }}
-                      transition={{ duration: 0.4, ease: 'easeOut' }}
+                      transition={{ duration: 0.4, ease: "easeOut" }}
                     />
                   </div>
 
@@ -183,23 +203,23 @@ export function ArticleViewer({
         {/* Article content */}
         <div
           className={cn(
-            'prose max-w-none',
-            'prose-slate prose-blue',
-            'prose-headings:font-extrabold prose-headings:tracking-tight',
-            'prose-h1:text-3xl prose-h2:text-xl',
-            'prose-p:leading-relaxed prose-p:text-slate-600',
-            'prose-a:text-blue-600 hover:prose-a:text-blue-700',
-            'prose-img:rounded-xl',
-            'prose-pre:rounded-xl prose-pre:bg-slate-50',
+            "prose max-w-none",
+            "prose-slate prose-blue",
+            "prose-headings:font-extrabold prose-headings:tracking-tight",
+            "prose-h1:text-3xl prose-h2:text-xl",
+            "prose-p:leading-relaxed prose-p:text-slate-600",
+            "prose-a:text-blue-600 hover:prose-a:text-blue-700",
+            "prose-img:rounded-xl",
+            "prose-pre:rounded-xl prose-pre:bg-slate-50",
             // Dark mode prose overrides
-            'dark:prose-invert',
-            'dark:prose-p:text-slate-400',
-            'dark:prose-headings:text-slate-100',
-            'dark:prose-a:text-blue-400 dark:hover:prose-a:text-blue-300',
-            'dark:prose-pre:bg-slate-800',
-            'dark:prose-code:text-slate-200',
-            'dark:prose-strong:text-slate-200',
-            'dark:prose-blockquote:text-slate-400 dark:prose-blockquote:border-slate-700'
+            "dark:prose-invert",
+            "dark:prose-p:text-slate-400",
+            "dark:prose-headings:text-slate-100",
+            "dark:prose-a:text-blue-400 dark:hover:prose-a:text-blue-300",
+            "dark:prose-pre:bg-slate-800",
+            "dark:prose-code:text-slate-200",
+            "dark:prose-strong:text-slate-200",
+            "dark:prose-blockquote:text-slate-400 dark:prose-blockquote:border-slate-700",
           )}
         >
           <ReactMarkdown
@@ -214,10 +234,10 @@ export function ArticleViewer({
               ),
             }}
           >
-            {content.replace(/\\n/g, '\n')}
+            {content.replace(/\\n/g, "\n")}
           </ReactMarkdown>
         </div>
       </div>
     </div>
-  )
+  );
 }

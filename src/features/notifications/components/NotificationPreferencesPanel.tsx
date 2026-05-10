@@ -10,54 +10,58 @@
  * - "Reset ke Default" with saved-state indicator
  */
 
-import { Bell, Check, Mail, RotateCcw, Smartphone } from 'lucide-react'
-import { useCallback, useState } from 'react'
+import { Bell, Check, Mail, RotateCcw, Smartphone } from "lucide-react";
+import { useCallback, useState } from "react";
 
-import { cn } from '@/utils/cn'
+import { cn } from "@/utils/cn";
 
 import {
   type NotificationChannel,
   type NotificationPrefType,
   PREF_TYPE_LABELS,
   useNotificationPreferencesLocal,
-} from '../hooks/useNotificationPreferences'
+} from "../hooks/useNotificationPreferences";
 
 // ─── Channel config ───────────────────────────────────────────────────────────
 
-const CHANNELS: { key: NotificationChannel; label: string; icon: React.ReactNode }[] = [
+const CHANNELS: {
+  key: NotificationChannel;
+  label: string;
+  icon: React.ReactNode;
+}[] = [
   {
-    key: 'inApp',
-    label: 'In-App',
+    key: "inApp",
+    label: "In-App",
     icon: <Bell className="w-3.5 h-3.5" />,
   },
   {
-    key: 'email',
-    label: 'Email',
+    key: "email",
+    label: "Email",
     icon: <Mail className="w-3.5 h-3.5" />,
   },
   {
-    key: 'push',
-    label: 'Push',
+    key: "push",
+    label: "Push",
     icon: <Smartphone className="w-3.5 h-3.5" />,
   },
-]
+];
 
 const PREF_TYPES: NotificationPrefType[] = [
-  'assignment_due',
-  'quiz_result',
-  'grade_posted',
-  'message_received',
-  'announcement',
-  'system_alert',
-]
+  "assignment_due",
+  "quiz_result",
+  "grade_posted",
+  "message_received",
+  "announcement",
+  "system_alert",
+];
 
 // ─── Cell Toggle ──────────────────────────────────────────────────────────────
 
 interface CellToggleProps {
-  id: string
-  checked: boolean
-  onChange: (val: boolean) => void
-  label: string
+  id: string;
+  checked: boolean;
+  onChange: (val: boolean) => void;
+  label: string;
 }
 
 function CellToggle({ id, checked, onChange, label }: CellToggleProps) {
@@ -70,53 +74,58 @@ function CellToggle({ id, checked, onChange, label }: CellToggleProps) {
       aria-label={label}
       onClick={() => onChange(!checked)}
       className={cn(
-        'relative inline-flex h-5 w-9 flex-shrink-0 rounded-full border-2 border-transparent',
-        'transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500',
-        'focus:ring-offset-2 dark:focus:ring-offset-slate-900',
-        checked ? 'bg-blue-600' : 'bg-slate-200 dark:bg-slate-600'
+        "relative inline-flex h-5 w-9 flex-shrink-0 rounded-full border-2 border-transparent",
+        "transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500",
+        "focus:ring-offset-2 dark:focus:ring-offset-slate-900",
+        checked ? "bg-blue-600" : "bg-slate-200 dark:bg-slate-600",
       )}
     >
       <span
         aria-hidden="true"
         className={cn(
-          'pointer-events-none inline-block h-4 w-4 rounded-full bg-white shadow',
-          'ring-0 transition-transform duration-200',
-          checked ? 'translate-x-4' : 'translate-x-0'
+          "pointer-events-none inline-block h-4 w-4 rounded-full bg-white shadow",
+          "ring-0 transition-transform duration-200",
+          checked ? "translate-x-4" : "translate-x-0",
         )}
       />
     </button>
-  )
+  );
 }
 
 // ─── Panel ────────────────────────────────────────────────────────────────────
 
 interface NotificationPreferencesPanelProps {
   /** If true, renders a compact version without card border (for embedding in Settings) */
-  embedded?: boolean
+  embedded?: boolean;
 }
 
 export function NotificationPreferencesPanel({
   embedded = false,
 }: NotificationPreferencesPanelProps) {
-  const { preferences, updatePreference, resetToDefaults } = useNotificationPreferencesLocal()
+  const { preferences, updatePreference, resetToDefaults } =
+    useNotificationPreferencesLocal();
 
-  const [savedIndicator, setSavedIndicator] = useState(false)
+  const [savedIndicator, setSavedIndicator] = useState(false);
 
   const handleChange = useCallback(
-    (type: NotificationPrefType, channel: NotificationChannel, val: boolean) => {
-      updatePreference(type, channel, val)
+    (
+      type: NotificationPrefType,
+      channel: NotificationChannel,
+      val: boolean,
+    ) => {
+      updatePreference(type, channel, val);
       // Flash saved indicator
-      setSavedIndicator(true)
-      setTimeout(() => setSavedIndicator(false), 2000)
+      setSavedIndicator(true);
+      setTimeout(() => setSavedIndicator(false), 2000);
     },
-    [updatePreference]
-  )
+    [updatePreference],
+  );
 
   const handleReset = useCallback(() => {
-    resetToDefaults()
-    setSavedIndicator(true)
-    setTimeout(() => setSavedIndicator(false), 2000)
-  }, [resetToDefaults])
+    resetToDefaults();
+    setSavedIndicator(true);
+    setTimeout(() => setSavedIndicator(false), 2000);
+  }, [resetToDefaults]);
 
   const content = (
     <>
@@ -134,9 +143,16 @@ export function NotificationPreferencesPanel({
 
       {/* Table */}
       <div className="overflow-x-auto">
-        <table className="w-full text-sm" role="grid" aria-label="Pengaturan saluran notifikasi">
+        <table
+          className="w-full text-sm"
+          role="grid"
+          aria-label="Pengaturan saluran notifikasi"
+        >
           <thead>
-            <tr role="row" className="border-b border-slate-100 dark:border-slate-800">
+            <tr
+              role="row"
+              className="border-b border-slate-100 dark:border-slate-800"
+            >
               <th
                 role="columnheader"
                 scope="col"
@@ -172,7 +188,11 @@ export function NotificationPreferencesPanel({
                   </span>
                 </td>
                 {CHANNELS.map((ch) => (
-                  <td key={ch.key} role="gridcell" className="px-3 py-3 text-center">
+                  <td
+                    key={ch.key}
+                    role="gridcell"
+                    className="px-3 py-3 text-center"
+                  >
                     <div className="flex justify-center">
                       <CellToggle
                         id={`pref-${type}-${ch.key}`}
@@ -195,9 +215,9 @@ export function NotificationPreferencesPanel({
           type="button"
           onClick={handleReset}
           className={cn(
-            'flex items-center gap-1.5 text-xs font-medium transition-colors',
-            'text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200',
-            'focus:outline-none focus:ring-2 focus:ring-slate-400 rounded'
+            "flex items-center gap-1.5 text-xs font-medium transition-colors",
+            "text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200",
+            "focus:outline-none focus:ring-2 focus:ring-slate-400 rounded",
           )}
         >
           <RotateCcw className="w-3.5 h-3.5" />
@@ -208,10 +228,10 @@ export function NotificationPreferencesPanel({
         <span
           aria-live="polite"
           className={cn(
-            'flex items-center gap-1 text-xs font-medium transition-opacity duration-300',
+            "flex items-center gap-1 text-xs font-medium transition-opacity duration-300",
             savedIndicator
-              ? 'opacity-100 text-green-600 dark:text-green-400'
-              : 'opacity-0 text-green-600 dark:text-green-400'
+              ? "opacity-100 text-green-600 dark:text-green-400"
+              : "opacity-0 text-green-600 dark:text-green-400",
           )}
         >
           <Check className="w-3.5 h-3.5" />
@@ -219,15 +239,15 @@ export function NotificationPreferencesPanel({
         </span>
       </div>
     </>
-  )
+  );
 
   if (embedded) {
-    return <div>{content}</div>
+    return <div>{content}</div>;
   }
 
   return (
     <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-700 overflow-hidden">
       {content}
     </div>
-  )
+  );
 }

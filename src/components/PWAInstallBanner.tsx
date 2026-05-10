@@ -1,23 +1,23 @@
-import { Download, X } from 'lucide-react'
-import { AnimatePresence, motion } from 'motion/react'
-import { useEffect, useState } from 'react'
-import { useLocation } from 'react-router-dom'
+import { Download, X } from "lucide-react";
+import { AnimatePresence, motion } from "motion/react";
+import { useEffect, useState } from "react";
+import { useLocation } from "react-router-dom";
 
-import { isAuthSurfacePath } from '@/features/auth/utils/authFlow'
-import { usePWAInstall } from '@/hooks/usePWAInstall'
+import { isAuthSurfacePath } from "@/features/auth/utils/authFlow";
+import { usePWAInstall } from "@/hooks/usePWAInstall";
 
-const SNOOZE_KEY = 'edusync_pwa_banner_snoozed'
-const SNOOZE_DURATION_MS = 7 * 24 * 60 * 60 * 1000 // 7 days
+const SNOOZE_KEY = "edusync_pwa_banner_snoozed";
+const SNOOZE_DURATION_MS = 7 * 24 * 60 * 60 * 1000; // 7 days
 
 function isSnoozed(): boolean {
   try {
-    const raw = localStorage.getItem(SNOOZE_KEY)
-    if (!raw) return false
-    const timestamp = Number(raw)
-    if (Number.isNaN(timestamp)) return false
-    return Date.now() - timestamp < SNOOZE_DURATION_MS
+    const raw = localStorage.getItem(SNOOZE_KEY);
+    if (!raw) return false;
+    const timestamp = Number(raw);
+    if (Number.isNaN(timestamp)) return false;
+    return Date.now() - timestamp < SNOOZE_DURATION_MS;
   } catch {
-    return false
+    return false;
   }
 }
 
@@ -26,42 +26,42 @@ function isSnoozed(): boolean {
 // ---------------------------------------------------------------------------
 
 export function PWAInstallBanner() {
-  const location = useLocation()
-  const { canInstall, promptInstall, isDismissed, dismiss } = usePWAInstall()
-  const [snoozed, setSnoozed] = useState(() => isSnoozed())
+  const location = useLocation();
+  const { canInstall, promptInstall, isDismissed, dismiss } = usePWAInstall();
+  const [snoozed, setSnoozed] = useState(() => isSnoozed());
 
   // Sync snooze state if localStorage changes in another tab
   useEffect(() => {
     const handler = (e: StorageEvent) => {
       if (e.key === SNOOZE_KEY) {
-        setSnoozed(isSnoozed())
+        setSnoozed(isSnoozed());
       }
-    }
-    window.addEventListener('storage', handler)
-    return () => window.removeEventListener('storage', handler)
-  }, [])
+    };
+    window.addEventListener("storage", handler);
+    return () => window.removeEventListener("storage", handler);
+  }, []);
 
   const handleDismiss = () => {
     try {
-      localStorage.setItem(SNOOZE_KEY, String(Date.now()))
+      localStorage.setItem(SNOOZE_KEY, String(Date.now()));
     } catch {
       // fail silently
     }
-    setSnoozed(true)
-    dismiss()
-  }
+    setSnoozed(true);
+    dismiss();
+  };
 
   const handleInstall = async () => {
-    const accepted = await promptInstall()
+    const accepted = await promptInstall();
     if (!accepted) {
       // User rejected — snooze for 7 days
-      handleDismiss()
+      handleDismiss();
     }
-  }
+  };
 
-  const visible = canInstall && !isDismissed && !snoozed
+  const visible = canInstall && !isDismissed && !snoozed;
   if (isAuthSurfacePath(location.pathname)) {
-    return null
+    return null;
   }
 
   return (
@@ -73,7 +73,7 @@ export function PWAInstallBanner() {
           initial={{ opacity: 0, y: 80 }}
           animate={{ opacity: 1, y: 0 }}
           exit={{ opacity: 0, y: 80 }}
-          transition={{ type: 'spring', stiffness: 300, damping: 30 }}
+          transition={{ type: "spring", stiffness: 300, damping: 30 }}
           className="fixed bottom-4 left-4 right-4 z-[60] mx-auto max-w-md"
         >
           <div className="flex items-center gap-3 rounded-2xl border border-indigo-200 bg-white px-4 py-3 shadow-xl dark:border-indigo-800 dark:bg-slate-900">
@@ -115,5 +115,5 @@ export function PWAInstallBanner() {
         </motion.div>
       )}
     </AnimatePresence>
-  )
+  );
 }

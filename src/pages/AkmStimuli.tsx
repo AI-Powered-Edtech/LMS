@@ -1,34 +1,41 @@
-import { FileText, Plus } from 'lucide-react'
-import { useState } from 'react'
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { FileText, Plus } from "lucide-react";
+import { useState } from "react";
 
-import { Button } from '@/components/ui/Button'
-import { Card } from '@/components/ui/Card'
-import { Input } from '@/components/ui/Input'
-import { Modal, ModalBody, ModalFooter, ModalHeader } from '@/components/ui/Modal'
-import { useAuth } from '@/contexts/AuthContext'
-import { akmService } from '@/features/akm/api/akmService'
-import { useToast } from '@/hooks/useToast'
-import { usePageTitle } from '@/hooks/usePageTitle'
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import { Button } from "@/components/ui/Button";
+import { Card } from "@/components/ui/Card";
+import { Input } from "@/components/ui/Input";
+import {
+  Modal,
+  ModalBody,
+  ModalFooter,
+  ModalHeader,
+} from "@/components/ui/Modal";
+import { useAuth } from "@/contexts/AuthContext";
+import { akmService } from "@/features/akm/api/akmService";
+import { usePageTitle } from "@/hooks/usePageTitle";
+import { useToast } from "@/hooks/useToast";
 
 export function AkmStimuli() {
-  usePageTitle('Stimulus AKM')
-  const { tenantId, user } = useAuth()
-  const { addToast } = useToast()
-  const qc = useQueryClient()
+  usePageTitle("Stimulus AKM");
+  const { tenantId, user } = useAuth();
+  const { addToast } = useToast();
+  const qc = useQueryClient();
 
   const { data: stimuli = [], isLoading } = useQuery({
-    queryKey: ['question_stimuli', tenantId],
+    queryKey: ["question_stimuli", tenantId],
     queryFn: () => (tenantId ? akmService.list(tenantId) : Promise.resolve([])),
     enabled: !!tenantId,
-  })
+  });
 
-  const [isOpen, setIsOpen] = useState(false)
-  const [title, setTitle] = useState('')
-  const [body, setBody] = useState('')
-  const [mediaUrl, setMediaUrl] = useState('')
-  const [mediaType, setMediaType] = useState<'image' | 'video' | 'audio' | 'pdf' | ''>('')
-  const [source, setSource] = useState('')
+  const [isOpen, setIsOpen] = useState(false);
+  const [title, setTitle] = useState("");
+  const [body, setBody] = useState("");
+  const [mediaUrl, setMediaUrl] = useState("");
+  const [mediaType, setMediaType] = useState<
+    "image" | "video" | "audio" | "pdf" | ""
+  >("");
+  const [source, setSource] = useState("");
 
   const create = useMutation({
     mutationFn: () =>
@@ -42,21 +49,21 @@ export function AkmStimuli() {
         createdBy: user?.id ?? null,
       }),
     onSuccess: () => {
-      addToast({ type: 'success', message: 'Stimulus dibuat' })
-      setIsOpen(false)
-      setTitle('')
-      setBody('')
-      setMediaUrl('')
-      setSource('')
-      void qc.invalidateQueries({ queryKey: ['question_stimuli', tenantId] })
+      addToast({ type: "success", message: "Stimulus dibuat" });
+      setIsOpen(false);
+      setTitle("");
+      setBody("");
+      setMediaUrl("");
+      setSource("");
+      void qc.invalidateQueries({ queryKey: ["question_stimuli", tenantId] });
     },
     onError: (err) =>
       addToast({
-        type: 'error',
-        message: 'Gagal menyimpan stimulus',
-        description: err instanceof Error ? err.message : 'Terjadi kesalahan',
+        type: "error",
+        message: "Gagal menyimpan stimulus",
+        description: err instanceof Error ? err.message : "Terjadi kesalahan",
       }),
-  })
+  });
 
   return (
     <div className="w-full max-w-5xl mx-auto px-4 md:px-8 pt-8 pb-20 space-y-6">
@@ -67,18 +74,24 @@ export function AkmStimuli() {
             Stimulus AKM
           </h1>
           <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">
-            Bacaan / chart / video yang dipakai sebagai konteks soal AKM. Satu stimulus dapat
-            dipakai oleh banyak soal di Quiz Manager.
+            Bacaan / chart / video yang dipakai sebagai konteks soal AKM. Satu
+            stimulus dapat dipakai oleh banyak soal di Quiz Manager.
           </p>
         </div>
-        <Button variant="primary" icon={<Plus className="w-4 h-4" />} onClick={() => setIsOpen(true)}>
+        <Button
+          variant="primary"
+          icon={<Plus className="w-4 h-4" />}
+          onClick={() => setIsOpen(true)}
+        >
           Stimulus Baru
         </Button>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         {isLoading ? (
-          <p className="text-sm text-slate-500 col-span-full text-center py-12">Memuat...</p>
+          <p className="text-sm text-slate-500 col-span-full text-center py-12">
+            Memuat...
+          </p>
         ) : stimuli.length === 0 ? (
           <p className="text-sm text-slate-500 col-span-full text-center py-12">
             Belum ada stimulus.
@@ -87,12 +100,14 @@ export function AkmStimuli() {
           stimuli.map((s) => (
             <Card key={s.id}>
               {s.title && (
-                <h3 className="font-semibold text-slate-900 dark:text-white mb-2">{s.title}</h3>
+                <h3 className="font-semibold text-slate-900 dark:text-white mb-2">
+                  {s.title}
+                </h3>
               )}
-              {s.media_url && s.media_type === 'image' && (
+              {s.media_url && s.media_type === "image" && (
                 <img
                   src={s.media_url}
-                  alt={s.title ?? 'Stimulus'}
+                  alt={s.title ?? "Stimulus"}
                   className="w-full h-40 object-cover rounded mb-3"
                   loading="lazy"
                 />
@@ -101,7 +116,9 @@ export function AkmStimuli() {
                 {s.body}
               </p>
               {s.source && (
-                <p className="text-xs text-slate-400 italic mt-2">Sumber: {s.source}</p>
+                <p className="text-xs text-slate-400 italic mt-2">
+                  Sumber: {s.source}
+                </p>
               )}
             </Card>
           ))
@@ -111,14 +128,21 @@ export function AkmStimuli() {
       <Modal open={isOpen} onClose={() => setIsOpen(false)}>
         <form
           onSubmit={(e) => {
-            e.preventDefault()
-            create.mutate()
+            e.preventDefault();
+            create.mutate();
           }}
         >
-          <ModalHeader title="Stimulus AKM Baru" onClose={() => setIsOpen(false)} />
+          <ModalHeader
+            title="Stimulus AKM Baru"
+            onClose={() => setIsOpen(false)}
+          />
           <ModalBody>
             <div className="space-y-4">
-              <Input label="Judul (opsional)" value={title} onChange={(e) => setTitle(e.target.value)} />
+              <Input
+                label="Judul (opsional)"
+                value={title}
+                onChange={(e) => setTitle(e.target.value)}
+              />
               <div>
                 <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
                   Bacaan / Konten
@@ -140,7 +164,9 @@ export function AkmStimuli() {
                 />
                 <select
                   value={mediaType}
-                  onChange={(e) => setMediaType(e.target.value as typeof mediaType)}
+                  onChange={(e) =>
+                    setMediaType(e.target.value as typeof mediaType)
+                  }
                 >
                   <option value="">— tidak ada —</option>
                   <option value="image">Gambar</option>
@@ -149,7 +175,11 @@ export function AkmStimuli() {
                   <option value="pdf">PDF</option>
                 </select>
               </div>
-              <Input label="Sumber / Sitasi" value={source} onChange={(e) => setSource(e.target.value)} />
+              <Input
+                label="Sumber / Sitasi"
+                value={source}
+                onChange={(e) => setSource(e.target.value)}
+              />
             </div>
           </ModalBody>
           <ModalFooter>
@@ -157,11 +187,11 @@ export function AkmStimuli() {
               Batal
             </Button>
             <Button type="submit" variant="primary" disabled={create.isPending}>
-              {create.isPending ? 'Menyimpan...' : 'Simpan'}
+              {create.isPending ? "Menyimpan..." : "Simpan"}
             </Button>
           </ModalFooter>
         </form>
       </Modal>
     </div>
-  )
+  );
 }

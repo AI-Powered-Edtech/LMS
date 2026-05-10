@@ -6,10 +6,10 @@ import {
   Filter,
   Plus,
 } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 import { Breadcrumb, EmptyState } from "@/components/ui";
 import { useAuth } from "@/contexts/AuthContext";
-import { useTranslation } from "react-i18next";
 import type { Course } from "@/features/courses/types";
 import { AddAssignmentModal } from "@/features/gradebook/components/AddAssignmentModal";
 import { GradebookMainTable } from "@/features/gradebook/components/GradebookMainTable";

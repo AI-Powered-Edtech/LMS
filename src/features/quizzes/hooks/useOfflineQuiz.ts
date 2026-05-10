@@ -5,47 +5,47 @@
  * Uses existing IndexedDB infrastructure from offlineStorage.ts and offlineQueue.ts.
  */
 
-import { useCallback, useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from "react";
 
-import { logger } from '@/utils/logger'
-import { processSyncQueue } from '@/utils/offlineQueue'
-import type { SyncQueueItem } from '@/utils/offlineStorage'
-import { addToSyncQueue, getPendingCount } from '@/utils/offlineStorage'
+import { logger } from "@/utils/logger";
+import { processSyncQueue } from "@/utils/offlineQueue";
+import type { SyncQueueItem } from "@/utils/offlineStorage";
+import { addToSyncQueue, getPendingCount } from "@/utils/offlineStorage";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
 interface CachedAnswer {
-  questionId: string
-  answer: string | string[] | number
-  timestamp: number
+  questionId: string;
+  answer: string | string[] | number;
+  timestamp: number;
 }
 
 interface SyncStatus {
-  pending: number
-  synced: number
-  failed: number
+  pending: number;
+  synced: number;
+  failed: number;
 }
 
 interface UseOfflineQuizOptions {
-  quizId: string
-  _attemptId?: string
-  onSyncComplete?: () => void
-  onSyncError?: (error: Error) => void
+  quizId: string;
+  _attemptId?: string;
+  onSyncComplete?: () => void;
+  onSyncError?: (error: Error) => void;
 }
 
 interface OfflineQuizState {
-  isOnline: boolean
-  cachedAnswers: CachedAnswer[]
-  syncStatus: SyncStatus
-  lastSyncAt?: Date
-  isLoading: boolean
-  error?: string
+  isOnline: boolean;
+  cachedAnswers: CachedAnswer[];
+  syncStatus: SyncStatus;
+  lastSyncAt?: Date;
+  isLoading: boolean;
+  error?: string;
 }
 
 // ─── Hook ─────────────────────────────────────────────────────────────────────
 
 export function useOfflineQuiz(options: UseOfflineQuizOptions) {
-  const { quizId, onSyncComplete, onSyncError } = options
+  const { quizId, onSyncComplete, onSyncError } = options;
 
   const [state, setState] = useState<OfflineQuizState>(() => {
     const initialState: OfflineQuizState = {
@@ -53,12 +53,12 @@ export function useOfflineQuiz(options: UseOfflineQuizOptions) {
       cachedAnswers: [] as CachedAnswer[],
       syncStatus: { pending: 0, synced: 0, failed: 0 },
       isLoading: false,
-    }
-    return initialState
-  })
+    };
+    return initialState;
+  });
 
-  const syncTimeoutRef = useRef<NodeJS.Timeout | null>(null)
-  const isSyncingRef = useRef(false)
+  const syncTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const isSyncingRef = useRef(false);
 
   // ─── Load Cached Answers ──────────────────────────────────────────────────
 
@@ -66,8 +66,8 @@ export function useOfflineQuiz(options: UseOfflineQuizOptions) {
     setState((prev) => ({
       ...prev,
       cachedAnswers: prev.cachedAnswers,
-    }))
-  }, [])
+    }));
+  }, []);
 
   // ─── Cache Answer ─────────────────────────────────────────────────────────
 
@@ -76,15 +76,15 @@ export function useOfflineQuiz(options: UseOfflineQuizOptions) {
       try {
         await addToSyncQueue({
           id: `quiz-${quizId}-${questionId}-${Date.now()}`,
-          type: 'quiz-submission',
+          type: "quiz-submission",
           payload: {
             quizId,
             questionId,
             answer,
           },
-          status: 'pending',
+          status: "pending",
           createdAt: Date.now(),
-        } as Omit<SyncQueueItem, 'attempts'>)
+        } as Omit<SyncQueueItem, "attempts">);
 
         setState((prev) => ({
           ...prev,
@@ -96,34 +96,34 @@ export function useOfflineQuiz(options: UseOfflineQuizOptions) {
               timestamp: Date.now(),
             },
           ],
-        }))
+        }));
 
         if (navigator.onLine) {
-          void submitPendingAnswers()
+          void submitPendingAnswers();
         }
       } catch (error) {
-        logger.error('[OfflineQuiz] Failed to cache answer:', error)
+        logger.error("[OfflineQuiz] Failed to cache answer:", error);
       }
     },
-    [quizId]
-  )
+    [quizId],
+  );
 
   // ─── Submit All Pending Answers ───────────────────────────────────────────
 
   const submitPendingAnswers = useCallback(async () => {
-    if (isSyncingRef.current) return
+    if (isSyncingRef.current) return;
 
-    isSyncingRef.current = true
+    isSyncingRef.current = true;
     setState((prev) => ({
       ...prev,
       isLoading: true,
       error: undefined,
-    }))
+    }));
 
     try {
-      await processSyncQueue()
+      await processSyncQueue();
 
-      const pending = await getPendingCount()
+      const pending = await getPendingCount();
       setState((prev) => ({
         ...prev,
         syncStatus: {
@@ -131,25 +131,25 @@ export function useOfflineQuiz(options: UseOfflineQuizOptions) {
           pending,
         },
         lastSyncAt: new Date(),
-      }))
+      }));
 
-      await loadCachedAnswers()
-      onSyncComplete?.()
+      await loadCachedAnswers();
+      onSyncComplete?.();
     } catch (error) {
-      logger.error('[OfflineQuiz] Failed to sync answers:', error)
+      logger.error("[OfflineQuiz] Failed to sync answers:", error);
       setState((prev) => ({
         ...prev,
-        error: error instanceof Error ? error.message : 'Sinkronisasi gagal',
-      }))
-      onSyncError?.(error instanceof Error ? error : new Error('Sync failed'))
+        error: error instanceof Error ? error.message : "Sinkronisasi gagal",
+      }));
+      onSyncError?.(error instanceof Error ? error : new Error("Sync failed"));
     } finally {
-      isSyncingRef.current = false
+      isSyncingRef.current = false;
       setState((prev) => ({
         ...prev,
         isLoading: false,
-      }))
+      }));
     }
-  }, [loadCachedAnswers, onSyncComplete, onSyncError])
+  }, [loadCachedAnswers, onSyncComplete, onSyncError]);
 
   // ─── Online/Offline Detection ─────────────────────────────────────────────
 
@@ -158,54 +158,54 @@ export function useOfflineQuiz(options: UseOfflineQuizOptions) {
       setState((prev) => ({
         ...prev,
         isOnline: true,
-      }))
+      }));
 
       if (syncTimeoutRef.current) {
-        clearTimeout(syncTimeoutRef.current)
+        clearTimeout(syncTimeoutRef.current);
       }
 
       syncTimeoutRef.current = setTimeout(() => {
-        void submitPendingAnswers()
-      }, 2000)
-    }
+        void submitPendingAnswers();
+      }, 2000);
+    };
 
     const handleOffline = () => {
       setState((prev) => ({
         ...prev,
         isOnline: false,
-      }))
-    }
+      }));
+    };
 
-    window.addEventListener('online', handleOnline)
-    window.addEventListener('offline', handleOffline)
+    window.addEventListener("online", handleOnline);
+    window.addEventListener("offline", handleOffline);
 
     return () => {
-      window.removeEventListener('online', handleOnline)
-      window.removeEventListener('offline', handleOffline)
+      window.removeEventListener("online", handleOnline);
+      window.removeEventListener("offline", handleOffline);
       if (syncTimeoutRef.current) {
-        clearTimeout(syncTimeoutRef.current)
+        clearTimeout(syncTimeoutRef.current);
       }
-    }
-  }, [submitPendingAnswers])
+    };
+  }, [submitPendingAnswers]);
 
   useEffect(() => {
-    void loadCachedAnswers()
-  }, [loadCachedAnswers])
+    void loadCachedAnswers();
+  }, [loadCachedAnswers]);
 
   useEffect(() => {
     return () => {
       if (syncTimeoutRef.current) {
-        clearTimeout(syncTimeoutRef.current)
+        clearTimeout(syncTimeoutRef.current);
       }
-    }
-  }, [])
+    };
+  }, []);
 
   return {
     ...state,
     cacheAnswer,
     submitPendingAnswers,
     reloadCachedAnswers: loadCachedAnswers,
-  }
+  };
 }
 
-export default useOfflineQuiz
+export default useOfflineQuiz;

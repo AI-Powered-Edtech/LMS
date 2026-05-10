@@ -42,7 +42,9 @@ export const publicProfileService = {
 
   async getProfileByUsername(username: string): Promise<{ id: string } | null> {
     const { data, error } = await db
-      .from<Array<{ id: string; full_name: string | null; email: string | null }>>("profiles")
+      .from<
+        Array<{ id: string; full_name: string | null; email: string | null }>
+      >("profiles")
       .select("id")
       .ilike("username", username)
       .maybeSingle();
@@ -59,7 +61,9 @@ export const publicProfileService = {
 
   async updateUsername(userId: string, username: string): Promise<void> {
     const { error } = await db
-      .from<Array<{ id: string; full_name: string | null; email: string | null }>>("profiles")
+      .from<
+        Array<{ id: string; full_name: string | null; email: string | null }>
+      >("profiles")
       .update({
         username: username.trim() || null,
         updated_at: new Date().toISOString(),
@@ -70,7 +74,9 @@ export const publicProfileService = {
 
   async updateBio(userId: string, bio: string): Promise<void> {
     const { error } = await db
-      .from<Array<{ id: string; full_name: string | null; email: string | null }>>("profiles")
+      .from<
+        Array<{ id: string; full_name: string | null; email: string | null }>
+      >("profiles")
       .update({ bio: bio.trim(), updated_at: new Date().toISOString() })
       .eq("id", userId);
     if (error) throw error;
@@ -84,7 +90,9 @@ export const publicProfileService = {
     const [firstName, ...rest] = fullName.trim().split(" ");
     const lastName = rest.join(" ");
     const { error } = await db
-      .from<Array<{ id: string; full_name: string | null; email: string | null }>>("profiles")
+      .from<
+        Array<{ id: string; full_name: string | null; email: string | null }>
+      >("profiles")
       .update({
         first_name: firstName,
         last_name: lastName || "",

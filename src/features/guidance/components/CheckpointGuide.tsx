@@ -1,12 +1,12 @@
-import { CheckCircle, HelpCircle } from 'lucide-react'
-import { motion } from 'motion/react'
+import { CheckCircle, HelpCircle } from "lucide-react";
+import { motion } from "motion/react";
 
-import type { ApplicableGuide } from '../types'
+import type { ApplicableGuide } from "../types";
 
 interface Props {
-  guide: ApplicableGuide
-  onDismiss: () => void
-  onComplete: () => void
+  guide: ApplicableGuide;
+  onDismiss: () => void;
+  onComplete: () => void;
 }
 
 export function CheckpointGuide({ guide, onDismiss, onComplete }: Props) {
@@ -45,5 +45,5 @@ export function CheckpointGuide({ guide, onDismiss, onComplete }: Props) {
         </button>
       </div>
     </motion.div>
-  )
+  );
 }

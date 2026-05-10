@@ -233,7 +233,7 @@ export const antiCheatService = {
   async recordEvent(request: RecordEventRequest) {
     return client.rpc<RecordEventResponse>(
       "quiz.anticheat-event",
-      request as unknown as Record<string, unknown>
+      request as unknown as Record<string, unknown>,
     );
   },
 
@@ -276,7 +276,10 @@ export const quizTimerService = {
 
 export const xpService = {
   async awardXp(request: AwardXpRequest) {
-    return client.rpc<AwardXpResponse>("xp.award", request as unknown as Record<string, unknown>);
+    return client.rpc<AwardXpResponse>(
+      "xp.award",
+      request as unknown as Record<string, unknown>,
+    );
   },
 
   async getUserXp(userId: string) {

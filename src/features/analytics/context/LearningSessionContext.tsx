@@ -6,25 +6,30 @@ import {
   useMemo,
   useRef,
   useState,
-} from 'react'
+} from "react";
 
-import { xapi } from '@/features/xapi'
+import { xapi } from "@/features/xapi";
 
-import { startEventFlushing, stopEventFlushing, trackLearningEvent } from '../api/trackingService'
-import type { EventMetadata, LearningEventType } from '../types/events.types'
+import {
+  startEventFlushing,
+  stopEventFlushing,
+  trackLearningEvent,
+} from "../api/trackingService";
+import type { EventMetadata, LearningEventType } from "../types/events.types";
 
 interface LearningSessionContextValue {
-  sessionId: string
-  trackEvent: (eventType: LearningEventType, metadata?: EventMetadata) => void
+  sessionId: string;
+  trackEvent: (eventType: LearningEventType, metadata?: EventMetadata) => void;
 }
 
-export const LearningSessionContext = createContext<LearningSessionContextValue | null>(null)
+export const LearningSessionContext =
+  createContext<LearningSessionContextValue | null>(null);
 
 interface LearningSessionProviderProps {
-  courseId?: string
-  lessonId?: string
-  moduleId?: string
-  children: ReactNode
+  courseId?: string;
+  lessonId?: string;
+  moduleId?: string;
+  children: ReactNode;
 }
 
 export function LearningSessionProvider({
@@ -34,31 +39,31 @@ export function LearningSessionProvider({
   children,
 }: LearningSessionProviderProps) {
   // New session on each lesson change (or initial mount)
-  const [sessionId, setSessionId] = useState(() => crypto.randomUUID())
-  const prevLessonRef = useRef(lessonId)
+  const [sessionId, setSessionId] = useState(() => crypto.randomUUID());
+  const prevLessonRef = useRef(lessonId);
 
   useEffect(() => {
     if (prevLessonRef.current !== lessonId) {
-      prevLessonRef.current = lessonId
-      setSessionId(crypto.randomUUID())
+      prevLessonRef.current = lessonId;
+      setSessionId(crypto.randomUUID());
     }
-  }, [lessonId])
+  }, [lessonId]);
 
   // xAPI: record course experienced whenever a new lesson session starts
   useEffect(() => {
     if (courseId) {
-      xapi.courseExperienced(courseId).catch(() => {})
+      xapi.courseExperienced(courseId).catch(() => {});
     }
     // Only re-emit when lessonId changes (new lesson session), not on every courseId change
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [lessonId])
+  }, [lessonId]);
 
   useEffect(() => {
-    startEventFlushing()
+    startEventFlushing();
     return () => {
-      stopEventFlushing()
-    }
-  }, [])
+      stopEventFlushing();
+    };
+  }, []);
 
   const value = useMemo<LearningSessionContextValue>(
     () => ({
@@ -71,17 +76,24 @@ export function LearningSessionProvider({
           lessonId,
           moduleId,
           metadata,
-        })
+        });
       },
     }),
-    [sessionId, courseId, lessonId, moduleId]
-  )
+    [sessionId, courseId, lessonId, moduleId],
+  );
 
-  return <LearningSessionContext.Provider value={value}>{children}</LearningSessionContext.Provider>
+  return (
+    <LearningSessionContext.Provider value={value}>
+      {children}
+    </LearningSessionContext.Provider>
+  );
 }
 
 export function useLearningSession() {
-  const ctx = useContext(LearningSessionContext)
-  if (!ctx) throw new Error('useLearningSession must be used within LearningSessionProvider')
-  return ctx
+  const ctx = useContext(LearningSessionContext);
+  if (!ctx)
+    throw new Error(
+      "useLearningSession must be used within LearningSessionProvider",
+    );
+  return ctx;
 }

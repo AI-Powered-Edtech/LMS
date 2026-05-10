@@ -1,11 +1,11 @@
-import { Bell, Download, Plus } from 'lucide-react'
+import { Bell, Download, Plus } from "lucide-react";
 
 interface FinanceExportPanelProps {
-  invoicesCount: number
-  unpaidCount: number
-  onAddInvoice: () => void
-  onExport: () => void
-  onReminder: () => void
+  invoicesCount: number;
+  unpaidCount: number;
+  onAddInvoice: () => void;
+  onExport: () => void;
+  onReminder: () => void;
 }
 
 export function FinanceExportPanel({
@@ -18,7 +18,9 @@ export function FinanceExportPanel({
   return (
     <div className="bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-sm p-6">
       <div className="flex items-center gap-2 mb-4">
-        <h2 className="font-semibold text-slate-800 dark:text-slate-100">Aksi Cepat</h2>
+        <h2 className="font-semibold text-slate-800 dark:text-slate-100">
+          Aksi Cepat
+        </h2>
       </div>
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
         <button
@@ -29,8 +31,12 @@ export function FinanceExportPanel({
             <Plus className="w-5 h-5 text-blue-600 dark:text-blue-400" />
           </div>
           <div>
-            <p className="font-medium text-slate-800 dark:text-slate-200 text-sm">Tambah Tagihan</p>
-            <p className="text-xs text-slate-500 dark:text-slate-400">Input tagihan manual</p>
+            <p className="font-medium text-slate-800 dark:text-slate-200 text-sm">
+              Tambah Tagihan
+            </p>
+            <p className="text-xs text-slate-500 dark:text-slate-400">
+              Input tagihan manual
+            </p>
           </div>
         </button>
 
@@ -43,8 +49,12 @@ export function FinanceExportPanel({
             <Download className="w-5 h-5 text-emerald-600 dark:text-emerald-400" />
           </div>
           <div>
-            <p className="font-medium text-slate-800 dark:text-slate-200 text-sm">Ekspor CSV</p>
-            <p className="text-xs text-slate-500 dark:text-slate-400">Unduh laporan keuangan</p>
+            <p className="font-medium text-slate-800 dark:text-slate-200 text-sm">
+              Ekspor CSV
+            </p>
+            <p className="text-xs text-slate-500 dark:text-slate-400">
+              Unduh laporan keuangan
+            </p>
           </div>
         </button>
 
@@ -60,11 +70,13 @@ export function FinanceExportPanel({
               Kirim Pengingat
             </p>
             <p className="text-xs text-slate-500 dark:text-slate-400">
-              {unpaidCount > 0 ? `${unpaidCount} siswa belum bayar` : 'Notifikasi pembayaran'}
+              {unpaidCount > 0
+                ? `${unpaidCount} siswa belum bayar`
+                : "Notifikasi pembayaran"}
             </p>
           </div>
         </button>
       </div>
     </div>
-  )
+  );
 }

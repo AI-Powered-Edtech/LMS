@@ -2,61 +2,61 @@
 // Public route /register-parent ada di sharedRoutes.tsx (PublicRoutes).
 // Routes di sini hanya untuk authenticated /app/parent/* paths.
 
-import { lazy } from 'react'
-import { Outlet, Route } from 'react-router-dom'
+import { lazy } from "react";
+import { Outlet, Route } from "react-router-dom";
 
-import { RoleGuard } from '../../components/guards/RoleGuard'
-import { SurveyRespondPage } from '../lazyPages'
-import { S } from './utils'
+import { RoleGuard } from "../../components/guards/RoleGuard";
+import { SurveyRespondPage } from "../lazyPages";
+import { S } from "./utils";
 
 // Lazy imports
 const ParentDashboard = lazy(() =>
-  import('../../features/parent/components/ParentDashboard').then((m) => ({
+  import("../../features/parent/components/ParentDashboard").then((m) => ({
     default: m.ParentDashboard,
-  }))
-)
+  })),
+);
 
 const MessageTeacher = lazy(() =>
-  import('../../features/parent/components/MessageTeacher').then((m) => ({
+  import("../../features/parent/components/MessageTeacher").then((m) => ({
     default: m.MessageTeacher,
-  }))
-)
+  })),
+);
 
 const MessageThread = lazy(() =>
-  import('../../features/parent/components/MessageThread').then((m) => ({
+  import("../../features/parent/components/MessageThread").then((m) => ({
     default: m.MessageThread,
-  }))
-)
+  })),
+);
 
 const DigestSettings = lazy(() =>
-  import('../../features/parent/components/DigestSettings').then((m) => ({
+  import("../../features/parent/components/DigestSettings").then((m) => ({
     default: m.DigestSettings,
-  }))
-)
+  })),
+);
 
 const GradesDetailPage = lazy(() =>
-  import('../../features/parent/components/GradesDetailPage').then((m) => ({
+  import("../../features/parent/components/GradesDetailPage").then((m) => ({
     default: m.GradesDetailPage,
-  }))
-)
+  })),
+);
 
 const AttendanceDetailPage = lazy(() =>
-  import('../../features/parent/components/AttendanceDetailPage').then((m) => ({
+  import("../../features/parent/components/AttendanceDetailPage").then((m) => ({
     default: m.AttendanceDetailPage,
-  }))
-)
+  })),
+);
 
 const MonthlyReportPage = lazy(() =>
-  import('../../features/parent/components/MonthlyReportPage').then((m) => ({
+  import("../../features/parent/components/MonthlyReportPage").then((m) => ({
     default: m.MonthlyReportPage,
-  }))
-)
+  })),
+);
 
 const InvoiceList = lazy(() =>
-  import('../../features/parent/components/InvoiceList').then((m) => ({
+  import("../../features/parent/components/InvoiceList").then((m) => ({
     default: m.InvoiceList,
-  }))
-)
+  })),
+);
 
 /**
  * All /app/parent/* routes (authenticated, role=parent atau admin).
@@ -69,7 +69,7 @@ export function ParentRoutes() {
     <Route
       path="parent"
       element={
-        <RoleGuard allowedRoles={['parent', 'admin']}>
+        <RoleGuard allowedRoles={["parent", "admin"]}>
           <Outlet />
         </RoleGuard>
       }
@@ -164,5 +164,5 @@ export function ParentRoutes() {
         }
       />
     </Route>
-  )
+  );
 }

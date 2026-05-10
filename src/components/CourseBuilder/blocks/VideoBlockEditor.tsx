@@ -1,29 +1,33 @@
-import { Clock, Link as LinkIcon, Play, Video } from 'lucide-react'
-import { useState } from 'react'
+import { Clock, Link as LinkIcon, Play, Video } from "lucide-react";
+import { useState } from "react";
 
-import { useBuilder } from '@/contexts/BuilderContext'
-import { InteractiveVideoEditor } from '@/features/courses/components/InteractiveVideoEditor'
-import type { InteractiveVideoMetadata } from '@/features/lessons/types'
-import { parseVideoUrl } from '@/utils/videoUtils'
+import { useBuilder } from "@/contexts/BuilderContext";
+import { InteractiveVideoEditor } from "@/features/courses/components/InteractiveVideoEditor";
+import type { InteractiveVideoMetadata } from "@/features/lessons/types";
+import { parseVideoUrl } from "@/utils/videoUtils";
 
 interface VideoBlockEditorProps {
-  blockId: string
+  blockId: string;
 }
 
 export function VideoBlockEditor({ blockId }: VideoBlockEditorProps) {
-  const { state, actions } = useBuilder()
-  const block = state.activeLesson?.blocks.find((b) => b.id === blockId)
-  const [showInteractiveEditor, setShowInteractiveEditor] = useState(false)
+  const { state, actions } = useBuilder();
+  const block = state.activeLesson?.blocks.find((b) => b.id === blockId);
+  const [showInteractiveEditor, setShowInteractiveEditor] = useState(false);
 
-  if (!block) return null
+  if (!block) return null;
 
-  const url = block.url || ''
-  const { type: videoType, embedUrl } = parseVideoUrl(url)
+  const url = block.url || "";
+  const { type: videoType, embedUrl } = parseVideoUrl(url);
 
-  const handleSaveInteractiveMetadata = (newMetadata: InteractiveVideoMetadata) => {
-    actions.updateBlock(blockId, { metadata: newMetadata as Record<string, unknown> })
-    void actions.saveBlock(blockId)
-  }
+  const handleSaveInteractiveMetadata = (
+    newMetadata: InteractiveVideoMetadata,
+  ) => {
+    actions.updateBlock(blockId, {
+      metadata: newMetadata as Record<string, unknown>,
+    });
+    void actions.saveBlock(blockId);
+  };
 
   return (
     <div className="space-y-4">
@@ -37,10 +41,10 @@ export function VideoBlockEditor({ blockId }: VideoBlockEditorProps) {
             placeholder="Tempel tautan YouTube atau video di sini..."
             value={url}
             onChange={(e) => {
-              actions.updateBlock(blockId, { url: e.target.value })
+              actions.updateBlock(blockId, { url: e.target.value });
             }}
             onBlur={() => {
-              void actions.saveBlock(blockId)
+              void actions.saveBlock(blockId);
             }}
             className="w-full pl-11 pr-4 py-3 border border-slate-200/60 dark:border-slate-700/60 rounded-2xl text-sm font-medium focus:ring-4 focus:ring-indigo-50 dark:focus:ring-indigo-900/30 focus:border-indigo-300 dark:focus:border-indigo-600 outline-none transition-all bg-slate-50/50 dark:bg-slate-800/50 focus:bg-white dark:focus:bg-slate-900 placeholder:text-slate-400 dark:placeholder:text-slate-500 text-slate-900 dark:text-white shadow-inner"
           />
@@ -73,11 +77,11 @@ export function VideoBlockEditor({ blockId }: VideoBlockEditorProps) {
               <Play className="w-8 h-8 text-white/60" />
             </div>
             <p className="text-[10px] text-white/40 font-black uppercase tracking-[0.2em]">
-              {url.startsWith('http')
-                ? videoType === 'vimeo'
-                  ? 'VIMEO VIDEO'
-                  : 'VIDEO EKSTERNAL'
-                : 'URL TIDAK VALID'}
+              {url.startsWith("http")
+                ? videoType === "vimeo"
+                  ? "VIMEO VIDEO"
+                  : "VIDEO EKSTERNAL"
+                : "URL TIDAK VALID"}
             </p>
           </div>
         </div>
@@ -102,5 +106,5 @@ export function VideoBlockEditor({ blockId }: VideoBlockEditorProps) {
         />
       )}
     </div>
-  )
+  );
 }

@@ -1,16 +1,19 @@
-import { ArrowRight, Loader2, Sparkles } from 'lucide-react'
-import { useNavigate, useSearchParams } from 'react-router-dom'
+import { ArrowRight, Loader2, Sparkles } from "lucide-react";
+import { useNavigate, useSearchParams } from "react-router-dom";
 
-import { useAuth } from '@/contexts/AuthContext'
-import { cn } from '@/utils/cn'
+import { useAuth } from "@/contexts/AuthContext";
+import { cn } from "@/utils/cn";
 
-import { useRecommendations, useRecordRecommendationAction } from '../queries/recommendationQueries'
+import {
+  useRecommendations,
+  useRecordRecommendationAction,
+} from "../queries/recommendationQueries";
 
 interface SmartNextButtonProps {
-  courseId: string
-  currentLessonId: string
-  sequentialNextLessonId?: string
-  className?: string
+  courseId: string;
+  currentLessonId: string;
+  sequentialNextLessonId?: string;
+  className?: string;
 }
 
 export function SmartNextButton({
@@ -19,66 +22,67 @@ export function SmartNextButton({
   sequentialNextLessonId,
   className,
 }: SmartNextButtonProps) {
-  const { user } = useAuth()
-  const navigate = useNavigate()
-  const [searchParams] = useSearchParams()
-  const currentModuleId = searchParams.get('moduleId')
-  const { data: recommendations, isLoading: isLoadingRecs } = useRecommendations(user?.id ?? '', 10)
-  const { mutate: recordAction } = useRecordRecommendationAction()
+  const { user } = useAuth();
+  const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const currentModuleId = searchParams.get("moduleId");
+  const { data: recommendations, isLoading: isLoadingRecs } =
+    useRecommendations(user?.id ?? "", 10);
+  const { mutate: recordAction } = useRecordRecommendationAction();
 
   const nextLessonRec = recommendations?.find(
-    (r) => r.recommendation_type === 'next_lesson' && r.course_id === courseId
-  )
+    (r) => r.recommendation_type === "next_lesson" && r.course_id === courseId,
+  );
 
-  const targetId = nextLessonRec?.target_id ?? sequentialNextLessonId
-  const hasSmartRec = !!nextLessonRec
+  const targetId = nextLessonRec?.target_id ?? sequentialNextLessonId;
+  const hasSmartRec = !!nextLessonRec;
 
   const handleClick = () => {
     if (nextLessonRec) {
-      recordAction({ id: nextLessonRec.id, action: 'accepted' })
+      recordAction({ id: nextLessonRec.id, action: "accepted" });
     }
     if (targetId && currentModuleId) {
       void navigate(
-        `/app/student/courses/${courseId}?moduleId=${currentModuleId}&lessonId=${targetId}`
-      )
+        `/app/student/courses/${courseId}?moduleId=${currentModuleId}&lessonId=${targetId}`,
+      );
     } else {
-      void navigate(`/app/student/courses/${courseId}`)
+      void navigate(`/app/student/courses/${courseId}`);
     }
-  }
+  };
 
   if (isLoadingRecs) {
     return (
       <button
         disabled
         className={cn(
-          'flex items-center gap-2 rounded-xl px-5 py-2.5 font-semibold text-sm opacity-70 cursor-wait',
-          'bg-indigo-600 text-white',
-          className
+          "flex items-center gap-2 rounded-xl px-5 py-2.5 font-semibold text-sm opacity-70 cursor-wait",
+          "bg-indigo-600 text-white",
+          className,
         )}
       >
         <Loader2 className="h-4 w-4 animate-spin" />
         <span>Memuat...</span>
       </button>
-    )
+    );
   }
 
-  if (!targetId && !sequentialNextLessonId) return null
+  if (!targetId && !sequentialNextLessonId) return null;
 
   return (
     <button
       onClick={handleClick}
       title={nextLessonRec?.reason}
       className={cn(
-        'flex items-center gap-2 rounded-xl px-5 py-2.5 font-semibold text-sm transition-all',
+        "flex items-center gap-2 rounded-xl px-5 py-2.5 font-semibold text-sm transition-all",
         hasSmartRec
-          ? 'bg-gradient-to-r from-indigo-600 to-purple-600 text-white hover:from-indigo-700 hover:to-purple-700 shadow-md'
-          : 'bg-indigo-600 text-white hover:bg-indigo-700',
-        className
+          ? "bg-gradient-to-r from-indigo-600 to-purple-600 text-white hover:from-indigo-700 hover:to-purple-700 shadow-md"
+          : "bg-indigo-600 text-white hover:bg-indigo-700",
+        className,
       )}
     >
       {hasSmartRec && <Sparkles className="h-4 w-4" />}
       <span>Pelajaran Berikutnya</span>
       <ArrowRight className="h-4 w-4" />
     </button>
-  )
+  );
 }

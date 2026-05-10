@@ -1,11 +1,11 @@
-import { ClipboardList } from 'lucide-react'
+import { ClipboardList } from "lucide-react";
 
-import { cn } from '@/utils/cn'
+import { cn } from "@/utils/cn";
 
-import type { Rubric } from '../types'
+import type { Rubric } from "../types";
 
 interface RubricPreviewProps {
-  rubric: Rubric
+  rubric: Rubric;
 }
 
 export function RubricPreview({ rubric }: RubricPreviewProps) {
@@ -17,7 +17,9 @@ export function RubricPreview({ rubric }: RubricPreviewProps) {
           <ClipboardList className="w-4.5 h-4.5" />
         </div>
         <div>
-          <h3 className="font-bold text-slate-900 dark:text-white">{rubric.title}</h3>
+          <h3 className="font-bold text-slate-900 dark:text-white">
+            {rubric.title}
+          </h3>
           {rubric.description && (
             <p className="text-sm text-slate-500 dark:text-slate-400 mt-0.5">
               {rubric.description}
@@ -64,10 +66,10 @@ export function RubricPreview({ rubric }: RubricPreviewProps) {
                 {/* Levels */}
                 <div
                   className={cn(
-                    'grid divide-x divide-slate-100 dark:divide-slate-700',
+                    "grid divide-x divide-slate-100 dark:divide-slate-700",
                     criterion.levels.length > 0
                       ? `grid-cols-${Math.min(criterion.levels.length, 4)}`
-                      : 'grid-cols-1'
+                      : "grid-cols-1",
                   )}
                 >
                   {criterion.levels
@@ -97,5 +99,5 @@ export function RubricPreview({ rubric }: RubricPreviewProps) {
         </div>
       )}
     </div>
-  )
+  );
 }

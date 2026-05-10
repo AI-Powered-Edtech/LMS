@@ -1,15 +1,18 @@
-import { ChevronDown } from 'lucide-react'
+import { ChevronDown } from "lucide-react";
 
-import type { AssignmentOption, ClassOption } from '@/features/quizzes/hooks/useQuizGradebookState'
+import type {
+  AssignmentOption,
+  ClassOption,
+} from "@/features/quizzes/hooks/useQuizGradebookState";
 
 interface QuizGradebookFiltersProps {
-  classes: ClassOption[]
-  assignments: AssignmentOption[]
-  selectedClass: string
-  selectedAssignment: string
-  isAssignmentLoading: boolean
-  onClassChange: (value: string) => void
-  onAssignmentChange: (value: string) => void
+  classes: ClassOption[];
+  assignments: AssignmentOption[];
+  selectedClass: string;
+  selectedAssignment: string;
+  isAssignmentLoading: boolean;
+  onClassChange: (value: string) => void;
+  onAssignmentChange: (value: string) => void;
 }
 
 export function QuizGradebookFilters({
@@ -51,7 +54,9 @@ export function QuizGradebookFilters({
           <select
             value={selectedAssignment}
             onChange={(e) => onAssignmentChange(e.target.value)}
-            disabled={!selectedClass || isAssignmentLoading || assignments.length === 0}
+            disabled={
+              !selectedClass || isAssignmentLoading || assignments.length === 0
+            }
             className="w-full appearance-none px-4 py-2.5 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-sm text-slate-900 dark:text-slate-100 focus:ring-2 focus:ring-blue-500 outline-none shadow-sm pr-10 disabled:opacity-50"
           >
             <option value="">-- Pilih assignment kuis --</option>
@@ -65,5 +70,5 @@ export function QuizGradebookFilters({
         </div>
       </div>
     </div>
-  )
+  );
 }

@@ -1,12 +1,12 @@
-import { db } from '@/services/db'
-import { mapCourse } from '@/shared/types/courseMappers'
-import { DomainCourse } from '@/shared/types/courseTypes'
-import { mapModule } from '@/shared/types/moduleMappers'
-import { DomainModule } from '@/shared/types/moduleTypes'
+import { db } from "@/services/db";
+import { mapCourse } from "@/shared/types/courseMappers";
+import { DomainCourse } from "@/shared/types/courseTypes";
+import { mapModule } from "@/shared/types/moduleMappers";
+import { DomainModule } from "@/shared/types/moduleTypes";
 
 interface BuilderLessonRow {
-  order: number
-  [key: string]: unknown
+  order: number;
+  [key: string]: unknown;
 }
 
 /**
@@ -19,117 +19,121 @@ export const builderCourseService = {
    */
   async fetchCourseStructure(
     courseId: string,
-    tenantId: string
+    tenantId: string,
   ): Promise<{
-    course: DomainCourse
-    modules: DomainModule[]
+    course: DomainCourse;
+    modules: DomainModule[];
   }> {
     const { data: courses, error: courseErr } = await db
-      .from('courses')
-      .select('id, title, description, status, created_at, updated_at, tenant_id')
-      .eq('id', courseId)
-      .eq('tenant_id', tenantId)
-      .limit(1)
+      .from("courses")
+      .select(
+        "id, title, description, status, created_at, updated_at, tenant_id",
+      )
+      .eq("id", courseId)
+      .eq("tenant_id", tenantId)
+      .limit(1);
 
-    const course = (courses as any[])?.[0]
+    const course = (courses as any[])?.[0];
 
     if (courseErr || !course) {
-      console.error('Course fetch error:', courseErr, 'Course:', course);
-      throw new Error('Materi tidak ditemukan')
+      console.error("Course fetch error:", courseErr, "Course:", course);
+      throw new Error("Materi tidak ditemukan");
     }
 
     const { data: modules, error: modErr } = await db
-      .from('course_modules')
+      .from("course_modules")
       .select('id, title, "order", course_id, tenant_id')
-      .eq('course_id', courseId)
-      .eq('tenant_id', tenantId)
-      .order('order', { ascending: true })
+      .eq("course_id", courseId)
+      .eq("tenant_id", tenantId)
+      .order("order", { ascending: true });
 
-    if (modErr) throw new Error(modErr.message)
+    if (modErr) throw new Error(modErr.message);
 
-    const moduleRows = (modules ?? []) as Array<Record<string, unknown>>
-    const moduleIds = moduleRows.map((module) => String(module.id)).filter(Boolean)
+    const moduleRows = (modules ?? []) as Array<Record<string, unknown>>;
+    const moduleIds = moduleRows
+      .map((module) => String(module.id))
+      .filter(Boolean);
 
-    let lessonRows: Array<Record<string, unknown>> = []
+    let lessonRows: Array<Record<string, unknown>> = [];
     if (moduleIds.length > 0) {
       const { data: lessons, error: lessonErr } = await db
-        .from('lessons')
+        .from("lessons")
         .select(
-          'id, module_id, title, "order", type, is_published, duration_minutes, passing_score, tenant_id'
+          'id, module_id, title, "order", type, is_published, duration_minutes, passing_score, tenant_id',
         )
-        .eq('tenant_id', tenantId)
-        .in('module_id', moduleIds)
-        .order('order', { ascending: true })
+        .eq("tenant_id", tenantId)
+        .in("module_id", moduleIds)
+        .order("order", { ascending: true });
 
-      if (lessonErr) throw new Error(lessonErr.message)
-      lessonRows = (lessons ?? []) as Array<Record<string, unknown>>
+      if (lessonErr) throw new Error(lessonErr.message);
+      lessonRows = (lessons ?? []) as Array<Record<string, unknown>>;
     }
 
-    const lessonsByModule = new Map<string, BuilderLessonRow[]>()
+    const lessonsByModule = new Map<string, BuilderLessonRow[]>();
     lessonRows.forEach((lesson) => {
-      const moduleId = String(lesson.module_id)
-      const current = lessonsByModule.get(moduleId) ?? []
-      current.push(lesson as BuilderLessonRow)
-      lessonsByModule.set(moduleId, current)
-    })
+      const moduleId = String(lesson.module_id);
+      const current = lessonsByModule.get(moduleId) ?? [];
+      current.push(lesson as BuilderLessonRow);
+      lessonsByModule.set(moduleId, current);
+    });
 
     const sorted = moduleRows.map((module) => ({
       ...module,
       description: null,
       lessons: (lessonsByModule.get(String(module.id)) ?? []).sort(
-        (a: BuilderLessonRow, b: BuilderLessonRow) => a.order - b.order
+        (a: BuilderLessonRow, b: BuilderLessonRow) => a.order - b.order,
       ),
-    }))
+    }));
 
     return {
       course: mapCourse(course),
       modules: sorted.map(mapModule),
-    }
+    };
   },
 
   /** Use RPC to publish a course and update status/publishing timestamps */
   async publishCourse(courseId: string, _tenantId: string): Promise<void> {
-    const { error } = await db.rpc('rpc_publish_course', {
+    const { error } = await db.rpc("rpc_publish_course", {
       p_course_id: courseId,
-    })
+    });
     if (error) {
       // Postgres ERRCODE 22023 (invalid_parameter_value) dipakai BE sebagai
       // guard konten publish (mis. “course harus punya minimal 1 pelajaran”).
       // Terjemahkan ke Bahasa Indonesia agar toast UI ramah pengguna.
-      if (error.code === '22023') {
+      if (error.code === "22023") {
         throw new Error(
-          'Kursus harus memiliki setidaknya satu pelajaran sebelum dapat diterbitkan.'
-        )
+          "Kursus harus memiliki setidaknya satu pelajaran sebelum dapat diterbitkan.",
+        );
       }
-      throw new Error(error.message)
+      throw new Error(error.message);
     }
   },
 
   /** Manually drafted via update instead of full RPC for now, for completeness */
   async draftCourse(courseId: string, tenantId: string): Promise<void> {
     const { error } = await db
-      .from('courses')
-      .update({ status: 'draft' })
-      .eq('id', courseId)
-      .eq('tenant_id', tenantId)
-    if (error) throw new Error(error.message)
+      .from("courses")
+      .update({ status: "draft" })
+      .eq("id", courseId)
+      .eq("tenant_id", tenantId);
+    if (error) throw new Error(error.message);
   },
 
   async submitForReview(courseId: string, tenantId: string): Promise<void> {
     const { error } = await db
-      .from('courses')
-      .update({ status: 'in_review' })
-      .eq('id', courseId)
-      .eq('tenant_id', tenantId)
-    if (error) throw new Error(error.message)
+      .from("courses")
+      .update({ status: "in_review" })
+      .eq("id", courseId)
+      .eq("tenant_id", tenantId);
+    if (error) throw new Error(error.message);
   },
 
   async approveCourse(courseId: string, tenantId: string): Promise<void> {
     const { error } = await db
-      .from('courses')
-      .update({ status: 'approved' })
-      .eq('id', courseId)
-      .eq('tenant_id', tenantId)
-    if (error) throw new Error(error.message)
+      .from("courses")
+      .update({ status: "approved" })
+      .eq("id", courseId)
+      .eq("tenant_id", tenantId);
+    if (error) throw new Error(error.message);
   },
-}
+};

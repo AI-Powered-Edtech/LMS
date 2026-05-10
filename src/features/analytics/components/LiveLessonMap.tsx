@@ -1,31 +1,37 @@
-import { BookOpen, Circle } from 'lucide-react'
+import { BookOpen, Circle } from "lucide-react";
 
-import { cn } from '@/utils/cn'
+import { cn } from "@/utils/cn";
 
-import { useCourseDashboard } from '../queries/analyticsQueries'
+import { useCourseDashboard } from "../queries/analyticsQueries";
 
 interface LiveLessonMapProps {
-  courseId: string
-  activeLessonIds: Set<string>
+  courseId: string;
+  activeLessonIds: Set<string>;
 }
 
-export function LiveLessonMap({ courseId, activeLessonIds }: LiveLessonMapProps) {
-  const { data: courseData, isLoading } = useCourseDashboard(courseId)
+export function LiveLessonMap({
+  courseId,
+  activeLessonIds,
+}: LiveLessonMapProps) {
+  const { data: courseData, isLoading } = useCourseDashboard(courseId);
 
   if (isLoading) {
     return (
       <div className="rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 p-4">
         <div className="animate-pulse space-y-2">
           {[1, 2, 3].map((i) => (
-            <div key={i} className="h-10 bg-slate-100 dark:bg-slate-800 rounded-lg" />
+            <div
+              key={i}
+              className="h-10 bg-slate-100 dark:bg-slate-800 rounded-lg"
+            />
           ))}
         </div>
       </div>
-    )
+    );
   }
 
   if (!courseData) {
-    return null
+    return null;
   }
 
   return (
@@ -45,8 +51,8 @@ export function LiveLessonMap({ courseId, activeLessonIds }: LiveLessonMapProps)
             <div
               key={lessonId}
               className={cn(
-                'flex items-center gap-3 rounded-lg px-3 py-2.5 border',
-                'border-emerald-200 dark:border-emerald-800 bg-emerald-50 dark:bg-emerald-900/20'
+                "flex items-center gap-3 rounded-lg px-3 py-2.5 border",
+                "border-emerald-200 dark:border-emerald-800 bg-emerald-50 dark:bg-emerald-900/20",
               )}
             >
               <Circle className="h-3 w-3 text-emerald-500 fill-emerald-500 animate-pulse shrink-0" />
@@ -61,5 +67,5 @@ export function LiveLessonMap({ courseId, activeLessonIds }: LiveLessonMapProps)
         )}
       </div>
     </div>
-  )
+  );
 }

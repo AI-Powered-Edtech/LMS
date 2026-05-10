@@ -65,7 +65,9 @@ export const classroomService = {
 
     const dedupeById = <T extends { id: string }>(rows: T[]): T[] => {
       const seen = new Set<string>();
-      return rows.filter((r) => (seen.has(r.id) ? false : (seen.add(r.id), true)));
+      return rows.filter((r) =>
+        seen.has(r.id) ? false : (seen.add(r.id), true),
+      );
     };
 
     if (role === "teacher") {
@@ -90,7 +92,15 @@ export const classroomService = {
     }
 
     const { data: enrollments, error } = await db
-      .from<Array<{ id: string; class_id: string; student_id: string; status: string; joined_at: string }>>("enrollments")
+      .from<
+        Array<{
+          id: string;
+          class_id: string;
+          student_id: string;
+          status: string;
+          joined_at: string;
+        }>
+      >("enrollments")
       .select("class_id")
       .eq("student_id", userId)
       .eq("tenant_id", tenantId)
@@ -112,7 +122,9 @@ export const classroomService = {
     if (classroomError) throw classroomError;
     const rows = (classrooms ?? []) as ClassroomRow[];
     const seen = new Set<string>();
-    const unique = rows.filter((r) => (seen.has(r.id) ? false : (seen.add(r.id), true)));
+    const unique = rows.filter((r) =>
+      seen.has(r.id) ? false : (seen.add(r.id), true),
+    );
     return unique.sort(
       (left, right) =>
         new Date(right.created_at).getTime() -
@@ -211,11 +223,23 @@ export const classroomService = {
     classId: string,
     tenantId: string,
   ): Promise<void> {
-    const { error } = await db.from<Array<{ id: string; name: string; course_id?: string; teacher_id: string; created_at: string; teacher_name?: string; student_count?: number }>>("course_classes").insert({
-      course_id: courseId,
-      class_id: classId,
-      tenant_id: tenantId,
-    });
+    const { error } = await db
+      .from<
+        Array<{
+          id: string;
+          name: string;
+          course_id?: string;
+          teacher_id: string;
+          created_at: string;
+          teacher_name?: string;
+          student_count?: number;
+        }>
+      >("course_classes")
+      .insert({
+        course_id: courseId,
+        class_id: classId,
+        tenant_id: tenantId,
+      });
     if (error) throw error;
   },
 
@@ -228,7 +252,17 @@ export const classroomService = {
     tenantId: string,
   ): Promise<void> {
     const { error } = await db
-      .from<Array<{ id: string; name: string; course_id?: string; teacher_id: string; created_at: string; teacher_name?: string; student_count?: number }>>("course_classes")
+      .from<
+        Array<{
+          id: string;
+          name: string;
+          course_id?: string;
+          teacher_id: string;
+          created_at: string;
+          teacher_name?: string;
+          student_count?: number;
+        }>
+      >("course_classes")
       .delete()
       .eq("course_id", courseId)
       .eq("class_id", classId)
@@ -241,7 +275,17 @@ export const classroomService = {
    */
   async fetchAssignedClassesForCourse(courseId: string): Promise<string[]> {
     const { data, error } = await db
-      .from<Array<{ id: string; name: string; course_id?: string; teacher_id: string; created_at: string; teacher_name?: string; student_count?: number }>>("course_classes")
+      .from<
+        Array<{
+          id: string;
+          name: string;
+          course_id?: string;
+          teacher_id: string;
+          created_at: string;
+          teacher_name?: string;
+          student_count?: number;
+        }>
+      >("course_classes")
       .select("class_id")
       .eq("course_id", courseId);
 
@@ -312,7 +356,15 @@ export const classroomService = {
     tenantId: string,
   ): Promise<number> {
     const { count, error } = await db
-      .from<Array<{ id: string; class_id: string; student_id: string; status: string; joined_at: string }>>("enrollments")
+      .from<
+        Array<{
+          id: string;
+          class_id: string;
+          student_id: string;
+          status: string;
+          joined_at: string;
+        }>
+      >("enrollments")
       .select("id", { count: "exact", head: true })
       .eq("class_id", classId)
       .eq("tenant_id", tenantId)
@@ -330,7 +382,15 @@ export const classroomService = {
     tenantId: string,
   ): Promise<EnrolledStudent[]> {
     const { data, error } = await db
-      .from<Array<{ id: string; class_id: string; student_id: string; status: string; joined_at: string }>>("enrollments")
+      .from<
+        Array<{
+          id: string;
+          class_id: string;
+          student_id: string;
+          status: string;
+          joined_at: string;
+        }>
+      >("enrollments")
       .select("id, student_id, status, joined_at")
       .eq("class_id", classId)
       .eq("tenant_id", tenantId)
@@ -342,7 +402,9 @@ export const classroomService = {
 
     const studentIds = enrollments.map((row) => row.student_id).filter(Boolean);
     const { data: profiles, error: profileError } = await db
-      .from<Array<{ id: string; full_name: string | null; email: string | null }>>("profiles")
+      .from<
+        Array<{ id: string; full_name: string | null; email: string | null }>
+      >("profiles")
       .select("id, full_name, email")
       .eq("tenant_id", tenantId)
       .in("id", studentIds);
@@ -379,7 +441,15 @@ export const classroomService = {
   ): Promise<void> {
     void removedBy;
     const { error } = await db
-      .from<Array<{ id: string; class_id: string; student_id: string; status: string; joined_at: string }>>("enrollments")
+      .from<
+        Array<{
+          id: string;
+          class_id: string;
+          student_id: string;
+          status: string;
+          joined_at: string;
+        }>
+      >("enrollments")
       .update({ status: "REMOVED" })
       .eq("id", enrollmentId)
       .eq("tenant_id", tenantId);

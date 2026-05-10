@@ -1,4 +1,3 @@
- 
 import { db } from "@/services/db";
 import { logger } from "@/utils/logger";
 import { captureError } from "@/utils/sentry";
@@ -516,7 +515,9 @@ export const lessonService = {
     // Fetch progress for all lessons in this module
     const lessonIds = (lessons || []).map((l: any) => l.id);
     const { data: progressData, error: progressError } = await db
-      .from<Array<{ lesson_id: string; completed: boolean; completed_at?: string }>>("lesson_progress")
+      .from<
+        Array<{ lesson_id: string; completed: boolean; completed_at?: string }>
+      >("lesson_progress")
       .select(
         "id, user_id, lesson_id, status, progress_percentage, last_position, completed, completed_at",
       )
@@ -784,7 +785,9 @@ export const lessonService = {
     tenantId: string,
   ): Promise<LessonProgress | null> {
     const { data, error } = await db
-      .from<Array<{ lesson_id: string; completed: boolean; completed_at?: string }>>("lesson_progress")
+      .from<
+        Array<{ lesson_id: string; completed: boolean; completed_at?: string }>
+      >("lesson_progress")
       .select(
         "id, user_id, lesson_id, status, progress_percentage, last_position, completed, completed_at",
       )
@@ -884,7 +887,9 @@ export const lessonService = {
     if (lessonIds.length === 0) return new Set();
 
     const { data, error } = await db
-      .from<Array<{ lesson_id: string; completed: boolean; completed_at?: string }>>("lesson_progress")
+      .from<
+        Array<{ lesson_id: string; completed: boolean; completed_at?: string }>
+      >("lesson_progress")
       .select("lesson_id, completed")
       .eq("user_id", userId)
       .in("lesson_id", lessonIds)

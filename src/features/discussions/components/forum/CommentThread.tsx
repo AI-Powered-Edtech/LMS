@@ -1,24 +1,35 @@
-import { CheckCircle, Flag, GraduationCap, MoreHorizontal, ThumbsUp } from 'lucide-react'
-import { useState } from 'react'
-import ReactMarkdown from 'react-markdown'
-import rehypeKatex from 'rehype-katex'
-import rehypeSanitize from 'rehype-sanitize'
-import remarkMath from 'remark-math'
+import {
+  CheckCircle,
+  Flag,
+  GraduationCap,
+  MoreHorizontal,
+  ThumbsUp,
+} from "lucide-react";
+import { useState } from "react";
+import ReactMarkdown from "react-markdown";
+import rehypeKatex from "rehype-katex";
+import rehypeSanitize from "rehype-sanitize";
+import remarkMath from "remark-math";
 
-import { OptimizedImage } from '@/components/ui'
-import type { ForumComment } from '@/features/discussions/types/forum'
-import { cn } from '@/utils/cn'
-import { katexSanitizeSchema } from '@/utils/sanitizeMarkdown'
+import { OptimizedImage } from "@/components/ui";
+import type { ForumComment } from "@/features/discussions/types/forum";
+import { cn } from "@/utils/cn";
+import { katexSanitizeSchema } from "@/utils/sanitizeMarkdown";
 
-import { ForumBadge, resolveBadgeType } from './ForumBadge'
+import { ForumBadge, resolveBadgeType } from "./ForumBadge";
 
 interface CommentThreadProps {
-  comment: ForumComment
-  depth?: number
-  isBestAnswer?: boolean
-  onMarkBest?: (id: string) => void
-  isTeacher: boolean
-  onReport: (id: string, type: 'comment', snippet: string, author: string) => void
+  comment: ForumComment;
+  depth?: number;
+  isBestAnswer?: boolean;
+  onMarkBest?: (id: string) => void;
+  isTeacher: boolean;
+  onReport: (
+    id: string,
+    type: "comment",
+    snippet: string,
+    author: string,
+  ) => void;
 }
 
 export function CommentThread({
@@ -29,18 +40,18 @@ export function CommentThread({
   isTeacher,
   onReport,
 }: CommentThreadProps) {
-  const [upvoted, setUpvoted] = useState(false)
-  const [showReport, setShowReport] = useState(false)
+  const [upvoted, setUpvoted] = useState(false);
+  const [showReport, setShowReport] = useState(false);
 
   return (
-    <div className={cn('flex gap-3', depth > 0 && 'ml-6 md:ml-12 mt-4')}>
+    <div className={cn("flex gap-3", depth > 0 && "ml-6 md:ml-12 mt-4")}>
       <div className="flex flex-col items-center">
         <OptimizedImage
           src={comment.avatar}
           alt=""
           className={cn(
-            'rounded-full bg-slate-100 dark:bg-slate-700',
-            depth === 0 ? 'w-10 h-10' : 'w-8 h-8'
+            "rounded-full bg-slate-100 dark:bg-slate-700",
+            depth === 0 ? "w-10 h-10" : "w-8 h-8",
           )}
         />
         {comment.replies && comment.replies.length > 0 && (
@@ -50,10 +61,10 @@ export function CommentThread({
       <div className="flex-1 min-w-0">
         <div
           className={cn(
-            'p-4 rounded-2xl rounded-tl-none border transition-all',
+            "p-4 rounded-2xl rounded-tl-none border transition-all",
             isBestAnswer
-              ? 'bg-green-50 border-green-200 shadow-sm dark:bg-green-900/20 dark:border-green-700'
-              : 'bg-slate-50 border-slate-100 dark:bg-slate-800 dark:border-slate-700'
+              ? "bg-green-50 border-green-200 shadow-sm dark:bg-green-900/20 dark:border-green-700"
+              : "bg-slate-50 border-slate-100 dark:bg-slate-800 dark:border-slate-700",
           )}
         >
           {isBestAnswer && (
@@ -74,12 +85,18 @@ export function CommentThread({
               </div>
               <div className="flex flex-wrap gap-1">
                 {comment.badges.map((badge, i) => (
-                  <ForumBadge key={i} text={badge} type={resolveBadgeType(badge)} />
+                  <ForumBadge
+                    key={i}
+                    text={badge}
+                    type={resolveBadgeType(badge)}
+                  />
                 ))}
               </div>
             </div>
             <div className="flex items-center gap-2">
-              <span className="text-xs text-slate-400 dark:text-slate-500">{comment.time}</span>
+              <span className="text-xs text-slate-400 dark:text-slate-500">
+                {comment.time}
+              </span>
               <div className="relative">
                 <button
                   aria-label="Opsi lainnya"
@@ -92,8 +109,13 @@ export function CommentThread({
                   <div className="absolute right-0 mt-1 w-32 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl shadow-lg overflow-hidden z-10">
                     <button
                       onClick={() => {
-                        onReport(comment.id, 'comment', comment.content, comment.author)
-                        setShowReport(false)
+                        onReport(
+                          comment.id,
+                          "comment",
+                          comment.content,
+                          comment.author,
+                        );
+                        setShowReport(false);
                       }}
                       className="w-full text-left px-4 py-2 text-xs font-medium text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 flex items-center gap-2"
                     >
@@ -107,7 +129,10 @@ export function CommentThread({
           <div className="text-slate-700 dark:text-slate-300 text-sm leading-relaxed prose prose-sm dark:prose-invert max-w-none prose-p:my-1 prose-pre:bg-slate-800 prose-pre:text-slate-50 prose-pre:rounded-xl">
             <ReactMarkdown
               remarkPlugins={[remarkMath]}
-              rehypePlugins={[rehypeKatex, [rehypeSanitize, katexSanitizeSchema]]}
+              rehypePlugins={[
+                rehypeKatex,
+                [rehypeSanitize, katexSanitizeSchema],
+              ]}
             >
               {comment.content}
             </ReactMarkdown>
@@ -115,16 +140,16 @@ export function CommentThread({
         </div>
         <div className="flex items-center gap-4 mt-2 ml-2">
           <button
-            aria-label={upvoted ? 'Batal upvote komentar' : 'Upvote komentar'}
+            aria-label={upvoted ? "Batal upvote komentar" : "Upvote komentar"}
             onClick={() => setUpvoted(!upvoted)}
             className={cn(
-              'flex items-center gap-1.5 text-xs font-medium transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 rounded px-1',
+              "flex items-center gap-1.5 text-xs font-medium transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 rounded px-1",
               upvoted
-                ? 'text-blue-600'
-                : 'text-slate-500 hover:text-slate-700 dark:hover:text-slate-300'
+                ? "text-blue-600"
+                : "text-slate-500 hover:text-slate-700 dark:hover:text-slate-300",
             )}
           >
-            <ThumbsUp className={cn('w-4 h-4', upvoted && 'fill-blue-600')} />
+            <ThumbsUp className={cn("w-4 h-4", upvoted && "fill-blue-600")} />
             {comment.upvotes + (upvoted ? 1 : 0)}
           </button>
           <button className="text-xs font-medium text-slate-500 hover:text-slate-700 dark:hover:text-slate-300">
@@ -151,5 +176,5 @@ export function CommentThread({
         ))}
       </div>
     </div>
-  )
+  );
 }

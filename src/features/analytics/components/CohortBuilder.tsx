@@ -1,26 +1,28 @@
-import { Users } from 'lucide-react'
-import { useState } from 'react'
+import { Users } from "lucide-react";
+import { useState } from "react";
 
-import { Skeleton } from '@/components/ui'
+import { Skeleton } from "@/components/ui";
 
-import { useRetentionMatrix } from '../queries/analyticsQueries'
-import { RetentionHeatmap } from './RetentionHeatmap'
-import { StickinessDashboard } from './StickinessDashboard'
+import { useRetentionMatrix } from "../queries/analyticsQueries";
+import { RetentionHeatmap } from "./RetentionHeatmap";
+import { StickinessDashboard } from "./StickinessDashboard";
 
 interface CohortBuilderProps {
-  courseId: string
+  courseId: string;
 }
 
 export function CohortBuilder({ courseId }: CohortBuilderProps) {
-  const [weeksBack, setWeeksBack] = useState(8)
-  const { data, isLoading } = useRetentionMatrix(courseId, weeksBack)
+  const [weeksBack, setWeeksBack] = useState(8);
+  const { data, isLoading } = useRetentionMatrix(courseId, weeksBack);
 
   return (
     <div className="space-y-4 rounded-xl border border-slate-200 bg-white p-4 dark:border-slate-700 dark:bg-slate-900">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
           <Users className="h-5 w-5 text-emerald-500" />
-          <h3 className="text-sm font-semibold text-slate-800 dark:text-white">Retensi & Kohort</h3>
+          <h3 className="text-sm font-semibold text-slate-800 dark:text-white">
+            Retensi & Kohort
+          </h3>
         </div>
         <select
           value={weeksBack}
@@ -42,10 +44,10 @@ export function CohortBuilder({ courseId }: CohortBuilderProps) {
         </div>
       ) : (
         <p className="py-8 text-center text-sm text-slate-400">
-          Belum ada data retensi. Data akan muncul setelah siswa mengakses pelajaran selama beberapa
-          minggu.
+          Belum ada data retensi. Data akan muncul setelah siswa mengakses
+          pelajaran selama beberapa minggu.
         </p>
       )}
     </div>
-  )
+  );
 }

@@ -1,4 +1,4 @@
-import type { Lesson, LessonProgress } from '../types'
+import type { Lesson, LessonProgress } from "../types";
 
 /**
  * Determines if a lesson is locked based on the completion status of the previous lesson.
@@ -18,23 +18,24 @@ export function isLessonLocked(
   lessons: Lesson[],
   progress: Record<string, LessonProgress>,
   index: number,
-  role?: string
+  role?: string,
 ): boolean {
   // Teachers and admins can access all lessons
-  if (role === 'teacher' || role === 'admin') return false
+  if (role === "teacher" || role === "admin") return false;
 
   // First lesson is never locked
-  if (index === 0) return false
+  if (index === 0) return false;
 
-  const lesson = lessons[index]
+  const lesson = lessons[index];
 
   // Remedial lessons are always accessible — they are recommended additions, not gates
-  if (lesson && (lesson as Lesson & { is_remedial?: boolean }).is_remedial) return false
+  if (lesson && (lesson as Lesson & { is_remedial?: boolean }).is_remedial)
+    return false;
 
   // Check if the previous lesson is completed
-  const prevLesson = lessons[index - 1]
-  if (!prevLesson) return false
+  const prevLesson = lessons[index - 1];
+  if (!prevLesson) return false;
 
-  const prevProgress = progress[prevLesson.id]
-  return !prevProgress?.completed
+  const prevProgress = progress[prevLesson.id];
+  return !prevProgress?.completed;
 }

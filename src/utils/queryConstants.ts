@@ -11,7 +11,7 @@ export const STALE = {
   MODERATE: 5 * 60 * 1000, // 5 minutes (global default)
   DYNAMIC: 30 * 1000, // 30 seconds
   REALTIME: 0, // 0 — always stale, updated via subscription
-} as const
+} as const;
 
 /**
  * gcTime tiers — how long data stays in cache after it's no longer used.
@@ -21,4 +21,4 @@ export const GC = {
   SHORT: 5 * 60 * 1000, // 5 minutes
   NORMAL: 10 * 60 * 1000, // 10 minutes (React Query default)
   LONG: 30 * 60 * 1000, // 30 minutes — for static data
-} as const
+} as const;

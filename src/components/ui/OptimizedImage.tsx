@@ -1,26 +1,26 @@
-import { useCallback, useState } from 'react'
+import { useCallback, useState } from "react";
 
-import { cn } from '@/utils/cn'
+import { cn } from "@/utils/cn";
 
-import { Skeleton } from './Skeleton'
+import { Skeleton } from "./Skeleton";
 
 /* ─── Props ────────────────────────────────────────────────── */
 
 export interface OptimizedImageProps extends Omit<
   React.ImgHTMLAttributes<HTMLImageElement>,
-  'src' | 'alt' | 'width' | 'height' | 'className'
+  "src" | "alt" | "width" | "height" | "className"
 > {
-  src: string
-  alt: string
-  width?: number
-  height?: number
-  className?: string
+  src: string;
+  alt: string;
+  width?: number;
+  height?: number;
+  className?: string;
   /** Enable native lazy loading (default: true) */
-  lazy?: boolean
+  lazy?: boolean;
   /** Responsive image source set */
-  srcSet?: string
+  srcSet?: string;
   /** Responsive image sizes */
-  sizes?: string
+  sizes?: string;
 }
 
 /* ─── Component ────────────────────────────────────────────── */
@@ -38,37 +38,37 @@ export function OptimizedImage({
   onError,
   ...props
 }: OptimizedImageProps) {
-  const [loaded, setLoaded] = useState(false)
-  const [errorState, setErrorState] = useState(false)
+  const [loaded, setLoaded] = useState(false);
+  const [errorState, setErrorState] = useState(false);
 
   const handleLoad = useCallback(
     (e: React.SyntheticEvent<HTMLImageElement, Event>) => {
-      setLoaded(true)
-      onLoad?.(e)
+      setLoaded(true);
+      onLoad?.(e);
     },
-    [onLoad]
-  )
+    [onLoad],
+  );
 
   const handleError = useCallback(
     (e: React.SyntheticEvent<HTMLImageElement, Event>) => {
-      setLoaded(true)
-      setErrorState(true)
-      onError?.(e)
+      setLoaded(true);
+      setErrorState(true);
+      onError?.(e);
     },
-    [onError]
-  )
+    [onError],
+  );
 
   // ── Error fallback ──
   if (errorState) {
     return (
       <div
         className={cn(
-          'flex items-center justify-center rounded-lg',
-          'bg-slate-100 dark:bg-slate-800',
-          'text-slate-400 dark:text-slate-500',
-          className
+          "flex items-center justify-center rounded-lg",
+          "bg-slate-100 dark:bg-slate-800",
+          "text-slate-400 dark:text-slate-500",
+          className,
         )}
-        style={{ width: width ?? '100%', height: height ?? 200 }}
+        style={{ width: width ?? "100%", height: height ?? 200 }}
         role="img"
         aria-label={alt}
       >
@@ -89,16 +89,22 @@ export function OptimizedImage({
           <path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21" />
         </svg>
       </div>
-    )
+    );
   }
 
   return (
     <div
-      className={cn('relative overflow-hidden', className)}
-      style={{ width: width ?? '100%', height: height ?? 'auto' }}
+      className={cn("relative overflow-hidden", className)}
+      style={{ width: width ?? "100%", height: height ?? "auto" }}
     >
       {/* Skeleton placeholder while loading */}
-      {!loaded && <Skeleton className="absolute inset-0 z-10" width="100%" height="100%" />}
+      {!loaded && (
+        <Skeleton
+          className="absolute inset-0 z-10"
+          width="100%"
+          height="100%"
+        />
+      )}
 
       <img
         src={src}
@@ -107,16 +113,16 @@ export function OptimizedImage({
         height={height}
         srcSet={srcSet}
         sizes={sizes}
-        loading={lazy ? 'lazy' : 'eager'}
+        loading={lazy ? "lazy" : "eager"}
         decoding="async"
         {...props}
         onLoad={handleLoad}
         onError={handleError}
         className={cn(
-          'w-full h-full object-cover transition-opacity duration-300',
-          loaded ? 'opacity-100' : 'opacity-0'
+          "w-full h-full object-cover transition-opacity duration-300",
+          loaded ? "opacity-100" : "opacity-0",
         )}
       />
     </div>
-  )
+  );
 }

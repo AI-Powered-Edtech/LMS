@@ -1,64 +1,69 @@
-import { Check, Sparkles } from 'lucide-react'
-import { useEffect, useState } from 'react'
+import { Check, Sparkles } from "lucide-react";
+import { useEffect, useState } from "react";
 
-import { useBuilder } from '@/contexts/BuilderContext'
-import { useToast } from '@/hooks/useToast'
-import { cn } from '@/utils/cn'
+import { useBuilder } from "@/contexts/BuilderContext";
+import { useToast } from "@/hooks/useToast";
+import { cn } from "@/utils/cn";
 
-import { useApplyLessonDraft, useGenerateLessonDraft } from '../queries/aiBuilderCopilotQueries'
-import { useBuilderAICopilotStore } from '../store/builderAICopilot.store'
-import type { AssessmentSuggestions, LessonDraftBlock } from '../types'
-import { BlockPreviewCard } from './shared/BlockPreviewCard'
-import { CopilotLoadingState } from './shared/CopilotLoadingState'
+import {
+  useApplyLessonDraft,
+  useGenerateLessonDraft,
+} from "../queries/aiBuilderCopilotQueries";
+import { useBuilderAICopilotStore } from "../store/builderAICopilot.store";
+import type { AssessmentSuggestions, LessonDraftBlock } from "../types";
+import { BlockPreviewCard } from "./shared/BlockPreviewCard";
+import { CopilotLoadingState } from "./shared/CopilotLoadingState";
 
 export function LessonDraftTab() {
-  const { state, actions } = useBuilder()
-  const addToast = useToast((s) => s.addToast)
+  const { state, actions } = useBuilder();
+  const addToast = useToast((s) => s.addToast);
 
-  const generateDraft = useGenerateLessonDraft()
-  const applyDraft = useApplyLessonDraft()
-  const hydratedArtifact = useBuilderAICopilotStore((s) => s.hydratedArtifact)
+  const generateDraft = useGenerateLessonDraft();
+  const applyDraft = useApplyLessonDraft();
+  const hydratedArtifact = useBuilderAICopilotStore((s) => s.hydratedArtifact);
 
   // Form state
-  const [subject, setSubject] = useState('')
-  const [gradeLevel, setGradeLevel] = useState('')
+  const [subject, setSubject] = useState("");
+  const [gradeLevel, setGradeLevel] = useState("");
 
   // Preview state
-  const [blocks, setBlocks] = useState<LessonDraftBlock[]>([])
+  const [blocks, setBlocks] = useState<LessonDraftBlock[]>([]);
   const [assessmentSuggestions, setAssessmentSuggestions] = useState<
     AssessmentSuggestions | undefined
-  >()
-  const [artifactId, setArtifactId] = useState<string | null>(null)
-  const [selectedBlocks, setSelectedBlocks] = useState<Set<number>>(new Set())
-  const [includeAssignment, setIncludeAssignment] = useState(false)
+  >();
+  const [artifactId, setArtifactId] = useState<string | null>(null);
+  const [selectedBlocks, setSelectedBlocks] = useState<Set<number>>(new Set());
+  const [includeAssignment, setIncludeAssignment] = useState(false);
 
   const lessonTitle =
-    state.modules.flatMap((m) => m.lessons).find((l) => l.id === state.activeLesson?.id)?.title ??
-    ''
+    state.modules
+      .flatMap((m) => m.lessons)
+      .find((l) => l.id === state.activeLesson?.id)?.title ?? "";
 
   useEffect(() => {
     if (
       !hydratedArtifact ||
-      !['lesson_draft', 'assessment'].includes(hydratedArtifact.artifact_kind)
+      !["lesson_draft", "assessment"].includes(hydratedArtifact.artifact_kind)
     ) {
-      return
+      return;
     }
 
     const hydratedBlocks = Array.isArray(hydratedArtifact.output.blocks)
       ? (hydratedArtifact.output.blocks as LessonDraftBlock[])
-      : []
+      : [];
     const hydratedAssessment =
       hydratedArtifact.output.assessment_suggestions &&
-      typeof hydratedArtifact.output.assessment_suggestions === 'object'
-        ? (hydratedArtifact.output.assessment_suggestions as AssessmentSuggestions)
-        : undefined
+      typeof hydratedArtifact.output.assessment_suggestions === "object"
+        ? (hydratedArtifact.output
+            .assessment_suggestions as AssessmentSuggestions)
+        : undefined;
 
-    setBlocks(hydratedBlocks)
-    setAssessmentSuggestions(hydratedAssessment)
-    setArtifactId(hydratedArtifact.id)
-    setSelectedBlocks(new Set(hydratedBlocks.map((_, index) => index)))
-    setIncludeAssignment(false)
-  }, [hydratedArtifact])
+    setBlocks(hydratedBlocks);
+    setAssessmentSuggestions(hydratedAssessment);
+    setArtifactId(hydratedArtifact.id);
+    setSelectedBlocks(new Set(hydratedBlocks.map((_, index) => index)));
+    setIncludeAssignment(false);
+  }, [hydratedArtifact]);
 
   if (!state.activeLesson) {
     return (
@@ -67,11 +72,11 @@ export function LessonDraftTab() {
           Pilih pelajaran terlebih dahulu untuk membuat draft konten.
         </p>
       </div>
-    )
+    );
   }
 
   const handleGenerate = async () => {
-    if (!state.activeLesson || !state.courseId) return
+    if (!state.activeLesson || !state.courseId) return;
 
     try {
       const result = await generateDraft.mutateAsync({
@@ -79,25 +84,26 @@ export function LessonDraftTab() {
         course_id: state.courseId,
         subject: subject || undefined,
         grade_level: gradeLevel || undefined,
-      })
+      });
 
-      setBlocks(result.draft.blocks)
-      setAssessmentSuggestions(result.draft.assessment_suggestions)
-      setArtifactId(result.artifact_id)
-      setSelectedBlocks(new Set(result.draft.blocks.map((_, i) => i)))
-      setIncludeAssignment(false)
+      setBlocks(result.draft.blocks);
+      setAssessmentSuggestions(result.draft.assessment_suggestions);
+      setArtifactId(result.artifact_id);
+      setSelectedBlocks(new Set(result.draft.blocks.map((_, i) => i)));
+      setIncludeAssignment(false);
     } catch (err) {
       addToast({
-        type: 'error',
-        message: err instanceof Error ? err.message : 'Gagal menghasilkan draft.',
-      })
+        type: "error",
+        message:
+          err instanceof Error ? err.message : "Gagal menghasilkan draft.",
+      });
     }
-  }
+  };
 
   const handleApply = async () => {
-    if (!artifactId || !state.activeLesson || !state.courseId) return
+    if (!artifactId || !state.activeLesson || !state.courseId) return;
 
-    const selected = blocks.filter((_, i) => selectedBlocks.has(i))
+    const selected = blocks.filter((_, i) => selectedBlocks.has(i));
 
     try {
       await applyDraft.mutateAsync({
@@ -114,43 +120,44 @@ export function LessonDraftTab() {
           includeAssignment && assessmentSuggestions?.assignment_title
             ? {
                 title: assessmentSuggestions.assignment_title,
-                instructions: assessmentSuggestions.assignment_instructions ?? '',
+                instructions:
+                  assessmentSuggestions.assignment_instructions ?? "",
                 max_points: 100,
               }
             : null,
-      })
+      });
 
       // Refresh blocks in builder
-      actions.selectLesson(state.activeLesson.id)
+      actions.selectLesson(state.activeLesson.id);
 
       addToast({
-        type: 'success',
+        type: "success",
         message: `${selected.length} blok konten berhasil ditambahkan.`,
-      })
+      });
 
       // Reset
-      setBlocks([])
-      setArtifactId(null)
-      setSelectedBlocks(new Set())
+      setBlocks([]);
+      setArtifactId(null);
+      setSelectedBlocks(new Set());
     } catch (err) {
       addToast({
-        type: 'error',
-        message: err instanceof Error ? err.message : 'Gagal menerapkan draft.',
-      })
+        type: "error",
+        message: err instanceof Error ? err.message : "Gagal menerapkan draft.",
+      });
     }
-  }
+  };
 
   const toggleBlock = (index: number) => {
     setSelectedBlocks((prev) => {
-      const next = new Set(prev)
-      if (next.has(index)) next.delete(index)
-      else next.add(index)
-      return next
-    })
-  }
+      const next = new Set(prev);
+      if (next.has(index)) next.delete(index);
+      else next.add(index);
+      return next;
+    });
+  };
 
   if (generateDraft.isPending) {
-    return <CopilotLoadingState message="Menghasilkan draft pelajaran..." />
+    return <CopilotLoadingState message="Menghasilkan draft pelajaran..." />;
   }
 
   // Preview mode
@@ -203,12 +210,14 @@ export function LessonDraftTab() {
             className="w-full py-2.5 bg-indigo-600 hover:bg-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed text-white text-sm font-bold rounded-xl transition-all flex items-center justify-center gap-2"
           >
             <Check className="w-4 h-4" />
-            {applyDraft.isPending ? 'Menerapkan...' : `Terapkan ${selectedBlocks.size} Blok`}
+            {applyDraft.isPending
+              ? "Menerapkan..."
+              : `Terapkan ${selectedBlocks.size} Blok`}
           </button>
           <button
             onClick={() => {
-              setBlocks([])
-              setArtifactId(null)
+              setBlocks([]);
+              setArtifactId(null);
             }}
             className="w-full py-2 text-sm font-medium text-slate-500 hover:text-slate-700 dark:hover:text-slate-300 transition-colors"
           >
@@ -216,7 +225,7 @@ export function LessonDraftTab() {
           </button>
         </div>
       </div>
-    )
+    );
   }
 
   // Form mode
@@ -233,8 +242,8 @@ export function LessonDraftTab() {
         </div>
 
         <p className="text-xs text-slate-500 dark:text-slate-400 leading-relaxed">
-          Hasilkan draft konten teks untuk pelajaran ini. AI akan membuat blok-blok terstruktur
-          berdasarkan konteks pelajaran.
+          Hasilkan draft konten teks untuk pelajaran ini. AI akan membuat
+          blok-blok terstruktur berdasarkan konteks pelajaran.
         </p>
 
         <div>
@@ -268,8 +277,8 @@ export function LessonDraftTab() {
         <button
           onClick={handleGenerate}
           className={cn(
-            'w-full py-2.5 text-sm font-bold rounded-xl transition-all flex items-center justify-center gap-2',
-            'bg-indigo-600 hover:bg-indigo-700 text-white shadow-lg shadow-indigo-200 dark:shadow-indigo-900/30'
+            "w-full py-2.5 text-sm font-bold rounded-xl transition-all flex items-center justify-center gap-2",
+            "bg-indigo-600 hover:bg-indigo-700 text-white shadow-lg shadow-indigo-200 dark:shadow-indigo-900/30",
           )}
         >
           <Sparkles className="w-4 h-4" />
@@ -277,5 +286,5 @@ export function LessonDraftTab() {
         </button>
       </div>
     </div>
-  )
+  );
 }

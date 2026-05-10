@@ -11,20 +11,20 @@ import {
   Upload,
   X,
   XCircle,
-} from 'lucide-react'
+} from "lucide-react";
 
-import { useAuth } from '@/contexts/AuthContext'
-import { useBuilder } from '@/contexts/BuilderContext'
-import { cn } from '@/utils/cn'
-import { translateCourseStatus } from '@/utils/statusTranslations'
+import { useAuth } from "@/contexts/AuthContext";
+import { useBuilder } from "@/contexts/BuilderContext";
+import { cn } from "@/utils/cn";
+import { translateCourseStatus } from "@/utils/statusTranslations";
 
 import {
   type CourseAction,
   type ReadinessItem,
   useCourseReadiness,
-} from '../hooks/useCourseReadiness'
-import { useCourseEnrollmentCount } from '../queries/useCourseEnrollmentCount'
-import type { CourseStatus } from '../types'
+} from "../hooks/useCourseReadiness";
+import { useCourseEnrollmentCount } from "../queries/useCourseEnrollmentCount";
+import type { CourseStatus } from "../types";
 
 // ============================================================
 // Module-level constants (lifted from sub-components to avoid
@@ -35,17 +35,18 @@ const READINESS_ICON_MAP = {
   blocker: <XCircle className="w-4 h-4 text-red-500 shrink-0 mt-0.5" />,
   warning: <AlertTriangle className="w-4 h-4 text-amber-500 shrink-0 mt-0.5" />,
   info: <Info className="w-4 h-4 text-blue-500 shrink-0 mt-0.5" />,
-} as const
+} as const;
 
 const READINESS_BG_MAP = {
-  blocker: 'bg-red-50 dark:bg-red-900/20 border-red-100 dark:border-red-800/30',
-  warning: 'bg-amber-50 dark:bg-amber-900/20 border-amber-100 dark:border-amber-800/30',
-  info: 'bg-blue-50 dark:bg-blue-900/20 border-blue-100 dark:border-blue-800/30',
-} as const
+  blocker: "bg-red-50 dark:bg-red-900/20 border-red-100 dark:border-red-800/30",
+  warning:
+    "bg-amber-50 dark:bg-amber-900/20 border-amber-100 dark:border-amber-800/30",
+  info: "bg-blue-50 dark:bg-blue-900/20 border-blue-100 dark:border-blue-800/30",
+} as const;
 
 /** Base classes shared by all action buttons in ActionButtons */
 const BTN_BASE =
-  'w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl font-bold text-sm transition-all disabled:opacity-50 disabled:cursor-not-allowed'
+  "w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl font-bold text-sm transition-all disabled:opacity-50 disabled:cursor-not-allowed";
 
 // ============================================================
 // Sub-components
@@ -53,7 +54,12 @@ const BTN_BASE =
 
 function ReadinessItemRow({ item }: { item: ReadinessItem }) {
   return (
-    <div className={cn('flex gap-2.5 p-2.5 rounded-lg border', READINESS_BG_MAP[item.severity])}>
+    <div
+      className={cn(
+        "flex gap-2.5 p-2.5 rounded-lg border",
+        READINESS_BG_MAP[item.severity],
+      )}
+    >
       {READINESS_ICON_MAP[item.severity]}
       <div className="min-w-0">
         <p className="text-sm font-medium text-slate-700 dark:text-slate-200 leading-snug">
@@ -66,73 +72,84 @@ function ReadinessItemRow({ item }: { item: ReadinessItem }) {
         )}
       </div>
     </div>
-  )
+  );
 }
 
 // ============================================================
 // Status lifecycle nodes
 // ============================================================
 
-const STATUS_ORDER: CourseStatus[] = ['draft', 'in_review', 'approved', 'published']
+const STATUS_ORDER: CourseStatus[] = [
+  "draft",
+  "in_review",
+  "approved",
+  "published",
+];
 
 function LifecycleNode({
   status,
   isCurrent,
   isReached,
 }: {
-  status: CourseStatus
-  isCurrent: boolean
-  isReached: boolean
+  status: CourseStatus;
+  isCurrent: boolean;
+  isReached: boolean;
 }) {
   return (
     <div className="flex flex-col items-center gap-1 min-w-0">
       <div
         className={cn(
-          'w-7 h-7 rounded-full flex items-center justify-center border-2 transition-colors',
+          "w-7 h-7 rounded-full flex items-center justify-center border-2 transition-colors",
           isCurrent
-            ? 'bg-indigo-600 border-indigo-600 text-white shadow-md shadow-indigo-100 dark:shadow-indigo-900/30'
+            ? "bg-indigo-600 border-indigo-600 text-white shadow-md shadow-indigo-100 dark:shadow-indigo-900/30"
             : isReached
-              ? 'bg-emerald-500 border-emerald-500 text-white'
-              : 'bg-white dark:bg-slate-800 border-slate-300 dark:border-slate-600 text-slate-400'
+              ? "bg-emerald-500 border-emerald-500 text-white"
+              : "bg-white dark:bg-slate-800 border-slate-300 dark:border-slate-600 text-slate-400",
         )}
       >
         {isReached && !isCurrent ? (
           <CheckCircle className="w-4 h-4" />
         ) : (
-          <span className="text-[10px] font-black">{STATUS_ORDER.indexOf(status) + 1}</span>
+          <span className="text-[10px] font-black">
+            {STATUS_ORDER.indexOf(status) + 1}
+          </span>
         )}
       </div>
       <span
         className={cn(
-          'text-[10px] font-semibold uppercase tracking-wide text-center leading-tight',
+          "text-[10px] font-semibold uppercase tracking-wide text-center leading-tight",
           isCurrent
-            ? 'text-indigo-600 dark:text-indigo-400'
+            ? "text-indigo-600 dark:text-indigo-400"
             : isReached
-              ? 'text-emerald-600 dark:text-emerald-400'
-              : 'text-slate-400 dark:text-slate-500'
+              ? "text-emerald-600 dark:text-emerald-400"
+              : "text-slate-400 dark:text-slate-500",
         )}
       >
         {translateCourseStatus(status)}
       </span>
     </div>
-  )
+  );
 }
 
 function StatusLifecycle({ currentStatus }: { currentStatus: CourseStatus }) {
-  const currentIdx = STATUS_ORDER.indexOf(currentStatus)
+  const currentIdx = STATUS_ORDER.indexOf(currentStatus);
 
   return (
     <div className="flex items-start gap-1 py-2">
       {STATUS_ORDER.map((s, idx) => (
         <div key={s} className="flex items-center gap-1 flex-1 min-w-0">
-          <LifecycleNode status={s} isCurrent={s === currentStatus} isReached={idx < currentIdx} />
+          <LifecycleNode
+            status={s}
+            isCurrent={s === currentStatus}
+            isReached={idx < currentIdx}
+          />
           {idx < STATUS_ORDER.length - 1 && (
             <ChevronRight className="w-3 h-3 text-slate-300 dark:text-slate-600 shrink-0 -mt-4" />
           )}
         </div>
       ))}
     </div>
-  )
+  );
 }
 
 // ============================================================
@@ -140,14 +157,14 @@ function StatusLifecycle({ currentStatus }: { currentStatus: CourseStatus }) {
 // ============================================================
 
 interface ActionButtonsProps {
-  availableActions: CourseAction[]
-  canPublish: boolean
-  isBusy: boolean
-  onSubmitReview: () => void
-  onApprove: () => void
-  onPublish: () => void
-  onUnpublish: () => void
-  onRevertDraft: () => void
+  availableActions: CourseAction[];
+  canPublish: boolean;
+  isBusy: boolean;
+  onSubmitReview: () => void;
+  onApprove: () => void;
+  onPublish: () => void;
+  onUnpublish: () => void;
+  onRevertDraft: () => void;
 }
 
 /**
@@ -168,20 +185,20 @@ function ActionButtons({
   onUnpublish,
   onRevertDraft,
 }: ActionButtonsProps) {
-  if (availableActions.length === 0) return null
+  if (availableActions.length === 0) return null;
 
   const spinnerOrIcon = (icon: React.ReactNode) =>
-    isBusy ? <Loader2 className="w-4 h-4 animate-spin" /> : icon
+    isBusy ? <Loader2 className="w-4 h-4 animate-spin" /> : icon;
 
   return (
     <div className="flex flex-col gap-2 mt-1">
-      {availableActions.includes('submit_review') && (
+      {availableActions.includes("submit_review") && (
         <button
           onClick={onSubmitReview}
           disabled={isBusy}
           className={cn(
             BTN_BASE,
-            'bg-blue-600 hover:bg-blue-700 text-white shadow-sm shadow-blue-100 dark:shadow-blue-900/30'
+            "bg-blue-600 hover:bg-blue-700 text-white shadow-sm shadow-blue-100 dark:shadow-blue-900/30",
           )}
         >
           {spinnerOrIcon(<Send className="w-4 h-4" />)}
@@ -189,13 +206,13 @@ function ActionButtons({
         </button>
       )}
 
-      {availableActions.includes('approve') && (
+      {availableActions.includes("approve") && (
         <button
           onClick={onApprove}
           disabled={isBusy}
           className={cn(
             BTN_BASE,
-            'bg-emerald-600 hover:bg-emerald-700 text-white shadow-sm shadow-emerald-100 dark:shadow-emerald-900/30'
+            "bg-emerald-600 hover:bg-emerald-700 text-white shadow-sm shadow-emerald-100 dark:shadow-emerald-900/30",
           )}
         >
           {spinnerOrIcon(<ThumbsUp className="w-4 h-4" />)}
@@ -203,30 +220,32 @@ function ActionButtons({
         </button>
       )}
 
-      {availableActions.includes('publish') && (
+      {availableActions.includes("publish") && (
         <button
           onClick={onPublish}
           disabled={isBusy || !canPublish}
-          title={!canPublish ? 'Selesaikan semua blocker terlebih dahulu' : undefined}
+          title={
+            !canPublish ? "Selesaikan semua blocker terlebih dahulu" : undefined
+          }
           className={cn(
             BTN_BASE,
             canPublish
-              ? 'bg-indigo-600 hover:bg-indigo-700 text-white shadow-sm shadow-indigo-100 dark:shadow-indigo-900/30'
-              : 'bg-slate-100 dark:bg-slate-800 text-slate-400 border border-slate-200 dark:border-slate-700'
+              ? "bg-indigo-600 hover:bg-indigo-700 text-white shadow-sm shadow-indigo-100 dark:shadow-indigo-900/30"
+              : "bg-slate-100 dark:bg-slate-800 text-slate-400 border border-slate-200 dark:border-slate-700",
           )}
         >
           {spinnerOrIcon(<Upload className="w-4 h-4" />)}
-          {canPublish ? 'Terbitkan Kursus' : 'Terbitkan (ada blocker)'}
+          {canPublish ? "Terbitkan Kursus" : "Terbitkan (ada blocker)"}
         </button>
       )}
 
-      {availableActions.includes('unpublish') && (
+      {availableActions.includes("unpublish") && (
         <button
           onClick={onUnpublish}
           disabled={isBusy}
           className={cn(
             BTN_BASE,
-            'bg-white dark:bg-slate-800 border border-amber-300 dark:border-amber-700 text-amber-600 dark:text-amber-400 hover:bg-amber-50 dark:hover:bg-amber-900/20'
+            "bg-white dark:bg-slate-800 border border-amber-300 dark:border-amber-700 text-amber-600 dark:text-amber-400 hover:bg-amber-50 dark:hover:bg-amber-900/20",
           )}
         >
           {spinnerOrIcon(<XCircle className="w-4 h-4" />)}
@@ -234,13 +253,13 @@ function ActionButtons({
         </button>
       )}
 
-      {availableActions.includes('revert_draft') && (
+      {availableActions.includes("revert_draft") && (
         <button
           onClick={onRevertDraft}
           disabled={isBusy}
           className={cn(
             BTN_BASE,
-            'bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-700'
+            "bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-700",
           )}
         >
           {spinnerOrIcon(<ArrowRight className="w-4 h-4 rotate-180" />)}
@@ -248,7 +267,7 @@ function ActionButtons({
         </button>
       )}
     </div>
-  )
+  );
 }
 
 // ============================================================
@@ -256,7 +275,12 @@ function ActionButtons({
 // ============================================================
 
 function ReadinessScoreBar({ score }: { score: number }) {
-  const color = score >= 80 ? 'bg-emerald-500' : score >= 50 ? 'bg-amber-500' : 'bg-red-500'
+  const color =
+    score >= 80
+      ? "bg-emerald-500"
+      : score >= 50
+        ? "bg-amber-500"
+        : "bg-red-500";
 
   return (
     <div className="space-y-1.5">
@@ -266,12 +290,12 @@ function ReadinessScoreBar({ score }: { score: number }) {
         </span>
         <span
           className={cn(
-            'text-sm font-black',
+            "text-sm font-black",
             score >= 80
-              ? 'text-emerald-600 dark:text-emerald-400'
+              ? "text-emerald-600 dark:text-emerald-400"
               : score >= 50
-                ? 'text-amber-600 dark:text-amber-400'
-                : 'text-red-600 dark:text-red-400'
+                ? "text-amber-600 dark:text-amber-400"
+                : "text-red-600 dark:text-red-400",
           )}
         >
           {score}%
@@ -279,12 +303,15 @@ function ReadinessScoreBar({ score }: { score: number }) {
       </div>
       <div className="h-2 rounded-full bg-slate-100 dark:bg-slate-800 overflow-hidden">
         <div
-          className={cn('h-full rounded-full transition-all duration-500', color)}
+          className={cn(
+            "h-full rounded-full transition-all duration-500",
+            color,
+          )}
           style={{ width: `${score}%` }}
         />
       </div>
     </div>
-  )
+  );
 }
 
 // ============================================================
@@ -292,25 +319,33 @@ function ReadinessScoreBar({ score }: { score: number }) {
 // ============================================================
 
 interface CourseReleasePanelProps {
-  onClose: () => void
+  onClose: () => void;
 }
 
 export function CourseReleasePanel({ onClose }: CourseReleasePanelProps) {
-  const { state, actions } = useBuilder()
-  const { role } = useAuth()
+  const { state, actions } = useBuilder();
+  const { role } = useAuth();
 
-  const { data: assignedClassesCount = 0 } = useCourseEnrollmentCount(state.courseId)
+  const { data: assignedClassesCount = 0 } = useCourseEnrollmentCount(
+    state.courseId,
+  );
 
   const readiness = useCourseReadiness({
     modules: state.modules,
     courseTitle: state.courseTitle,
     courseDescription: state.courseDescription,
     courseStatus: state.courseStatus,
-    role: role as 'student' | 'teacher' | 'admin' | 'parent' | 'principal' | null,
+    role: role as
+      | "student"
+      | "teacher"
+      | "admin"
+      | "parent"
+      | "principal"
+      | null,
     assignedClassesCount,
-  })
+  });
 
-  const isBusy = state.savingStatus === 'saving'
+  const isBusy = state.savingStatus === "saving";
 
   return (
     <aside
@@ -439,5 +474,5 @@ export function CourseReleasePanel({ onClose }: CourseReleasePanelProps) {
         </div>
       </div>
     </aside>
-  )
+  );
 }

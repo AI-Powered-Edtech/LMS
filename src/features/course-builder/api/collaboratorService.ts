@@ -42,7 +42,9 @@ export const collaboratorService = {
       .map((row) => String(row.user_id))
       .filter(Boolean);
     const { data: profiles, error: profileError } = await db
-      .from<Array<{ id: string; full_name: string | null; email: string | null }>>("profiles")
+      .from<
+        Array<{ id: string; full_name: string | null; email: string | null }>
+      >("profiles")
       .select("id, full_name, email")
       .eq("tenant_id", tenantId)
       .in("id", userIds);
@@ -77,7 +79,9 @@ export const collaboratorService = {
     if (!query) return [];
 
     const { data, error } = await db
-      .from<Array<{ id: string; full_name: string | null; email: string | null }>>("profiles")
+      .from<
+        Array<{ id: string; full_name: string | null; email: string | null }>
+      >("profiles")
       .select("id, full_name, email")
       .eq("tenant_id", tenantId)
       .ilike("full_name", `%${query}%`)

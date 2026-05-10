@@ -2,25 +2,29 @@
 // AchievementFeed — Pencapaian terbaru siswa (badge/XP)
 // ==========================================================================
 
-import { Card } from '@/components/ui/Card'
-import { Skeleton } from '@/components/ui/Skeleton'
+import { Card } from "@/components/ui/Card";
+import { Skeleton } from "@/components/ui/Skeleton";
 
 interface AchievementFeedProps {
-  achievements: string[]
-  isLoading?: boolean
+  achievements: string[];
+  isLoading?: boolean;
 }
 
 /** Pilih icon berdasarkan teks achievement */
 function getAchievementIcon(text: string): string {
-  const lower = text.toLowerCase()
-  if (lower.includes('badge') || lower.includes('meraih')) return '🥇'
-  if (lower.includes('xp')) return '⭐'
-  if (lower.includes('pelajaran') || lower.includes('menyelesaikan')) return '📗'
-  if (lower.includes('kuis')) return '✏️'
-  return '🏆'
+  const lower = text.toLowerCase();
+  if (lower.includes("badge") || lower.includes("meraih")) return "🥇";
+  if (lower.includes("xp")) return "⭐";
+  if (lower.includes("pelajaran") || lower.includes("menyelesaikan"))
+    return "📗";
+  if (lower.includes("kuis")) return "✏️";
+  return "🏆";
 }
 
-export function AchievementFeed({ achievements, isLoading }: AchievementFeedProps) {
+export function AchievementFeed({
+  achievements,
+  isLoading,
+}: AchievementFeedProps) {
   return (
     <Card padding="sm" className="space-y-3">
       {/* Header */}
@@ -56,7 +60,11 @@ export function AchievementFeed({ achievements, isLoading }: AchievementFeedProp
       {!isLoading && achievements.length > 0 && (
         <ul className="space-y-2" role="list">
           {achievements.map((achievement, idx) => (
-            <li key={idx} className="flex items-center gap-2.5 px-1" aria-label={achievement}>
+            <li
+              key={idx}
+              className="flex items-center gap-2.5 px-1"
+              aria-label={achievement}
+            >
               <span
                 className="flex-shrink-0 w-7 h-7 rounded-lg bg-amber-100 dark:bg-amber-900/30 flex items-center justify-center text-sm"
                 aria-hidden="true"
@@ -71,5 +79,5 @@ export function AchievementFeed({ achievements, isLoading }: AchievementFeedProp
         </ul>
       )}
     </Card>
-  )
+  );
 }

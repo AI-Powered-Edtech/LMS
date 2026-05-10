@@ -1,10 +1,10 @@
-import { UploadCloud } from 'lucide-react'
-import { motion } from 'motion/react'
+import { UploadCloud } from "lucide-react";
+import { motion } from "motion/react";
 
 interface Props {
-  isPending: boolean
-  onCancel: () => void
-  onConfirm: () => void
+  isPending: boolean;
+  onCancel: () => void;
+  onConfirm: () => void;
 }
 
 export function SubmitGroupModal({ isPending, onCancel, onConfirm }: Props) {
@@ -23,8 +23,8 @@ export function SubmitGroupModal({ isPending, onCancel, onConfirm }: Props) {
           Serahkan Tugas Kelompok?
         </h2>
         <p className="text-slate-500 dark:text-slate-400 text-sm mb-6">
-          Tugas akan diserahkan atas nama seluruh anggota kelompok. Pastikan semua anggota telah
-          menyelesaikan bagiannya.
+          Tugas akan diserahkan atas nama seluruh anggota kelompok. Pastikan
+          semua anggota telah menyelesaikan bagiannya.
         </p>
 
         <div className="flex gap-3">
@@ -40,10 +40,10 @@ export function SubmitGroupModal({ isPending, onCancel, onConfirm }: Props) {
             disabled={isPending}
             className="flex-1 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-xl transition-colors shadow-sm disabled:opacity-70"
           >
-            {isPending ? 'Mengirim...' : 'Ya, Serahkan'}
+            {isPending ? "Mengirim..." : "Ya, Serahkan"}
           </button>
         </div>
       </motion.div>
     </div>
-  )
+  );
 }

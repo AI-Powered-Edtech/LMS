@@ -1,39 +1,45 @@
 // Principal routes — Wave 5 (30.2 + 30.3) + Wave 6 (30.4 + 30.5)
-import { lazy } from 'react'
-import { Outlet, Route } from 'react-router-dom'
+import { lazy } from "react";
+import { Outlet, Route } from "react-router-dom";
 
-import { RoleGuard } from '../../components/guards/RoleGuard'
-import { S } from './utils'
+import { RoleGuard } from "../../components/guards/RoleGuard";
+import { S } from "./utils";
 
 const ExecutiveDashboard = lazy(() =>
-  import('../../features/principal/components/ExecutiveDashboard').then((m) => ({
-    default: m.ExecutiveDashboard,
-  }))
-)
+  import("../../features/principal/components/ExecutiveDashboard").then(
+    (m) => ({
+      default: m.ExecutiveDashboard,
+    }),
+  ),
+);
 
 const ReportPreview = lazy(() =>
-  import('../../features/principal/components/ReportPreview').then((m) => ({
+  import("../../features/principal/components/ReportPreview").then((m) => ({
     default: m.ReportPreview,
-  }))
-)
+  })),
+);
 
 const BeforeAfterAnalytics = lazy(() =>
-  import('../../features/principal/components/BeforeAfterAnalytics').then((m) => ({
-    default: m.BeforeAfterAnalytics,
-  }))
-)
+  import("../../features/principal/components/BeforeAfterAnalytics").then(
+    (m) => ({
+      default: m.BeforeAfterAnalytics,
+    }),
+  ),
+);
 
 const SurveyPage = lazy(() =>
-  import('../../features/principal/components/SurveyPage').then((m) => ({
+  import("../../features/principal/components/SurveyPage").then((m) => ({
     default: m.SurveyPage,
-  }))
-)
+  })),
+);
 
 const PrincipalSettingsPage = lazy(() =>
-  import('../../features/principal/components/PrincipalSettingsPage').then((m) => ({
-    default: m.PrincipalSettingsPage,
-  }))
-)
+  import("../../features/principal/components/PrincipalSettingsPage").then(
+    (m) => ({
+      default: m.PrincipalSettingsPage,
+    }),
+  ),
+);
 
 /**
  * All /app/principal/* routes.
@@ -45,7 +51,7 @@ export function PrincipalRoutes() {
     <Route
       path="principal"
       element={
-        <RoleGuard allowedRoles={['principal', 'admin']}>
+        <RoleGuard allowedRoles={["principal", "admin"]}>
           <Outlet />
         </RoleGuard>
       }
@@ -94,5 +100,5 @@ export function PrincipalRoutes() {
         }
       />
     </Route>
-  )
+  );
 }

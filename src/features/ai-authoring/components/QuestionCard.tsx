@@ -1,25 +1,29 @@
-import { Edit2, Trash2 } from 'lucide-react'
+import { Edit2, Trash2 } from "lucide-react";
 
-import { cn } from '@/utils/cn'
+import { cn } from "@/utils/cn";
 
-import type { AIAuthoringQuestion, AIOpenQuestion, AIQuizQuestion } from '../types'
+import type {
+  AIAuthoringQuestion,
+  AIOpenQuestion,
+  AIQuizQuestion,
+} from "../types";
 import {
   isOpenQuestion,
   isQuizQuestion,
   QUESTION_TYPE_COLORS,
   QUESTION_TYPE_LABELS,
-} from '../types'
+} from "../types";
 
 interface QuestionCardProps {
-  question: AIAuthoringQuestion
-  index: number
-  selected: boolean
-  onToggleSelect: (id: string) => void
-  onEdit: (question: AIAuthoringQuestion) => void
-  onDelete: (id: string) => void
+  question: AIAuthoringQuestion;
+  index: number;
+  selected: boolean;
+  onToggleSelect: (id: string) => void;
+  onEdit: (question: AIAuthoringQuestion) => void;
+  onDelete: (id: string) => void;
 }
 
-const OPTION_LETTERS = ['A', 'B', 'C', 'D', 'E']
+const OPTION_LETTERS = ["A", "B", "C", "D", "E"];
 
 function QuizQuestionOptions({ question }: { question: AIQuizQuestion }) {
   return (
@@ -28,18 +32,18 @@ function QuizQuestionOptions({ question }: { question: AIQuizQuestion }) {
         <div
           key={j}
           className={cn(
-            'px-3 py-2 rounded-xl text-xs font-medium border flex items-center gap-2',
+            "px-3 py-2 rounded-xl text-xs font-medium border flex items-center gap-2",
             opt.is_correct
-              ? 'bg-green-50 dark:bg-green-900/20 border-green-200 dark:border-green-800 text-green-700 dark:text-green-300'
-              : 'bg-slate-50 dark:bg-slate-700/50 border-slate-200 dark:border-slate-600 text-slate-600 dark:text-slate-300'
+              ? "bg-green-50 dark:bg-green-900/20 border-green-200 dark:border-green-800 text-green-700 dark:text-green-300"
+              : "bg-slate-50 dark:bg-slate-700/50 border-slate-200 dark:border-slate-600 text-slate-600 dark:text-slate-300",
           )}
         >
           <span
             className={cn(
-              'w-5 h-5 rounded-full text-xs font-bold flex items-center justify-center shrink-0',
+              "w-5 h-5 rounded-full text-xs font-bold flex items-center justify-center shrink-0",
               opt.is_correct
-                ? 'bg-green-200 dark:bg-green-800 text-green-700 dark:text-green-300'
-                : 'bg-slate-200 dark:bg-slate-600 text-slate-500 dark:text-slate-300'
+                ? "bg-green-200 dark:bg-green-800 text-green-700 dark:text-green-300"
+                : "bg-slate-200 dark:bg-slate-600 text-slate-500 dark:text-slate-300",
             )}
           >
             {OPTION_LETTERS[j] ?? String(j + 1)}
@@ -48,7 +52,7 @@ function QuizQuestionOptions({ question }: { question: AIQuizQuestion }) {
         </div>
       ))}
     </div>
-  )
+  );
 }
 
 function OpenQuestionAnswer({ question }: { question: AIOpenQuestion }) {
@@ -61,7 +65,7 @@ function OpenQuestionAnswer({ question }: { question: AIOpenQuestion }) {
         {question.answer}
       </p>
     </div>
-  )
+  );
 }
 
 export function QuestionCard({
@@ -72,18 +76,19 @@ export function QuestionCard({
   onEdit,
   onDelete,
 }: QuestionCardProps) {
-  const typeLabel = QUESTION_TYPE_LABELS[question.question_type] ?? question.question_type
+  const typeLabel =
+    QUESTION_TYPE_LABELS[question.question_type] ?? question.question_type;
   const typeColor =
     QUESTION_TYPE_COLORS[question.question_type] ??
-    'bg-slate-100 text-slate-600 dark:bg-slate-700 dark:text-slate-300'
+    "bg-slate-100 text-slate-600 dark:bg-slate-700 dark:text-slate-300";
 
   return (
     <div
       className={cn(
-        'bg-white dark:bg-slate-800 p-5 rounded-2xl border transition-all',
+        "bg-white dark:bg-slate-800 p-5 rounded-2xl border transition-all",
         selected
-          ? 'border-blue-400 dark:border-blue-500 shadow-sm shadow-blue-100 dark:shadow-blue-900/20'
-          : 'border-slate-200 dark:border-slate-700'
+          ? "border-blue-400 dark:border-blue-500 shadow-sm shadow-blue-100 dark:shadow-blue-900/20"
+          : "border-slate-200 dark:border-slate-700",
       )}
     >
       {/* Header row */}
@@ -93,12 +98,12 @@ export function QuestionCard({
           type="button"
           onClick={() => onToggleSelect(question.id)}
           className={cn(
-            'mt-0.5 w-5 h-5 rounded border-2 shrink-0 flex items-center justify-center transition-colors',
+            "mt-0.5 w-5 h-5 rounded border-2 shrink-0 flex items-center justify-center transition-colors",
             selected
-              ? 'bg-blue-600 dark:bg-blue-500 border-blue-600 dark:border-blue-500'
-              : 'border-slate-300 dark:border-slate-500 hover:border-blue-400 dark:hover:border-blue-500'
+              ? "bg-blue-600 dark:bg-blue-500 border-blue-600 dark:border-blue-500"
+              : "border-slate-300 dark:border-slate-500 hover:border-blue-400 dark:hover:border-blue-500",
           )}
-          aria-label={selected ? 'Batalkan pilihan' : 'Pilih soal ini'}
+          aria-label={selected ? "Batalkan pilihan" : "Pilih soal ini"}
         >
           {selected && (
             <svg className="w-3 h-3 text-white" viewBox="0 0 12 12" fill="none">
@@ -126,8 +131,8 @@ export function QuestionCard({
           <div className="flex flex-wrap items-center gap-1.5">
             <span
               className={cn(
-                'inline-block text-[10px] font-black uppercase tracking-wide px-2 py-0.5 rounded-full',
-                typeColor
+                "inline-block text-[10px] font-black uppercase tracking-wide px-2 py-0.5 rounded-full",
+                typeColor,
               )}
             >
               {typeLabel}
@@ -172,7 +177,9 @@ export function QuestionCard({
       )}
 
       {/* Open question answer */}
-      {isOpenQuestion(question) && question.answer && <OpenQuestionAnswer question={question} />}
+      {isOpenQuestion(question) && question.answer && (
+        <OpenQuestionAnswer question={question} />
+      )}
 
       {/* Explanation (quiz questions only) */}
       {isQuizQuestion(question) && question.explanation && (
@@ -181,5 +188,5 @@ export function QuestionCard({
         </p>
       )}
     </div>
-  )
+  );
 }

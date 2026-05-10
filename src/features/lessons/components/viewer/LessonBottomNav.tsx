@@ -1,18 +1,18 @@
-import { Award, ChevronLeft, ChevronRight } from 'lucide-react'
+import { Award, ChevronLeft, ChevronRight } from "lucide-react";
 
-import { RemedialBanner } from '@/features/adaptive-paths'
+import { RemedialBanner } from "@/features/adaptive-paths";
 
-import type { Lesson } from '../../index'
+import type { Lesson } from "../../index";
 
 interface LessonBottomNavProps {
-  prevLesson: Lesson | null
-  nextLesson: Lesson | null
-  isLastLesson: boolean
-  onSelectLesson: (id: string) => void
+  prevLesson: Lesson | null;
+  nextLesson: Lesson | null;
+  isLastLesson: boolean;
+  onSelectLesson: (id: string) => void;
   /** Set when adaptive navigation overrides the default sequential next lesson */
-  adaptiveReason?: string | null
+  adaptiveReason?: string | null;
   /** Title of the current lesson, used in the remedial banner */
-  currentLessonTitle?: string
+  currentLessonTitle?: string;
 }
 
 export function LessonBottomNav({
@@ -21,13 +21,16 @@ export function LessonBottomNav({
   isLastLesson,
   onSelectLesson,
   adaptiveReason,
-  currentLessonTitle = '',
+  currentLessonTitle = "",
 }: LessonBottomNavProps) {
   return (
     <div className="shrink-0 border-t border-slate-100 dark:border-slate-700 bg-white dark:bg-slate-900 px-4 py-4 pb-6 md:pb-4">
       {/* Remedial / adaptive banner — shown above nav buttons */}
       {adaptiveReason != null && nextLesson && (
-        <RemedialBanner lessonTitle={currentLessonTitle} reason={adaptiveReason} />
+        <RemedialBanner
+          lessonTitle={currentLessonTitle}
+          reason={adaptiveReason}
+        />
       )}
 
       <div className="flex items-center gap-3">
@@ -58,5 +61,5 @@ export function LessonBottomNav({
         ) : null}
       </div>
     </div>
-  )
+  );
 }

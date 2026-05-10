@@ -7,87 +7,92 @@
  * server-side state change driven by the Midtrans webhook.
  */
 
-import { useCallback, useEffect, useState } from 'react'
-import { formatCurrency, formatDate } from '@/shared/utils/format-id'
+import { useCallback, useEffect, useState } from "react";
+
+import { formatCurrency, formatDate } from "@/shared/utils/format-id";
+
 import {
   createSnapSession,
   listParentInvoices,
   type ParentInvoice,
-} from '../api/financeApi'
-import { loadSnap } from '../utils/snapLoader'
+} from "../api/financeApi";
+import { loadSnap } from "../utils/snapLoader";
 
-const STATUS_LABEL: Record<ParentInvoice['status'], string> = {
-  pending: 'Belum dibayar',
-  unpaid: 'Belum dibayar',
-  paid: 'Lunas',
-  cancelled: 'Dibatalkan',
-  failed: 'Gagal',
-}
+const STATUS_LABEL: Record<ParentInvoice["status"], string> = {
+  pending: "Belum dibayar",
+  unpaid: "Belum dibayar",
+  paid: "Lunas",
+  cancelled: "Dibatalkan",
+  failed: "Gagal",
+};
 
-const STATUS_TONE: Record<ParentInvoice['status'], string> = {
-  pending: 'bg-amber-100 text-amber-800',
-  unpaid: 'bg-amber-100 text-amber-800',
-  paid: 'bg-emerald-100 text-emerald-800',
-  cancelled: 'bg-zinc-100 text-zinc-700',
-  failed: 'bg-rose-100 text-rose-800',
-}
+const STATUS_TONE: Record<ParentInvoice["status"], string> = {
+  pending: "bg-amber-100 text-amber-800",
+  unpaid: "bg-amber-100 text-amber-800",
+  paid: "bg-emerald-100 text-emerald-800",
+  cancelled: "bg-zinc-100 text-zinc-700",
+  failed: "bg-rose-100 text-rose-800",
+};
 
 export function InvoiceList() {
-  const [invoices, setInvoices] = useState<ParentInvoice[]>([])
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
-  const [payingId, setPayingId] = useState<string | null>(null)
+  const [invoices, setInvoices] = useState<ParentInvoice[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [payingId, setPayingId] = useState<string | null>(null);
 
   const refresh = useCallback(async () => {
-    setError(null)
+    setError(null);
     try {
-      const rows = await listParentInvoices()
-      setInvoices(rows)
+      const rows = await listParentInvoices();
+      setInvoices(rows);
     } catch (err) {
-      setError((err as Error).message)
+      setError((err as Error).message);
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }, [])
+  }, []);
 
   useEffect(() => {
-    void refresh()
-  }, [refresh])
+    void refresh();
+  }, [refresh]);
 
   const handlePay = useCallback(
     async (invoice: ParentInvoice) => {
-      setError(null)
-      setPayingId(invoice.id)
+      setError(null);
+      setPayingId(invoice.id);
       try {
-        const snap = await loadSnap()
-        const session = await createSnapSession(invoice.id)
+        const snap = await loadSnap();
+        const session = await createSnapSession(invoice.id);
         snap.pay(session.snap_token, {
           onSuccess: () => void refresh(),
           onPending: () => void refresh(),
           onError: () => {
-            setError('Pembayaran gagal. Silakan coba lagi.')
-            setPayingId(null)
+            setError("Pembayaran gagal. Silakan coba lagi.");
+            setPayingId(null);
           },
           onClose: () => {
-            setPayingId(null)
+            setPayingId(null);
             // Webhook is async — give it a moment, then re-query.
-            window.setTimeout(() => void refresh(), 1500)
+            window.setTimeout(() => void refresh(), 1500);
           },
-        })
+        });
       } catch (err) {
-        setError((err as Error).message)
-        setPayingId(null)
+        setError((err as Error).message);
+        setPayingId(null);
       }
     },
     [refresh],
-  )
+  );
 
   if (loading) {
     return (
-      <div data-testid="invoice-list-loading" className="p-6 text-sm text-zinc-500">
+      <div
+        data-testid="invoice-list-loading"
+        className="p-6 text-sm text-zinc-500"
+      >
         Memuat tagihan…
       </div>
-    )
+    );
   }
 
   return (
@@ -122,8 +127,8 @@ export function InvoiceList() {
         <ul className="divide-y divide-zinc-200 rounded-lg border border-zinc-200">
           {invoices.map((invoice) => {
             const payable =
-              invoice.status === 'pending' || invoice.status === 'unpaid'
-            const isPaying = payingId === invoice.id
+              invoice.status === "pending" || invoice.status === "unpaid";
+            const isPaying = payingId === invoice.id;
             return (
               <li
                 key={invoice.id}
@@ -141,7 +146,9 @@ export function InvoiceList() {
                       : null}
                   </div>
                   {invoice.notes ? (
-                    <div className="mt-1 text-xs text-zinc-500">{invoice.notes}</div>
+                    <div className="mt-1 text-xs text-zinc-500">
+                      {invoice.notes}
+                    </div>
                   ) : null}
                 </div>
                 <div className="flex flex-col items-end gap-2">
@@ -161,17 +168,17 @@ export function InvoiceList() {
                       data-testid={`invoice-pay-${invoice.id}`}
                       className="rounded-md bg-emerald-600 px-4 py-1.5 text-sm font-medium text-white hover:bg-emerald-700 disabled:opacity-50"
                     >
-                      {isPaying ? 'Memproses…' : 'Bayar'}
+                      {isPaying ? "Memproses…" : "Bayar"}
                     </button>
                   ) : null}
                 </div>
               </li>
-            )
+            );
           })}
         </ul>
       )}
     </section>
-  )
+  );
 }
 
-export default InvoiceList
+export default InvoiceList;

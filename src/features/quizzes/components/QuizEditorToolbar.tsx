@@ -1,14 +1,14 @@
-import { AlertTriangle, CheckCircle, HelpCircle, Loader2 } from 'lucide-react'
+import { AlertTriangle, CheckCircle, HelpCircle, Loader2 } from "lucide-react";
 
-import { cn } from '@/utils/cn'
+import { cn } from "@/utils/cn";
 
 interface QuizEditorToolbarProps {
-  isPublished: boolean
-  isSaving: boolean
-  isPublishing: boolean
-  error: string | null
-  onSave: () => void
-  onPublishToggle: () => void
+  isPublished: boolean;
+  isSaving: boolean;
+  isPublishing: boolean;
+  error: string | null;
+  onSave: () => void;
+  onPublishToggle: () => void;
 }
 
 export function QuizEditorToolbar({
@@ -32,10 +32,10 @@ export function QuizEditorToolbar({
             </h3>
             <div
               className={cn(
-                'inline-flex items-center gap-1.5 text-[10px] font-black uppercase tracking-[0.1em] px-3 py-1 rounded-full mt-1 shadow-sm',
+                "inline-flex items-center gap-1.5 text-[10px] font-black uppercase tracking-[0.1em] px-3 py-1 rounded-full mt-1 shadow-sm",
                 isPublished
-                  ? 'bg-emerald-500 text-white shadow-emerald-100'
-                  : 'bg-amber-400 text-amber-900 shadow-amber-100'
+                  ? "bg-emerald-500 text-white shadow-emerald-100"
+                  : "bg-amber-400 text-amber-900 shadow-amber-100",
               )}
             >
               {isPublished ? (
@@ -43,7 +43,7 @@ export function QuizEditorToolbar({
               ) : (
                 <AlertTriangle className="w-3.5 h-3.5" />
               )}
-              {isPublished ? 'Diterbitkan' : 'Draft'}
+              {isPublished ? "Diterbitkan" : "Draft"}
             </div>
           </div>
         </div>
@@ -53,21 +53,23 @@ export function QuizEditorToolbar({
             disabled={isSaving}
             className="px-4 py-2 text-xs font-black text-slate-600 dark:text-slate-300 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-700 rounded-xl transition-all flex items-center gap-2 shadow-sm"
           >
-            {isSaving && !isPublishing && <Loader2 className="w-3.5 h-3.5 animate-spin" />}
+            {isSaving && !isPublishing && (
+              <Loader2 className="w-3.5 h-3.5 animate-spin" />
+            )}
             SIMPAN DRAFT
           </button>
           <button
             onClick={onPublishToggle}
             disabled={isSaving}
             className={cn(
-              'px-4 py-2 text-xs font-black rounded-xl transition-all flex items-center gap-2 shadow-lg',
+              "px-4 py-2 text-xs font-black rounded-xl transition-all flex items-center gap-2 shadow-lg",
               isPublished
-                ? 'text-amber-700 bg-amber-50 hover:bg-amber-100 shadow-amber-100'
-                : 'text-white bg-emerald-600 hover:bg-emerald-700 shadow-emerald-100'
+                ? "text-amber-700 bg-amber-50 hover:bg-amber-100 shadow-amber-100"
+                : "text-white bg-emerald-600 hover:bg-emerald-700 shadow-emerald-100",
             )}
           >
             {isPublishing && <Loader2 className="w-3.5 h-3.5 animate-spin" />}
-            {isPublished ? 'BATALKAN TERBIT' : 'TERBITKAN KUIS'}
+            {isPublished ? "BATALKAN TERBIT" : "TERBITKAN KUIS"}
           </button>
         </div>
       </div>
@@ -79,5 +81,5 @@ export function QuizEditorToolbar({
         </div>
       )}
     </>
-  )
+  );
 }

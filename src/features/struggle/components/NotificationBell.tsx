@@ -1,31 +1,34 @@
-import { Bell } from 'lucide-react'
-import { AnimatePresence, motion } from 'motion/react'
-import { useEffect, useRef, useState } from 'react'
+import { Bell } from "lucide-react";
+import { AnimatePresence, motion } from "motion/react";
+import { useEffect, useRef, useState } from "react";
 
-import { useAuth } from '@/contexts/AuthContext'
+import { useAuth } from "@/contexts/AuthContext";
 
-import { useUnreadAlertCount } from '../queries/useStruggleQueries'
-import { StruggleAlertPanel } from './StruggleAlertPanel'
+import { useUnreadAlertCount } from "../queries/useStruggleQueries";
+import { StruggleAlertPanel } from "./StruggleAlertPanel";
 
 export function NotificationBell() {
-  const { role } = useAuth()
-  const unreadCount = useUnreadAlertCount()
-  const [open, setOpen] = useState(false)
-  const containerRef = useRef<HTMLDivElement>(null)
+  const { role } = useAuth();
+  const unreadCount = useUnreadAlertCount();
+  const [open, setOpen] = useState(false);
+  const containerRef = useRef<HTMLDivElement>(null);
 
   // Close on outside click
   useEffect(() => {
     function handleClick(e: MouseEvent) {
-      if (containerRef.current && !containerRef.current.contains(e.target as Node)) {
-        setOpen(false)
+      if (
+        containerRef.current &&
+        !containerRef.current.contains(e.target as Node)
+      ) {
+        setOpen(false);
       }
     }
-    document.addEventListener('mousedown', handleClick)
-    return () => document.removeEventListener('mousedown', handleClick)
-  }, [])
+    document.addEventListener("mousedown", handleClick);
+    return () => document.removeEventListener("mousedown", handleClick);
+  }, []);
 
   // Only render for teacher / admin
-  if (role !== 'teacher' && role !== 'admin') return null
+  if (role !== "teacher" && role !== "admin") return null;
 
   return (
     <div className="relative" ref={containerRef}>
@@ -41,7 +44,7 @@ export function NotificationBell() {
         {/* Unread badge */}
         {unreadCount > 0 && (
           <span className="absolute -top-0.5 -right-0.5 min-w-[18px] h-[18px] px-1 flex items-center justify-center rounded-full bg-red-500 text-white text-[10px] font-bold leading-none">
-            {unreadCount > 99 ? '99+' : unreadCount}
+            {unreadCount > 99 ? "99+" : unreadCount}
           </span>
         )}
       </button>
@@ -61,5 +64,5 @@ export function NotificationBell() {
         )}
       </AnimatePresence>
     </div>
-  )
+  );
 }

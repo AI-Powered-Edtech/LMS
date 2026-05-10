@@ -1,8 +1,8 @@
 // ─── Service ──────────────────────────────────────────────────────────────────
-export { peerReviewService } from './api/peerReviewService'
+export { peerReviewService } from "./api/peerReviewService";
 
 // ─── Query keys ───────────────────────────────────────────────────────────────
-export { peerReviewKeys, peerReviewQueryKeys } from './queries/peerReviewKeys'
+export { peerReviewKeys, peerReviewQueryKeys } from "./queries/peerReviewKeys";
 
 // ─── Queries & mutations ──────────────────────────────────────────────────────
 export {
@@ -12,13 +12,13 @@ export {
   useReviewsBySubmission,
   useSavePeerReviewConfig,
   useSubmitPeerReview,
-} from './queries/peerReviewQueries'
+} from "./queries/peerReviewQueries";
 
 // ─── Components ───────────────────────────────────────────────────────────────
-export { PeerReviewConfigPanel } from './components/PeerReviewConfigPanel'
-export { PeerReviewForm } from './components/PeerReviewForm'
-export { PeerReviewList } from './components/PeerReviewList'
-export { PeerReviewSummary } from './components/PeerReviewSummary'
+export { PeerReviewConfigPanel } from "./components/PeerReviewConfigPanel";
+export { PeerReviewForm } from "./components/PeerReviewForm";
+export { PeerReviewList } from "./components/PeerReviewList";
+export { PeerReviewSummary } from "./components/PeerReviewSummary";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 export type {
@@ -26,4 +26,4 @@ export type {
   PeerReviewConfig,
   PeerReviewConfigInsert,
   PeerReviewWithDetails,
-} from './types'
+} from "./types";

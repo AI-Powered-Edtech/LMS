@@ -1,59 +1,66 @@
-import { format } from 'date-fns'
-import { id as localeId } from 'date-fns/locale'
-import { Megaphone, Pin, Plus, Search } from 'lucide-react'
-import { useEffect, useMemo, useState } from 'react'
+import { format } from "date-fns";
+import { id as localeId } from "date-fns/locale";
+import { Megaphone, Pin, Plus, Search } from "lucide-react";
+import { useEffect, useMemo, useState } from "react";
 
-import { EmptyState } from '@/components/ui'
-import { useAuth } from '@/contexts/AuthContext'
-import type { Announcement as DBAnnouncement } from '@/features/announcements'
-import { useAnnouncements, useSaveAnnouncement, useSubmitRSVP } from '@/features/announcements'
+import { EmptyState } from "@/components/ui";
+import { useAuth } from "@/contexts/AuthContext";
+import type { Announcement as DBAnnouncement } from "@/features/announcements";
+import {
+  useAnnouncements,
+  useSaveAnnouncement,
+  useSubmitRSVP,
+} from "@/features/announcements";
 import {
   type AnnouncementCardData,
   AnnouncementFeedCard,
-} from '@/features/announcements/components/AnnouncementFeedCard'
-import { AnnouncementSkeleton } from '@/features/announcements/components/AnnouncementSkeleton'
-import { CreateAnnouncementModal } from '@/features/announcements/components/CreateAnnouncementModal'
-import { useDebounce } from '@/hooks/useDebounce'
-import { usePageTitle } from '@/hooks/usePageTitle'
-import { useToast } from '@/hooks/useToast'
-import { cn } from '@/utils/cn'
-import { logger } from '@/utils/logger'
+} from "@/features/announcements/components/AnnouncementFeedCard";
+import { AnnouncementSkeleton } from "@/features/announcements/components/AnnouncementSkeleton";
+import { CreateAnnouncementModal } from "@/features/announcements/components/CreateAnnouncementModal";
+import { useDebounce } from "@/hooks/useDebounce";
+import { usePageTitle } from "@/hooks/usePageTitle";
+import { useToast } from "@/hooks/useToast";
+import { cn } from "@/utils/cn";
+import { logger } from "@/utils/logger";
 
-const PAGE_SIZE = 10
+const PAGE_SIZE = 10;
 
 function transformToLocal(data: DBAnnouncement[]): AnnouncementCardData[] {
   return data.map((db) => ({
     ...db,
-    author: db.author?.full_name || 'Admin',
-    date: format(new Date(db.created_at), 'dd MMM yyyy', { locale: localeId }),
-    time: format(new Date(db.created_at), 'HH:mm', { locale: localeId }) + ' WIB',
+    author: db.author?.full_name || "Admin",
+    date: format(new Date(db.created_at), "dd MMM yyyy", { locale: localeId }),
+    time:
+      format(new Date(db.created_at), "HH:mm", { locale: localeId }) + " WIB",
     location: db.location || undefined,
     contactPerson: db.contact_person || undefined,
     isRead: false,
     rsvpStatus:
-      db.rsvp_status === 'yes'
-        ? 'attending'
-        : db.rsvp_status === 'no'
-          ? 'not_attending'
-          : 'pending',
-  }))
+      db.rsvp_status === "yes"
+        ? "attending"
+        : db.rsvp_status === "no"
+          ? "not_attending"
+          : "pending",
+  }));
 }
 
 export function Announcements() {
-  usePageTitle('Pengumuman')
-  const { user, role, tenantId } = useAuth()
-  const { addToast } = useToast()
-  const [announcements, setAnnouncements] = useState<AnnouncementCardData[]>([])
-  const [searchTerm, setSearchTerm] = useState('')
+  usePageTitle("Pengumuman");
+  const { user, role, tenantId } = useAuth();
+  const { addToast } = useToast();
+  const [announcements, setAnnouncements] = useState<AnnouncementCardData[]>(
+    [],
+  );
+  const [searchTerm, setSearchTerm] = useState("");
   // ⚡ Perf: Debounce search term to prevent an API call on every keystroke.
   // Previously, each keystroke triggered useAnnouncements() with the raw searchTerm,
   // causing ~10-15 unnecessary DB round-trips per search.
-  const debouncedSearch = useDebounce(searchTerm, 300)
-  const [filter, setFilter] = useState('all')
-  const [page, setPage] = useState(0)
-  const [hasMore, setHasMore] = useState(true)
-  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false)
-  const [expandedComments, setExpandedComments] = useState<string | null>(null)
+  const debouncedSearch = useDebounce(searchTerm, 300);
+  const [filter, setFilter] = useState("all");
+  const [page, setPage] = useState(0);
+  const [hasMore, setHasMore] = useState(true);
+  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+  const [expandedComments, setExpandedComments] = useState<string | null>(null);
 
   const {
     data: fetchedAnnouncements,
@@ -63,48 +70,55 @@ export function Announcements() {
     search: debouncedSearch || undefined,
     limit: PAGE_SIZE,
     offset: page * PAGE_SIZE,
-  })
+  });
 
-  const saveMutation = useSaveAnnouncement()
-  const rsvpMutation = useSubmitRSVP()
+  const saveMutation = useSaveAnnouncement();
+  const rsvpMutation = useSubmitRSVP();
 
   useEffect(() => {
     if (fetchedAnnouncements) {
-      const transformed = transformToLocal(fetchedAnnouncements)
+      const transformed = transformToLocal(fetchedAnnouncements);
       if (page === 0) {
-        setAnnouncements(transformed)
+        setAnnouncements(transformed);
       } else {
-        setAnnouncements((prev) => [...prev, ...transformed])
+        setAnnouncements((prev) => [...prev, ...transformed]);
       }
-      setHasMore(fetchedAnnouncements.length === PAGE_SIZE)
+      setHasMore(fetchedAnnouncements.length === PAGE_SIZE);
     }
-  }, [fetchedAnnouncements, page])
+  }, [fetchedAnnouncements, page]);
 
   /* eslint-disable react-hooks/exhaustive-deps */
   useEffect(() => {
-    setPage(0)
-    void refetch()
-  }, [debouncedSearch])
+    setPage(0);
+    void refetch();
+  }, [debouncedSearch]);
   /* eslint-enable react-hooks/exhaustive-deps */
 
   const handleCreateAnnouncement = async (
     formData: {
-      title: string
-      content: string
-      target_audience: 'all_students' | 'course_students' | 'course_staff' | 'system'
-      priority: 'normal' | 'high' | 'low'
-      is_pinned: boolean
-      allow_comments: boolean
-      requires_rsvp: boolean
-      location: string
-      contact_person: string
-      course_id: string | null
+      title: string;
+      content: string;
+      target_audience:
+        | "all_students"
+        | "course_students"
+        | "course_staff"
+        | "system";
+      priority: "normal" | "high" | "low";
+      is_pinned: boolean;
+      allow_comments: boolean;
+      requires_rsvp: boolean;
+      location: string;
+      contact_person: string;
+      course_id: string | null;
     },
-    status: 'draft' | 'published'
+    status: "draft" | "published",
   ) => {
     if (!formData.title || !formData.content) {
-      addToast({ message: 'Judul dan isi pengumuman wajib diisi.', type: 'error' })
-      return
+      addToast({
+        message: "Judul dan isi pengumuman wajib diisi.",
+        type: "error",
+      });
+      return;
     }
     try {
       await saveMutation.mutateAsync({
@@ -114,33 +128,41 @@ export function Announcements() {
         created_by: user!.id,
         location: formData.location || null,
         contact_person: formData.contact_person || null,
-      })
+      });
       addToast({
         message:
-          status === 'published' ? 'Pengumuman telah diterbitkan!' : 'Draf pengumuman disimpan.',
-        type: 'success',
-      })
-      setIsCreateModalOpen(false)
-      void refetch()
+          status === "published"
+            ? "Pengumuman telah diterbitkan!"
+            : "Draf pengumuman disimpan.",
+        type: "success",
+      });
+      setIsCreateModalOpen(false);
+      void refetch();
     } catch (err) {
-      if (import.meta.env.DEV) logger.error('Error creating announcement:', err)
-      addToast({ message: 'Gagal menyimpan pengumuman.', type: 'error' })
+      if (import.meta.env.DEV)
+        logger.error("Error creating announcement:", err);
+      addToast({ message: "Gagal menyimpan pengumuman.", type: "error" });
     }
-  }
+  };
 
-  const handleRSVP = async (announcementId: string, response: 'yes' | 'no' | 'maybe') => {
+  const handleRSVP = async (
+    announcementId: string,
+    response: "yes" | "no" | "maybe",
+  ) => {
     try {
-      await rsvpMutation.mutateAsync({ announcementId, response })
-      addToast({ message: 'Berhasil mengirim RSVP', type: 'success' })
-      void refetch()
+      await rsvpMutation.mutateAsync({ announcementId, response });
+      addToast({ message: "Berhasil mengirim RSVP", type: "success" });
+      void refetch();
     } catch {
-      addToast({ message: 'Gagal mengirim RSVP', type: 'error' })
+      addToast({ message: "Gagal mengirim RSVP", type: "error" });
     }
-  }
+  };
 
   const handleMarkAsRead = (id: string) => {
-    setAnnouncements(announcements.map((a) => (a.id === id ? { ...a, isRead: true } : a)))
-  }
+    setAnnouncements(
+      announcements.map((a) => (a.id === id ? { ...a, isRead: true } : a)),
+    );
+  };
 
   // ⚡ Perf: Memoize filtered+sorted announcements — only recomputes when
   // announcements, debouncedSearch, or filter change. Previously recomputed
@@ -151,31 +173,34 @@ export function Announcements() {
         .filter((a) => {
           const matchesSearch =
             a.title.toLowerCase().includes(debouncedSearch.toLowerCase()) ||
-            a.content.toLowerCase().includes(debouncedSearch.toLowerCase())
+            a.content.toLowerCase().includes(debouncedSearch.toLowerCase());
           const matchesFilter =
-            filter === 'all'
+            filter === "all"
               ? true
-              : filter === 'unread'
+              : filter === "unread"
                 ? !a.isRead
-                : filter === 'pinned'
+                : filter === "pinned"
                   ? a.is_pinned
-                  : true
-          return matchesSearch && matchesFilter
+                  : true;
+          return matchesSearch && matchesFilter;
         })
         .sort((a, b) => {
-          if (a.is_pinned && !b.is_pinned) return -1
-          if (!a.is_pinned && b.is_pinned) return 1
-          return 0
+          if (a.is_pinned && !b.is_pinned) return -1;
+          if (!a.is_pinned && b.is_pinned) return 1;
+          return 0;
         }),
-    [announcements, debouncedSearch, filter]
-  )
+    [announcements, debouncedSearch, filter],
+  );
 
   // ⚡ Perf: Memoize unread count — previously computed via two separate
   // .filter() calls in JSX (lines 222, 224), iterating the full array twice per render.
-  const unreadCount = useMemo(() => announcements.filter((a) => !a.isRead).length, [announcements])
+  const unreadCount = useMemo(
+    () => announcements.filter((a) => !a.isRead).length,
+    [announcements],
+  );
 
   if (isLoading && announcements.length === 0) {
-    return <AnnouncementSkeleton />
+    return <AnnouncementSkeleton />;
   }
 
   return (
@@ -191,7 +216,7 @@ export function Announcements() {
             Informasi penting, jadwal, dan pembaruan dari sekolah.
           </p>
         </div>
-        {role === 'teacher' && (
+        {role === "teacher" && (
           <button
             onClick={() => setIsCreateModalOpen(true)}
             className="px-6 py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl flex items-center gap-2 transition-colors shadow-sm shadow-blue-200"
@@ -217,37 +242,39 @@ export function Announcements() {
         </div>
         <div className="flex items-center gap-2 w-full md:w-auto overflow-x-auto pb-2 md:pb-0 custom-scrollbar">
           <button
-            onClick={() => setFilter('all')}
+            onClick={() => setFilter("all")}
             className={cn(
-              'whitespace-nowrap px-4 py-2 rounded-xl text-sm font-bold transition-colors',
-              filter === 'all'
-                ? 'bg-slate-800 dark:bg-slate-200 text-white dark:text-slate-900'
-                : 'bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-600'
+              "whitespace-nowrap px-4 py-2 rounded-xl text-sm font-bold transition-colors",
+              filter === "all"
+                ? "bg-slate-800 dark:bg-slate-200 text-white dark:text-slate-900"
+                : "bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-600",
             )}
           >
             Semua
           </button>
           <button
-            onClick={() => setFilter('unread')}
+            onClick={() => setFilter("unread")}
             className={cn(
-              'whitespace-nowrap px-4 py-2 rounded-xl text-sm font-bold transition-colors flex items-center gap-2',
-              filter === 'unread'
-                ? 'bg-blue-600 text-white'
-                : 'bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 hover:bg-blue-100 dark:hover:bg-blue-900/30'
+              "whitespace-nowrap px-4 py-2 rounded-xl text-sm font-bold transition-colors flex items-center gap-2",
+              filter === "unread"
+                ? "bg-blue-600 text-white"
+                : "bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 hover:bg-blue-100 dark:hover:bg-blue-900/30",
             )}
           >
             Belum Dibaca
             {unreadCount > 0 && (
-              <span className="bg-white/20 px-1.5 py-0.5 rounded-md text-xs">{unreadCount}</span>
+              <span className="bg-white/20 px-1.5 py-0.5 rounded-md text-xs">
+                {unreadCount}
+              </span>
             )}
           </button>
           <button
-            onClick={() => setFilter('pinned')}
+            onClick={() => setFilter("pinned")}
             className={cn(
-              'whitespace-nowrap px-4 py-2 rounded-xl text-sm font-bold transition-colors flex items-center gap-2',
-              filter === 'pinned'
-                ? 'bg-amber-500 text-white'
-                : 'bg-amber-50 dark:bg-amber-900/20 text-amber-600 dark:text-amber-400 hover:bg-amber-100 dark:hover:bg-amber-900/30'
+              "whitespace-nowrap px-4 py-2 rounded-xl text-sm font-bold transition-colors flex items-center gap-2",
+              filter === "pinned"
+                ? "bg-amber-500 text-white"
+                : "bg-amber-50 dark:bg-amber-900/20 text-amber-600 dark:text-amber-400 hover:bg-amber-100 dark:hover:bg-amber-900/30",
             )}
           >
             <Pin className="w-4 h-4" /> Disematkan
@@ -265,7 +292,9 @@ export function Announcements() {
             role={role}
             isCommentsExpanded={expandedComments === announcement.id}
             onToggleComments={() =>
-              setExpandedComments(expandedComments === announcement.id ? null : announcement.id)
+              setExpandedComments(
+                expandedComments === announcement.id ? null : announcement.id,
+              )
             }
             onMarkAsRead={handleMarkAsRead}
             onRSVP={handleRSVP}
@@ -299,5 +328,5 @@ export function Announcements() {
         isPending={saveMutation.isPending}
       />
     </div>
-  )
+  );
 }

@@ -5,11 +5,11 @@
  * but never throws in production — instead it returns the raw data as-is
  * so the app degrades gracefully.
  */
-import * as v from 'valibot'
+import * as v from "valibot";
 
-import { logger } from '@/utils/logger'
+import { logger } from "@/utils/logger";
 
-const isDev = import.meta.env?.DEV ?? false
+const isDev = import.meta.env?.DEV ?? false;
 
 /**
  * Validate data against a Valibot schema.
@@ -25,21 +25,27 @@ const isDev = import.meta.env?.DEV ?? false
 export function validate<T extends Record<string, unknown>>(
   schema: v.GenericSchema,
   data: T,
-  label?: string
-): T
+  label?: string,
+): T;
 export function validate(
   schema: v.GenericSchema,
   data: unknown,
-  label?: string
-   
-): Record<string, any>
-export function validate(schema: v.GenericSchema, data: unknown, label?: string): unknown {
-  const result = v.safeParse(schema, data)
+  label?: string,
+): Record<string, any>;
+export function validate(
+  schema: v.GenericSchema,
+  data: unknown,
+  label?: string,
+): unknown {
+  const result = v.safeParse(schema, data);
   if (!result.success && isDev) {
     if (import.meta.env.DEV)
-      logger.warn(`[validate] ${label ?? 'unknown'}: validation failed`, v.flatten(result.issues))
+      logger.warn(
+        `[validate] ${label ?? "unknown"}: validation failed`,
+        v.flatten(result.issues),
+      );
   }
-  return data
+  return data;
 }
 
 /**
@@ -52,26 +58,29 @@ export function validate(schema: v.GenericSchema, data: unknown, label?: string)
 export function validateArray<T extends Record<string, unknown>>(
   schema: v.GenericSchema,
   data: T[],
-  label?: string
-): T[]
+  label?: string,
+): T[];
 export function validateArray(
   schema: v.GenericSchema,
   data: unknown[],
-  label?: string
-   
-): Record<string, any>[]
-export function validateArray(schema: v.GenericSchema, data: unknown[], label?: string): unknown[] {
+  label?: string,
+): Record<string, any>[];
+export function validateArray(
+  schema: v.GenericSchema,
+  data: unknown[],
+  label?: string,
+): unknown[] {
   if (isDev) {
     data.forEach((item, i) => {
-      const result = v.safeParse(schema, item)
+      const result = v.safeParse(schema, item);
       if (!result.success) {
         if (import.meta.env.DEV)
           logger.warn(
-            `[validate] ${label ?? 'item'}[${i}]: validation failed`,
-            v.flatten(result.issues)
-          )
+            `[validate] ${label ?? "item"}[${i}]: validation failed`,
+            v.flatten(result.issues),
+          );
       }
-    })
+    });
   }
-  return data
+  return data;
 }

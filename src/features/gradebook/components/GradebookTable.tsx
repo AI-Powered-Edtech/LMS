@@ -1,121 +1,135 @@
-import { useVirtualizer } from '@tanstack/react-virtual'
-import { Download, RefreshCw, Search } from 'lucide-react'
-import { useCallback, useMemo, useRef, useState } from 'react'
+import { useVirtualizer } from "@tanstack/react-virtual";
+import { Download, RefreshCw, Search } from "lucide-react";
+import { useCallback, useMemo, useRef, useState } from "react";
 
-import { EmptyState, Skeleton } from '@/components/ui'
-import { cn } from '@/utils/cn'
+import { EmptyState, Skeleton } from "@/components/ui";
+import { cn } from "@/utils/cn";
 
-import { exportGradebookCSV } from '../api/gradebookApi'
+import { exportGradebookCSV } from "../api/gradebookApi";
 import {
   useGradebookEntries,
   useSyncGradebook,
   useUpdateGradebookEntry,
-} from '../queries/useGradebook'
-import type { GradebookColumn, GradebookEntry, GradebookStudent } from '../types'
+} from "../queries/useGradebook";
+import type {
+  GradebookColumn,
+  GradebookEntry,
+  GradebookStudent,
+} from "../types";
 
 // ── Grade helpers ─────────────────────────────────────────────────────────────
 
 function letterColor(letter: string | null): string {
   switch (letter) {
-    case 'A':
-      return 'text-green-700 dark:text-green-400'
-    case 'B':
-      return 'text-blue-700 dark:text-blue-400'
-    case 'C':
-      return 'text-yellow-700 dark:text-yellow-400'
-    case 'D':
-      return 'text-orange-700 dark:text-orange-400'
-    case 'F':
-      return 'text-red-700 dark:text-red-400'
+    case "A":
+      return "text-green-700 dark:text-green-400";
+    case "B":
+      return "text-blue-700 dark:text-blue-400";
+    case "C":
+      return "text-yellow-700 dark:text-yellow-400";
+    case "D":
+      return "text-orange-700 dark:text-orange-400";
+    case "F":
+      return "text-red-700 dark:text-red-400";
     default:
-      return 'text-slate-400 dark:text-slate-500'
+      return "text-slate-400 dark:text-slate-500";
   }
 }
 
 function letterBg(letter: string | null): string {
   switch (letter) {
-    case 'A':
-      return 'bg-green-50 dark:bg-green-900/25'
-    case 'B':
-      return 'bg-blue-50 dark:bg-blue-900/25'
-    case 'C':
-      return 'bg-yellow-50 dark:bg-yellow-900/25'
-    case 'D':
-      return 'bg-orange-50 dark:bg-orange-900/25'
-    case 'F':
-      return 'bg-red-50 dark:bg-red-900/25'
+    case "A":
+      return "bg-green-50 dark:bg-green-900/25";
+    case "B":
+      return "bg-blue-50 dark:bg-blue-900/25";
+    case "C":
+      return "bg-yellow-50 dark:bg-yellow-900/25";
+    case "D":
+      return "bg-orange-50 dark:bg-orange-900/25";
+    case "F":
+      return "bg-red-50 dark:bg-red-900/25";
     default:
-      return 'bg-slate-50 dark:bg-slate-800/50'
+      return "bg-slate-50 dark:bg-slate-800/50";
   }
 }
 
 // ── Build matrix helpers ──────────────────────────────────────────────────────
 
 function buildColumns(entries: GradebookEntry[]): GradebookColumn[] {
-  const seen = new Map<string, GradebookColumn>()
+  const seen = new Map<string, GradebookColumn>();
   for (const e of entries) {
-    const colId = e.quiz_id ?? e.assignment_id
+    const colId = e.quiz_id ?? e.assignment_id;
     if (colId && !seen.has(colId)) {
       seen.set(colId, {
         id: colId,
         title: e.item_title ?? colId,
-        type: e.item_type ?? 'assignment',
+        type: e.item_type ?? "assignment",
         max_score: e.max_score,
-      })
+      });
     }
   }
-  return Array.from(seen.values())
+  return Array.from(seen.values());
 }
 
 function buildStudentRows(
   entries: GradebookEntry[],
-  columns: GradebookColumn[]
+  columns: GradebookColumn[],
 ): GradebookStudent[] {
   const studentMap = new Map<
     string,
-    { name: string; email: string; grades: Record<string, GradebookEntry | null> }
-  >()
+    {
+      name: string;
+      email: string;
+      grades: Record<string, GradebookEntry | null>;
+    }
+  >();
 
   for (const e of entries) {
     if (!studentMap.has(e.student_id)) {
       studentMap.set(e.student_id, {
         name: e.student_name ?? e.student_id,
-        email: e.student_email ?? '',
+        email: e.student_email ?? "",
         grades: Object.fromEntries(columns.map((c) => [c.id, null])),
-      })
+      });
     }
-    const colId = e.quiz_id ?? e.assignment_id
+    const colId = e.quiz_id ?? e.assignment_id;
     if (colId) {
-      studentMap.get(e.student_id)!.grades[colId] = e
+      studentMap.get(e.student_id)!.grades[colId] = e;
     }
   }
 
-  const result: GradebookStudent[] = []
+  const result: GradebookStudent[] = [];
 
   // ⚡ Perf: consolidate multiple chained passes (.filter then .reduce) into a single, standard for loop to minimize CPU overhead and O(N) operations in performance-critical code.
   for (const [id, s] of studentMap.entries()) {
-    let sum = 0
-    let count = 0
+    let sum = 0;
+    let count = 0;
     for (let i = 0; i < columns.length; i++) {
-      const grade = s.grades[columns[i].id]
+      const grade = s.grades[columns[i].id];
       if (grade?.score != null) {
-        sum += grade.percentage ?? 0
-        count++
+        sum += grade.percentage ?? 0;
+        count++;
       }
     }
-    const avg = count > 0 ? sum / count : 0
-    result.push({ id, name: s.name, email: s.email, grades: s.grades, average: avg })
+    const avg = count > 0 ? sum / count : 0;
+    result.push({
+      id,
+      name: s.name,
+      email: s.email,
+      grades: s.grades,
+      average: avg,
+    });
   }
 
-  return result
+  return result;
 }
 
 function deriveLetter(avg: number): string {
-  if (avg >= 90) return 'A'
-  if (avg >= 80) return 'B'
-  if (avg >= 70) return 'C'
-  if (avg >= 60) return 'D'
-  return 'F'
+  if (avg >= 90) return "A";
+  if (avg >= 80) return "B";
+  if (avg >= 70) return "C";
+  if (avg >= 60) return "D";
+  return "F";
 }
 
 // ── Skeleton rows ────────────────────────────────────────────────────────────
@@ -136,26 +150,32 @@ function SkeletonRows({ cols }: { cols: number }) {
         </tr>
       ))}
     </>
-  )
+  );
 }
 
 // ── Main component ────────────────────────────────────────────────────────────
 
 interface Props {
-  courseId: string
+  courseId: string;
 }
 
 export function GradebookTable({ courseId }: Props) {
-  const { data: entries = [], isLoading } = useGradebookEntries(courseId)
-  const syncMutation = useSyncGradebook()
-  const updateMutation = useUpdateGradebookEntry()
+  const { data: entries = [], isLoading } = useGradebookEntries(courseId);
+  const syncMutation = useSyncGradebook();
+  const updateMutation = useUpdateGradebookEntry();
 
-  const [search, setSearch] = useState('')
-  const [editingCell, setEditingCell] = useState<{ studentId: string; colId: string } | null>(null)
-  const [editValue, setEditValue] = useState('')
+  const [search, setSearch] = useState("");
+  const [editingCell, setEditingCell] = useState<{
+    studentId: string;
+    colId: string;
+  } | null>(null);
+  const [editValue, setEditValue] = useState("");
 
-  const columns = useMemo(() => buildColumns(entries), [entries])
-  const students = useMemo(() => buildStudentRows(entries, columns), [entries, columns])
+  const columns = useMemo(() => buildColumns(entries), [entries]);
+  const students = useMemo(
+    () => buildStudentRows(entries, columns),
+    [entries, columns],
+  );
 
   const filteredStudents = useMemo(
     () =>
@@ -163,76 +183,87 @@ export function GradebookTable({ courseId }: Props) {
         ? students.filter(
             (s) =>
               s.name.toLowerCase().includes(search.toLowerCase()) ||
-              s.email.toLowerCase().includes(search.toLowerCase())
+              s.email.toLowerCase().includes(search.toLowerCase()),
           )
         : students,
-    [students, search]
-  )
+    [students, search],
+  );
 
   // Class-average per column
   const colAverages = useMemo(() => {
     return columns.map((col) => {
-      const graded = students.filter((s) => s.grades[col.id]?.score != null)
-      if (graded.length === 0) return null
-      return graded.reduce((sum, s) => sum + (s.grades[col.id]?.percentage ?? 0), 0) / graded.length
-    })
-  }, [columns, students])
+      const graded = students.filter((s) => s.grades[col.id]?.score != null);
+      if (graded.length === 0) return null;
+      return (
+        graded.reduce(
+          (sum, s) => sum + (s.grades[col.id]?.percentage ?? 0),
+          0,
+        ) / graded.length
+      );
+    });
+  }, [columns, students]);
 
-  const tableBodyRef = useRef<HTMLDivElement>(null)
+  const tableBodyRef = useRef<HTMLDivElement>(null);
 
   const virtualizer = useVirtualizer({
     count: filteredStudents.length,
     getScrollElement: () => tableBodyRef.current!,
     estimateSize: () => 52, // Row height
     overscan: 5,
-  })
+  });
 
   const handleCellClick = useCallback(
     (studentId: string, colId: string, currentScore: number | null) => {
-      setEditingCell({ studentId, colId })
-      setEditValue(currentScore != null ? String(currentScore) : '')
+      setEditingCell({ studentId, colId });
+      setEditValue(currentScore != null ? String(currentScore) : "");
     },
-    []
-  )
+    [],
+  );
 
   const handleSaveCell = useCallback(() => {
-    if (!editingCell) return
-    const { studentId, colId } = editingCell
+    if (!editingCell) return;
+    const { studentId, colId } = editingCell;
 
     // Find the entry id
     const entry = entries.find(
-      (e) => e.student_id === studentId && (e.quiz_id === colId || e.assignment_id === colId)
-    )
+      (e) =>
+        e.student_id === studentId &&
+        (e.quiz_id === colId || e.assignment_id === colId),
+    );
     if (!entry) {
-      setEditingCell(null)
-      return
+      setEditingCell(null);
+      return;
     }
 
-    const parsed = editValue === '' ? null : parseFloat(editValue)
+    const parsed = editValue === "" ? null : parseFloat(editValue);
     if (parsed !== null && (isNaN(parsed) || parsed < 0)) {
-      setEditingCell(null)
-      return
+      setEditingCell(null);
+      return;
     }
 
-    updateMutation.mutate({ id: entry.id, courseId, updates: { score: parsed } })
-    setEditingCell(null)
-  }, [editingCell, editValue, entries, updateMutation, courseId])
+    updateMutation.mutate({
+      id: entry.id,
+      courseId,
+      updates: { score: parsed },
+    });
+    setEditingCell(null);
+  }, [editingCell, editValue, entries, updateMutation, courseId]);
 
   const handleKeyDown = useCallback(
     (e: React.KeyboardEvent<HTMLInputElement>) => {
-      if (e.key === 'Enter') handleSaveCell()
-      if (e.key === 'Escape') setEditingCell(null)
+      if (e.key === "Enter") handleSaveCell();
+      if (e.key === "Escape") setEditingCell(null);
     },
-    [handleSaveCell]
-  )
+    [handleSaveCell],
+  );
 
   const handleExport = useCallback(() => {
-    exportGradebookCSV(entries, columns)
-  }, [entries, columns])
+    exportGradebookCSV(entries, columns);
+  }, [entries, columns]);
 
   const handleSync = useCallback(() => {
-    syncMutation.mutate(courseId)
-  }, [syncMutation, courseId])
+    syncMutation.mutate(courseId);
+  }, [syncMutation, courseId]);
 
   return (
     <div className="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl shadow-sm overflow-hidden">
@@ -256,11 +287,16 @@ export function GradebookTable({ courseId }: Props) {
             onClick={handleSync}
             disabled={syncMutation.isPending}
             className={cn(
-              'px-3 py-2 rounded-xl text-sm font-medium flex items-center gap-2 transition-all',
-              'bg-blue-600 text-white hover:bg-blue-700 disabled:opacity-60 disabled:cursor-not-allowed'
+              "px-3 py-2 rounded-xl text-sm font-medium flex items-center gap-2 transition-all",
+              "bg-blue-600 text-white hover:bg-blue-700 disabled:opacity-60 disabled:cursor-not-allowed",
             )}
           >
-            <RefreshCw className={cn('w-4 h-4', syncMutation.isPending && 'animate-spin')} />
+            <RefreshCw
+              className={cn(
+                "w-4 h-4",
+                syncMutation.isPending && "animate-spin",
+              )}
+            />
             Sinkronkan
           </button>
 
@@ -269,10 +305,10 @@ export function GradebookTable({ courseId }: Props) {
             onClick={handleExport}
             disabled={entries.length === 0}
             className={cn(
-              'px-3 py-2 rounded-xl text-sm font-medium flex items-center gap-2 transition-all',
-              'bg-white dark:bg-slate-700 border border-slate-200 dark:border-slate-600',
-              'text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-600',
-              'disabled:opacity-50 disabled:cursor-not-allowed'
+              "px-3 py-2 rounded-xl text-sm font-medium flex items-center gap-2 transition-all",
+              "bg-white dark:bg-slate-700 border border-slate-200 dark:border-slate-600",
+              "text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-600",
+              "disabled:opacity-50 disabled:cursor-not-allowed",
             )}
           >
             <Download className="w-4 h-4" />
@@ -304,13 +340,13 @@ export function GradebookTable({ courseId }: Props) {
                     </span>
                     <span
                       className={cn(
-                        'text-[10px] font-semibold px-1.5 py-0.5 rounded-full',
-                        col.type === 'quiz'
-                          ? 'bg-blue-100 text-blue-600 dark:bg-blue-900/30 dark:text-blue-400'
-                          : 'bg-purple-100 text-purple-600 dark:bg-purple-900/30 dark:text-purple-400'
+                        "text-[10px] font-semibold px-1.5 py-0.5 rounded-full",
+                        col.type === "quiz"
+                          ? "bg-blue-100 text-blue-600 dark:bg-blue-900/30 dark:text-blue-400"
+                          : "bg-purple-100 text-purple-600 dark:bg-purple-900/30 dark:text-purple-400",
                       )}
                     >
-                      {col.type === 'quiz' ? 'Kuis' : 'Tugas'}
+                      {col.type === "quiz" ? "Kuis" : "Tugas"}
                     </span>
                     <span className="text-slate-400 dark:text-slate-500 font-normal normal-case">
                       / {col.max_score}
@@ -337,18 +373,26 @@ export function GradebookTable({ courseId }: Props) {
                 </td>
               </tr>
             ) : (
-              <div ref={tableBodyRef} style={{ height: '400px', overflow: 'auto' }}>
-                <div style={{ height: virtualizer.getTotalSize(), position: 'relative' }}>
+              <div
+                ref={tableBodyRef}
+                style={{ height: "400px", overflow: "auto" }}
+              >
+                <div
+                  style={{
+                    height: virtualizer.getTotalSize(),
+                    position: "relative",
+                  }}
+                >
                   {virtualizer.getVirtualItems().map((virtualRow) => {
-                    const student = filteredStudents[virtualRow.index!]
+                    const student = filteredStudents[virtualRow.index!];
                     return (
                       <div
                         key={student.id}
                         style={{
-                          position: 'absolute',
+                          position: "absolute",
                           top: virtualRow.start,
                           height: virtualRow.size,
-                          width: '100%',
+                          width: "100%",
                         }}
                       >
                         <tr
@@ -369,10 +413,11 @@ export function GradebookTable({ courseId }: Props) {
 
                           {/* Grade cells */}
                           {columns.map((col) => {
-                            const entry = student.grades[col.id]
+                            const entry = student.grades[col.id];
                             const isEditing =
-                              editingCell?.studentId === student.id && editingCell?.colId === col.id
-                            const letter = entry?.grade_letter ?? null
+                              editingCell?.studentId === student.id &&
+                              editingCell?.colId === col.id;
+                            const letter = entry?.grade_letter ?? null;
 
                             return (
                               <td key={col.id} className="p-2 text-center">
@@ -383,7 +428,9 @@ export function GradebookTable({ courseId }: Props) {
                                     min={0}
                                     max={col.max_score}
                                     value={editValue}
-                                    onChange={(e) => setEditValue(e.target.value)}
+                                    onChange={(e) =>
+                                      setEditValue(e.target.value)
+                                    }
                                     onBlur={handleSaveCell}
                                     onKeyDown={handleKeyDown}
                                     className="w-16 text-center border-2 border-blue-500 rounded-lg py-1 text-sm focus:outline-none bg-white dark:bg-slate-900 text-slate-900 dark:text-white"
@@ -391,45 +438,51 @@ export function GradebookTable({ courseId }: Props) {
                                 ) : (
                                   <button
                                     onClick={() =>
-                                      handleCellClick(student.id, col.id, entry?.score ?? null)
+                                      handleCellClick(
+                                        student.id,
+                                        col.id,
+                                        entry?.score ?? null,
+                                      )
                                     }
                                     className={cn(
-                                      'w-16 h-8 rounded-lg text-sm font-semibold transition-all',
-                                      'hover:ring-2 hover:ring-blue-400 hover:ring-offset-1',
+                                      "w-16 h-8 rounded-lg text-sm font-semibold transition-all",
+                                      "hover:ring-2 hover:ring-blue-400 hover:ring-offset-1",
                                       letter
                                         ? letterBg(letter)
-                                        : 'bg-slate-50 dark:bg-slate-700/50',
+                                        : "bg-slate-50 dark:bg-slate-700/50",
                                       letter
                                         ? letterColor(letter)
-                                        : 'text-slate-400 dark:text-slate-500'
+                                        : "text-slate-400 dark:text-slate-500",
                                     )}
                                   >
-                                    {entry?.score != null ? entry.score : '—'}
+                                    {entry?.score != null ? entry.score : "—"}
                                   </button>
                                 )}
                               </td>
-                            )
+                            );
                           })}
 
                           {/* Average */}
                           <td className="p-2 text-center">
                             <span
                               className={cn(
-                                'inline-flex items-center justify-center w-16 h-8 rounded-lg text-sm font-bold',
+                                "inline-flex items-center justify-center w-16 h-8 rounded-lg text-sm font-bold",
                                 student.average > 0
                                   ? letterBg(deriveLetter(student.average))
-                                  : 'bg-slate-50 dark:bg-slate-700/50',
+                                  : "bg-slate-50 dark:bg-slate-700/50",
                                 student.average > 0
                                   ? letterColor(deriveLetter(student.average))
-                                  : 'text-slate-400 dark:text-slate-500'
+                                  : "text-slate-400 dark:text-slate-500",
                               )}
                             >
-                              {student.average > 0 ? `${student.average.toFixed(0)}%` : '—'}
+                              {student.average > 0
+                                ? `${student.average.toFixed(0)}%`
+                                : "—"}
                             </span>
                           </td>
                         </tr>
                       </div>
-                    )
+                    );
                   })}
                 </div>
               </div>
@@ -444,24 +497,26 @@ export function GradebookTable({ courseId }: Props) {
                   Rata-rata Kelas
                 </td>
                 {colAverages.map((avg, i) => {
-                  const letter = avg != null ? deriveLetter(avg) : null
+                  const letter = avg != null ? deriveLetter(avg) : null;
                   return (
                     <td key={columns[i].id} className="p-2 text-center">
                       {avg != null ? (
                         <span
                           className={cn(
-                            'inline-flex items-center justify-center w-16 h-7 rounded-lg text-xs font-bold',
+                            "inline-flex items-center justify-center w-16 h-7 rounded-lg text-xs font-bold",
                             letterBg(letter),
-                            letterColor(letter)
+                            letterColor(letter),
                           )}
                         >
                           {avg.toFixed(0)}%
                         </span>
                       ) : (
-                        <span className="text-slate-300 dark:text-slate-600 text-sm">—</span>
+                        <span className="text-slate-300 dark:text-slate-600 text-sm">
+                          —
+                        </span>
                       )}
                     </td>
-                  )
+                  );
                 })}
                 <td />
               </tr>
@@ -470,5 +525,5 @@ export function GradebookTable({ courseId }: Props) {
         </table>
       </div>
     </div>
-  )
+  );
 }

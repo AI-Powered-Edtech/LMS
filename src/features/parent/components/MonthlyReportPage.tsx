@@ -5,32 +5,32 @@
 // Mobile-first, print-friendly, dark mode support.
 // ==========================================================================
 
-import { useQuery } from '@tanstack/react-query'
-import { useState } from 'react'
-import { Link, useParams } from 'react-router-dom'
+import { useQuery } from "@tanstack/react-query";
+import { useState } from "react";
+import { Link, useParams } from "react-router-dom";
 
-import { useAuth } from '@/contexts/AuthContext'
-import { createQueryKeys } from '@/shared/lib/queryKeys'
-import { formatDate } from '@/shared/utils/format-id'
-import { cn } from '@/utils/cn'
-import { STALE } from '@/utils/queryConstants'
+import { useAuth } from "@/contexts/AuthContext";
+import { createQueryKeys } from "@/shared/lib/queryKeys";
+import { formatDate } from "@/shared/utils/format-id";
+import { cn } from "@/utils/cn";
+import { STALE } from "@/utils/queryConstants";
 
-import { getMyChildren } from '../api/parentApi'
-import { getAvailableReportMonths, getMonthlyReport } from '../api/reportApi'
-import type { ParentMonthlyReport } from '../types'
-import { canNativeShare, printReport, shareReport } from '../utils/reportPrint'
+import { getMyChildren } from "../api/parentApi";
+import { getAvailableReportMonths, getMonthlyReport } from "../api/reportApi";
+import type { ParentMonthlyReport } from "../types";
+import { canNativeShare, printReport, shareReport } from "../utils/reportPrint";
 
 // ── Query Keys ──────────────────────────────────────────────────
 
-const base = createQueryKeys('parent-report')
+const base = createQueryKeys("parent-report");
 
 const reportKeys = {
-  children: (tenantId: string) => [...base.all(tenantId), 'children'] as const,
+  children: (tenantId: string) => [...base.all(tenantId), "children"] as const,
   months: (tenantId: string, studentId: string) =>
-    [...base.all(tenantId), 'available-months', studentId] as const,
+    [...base.all(tenantId), "available-months", studentId] as const,
   monthly: (tenantId: string, studentId: string, month: number, year: number) =>
-    [...base.all(tenantId), 'monthly', studentId, year, month] as const,
-}
+    [...base.all(tenantId), "monthly", studentId, year, month] as const,
+};
 
 // ── Skeleton ────────────────────────────────────────────────────
 
@@ -43,7 +43,7 @@ function ReportSkeleton() {
       <div className="h-32 bg-slate-200 dark:bg-slate-700 rounded-2xl" />
       <div className="h-28 bg-slate-200 dark:bg-slate-700 rounded-2xl" />
     </div>
-  )
+  );
 }
 
 // ── Empty State ─────────────────────────────────────────────────
@@ -59,11 +59,12 @@ function EmptyState() {
           Belum ada data untuk bulan ini
         </h2>
         <p className="text-sm text-slate-500 dark:text-slate-400 max-w-xs mx-auto leading-relaxed">
-          Data aktivitas belajar untuk bulan ini belum tersedia. Coba pilih bulan lain.
+          Data aktivitas belajar untuk bulan ini belum tersedia. Coba pilih
+          bulan lain.
         </p>
       </div>
     </div>
-  )
+  );
 }
 
 // ── Error State ─────────────────────────────────────────────────
@@ -85,7 +86,7 @@ function ErrorState({ onRetry }: { onRetry: () => void }) {
         Coba Lagi
       </button>
     </div>
-  )
+  );
 }
 
 // ── Section Card ────────────────────────────────────────────────
@@ -95,9 +96,9 @@ function SectionCard({
   title,
   children,
 }: {
-  icon: string
-  title: string
-  children: React.ReactNode
+  icon: string;
+  title: string;
+  children: React.ReactNode;
 }) {
   return (
     <div
@@ -120,18 +121,19 @@ function SectionCard({
       </div>
       <div className="p-4">{children}</div>
     </div>
-  )
+  );
 }
 
 // ── Attendance Bar ───────────────────────────────────────────────
 
 function AttendanceBar({ rate }: { rate: number }) {
-  const color = rate >= 85 ? 'bg-green-500' : rate >= 70 ? 'bg-yellow-500' : 'bg-red-500'
+  const color =
+    rate >= 85 ? "bg-green-500" : rate >= 70 ? "bg-yellow-500" : "bg-red-500";
 
   return (
     <div className="w-full h-3 rounded-full bg-slate-200 dark:bg-slate-700 overflow-hidden">
       <div
-        className={cn('h-full rounded-full transition-all duration-500', color)}
+        className={cn("h-full rounded-full transition-all duration-500", color)}
         style={{ width: `${Math.min(100, rate)}%` }}
         role="progressbar"
         aria-valuenow={rate}
@@ -139,7 +141,7 @@ function AttendanceBar({ rate }: { rate: number }) {
         aria-valuemax={100}
       />
     </div>
-  )
+  );
 }
 
 // ── Score Badge ─────────────────────────────────────────────────
@@ -147,41 +149,41 @@ function AttendanceBar({ rate }: { rate: number }) {
 function ScoreBadge({ score }: { score: number }) {
   const color =
     score >= 80
-      ? 'bg-green-100 dark:bg-green-950/40 text-green-700 dark:text-green-300'
+      ? "bg-green-100 dark:bg-green-950/40 text-green-700 dark:text-green-300"
       : score >= 70
-        ? 'bg-yellow-100 dark:bg-yellow-950/40 text-yellow-700 dark:text-yellow-300'
-        : 'bg-red-100 dark:bg-red-950/40 text-red-700 dark:text-red-300'
+        ? "bg-yellow-100 dark:bg-yellow-950/40 text-yellow-700 dark:text-yellow-300"
+        : "bg-red-100 dark:bg-red-950/40 text-red-700 dark:text-red-300";
 
   return (
     <span
       className={cn(
-        'inline-flex items-center justify-center min-w-[3rem] px-2 py-0.5',
-        'text-xs font-bold rounded-lg',
-        color
+        "inline-flex items-center justify-center min-w-[3rem] px-2 py-0.5",
+        "text-xs font-bold rounded-lg",
+        color,
       )}
     >
       {score}
     </span>
-  )
+  );
 }
 
 // ── Achievement Icon ────────────────────────────────────────────
 
-function achievementIcon(type: 'badge' | 'level_up' | 'streak'): string {
-  if (type === 'badge') return '🥇'
-  if (type === 'level_up') return '⬆️'
-  return '🔥'
+function achievementIcon(type: "badge" | "level_up" | "streak"): string {
+  if (type === "badge") return "🥇";
+  if (type === "level_up") return "⬆️";
+  return "🔥";
 }
 
 // ── Study Time Formatter ─────────────────────────────────────────
 
 function formatStudyTime(minutes: number): string {
-  if (minutes === 0) return '0 menit'
-  const h = Math.floor(minutes / 60)
-  const m = minutes % 60
-  if (h === 0) return `${m} menit`
-  if (m === 0) return `${h} jam`
-  return `${h}j ${m}m`
+  if (minutes === 0) return "0 menit";
+  const h = Math.floor(minutes / 60);
+  const m = minutes % 60;
+  if (h === 0) return `${m} menit`;
+  if (m === 0) return `${h} jam`;
+  return `${h}j ${m}m`;
 }
 
 // ── Report Content ───────────────────────────────────────────────
@@ -210,14 +212,18 @@ function ReportContent({ report }: { report: ParentMonthlyReport }) {
                 decoding="async"
               />
             ) : (
-              '👤'
+              "👤"
             )}
           </div>
           {/* Name + Class */}
           <div>
-            <p className="font-bold text-base leading-tight">{report.student.name}</p>
+            <p className="font-bold text-base leading-tight">
+              {report.student.name}
+            </p>
             <p className="text-blue-100 text-sm">{report.student.class}</p>
-            <p className="text-blue-200 text-xs mt-0.5">{report.period.month_name}</p>
+            <p className="text-blue-200 text-xs mt-0.5">
+              {report.period.month_name}
+            </p>
           </div>
         </div>
       </div>
@@ -231,15 +237,15 @@ function ReportContent({ report }: { report: ParentMonthlyReport }) {
           </span>
           <span
             className={cn(
-              'text-lg font-bold',
+              "text-lg font-bold",
               report.academic.overall_avg >= 80
-                ? 'text-green-600 dark:text-green-400'
+                ? "text-green-600 dark:text-green-400"
                 : report.academic.overall_avg >= 70
-                  ? 'text-yellow-600 dark:text-yellow-400'
-                  : 'text-red-600 dark:text-red-400'
+                  ? "text-yellow-600 dark:text-yellow-400"
+                  : "text-red-600 dark:text-red-400",
             )}
           >
-            {report.academic.overall_avg || '—'}
+            {report.academic.overall_avg || "—"}
           </span>
         </div>
 
@@ -250,14 +256,18 @@ function ReportContent({ report }: { report: ParentMonthlyReport }) {
         ) : (
           <div className="space-y-2">
             {report.academic.subjects.map((subject) => (
-              <div key={subject.name} className="flex items-center justify-between gap-2 py-1">
+              <div
+                key={subject.name}
+                className="flex items-center justify-between gap-2 py-1"
+              >
                 <div className="flex-1 min-w-0">
                   <p className="text-sm font-medium text-slate-700 dark:text-slate-300 truncate">
                     {subject.name}
                   </p>
                   <p className="text-xs text-slate-400 dark:text-slate-500">
                     {subject.assignments_completed} tugas
-                    {subject.quizzes_taken > 0 && ` · ${subject.quizzes_taken} kuis`}
+                    {subject.quizzes_taken > 0 &&
+                      ` · ${subject.quizzes_taken} kuis`}
                   </p>
                 </div>
                 <ScoreBadge score={subject.avg_score} />
@@ -273,18 +283,22 @@ function ReportContent({ report }: { report: ParentMonthlyReport }) {
           {/* Progress bar */}
           <div>
             <div className="flex justify-between items-center mb-1.5">
-              <span className="text-xs text-slate-500 dark:text-slate-400">Tingkat Kehadiran</span>
+              <span className="text-xs text-slate-500 dark:text-slate-400">
+                Tingkat Kehadiran
+              </span>
               <span
                 className={cn(
-                  'text-sm font-bold',
+                  "text-sm font-bold",
                   report.attendance.attendance_rate >= 85
-                    ? 'text-green-600 dark:text-green-400'
+                    ? "text-green-600 dark:text-green-400"
                     : report.attendance.attendance_rate >= 70
-                      ? 'text-yellow-600 dark:text-yellow-400'
-                      : 'text-red-600 dark:text-red-400'
+                      ? "text-yellow-600 dark:text-yellow-400"
+                      : "text-red-600 dark:text-red-400",
                 )}
               >
-                {report.attendance.total_days > 0 ? `${report.attendance.attendance_rate}%` : '—'}
+                {report.attendance.total_days > 0
+                  ? `${report.attendance.attendance_rate}%`
+                  : "—"}
               </span>
             </div>
             <AttendanceBar rate={report.attendance.attendance_rate} />
@@ -294,29 +308,31 @@ function ReportContent({ report }: { report: ParentMonthlyReport }) {
           <div className="grid grid-cols-4 gap-2">
             {[
               {
-                label: 'Hadir',
+                label: "Hadir",
                 value: report.attendance.present,
-                color: 'text-green-600 dark:text-green-400',
+                color: "text-green-600 dark:text-green-400",
               },
               {
-                label: 'Sakit',
+                label: "Sakit",
                 value: report.attendance.sick,
-                color: 'text-yellow-600 dark:text-yellow-400',
+                color: "text-yellow-600 dark:text-yellow-400",
               },
               {
-                label: 'Izin',
+                label: "Izin",
                 value: report.attendance.excused,
-                color: 'text-blue-600 dark:text-blue-400',
+                color: "text-blue-600 dark:text-blue-400",
               },
               {
-                label: 'Alpha',
+                label: "Alpha",
                 value: report.attendance.absent,
-                color: 'text-red-600 dark:text-red-400',
+                color: "text-red-600 dark:text-red-400",
               },
             ].map(({ label, value, color }) => (
               <div key={label} className="text-center">
-                <p className={cn('text-lg font-bold', color)}>{value}</p>
-                <p className="text-xs text-slate-500 dark:text-slate-400">{label}</p>
+                <p className={cn("text-lg font-bold", color)}>{value}</p>
+                <p className="text-xs text-slate-500 dark:text-slate-400">
+                  {label}
+                </p>
               </div>
             ))}
           </div>
@@ -337,7 +353,9 @@ function ReportContent({ report }: { report: ParentMonthlyReport }) {
               <span className="text-base" aria-hidden="true">
                 ✅
               </span>
-              <span className="text-sm text-slate-700 dark:text-slate-300">Pelajaran Selesai</span>
+              <span className="text-sm text-slate-700 dark:text-slate-300">
+                Pelajaran Selesai
+              </span>
             </div>
             <span className="text-sm font-bold text-slate-800 dark:text-slate-100">
               {report.learning.lessons_completed}
@@ -363,7 +381,9 @@ function ReportContent({ report }: { report: ParentMonthlyReport }) {
               <span className="text-base" aria-hidden="true">
                 🤖
               </span>
-              <span className="text-sm text-slate-700 dark:text-slate-300">Sesi AI Tutor</span>
+              <span className="text-sm text-slate-700 dark:text-slate-300">
+                Sesi AI Tutor
+              </span>
             </div>
             <span className="text-sm font-bold text-slate-800 dark:text-slate-100">
               {report.learning.ai_tutor_sessions}
@@ -380,7 +400,10 @@ function ReportContent({ report }: { report: ParentMonthlyReport }) {
               <div key={idx} className="flex items-center gap-3">
                 <span className="text-lg flex-shrink-0" aria-hidden="true">
                   {achievementIcon(
-                    (achievement.type ?? 'badge') as 'badge' | 'level_up' | 'streak'
+                    (achievement.type ?? "badge") as
+                      | "badge"
+                      | "level_up"
+                      | "streak",
                   )}
                 </span>
                 <div>
@@ -389,8 +412,8 @@ function ReportContent({ report }: { report: ParentMonthlyReport }) {
                   </p>
                   <p className="text-xs text-slate-400 dark:text-slate-500">
                     {formatDate(achievement.earned_at, {
-                      day: 'numeric',
-                      month: 'long',
+                      day: "numeric",
+                      month: "long",
                     })}
                   </p>
                 </div>
@@ -412,108 +435,133 @@ function ReportContent({ report }: { report: ParentMonthlyReport }) {
       {/* Print footer */}
       <div className="hidden print:block mt-6 pt-4 border-t border-slate-300 text-center">
         <p className="text-xs text-slate-400">
-          Laporan dibuat melalui EduSync LMS &bull;{' '}
+          Laporan dibuat melalui EduSync LMS &bull;{" "}
           {formatDate(new Date(), {
-            day: 'numeric',
-            month: 'long',
-            year: 'numeric',
+            day: "numeric",
+            month: "long",
+            year: "numeric",
           })}
         </p>
       </div>
     </div>
-  )
+  );
 }
 
 // ── Main Component ───────────────────────────────────────────────
 
 export function MonthlyReportPage() {
-  const { tenantId } = useAuth()
-  const params = useParams<{ studentId?: string; year?: string; month?: string }>()
+  const { tenantId } = useAuth();
+  const params = useParams<{
+    studentId?: string;
+    year?: string;
+    month?: string;
+  }>();
 
-  const now = new Date()
-  const [selectedStudentId, setSelectedStudentId] = useState<string>(params.studentId ?? '')
+  const now = new Date();
+  const [selectedStudentId, setSelectedStudentId] = useState<string>(
+    params.studentId ?? "",
+  );
   const [selectedYear, setSelectedYear] = useState<number>(
-    params.year ? parseInt(params.year, 10) : now.getFullYear()
-  )
+    params.year ? parseInt(params.year, 10) : now.getFullYear(),
+  );
   const [selectedMonth, setSelectedMonth] = useState<number>(
-    params.month ? parseInt(params.month, 10) : now.getMonth() + 1
-  )
-  const [shareStatus, setShareStatus] = useState<'idle' | 'copying' | 'done'>('idle')
+    params.month ? parseInt(params.month, 10) : now.getMonth() + 1,
+  );
+  const [shareStatus, setShareStatus] = useState<"idle" | "copying" | "done">(
+    "idle",
+  );
 
   // Fetch children list
   const childrenQuery = useQuery({
-    queryKey: reportKeys.children(tenantId ?? ''),
+    queryKey: reportKeys.children(tenantId ?? ""),
     queryFn: () => getMyChildren(),
     enabled: !!tenantId,
     staleTime: STALE.MODERATE,
-  })
+  });
 
-  const children = childrenQuery.data ?? []
+  const children = childrenQuery.data ?? [];
 
   // Auto-select first child if none selected
   const effectiveStudentId =
-    selectedStudentId || (children.length > 0 ? children[0].student_id : '')
+    selectedStudentId || (children.length > 0 ? children[0].student_id : "");
 
   // Fetch available months
   const monthsQuery = useQuery({
-    queryKey: reportKeys.months(tenantId ?? '', effectiveStudentId),
+    queryKey: reportKeys.months(tenantId ?? "", effectiveStudentId),
     queryFn: () => getAvailableReportMonths(effectiveStudentId, tenantId!),
     enabled: !!tenantId && !!effectiveStudentId,
     staleTime: STALE.MODERATE,
-  })
+  });
 
-  const availableMonths = monthsQuery.data ?? []
+  const availableMonths = monthsQuery.data ?? [];
 
   // Ensure selected month is valid once months loaded
   const effectiveMonth =
     availableMonths.length > 0 &&
-    !availableMonths.find((m) => m.month === selectedMonth && m.year === selectedYear)
+    !availableMonths.find(
+      (m) => m.month === selectedMonth && m.year === selectedYear,
+    )
       ? (availableMonths[0]?.month ?? selectedMonth)
-      : selectedMonth
+      : selectedMonth;
 
   const effectiveYear =
     availableMonths.length > 0 &&
-    !availableMonths.find((m) => m.month === selectedMonth && m.year === selectedYear)
+    !availableMonths.find(
+      (m) => m.month === selectedMonth && m.year === selectedYear,
+    )
       ? (availableMonths[0]?.year ?? selectedYear)
-      : selectedYear
+      : selectedYear;
 
   // Fetch report
   const reportQuery = useQuery({
-    queryKey: reportKeys.monthly(tenantId ?? '', effectiveStudentId, effectiveMonth, effectiveYear),
-    queryFn: () => getMonthlyReport(effectiveStudentId, effectiveMonth, effectiveYear, tenantId!),
+    queryKey: reportKeys.monthly(
+      tenantId ?? "",
+      effectiveStudentId,
+      effectiveMonth,
+      effectiveYear,
+    ),
+    queryFn: () =>
+      getMonthlyReport(
+        effectiveStudentId,
+        effectiveMonth,
+        effectiveYear,
+        tenantId!,
+      ),
     enabled: !!tenantId && !!effectiveStudentId,
     staleTime: STALE.MODERATE,
     retry: 1,
-  })
+  });
 
-  const selectedChild = children.find((c) => c.student_id === effectiveStudentId)
+  const selectedChild = children.find(
+    (c) => c.student_id === effectiveStudentId,
+  );
 
   // ── Handlers ──
   const handlePrint = () => {
-    printReport()
-  }
+    printReport();
+  };
 
   const handleShare = async () => {
-    if (!selectedChild) return
+    if (!selectedChild) return;
     const monthData = availableMonths.find(
-      (m) => m.month === effectiveMonth && m.year === effectiveYear
-    )
-    const monthName = monthData?.label ?? `${effectiveMonth}/${effectiveYear}`
-    setShareStatus('copying')
-    const success = await shareReport(selectedChild.student_name, monthName)
+      (m) => m.month === effectiveMonth && m.year === effectiveYear,
+    );
+    const monthName = monthData?.label ?? `${effectiveMonth}/${effectiveYear}`;
+    setShareStatus("copying");
+    const success = await shareReport(selectedChild.student_name, monthName);
     if (success) {
-      setShareStatus('done')
-      setTimeout(() => setShareStatus('idle'), 2000)
+      setShareStatus("done");
+      setTimeout(() => setShareStatus("idle"), 2000);
     } else {
-      setShareStatus('idle')
+      setShareStatus("idle");
     }
-  }
+  };
 
   const handleMonthChange = (value: string) => {
-    const [yearStr, monthStr] = value.split('-')
-    setSelectedYear(parseInt(yearStr, 10))
-    setSelectedMonth(parseInt(monthStr, 10))
-  }
+    const [yearStr, monthStr] = value.split("-");
+    setSelectedYear(parseInt(yearStr, 10));
+    setSelectedMonth(parseInt(monthStr, 10));
+  };
 
   // ── Loading children ──
   if (childrenQuery.isLoading) {
@@ -522,7 +570,7 @@ export function MonthlyReportPage() {
         <div className="h-8 w-48 bg-slate-200 dark:bg-slate-700 rounded animate-pulse" />
         <ReportSkeleton />
       </div>
-    )
+    );
   }
 
   if (!childrenQuery.isLoading && children.length === 0) {
@@ -534,11 +582,14 @@ export function MonthlyReportPage() {
         <p className="text-sm text-slate-500 dark:text-slate-400 max-w-xs mx-auto">
           Tidak ada siswa yang terhubung ke akun Anda.
         </p>
-        <Link to="/app/parent" className="text-sm text-blue-600 dark:text-blue-400 font-medium">
+        <Link
+          to="/app/parent"
+          className="text-sm text-blue-600 dark:text-blue-400 font-medium"
+        >
           ← Kembali ke Beranda
         </Link>
       </div>
-    )
+    );
   }
 
   return (
@@ -611,13 +662,13 @@ export function MonthlyReportPage() {
             onChange={(e) => handleMonthChange(e.target.value)}
             disabled={monthsQuery.isLoading || availableMonths.length === 0}
             className={cn(
-              'flex-1 min-h-[40px] rounded-xl',
-              'bg-white dark:bg-slate-800',
-              'border border-slate-200 dark:border-slate-700',
-              'text-sm text-slate-700 dark:text-slate-300',
-              'px-3',
-              'focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500',
-              'disabled:opacity-50'
+              "flex-1 min-h-[40px] rounded-xl",
+              "bg-white dark:bg-slate-800",
+              "border border-slate-200 dark:border-slate-700",
+              "text-sm text-slate-700 dark:text-slate-300",
+              "px-3",
+              "focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500",
+              "disabled:opacity-50",
             )}
             aria-label="Pilih bulan laporan"
           >
@@ -627,7 +678,10 @@ export function MonthlyReportPage() {
               <option>Tidak ada data</option>
             ) : (
               availableMonths.map((m) => (
-                <option key={`${m.year}-${m.month}`} value={`${m.year}-${m.month}`}>
+                <option
+                  key={`${m.year}-${m.month}`}
+                  value={`${m.year}-${m.month}`}
+                >
                   {m.label}
                 </option>
               ))
@@ -656,28 +710,30 @@ export function MonthlyReportPage() {
         {!reportQuery.isLoading && !reportQuery.error && reportQuery.data && (
           <button
             onClick={handleShare}
-            disabled={shareStatus === 'copying'}
+            disabled={shareStatus === "copying"}
             className={cn(
-              'w-full min-h-[44px] rounded-xl text-sm font-medium transition-colors',
-              'flex items-center justify-center gap-2',
-              'focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500',
-              'print:hidden',
-              shareStatus === 'done'
-                ? 'bg-green-50 dark:bg-green-950/30 border border-green-200 dark:border-green-800/40 text-green-700 dark:text-green-300'
-                : 'bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-400 active:bg-slate-100 dark:active:bg-slate-700'
+              "w-full min-h-[44px] rounded-xl text-sm font-medium transition-colors",
+              "flex items-center justify-center gap-2",
+              "focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500",
+              "print:hidden",
+              shareStatus === "done"
+                ? "bg-green-50 dark:bg-green-950/30 border border-green-200 dark:border-green-800/40 text-green-700 dark:text-green-300"
+                : "bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-400 active:bg-slate-100 dark:active:bg-slate-700",
             )}
-            aria-label={canNativeShare() ? 'Bagikan laporan' : 'Salin tautan laporan'}
+            aria-label={
+              canNativeShare() ? "Bagikan laporan" : "Salin tautan laporan"
+            }
           >
             <span aria-hidden="true">
-              {shareStatus === 'done' ? '✅' : canNativeShare() ? '📤' : '📋'}
+              {shareStatus === "done" ? "✅" : canNativeShare() ? "📤" : "📋"}
             </span>
-            {shareStatus === 'done'
-              ? 'Berhasil disalin!'
-              : shareStatus === 'copying'
-                ? 'Menyalin...'
+            {shareStatus === "done"
+              ? "Berhasil disalin!"
+              : shareStatus === "copying"
+                ? "Menyalin..."
                 : canNativeShare()
-                  ? 'Bagikan ke WhatsApp / lainnya'
-                  : 'Salin tautan laporan'}
+                  ? "Bagikan ke WhatsApp / lainnya"
+                  : "Salin tautan laporan"}
           </button>
         )}
 
@@ -702,5 +758,5 @@ export function MonthlyReportPage() {
         )}
       </div>
     </>
-  )
+  );
 }

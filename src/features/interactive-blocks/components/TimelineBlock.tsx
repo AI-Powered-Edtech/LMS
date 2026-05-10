@@ -1,81 +1,84 @@
-import { Calendar, CheckCircle, ChevronDown, ChevronUp } from 'lucide-react'
-import { motion } from 'motion/react'
-import { useEffect, useRef, useState } from 'react'
+import { Calendar, CheckCircle, ChevronDown, ChevronUp } from "lucide-react";
+import { motion } from "motion/react";
+import { useEffect, useRef, useState } from "react";
 
-import { useInteractiveProgress } from '../hooks/useInteractiveProgress'
-import type { TimelineData, TimelineEvent } from '../types'
+import { useInteractiveProgress } from "../hooks/useInteractiveProgress";
+import type { TimelineData, TimelineEvent } from "../types";
 
 interface TimelineBlockProps {
-  data: TimelineData
-  blockId: string
-  lessonId: string
+  data: TimelineData;
+  blockId: string;
+  lessonId: string;
 }
 
 export function TimelineBlock({ data, blockId, lessonId }: TimelineBlockProps) {
-  const { progress, markComplete, isCompleted } = useInteractiveProgress(blockId, lessonId)
-  const [visibleIds, setVisibleIds] = useState<Set<string>>(new Set())
-  const [expandedIds, setExpandedIds] = useState<Set<string>>(new Set())
-  const observerRef = useRef<IntersectionObserver | null>(null)
-  const itemRefs = useRef<Map<string, HTMLDivElement>>(new Map())
+  const { progress, markComplete, isCompleted } = useInteractiveProgress(
+    blockId,
+    lessonId,
+  );
+  const [visibleIds, setVisibleIds] = useState<Set<string>>(new Set());
+  const [expandedIds, setExpandedIds] = useState<Set<string>>(new Set());
+  const observerRef = useRef<IntersectionObserver | null>(null);
+  const itemRefs = useRef<Map<string, HTMLDivElement>>(new Map());
 
   useEffect(() => {
     if (progress?.is_completed) {
-      const allIds = new Set((data?.events ?? []).map((e) => e.id))
-      setVisibleIds(allIds)
+      const allIds = new Set((data?.events ?? []).map((e) => e.id));
+      setVisibleIds(allIds);
     }
-  }, [progress, data?.events])
+  }, [progress, data?.events]);
 
   useEffect(() => {
-    const events = data?.events ?? []
-    if (!events.length) return
+    const events = data?.events ?? [];
+    if (!events.length) return;
 
     observerRef.current = new IntersectionObserver(
       (entries) => {
         setVisibleIds((prev) => {
-          const next = new Set(prev)
-          let changed = false
+          const next = new Set(prev);
+          let changed = false;
           entries.forEach((entry) => {
             if (entry.isIntersecting) {
-              const id = entry.target.getAttribute('data-event-id')
+              const id = entry.target.getAttribute("data-event-id");
               if (id && !next.has(id)) {
-                next.add(id)
-                changed = true
+                next.add(id);
+                changed = true;
               }
             }
-          })
+          });
           if (changed && next.size === events.length && !isCompleted) {
-            markComplete({ viewedAll: true }, 100)
+            markComplete({ viewedAll: true }, 100);
           }
-          return changed ? next : prev
-        })
+          return changed ? next : prev;
+        });
       },
-      { threshold: 0.4 }
-    )
+      { threshold: 0.4 },
+    );
 
     itemRefs.current.forEach((el) => {
-      if (el) observerRef.current?.observe(el)
-    })
+      if (el) observerRef.current?.observe(el);
+    });
 
-    return () => observerRef.current?.disconnect()
-  }, [data?.events, isCompleted, markComplete])
+    return () => observerRef.current?.disconnect();
+  }, [data?.events, isCompleted, markComplete]);
 
   const toggleExpand = (id: string) => {
     setExpandedIds((prev) => {
-      const next = new Set(prev)
-      if (next.has(id)) next.delete(id)
-      else next.add(id)
-      return next
-    })
-  }
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  };
 
-  const events = [...(data?.events ?? [])].sort((a, b) => a.order - b.order)
+  const events = [...(data?.events ?? [])].sort((a, b) => a.order - b.order);
 
   if (!events.length) {
     return (
       <div className="px-6 py-4 text-sm text-slate-500 dark:text-slate-400 italic">
         Belum ada event yang ditambahkan.
       </div>
-    )
+    );
   }
 
   return (
@@ -107,15 +110,15 @@ export function TimelineBlock({ data, blockId, lessonId }: TimelineBlockProps) {
               isExpanded={expandedIds.has(event.id)}
               onToggle={() => toggleExpand(event.id)}
               onRef={(el) => {
-                if (el) itemRefs.current.set(event.id, el)
-                else itemRefs.current.delete(event.id)
+                if (el) itemRefs.current.set(event.id, el);
+                else itemRefs.current.delete(event.id);
               }}
             />
           ))}
         </div>
       </div>
     </div>
-  )
+  );
 }
 
 function TimelineEventItem({
@@ -126,12 +129,12 @@ function TimelineEventItem({
   onToggle,
   onRef,
 }: {
-  event: TimelineEvent
-  index: number
-  isVisible: boolean
-  isExpanded: boolean
-  onToggle: () => void
-  onRef: (el: HTMLDivElement | null) => void
+  event: TimelineEvent;
+  index: number;
+  isVisible: boolean;
+  isExpanded: boolean;
+  onToggle: () => void;
+  onRef: (el: HTMLDivElement | null) => void;
 }) {
   return (
     <motion.div
@@ -166,14 +169,18 @@ function TimelineEventItem({
             </p>
           </div>
           <span className="text-slate-400 dark:text-slate-500 mt-0.5 flex-shrink-0">
-            {isExpanded ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
+            {isExpanded ? (
+              <ChevronUp className="w-4 h-4" />
+            ) : (
+              <ChevronDown className="w-4 h-4" />
+            )}
           </span>
         </button>
 
         {isExpanded && (
           <motion.div
             initial={{ height: 0, opacity: 0 }}
-            animate={{ height: 'auto', opacity: 1 }}
+            animate={{ height: "auto", opacity: 1 }}
             exit={{ height: 0, opacity: 0 }}
             transition={{ duration: 0.25 }}
             className="px-4 pb-4 space-y-2"
@@ -194,5 +201,5 @@ function TimelineEventItem({
         )}
       </div>
     </motion.div>
-  )
+  );
 }

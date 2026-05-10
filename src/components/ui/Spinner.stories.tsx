@@ -1,37 +1,37 @@
-import type { Meta, StoryObj } from '@storybook/react'
+import type { Meta, StoryObj } from "@storybook/react";
 
-import { Spinner } from './Spinner'
+import { Spinner } from "./Spinner";
 
 const meta: Meta<typeof Spinner> = {
-  title: 'UI/Spinner',
+  title: "UI/Spinner",
   component: Spinner,
-  tags: ['autodocs'],
+  tags: ["autodocs"],
   argTypes: {
     size: {
-      control: 'select',
-      options: ['sm', 'md', 'lg'],
+      control: "select",
+      options: ["sm", "md", "lg"],
     },
   },
-}
+};
 
-export default meta
-type Story = StoryObj<typeof Spinner>
+export default meta;
+type Story = StoryObj<typeof Spinner>;
 
 export const Default: Story = {
   args: {},
-}
+};
 
 export const Small: Story = {
-  args: { size: 'sm' },
-}
+  args: { size: "sm" },
+};
 
 export const Medium: Story = {
-  args: { size: 'md' },
-}
+  args: { size: "md" },
+};
 
 export const Large: Story = {
-  args: { size: 'lg' },
-}
+  args: { size: "lg" },
+};
 
 export const AllSizes: Story = {
   render: () => (
@@ -50,10 +50,10 @@ export const AllSizes: Story = {
       </div>
     </div>
   ),
-}
+};
 
 export const CustomColor: Story = {
   args: {
-    className: 'text-emerald-500',
+    className: "text-emerald-500",
   },
-}
+};

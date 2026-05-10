@@ -1,7 +1,7 @@
 // EduSync LMS — iCalendar Export Utility
 // RFC 5545 compliant — dapat diimport ke Google Calendar, Apple Calendar, Outlook.
 
-import type { CalendarEvent } from '@/features/calendar/api/calendarService'
+import type { CalendarEvent } from "@/features/calendar/api/calendarService";
 
 /**
  * Menghasilkan string iCalendar (.ics) dari array CalendarEvent.
@@ -11,39 +11,42 @@ import type { CalendarEvent } from '@/features/calendar/api/calendarService'
  * @param calendarName - Nama kalender (default: 'EduSync')
  * @returns String iCalendar yang valid sesuai RFC 5545
  */
-export function generateICal(events: CalendarEvent[], calendarName = 'EduSync'): string {
+export function generateICal(
+  events: CalendarEvent[],
+  calendarName = "EduSync",
+): string {
   const lines: string[] = [
-    'BEGIN:VCALENDAR',
-    'VERSION:2.0',
-    'PRODID:-//EduSync LMS//ID',
+    "BEGIN:VCALENDAR",
+    "VERSION:2.0",
+    "PRODID:-//EduSync LMS//ID",
     `X-WR-CALNAME:${escapeICalText(calendarName)}`,
-    'CALSCALE:GREGORIAN',
-    'METHOD:PUBLISH',
-  ]
+    "CALSCALE:GREGORIAN",
+    "METHOD:PUBLISH",
+  ];
 
   for (const event of events) {
-    const dtStart = toICalDate(event.date, event.time)
+    const dtStart = toICalDate(event.date, event.time);
     const dtEnd = event.endDate
       ? toICalDate(event.endDate, event.endTime ?? event.time)
-      : toICalDate(event.date, event.time, event.duration ?? 60)
+      : toICalDate(event.date, event.time, event.duration ?? 60);
 
     lines.push(
-      'BEGIN:VEVENT',
+      "BEGIN:VEVENT",
       `UID:edusync-${event.id}@edusync.dev`,
       `DTSTAMP:${toICalDate(new Date())}`,
       `DTSTART:${dtStart}`,
       `DTEND:${dtEnd}`,
       `SUMMARY:${escapeICalText(event.title)}`,
-      `DESCRIPTION:${escapeICalText(event.description || '')}`,
-      `LOCATION:${escapeICalText(event.location || '')}`,
+      `DESCRIPTION:${escapeICalText(event.description || "")}`,
+      `LOCATION:${escapeICalText(event.location || "")}`,
       `CATEGORIES:${event.type.toUpperCase()}`,
-      'END:VEVENT'
-    )
+      "END:VEVENT",
+    );
   }
 
-  lines.push('END:VCALENDAR')
+  lines.push("END:VCALENDAR");
   // RFC 5545 §3.1: baris dipisahkan oleh CRLF
-  return lines.join('\r\n')
+  return lines.join("\r\n");
 }
 
 /**
@@ -57,30 +60,30 @@ export function generateICal(events: CalendarEvent[], calendarName = 'EduSync'):
  */
 function toICalDate(date: Date, time?: string, addMinutes = 0): string {
   // Buat Date baru untuk menghindari mutasi
-  let d = new Date(date)
+  let d = new Date(date);
 
   if (time) {
     // Parse "HH:mm" dan set jam/menit ke objek date sebagai UTC
-    const parts = time.split(':')
-    const hours = parseInt(parts[0] ?? '0', 10)
-    const minutes = parseInt(parts[1] ?? '0', 10)
-    d.setUTCHours(hours, minutes, 0, 0)
+    const parts = time.split(":");
+    const hours = parseInt(parts[0] ?? "0", 10);
+    const minutes = parseInt(parts[1] ?? "0", 10);
+    d.setUTCHours(hours, minutes, 0, 0);
   }
 
   if (addMinutes > 0) {
-    d = new Date(d.getTime() + addMinutes * 60 * 1000)
+    d = new Date(d.getTime() + addMinutes * 60 * 1000);
   }
 
   // Format ke UTC: YYYYMMDDTHHmmssZ
-  const pad = (n: number) => String(n).padStart(2, '0')
-  const year = d.getUTCFullYear()
-  const month = pad(d.getUTCMonth() + 1)
-  const day = pad(d.getUTCDate())
-  const hours = pad(d.getUTCHours())
-  const mins = pad(d.getUTCMinutes())
-  const secs = pad(d.getUTCSeconds())
+  const pad = (n: number) => String(n).padStart(2, "0");
+  const year = d.getUTCFullYear();
+  const month = pad(d.getUTCMonth() + 1);
+  const day = pad(d.getUTCDate());
+  const hours = pad(d.getUTCHours());
+  const mins = pad(d.getUTCMinutes());
+  const secs = pad(d.getUTCSeconds());
 
-  return `${year}${month}${day}T${hours}${mins}${secs}Z`
+  return `${year}${month}${day}T${hours}${mins}${secs}Z`;
 }
 
 /**
@@ -94,13 +97,13 @@ function escapeICalText(text: string): string {
   return (
     text
       // Backslash harus di-escape pertama kali
-      .replace(/\\/g, '\\\\')
+      .replace(/\\/g, "\\\\")
       // Koma dan titik koma perlu di-escape
-      .replace(/,/g, '\\,')
-      .replace(/;/g, '\\;')
+      .replace(/,/g, "\\,")
+      .replace(/;/g, "\\;")
       // Newline di-escape sebagai \n (literal dua karakter)
-      .replace(/\r\n|\r|\n/g, '\\n')
-  )
+      .replace(/\r\n|\r|\n/g, "\\n")
+  );
 }
 
 /**
@@ -110,16 +113,19 @@ function escapeICalText(text: string): string {
  * @param events - Daftar event kalender yang akan diekspor
  * @param filename - Nama file yang akan didownload (default: 'edusync-calendar.ics')
  */
-export function downloadICal(events: CalendarEvent[], filename = 'edusync-calendar.ics'): void {
-  const content = generateICal(events)
-  const blob = new Blob([content], { type: 'text/calendar;charset=utf-8' })
-  const url = URL.createObjectURL(blob)
-  const a = document.createElement('a')
-  a.href = url
-  a.download = filename
-  document.body.appendChild(a)
-  a.click()
-  document.body.removeChild(a)
+export function downloadICal(
+  events: CalendarEvent[],
+  filename = "edusync-calendar.ics",
+): void {
+  const content = generateICal(events);
+  const blob = new Blob([content], { type: "text/calendar;charset=utf-8" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = filename;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
   // Bebaskan object URL setelah download selesai
-  setTimeout(() => URL.revokeObjectURL(url), 5000)
+  setTimeout(() => URL.revokeObjectURL(url), 5000);
 }

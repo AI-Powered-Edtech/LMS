@@ -1,36 +1,40 @@
-import { Loader2, X } from 'lucide-react'
-import { useState } from 'react'
+import { Loader2, X } from "lucide-react";
+import { useState } from "react";
 
-import { createRegistration } from '../../api/ppdbApi'
+import { createRegistration } from "../../api/ppdbApi";
 
 interface PPDBAddRegModalProps {
-  periodId: string
-  onClose: () => void
-  onSaved: () => void
+  periodId: string;
+  onClose: () => void;
+  onSaved: () => void;
 }
 
-export function PPDBAddRegModal({ periodId, onClose, onSaved }: PPDBAddRegModalProps) {
+export function PPDBAddRegModal({
+  periodId,
+  onClose,
+  onSaved,
+}: PPDBAddRegModalProps) {
   const [form, setForm] = useState({
-    student_name: '',
-    birth_date: '',
-    gender: 'L' as 'L' | 'P',
-    previous_school: '',
-    parent_name: '',
-    parent_phone: '',
-    parent_email: '',
-    address: '',
-  })
-  const [saving, setSaving] = useState(false)
+    student_name: "",
+    birth_date: "",
+    gender: "L" as "L" | "P",
+    previous_school: "",
+    parent_name: "",
+    parent_phone: "",
+    parent_email: "",
+    address: "",
+  });
+  const [saving, setSaving] = useState(false);
 
   async function handleSubmit(e: React.FormEvent) {
-    e.preventDefault()
-    setSaving(true)
+    e.preventDefault();
+    setSaving(true);
     try {
-      await createRegistration(periodId, form)
-      onSaved()
-      onClose()
+      await createRegistration(periodId, form);
+      onSaved();
+      onClose();
     } finally {
-      setSaving(false)
+      setSaving(false);
     }
   }
 
@@ -38,7 +42,9 @@ export function PPDBAddRegModal({ periodId, onClose, onSaved }: PPDBAddRegModalP
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
       <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-xl border border-slate-200 dark:border-slate-700 w-full max-w-lg max-h-[90vh] overflow-y-auto">
         <div className="sticky top-0 bg-white dark:bg-slate-800 px-6 py-4 border-b border-slate-200 dark:border-slate-700 flex items-center justify-between">
-          <h2 className="text-lg font-bold text-slate-900 dark:text-slate-100">Tambah Pendaftar</h2>
+          <h2 className="text-lg font-bold text-slate-900 dark:text-slate-100">
+            Tambah Pendaftar
+          </h2>
           <button
             onClick={onClose}
             className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 transition-colors"
@@ -56,7 +62,9 @@ export function PPDBAddRegModal({ periodId, onClose, onSaved }: PPDBAddRegModalP
               <input
                 type="text"
                 value={form.student_name}
-                onChange={(e) => setForm((f) => ({ ...f, student_name: e.target.value }))}
+                onChange={(e) =>
+                  setForm((f) => ({ ...f, student_name: e.target.value }))
+                }
                 required
                 className="w-full px-3 py-2 text-sm bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-600 rounded-xl text-slate-900 dark:text-slate-100 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500/30 focus:border-blue-500"
               />
@@ -68,7 +76,9 @@ export function PPDBAddRegModal({ periodId, onClose, onSaved }: PPDBAddRegModalP
               <input
                 type="date"
                 value={form.birth_date}
-                onChange={(e) => setForm((f) => ({ ...f, birth_date: e.target.value }))}
+                onChange={(e) =>
+                  setForm((f) => ({ ...f, birth_date: e.target.value }))
+                }
                 required
                 className="w-full px-3 py-2 text-sm bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-600 rounded-xl text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-blue-500/30 focus:border-blue-500"
               />
@@ -79,7 +89,12 @@ export function PPDBAddRegModal({ periodId, onClose, onSaved }: PPDBAddRegModalP
               </label>
               <select
                 value={form.gender}
-                onChange={(e) => setForm((f) => ({ ...f, gender: e.target.value as 'L' | 'P' }))}
+                onChange={(e) =>
+                  setForm((f) => ({
+                    ...f,
+                    gender: e.target.value as "L" | "P",
+                  }))
+                }
                 className="w-full px-3 py-2 text-sm bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-600 rounded-xl text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-blue-500/30 focus:border-blue-500"
               >
                 <option value="L">Laki-laki</option>
@@ -93,7 +108,9 @@ export function PPDBAddRegModal({ periodId, onClose, onSaved }: PPDBAddRegModalP
               <input
                 type="text"
                 value={form.previous_school}
-                onChange={(e) => setForm((f) => ({ ...f, previous_school: e.target.value }))}
+                onChange={(e) =>
+                  setForm((f) => ({ ...f, previous_school: e.target.value }))
+                }
                 className="w-full px-3 py-2 text-sm bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-600 rounded-xl text-slate-900 dark:text-slate-100 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500/30 focus:border-blue-500"
               />
             </div>
@@ -111,7 +128,9 @@ export function PPDBAddRegModal({ periodId, onClose, onSaved }: PPDBAddRegModalP
                 <input
                   type="text"
                   value={form.parent_name}
-                  onChange={(e) => setForm((f) => ({ ...f, parent_name: e.target.value }))}
+                  onChange={(e) =>
+                    setForm((f) => ({ ...f, parent_name: e.target.value }))
+                  }
                   required
                   className="w-full px-3 py-2 text-sm bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-600 rounded-xl text-slate-900 dark:text-slate-100 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500/30 focus:border-blue-500"
                 />
@@ -123,7 +142,9 @@ export function PPDBAddRegModal({ periodId, onClose, onSaved }: PPDBAddRegModalP
                 <input
                   type="tel"
                   value={form.parent_phone}
-                  onChange={(e) => setForm((f) => ({ ...f, parent_phone: e.target.value }))}
+                  onChange={(e) =>
+                    setForm((f) => ({ ...f, parent_phone: e.target.value }))
+                  }
                   required
                   className="w-full px-3 py-2 text-sm bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-600 rounded-xl text-slate-900 dark:text-slate-100 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500/30 focus:border-blue-500"
                 />
@@ -135,7 +156,9 @@ export function PPDBAddRegModal({ periodId, onClose, onSaved }: PPDBAddRegModalP
                 <input
                   type="email"
                   value={form.parent_email}
-                  onChange={(e) => setForm((f) => ({ ...f, parent_email: e.target.value }))}
+                  onChange={(e) =>
+                    setForm((f) => ({ ...f, parent_email: e.target.value }))
+                  }
                   className="w-full px-3 py-2 text-sm bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-600 rounded-xl text-slate-900 dark:text-slate-100 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500/30 focus:border-blue-500"
                 />
               </div>
@@ -145,7 +168,9 @@ export function PPDBAddRegModal({ periodId, onClose, onSaved }: PPDBAddRegModalP
                 </label>
                 <textarea
                   value={form.address}
-                  onChange={(e) => setForm((f) => ({ ...f, address: e.target.value }))}
+                  onChange={(e) =>
+                    setForm((f) => ({ ...f, address: e.target.value }))
+                  }
                   rows={2}
                   className="w-full px-3 py-2 text-sm bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-600 rounded-xl text-slate-900 dark:text-slate-100 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500/30 focus:border-blue-500 resize-none"
                 />
@@ -173,5 +198,5 @@ export function PPDBAddRegModal({ periodId, onClose, onSaved }: PPDBAddRegModalP
         </form>
       </div>
     </div>
-  )
+  );
 }

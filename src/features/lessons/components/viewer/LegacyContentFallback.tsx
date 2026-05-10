@@ -1,20 +1,24 @@
-import { Trophy } from 'lucide-react'
-import { useNavigate } from 'react-router-dom'
+import { Trophy } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 
-import { ArticleViewer, AssignmentViewer, VideoViewer } from '@/components/LessonViewer'
-import { ReviewPrompt } from '@/features/recommendations'
+import {
+  ArticleViewer,
+  AssignmentViewer,
+  VideoViewer,
+} from "@/components/LessonViewer";
+import { ReviewPrompt } from "@/features/recommendations";
 
-import type { Lesson } from '../../index'
+import type { Lesson } from "../../index";
 
 interface LegacyContentFallbackProps {
-  lesson: Lesson
-  status: string
-  lastPosition: number
-  lastQuizScore: number | null
-  lessonId: string | null
-  onProgressUpdate: (percentage: number, position?: number) => void
-  onCompletionMet: () => void
-  onStartViewing: () => void
+  lesson: Lesson;
+  status: string;
+  lastPosition: number;
+  lastQuizScore: number | null;
+  lessonId: string | null;
+  onProgressUpdate: (percentage: number, position?: number) => void;
+  onCompletionMet: () => void;
+  onStartViewing: () => void;
 }
 
 export function LegacyContentFallback({
@@ -27,13 +31,15 @@ export function LegacyContentFallback({
   onCompletionMet,
   onStartViewing,
 }: LegacyContentFallbackProps) {
-  const isCompleted = status === 'completed'
-  const navigate = useNavigate()
+  const isCompleted = status === "completed";
+  const navigate = useNavigate();
 
   // Video Lesson
-  if (lesson.type === 'video') {
-    const videoResource = lesson.lesson_resources?.find((r) => r.type === 'VIDEO')
-    const videoUrl = videoResource?.url || videoResource?.content || ''
+  if (lesson.type === "video") {
+    const videoResource = lesson.lesson_resources?.find(
+      (r) => r.type === "VIDEO",
+    );
+    const videoUrl = videoResource?.url || videoResource?.content || "";
 
     return (
       <VideoViewer
@@ -45,16 +51,17 @@ export function LegacyContentFallback({
         onCompletionMet={onCompletionMet}
         onStartViewing={onStartViewing}
       />
-    )
+    );
   }
 
   // Article Lesson
-  if (lesson.type === 'article') {
+  if (lesson.type === "article") {
     const articleResource = lesson.lesson_resources?.find(
-      (r) => r.type === 'DOCUMENT' || r.type === 'LINK'
-    )
-    const content = articleResource?.content || lesson.content || 'Konten belum tersedia.'
-    const minReadTime = (lesson.duration_minutes || 2) * 60
+      (r) => r.type === "DOCUMENT" || r.type === "LINK",
+    );
+    const content =
+      articleResource?.content || lesson.content || "Konten belum tersedia.";
+    const minReadTime = (lesson.duration_minutes || 2) * 60;
 
     return (
       <ArticleViewer
@@ -65,18 +72,18 @@ export function LegacyContentFallback({
         onCompletionMet={onCompletionMet}
         onStartViewing={onStartViewing}
       />
-    )
+    );
   }
 
   // Quiz Lesson
-  if (lesson.type === 'quiz') {
-    const quiz = lesson.quizzes?.[0]
+  if (lesson.type === "quiz") {
+    const quiz = lesson.quizzes?.[0];
     if (!quiz) {
       return (
         <div className="flex-1 flex items-center justify-center text-slate-500 dark:text-slate-400">
           Kuis belum tersedia untuk pelajaran ini.
         </div>
-      )
+      );
     }
 
     return (
@@ -88,12 +95,13 @@ export function LegacyContentFallback({
           {quiz.title}
         </h3>
         <p className="text-slate-600 dark:text-slate-400 mb-8 max-w-md text-center line-clamp-3">
-          {quiz.instructions || 'Silakan kerjakan kuis ini melalui modul Kuis mandiri.'}
+          {quiz.instructions ||
+            "Silakan kerjakan kuis ini melalui modul Kuis mandiri."}
         </p>
         <button
           onClick={() => {
-            onCompletionMet()
-            void navigate(`/app/student/quizzes?quizId=${quiz.id}`)
+            onCompletionMet();
+            void navigate(`/app/student/quizzes?quizId=${quiz.id}`);
           }}
           className="px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl transition-colors shadow-sm"
         >
@@ -101,22 +109,26 @@ export function LegacyContentFallback({
         </button>
         {isCompleted && lastQuizScore !== null && (
           <div className="mt-8 w-full max-w-md">
-            <ReviewPrompt score={lastQuizScore} lessonId={lessonId ?? ''} quizId={quiz.id} />
+            <ReviewPrompt
+              score={lastQuizScore}
+              lessonId={lessonId ?? ""}
+              quizId={quiz.id}
+            />
           </div>
         )}
       </div>
-    )
+    );
   }
 
   // Assignment Lesson
-  if (lesson.type === 'assignment') {
-    const assignment = lesson.assignments?.[0]
+  if (lesson.type === "assignment") {
+    const assignment = lesson.assignments?.[0];
     if (!assignment) {
       return (
         <div className="flex-1 flex items-center justify-center text-slate-500 dark:text-slate-400">
           Tugas belum tersedia untuk pelajaran ini.
         </div>
-      )
+      );
     }
 
     return (
@@ -132,8 +144,8 @@ export function LegacyContentFallback({
         onCompletionMet={onCompletionMet}
         onStartViewing={onStartViewing}
       />
-    )
+    );
   }
 
-  return null
+  return null;
 }

@@ -153,7 +153,9 @@ export const administrationService = {
           .order("module_id", { ascending: true }),
         db
           .from<any>("modules")
-          .select("id, slug, name, description, is_core, api_enabled_default, created_at"),
+          .select(
+            "id, slug, name, description, is_core, api_enabled_default, created_at",
+          ),
       ]);
       const tenantError = tenantRes.error || modulesRes.error;
       const modulesById = new Map<string, any>(
@@ -515,7 +517,10 @@ export const administrationService = {
     timestamp: string;
     version?: string;
   }> {
-    const { error: dbError } = await db.from<any>("tenants").select("id").limit(1);
+    const { error: dbError } = await db
+      .from<any>("tenants")
+      .select("id")
+      .limit(1);
     const dbOk = !dbError;
 
     const { error: sessionError } = await db.auth.getSession();
@@ -567,7 +572,9 @@ export const administrationService = {
     tenantId: string,
   ): Promise<Array<{ id: string; full_name: string | null; email: string }>> {
     const { data, error } = await db
-      .from<Array<{ id: string; full_name: string | null; email: string | null }>>("profiles")
+      .from<
+        Array<{ id: string; full_name: string | null; email: string | null }>
+      >("profiles")
       .select("id, full_name, email")
       .eq("tenant_id", tenantId)
       .order("full_name", { ascending: true })

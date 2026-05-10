@@ -1,18 +1,18 @@
-import { ReactNode } from 'react'
-import { Navigate, useLocation } from 'react-router-dom'
+import { ReactNode } from "react";
+import { Navigate, useLocation } from "react-router-dom";
 
-import { useAuth } from '../../contexts/AuthContext'
-import { AppLoading } from '../layout/AppLoading'
+import { useAuth } from "../../contexts/AuthContext";
+import { AppLoading } from "../layout/AppLoading";
 
 interface AuthGuardProps {
-  children: ReactNode
+  children: ReactNode;
   /**
    * When true (default), redirects to /verify-email if the user's email
    * has not been confirmed. Set to false only for pages that should be
    * accessible before email confirmation (e.g. the verify-email page itself,
    * or a post-registration "check your inbox" screen).
    */
-  requireEmailVerification?: boolean
+  requireEmailVerification?: boolean;
 }
 
 /**
@@ -32,9 +32,12 @@ interface AuthGuardProps {
  *
  * NOTE: This is the ONLY place email verification is enforced.
  */
-export function AuthGuard({ children, requireEmailVerification = true }: AuthGuardProps) {
-  const { session, user, loading, emailVerified } = useAuth()
-  const location = useLocation()
+export function AuthGuard({
+  children,
+  requireEmailVerification = true,
+}: AuthGuardProps) {
+  const { session, user, loading, emailVerified } = useAuth();
+  const location = useLocation();
 
   // ── 1. Loading ─────────────────────────────────────────────────────────────
   // ROUTE-HIGH-02: Differentiate between initial auth load and token refresh.
@@ -43,7 +46,7 @@ export function AuthGuard({ children, requireEmailVerification = true }: AuthGua
   // means auth provider is silently refreshing the token — render children normally
   // to avoid a visible flash/flicker on every token refresh cycle.
   if (loading && !user) {
-    return <AppLoading />
+    return <AppLoading />;
   }
 
   // ── 2. Unauthenticated ─────────────────────────────────────────────────────
@@ -51,7 +54,7 @@ export function AuthGuard({ children, requireEmailVerification = true }: AuthGua
   // Preserve the current path in state.from so Login can redirect the user
   // back after they sign in.
   if (!session || !user) {
-    return <Navigate to="/login" state={{ from: location }} replace />
+    return <Navigate to="/login" state={{ from: location }} replace />;
   }
 
   // ── 3. Email not verified ──────────────────────────────────────────────────
@@ -61,9 +64,9 @@ export function AuthGuard({ children, requireEmailVerification = true }: AuthGua
   // Skip this check when requireEmailVerification is false (used by the
   // /verify-email route itself to prevent an infinite redirect loop).
   if (requireEmailVerification && !emailVerified) {
-    return <Navigate to="/verify-email" state={{ from: location }} replace />
+    return <Navigate to="/verify-email" state={{ from: location }} replace />;
   }
 
   // ── 4. Authenticated & verified ───────────────────────────────────────────
-  return <>{children}</>
+  return <>{children}</>;
 }

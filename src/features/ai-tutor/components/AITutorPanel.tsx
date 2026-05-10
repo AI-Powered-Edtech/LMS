@@ -5,15 +5,15 @@
  * Provides contextual help based on the current lesson.
  */
 
-import { Bot, Lightbulb, Sparkles, User } from 'lucide-react'
-import { AnimatePresence, motion } from 'motion/react'
-import { useEffect, useRef, useState } from 'react'
-import ReactMarkdown from 'react-markdown'
-import rehypeKatex from 'rehype-katex'
-import rehypeSanitize from 'rehype-sanitize'
-import remarkMath from 'remark-math'
+import { Bot, Lightbulb, Sparkles, User } from "lucide-react";
+import { AnimatePresence, motion } from "motion/react";
+import { useEffect, useRef, useState } from "react";
+import ReactMarkdown from "react-markdown";
+import rehypeKatex from "rehype-katex";
+import rehypeSanitize from "rehype-sanitize";
+import remarkMath from "remark-math";
 
-import { useAuth } from '@/contexts/AuthContext'
+import { useAuth } from "@/contexts/AuthContext";
 import {
   type AITutorError,
   type AITutorMessage,
@@ -22,42 +22,42 @@ import {
   formatDifficulty,
   generateMessageId,
   getDifficultyColor,
-} from '@/features/ai-tutor'
-import { useAiStream } from '@/features/ai-tutor/hooks/useAiStream'
-import { cn } from '@/utils/cn'
-import { logger } from '@/utils/logger'
-import { aiTutorRateLimiter } from '@/utils/rateLimiter'
-import { katexSanitizeSchema } from '@/utils/sanitizeMarkdown'
-import { captureError } from '@/utils/sentry'
+} from "@/features/ai-tutor";
+import { useAiStream } from "@/features/ai-tutor/hooks/useAiStream";
+import { cn } from "@/utils/cn";
+import { logger } from "@/utils/logger";
+import { aiTutorRateLimiter } from "@/utils/rateLimiter";
+import { katexSanitizeSchema } from "@/utils/sanitizeMarkdown";
+import { captureError } from "@/utils/sentry";
 
-import { AITutorInput } from './AITutorInput'
-import { AITutorTyping } from './AITutorTyping'
+import { AITutorInput } from "./AITutorInput";
+import { AITutorTyping } from "./AITutorTyping";
 
 interface AITutorPanelProps {
-  lessonId: string
-  lessonTitle: string
-  courseId: string
-  initialDifficulty?: DifficultyLevel
-  onClose?: () => void
+  lessonId: string;
+  lessonTitle: string;
+  courseId: string;
+  initialDifficulty?: DifficultyLevel;
+  onClose?: () => void;
 }
 
 const SUGGESTED_QUESTIONS = [
-  'Apa inti pembelajaran dari materi ini?',
-  'Bisakah jelaskan konsep yang sulit?',
-  'Apa hubungannya dengan materi sebelumnya?',
-]
+  "Apa inti pembelajaran dari materi ini?",
+  "Bisakah jelaskan konsep yang sulit?",
+  "Apa hubungannya dengan materi sebelumnya?",
+];
 
 export function AITutorPanel({
   lessonId,
   lessonTitle,
-  initialDifficulty = 'not_started',
+  initialDifficulty = "not_started",
   onClose: _onClose,
 }: AITutorPanelProps) {
   useEffect(() => {
-    void import('katex/dist/katex.min.css')
-  }, [])
+    void import("katex/dist/katex.min.css");
+  }, []);
 
-  const { tenantId } = useAuth()
+  const { tenantId } = useAuth();
 
   // Streaming hook
   const {
@@ -71,186 +71,214 @@ export function AITutorPanel({
     onToken: (_token, fullText) => {
       // Update the streaming message in real-time
       setMessages((prev) => {
-        const lastMsg = prev[prev.length - 1]
-        if (lastMsg && lastMsg.role === 'assistant' && lastMsg.isStreaming) {
-          return [...prev.slice(0, -1), { ...lastMsg, content: fullText }]
+        const lastMsg = prev[prev.length - 1];
+        if (lastMsg && lastMsg.role === "assistant" && lastMsg.isStreaming) {
+          return [...prev.slice(0, -1), { ...lastMsg, content: fullText }];
         }
-        return prev
-      })
+        return prev;
+      });
     },
     onComplete: (_fullText, sessionId) => {
       // Mark streaming as completed
       setMessages((prev) => {
-        const lastMsg = prev[prev.length - 1]
-        if (lastMsg && lastMsg.role === 'assistant' && lastMsg.isStreaming) {
-          return [...prev.slice(0, -1), { ...lastMsg, isStreaming: false }]
+        const lastMsg = prev[prev.length - 1];
+        if (lastMsg && lastMsg.role === "assistant" && lastMsg.isStreaming) {
+          return [...prev.slice(0, -1), { ...lastMsg, isStreaming: false }];
         }
-        return prev
-      })
+        return prev;
+      });
       if (sessionId && sessionId !== currentSessionId) {
-        setCurrentSessionId(sessionId)
-        sessionStorage.setItem(`ai_tutor_session_${lessonId}`, sessionId)
+        setCurrentSessionId(sessionId);
+        sessionStorage.setItem(`ai_tutor_session_${lessonId}`, sessionId);
       }
     },
     onError: (error) => {
-      setError({ message: error, code: 'STREAM_ERROR' })
+      setError({ message: error, code: "STREAM_ERROR" });
     },
-  })
+  });
 
   // State
-  const [messages, setMessages] = useState<AITutorMessage[]>([])
-  const [isLoading, setIsLoading] = useState(false)
-  const [error, setError] = useState<AITutorError | null>(null)
-  const [difficulty, _setDifficulty] = useState<DifficultyLevel>(initialDifficulty)
-  const [suggestedQuestions, setSuggestedQuestions] = useState<string[]>(SUGGESTED_QUESTIONS)
-  const [currentSessionId, setCurrentSessionId] = useState<string | undefined>(() => {
-    // SECURITY: Use sessionStorage instead of localStorage:
-    // 1. Auto-cleared when tab closes — no storage quota leak across 100s of lessons
-    // 2. Shorter window for XSS exploitation (cleared when session ends)
-    return sessionStorage.getItem(`ai_tutor_session_${lessonId}`) || undefined
-  })
+  const [messages, setMessages] = useState<AITutorMessage[]>([]);
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<AITutorError | null>(null);
+  const [difficulty, _setDifficulty] =
+    useState<DifficultyLevel>(initialDifficulty);
+  const [suggestedQuestions, setSuggestedQuestions] =
+    useState<string[]>(SUGGESTED_QUESTIONS);
+  const [currentSessionId, setCurrentSessionId] = useState<string | undefined>(
+    () => {
+      // SECURITY: Use sessionStorage instead of localStorage:
+      // 1. Auto-cleared when tab closes — no storage quota leak across 100s of lessons
+      // 2. Shorter window for XSS exploitation (cleared when session ends)
+      return (
+        sessionStorage.getItem(`ai_tutor_session_${lessonId}`) || undefined
+      );
+    },
+  );
 
-  const messagesEndRef = useRef<HTMLDivElement>(null)
+  const messagesEndRef = useRef<HTMLDivElement>(null);
 
   // Scroll to bottom when new messages arrive
   useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
-  }, [messages, isLoading])
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  }, [messages, isLoading]);
 
   // Add welcome message on first load
   useEffect(() => {
     if (messages.length === 0 && !isLoading) {
       const welcomeMessage: AITutorMessage = {
         id: generateMessageId(),
-        role: 'assistant',
+        role: "assistant",
         content: `Halo! Saya Tutor AI Anda untuk pelajaran "${lessonTitle}".\n\nSaya bisa membantu menjelaskan materi, menjawab pertanyaan, atau memberikan contoh tambahan. Silakan tulis pertanyaan Anda!`,
         timestamp: new Date(),
-      }
-      setMessages([welcomeMessage])
+      };
+      setMessages([welcomeMessage]);
     }
-  }, [lessonTitle, messages.length, isLoading])
+  }, [lessonTitle, messages.length, isLoading]);
 
   const handleSendQuestion = async (question: string) => {
     // Client-side rate limiting
-    const { allowed, retryAfterMs } = aiTutorRateLimiter.check(lessonId)
+    const { allowed, retryAfterMs } = aiTutorRateLimiter.check(lessonId);
     if (!allowed) {
-      const seconds = Math.ceil(retryAfterMs / 1000)
+      const seconds = Math.ceil(retryAfterMs / 1000);
       setError({
         message: `Terlalu banyak percobaan. Silakan coba lagi dalam ${seconds} detik.`,
-        code: 'RATE_LIMIT_MINUTE',
+        code: "RATE_LIMIT_MINUTE",
         retryAfter: seconds,
-      })
-      return
+      });
+      return;
     }
 
     // Add user message
     const userMessage: AITutorMessage = {
       id: generateMessageId(),
-      role: 'user',
+      role: "user",
       content: question,
       timestamp: new Date(),
-    }
-    setMessages((prev) => [...prev, userMessage])
-    setError(null)
+    };
+    setMessages((prev) => [...prev, userMessage]);
+    setError(null);
 
     // Add placeholder for AI response with streaming flag
     const streamingMessage: AITutorMessage = {
       id: generateMessageId(),
-      role: 'assistant',
-      content: '',
+      role: "assistant",
+      content: "",
       timestamp: new Date(),
       isStreaming: true,
-    }
-    setMessages((prev) => [...prev, streamingMessage])
+    };
+    setMessages((prev) => [...prev, streamingMessage]);
 
     // Reset any previous streaming
-    resetStream()
+    resetStream();
 
     try {
       // Try streaming first
-      await startStream(lessonId, question, currentSessionId)
+      await startStream(lessonId, question, currentSessionId);
 
       // If streaming succeeds, the onToken/onComplete callbacks will update the message
       // No need to do anything here
     } catch (err) {
       // Fallback to non-streaming mode if streaming fails
       if (import.meta.env.DEV) {
-        logger.warn('[AI Tutor] Streaming failed, falling back to non-streaming mode:', err)
+        logger.warn(
+          "[AI Tutor] Streaming failed, falling back to non-streaming mode:",
+          err,
+        );
       }
 
       // Remove the streaming placeholder
-      setMessages((prev) => prev.slice(0, -1))
+      setMessages((prev) => prev.slice(0, -1));
 
       // Use non-streaming mode
-      setIsLoading(true)
+      setIsLoading(true);
       try {
-        const result = await askTutor(lessonId, question, tenantId!, currentSessionId)
+        const result = await askTutor(
+          lessonId,
+          question,
+          tenantId!,
+          currentSessionId,
+        );
 
         if (result.error) {
-          setError(result.error)
+          setError(result.error);
           const errorMessage: AITutorMessage = {
             id: generateMessageId(),
-            role: 'assistant',
+            role: "assistant",
             content: result.error.message,
             timestamp: new Date(),
-          }
-          setMessages((prev) => [...prev, errorMessage])
-          return
+          };
+          setMessages((prev) => [...prev, errorMessage]);
+          return;
         }
 
-        const responseData = result.data!
-        if (responseData.session_id && responseData.session_id !== currentSessionId) {
-          setCurrentSessionId(responseData.session_id)
-          sessionStorage.setItem(`ai_tutor_session_${lessonId}`, responseData.session_id)
+        const responseData = result.data!;
+        if (
+          responseData.session_id &&
+          responseData.session_id !== currentSessionId
+        ) {
+          setCurrentSessionId(responseData.session_id);
+          sessionStorage.setItem(
+            `ai_tutor_session_${lessonId}`,
+            responseData.session_id,
+          );
         }
 
         const aiMessage: AITutorMessage = {
           id: generateMessageId(),
-          role: 'assistant',
+          role: "assistant",
           content: responseData.response,
           timestamp: new Date(),
-        }
-        setMessages((prev) => [...prev, aiMessage])
-        setSuggestedQuestions((prev) => prev.filter((q) => q !== question))
+        };
+        setMessages((prev) => [...prev, aiMessage]);
+        setSuggestedQuestions((prev) => prev.filter((q) => q !== question));
       } catch (fallbackErr) {
-        if (import.meta.env.DEV) logger.error('[AI Tutor] Fallback error:', fallbackErr)
-        captureError(fallbackErr, { context: 'AITutorPanel.handleSendQuestion.fallback', lessonId })
-        setError({ message: 'Terjadi kesalahan yang tidak terduga', code: 'UNKNOWN_ERROR' })
+        if (import.meta.env.DEV)
+          logger.error("[AI Tutor] Fallback error:", fallbackErr);
+        captureError(fallbackErr, {
+          context: "AITutorPanel.handleSendQuestion.fallback",
+          lessonId,
+        });
+        setError({
+          message: "Terjadi kesalahan yang tidak terduga",
+          code: "UNKNOWN_ERROR",
+        });
         const errorMessage: AITutorMessage = {
           id: generateMessageId(),
-          role: 'assistant',
-          content: 'Maaf, terjadi kesalahan yang tidak terduga. Silakan coba lagi.',
+          role: "assistant",
+          content:
+            "Maaf, terjadi kesalahan yang tidak terduga. Silakan coba lagi.",
           timestamp: new Date(),
-        }
-        setMessages((prev) => [...prev, errorMessage])
+        };
+        setMessages((prev) => [...prev, errorMessage]);
       } finally {
-        setIsLoading(false)
+        setIsLoading(false);
       }
     }
-  }
+  };
 
   const handleSuggestedClick = (question: string) => {
     if (!isLoading) {
-      void handleSendQuestion(question)
+      void handleSendQuestion(question);
     }
-  }
+  };
 
   const handleClearChat = () => {
-    sessionStorage.removeItem(`ai_tutor_session_${lessonId}`)
-    setCurrentSessionId(undefined)
-    setMessages([])
-    setError(null)
-    setSuggestedQuestions(SUGGESTED_QUESTIONS)
-    resetStream()
+    sessionStorage.removeItem(`ai_tutor_session_${lessonId}`);
+    setCurrentSessionId(undefined);
+    setMessages([]);
+    setError(null);
+    setSuggestedQuestions(SUGGESTED_QUESTIONS);
+    resetStream();
     // Add welcome message again
     const welcomeMessage: AITutorMessage = {
       id: generateMessageId(),
-      role: 'assistant',
+      role: "assistant",
       content: `Halo! Saya Tutor AI Anda untuk pelajaran "${lessonTitle}".\n\nSaya bisa membantu menjelaskan materi, menjawab pertanyaan, atau memberikan contoh tambahan. Silakan tulis pertanyaan Anda!`,
       timestamp: new Date(),
-    }
-    setMessages([welcomeMessage])
-  }
+    };
+    setMessages([welcomeMessage]);
+  };
 
   return (
     <div className="flex flex-col h-full bg-slate-50/50 dark:bg-slate-900/50">
@@ -261,13 +289,17 @@ export function AITutorPanel({
             <Sparkles className="w-5 h-5 text-white" />
           </div>
           <div>
-            <h2 className="font-bold text-slate-800 dark:text-slate-100">Tutor AI</h2>
+            <h2 className="font-bold text-slate-800 dark:text-slate-100">
+              Tutor AI
+            </h2>
             <div className="flex items-center gap-2">
-              <span className="text-xs text-slate-400 dark:text-slate-500">Tingkat:</span>
+              <span className="text-xs text-slate-400 dark:text-slate-500">
+                Tingkat:
+              </span>
               <span
                 className={cn(
-                  'text-xs font-bold px-2 py-0.5 rounded-md',
-                  getDifficultyColor(difficulty)
+                  "text-xs font-bold px-2 py-0.5 rounded-md",
+                  getDifficultyColor(difficulty),
                 )}
               >
                 {formatDifficulty(difficulty)}
@@ -316,20 +348,20 @@ export function AITutorPanel({
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0 }}
               className={cn(
-                'flex items-start gap-3',
-                message.role === 'user' && 'flex-row-reverse'
+                "flex items-start gap-3",
+                message.role === "user" && "flex-row-reverse",
               )}
             >
               {/* Avatar */}
               <div
                 className={cn(
-                  'w-8 h-8 rounded-full shrink-0 flex items-center justify-center shadow-sm',
-                  message.role === 'user'
-                    ? 'bg-blue-500'
-                    : 'bg-gradient-to-br from-violet-500 to-purple-600'
+                  "w-8 h-8 rounded-full shrink-0 flex items-center justify-center shadow-sm",
+                  message.role === "user"
+                    ? "bg-blue-500"
+                    : "bg-gradient-to-br from-violet-500 to-purple-600",
                 )}
               >
-                {message.role === 'user' ? (
+                {message.role === "user" ? (
                   <User className="w-4 h-4 text-white" />
                 ) : (
                   <Bot className="w-4 h-4 text-white" />
@@ -339,27 +371,36 @@ export function AITutorPanel({
               {/* Message Bubble */}
               <div
                 className={cn(
-                  'max-w-[80%] px-4 py-3 rounded-2xl shadow-sm',
-                  message.role === 'user'
-                    ? 'bg-blue-600 text-white rounded-tr-md'
-                    : 'bg-gradient-to-br from-white dark:from-slate-800 to-slate-50/50 dark:to-slate-800/50 border border-slate-200/80 dark:border-slate-700/80 text-slate-700 dark:text-slate-200 rounded-tl-md'
+                  "max-w-[80%] px-4 py-3 rounded-2xl shadow-sm",
+                  message.role === "user"
+                    ? "bg-blue-600 text-white rounded-tr-md"
+                    : "bg-gradient-to-br from-white dark:from-slate-800 to-slate-50/50 dark:to-slate-800/50 border border-slate-200/80 dark:border-slate-700/80 text-slate-700 dark:text-slate-200 rounded-tl-md",
                 )}
               >
                 <div
                   className={cn(
-                    'text-sm leading-relaxed prose prose-slate max-w-none',
-                    message.role === 'user'
-                      ? 'prose-invert'
-                      : 'prose-p:my-1 prose-headings:mb-2 prose-headings:mt-4'
+                    "text-sm leading-relaxed prose prose-slate max-w-none",
+                    message.role === "user"
+                      ? "prose-invert"
+                      : "prose-p:my-1 prose-headings:mb-2 prose-headings:mt-4",
                   )}
                 >
                   <ReactMarkdown
                     remarkPlugins={[remarkMath]}
-                    rehypePlugins={[rehypeKatex, [rehypeSanitize, katexSanitizeSchema]]}
+                    rehypePlugins={[
+                      rehypeKatex,
+                      [rehypeSanitize, katexSanitizeSchema],
+                    ]}
                     components={{
-                      p: ({ children }) => <p className="mb-2 last:mb-0">{children}</p>,
-                      ul: ({ children }) => <ul className="list-disc pl-4 mb-2">{children}</ul>,
-                      ol: ({ children }) => <ol className="list-decimal pl-4 mb-2">{children}</ol>,
+                      p: ({ children }) => (
+                        <p className="mb-2 last:mb-0">{children}</p>
+                      ),
+                      ul: ({ children }) => (
+                        <ul className="list-disc pl-4 mb-2">{children}</ul>
+                      ),
+                      ol: ({ children }) => (
+                        <ol className="list-decimal pl-4 mb-2">{children}</ol>
+                      ),
                       code: ({ children }) => (
                         <code className="bg-slate-100 dark:bg-slate-700 px-1 rounded text-xs font-mono">
                           {children}
@@ -405,5 +446,5 @@ export function AITutorPanel({
         lessonTitle={lessonTitle}
       />
     </div>
-  )
+  );
 }

@@ -1,21 +1,21 @@
-import { Filter, Loader2, Plus, Search, X } from 'lucide-react'
-import { AnimatePresence, motion } from 'motion/react'
-import React, { useEffect, useState } from 'react'
+import { Filter, Loader2, Plus, Search, X } from "lucide-react";
+import { AnimatePresence, motion } from "motion/react";
+import React, { useEffect, useState } from "react";
 
 import {
   QuestionBankItem,
   questionBankService,
-} from '@/features/question-bank/api/questionBankService'
-import { useToast } from '@/hooks/useToast'
-import { logger } from '@/utils/logger'
+} from "@/features/question-bank/api/questionBankService";
+import { useToast } from "@/hooks/useToast";
+import { logger } from "@/utils/logger";
 
-import { QuestionCard } from './QuestionCard'
+import { QuestionCard } from "./QuestionCard";
 
 interface QuestionSearchModalProps {
-  quizId: string
-  isOpen: boolean
-  onClose: () => void
-  onAddSuccess?: (question: QuestionBankItem) => void
+  quizId: string;
+  isOpen: boolean;
+  onClose: () => void;
+  onAddSuccess?: (question: QuestionBankItem) => void;
 }
 
 export const QuestionSearchModal: React.FC<QuestionSearchModalProps> = ({
@@ -24,75 +24,76 @@ export const QuestionSearchModal: React.FC<QuestionSearchModalProps> = ({
   onClose,
   onAddSuccess,
 }) => {
-  const { addToast } = useToast()
-  const [questions, setQuestions] = useState<QuestionBankItem[]>([])
-  const [loading, setLoading] = useState(false)
-  const [searchQuery, setSearchQuery] = useState('')
-  const [addingIds, setAddingIds] = useState<Set<string>>(new Set())
-  const [typeFilter, setTypeFilter] = useState('')
+  const { addToast } = useToast();
+  const [questions, setQuestions] = useState<QuestionBankItem[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [addingIds, setAddingIds] = useState<Set<string>>(new Set());
+  const [typeFilter, setTypeFilter] = useState("");
 
   /* eslint-disable react-hooks/exhaustive-deps */
   useEffect(() => {
     if (isOpen) {
-      void loadQuestions()
+      void loadQuestions();
     }
-  }, [isOpen, typeFilter])
+  }, [isOpen, typeFilter]);
 
   useEffect(() => {
-    if (!isOpen) return
+    if (!isOpen) return;
     const timer = setTimeout(() => {
-      void loadQuestions()
-    }, 500)
-    return () => clearTimeout(timer)
-  }, [searchQuery])
+      void loadQuestions();
+    }, 500);
+    return () => clearTimeout(timer);
+  }, [searchQuery]);
   /* eslint-enable react-hooks/exhaustive-deps */
 
   const loadQuestions = async () => {
-    setLoading(true)
+    setLoading(true);
     try {
       const data = await questionBankService.searchQuestions({
         query: searchQuery || undefined,
         questionType: typeFilter || undefined,
         limit: 50,
-      })
-      setQuestions(data)
+      });
+      setQuestions(data);
     } catch (error) {
-      if (import.meta.env.DEV) logger.error('Failed to load questions:', error)
-      addToast({ type: 'error', message: 'Gagal memuat soal. Coba lagi.' })
+      if (import.meta.env.DEV) logger.error("Failed to load questions:", error);
+      addToast({ type: "error", message: "Gagal memuat soal. Coba lagi." });
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }
+  };
 
   const handleAddQuestion = async (question: QuestionBankItem) => {
     if (!quizId) {
       addToast({
-        type: 'error',
-        message: 'Harap simpan kuis terlebih dahulu sebelum menambahkan soal dari bank.',
-      })
-      return
+        type: "error",
+        message:
+          "Harap simpan kuis terlebih dahulu sebelum menambahkan soal dari bank.",
+      });
+      return;
     }
 
-    setAddingIds((prev) => new Set(prev).add(question.id))
+    setAddingIds((prev) => new Set(prev).add(question.id));
     try {
-      await questionBankService.addQuestionToQuiz(question.id, quizId, 1, 0) // Need proper order index logic in backend
+      await questionBankService.addQuestionToQuiz(question.id, quizId, 1, 0); // Need proper order index logic in backend
       if (onAddSuccess) {
-        onAddSuccess(question)
+        onAddSuccess(question);
       }
       // Optionally remove from list or show visual feedback
     } catch (error) {
-      if (import.meta.env.DEV) logger.error('Failed to add question:', error)
-      addToast({ type: 'error', message: 'Gagal menambahkan soal ke kuis.' })
+      if (import.meta.env.DEV) logger.error("Failed to add question:", error);
+      addToast({ type: "error", message: "Gagal menambahkan soal ke kuis." });
     } finally {
       setAddingIds((prev) => {
-        const next = new Set(prev)
-        next.delete(question.id)
-        return next
-      })
+        const next = new Set(prev);
+        next.delete(question.id);
+        return next;
+      });
     }
-  }
+  };
 
-  if (!isOpen) return null
+  if (!isOpen) return null;
 
   return (
     <AnimatePresence>
@@ -185,7 +186,9 @@ export const QuestionSearchModal: React.FC<QuestionSearchModalProps> = ({
                         ) : (
                           <Plus className="w-3.5 h-3.5" />
                         )}
-                        {addingIds.has(q.id) ? 'Menambahkan...' : 'Tambah ke Kuis'}
+                        {addingIds.has(q.id)
+                          ? "Menambahkan..."
+                          : "Tambah ke Kuis"}
                       </button>
                     </div>
                   </div>
@@ -196,5 +199,5 @@ export const QuestionSearchModal: React.FC<QuestionSearchModalProps> = ({
         </motion.div>
       </div>
     </AnimatePresence>
-  )
-}
+  );
+};

@@ -1,26 +1,33 @@
-import { AlertTriangle, Award, Calendar, CheckCircle, Loader2, Send } from 'lucide-react'
-import { AnimatePresence, motion } from 'motion/react'
-import { useEffect, useRef, useState } from 'react'
+import {
+  AlertTriangle,
+  Award,
+  Calendar,
+  CheckCircle,
+  Loader2,
+  Send,
+} from "lucide-react";
+import { AnimatePresence, motion } from "motion/react";
+import { useEffect, useRef, useState } from "react";
 
-import { useAuth } from '@/contexts/AuthContext'
+import { useAuth } from "@/contexts/AuthContext";
 import {
   assignmentService,
   AssignmentSubmission,
-} from '@/features/assignments/api/assignmentService'
-import { cn } from '@/utils/cn'
-import { logger } from '@/utils/logger'
+} from "@/features/assignments/api/assignmentService";
+import { cn } from "@/utils/cn";
+import { logger } from "@/utils/logger";
 
 interface AssignmentViewerProps {
-  assignmentId: string
-  title: string
-  instructions: string | null
-  maxPoints: number
-  maxAttempts: number
-  isPublished: boolean
-  dueDate: string | null
-  isCompleted: boolean
-  onCompletionMet: () => void
-  onStartViewing: () => void
+  assignmentId: string;
+  title: string;
+  instructions: string | null;
+  maxPoints: number;
+  maxAttempts: number;
+  isPublished: boolean;
+  dueDate: string | null;
+  isCompleted: boolean;
+  onCompletionMet: () => void;
+  onStartViewing: () => void;
 }
 
 export function AssignmentViewer({
@@ -35,44 +42,52 @@ export function AssignmentViewer({
   onCompletionMet,
   onStartViewing,
 }: AssignmentViewerProps) {
-  const { user, tenantId, role } = useAuth()
-  const [submissionText, setSubmissionText] = useState('')
-  const [submission, setSubmission] = useState<AssignmentSubmission | null>(null)
-  const [attemptCount, setAttemptCount] = useState(0)
-  const [isLoading, setIsLoading] = useState(true)
-  const [isSubmitting, setIsSubmitting] = useState(false)
-  const [error, setError] = useState<string | null>(null)
-  const [showCancelConfirm, setShowCancelConfirm] = useState(false)
-  const onStartViewingRef = useRef(onStartViewing)
-  onStartViewingRef.current = onStartViewing
+  const { user, tenantId, role } = useAuth();
+  const [submissionText, setSubmissionText] = useState("");
+  const [submission, setSubmission] = useState<AssignmentSubmission | null>(
+    null,
+  );
+  const [attemptCount, setAttemptCount] = useState(0);
+  const [isLoading, setIsLoading] = useState(true);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [showCancelConfirm, setShowCancelConfirm] = useState(false);
+  const onStartViewingRef = useRef(onStartViewing);
+  onStartViewingRef.current = onStartViewing;
 
   useEffect(() => {
-    onStartViewingRef.current()
-    if (!user?.id || !tenantId) return
+    onStartViewingRef.current();
+    if (!user?.id || !tenantId) return;
 
     async function loadSubmission() {
       try {
-        const data = await assignmentService.getAssignmentDetails(assignmentId, user!.id, tenantId!)
+        const data = await assignmentService.getAssignmentDetails(
+          assignmentId,
+          user!.id,
+          tenantId!,
+        );
         if (data && data.submission) {
-          const sub = data.submission as AssignmentSubmission
-          setSubmission(sub)
-          setSubmissionText(sub.submission_text || '')
-          setAttemptCount(sub.attempt_number ?? 1)
+          const sub = data.submission as AssignmentSubmission;
+          setSubmission(sub);
+          setSubmissionText(sub.submission_text || "");
+          setAttemptCount(sub.attempt_number ?? 1);
         }
       } catch (err: unknown) {
-        if (import.meta.env.DEV) logger.error('Error loading submission:', err)
-        setError(err instanceof Error ? err.message : 'Gagal memuat submisi tugas.')
+        if (import.meta.env.DEV) logger.error("Error loading submission:", err);
+        setError(
+          err instanceof Error ? err.message : "Gagal memuat submisi tugas.",
+        );
       } finally {
-        setIsLoading(false)
+        setIsLoading(false);
       }
     }
-    void loadSubmission()
-  }, [assignmentId, tenantId, user])
+    void loadSubmission();
+  }, [assignmentId, tenantId, user]);
 
   const handleSubmit = async () => {
-    if (!user?.id || !submissionText.trim()) return
-    setIsSubmitting(true)
-    setError(null)
+    if (!user?.id || !submissionText.trim()) return;
+    setIsSubmitting(true);
+    setError(null);
     try {
       const result = await assignmentService.submitAssignmentAttempt(
         assignmentId,
@@ -81,17 +96,19 @@ export function AssignmentViewer({
         {
           text: submissionText,
           clientRequestId: crypto.randomUUID(),
-        }
-      )
-      setSubmission(result)
-      setAttemptCount(result.attempt_number ?? attemptCount + 1)
-      onCompletionMet()
+        },
+      );
+      setSubmission(result);
+      setAttemptCount(result.attempt_number ?? attemptCount + 1);
+      onCompletionMet();
     } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : 'Kesalahan tidak diketahui')
+      setError(
+        err instanceof Error ? err.message : "Kesalahan tidak diketahui",
+      );
     } finally {
-      setIsSubmitting(false)
+      setIsSubmitting(false);
     }
-  }
+  };
 
   if (isLoading) {
     return (
@@ -99,28 +116,32 @@ export function AssignmentViewer({
         <Loader2 className="w-8 h-8 animate-spin mr-3" />
         <span className="font-medium">Memuat tugas...</span>
       </div>
-    )
+    );
   }
 
-  const isSubmitted = !!submission?.submitted_at
-  const isGraded = submission?.status === 'graded' || submission?.status === 'returned'
-  const canEdit = !isSubmitted && !isGraded && !isCompleted
+  const isSubmitted = !!submission?.submitted_at;
+  const isGraded =
+    submission?.status === "graded" || submission?.status === "returned";
+  const canEdit = !isSubmitted && !isGraded && !isCompleted;
 
   // Handle unpublished assignments for students
-  if (!isPublished && role === 'student') {
+  if (!isPublished && role === "student") {
     return (
       <div className="flex-1 flex flex-col items-center justify-center p-12 text-center space-y-4">
         <div className="w-16 h-16 rounded-full bg-slate-100 flex items-center justify-center">
           <AlertTriangle className="w-8 h-8 text-slate-400" />
         </div>
         <div>
-          <h3 className="text-xl font-bold text-slate-800">Tugas Belum Tersedia</h3>
+          <h3 className="text-xl font-bold text-slate-800">
+            Tugas Belum Tersedia
+          </h3>
           <p className="text-slate-500 max-w-xs mt-1">
-            Tugas ini masih dalam status draf dan belum dipublikasikan oleh guru Anda.
+            Tugas ini masih dalam status draf dan belum dipublikasikan oleh guru
+            Anda.
           </p>
         </div>
       </div>
-    )
+    );
   }
 
   return (
@@ -133,18 +154,24 @@ export function AssignmentViewer({
               initial={{ opacity: 0, y: -10 }}
               animate={{ opacity: 1, y: 0 }}
               className={cn(
-                'flex items-center gap-3 p-4 rounded-2xl border shadow-sm',
+                "flex items-center gap-3 p-4 rounded-2xl border shadow-sm",
                 isGraded
-                  ? 'bg-emerald-50 border-emerald-100 text-emerald-800'
-                  : 'bg-blue-50 border-blue-100 text-blue-800'
+                  ? "bg-emerald-50 border-emerald-100 text-emerald-800"
+                  : "bg-blue-50 border-blue-100 text-blue-800",
               )}
             >
-              {isGraded ? <Award className="w-5 h-5" /> : <CheckCircle className="w-5 h-5" />}
+              {isGraded ? (
+                <Award className="w-5 h-5" />
+              ) : (
+                <CheckCircle className="w-5 h-5" />
+              )}
               <div className="flex-1">
                 <p className="font-bold text-sm">
-                  {isGraded ? 'Tugas Telah Dinilai' : 'Tugas Telah Dikirim'}
+                  {isGraded ? "Tugas Telah Dinilai" : "Tugas Telah Dikirim"}
                 </p>
-                <p className="text-xs opacity-80">Guru akan segera memeriksa pekerjaan Anda.</p>
+                <p className="text-xs opacity-80">
+                  Guru akan segera memeriksa pekerjaan Anda.
+                </p>
               </div>
             </motion.div>
           )}
@@ -155,7 +182,9 @@ export function AssignmentViewer({
           <div className="p-8 space-y-6">
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
               <div>
-                <h2 className="text-2xl font-extrabold text-slate-800 tracking-tight">{title}</h2>
+                <h2 className="text-2xl font-extrabold text-slate-800 tracking-tight">
+                  {title}
+                </h2>
                 <div className="flex items-center gap-4 mt-2">
                   <div className="flex items-center gap-1.5 text-xs font-bold text-slate-400 uppercase tracking-wider">
                     <Award className="w-3.5 h-3.5" />
@@ -167,11 +196,11 @@ export function AssignmentViewer({
                   {dueDate && (
                     <div className="flex items-center gap-1.5 text-xs font-bold text-rose-500 uppercase tracking-wider">
                       <Calendar className="w-3.5 h-3.5" />
-                      Tenggat:{' '}
-                      {new Date(dueDate).toLocaleDateString('id-ID', {
-                        day: 'numeric',
-                        month: 'long',
-                        year: 'numeric',
+                      Tenggat:{" "}
+                      {new Date(dueDate).toLocaleDateString("id-ID", {
+                        day: "numeric",
+                        month: "long",
+                        year: "numeric",
                       })}
                     </div>
                   )}
@@ -186,7 +215,7 @@ export function AssignmentViewer({
                 Instruksi
               </h4>
               <div className="text-slate-600 whitespace-pre-wrap leading-relaxed">
-                {instructions || 'Tidak ada instruksi khusus.'}
+                {instructions || "Tidak ada instruksi khusus."}
               </div>
             </div>
           </div>
@@ -211,19 +240,21 @@ export function AssignmentViewer({
               <div className="px-6 py-4 bg-slate-50 border-t border-slate-100 flex items-center justify-between">
                 <p className="text-xs text-slate-400 font-medium">
                   {isSubmitted
-                    ? 'Anda dapat membatalkan pengiriman untuk mengedit.'
-                    : 'Pastikan jawaban Anda sudah lengkap sebelum mengirim.'}
+                    ? "Anda dapat membatalkan pengiriman untuk mengedit."
+                    : "Pastikan jawaban Anda sudah lengkap sebelum mengirim."}
                 </p>
 
                 {isSubmitted ? (
                   showCancelConfirm ? (
                     <div className="flex items-center gap-2">
-                      <span className="text-xs text-slate-500">Yakin batalkan?</span>
+                      <span className="text-xs text-slate-500">
+                        Yakin batalkan?
+                      </span>
                       <button
                         // NOTE: Cancel submission belum didukung backend. Lihat docs/prd/PRD_assignments.md untuk roadmap.
                         onClick={() => {
-                          setSubmission(null)
-                          setShowCancelConfirm(false)
+                          setSubmission(null);
+                          setShowCancelConfirm(false);
                         }}
                         className="text-xs font-bold text-rose-600 hover:text-rose-700 transition-colors"
                       >
@@ -271,5 +302,5 @@ export function AssignmentViewer({
         )}
       </div>
     </div>
-  )
+  );
 }

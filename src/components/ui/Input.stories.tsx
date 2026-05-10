@@ -1,88 +1,88 @@
-import type { Meta, StoryObj } from '@storybook/react'
-import { Mail, Search } from 'lucide-react'
+import type { Meta, StoryObj } from "@storybook/react";
+import { Mail, Search } from "lucide-react";
 
-import { Input } from './Input'
+import { Input } from "./Input";
 
 const meta: Meta<typeof Input> = {
-  title: 'UI/Input',
+  title: "UI/Input",
   component: Input,
-  tags: ['autodocs'],
+  tags: ["autodocs"],
   argTypes: {
     inputSize: {
-      control: 'select',
-      options: ['sm', 'md', 'lg'],
+      control: "select",
+      options: ["sm", "md", "lg"],
     },
-    disabled: { control: 'boolean' },
+    disabled: { control: "boolean" },
   },
-}
+};
 
-export default meta
-type Story = StoryObj<typeof Input>
+export default meta;
+type Story = StoryObj<typeof Input>;
 
 export const Default: Story = {
   args: {
-    placeholder: 'Masukkan teks...',
+    placeholder: "Masukkan teks...",
   },
-}
+};
 
 export const WithLabel: Story = {
   args: {
-    label: 'Nama Lengkap',
-    placeholder: 'Masukkan nama lengkap',
+    label: "Nama Lengkap",
+    placeholder: "Masukkan nama lengkap",
   },
-}
+};
 
 export const WithError: Story = {
   args: {
-    label: 'Email',
-    placeholder: 'contoh@email.com',
-    error: 'Email tidak valid',
-    defaultValue: 'bukan-email',
+    label: "Email",
+    placeholder: "contoh@email.com",
+    error: "Email tidak valid",
+    defaultValue: "bukan-email",
   },
-}
+};
 
 export const Disabled: Story = {
   args: {
-    label: 'Bidang Nonaktif',
-    placeholder: 'Tidak dapat diubah',
+    label: "Bidang Nonaktif",
+    placeholder: "Tidak dapat diubah",
     disabled: true,
   },
-}
+};
 
 export const WithIcon: Story = {
   args: {
-    placeholder: 'Cari...',
+    placeholder: "Cari...",
     icon: <Search className="w-4 h-4" />,
   },
-}
+};
 
 export const EmailWithIcon: Story = {
   args: {
-    label: 'Alamat Email',
-    placeholder: 'contoh@email.com',
+    label: "Alamat Email",
+    placeholder: "contoh@email.com",
     icon: <Mail className="w-4 h-4" />,
-    type: 'email',
+    type: "email",
   },
-}
+};
 
 export const Small: Story = {
   args: {
-    inputSize: 'sm',
-    placeholder: 'Ukuran kecil',
+    inputSize: "sm",
+    placeholder: "Ukuran kecil",
   },
-}
+};
 
 export const Large: Story = {
   args: {
-    inputSize: 'lg',
-    placeholder: 'Ukuran besar',
+    inputSize: "lg",
+    placeholder: "Ukuran besar",
   },
-}
+};
 
 export const Password: Story = {
   args: {
-    label: 'Kata Sandi',
-    type: 'password',
-    placeholder: 'Masukkan kata sandi',
+    label: "Kata Sandi",
+    type: "password",
+    placeholder: "Masukkan kata sandi",
   },
-}
+};

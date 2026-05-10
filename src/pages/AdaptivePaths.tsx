@@ -1,16 +1,18 @@
-import { BookOpen, GitBranch } from 'lucide-react'
-import { useState } from 'react'
+import { BookOpen, GitBranch } from "lucide-react";
+import { useState } from "react";
 
-import { useAuth } from '@/contexts/AuthContext'
-import { PathRuleList } from '@/features/adaptive-paths/components/PathRuleList'
-import { useCourses } from '@/features/courses/queries/courseQueries'
-import { usePageTitle } from '@/hooks/usePageTitle'
+import { useAuth } from "@/contexts/AuthContext";
+import { PathRuleList } from "@/features/adaptive-paths/components/PathRuleList";
+import { useCourses } from "@/features/courses/queries/courseQueries";
+import { usePageTitle } from "@/hooks/usePageTitle";
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Course picker skeleton
 // ─────────────────────────────────────────────────────────────────────────────
 function CourseSkeleton() {
-  return <div className="h-10 w-full rounded-xl bg-slate-100 dark:bg-slate-800 animate-pulse" />
+  return (
+    <div className="h-10 w-full rounded-xl bg-slate-100 dark:bg-slate-800 animate-pulse" />
+  );
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -26,26 +28,27 @@ function NoCourseSelected() {
         Pilih kursus terlebih dahulu
       </p>
       <p className="text-xs text-slate-400 dark:text-slate-500 mt-1 max-w-xs">
-        Pilih kursus dari menu di atas untuk melihat dan mengelola aturan jalur adaptif.
+        Pilih kursus dari menu di atas untuk melihat dan mengelola aturan jalur
+        adaptif.
       </p>
     </div>
-  )
+  );
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Main page
 // ─────────────────────────────────────────────────────────────────────────────
 export function AdaptivePaths() {
-  usePageTitle('Jalur Adaptif')
-  const { tenantId } = useAuth()
-  const [selectedCourseId, setSelectedCourseId] = useState<string>('')
+  usePageTitle("Jalur Adaptif");
+  const { tenantId } = useAuth();
+  const [selectedCourseId, setSelectedCourseId] = useState<string>("");
 
-  const { data: coursesData, isLoading: isLoadingCourses } = useCourses()
+  const { data: coursesData, isLoading: isLoadingCourses } = useCourses();
 
-  const courses = coursesData?.courses ?? []
+  const courses = coursesData?.courses ?? [];
 
   const inputClass =
-    'w-full px-3 py-2.5 text-sm bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-slate-800 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-500/30 focus:border-indigo-400 dark:focus:border-indigo-500 transition-all'
+    "w-full px-3 py-2.5 text-sm bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-slate-800 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-500/30 focus:border-indigo-400 dark:focus:border-indigo-500 transition-all";
 
   return (
     <div className="p-4 sm:p-6 space-y-6">
@@ -62,7 +65,8 @@ export function AdaptivePaths() {
             </span>
           </h1>
           <p className="text-sm text-slate-500 dark:text-slate-400">
-            Konfigurasikan aturan pembelajaran adaptif berdasarkan performa siswa
+            Konfigurasikan aturan pembelajaran adaptif berdasarkan performa
+            siswa
           </p>
         </div>
       </div>
@@ -102,11 +106,15 @@ export function AdaptivePaths() {
       {/* Path rules section */}
       <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-5">
         {selectedCourseId && tenantId ? (
-          <PathRuleList courseId={selectedCourseId} tenantId={tenantId} lessons={[]} />
+          <PathRuleList
+            courseId={selectedCourseId}
+            tenantId={tenantId}
+            lessons={[]}
+          />
         ) : (
           <NoCourseSelected />
         )}
       </div>
     </div>
-  )
+  );
 }

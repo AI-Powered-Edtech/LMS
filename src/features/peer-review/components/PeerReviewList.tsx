@@ -1,40 +1,49 @@
-import { CheckCircle2, ChevronRight, ClipboardList, Clock, Users2 } from 'lucide-react'
-import { AnimatePresence, motion } from 'motion/react'
-import { useState } from 'react'
+import {
+  CheckCircle2,
+  ChevronRight,
+  ClipboardList,
+  Clock,
+  Users2,
+} from "lucide-react";
+import { AnimatePresence, motion } from "motion/react";
+import { useState } from "react";
 
-import { cn } from '@/utils/cn'
+import { cn } from "@/utils/cn";
 
-import { useMyPeerReviews } from '../queries/peerReviewQueries'
-import type { PeerReview } from '../types'
-import { PeerReviewForm } from './PeerReviewForm'
+import { useMyPeerReviews } from "../queries/peerReviewQueries";
+import type { PeerReview } from "../types";
+import { PeerReviewForm } from "./PeerReviewForm";
 
 interface PeerReviewListProps {
-  userId: string
-  tenantId: string
+  userId: string;
+  tenantId: string;
 }
 
 const STATUS_LABEL: Record<string, string> = {
-  assigned: 'Ditugaskan',
-  in_progress: 'Sedang Dikerjakan',
-  submitted: 'Sudah Dikirim',
-  disputed: 'Diperdebatkan',
-}
+  assigned: "Ditugaskan",
+  in_progress: "Sedang Dikerjakan",
+  submitted: "Sudah Dikirim",
+  disputed: "Diperdebatkan",
+};
 
 const STATUS_COLOR: Record<string, string> = {
-  assigned: 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900/40 dark:text-yellow-300',
-  in_progress: 'bg-blue-100 text-blue-700 dark:bg-blue-900/40 dark:text-blue-300',
-  submitted: 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-300',
-  disputed: 'bg-red-100 text-red-700 dark:bg-red-900/40 dark:text-red-300',
-}
+  assigned:
+    "bg-yellow-100 text-yellow-700 dark:bg-yellow-900/40 dark:text-yellow-300",
+  in_progress:
+    "bg-blue-100 text-blue-700 dark:bg-blue-900/40 dark:text-blue-300",
+  submitted:
+    "bg-emerald-100 text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-300",
+  disputed: "bg-red-100 text-red-700 dark:bg-red-900/40 dark:text-red-300",
+};
 
 function ReviewCard({
   review,
   index,
   onSelect,
 }: {
-  review: PeerReview
-  index: number
-  onSelect: (review: PeerReview) => void
+  review: PeerReview;
+  index: number;
+  onSelect: (review: PeerReview) => void;
 }) {
   return (
     <motion.div
@@ -50,56 +59,66 @@ function ReviewCard({
             <ClipboardList className="w-5 h-5 text-blue-600 dark:text-blue-400" />
           </div>
           <div>
-            <p className="text-sm font-bold text-slate-800 dark:text-white">Tugas Peer Review</p>
+            <p className="text-sm font-bold text-slate-800 dark:text-white">
+              Tugas Peer Review
+            </p>
             <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
-              ID Tugas: <span className="font-mono">{review.submission_id.slice(0, 8)}…</span>
+              ID Tugas:{" "}
+              <span className="font-mono">
+                {review.submission_id.slice(0, 8)}…
+              </span>
             </p>
           </div>
         </div>
         <div className="flex items-center gap-2 shrink-0">
           <span
             className={cn(
-              'inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-bold',
-              STATUS_COLOR[review.status] ?? STATUS_COLOR.assigned
+              "inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-bold",
+              STATUS_COLOR[review.status] ?? STATUS_COLOR.assigned,
             )}
           >
-            {review.status === 'submitted' ? (
+            {review.status === "submitted" ? (
               <CheckCircle2 className="w-3 h-3" />
             ) : (
               <Clock className="w-3 h-3" />
             )}
             {STATUS_LABEL[review.status] ?? review.status}
           </span>
-          {review.status !== 'submitted' && (
+          {review.status !== "submitted" && (
             <ChevronRight className="w-4 h-4 text-slate-400 group-hover:text-blue-500 transition-colors" />
           )}
         </div>
       </div>
 
-      {review.status === 'submitted' && review.overall_score !== null && (
+      {review.status === "submitted" && review.overall_score !== null && (
         <div className="mt-3 pt-3 border-t border-slate-100 dark:border-slate-700 flex items-center gap-2">
-          <span className="text-xs text-slate-500 dark:text-slate-400">Nilai yang diberikan:</span>
+          <span className="text-xs text-slate-500 dark:text-slate-400">
+            Nilai yang diberikan:
+          </span>
           <span className="text-sm font-bold text-emerald-600 dark:text-emerald-400">
             {review.overall_score}/100
           </span>
         </div>
       )}
     </motion.div>
-  )
+  );
 }
 
 export function PeerReviewList({ userId, tenantId }: PeerReviewListProps) {
-  const { data: reviews, isLoading } = useMyPeerReviews(userId, tenantId)
-  const [activeReview, setActiveReview] = useState<PeerReview | null>(null)
+  const { data: reviews, isLoading } = useMyPeerReviews(userId, tenantId);
+  const [activeReview, setActiveReview] = useState<PeerReview | null>(null);
 
   if (isLoading) {
     return (
       <div className="space-y-3">
         {[0, 1].map((i) => (
-          <div key={i} className="h-20 bg-slate-100 dark:bg-slate-800 rounded-2xl animate-pulse" />
+          <div
+            key={i}
+            className="h-20 bg-slate-100 dark:bg-slate-800 rounded-2xl animate-pulse"
+          />
         ))}
       </div>
-    )
+    );
   }
 
   if (!reviews || reviews.length === 0) {
@@ -115,7 +134,7 @@ export function PeerReviewList({ userId, tenantId }: PeerReviewListProps) {
           Tugas peer review akan muncul di sini ketika guru mengaktifkannya.
         </p>
       </div>
-    )
+    );
   }
 
   return (
@@ -144,11 +163,16 @@ export function PeerReviewList({ userId, tenantId }: PeerReviewListProps) {
             className="space-y-3"
           >
             {reviews.map((review, i) => (
-              <ReviewCard key={review.id} review={review} index={i} onSelect={setActiveReview} />
+              <ReviewCard
+                key={review.id}
+                review={review}
+                index={i}
+                onSelect={setActiveReview}
+              />
             ))}
           </motion.div>
         )}
       </AnimatePresence>
     </div>
-  )
+  );
 }

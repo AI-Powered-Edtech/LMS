@@ -1,13 +1,17 @@
-import { Navigate, Outlet, Route } from 'react-router-dom'
+import { Navigate, Outlet, Route } from "react-router-dom";
 
-import { RoleGuard } from '../../components/guards/RoleGuard'
+import { RoleGuard } from "../../components/guards/RoleGuard";
 import {
+  AcademicYears,
   AdaptivePathsPage,
   AdminAnalyticsDashboard,
   AdministrationDashboard,
+  AkmStimuli,
   AssignmentGradebook,
   AuditDashboard,
+  BankVa,
   BillingDashboard,
+  BosTracking,
   ClassManagement,
   CourseAnalytics,
   CourseBuilder,
@@ -17,41 +21,37 @@ import {
   FeatureFlagsPage,
   FinanceDashboard,
   Gradebook,
+  Integrations,
   LtiManagement,
   ModerationDashboard,
   NotFound,
+  P5Projects,
+  ParentLinks,
   PlagiarismDashboard,
   PPDBDashboard,
+  PpdbJalur,
+  PrincipalInsights,
   QuestionBankPage,
   QuizGradebook,
   QuizManager,
-  ReviewQueue,
-  ScanAttendance,
-  AcademicYears,
-  AkmStimuli,
-  BankVa,
-  BosTracking,
-  Integrations,
-  P5Projects,
-  ParentLinks,
-  PpdbJalur,
-  PrincipalInsights,
   Rapor,
   RaporPrint,
+  ReviewQueue,
   RombelManagement,
+  ScanAttendance,
   SemanticSearch,
   SemesterPage,
-  StaffDossier,
-  StudentDossier,
-  Subjects,
-  Timetable,
   SpeedGrader,
+  StaffDossier,
   StruggleDashboard,
+  StudentDossier,
   StudentProgress,
+  Subjects,
   SystemHealth,
+  Timetable,
   UserManagement,
-} from '../lazyPages'
-import { S } from './utils'
+} from "../lazyPages";
+import { S } from "./utils";
 
 /**
  * All /app/admin/* routes.
@@ -61,7 +61,7 @@ export function AdminRoutes() {
     <Route
       path="admin"
       element={
-        <RoleGuard allowedRoles={['admin']}>
+        <RoleGuard allowedRoles={["admin"]}>
           <Outlet />
         </RoleGuard>
       }
@@ -182,8 +182,14 @@ export function AdminRoutes() {
           </S>
         }
       />
-      <Route path="ai-quiz-gen" element={<Navigate to="/app/admin/creator" replace />} />
-      <Route path="ai-generator" element={<Navigate to="/app/admin/creator" replace />} />
+      <Route
+        path="ai-quiz-gen"
+        element={<Navigate to="/app/admin/creator" replace />}
+      />
+      <Route
+        path="ai-generator"
+        element={<Navigate to="/app/admin/creator" replace />}
+      />
       <Route
         path="courses"
         element={
@@ -473,5 +479,5 @@ export function AdminRoutes() {
         }
       />
     </Route>
-  )
+  );
 }

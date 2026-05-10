@@ -1,24 +1,34 @@
-import { BookOpen, CheckCircle, ChevronRight, Clock, Layers } from 'lucide-react'
-import { motion } from 'motion/react'
+import {
+  BookOpen,
+  CheckCircle,
+  ChevronRight,
+  Clock,
+  Layers,
+} from "lucide-react";
+import { motion } from "motion/react";
 
-import { cn } from '@/utils/cn'
+import { cn } from "@/utils/cn";
 
 export interface ModuleWithProgress {
-  id: string
-  title: string
-  order: number
-  lessonCount: number
-  completedLessons: number
-  durationMinutes: number
+  id: string;
+  title: string;
+  order: number;
+  lessonCount: number;
+  completedLessons: number;
+  durationMinutes: number;
 }
 
 interface ModuleListProps {
-  modules: ModuleWithProgress[]
-  onSelectModule: (moduleId: string) => void
-  nextIncompleteModuleId?: string
+  modules: ModuleWithProgress[];
+  onSelectModule: (moduleId: string) => void;
+  nextIncompleteModuleId?: string;
 }
 
-export function ModuleList({ modules, onSelectModule, nextIncompleteModuleId }: ModuleListProps) {
+export function ModuleList({
+  modules,
+  onSelectModule,
+  nextIncompleteModuleId,
+}: ModuleListProps) {
   return (
     <motion.div
       initial={{ opacity: 0, y: 12 }}
@@ -39,10 +49,13 @@ export function ModuleList({ modules, onSelectModule, nextIncompleteModuleId }: 
       ) : (
         <div className="space-y-3">
           {modules.map((mod, mi) => {
-            const isComplete = mod.lessonCount > 0 && mod.completedLessons >= mod.lessonCount
-            const isNext = mod.id === nextIncompleteModuleId
+            const isComplete =
+              mod.lessonCount > 0 && mod.completedLessons >= mod.lessonCount;
+            const isNext = mod.id === nextIncompleteModuleId;
             const percentage =
-              mod.lessonCount > 0 ? Math.round((mod.completedLessons / mod.lessonCount) * 100) : 0
+              mod.lessonCount > 0
+                ? Math.round((mod.completedLessons / mod.lessonCount) * 100)
+                : 0;
 
             return (
               <motion.button
@@ -54,12 +67,12 @@ export function ModuleList({ modules, onSelectModule, nextIncompleteModuleId }: 
                 whileTap={{ scale: 0.99 }}
                 onClick={() => onSelectModule(mod.id)}
                 className={cn(
-                  'w-full flex items-center gap-4 p-4 md:p-5 rounded-2xl border text-left transition-all duration-200 group',
+                  "w-full flex items-center gap-4 p-4 md:p-5 rounded-2xl border text-left transition-all duration-200 group",
                   isComplete
-                    ? 'bg-emerald-50/60 border-emerald-200/70 hover:bg-emerald-50'
+                    ? "bg-emerald-50/60 border-emerald-200/70 hover:bg-emerald-50"
                     : isNext
-                      ? 'bg-white border-blue-300 shadow-md shadow-blue-100/50 hover:shadow-lg hover:shadow-blue-100/60 ring-1 ring-blue-200/50'
-                      : 'bg-white border-slate-200/70 hover:border-slate-300 hover:shadow-md hover:shadow-slate-200/40'
+                      ? "bg-white border-blue-300 shadow-md shadow-blue-100/50 hover:shadow-lg hover:shadow-blue-100/60 ring-1 ring-blue-200/50"
+                      : "bg-white border-slate-200/70 hover:border-slate-300 hover:shadow-md hover:shadow-slate-200/40",
                 )}
               >
                 {/* Module number / check */}
@@ -70,10 +83,10 @@ export function ModuleList({ modules, onSelectModule, nextIncompleteModuleId }: 
                 ) : (
                   <div
                     className={cn(
-                      'w-10 h-10 rounded-xl flex items-center justify-center shrink-0 text-sm font-bold border shadow-sm transition-all',
+                      "w-10 h-10 rounded-xl flex items-center justify-center shrink-0 text-sm font-bold border shadow-sm transition-all",
                       isNext
-                        ? 'bg-blue-500 text-white border-blue-500 shadow-blue-500/20'
-                        : 'bg-white text-slate-500 border-slate-200 group-hover:bg-blue-500 group-hover:text-white group-hover:border-blue-500'
+                        ? "bg-blue-500 text-white border-blue-500 shadow-blue-500/20"
+                        : "bg-white text-slate-500 border-slate-200 group-hover:bg-blue-500 group-hover:text-white group-hover:border-blue-500",
                     )}
                   >
                     {mod.order}
@@ -91,12 +104,12 @@ export function ModuleList({ modules, onSelectModule, nextIncompleteModuleId }: 
                   </div>
                   <p
                     className={cn(
-                      'font-semibold truncate transition-colors text-sm md:text-base',
+                      "font-semibold truncate transition-colors text-sm md:text-base",
                       isComplete
-                        ? 'text-emerald-800'
+                        ? "text-emerald-800"
                         : isNext
-                          ? 'text-blue-800'
-                          : 'text-slate-700 group-hover:text-blue-700'
+                          ? "text-blue-800"
+                          : "text-slate-700 group-hover:text-blue-700",
                     )}
                   >
                     {mod.title}
@@ -133,19 +146,19 @@ export function ModuleList({ modules, onSelectModule, nextIncompleteModuleId }: 
                 {/* Chevron */}
                 <ChevronRight
                   className={cn(
-                    'w-5 h-5 shrink-0 transition-colors',
+                    "w-5 h-5 shrink-0 transition-colors",
                     isComplete
-                      ? 'text-emerald-400'
+                      ? "text-emerald-400"
                       : isNext
-                        ? 'text-blue-400'
-                        : 'text-slate-300 group-hover:text-blue-500'
+                        ? "text-blue-400"
+                        : "text-slate-300 group-hover:text-blue-500",
                   )}
                 />
               </motion.button>
-            )
+            );
           })}
         </div>
       )}
     </motion.div>
-  )
+  );
 }

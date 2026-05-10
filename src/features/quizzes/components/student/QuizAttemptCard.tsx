@@ -1,28 +1,28 @@
-import { CheckCircle, Clock, XCircle } from 'lucide-react'
+import { CheckCircle, Clock, XCircle } from "lucide-react";
 
-import type { QuizAttempt } from '@/features/quizzes'
-import { cn } from '@/utils/cn'
+import type { QuizAttempt } from "@/features/quizzes";
+import { cn } from "@/utils/cn";
 
 export function QuizAttemptCard({
   attempt,
   onReview,
 }: {
-  attempt: QuizAttempt
-  onReview: () => void
+  attempt: QuizAttempt;
+  onReview: () => void;
 }) {
-  const quizTitle = attempt.quizzes?.title || 'Kuis Tidak Diketahui'
-  const passed = attempt.passed
+  const quizTitle = attempt.quizzes?.title || "Kuis Tidak Diketahui";
+  const passed = attempt.passed;
   return (
     <div className="bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-sm p-5 flex flex-col md:flex-row md:items-center justify-between gap-4">
       <div className="flex items-center gap-4">
         <div
           className={cn(
-            'w-12 h-12 rounded-full flex items-center justify-center shrink-0',
+            "w-12 h-12 rounded-full flex items-center justify-center shrink-0",
             passed === true
-              ? 'bg-green-100 text-green-600'
+              ? "bg-green-100 text-green-600"
               : passed === false
-                ? 'bg-red-100 text-red-600'
-                : 'bg-amber-100 text-amber-600'
+                ? "bg-red-100 text-red-600"
+                : "bg-amber-100 text-amber-600",
           )}
         >
           {passed === true ? (
@@ -34,11 +34,13 @@ export function QuizAttemptCard({
           )}
         </div>
         <div>
-          <h4 className="font-bold text-slate-900 dark:text-white">{quizTitle}</h4>
+          <h4 className="font-bold text-slate-900 dark:text-white">
+            {quizTitle}
+          </h4>
           <p className="text-sm text-slate-500 dark:text-slate-400">
             {attempt.submitted_at
-              ? new Date(attempt.submitted_at).toLocaleDateString('id-ID')
-              : 'Menunggu penilaian'}
+              ? new Date(attempt.submitted_at).toLocaleDateString("id-ID")
+              : "Menunggu penilaian"}
           </p>
         </div>
       </div>
@@ -46,19 +48,23 @@ export function QuizAttemptCard({
         <div className="text-left md:text-right">
           <p
             className={cn(
-              'text-2xl font-black tracking-tight',
+              "text-2xl font-black tracking-tight",
               passed === true
-                ? 'text-green-600'
+                ? "text-green-600"
                 : passed === false
-                  ? 'text-red-600'
-                  : 'text-amber-600'
+                  ? "text-red-600"
+                  : "text-amber-600",
             )}
           >
-            {attempt.score ?? '-'}
-            {attempt.score !== null ? '%' : ''}
+            {attempt.score ?? "-"}
+            {attempt.score !== null ? "%" : ""}
           </p>
           <p className="text-xs font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider">
-            {passed === true ? 'Lulus' : passed === false ? 'Belum Lulus' : 'Menunggu'}
+            {passed === true
+              ? "Lulus"
+              : passed === false
+                ? "Belum Lulus"
+                : "Menunggu"}
           </p>
         </div>
         <button
@@ -69,5 +75,5 @@ export function QuizAttemptCard({
         </button>
       </div>
     </div>
-  )
+  );
 }

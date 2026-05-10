@@ -1,13 +1,13 @@
-import { Search } from 'lucide-react'
+import { Search } from "lucide-react";
 
-import { FORUM_CATEGORIES } from '@/features/discussions/utils/forumUtils'
-import { cn } from '@/utils/cn'
+import { FORUM_CATEGORIES } from "@/features/discussions/utils/forumUtils";
+import { cn } from "@/utils/cn";
 
 interface ForumSearchBarProps {
-  searchQuery: string
-  onSearchChange: (query: string) => void
-  selectedCategory: string
-  onCategoryChange: (category: string) => void
+  searchQuery: string;
+  onSearchChange: (query: string) => void;
+  selectedCategory: string;
+  onCategoryChange: (category: string) => void;
 }
 
 export function ForumSearchBar({
@@ -34,10 +34,10 @@ export function ForumSearchBar({
             key={cat}
             onClick={() => onCategoryChange(cat)}
             className={cn(
-              'px-4 py-2.5 rounded-xl font-bold text-sm whitespace-nowrap transition-all',
+              "px-4 py-2.5 rounded-xl font-bold text-sm whitespace-nowrap transition-all",
               selectedCategory === cat
-                ? 'bg-slate-800 text-white shadow-md dark:bg-slate-200 dark:text-slate-900'
-                : 'bg-white text-slate-600 border border-slate-200 hover:bg-slate-50 dark:bg-slate-800 dark:text-slate-300 dark:border-slate-700 dark:hover:bg-slate-700'
+                ? "bg-slate-800 text-white shadow-md dark:bg-slate-200 dark:text-slate-900"
+                : "bg-white text-slate-600 border border-slate-200 hover:bg-slate-50 dark:bg-slate-800 dark:text-slate-300 dark:border-slate-700 dark:hover:bg-slate-700",
             )}
           >
             {cat}
@@ -45,5 +45,5 @@ export function ForumSearchBar({
         ))}
       </div>
     </div>
-  )
+  );
 }

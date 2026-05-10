@@ -1,4 +1,4 @@
-import { xapiService } from '../api/xapiService'
+import { xapiService } from "../api/xapiService";
 
 /**
  * Convenience builders for common EduSync xAPI statements.
@@ -19,14 +19,14 @@ export const xapi = {
     lessonId: string,
     courseId: string,
     moduleId: string,
-    duration: number
+    duration: number,
   ): Promise<string | null> =>
     xapiService.recordStatement(
-      'completed',
-      'lesson',
+      "completed",
+      "lesson",
       lessonId,
       { completion: true, duration },
-      { course_id: courseId, module_id: moduleId, platform: 'edusync' }
+      { course_id: courseId, module_id: moduleId, platform: "edusync" },
     ),
 
   /**
@@ -35,13 +35,17 @@ export const xapi = {
    * @param score  - Numeric score 0–100
    * @param passed - Whether the student passed the pass threshold
    */
-  quizAttempted: (quizId: string, score: number, passed: boolean): Promise<string | null> =>
+  quizAttempted: (
+    quizId: string,
+    score: number,
+    passed: boolean,
+  ): Promise<string | null> =>
     xapiService.recordStatement(
-      'attempted',
-      'quiz',
+      "attempted",
+      "quiz",
       quizId,
       { score, success: passed, completion: true },
-      { platform: 'edusync' }
+      { platform: "edusync" },
     ),
 
   /**
@@ -51,11 +55,11 @@ export const xapi = {
    */
   quizPassed: (quizId: string, score: number): Promise<string | null> =>
     xapiService.recordStatement(
-      'passed',
-      'quiz',
+      "passed",
+      "quiz",
       quizId,
       { score, success: true },
-      { platform: 'edusync' }
+      { platform: "edusync" },
     ),
 
   /**
@@ -64,11 +68,11 @@ export const xapi = {
    */
   assignmentSubmitted: (assignmentId: string): Promise<string | null> =>
     xapiService.recordStatement(
-      'submitted',
-      'assignment',
+      "submitted",
+      "assignment",
       assignmentId,
       { completion: true },
-      { platform: 'edusync' }
+      { platform: "edusync" },
     ),
 
   /**
@@ -76,5 +80,11 @@ export const xapi = {
    * @param courseId - UUID of the course
    */
   courseExperienced: (courseId: string): Promise<string | null> =>
-    xapiService.recordStatement('experienced', 'course', courseId, {}, { platform: 'edusync' }),
-}
+    xapiService.recordStatement(
+      "experienced",
+      "course",
+      courseId,
+      {},
+      { platform: "edusync" },
+    ),
+};

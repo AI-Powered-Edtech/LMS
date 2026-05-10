@@ -1,10 +1,17 @@
-import { Check, Copy, Download, Link as LinkIcon, QrCode, X } from 'lucide-react'
-import { useState } from 'react'
+import {
+  Check,
+  Copy,
+  Download,
+  Link as LinkIcon,
+  QrCode,
+  X,
+} from "lucide-react";
+import { useState } from "react";
 
 interface QRCodeGeneratorProps {
-  joinCode: string
-  className?: string
-  onClose?: () => void
+  joinCode: string;
+  className?: string;
+  onClose?: () => void;
 }
 
 /**
@@ -18,60 +25,64 @@ interface QRCodeGeneratorProps {
  * - Copy join link
  * - Print-friendly (white background, high contrast)
  */
-export function QRCodeGenerator({ joinCode, className = '', onClose }: QRCodeGeneratorProps) {
-  const [copiedLink, setCopiedLink] = useState(false)
-  const [copiedCode, setCopiedCode] = useState(false)
+export function QRCodeGenerator({
+  joinCode,
+  className = "",
+  onClose,
+}: QRCodeGeneratorProps) {
+  const [copiedLink, setCopiedLink] = useState(false);
+  const [copiedCode, setCopiedCode] = useState(false);
 
-  const joinUrl = `${window.location.origin}/join?code=${encodeURIComponent(joinCode)}`
-  const qrApiUrl = `https://chart.googleapis.com/chart?cht=qr&chs=300x300&chld=M|1&chl=${encodeURIComponent(joinUrl)}`
+  const joinUrl = `${window.location.origin}/join?code=${encodeURIComponent(joinCode)}`;
+  const qrApiUrl = `https://chart.googleapis.com/chart?cht=qr&chs=300x300&chld=M|1&chl=${encodeURIComponent(joinUrl)}`;
 
   const handleCopyLink = async () => {
     try {
-      await navigator.clipboard.writeText(joinUrl)
-      setCopiedLink(true)
-      setTimeout(() => setCopiedLink(false), 2000)
+      await navigator.clipboard.writeText(joinUrl);
+      setCopiedLink(true);
+      setTimeout(() => setCopiedLink(false), 2000);
     } catch {
       // fallback
-      const el = document.createElement('textarea')
-      el.value = joinUrl
-      document.body.appendChild(el)
-      el.select()
-      document.execCommand('copy')
-      document.body.removeChild(el)
-      setCopiedLink(true)
-      setTimeout(() => setCopiedLink(false), 2000)
+      const el = document.createElement("textarea");
+      el.value = joinUrl;
+      document.body.appendChild(el);
+      el.select();
+      document.execCommand("copy");
+      document.body.removeChild(el);
+      setCopiedLink(true);
+      setTimeout(() => setCopiedLink(false), 2000);
     }
-  }
+  };
 
   const handleCopyCode = async () => {
     try {
-      await navigator.clipboard.writeText(joinCode)
-      setCopiedCode(true)
-      setTimeout(() => setCopiedCode(false), 2000)
+      await navigator.clipboard.writeText(joinCode);
+      setCopiedCode(true);
+      setTimeout(() => setCopiedCode(false), 2000);
     } catch {
-      setCopiedCode(true)
-      setTimeout(() => setCopiedCode(false), 2000)
+      setCopiedCode(true);
+      setTimeout(() => setCopiedCode(false), 2000);
     }
-  }
+  };
 
   const handleDownload = async () => {
     try {
       // Fetch the QR image and download as PNG
-      const response = await fetch(qrApiUrl)
-      const blob = await response.blob()
-      const blobUrl = URL.createObjectURL(blob)
-      const a = document.createElement('a')
-      a.href = blobUrl
-      a.download = `kode-kelas-${joinCode}.png`
-      document.body.appendChild(a)
-      a.click()
-      document.body.removeChild(a)
-      URL.revokeObjectURL(blobUrl)
+      const response = await fetch(qrApiUrl);
+      const blob = await response.blob();
+      const blobUrl = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = blobUrl;
+      a.download = `kode-kelas-${joinCode}.png`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(blobUrl);
     } catch {
       // fallback: open in new tab
-      window.open(qrApiUrl, '_blank')
+      window.open(qrApiUrl, "_blank");
     }
-  }
+  };
 
   return (
     <div
@@ -137,7 +148,7 @@ export function QRCodeGenerator({ joinCode, className = '', onClose }: QRCodeGen
             ) : (
               <LinkIcon className="w-3.5 h-3.5" />
             )}
-            {copiedLink ? 'Link Tersalin!' : 'Salin Link'}
+            {copiedLink ? "Link Tersalin!" : "Salin Link"}
           </button>
           <button
             onClick={handleCopyCode}
@@ -148,7 +159,7 @@ export function QRCodeGenerator({ joinCode, className = '', onClose }: QRCodeGen
             ) : (
               <Copy className="w-3.5 h-3.5" />
             )}
-            {copiedCode ? 'Kode Tersalin!' : 'Salin Kode'}
+            {copiedCode ? "Kode Tersalin!" : "Salin Kode"}
           </button>
         </div>
         <button
@@ -160,5 +171,5 @@ export function QRCodeGenerator({ joinCode, className = '', onClose }: QRCodeGen
         </button>
       </div>
     </div>
-  )
+  );
 }

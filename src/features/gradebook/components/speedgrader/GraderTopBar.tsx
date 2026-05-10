@@ -1,15 +1,15 @@
-import { ArrowLeft, ChevronLeft, ChevronRight, FileText } from 'lucide-react'
-import { Link } from 'react-router-dom'
+import { ArrowLeft, ChevronLeft, ChevronRight, FileText } from "lucide-react";
+import { Link } from "react-router-dom";
 
-import type { SpeedGraderStudent } from './types'
+import type { SpeedGraderStudent } from "./types";
 
 interface GraderTopBarProps {
-  students: SpeedGraderStudent[]
-  currentStudentIdx: number
-  isLoading: boolean
-  onStudentChange: (idx: number) => void
-  onPrev: () => void
-  onNext: () => void
+  students: SpeedGraderStudent[];
+  currentStudentIdx: number;
+  isLoading: boolean;
+  onStudentChange: (idx: number) => void;
+  onPrev: () => void;
+  onNext: () => void;
 }
 
 export function GraderTopBar({
@@ -37,7 +37,9 @@ export function GraderTopBar({
           <h1 className="font-bold text-slate-800 dark:text-white text-sm md:text-base">
             Speed Grader
           </h1>
-          <p className="text-xs text-slate-500 dark:text-slate-400 font-medium">Penilaian Cepat</p>
+          <p className="text-xs text-slate-500 dark:text-slate-400 font-medium">
+            Penilaian Cepat
+          </p>
         </div>
       </div>
 
@@ -76,5 +78,5 @@ export function GraderTopBar({
         </div>
       </div>
     </div>
-  )
+  );
 }

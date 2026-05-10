@@ -1,4 +1,4 @@
-import { AlertTriangle } from 'lucide-react'
+import { AlertTriangle } from "lucide-react";
 
 // ---------------------------------------------------------------------------
 // ConflictResolutionDialog — Dialog konflik versi offline vs server
@@ -8,30 +8,30 @@ import { AlertTriangle } from 'lucide-react'
 // yang akan dipertahankan.
 
 export interface ConflictResolutionDialogProps {
-  isOpen: boolean
+  isOpen: boolean;
   /** Waktu draft lokal terakhir disimpan (ISO timestamp atau epoch ms sebagai string) */
-  localUpdatedAt: string
+  localUpdatedAt: string;
   /** Waktu kursus di server terakhir diperbarui (ISO timestamp) */
-  serverUpdatedAt: string
+  serverUpdatedAt: string;
   /** Pengguna memilih mempertahankan draft lokal dan mendorong ke server */
-  onUseLocal: () => void
+  onUseLocal: () => void;
   /** Pengguna memilih membuang draft lokal dan memakai versi server */
-  onUseServer: () => void
-  onClose: () => void
+  onUseServer: () => void;
+  onClose: () => void;
 }
 
 function formatTimestamp(ts: string): string {
   try {
-    const d = new Date(isNaN(Number(ts)) ? ts : Number(ts))
-    return d.toLocaleString('id-ID', {
-      day: '2-digit',
-      month: 'short',
-      year: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit',
-    })
+    const d = new Date(isNaN(Number(ts)) ? ts : Number(ts));
+    return d.toLocaleString("id-ID", {
+      day: "2-digit",
+      month: "short",
+      year: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
+    });
   } catch {
-    return ts
+    return ts;
   }
 }
 
@@ -43,7 +43,7 @@ export function ConflictResolutionDialog({
   onUseServer,
   onClose,
 }: ConflictResolutionDialogProps) {
-  if (!isOpen) return null
+  if (!isOpen) return null;
 
   return (
     <div
@@ -62,7 +62,10 @@ export function ConflictResolutionDialog({
             />
           </div>
           <div>
-            <h2 id="conflict-dialog-title" className="font-semibold text-gray-900 dark:text-white">
+            <h2
+              id="conflict-dialog-title"
+              className="font-semibold text-gray-900 dark:text-white"
+            >
               Konflik Perubahan Terdeteksi
             </h2>
             <p className="mt-0.5 text-sm text-gray-500 dark:text-gray-400">
@@ -82,7 +85,9 @@ export function ConflictResolutionDialog({
             </p>
           </div>
           <div className="rounded-lg bg-green-50 p-3 dark:bg-green-900/30">
-            <p className="text-sm font-medium text-green-900 dark:text-green-100">Versi Server</p>
+            <p className="text-sm font-medium text-green-900 dark:text-green-100">
+              Versi Server
+            </p>
             <p className="mt-0.5 text-xs text-green-600 dark:text-green-300">
               Diperbarui: {formatTimestamp(serverUpdatedAt)}
             </p>
@@ -91,8 +96,12 @@ export function ConflictResolutionDialog({
 
         {/* Body */}
         <p className="px-6 pt-4 text-sm text-gray-600 dark:text-gray-300">
-          Versi mana yang ingin Anda pertahankan? Perubahan yang tidak dipilih akan{' '}
-          <span className="font-medium text-red-600 dark:text-red-400">hilang permanen</span>.
+          Versi mana yang ingin Anda pertahankan? Perubahan yang tidak dipilih
+          akan{" "}
+          <span className="font-medium text-red-600 dark:text-red-400">
+            hilang permanen
+          </span>
+          .
         </p>
 
         {/* Actions */}
@@ -125,5 +134,5 @@ export function ConflictResolutionDialog({
         </div>
       </div>
     </div>
-  )
+  );
 }

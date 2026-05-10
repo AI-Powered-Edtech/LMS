@@ -1,13 +1,13 @@
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
-import { GC, STALE } from '@/utils/queryConstants'
-import { captureError } from '@/utils/sentry'
+import { GC, STALE } from "@/utils/queryConstants";
+import { captureError } from "@/utils/sentry";
 
-import { recommendationService } from '../api/recommendationService'
+import { recommendationService } from "../api/recommendationService";
 
 const RECOMMENDATION_KEYS = {
-  user: (userId: string) => ['recommendations', userId] as const,
-}
+  user: (userId: string) => ["recommendations", userId] as const,
+};
 
 export function useRecommendations(userId: string, limit = 5) {
   return useQuery({
@@ -16,19 +16,24 @@ export function useRecommendations(userId: string, limit = 5) {
     enabled: !!userId,
     staleTime: STALE.STATIC,
     gcTime: GC.LONG,
-  })
+  });
 }
 
 export function useRecordRecommendationAction() {
-  const qc = useQueryClient()
+  const qc = useQueryClient();
   return useMutation({
-    mutationFn: ({ id, action }: { id: string; action: 'accepted' | 'dismissed' }) =>
-      recommendationService.recordAction(id, action),
+    mutationFn: ({
+      id,
+      action,
+    }: {
+      id: string;
+      action: "accepted" | "dismissed";
+    }) => recommendationService.recordAction(id, action),
     onSuccess: () => {
-      void qc.invalidateQueries({ queryKey: ['recommendations'] })
+      void qc.invalidateQueries({ queryKey: ["recommendations"] });
     },
     onError: (err) => {
-      captureError(err, { context: 'useRecordRecommendationAction' })
+      captureError(err, { context: "useRecordRecommendationAction" });
     },
-  })
+  });
 }

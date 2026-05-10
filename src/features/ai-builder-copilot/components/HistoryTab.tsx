@@ -1,102 +1,120 @@
-import { BookOpen, FileText, LayoutList, Loader2, RefreshCw, Sparkles, XCircle } from 'lucide-react'
+import {
+  BookOpen,
+  FileText,
+  LayoutList,
+  Loader2,
+  RefreshCw,
+  Sparkles,
+  XCircle,
+} from "lucide-react";
 
-import { useBuilder } from '@/contexts/BuilderContext'
-import { useToast } from '@/hooks/useToast'
+import { useBuilder } from "@/contexts/BuilderContext";
+import { useToast } from "@/hooks/useToast";
 
-import { useArtifactHistory, useDismissArtifact } from '../queries/aiBuilderCopilotQueries'
-import { useBuilderAICopilotStore } from '../store/builderAICopilot.store'
-import type { AIBuilderArtifact, ArtifactKind, CopilotTab } from '../types'
-import { ARTIFACT_KIND_LABELS } from '../types'
-import { ArtifactStatusBadge } from './shared/ArtifactStatusBadge'
+import {
+  useArtifactHistory,
+  useDismissArtifact,
+} from "../queries/aiBuilderCopilotQueries";
+import { useBuilderAICopilotStore } from "../store/builderAICopilot.store";
+import type { AIBuilderArtifact, ArtifactKind, CopilotTab } from "../types";
+import { ARTIFACT_KIND_LABELS } from "../types";
+import { ArtifactStatusBadge } from "./shared/ArtifactStatusBadge";
 
 const KIND_ICONS: Record<ArtifactKind, typeof Sparkles> = {
   outline: LayoutList,
   lesson_draft: FileText,
   assessment: BookOpen,
   transform: RefreshCw,
-}
+};
 
 const KIND_TO_TAB: Record<ArtifactKind, CopilotTab> = {
-  outline: 'outline',
-  lesson_draft: 'lesson_draft',
-  assessment: 'assessment',
-  transform: 'improve',
-}
+  outline: "outline",
+  lesson_draft: "lesson_draft",
+  assessment: "assessment",
+  transform: "improve",
+};
 
 function formatDate(iso: string): string {
-  const d = new Date(iso)
-  return d.toLocaleDateString('id-ID', {
-    day: 'numeric',
-    month: 'short',
-    hour: '2-digit',
-    minute: '2-digit',
-  })
+  const d = new Date(iso);
+  return d.toLocaleDateString("id-ID", {
+    day: "numeric",
+    month: "short",
+    hour: "2-digit",
+    minute: "2-digit",
+  });
 }
 
 export function HistoryTab() {
-  const { state, actions } = useBuilder()
-  const addToast = useToast((s) => s.addToast)
-  const setActiveTab = useBuilderAICopilotStore((s) => s.setActiveTab)
-  const setHydratedArtifact = useBuilderAICopilotStore((s) => s.setHydratedArtifact)
+  const { state, actions } = useBuilder();
+  const addToast = useToast((s) => s.addToast);
+  const setActiveTab = useBuilderAICopilotStore((s) => s.setActiveTab);
+  const setHydratedArtifact = useBuilderAICopilotStore(
+    (s) => s.setHydratedArtifact,
+  );
 
-  const { data, isLoading, fetchNextPage, hasNextPage, isFetchingNextPage } = useArtifactHistory(
-    state.courseId
-  )
-  const dismissMutation = useDismissArtifact()
+  const { data, isLoading, fetchNextPage, hasNextPage, isFetchingNextPage } =
+    useArtifactHistory(state.courseId);
+  const dismissMutation = useDismissArtifact();
 
   const artifacts =
     (data?.pages as unknown as Array<{ items: AIBuilderArtifact[] }>)?.flatMap(
-      (page) => page.items
-    ) ?? []
+      (page) => page.items,
+    ) ?? [];
 
   const handleDismiss = async (artifact: AIBuilderArtifact) => {
-    if (!state.courseId) return
+    if (!state.courseId) return;
     try {
-      await dismissMutation.mutateAsync({ artifactId: artifact.id, courseId: state.courseId })
-      addToast({ type: 'success', message: 'Artefak diabaikan.' })
+      await dismissMutation.mutateAsync({
+        artifactId: artifact.id,
+        courseId: state.courseId,
+      });
+      addToast({ type: "success", message: "Artefak diabaikan." });
     } catch {
-      addToast({ type: 'error', message: 'Gagal mengabaikan artefak.' })
+      addToast({ type: "error", message: "Gagal mengabaikan artefak." });
     }
-  }
+  };
 
   const handleReload = async (artifact: AIBuilderArtifact) => {
-    const tab = KIND_TO_TAB[artifact.artifact_kind]
+    const tab = KIND_TO_TAB[artifact.artifact_kind];
     const promptContext =
-      artifact.prompt_config && typeof artifact.prompt_config === 'object'
-        ? (artifact.prompt_config.context as { lesson_id?: string; block_id?: string } | undefined)
-        : undefined
+      artifact.prompt_config && typeof artifact.prompt_config === "object"
+        ? (artifact.prompt_config.context as
+            | { lesson_id?: string; block_id?: string }
+            | undefined)
+        : undefined;
 
     try {
-      if (artifact.target_type === 'lesson' && artifact.target_id) {
-        await actions.selectLesson(artifact.target_id)
+      if (artifact.target_type === "lesson" && artifact.target_id) {
+        await actions.selectLesson(artifact.target_id);
       }
 
-      if (artifact.target_type === 'block') {
-        const lessonId = promptContext?.lesson_id
+      if (artifact.target_type === "block") {
+        const lessonId = promptContext?.lesson_id;
         if (lessonId) {
-          await actions.selectLesson(lessonId)
+          await actions.selectLesson(lessonId);
         }
         if (artifact.target_id) {
-          actions.selectBlock(artifact.target_id)
+          actions.selectBlock(artifact.target_id);
         }
       }
 
-      setHydratedArtifact(artifact)
-      setActiveTab(tab)
+      setHydratedArtifact(artifact);
+      setActiveTab(tab);
     } catch (err) {
       addToast({
-        type: 'error',
-        message: err instanceof Error ? err.message : 'Gagal memuat ulang artefak.',
-      })
+        type: "error",
+        message:
+          err instanceof Error ? err.message : "Gagal memuat ulang artefak.",
+      });
     }
-  }
+  };
 
   if (isLoading) {
     return (
       <div className="flex items-center justify-center py-12">
         <Loader2 className="w-6 h-6 text-indigo-500 animate-spin" />
       </div>
-    )
+    );
   }
 
   if (!artifacts || artifacts.length === 0) {
@@ -112,15 +130,15 @@ export function HistoryTab() {
           Hasilkan konten dari tab lain untuk melihat riwayat di sini.
         </p>
       </div>
-    )
+    );
   }
 
   return (
     <div className="flex-1 flex flex-col">
       <div className="flex-1 overflow-y-auto p-4 space-y-2">
         {artifacts.map((artifact) => {
-          const kind = artifact.artifact_kind as ArtifactKind
-          const Icon = KIND_ICONS[kind]
+          const kind = artifact.artifact_kind as ArtifactKind;
+          const Icon = KIND_ICONS[kind];
           return (
             <div
               key={artifact.id}
@@ -150,7 +168,7 @@ export function HistoryTab() {
                 >
                   Muat Ulang
                 </button>
-                {artifact.status === 'generated' && (
+                {artifact.status === "generated" && (
                   <button
                     onClick={() => handleDismiss(artifact)}
                     disabled={dismissMutation.isPending}
@@ -162,7 +180,7 @@ export function HistoryTab() {
                 )}
               </div>
             </div>
-          )
+          );
         })}
 
         {hasNextPage && (
@@ -177,11 +195,11 @@ export function HistoryTab() {
                 Memuat...
               </>
             ) : (
-              'Muat lebih banyak'
+              "Muat lebih banyak"
             )}
           </button>
         )}
       </div>
     </div>
-  )
+  );
 }

@@ -1,58 +1,69 @@
-import { Loader2, Save, X } from 'lucide-react'
-import { useState } from 'react'
+import { Loader2, Save, X } from "lucide-react";
+import { useState } from "react";
 
-import type { GuideSegment, GuideTrigger, GuideType, LearningGuide } from '@/features/guidance'
-import { useUpsertGuide } from '@/features/guidance'
-import { cn } from '@/utils/cn'
+import type {
+  GuideSegment,
+  GuideTrigger,
+  GuideType,
+  LearningGuide,
+} from "@/features/guidance";
+import { useUpsertGuide } from "@/features/guidance";
+import { cn } from "@/utils/cn";
 
 interface Props {
-  courseId: string
-  guide?: LearningGuide | null
-  defaultTargetId?: string
-  onClose: () => void
+  courseId: string;
+  guide?: LearningGuide | null;
+  defaultTargetId?: string;
+  onClose: () => void;
 }
 
 const GUIDE_TYPES: { value: GuideType; label: string }[] = [
-  { value: 'banner', label: 'Spanduk' },
-  { value: 'tooltip', label: 'Keterangan' },
-  { value: 'walkthrough', label: 'Panduan Langkah' },
-  { value: 'checkpoint', label: 'Pos Pemeriksaan' },
-]
+  { value: "banner", label: "Spanduk" },
+  { value: "tooltip", label: "Keterangan" },
+  { value: "walkthrough", label: "Panduan Langkah" },
+  { value: "checkpoint", label: "Pos Pemeriksaan" },
+];
 
 const SEGMENTS: { value: GuideSegment; label: string }[] = [
-  { value: 'all', label: 'Semua Siswa' },
-  { value: 'at_risk', label: 'Berisiko' },
-  { value: 'low', label: 'Keterlibatan Rendah' },
-  { value: 'medium', label: 'Keterlibatan Sedang' },
-  { value: 'high', label: 'Keterlibatan Tinggi' },
-  { value: 'struggling', label: 'Kesulitan' },
-]
+  { value: "all", label: "Semua Siswa" },
+  { value: "at_risk", label: "Berisiko" },
+  { value: "low", label: "Keterlibatan Rendah" },
+  { value: "medium", label: "Keterlibatan Sedang" },
+  { value: "high", label: "Keterlibatan Tinggi" },
+  { value: "struggling", label: "Kesulitan" },
+];
 
 const TRIGGERS: { value: GuideTrigger; label: string; hasValue: boolean }[] = [
-  { value: 'on_enter', label: 'Saat memasuki pelajaran', hasValue: false },
-  { value: 'after_seconds', label: 'Setelah X detik', hasValue: true },
-  { value: 'on_struggle', label: 'Saat terdeteksi kesulitan', hasValue: false },
-  { value: 'on_idle', label: 'Saat diam X detik', hasValue: true },
-]
+  { value: "on_enter", label: "Saat memasuki pelajaran", hasValue: false },
+  { value: "after_seconds", label: "Setelah X detik", hasValue: true },
+  { value: "on_struggle", label: "Saat terdeteksi kesulitan", hasValue: false },
+  { value: "on_idle", label: "Saat diam X detik", hasValue: true },
+];
 
 export function GuideBuilder({ guide, defaultTargetId, onClose }: Props) {
-  const { mutate: upsertGuide, isPending } = useUpsertGuide()
+  const { mutate: upsertGuide, isPending } = useUpsertGuide();
 
-  const [title, setTitle] = useState(guide?.title ?? '')
-  const [content, setContent] = useState(guide?.content ?? '')
-  const [guideType, setGuideType] = useState<GuideType>(guide?.guide_type ?? 'banner')
-  const [targetId, setTargetId] = useState(guide?.target_id ?? defaultTargetId ?? '')
-  const [segment, setSegment] = useState<GuideSegment>(guide?.segment ?? 'all')
-  const [triggerType, setTriggerType] = useState<GuideTrigger>(guide?.trigger_type ?? 'on_enter')
-  const [triggerValue, setTriggerValue] = useState(guide?.trigger_value ?? 30)
-  const [priority, setPriority] = useState(guide?.priority ?? 0)
-  const [isActive, setIsActive] = useState(guide?.is_active ?? true)
+  const [title, setTitle] = useState(guide?.title ?? "");
+  const [content, setContent] = useState(guide?.content ?? "");
+  const [guideType, setGuideType] = useState<GuideType>(
+    guide?.guide_type ?? "banner",
+  );
+  const [targetId, setTargetId] = useState(
+    guide?.target_id ?? defaultTargetId ?? "",
+  );
+  const [segment, setSegment] = useState<GuideSegment>(guide?.segment ?? "all");
+  const [triggerType, setTriggerType] = useState<GuideTrigger>(
+    guide?.trigger_type ?? "on_enter",
+  );
+  const [triggerValue, setTriggerValue] = useState(guide?.trigger_value ?? 30);
+  const [priority, setPriority] = useState(guide?.priority ?? 0);
+  const [isActive, setIsActive] = useState(guide?.is_active ?? true);
 
-  const selectedTrigger = TRIGGERS.find((t) => t.value === triggerType)
+  const selectedTrigger = TRIGGERS.find((t) => t.value === triggerType);
 
   const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault()
-    if (!title.trim() || !content.trim() || !targetId.trim()) return
+    e.preventDefault();
+    if (!title.trim() || !content.trim() || !targetId.trim()) return;
 
     upsertGuide(
       {
@@ -60,7 +71,7 @@ export function GuideBuilder({ guide, defaultTargetId, onClose }: Props) {
         title: title.trim(),
         content: content.trim(),
         guide_type: guideType,
-        target_type: 'lesson',
+        target_type: "lesson",
         target_id: targetId.trim(),
         segment,
         trigger_type: triggerType,
@@ -68,9 +79,9 @@ export function GuideBuilder({ guide, defaultTargetId, onClose }: Props) {
         priority,
         is_active: isActive,
       },
-      { onSuccess: onClose }
-    )
-  }
+      { onSuccess: onClose },
+    );
+  };
 
   return (
     <form
@@ -79,7 +90,7 @@ export function GuideBuilder({ guide, defaultTargetId, onClose }: Props) {
     >
       <div className="mb-4 flex items-center justify-between">
         <h3 className="text-sm font-semibold text-slate-800 dark:text-white">
-          {guide ? 'Edit Panduan' : 'Panduan Baru'}
+          {guide ? "Edit Panduan" : "Panduan Baru"}
         </h3>
         <button
           type="button"
@@ -102,10 +113,10 @@ export function GuideBuilder({ guide, defaultTargetId, onClose }: Props) {
             placeholder="Contoh: Tips mengerjakan quiz"
             required
             className={cn(
-              'w-full rounded-lg border px-3 py-2 text-sm',
-              'border-slate-200 bg-white text-slate-800',
-              'dark:border-slate-700 dark:bg-slate-800 dark:text-white',
-              'focus:border-teal-400 focus:outline-none focus:ring-1 focus:ring-teal-400'
+              "w-full rounded-lg border px-3 py-2 text-sm",
+              "border-slate-200 bg-white text-slate-800",
+              "dark:border-slate-700 dark:bg-slate-800 dark:text-white",
+              "focus:border-teal-400 focus:outline-none focus:ring-1 focus:ring-teal-400",
             )}
           />
         </div>
@@ -113,9 +124,11 @@ export function GuideBuilder({ guide, defaultTargetId, onClose }: Props) {
         {/* Content */}
         <div className="sm:col-span-2">
           <label className="mb-1 block text-xs font-medium text-slate-600 dark:text-slate-400">
-            Isi Panduan *{' '}
-            {guideType === 'walkthrough' && (
-              <span className="text-slate-400">(pisahkan langkah dengan "---")</span>
+            Isi Panduan *{" "}
+            {guideType === "walkthrough" && (
+              <span className="text-slate-400">
+                (pisahkan langkah dengan "---")
+              </span>
             )}
           </label>
           <textarea
@@ -125,10 +138,10 @@ export function GuideBuilder({ guide, defaultTargetId, onClose }: Props) {
             rows={3}
             placeholder="Tulis panduan di sini..."
             className={cn(
-              'w-full resize-y rounded-lg border px-3 py-2 text-sm',
-              'border-slate-200 bg-white text-slate-800',
-              'dark:border-slate-700 dark:bg-slate-800 dark:text-white',
-              'focus:border-teal-400 focus:outline-none focus:ring-1 focus:ring-teal-400'
+              "w-full resize-y rounded-lg border px-3 py-2 text-sm",
+              "border-slate-200 bg-white text-slate-800",
+              "dark:border-slate-700 dark:bg-slate-800 dark:text-white",
+              "focus:border-teal-400 focus:outline-none focus:ring-1 focus:ring-teal-400",
             )}
           />
         </div>
@@ -144,10 +157,10 @@ export function GuideBuilder({ guide, defaultTargetId, onClose }: Props) {
             placeholder="UUID pelajaran"
             required
             className={cn(
-              'w-full rounded-lg border px-3 py-2 text-sm font-mono',
-              'border-slate-200 bg-white text-slate-800',
-              'dark:border-slate-700 dark:bg-slate-800 dark:text-white',
-              'focus:border-teal-400 focus:outline-none focus:ring-1 focus:ring-teal-400'
+              "w-full rounded-lg border px-3 py-2 text-sm font-mono",
+              "border-slate-200 bg-white text-slate-800",
+              "dark:border-slate-700 dark:bg-slate-800 dark:text-white",
+              "focus:border-teal-400 focus:outline-none focus:ring-1 focus:ring-teal-400",
             )}
           />
         </div>
@@ -161,10 +174,10 @@ export function GuideBuilder({ guide, defaultTargetId, onClose }: Props) {
             value={guideType}
             onChange={(e) => setGuideType(e.target.value as GuideType)}
             className={cn(
-              'w-full rounded-lg border px-3 py-2 text-sm',
-              'border-slate-200 bg-white text-slate-800',
-              'dark:border-slate-700 dark:bg-slate-800 dark:text-white',
-              'focus:border-teal-400 focus:outline-none focus:ring-1 focus:ring-teal-400'
+              "w-full rounded-lg border px-3 py-2 text-sm",
+              "border-slate-200 bg-white text-slate-800",
+              "dark:border-slate-700 dark:bg-slate-800 dark:text-white",
+              "focus:border-teal-400 focus:outline-none focus:ring-1 focus:ring-teal-400",
             )}
           >
             {GUIDE_TYPES.map((t) => (
@@ -184,10 +197,10 @@ export function GuideBuilder({ guide, defaultTargetId, onClose }: Props) {
             value={segment}
             onChange={(e) => setSegment(e.target.value as GuideSegment)}
             className={cn(
-              'w-full rounded-lg border px-3 py-2 text-sm',
-              'border-slate-200 bg-white text-slate-800',
-              'dark:border-slate-700 dark:bg-slate-800 dark:text-white',
-              'focus:border-teal-400 focus:outline-none focus:ring-1 focus:ring-teal-400'
+              "w-full rounded-lg border px-3 py-2 text-sm",
+              "border-slate-200 bg-white text-slate-800",
+              "dark:border-slate-700 dark:bg-slate-800 dark:text-white",
+              "focus:border-teal-400 focus:outline-none focus:ring-1 focus:ring-teal-400",
             )}
           >
             {SEGMENTS.map((s) => (
@@ -199,7 +212,11 @@ export function GuideBuilder({ guide, defaultTargetId, onClose }: Props) {
         </div>
 
         {/* Trigger */}
-        <div className={cn(selectedTrigger?.hasValue ? 'flex gap-2 items-end' : '')}>
+        <div
+          className={cn(
+            selectedTrigger?.hasValue ? "flex gap-2 items-end" : "",
+          )}
+        >
           <div className="flex-1">
             <label className="mb-1 block text-xs font-medium text-slate-600 dark:text-slate-400">
               Pemicu
@@ -208,10 +225,10 @@ export function GuideBuilder({ guide, defaultTargetId, onClose }: Props) {
               value={triggerType}
               onChange={(e) => setTriggerType(e.target.value as GuideTrigger)}
               className={cn(
-                'w-full rounded-lg border px-3 py-2 text-sm',
-                'border-slate-200 bg-white text-slate-800',
-                'dark:border-slate-700 dark:bg-slate-800 dark:text-white',
-                'focus:border-teal-400 focus:outline-none focus:ring-1 focus:ring-teal-400'
+                "w-full rounded-lg border px-3 py-2 text-sm",
+                "border-slate-200 bg-white text-slate-800",
+                "dark:border-slate-700 dark:bg-slate-800 dark:text-white",
+                "focus:border-teal-400 focus:outline-none focus:ring-1 focus:ring-teal-400",
               )}
             >
               {TRIGGERS.map((t) => (
@@ -232,10 +249,10 @@ export function GuideBuilder({ guide, defaultTargetId, onClose }: Props) {
                 value={triggerValue}
                 onChange={(e) => setTriggerValue(Number(e.target.value))}
                 className={cn(
-                  'w-full rounded-lg border px-3 py-2 text-sm',
-                  'border-slate-200 bg-white text-slate-800',
-                  'dark:border-slate-700 dark:bg-slate-800 dark:text-white',
-                  'focus:border-teal-400 focus:outline-none focus:ring-1 focus:ring-teal-400'
+                  "w-full rounded-lg border px-3 py-2 text-sm",
+                  "border-slate-200 bg-white text-slate-800",
+                  "dark:border-slate-700 dark:bg-slate-800 dark:text-white",
+                  "focus:border-teal-400 focus:outline-none focus:ring-1 focus:ring-teal-400",
                 )}
               />
             </div>
@@ -254,10 +271,10 @@ export function GuideBuilder({ guide, defaultTargetId, onClose }: Props) {
               value={priority}
               onChange={(e) => setPriority(Number(e.target.value))}
               className={cn(
-                'w-full rounded-lg border px-3 py-2 text-sm',
-                'border-slate-200 bg-white text-slate-800',
-                'dark:border-slate-700 dark:bg-slate-800 dark:text-white',
-                'focus:border-teal-400 focus:outline-none focus:ring-1 focus:ring-teal-400'
+                "w-full rounded-lg border px-3 py-2 text-sm",
+                "border-slate-200 bg-white text-slate-800",
+                "dark:border-slate-700 dark:bg-slate-800 dark:text-white",
+                "focus:border-teal-400 focus:outline-none focus:ring-1 focus:ring-teal-400",
               )}
             />
           </div>
@@ -268,7 +285,9 @@ export function GuideBuilder({ guide, defaultTargetId, onClose }: Props) {
               onChange={(e) => setIsActive(e.target.checked)}
               className="h-4 w-4 rounded border-slate-300 text-teal-600"
             />
-            <span className="text-sm text-slate-600 dark:text-slate-400">Aktif</span>
+            <span className="text-sm text-slate-600 dark:text-slate-400">
+              Aktif
+            </span>
           </label>
           <div className="ml-auto flex gap-2">
             <button
@@ -294,5 +313,5 @@ export function GuideBuilder({ guide, defaultTargetId, onClose }: Props) {
         </div>
       </div>
     </form>
-  )
+  );
 }

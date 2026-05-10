@@ -1,11 +1,22 @@
-import { Award, Clock, Eye, Play, Star, ThumbsUp, Trophy, XCircle } from 'lucide-react'
-import { motion } from 'motion/react'
-import { lazy, Suspense, useEffect, useState } from 'react'
+import {
+  Award,
+  Clock,
+  Eye,
+  Play,
+  Star,
+  ThumbsUp,
+  Trophy,
+  XCircle,
+} from "lucide-react";
+import { motion } from "motion/react";
+import { lazy, Suspense, useEffect, useState } from "react";
 
-import { cn } from '@/utils/cn'
+import { cn } from "@/utils/cn";
 
 // Lazy-loaded Confetti component
-const Confetti = lazy(() => import('./Confetti').then((module) => ({ default: module.Confetti })))
+const Confetti = lazy(() =>
+  import("./Confetti").then((module) => ({ default: module.Confetti })),
+);
 
 export function QuizResultsView({
   result,
@@ -19,66 +30,67 @@ export function QuizResultsView({
   attemptsUsed,
 }: {
   result: {
-    score: number
-    passed: boolean | null
-    correct_answers: number
-    total_questions: number
-    show_correct_answers?: boolean
-    feedback?: string
-  }
+    score: number;
+    passed: boolean | null;
+    correct_answers: number;
+    total_questions: number;
+    show_correct_answers?: boolean;
+    feedback?: string;
+  };
   quiz?: {
-    show_correct_answers?: boolean
-  }
-  gradedQuestions?: { id?: string; is_correct?: boolean | null }[]
-  onRetry?: () => void
-  onClose?: () => void
-  onViewAnswers?: () => void
-  passingScore?: number
-  maxAttempts?: number
-  attemptsUsed?: number
+    show_correct_answers?: boolean;
+  };
+  gradedQuestions?: { id?: string; is_correct?: boolean | null }[];
+  onRetry?: () => void;
+  onClose?: () => void;
+  onViewAnswers?: () => void;
+  passingScore?: number;
+  maxAttempts?: number;
+  attemptsUsed?: number;
 }) {
-  const passed = result.passed
-  const isPendingGrade = passed === null
-  const score = result.score || 0
-  const [showConfetti, setShowConfetti] = useState(false)
+  const passed = result.passed;
+  const isPendingGrade = passed === null;
+  const score = result.score || 0;
+  const [showConfetti, setShowConfetti] = useState(false);
 
   // Determine badge based on score
   const getBadge = () => {
     if (score >= 90)
       return {
-        label: 'Sangat Baik',
+        label: "Sangat Baik",
         icon: Star,
-        color: 'bg-gradient-to-r from-amber-400 to-yellow-500',
-        textColor: 'text-amber-900',
-      }
+        color: "bg-gradient-to-r from-amber-400 to-yellow-500",
+        textColor: "text-amber-900",
+      };
     if (score >= 70)
       return {
-        label: 'Baik',
+        label: "Baik",
         icon: Award,
-        color: 'bg-gradient-to-r from-blue-400 to-cyan-500',
-        textColor: 'text-blue-900',
-      }
+        color: "bg-gradient-to-r from-blue-400 to-cyan-500",
+        textColor: "text-blue-900",
+      };
     return {
-      label: 'Perlu Ditingkatkan',
+      label: "Perlu Ditingkatkan",
       icon: ThumbsUp,
-      color: 'bg-gradient-to-r from-slate-400 to-slate-500',
-      textColor: 'text-slate-900',
-    }
-  }
+      color: "bg-gradient-to-r from-slate-400 to-slate-500",
+      textColor: "text-slate-900",
+    };
+  };
 
-  const badge = getBadge()
-  const BadgeIcon = badge.icon
+  const badge = getBadge();
+  const BadgeIcon = badge.icon;
 
   // Trigger confetti on pass
   useEffect(() => {
     if (passed === true) {
-      setShowConfetti(true)
-      const timer = setTimeout(() => setShowConfetti(false), 3000)
-      return () => clearTimeout(timer)
+      setShowConfetti(true);
+      const timer = setTimeout(() => setShowConfetti(false), 3000);
+      return () => clearTimeout(timer);
     }
-  }, [passed])
+  }, [passed]);
 
-  const showCorrectAnswers = result.show_correct_answers || quiz?.show_correct_answers
+  const showCorrectAnswers =
+    result.show_correct_answers || quiz?.show_correct_answers;
 
   return (
     <div className="max-w-2xl mx-auto flex-1 w-full flex items-center justify-center">
@@ -91,37 +103,37 @@ export function QuizResultsView({
 
       <div
         className={cn(
-          'bg-white dark:bg-slate-800 rounded-3xl border shadow-xl p-8 md:p-12 text-center w-full relative overflow-hidden',
+          "bg-white dark:bg-slate-800 rounded-3xl border shadow-xl p-8 md:p-12 text-center w-full relative overflow-hidden",
           passed === true
-            ? 'border-green-200 dark:border-green-800/50'
+            ? "border-green-200 dark:border-green-800/50"
             : isPendingGrade
-              ? 'border-amber-200 dark:border-amber-800/50'
-              : 'border-red-200 dark:border-red-800/50'
+              ? "border-amber-200 dark:border-amber-800/50"
+              : "border-red-200 dark:border-red-800/50",
         )}
       >
         {/* Gradient accent header */}
         <div
           className={cn(
-            'absolute top-0 left-0 right-0 h-2',
+            "absolute top-0 left-0 right-0 h-2",
             passed === true
-              ? 'bg-gradient-to-r from-green-400 via-emerald-500 to-teal-400'
+              ? "bg-gradient-to-r from-green-400 via-emerald-500 to-teal-400"
               : isPendingGrade
-                ? 'bg-gradient-to-r from-amber-400 via-orange-500 to-yellow-400'
-                : 'bg-gradient-to-r from-red-400 via-rose-500 to-pink-400'
+                ? "bg-gradient-to-r from-amber-400 via-orange-500 to-yellow-400"
+                : "bg-gradient-to-r from-red-400 via-rose-500 to-pink-400",
           )}
         />
 
         <motion.div
           initial={{ scale: 0 }}
           animate={{ scale: 1 }}
-          transition={{ type: 'spring', damping: 10 }}
+          transition={{ type: "spring", damping: 10 }}
           className={cn(
-            'w-24 h-24 rounded-full flex items-center justify-center mx-auto mb-6',
+            "w-24 h-24 rounded-full flex items-center justify-center mx-auto mb-6",
             passed === true
-              ? 'bg-green-100 dark:bg-green-900/30'
+              ? "bg-green-100 dark:bg-green-900/30"
               : isPendingGrade
-                ? 'bg-amber-100 dark:bg-amber-900/30'
-                : 'bg-red-100 dark:bg-red-900/30'
+                ? "bg-amber-100 dark:bg-amber-900/30"
+                : "bg-red-100 dark:bg-red-900/30",
           )}
         >
           {passed === true ? (
@@ -135,17 +147,17 @@ export function QuizResultsView({
 
         <h2 className="text-3xl font-black text-slate-900 dark:text-white mb-2">
           {passed === true
-            ? 'Selamat!'
+            ? "Selamat!"
             : isPendingGrade
-              ? 'Menunggu Penilaian'
-              : 'Jangan Menyerah!'}
+              ? "Menunggu Penilaian"
+              : "Jangan Menyerah!"}
         </h2>
         <p className="text-slate-500 dark:text-slate-400 font-medium mb-8">
           {passed === true
-            ? 'Anda telah berhasil menyelesaikan kuis ini!'
+            ? "Anda telah berhasil menyelesaikan kuis ini!"
             : isPendingGrade
-              ? 'Jawaban Anda sudah dikirim. Nilai akhir akan muncul setelah penilaian selesai.'
-              : 'Anda belum mencapai nilai minimum. Coba lagi!'}
+              ? "Jawaban Anda sudah dikirim. Nilai akhir akan muncul setelah penilaian selesai."
+              : "Anda belum mencapai nilai minimum. Coba lagi!"}
         </p>
 
         {/* Badge Display */}
@@ -154,34 +166,36 @@ export function QuizResultsView({
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             className={cn(
-              'inline-flex items-center gap-2 px-4 py-2 rounded-full mb-6',
-              badge.color
+              "inline-flex items-center gap-2 px-4 py-2 rounded-full mb-6",
+              badge.color,
             )}
           >
-            <BadgeIcon className={cn('w-5 h-5', badge.textColor)} />
-            <span className={cn('font-bold', badge.textColor)}>{badge.label}</span>
+            <BadgeIcon className={cn("w-5 h-5", badge.textColor)} />
+            <span className={cn("font-bold", badge.textColor)}>
+              {badge.label}
+            </span>
           </motion.div>
         )}
 
         <div className="grid grid-cols-2 gap-4 mb-10 max-w-sm mx-auto">
           <div
             className={cn(
-              'p-4 rounded-2xl border',
+              "p-4 rounded-2xl border",
               passed === true
-                ? 'bg-green-50 dark:bg-green-900/20 border-green-100 dark:border-green-800/50'
+                ? "bg-green-50 dark:bg-green-900/20 border-green-100 dark:border-green-800/50"
                 : passed === false
-                  ? 'bg-red-50 dark:bg-red-900/20 border-red-100 dark:border-red-800/50'
-                  : 'bg-slate-50 dark:bg-slate-700 border-slate-100 dark:border-slate-600'
+                  ? "bg-red-50 dark:bg-red-900/20 border-red-100 dark:border-red-800/50"
+                  : "bg-slate-50 dark:bg-slate-700 border-slate-100 dark:border-slate-600",
             )}
           >
             <p
               className={cn(
-                'text-4xl font-black',
+                "text-4xl font-black",
                 passed === true
-                  ? 'text-green-700 dark:text-green-400'
+                  ? "text-green-700 dark:text-green-400"
                   : passed === false
-                    ? 'text-red-700 dark:text-red-400'
-                    : 'text-slate-800 dark:text-slate-200'
+                    ? "text-red-700 dark:text-red-400"
+                    : "text-slate-800 dark:text-slate-200",
               )}
             >
               {score}%
@@ -212,44 +226,47 @@ export function QuizResultsView({
         </div>
 
         {/* Per-Question Results Summary Grid */}
-        {showCorrectAnswers && gradedQuestions && gradedQuestions.length > 0 && (
-          <div className="mb-10 max-w-sm mx-auto">
-            <p className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-3">
-              Ringkasan Per Soal
-            </p>
-            <div className="flex flex-wrap gap-2 justify-center">
-              {gradedQuestions.map((q, i) => (
-                <div
-                  key={q.id || `q-${i}`}
-                  className={cn(
-                    'w-8 h-8 rounded-lg flex items-center justify-center text-xs font-bold transition-colors',
-                    q.is_correct === true
-                      ? 'bg-green-100 text-green-700 dark:bg-green-900/40 dark:text-green-300'
-                      : q.is_correct === false
-                        ? 'bg-red-100 text-red-700 dark:bg-red-900/40 dark:text-red-300'
-                        : 'bg-slate-100 text-slate-500 dark:bg-slate-800 dark:text-slate-400'
-                  )}
-                  title={
-                    q.is_correct === true
-                      ? 'Benar'
-                      : q.is_correct === false
-                        ? 'Salah'
-                        : 'Belum dinilai'
-                  }
-                >
-                  {i + 1}
-                </div>
-              ))}
+        {showCorrectAnswers &&
+          gradedQuestions &&
+          gradedQuestions.length > 0 && (
+            <div className="mb-10 max-w-sm mx-auto">
+              <p className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-3">
+                Ringkasan Per Soal
+              </p>
+              <div className="flex flex-wrap gap-2 justify-center">
+                {gradedQuestions.map((q, i) => (
+                  <div
+                    key={q.id || `q-${i}`}
+                    className={cn(
+                      "w-8 h-8 rounded-lg flex items-center justify-center text-xs font-bold transition-colors",
+                      q.is_correct === true
+                        ? "bg-green-100 text-green-700 dark:bg-green-900/40 dark:text-green-300"
+                        : q.is_correct === false
+                          ? "bg-red-100 text-red-700 dark:bg-red-900/40 dark:text-red-300"
+                          : "bg-slate-100 text-slate-500 dark:bg-slate-800 dark:text-slate-400",
+                    )}
+                    title={
+                      q.is_correct === true
+                        ? "Benar"
+                        : q.is_correct === false
+                          ? "Salah"
+                          : "Belum dinilai"
+                    }
+                  >
+                    {i + 1}
+                  </div>
+                ))}
+              </div>
             </div>
-          </div>
-        )}
+          )}
 
         {passed === false &&
-        ((passingScore && passingScore > 0) || (maxAttempts && maxAttempts > 0)) ? (
+        ((passingScore && passingScore > 0) ||
+          (maxAttempts && maxAttempts > 0)) ? (
           <div className="flex flex-col items-center gap-1 mb-6 text-sm text-slate-500 dark:text-slate-400">
             {passingScore && passingScore > 0 ? (
               <p>
-                Skor minimal untuk lulus:{' '}
+                Skor minimal untuk lulus:{" "}
                 <span className="font-bold text-slate-700 dark:text-slate-300">
                   {passingScore}%
                 </span>
@@ -259,7 +276,7 @@ export function QuizResultsView({
               <p>
                 <span className="font-bold text-slate-700 dark:text-slate-300">
                   {maxAttempts - (attemptsUsed ?? 0)}
-                </span>{' '}
+                </span>{" "}
                 percobaan tersisa
               </p>
             ) : null}
@@ -294,5 +311,5 @@ export function QuizResultsView({
         </div>
       </div>
     </div>
-  )
+  );
 }

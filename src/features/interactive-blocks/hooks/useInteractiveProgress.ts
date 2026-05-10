@@ -1,17 +1,20 @@
-import { useCallback } from 'react'
+import { useCallback } from "react";
 
-import { useAuth } from '@/contexts/AuthContext'
+import { useAuth } from "@/contexts/AuthContext";
 
-import { useBlockProgress, useSaveBlockProgress } from '../queries/interactiveBlockQueries'
+import {
+  useBlockProgress,
+  useSaveBlockProgress,
+} from "../queries/interactiveBlockQueries";
 
 export function useInteractiveProgress(blockId: string, lessonId: string) {
-  const { user, tenantId } = useAuth()
-  const { data: progress } = useBlockProgress(blockId, user?.id, tenantId)
-  const { mutate: saveProgress } = useSaveBlockProgress()
+  const { user, tenantId } = useAuth();
+  const { data: progress } = useBlockProgress(blockId, user?.id, tenantId);
+  const { mutate: saveProgress } = useSaveBlockProgress();
 
   const markComplete = useCallback(
     (interactionData: Record<string, unknown>, score?: number) => {
-      if (!user?.id || !tenantId) return
+      if (!user?.id || !tenantId) return;
       saveProgress({
         blockId,
         lessonId,
@@ -20,14 +23,14 @@ export function useInteractiveProgress(blockId: string, lessonId: string) {
         score,
         tenantId,
         userId: user.id,
-      })
+      });
     },
-    [blockId, lessonId, user?.id, tenantId, saveProgress]
-  )
+    [blockId, lessonId, user?.id, tenantId, saveProgress],
+  );
 
   const updateProgress = useCallback(
     (interactionData: Record<string, unknown>) => {
-      if (!user?.id || !tenantId) return
+      if (!user?.id || !tenantId) return;
       saveProgress({
         blockId,
         lessonId,
@@ -35,15 +38,15 @@ export function useInteractiveProgress(blockId: string, lessonId: string) {
         isCompleted: false,
         tenantId,
         userId: user.id,
-      })
+      });
     },
-    [blockId, lessonId, user?.id, tenantId, saveProgress]
-  )
+    [blockId, lessonId, user?.id, tenantId, saveProgress],
+  );
 
   return {
     progress,
     markComplete,
     updateProgress,
     isCompleted: progress?.is_completed ?? false,
-  }
+  };
 }

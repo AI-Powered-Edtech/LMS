@@ -130,8 +130,8 @@ export function Login() {
                         <div className="mb-1 flex items-center text-sm font-semibold text-slate-200 transition-colors group-hover:text-white">
                           <span className="text-base leading-none mr-2">
                             {account.icon}
-                          </span>
-                          {" "}{account.label}
+                          </span>{" "}
+                          {account.label}
                         </div>
                         <div className="w-full truncate text-[10px] text-slate-400 transition-colors group-hover:text-slate-300">
                           {account.email}
@@ -200,9 +200,7 @@ export function Login() {
                     className="absolute bottom-1 top-1 w-[calc(50%-4px)] rounded-lg bg-slate-800 shadow-sm transition-all duration-300 ease-in-out"
                     style={{
                       transform:
-                        mode === "login"
-                          ? "translateX(0)"
-                          : "translateX(100%)",
+                        mode === "login" ? "translateX(0)" : "translateX(100%)",
                     }}
                   />
                   <button
@@ -213,7 +211,7 @@ export function Login() {
                       "relative z-10 w-1/2 py-2.5 text-sm font-medium transition-colors",
                       mode === "login"
                         ? "text-white"
-                        : "text-slate-400 hover:text-slate-200"
+                        : "text-slate-400 hover:text-slate-200",
                     )}
                   >
                     Masuk
@@ -226,7 +224,7 @@ export function Login() {
                       "relative z-10 w-1/2 py-2.5 text-sm font-medium transition-colors",
                       mode === "register"
                         ? "text-white"
-                        : "text-slate-400 hover:text-slate-200"
+                        : "text-slate-400 hover:text-slate-200",
                     )}
                   >
                     Daftar
@@ -243,7 +241,7 @@ export function Login() {
                             "flex h-7 w-7 items-center justify-center rounded-full text-xs font-bold transition-all duration-300",
                             step >= s
                               ? "bg-blue-600 text-white ring-4 ring-blue-600/20"
-                              : "bg-slate-800 text-slate-500 ring-1 ring-slate-700"
+                              : "bg-slate-800 text-slate-500 ring-1 ring-slate-700",
                           )}
                         >
                           {s}
@@ -342,7 +340,7 @@ export function Login() {
                       setTeacherMode={setTeacherMode}
                       tenantInviteCode={tenantInviteCode}
                       setTenantInviteCode={setTenantInviteCode}
-                      firstName={registerForm.getValues('firstName') || ''}
+                      firstName={registerForm.getValues("firstName") || ""}
                       error={error}
                       submitting={submitting}
                       onBack={() => setStep(1)}
@@ -415,8 +413,7 @@ export function Login() {
             backgroundImage:
               "linear-gradient(to right, #ffffff10 1px, transparent 1px), linear-gradient(to bottom, #ffffff10 1px, transparent 1px)",
             backgroundSize: "40px 40px",
-            maskImage:
-              "linear-gradient(to bottom, white 20%, transparent 90%)",
+            maskImage: "linear-gradient(to bottom, white 20%, transparent 90%)",
             WebkitMaskImage:
               "linear-gradient(to bottom, white 20%, transparent 90%)",
           }}

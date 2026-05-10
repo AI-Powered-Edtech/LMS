@@ -1,55 +1,58 @@
-import { AlertCircle, CheckCircle, Clock, XCircle } from 'lucide-react'
-import { useCallback, useMemo } from 'react'
+import { AlertCircle, CheckCircle, Clock, XCircle } from "lucide-react";
+import { useCallback, useMemo } from "react";
 
-import type { AttendanceStudentDetail, ClassStudent } from '../types'
+import type { AttendanceStudentDetail, ClassStudent } from "../types";
 
 const STATUS_OPTIONS: {
-  value: AttendanceStudentDetail['status']
-  label: string
-  icon: typeof CheckCircle
-  color: string
-  bg: string
-  activeBg: string
+  value: AttendanceStudentDetail["status"];
+  label: string;
+  icon: typeof CheckCircle;
+  color: string;
+  bg: string;
+  activeBg: string;
 }[] = [
   {
-    value: 'hadir',
-    label: 'Hadir',
+    value: "hadir",
+    label: "Hadir",
     icon: CheckCircle,
-    color: 'text-green-600 dark:text-green-400',
-    bg: 'border-slate-200 dark:border-slate-600',
-    activeBg: 'bg-green-50 dark:bg-green-900/30 border-green-300 dark:border-green-700',
+    color: "text-green-600 dark:text-green-400",
+    bg: "border-slate-200 dark:border-slate-600",
+    activeBg:
+      "bg-green-50 dark:bg-green-900/30 border-green-300 dark:border-green-700",
   },
   {
-    value: 'sakit',
-    label: 'Sakit',
+    value: "sakit",
+    label: "Sakit",
     icon: AlertCircle,
-    color: 'text-yellow-600 dark:text-yellow-400',
-    bg: 'border-slate-200 dark:border-slate-600',
-    activeBg: 'bg-yellow-50 dark:bg-yellow-900/30 border-yellow-300 dark:border-yellow-700',
+    color: "text-yellow-600 dark:text-yellow-400",
+    bg: "border-slate-200 dark:border-slate-600",
+    activeBg:
+      "bg-yellow-50 dark:bg-yellow-900/30 border-yellow-300 dark:border-yellow-700",
   },
   {
-    value: 'izin',
-    label: 'Izin',
+    value: "izin",
+    label: "Izin",
     icon: Clock,
-    color: 'text-blue-600 dark:text-blue-400',
-    bg: 'border-slate-200 dark:border-slate-600',
-    activeBg: 'bg-blue-50 dark:bg-blue-900/30 border-blue-300 dark:border-blue-700',
+    color: "text-blue-600 dark:text-blue-400",
+    bg: "border-slate-200 dark:border-slate-600",
+    activeBg:
+      "bg-blue-50 dark:bg-blue-900/30 border-blue-300 dark:border-blue-700",
   },
   {
-    value: 'alpha',
-    label: 'Alpha',
+    value: "alpha",
+    label: "Alpha",
     icon: XCircle,
-    color: 'text-red-600 dark:text-red-400',
-    bg: 'border-slate-200 dark:border-slate-600',
-    activeBg: 'bg-red-50 dark:bg-red-900/30 border-red-300 dark:border-red-700',
+    color: "text-red-600 dark:text-red-400",
+    bg: "border-slate-200 dark:border-slate-600",
+    activeBg: "bg-red-50 dark:bg-red-900/30 border-red-300 dark:border-red-700",
   },
-]
+];
 
 interface AttendanceChecklistProps {
-  students: ClassStudent[]
-  details: AttendanceStudentDetail[]
-  onDetailsChange: (details: AttendanceStudentDetail[]) => void
-  disabled?: boolean
+  students: ClassStudent[];
+  details: AttendanceStudentDetail[];
+  onDetailsChange: (details: AttendanceStudentDetail[]) => void;
+  disabled?: boolean;
 }
 
 export function AttendanceChecklist({
@@ -59,41 +62,45 @@ export function AttendanceChecklist({
   disabled = false,
 }: AttendanceChecklistProps) {
   const detailMap = useMemo(() => {
-    const map = new Map<string, AttendanceStudentDetail['status']>()
+    const map = new Map<string, AttendanceStudentDetail["status"]>();
     for (const d of details) {
-      map.set(d.student_id, d.status)
+      map.set(d.student_id, d.status);
     }
-    return map
-  }, [details])
+    return map;
+  }, [details]);
 
   const handleStatusChange = useCallback(
-    (studentId: string, name: string, status: AttendanceStudentDetail['status']) => {
-      const updated = details.filter((d) => d.student_id !== studentId)
-      updated.push({ student_id: studentId, name, status })
-      onDetailsChange(updated)
+    (
+      studentId: string,
+      name: string,
+      status: AttendanceStudentDetail["status"],
+    ) => {
+      const updated = details.filter((d) => d.student_id !== studentId);
+      updated.push({ student_id: studentId, name, status });
+      onDetailsChange(updated);
     },
-    [details, onDetailsChange]
-  )
+    [details, onDetailsChange],
+  );
 
   const handleSetAll = useCallback(
-    (status: AttendanceStudentDetail['status']) => {
+    (status: AttendanceStudentDetail["status"]) => {
       const updated = students.map((s) => ({
         student_id: s.student_id,
         name: s.full_name,
         status,
-      }))
-      onDetailsChange(updated)
+      }));
+      onDetailsChange(updated);
     },
-    [students, onDetailsChange]
-  )
+    [students, onDetailsChange],
+  );
 
   const counts = useMemo(() => {
-    const c = { hadir: 0, sakit: 0, izin: 0, alpha: 0 }
+    const c = { hadir: 0, sakit: 0, izin: 0, alpha: 0 };
     for (const d of details) {
-      if (d.status in c) c[d.status]++
+      if (d.status in c) c[d.status]++;
     }
-    return c
-  }, [details])
+    return c;
+  }, [details]);
 
   return (
     <div className="space-y-4" data-testid="attendance-checklist">
@@ -117,16 +124,24 @@ export function AttendanceChecklist({
 
       {/* Summary bar */}
       <div className="flex gap-3 text-xs font-bold">
-        <span className="text-green-600 dark:text-green-400">Hadir: {counts.hadir}</span>
-        <span className="text-yellow-600 dark:text-yellow-400">Sakit: {counts.sakit}</span>
-        <span className="text-blue-600 dark:text-blue-400">Izin: {counts.izin}</span>
-        <span className="text-red-600 dark:text-red-400">Alpha: {counts.alpha}</span>
+        <span className="text-green-600 dark:text-green-400">
+          Hadir: {counts.hadir}
+        </span>
+        <span className="text-yellow-600 dark:text-yellow-400">
+          Sakit: {counts.sakit}
+        </span>
+        <span className="text-blue-600 dark:text-blue-400">
+          Izin: {counts.izin}
+        </span>
+        <span className="text-red-600 dark:text-red-400">
+          Alpha: {counts.alpha}
+        </span>
       </div>
 
       {/* Student list */}
       <div className="divide-y divide-slate-100 dark:divide-slate-700 border border-slate-200 dark:border-slate-700 rounded-2xl overflow-hidden">
         {students.map((student, idx) => {
-          const currentStatus = detailMap.get(student.student_id) ?? 'hadir'
+          const currentStatus = detailMap.get(student.student_id) ?? "hadir";
           return (
             <div
               key={student.student_id}
@@ -146,14 +161,18 @@ export function AttendanceChecklist({
               {/* Status buttons */}
               <div className="flex gap-1.5 ml-10 sm:ml-0">
                 {STATUS_OPTIONS.map((opt) => {
-                  const isActive = currentStatus === opt.value
-                  const Icon = opt.icon
+                  const isActive = currentStatus === opt.value;
+                  const Icon = opt.icon;
                   return (
                     <button
                       key={opt.value}
                       type="button"
                       onClick={() =>
-                        handleStatusChange(student.student_id, student.full_name, opt.value)
+                        handleStatusChange(
+                          student.student_id,
+                          student.full_name,
+                          opt.value,
+                        )
                       }
                       disabled={disabled}
                       className={`flex items-center gap-1 px-2.5 py-1.5 text-xs font-bold rounded-lg border transition-all disabled:opacity-50 disabled:cursor-not-allowed ${
@@ -166,11 +185,11 @@ export function AttendanceChecklist({
                       <Icon className="w-3.5 h-3.5" />
                       <span className="hidden sm:inline">{opt.label}</span>
                     </button>
-                  )
+                  );
                 })}
               </div>
             </div>
-          )
+          );
         })}
 
         {students.length === 0 && (
@@ -180,5 +199,5 @@ export function AttendanceChecklist({
         )}
       </div>
     </div>
-  )
+  );
 }

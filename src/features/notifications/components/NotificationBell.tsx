@@ -5,44 +5,51 @@
  * of the legacy flat NotificationPanel.
  */
 
-import { Bell } from 'lucide-react'
-import { AnimatePresence, motion } from 'motion/react'
-import { useEffect, useRef, useState } from 'react'
+import { Bell } from "lucide-react";
+import { AnimatePresence, motion } from "motion/react";
+import { useEffect, useRef, useState } from "react";
 
-import { useNotifications } from '../hooks/useNotifications'
-import { NotificationCenter } from './NotificationCenter'
+import { useNotifications } from "../hooks/useNotifications";
+import { NotificationCenter } from "./NotificationCenter";
 
-type CenterTab = 'notifications' | 'settings'
+type CenterTab = "notifications" | "settings";
 
 export function NotificationBell() {
-  const { unreadCount } = useNotifications()
-  const [open, setOpen] = useState(false)
-  const [activeTab, setActiveTab] = useState<CenterTab>('notifications')
-  const containerRef = useRef<HTMLDivElement>(null)
+  const { unreadCount } = useNotifications();
+  const [open, setOpen] = useState(false);
+  const [activeTab, setActiveTab] = useState<CenterTab>("notifications");
+  const containerRef = useRef<HTMLDivElement>(null);
 
   // Close on outside click
   useEffect(() => {
     function handleClick(e: MouseEvent) {
-      if (containerRef.current && !containerRef.current.contains(e.target as Node)) {
-        setOpen(false)
+      if (
+        containerRef.current &&
+        !containerRef.current.contains(e.target as Node)
+      ) {
+        setOpen(false);
       }
     }
     function handleEscape(e: KeyboardEvent) {
-      if (e.key === 'Escape') setOpen(false)
+      if (e.key === "Escape") setOpen(false);
     }
-    document.addEventListener('mousedown', handleClick)
-    document.addEventListener('keydown', handleEscape)
+    document.addEventListener("mousedown", handleClick);
+    document.addEventListener("keydown", handleEscape);
     return () => {
-      document.removeEventListener('mousedown', handleClick)
-      document.removeEventListener('keydown', handleEscape)
-    }
-  }, [])
+      document.removeEventListener("mousedown", handleClick);
+      document.removeEventListener("keydown", handleEscape);
+    };
+  }, []);
 
   return (
     <div className="relative" ref={containerRef}>
       <button
         type="button"
-        aria-label={unreadCount > 0 ? `Notifikasi (${unreadCount} belum dibaca)` : 'Notifikasi'}
+        aria-label={
+          unreadCount > 0
+            ? `Notifikasi (${unreadCount} belum dibaca)`
+            : "Notifikasi"
+        }
         aria-expanded={open}
         aria-haspopup="dialog"
         onClick={() => setOpen((v) => !v)}
@@ -55,7 +62,7 @@ export function NotificationBell() {
             aria-hidden="true"
             className="absolute -top-0.5 -right-0.5 min-w-[18px] h-[18px] px-1 flex items-center justify-center rounded-full bg-red-500 text-white text-[10px] font-bold leading-none"
           >
-            {unreadCount > 99 ? '99+' : unreadCount}
+            {unreadCount > 99 ? "99+" : unreadCount}
           </span>
         )}
       </button>
@@ -81,5 +88,5 @@ export function NotificationBell() {
         )}
       </AnimatePresence>
     </div>
-  )
+  );
 }

@@ -1,20 +1,20 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useState } from "react";
 
-export type UserRole = 'STUDENT' | 'TEACHER' | 'ADMIN'
+export type UserRole = "STUDENT" | "TEACHER" | "ADMIN";
 
 interface ChangeRoleModalProps {
-  isOpen: boolean
-  onClose: () => void
-  onConfirm: (newRole: string) => Promise<void>
-  userName: string
-  currentRoles: UserRole[]
+  isOpen: boolean;
+  onClose: () => void;
+  onConfirm: (newRole: string) => Promise<void>;
+  userName: string;
+  currentRoles: UserRole[];
 }
 
 const ROLES = [
-  { value: 'STUDENT', label: '🎓 Student', desc: 'Akses kelas dan materi' },
-  { value: 'TEACHER', label: '👩‍🏫 Teacher', desc: 'Kelola kelas dan nilai' },
-  { value: 'ADMIN', label: '🛡️ Admin', desc: 'Kelola seluruh sekolah' },
-]
+  { value: "STUDENT", label: "🎓 Student", desc: "Akses kelas dan materi" },
+  { value: "TEACHER", label: "👩‍🏫 Teacher", desc: "Kelola kelas dan nilai" },
+  { value: "ADMIN", label: "🛡️ Admin", desc: "Kelola seluruh sekolah" },
+];
 
 export function ChangeRoleModal({
   isOpen,
@@ -23,44 +23,46 @@ export function ChangeRoleModal({
   userName,
   currentRoles,
 }: ChangeRoleModalProps) {
-  const [selectedRole, setSelectedRole] = useState<UserRole>(currentRoles[0] ?? 'STUDENT')
-  const [loading, setLoading] = useState(false)
-  const [error, setError] = useState('')
+  const [selectedRole, setSelectedRole] = useState<UserRole>(
+    currentRoles[0] ?? "STUDENT",
+  );
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
 
   // Reset selectedRole when modal opens or user changes
   useEffect(() => {
     if (isOpen) {
-      setSelectedRole(currentRoles[0] ?? 'STUDENT')
-      setError('')
+      setSelectedRole(currentRoles[0] ?? "STUDENT");
+      setError("");
     }
-  }, [isOpen, currentRoles])
+  }, [isOpen, currentRoles]);
 
-  if (!isOpen) return null
+  if (!isOpen) return null;
 
-  const primaryRole = currentRoles[0] ?? 'STUDENT'
+  const primaryRole = currentRoles[0] ?? "STUDENT";
   const isDowngrade =
-    (primaryRole === 'ADMIN' && selectedRole !== 'ADMIN') ||
-    (primaryRole === 'TEACHER' && selectedRole === 'STUDENT')
-  const isUpgradeToAdmin = selectedRole === 'ADMIN' && primaryRole !== 'ADMIN'
+    (primaryRole === "ADMIN" && selectedRole !== "ADMIN") ||
+    (primaryRole === "TEACHER" && selectedRole === "STUDENT");
+  const isUpgradeToAdmin = selectedRole === "ADMIN" && primaryRole !== "ADMIN";
 
   const handleConfirm = async () => {
-    setError('')
-    setLoading(true)
+    setError("");
+    setLoading(true);
     try {
-      await onConfirm(selectedRole)
-      onClose()
+      await onConfirm(selectedRole);
+      onClose();
     } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : 'Gagal mengubah peran.')
+      setError(err instanceof Error ? err.message : "Gagal mengubah peran.");
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }
+  };
 
   return (
     <div
       role="presentation"
       className="fixed inset-0 bg-black/60 flex items-center justify-center z-[9999] p-4"
-      onKeyDown={(e) => e.key === 'Escape' && onClose()}
+      onKeyDown={(e) => e.key === "Escape" && onClose()}
       onClick={onClose}
     >
       <div
@@ -83,10 +85,12 @@ export function ChangeRoleModal({
 
         <div className="mb-4 p-3 bg-slate-50 rounded-xl border border-slate-200">
           <p className="text-sm text-slate-600">
-            Mengubah role untuk <strong className="text-slate-900">{userName}</strong>
+            Mengubah role untuk{" "}
+            <strong className="text-slate-900">{userName}</strong>
           </p>
           <p className="text-xs text-slate-500 mt-1">
-            Role saat ini: <span className="font-semibold text-blue-600">{primaryRole}</span>
+            Role saat ini:{" "}
+            <span className="font-semibold text-blue-600">{primaryRole}</span>
           </p>
         </div>
 
@@ -97,13 +101,13 @@ export function ChangeRoleModal({
               onClick={() => setSelectedRole(r.value as UserRole)}
               className={`w-full p-3 rounded-xl border text-left transition-all flex items-center justify-between ${
                 selectedRole === r.value
-                  ? 'border-blue-500 bg-blue-50 ring-1 ring-blue-200'
-                  : 'border-slate-200 hover:bg-slate-50'
+                  ? "border-blue-500 bg-blue-50 ring-1 ring-blue-200"
+                  : "border-slate-200 hover:bg-slate-50"
               }`}
             >
               <div>
                 <p
-                  className={`text-sm font-semibold ${selectedRole === r.value ? 'text-blue-700' : 'text-slate-700'}`}
+                  className={`text-sm font-semibold ${selectedRole === r.value ? "text-blue-700" : "text-slate-700"}`}
                 >
                   {r.label}
                 </p>
@@ -121,8 +125,8 @@ export function ChangeRoleModal({
         {isDowngrade && (
           <div className="mb-4 p-3 bg-amber-50 border border-amber-200 rounded-xl">
             <p className="text-xs text-amber-700 font-medium">
-              ⚠️ Ini adalah <strong>penurunan</strong>. Pengguna akan kehilangan akses fitur{' '}
-              {primaryRole}.
+              ⚠️ Ini adalah <strong>penurunan</strong>. Pengguna akan kehilangan
+              akses fitur {primaryRole}.
             </p>
           </div>
         )}
@@ -130,8 +134,8 @@ export function ChangeRoleModal({
         {isUpgradeToAdmin && (
           <div className="mb-4 p-3 bg-blue-50 border border-blue-200 rounded-xl">
             <p className="text-xs text-blue-700 font-medium">
-              ℹ️ Pengguna ini akan mendapat akses <strong>penuh</strong> ke seluruh sistem sekolah
-              sebagai Admin.
+              ℹ️ Pengguna ini akan mendapat akses <strong>penuh</strong> ke
+              seluruh sistem sekolah sebagai Admin.
             </p>
           </div>
         )}
@@ -154,10 +158,10 @@ export function ChangeRoleModal({
             disabled={loading || selectedRole === primaryRole}
             className="flex-1 px-4 py-2.5 bg-blue-600 text-white rounded-xl font-bold text-sm hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            {loading ? 'Menyimpan...' : 'Konfirmasi'}
+            {loading ? "Menyimpan..." : "Konfirmasi"}
           </button>
         </div>
       </div>
     </div>
-  )
+  );
 }

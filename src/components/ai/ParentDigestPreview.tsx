@@ -1,20 +1,20 @@
-import { Loader2, MailWarning, Sparkles } from 'lucide-react'
-import { useState } from 'react'
+import { Loader2, MailWarning, Sparkles } from "lucide-react";
+import { useState } from "react";
 
-import { Button } from '@/components/ui/Button'
-import { Card } from '@/components/ui/Card'
-import { useAuth } from '@/contexts/AuthContext'
-import { generateParentWeeklyDigest } from '@/services/ai/aiProvider'
-import { db } from '@/services/db'
-import { useToast } from '@/hooks/useToast'
+import { Button } from "@/components/ui/Button";
+import { Card } from "@/components/ui/Card";
+import { useAuth } from "@/contexts/AuthContext";
+import { useToast } from "@/hooks/useToast";
+import { generateParentWeeklyDigest } from "@/services/ai/aiProvider";
+import { db } from "@/services/db";
 
 interface ParentDigestPreviewProps {
-  studentId: string
-  studentName: string
-  parentId: string
+  studentId: string;
+  studentName: string;
+  parentId: string;
   /** Activity data for the week — typically pulled from analytics_audit + lesson_progress + grades. */
-  weekStartIso: string
-  activitySummary: Record<string, unknown>
+  weekStartIso: string;
+  activitySummary: Record<string, unknown>;
 }
 
 /**
@@ -31,82 +31,90 @@ export function ParentDigestPreview({
   weekStartIso,
   activitySummary,
 }: ParentDigestPreviewProps) {
-  const { tenantId } = useAuth()
-  const { addToast } = useToast()
-  const [summary, setSummary] = useState<string | null>(null)
-  const [isGenerating, setIsGenerating] = useState(false)
-  const [isSending, setIsSending] = useState(false)
+  const { tenantId } = useAuth();
+  const { addToast } = useToast();
+  const [summary, setSummary] = useState<string | null>(null);
+  const [isGenerating, setIsGenerating] = useState(false);
+  const [isSending, setIsSending] = useState(false);
 
   async function handleGenerate() {
-    setIsGenerating(true)
+    setIsGenerating(true);
     try {
       const text = await generateParentWeeklyDigest({
         studentName,
-        weekLabel: new Date(weekStartIso).toLocaleDateString('id-ID', {
-          day: 'numeric',
-          month: 'long',
-          year: 'numeric',
+        weekLabel: new Date(weekStartIso).toLocaleDateString("id-ID", {
+          day: "numeric",
+          month: "long",
+          year: "numeric",
         }),
         activitiesJson: activitySummary,
-      })
-      setSummary(text)
+      });
+      setSummary(text);
     } catch (err) {
       addToast({
-        type: 'error',
-        message: 'Gagal menghasilkan ringkasan',
-        description: err instanceof Error ? err.message : 'Terjadi kesalahan',
-      })
+        type: "error",
+        message: "Gagal menghasilkan ringkasan",
+        description: err instanceof Error ? err.message : "Terjadi kesalahan",
+      });
     } finally {
-      setIsGenerating(false)
+      setIsGenerating(false);
     }
   }
 
   async function handleSend() {
-    if (!summary || !tenantId) return
-    setIsSending(true)
+    if (!summary || !tenantId) return;
+    setIsSending(true);
     try {
       // Persist digest
-      const { error: insertErr } = await db.from('parent_weekly_digests').upsert({
-        tenant_id: tenantId,
-        parent_id: parentId,
-        student_id: studentId,
-        week_start: weekStartIso,
-        summary,
-        activity_json: activitySummary,
-        sent_via: ['email'],
-      })
-      if (insertErr) throw insertErr
+      const { error: insertErr } = await db
+        .from("parent_weekly_digests")
+        .upsert({
+          tenant_id: tenantId,
+          parent_id: parentId,
+          student_id: studentId,
+          week_start: weekStartIso,
+          summary,
+          activity_json: activitySummary,
+          sent_via: ["email"],
+        });
+      if (insertErr) throw insertErr;
 
       // Queue outbound message (worker delivers)
       const { data: parentProfile } = await db
-        .from('profiles')
-        .select('email, phone')
-        .eq('id', parentId)
-        .maybeSingle()
-      const email = (parentProfile as { email?: string } | null)?.email
+        .from("profiles")
+        .select("email, phone")
+        .eq("id", parentId)
+        .maybeSingle();
+      const email = (parentProfile as { email?: string } | null)?.email;
 
       if (email) {
-        await db.from('outbound_messages').insert({
+        await db.from("outbound_messages").insert({
           tenant_id: tenantId,
-          channel: 'email',
-          provider: 'pending',
+          channel: "email",
+          provider: "pending",
           to_address: email,
-          payload: { subject: `Ringkasan minggu ini — ${studentName}`, body: summary },
+          payload: {
+            subject: `Ringkasan minggu ini — ${studentName}`,
+            body: summary,
+          },
           related_id: studentId,
-          related_type: 'parent_weekly_digest',
-        })
+          related_type: "parent_weekly_digest",
+        });
       }
 
-      addToast({ type: 'success', message: 'Ringkasan dikirim ke antrian email' })
-      setSummary(null)
+      addToast({
+        type: "success",
+        message: "Ringkasan dikirim ke antrian email",
+      });
+      setSummary(null);
     } catch (err) {
       addToast({
-        type: 'error',
-        message: 'Gagal mengirim',
-        description: err instanceof Error ? err.message : 'Terjadi kesalahan',
-      })
+        type: "error",
+        message: "Gagal mengirim",
+        description: err instanceof Error ? err.message : "Terjadi kesalahan",
+      });
     } finally {
-      setIsSending(false)
+      setIsSending(false);
     }
   }
 
@@ -131,7 +139,7 @@ export function ParentDigestPreview({
               )
             }
           >
-            {isGenerating ? 'Memproses...' : 'Hasilkan'}
+            {isGenerating ? "Memproses..." : "Hasilkan"}
           </Button>
         )}
       </div>
@@ -147,20 +155,30 @@ export function ParentDigestPreview({
               Akan dikirim via email — pastikan ortu sudah terdaftar.
             </p>
             <div className="flex gap-2">
-              <Button variant="ghost" size="sm" onClick={() => setSummary(null)}>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setSummary(null)}
+              >
                 Tolak
               </Button>
-              <Button variant="primary" size="sm" onClick={handleSend} disabled={isSending}>
-                {isSending ? 'Mengirim...' : 'Kirim ke Ortu'}
+              <Button
+                variant="primary"
+                size="sm"
+                onClick={handleSend}
+                disabled={isSending}
+              >
+                {isSending ? "Mengirim..." : "Kirim ke Ortu"}
               </Button>
             </div>
           </div>
         </div>
       ) : (
         <p className="text-xs text-slate-500">
-          Klik "Hasilkan" untuk membuat ringkasan AI dari aktivitas siswa minggu ini.
+          Klik "Hasilkan" untuk membuat ringkasan AI dari aktivitas siswa minggu
+          ini.
         </p>
       )}
     </Card>
-  )
+  );
 }

@@ -1,26 +1,34 @@
-import { BookOpen, CheckSquare, Filter, Loader2, Search, Square, X } from 'lucide-react'
-import { AnimatePresence, motion } from 'motion/react'
-import React from 'react'
+import {
+  BookOpen,
+  CheckSquare,
+  Filter,
+  Loader2,
+  Search,
+  Square,
+  X,
+} from "lucide-react";
+import { AnimatePresence, motion } from "motion/react";
+import React from "react";
 
-import { Skeleton } from '@/components/ui/Skeleton'
-import { type QuestionBankItem } from '@/features/question-bank/api/questionBankService'
+import { Skeleton } from "@/components/ui/Skeleton";
+import { type QuestionBankItem } from "@/features/question-bank/api/questionBankService";
 import {
   type DifficultyFilter,
   type QuestionTypeFilter,
   useQuestionBankSelect,
-} from '@/features/question-bank/hooks/useQuestionBankSelect'
-import { cn } from '@/utils/cn'
+} from "@/features/question-bank/hooks/useQuestionBankSelect";
+import { cn } from "@/utils/cn";
 
 // ─────────────────────────────────────────────────────────
 // Types
 // ─────────────────────────────────────────────────────────
 
 interface ImportFromQuestionBankProps {
-  isOpen: boolean
-  onClose: () => void
-  onImport: (questions: QuestionBankItem[]) => Promise<void>
-  existingQuestionIds?: string[]
-  isImporting?: boolean
+  isOpen: boolean;
+  onClose: () => void;
+  onImport: (questions: QuestionBankItem[]) => Promise<void>;
+  existingQuestionIds?: string[];
+  isImporting?: boolean;
 }
 
 // ─────────────────────────────────────────────────────────
@@ -28,36 +36,40 @@ interface ImportFromQuestionBankProps {
 // ─────────────────────────────────────────────────────────
 
 const questionTypeLabels: Record<string, string> = {
-  MCQ: 'Pilihan Ganda',
-  TRUE_FALSE: 'Benar/Salah',
-  MULTIPLE_SELECT: 'Pilih Beberapa',
-  SHORT_ANSWER: 'Isian Singkat',
-  ESSAY: 'Esai',
-}
+  MCQ: "Pilihan Ganda",
+  TRUE_FALSE: "Benar/Salah",
+  MULTIPLE_SELECT: "Pilih Beberapa",
+  SHORT_ANSWER: "Isian Singkat",
+  ESSAY: "Esai",
+};
 
 const questionTypeBadgeColor: Record<string, string> = {
-  MCQ: 'bg-indigo-50 text-indigo-700 dark:bg-indigo-900/40 dark:text-indigo-300',
-  TRUE_FALSE: 'bg-emerald-50 text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-300',
-  MULTIPLE_SELECT: 'bg-violet-50 text-violet-700 dark:bg-violet-900/40 dark:text-violet-300',
-  SHORT_ANSWER: 'bg-amber-50 text-amber-700 dark:bg-amber-900/40 dark:text-amber-300',
-  ESSAY: 'bg-neutral-100 text-neutral-600 dark:bg-neutral-700 dark:text-neutral-300',
-}
+  MCQ: "bg-indigo-50 text-indigo-700 dark:bg-indigo-900/40 dark:text-indigo-300",
+  TRUE_FALSE:
+    "bg-emerald-50 text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-300",
+  MULTIPLE_SELECT:
+    "bg-violet-50 text-violet-700 dark:bg-violet-900/40 dark:text-violet-300",
+  SHORT_ANSWER:
+    "bg-amber-50 text-amber-700 dark:bg-amber-900/40 dark:text-amber-300",
+  ESSAY:
+    "bg-neutral-100 text-neutral-600 dark:bg-neutral-700 dark:text-neutral-300",
+};
 
 const difficultyLabels: Record<string, string> = {
-  '1': 'Sangat Mudah',
-  '2': 'Mudah',
-  '3': 'Sedang',
-  '4': 'Sulit',
-  '5': 'Sangat Sulit',
-}
+  "1": "Sangat Mudah",
+  "2": "Mudah",
+  "3": "Sedang",
+  "4": "Sulit",
+  "5": "Sangat Sulit",
+};
 
 const difficultyBadgeColor: Record<string, string> = {
-  '1': 'bg-green-50 text-green-700 dark:bg-green-900/30 dark:text-green-300',
-  '2': 'bg-success-50 text-success-700 dark:bg-success-900/30 dark:text-success-300',
-  '3': 'bg-yellow-50 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-300',
-  '4': 'bg-orange-50 text-orange-700 dark:bg-orange-900/30 dark:text-orange-300',
-  '5': 'bg-danger-50 text-danger-700 dark:bg-danger-900/30 dark:text-danger-300',
-}
+  "1": "bg-green-50 text-green-700 dark:bg-green-900/30 dark:text-green-300",
+  "2": "bg-success-50 text-success-700 dark:bg-success-900/30 dark:text-success-300",
+  "3": "bg-yellow-50 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-300",
+  "4": "bg-orange-50 text-orange-700 dark:bg-orange-900/30 dark:text-orange-300",
+  "5": "bg-danger-50 text-danger-700 dark:bg-danger-900/30 dark:text-danger-300",
+};
 
 // ─────────────────────────────────────────────────────────
 // Skeleton loading row
@@ -76,7 +88,7 @@ function QuestionRowSkeleton() {
         <Skeleton className="h-4 w-2/3 rounded" />
       </div>
     </div>
-  )
+  );
 }
 
 // ─────────────────────────────────────────────────────────
@@ -112,15 +124,15 @@ export const ImportFromQuestionBank: React.FC<ImportFromQuestionBankProps> = ({
   } = useQuestionBankSelect({
     onSelect: onImport,
     existingQuestionIds,
-  })
+  });
 
-  const isDoingImport = isImportingProp || hookImporting
+  const isDoingImport = isImportingProp || hookImporting;
 
   const handleImport = () => {
-    importSelected()
-  }
+    importSelected();
+  };
 
-  if (!isOpen) return null
+  if (!isOpen) return null;
 
   return (
     <AnimatePresence>
@@ -175,7 +187,9 @@ export const ImportFromQuestionBank: React.FC<ImportFromQuestionBankProps> = ({
                 <Filter className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-neutral-400 pointer-events-none" />
                 <select
                   value={filterType}
-                  onChange={(e) => setFilterType(e.target.value as QuestionTypeFilter)}
+                  onChange={(e) =>
+                    setFilterType(e.target.value as QuestionTypeFilter)
+                  }
                   className="w-full pl-9 pr-3 py-2 bg-white dark:bg-neutral-700 border border-neutral-200 dark:border-neutral-600 rounded-xl focus:ring-2 focus:ring-primary-500 outline-none text-sm dark:text-neutral-100 appearance-none"
                 >
                   <option value="">Semua Tipe</option>
@@ -191,7 +205,9 @@ export const ImportFromQuestionBank: React.FC<ImportFromQuestionBankProps> = ({
               <div className="w-36 relative">
                 <select
                   value={filterDifficulty}
-                  onChange={(e) => setFilterDifficulty(e.target.value as DifficultyFilter)}
+                  onChange={(e) =>
+                    setFilterDifficulty(e.target.value as DifficultyFilter)
+                  }
                   className="w-full px-3 py-2 bg-white dark:bg-neutral-700 border border-neutral-200 dark:border-neutral-600 rounded-xl focus:ring-2 focus:ring-primary-500 outline-none text-sm dark:text-neutral-100 appearance-none"
                 >
                   <option value="">Semua Tingkat</option>
@@ -208,13 +224,13 @@ export const ImportFromQuestionBank: React.FC<ImportFromQuestionBankProps> = ({
                 <input
                   type="text"
                   placeholder="Filter Tag (koma...)"
-                  value={filterTags.join(', ')}
+                  value={filterTags.join(", ")}
                   onChange={(e) =>
                     setFilterTags(
                       e.target.value
-                        .split(',')
+                        .split(",")
                         .map((t) => t.trim())
-                        .filter(Boolean)
+                        .filter(Boolean),
                     )
                   }
                   className="w-full px-3 py-2 bg-white dark:bg-neutral-700 border border-neutral-200 dark:border-neutral-600 rounded-xl focus:ring-2 focus:ring-primary-500 outline-none text-sm dark:text-neutral-100 placeholder:text-neutral-400"
@@ -281,9 +297,9 @@ export const ImportFromQuestionBank: React.FC<ImportFromQuestionBankProps> = ({
             {questions.length > 0 && (
               <div className="space-y-2">
                 {questions.map((q) => {
-                  const alreadyAdded = existingQuestionIds.includes(q.id)
-                  const selected = isSelected(q.id)
-                  const diffLevel = String(q.difficulty_level ?? 3)
+                  const alreadyAdded = existingQuestionIds.includes(q.id);
+                  const selected = isSelected(q.id);
+                  const diffLevel = String(q.difficulty_level ?? 3);
 
                   return (
                     <div
@@ -292,12 +308,12 @@ export const ImportFromQuestionBank: React.FC<ImportFromQuestionBankProps> = ({
                       aria-checked={selected}
                       onClick={() => !alreadyAdded && toggleSelect(q.id)}
                       className={cn(
-                        'flex items-start gap-3 p-4 border rounded-xl transition-all',
+                        "flex items-start gap-3 p-4 border rounded-xl transition-all",
                         alreadyAdded
-                          ? 'opacity-50 cursor-not-allowed border-neutral-200 dark:border-neutral-700 bg-neutral-50 dark:bg-neutral-800/40'
+                          ? "opacity-50 cursor-not-allowed border-neutral-200 dark:border-neutral-700 bg-neutral-50 dark:bg-neutral-800/40"
                           : selected
-                            ? 'cursor-pointer border-indigo-500 bg-indigo-50 dark:bg-indigo-900/20 ring-1 ring-indigo-500'
-                            : 'cursor-pointer border-neutral-200 dark:border-neutral-700 hover:border-indigo-300 dark:hover:border-indigo-700 hover:bg-neutral-50 dark:hover:bg-neutral-800/50'
+                            ? "cursor-pointer border-indigo-500 bg-indigo-50 dark:bg-indigo-900/20 ring-1 ring-indigo-500"
+                            : "cursor-pointer border-neutral-200 dark:border-neutral-700 hover:border-indigo-300 dark:hover:border-indigo-700 hover:bg-neutral-50 dark:hover:bg-neutral-800/50",
                       )}
                     >
                       <div className="shrink-0 mt-0.5">
@@ -314,22 +330,24 @@ export const ImportFromQuestionBank: React.FC<ImportFromQuestionBankProps> = ({
                         <div className="flex flex-wrap items-center gap-2 mb-1.5">
                           <span
                             className={cn(
-                              'text-[11px] font-bold px-2 py-0.5 rounded-md',
+                              "text-[11px] font-bold px-2 py-0.5 rounded-md",
                               questionTypeBadgeColor[q.question_type] ??
-                                'bg-neutral-100 text-neutral-600'
+                                "bg-neutral-100 text-neutral-600",
                             )}
                           >
-                            {questionTypeLabels[q.question_type] ?? q.question_type}
+                            {questionTypeLabels[q.question_type] ??
+                              q.question_type}
                           </span>
 
                           {q.difficulty_level && (
                             <span
                               className={cn(
-                                'text-[11px] font-bold px-2 py-0.5 rounded-md',
-                                difficultyBadgeColor[diffLevel] ?? 'bg-neutral-100 text-neutral-600'
+                                "text-[11px] font-bold px-2 py-0.5 rounded-md",
+                                difficultyBadgeColor[diffLevel] ??
+                                  "bg-neutral-100 text-neutral-600",
                               )}
                             >
-                              {difficultyLabels[diffLevel] ?? 'Sedang'}
+                              {difficultyLabels[diffLevel] ?? "Sedang"}
                             </span>
                           )}
 
@@ -358,7 +376,7 @@ export const ImportFromQuestionBank: React.FC<ImportFromQuestionBankProps> = ({
                         )}
                       </div>
                     </div>
-                  )
+                  );
                 })}
               </div>
             )}
@@ -380,19 +398,19 @@ export const ImportFromQuestionBank: React.FC<ImportFromQuestionBankProps> = ({
                 onClick={handleImport}
                 disabled={selectedCount === 0 || isDoingImport}
                 className={cn(
-                  'px-4 py-2 text-sm font-bold rounded-xl transition-colors flex items-center gap-2',
+                  "px-4 py-2 text-sm font-bold rounded-xl transition-colors flex items-center gap-2",
                   selectedCount > 0 && !isDoingImport
-                    ? 'bg-indigo-600 hover:bg-indigo-700 text-white shadow-sm'
-                    : 'bg-neutral-200 dark:bg-neutral-700 text-neutral-400 dark:text-neutral-500 cursor-not-allowed'
+                    ? "bg-indigo-600 hover:bg-indigo-700 text-white shadow-sm"
+                    : "bg-neutral-200 dark:bg-neutral-700 text-neutral-400 dark:text-neutral-500 cursor-not-allowed",
                 )}
               >
                 {isDoingImport && <Loader2 className="w-4 h-4 animate-spin" />}
-                {isDoingImport ? 'Mengimpor…' : `Impor ${selectedCount} Soal`}
+                {isDoingImport ? "Mengimpor…" : `Impor ${selectedCount} Soal`}
               </button>
             </div>
           </div>
         </motion.div>
       </div>
     </AnimatePresence>
-  )
-}
+  );
+};

@@ -1,46 +1,46 @@
-import { AlertTriangle, ArrowLeft, BookOpen, Loader2 } from 'lucide-react'
-import { AnimatePresence, motion } from 'motion/react'
+import { AlertTriangle, ArrowLeft, BookOpen, Loader2 } from "lucide-react";
+import { AnimatePresence, motion } from "motion/react";
 
-import { FeatureErrorBoundary } from '@/components/FeatureErrorBoundary'
+import { FeatureErrorBoundary } from "@/components/FeatureErrorBoundary";
 import {
   LessonSidebar,
   MultiBlockViewer,
   ProgressReporter,
   ScrollProgressBar,
-} from '@/components/LessonViewer'
-import { DiscussionBoard } from '@/components/Social/DiscussionBoard'
-import { LearningPathRecommendation } from '@/features/ai-recommendations'
-import { AITutorPanel } from '@/features/ai-tutor/components/AITutorPanel'
-import { LearningSessionProvider } from '@/features/analytics'
-import { GuideRenderer } from '@/features/guidance'
-import { CourseBrowser } from '@/features/lessons/components/CourseBrowser'
-import { LessonEventTracker } from '@/features/lessons/components/LessonEventTracker'
-import { StudentCoursesList } from '@/features/lessons/components/StudentCoursesList'
+} from "@/components/LessonViewer";
+import { DiscussionBoard } from "@/components/Social/DiscussionBoard";
+import { LearningPathRecommendation } from "@/features/ai-recommendations";
+import { AITutorPanel } from "@/features/ai-tutor/components/AITutorPanel";
+import { LearningSessionProvider } from "@/features/analytics";
+import { GuideRenderer } from "@/features/guidance";
+import { CourseBrowser } from "@/features/lessons/components/CourseBrowser";
+import { LessonEventTracker } from "@/features/lessons/components/LessonEventTracker";
+import { StudentCoursesList } from "@/features/lessons/components/StudentCoursesList";
 import {
   LegacyContentFallback,
   LessonBottomNav,
   LessonCelebrations,
   LessonTopBar,
-} from '@/features/lessons/components/viewer'
-import { useLessonViewerState } from '@/features/lessons/hooks/useLessonViewerState'
-import { StruggleHelpPrompt } from '@/features/struggle'
+} from "@/features/lessons/components/viewer";
+import { useLessonViewerState } from "@/features/lessons/hooks/useLessonViewerState";
+import { StruggleHelpPrompt } from "@/features/struggle";
 
 // ============================================================
 // LessonViewer Page -- Thin orchestrator
 // ============================================================
 
 export function LessonViewer() {
-  const s = useLessonViewerState()
+  const s = useLessonViewerState();
 
   // No course selected --> student courses list
   if (!s.courseId) {
-    return <StudentCoursesList />
+    return <StudentCoursesList />;
   }
 
   // No module selected --> course browser
   if (!s.moduleId) {
     if (!s.tenantId) {
-      return <StudentCoursesList />
+      return <StudentCoursesList />;
     }
     return (
       <CourseBrowser
@@ -48,7 +48,7 @@ export function LessonViewer() {
         tenantId={s.tenantId}
         courseId={s.courseId}
       />
-    )
+    );
   }
 
   // ============================================================
@@ -136,7 +136,7 @@ export function LessonViewer() {
             <FeatureErrorBoundary featureName="Pelajaran">
               <AnimatePresence mode="wait">
                 {/* Loading */}
-                {s.state.status === 'loading' && (
+                {s.state.status === "loading" && (
                   <motion.div
                     key="loading"
                     initial={{ opacity: 0 }}
@@ -154,7 +154,7 @@ export function LessonViewer() {
                 )}
 
                 {/* Error */}
-                {s.state.status === 'error' && (
+                {s.state.status === "error" && (
                   <motion.div
                     key="error"
                     initial={{ opacity: 0 }}
@@ -167,7 +167,9 @@ export function LessonViewer() {
                       <h2 className="text-xl font-bold text-slate-800 dark:text-white mb-2">
                         Gagal Memuat
                       </h2>
-                      <p className="text-slate-500 dark:text-slate-400 mb-4">{s.state.error}</p>
+                      <p className="text-slate-500 dark:text-slate-400 mb-4">
+                        {s.state.error}
+                      </p>
                       <button
                         onClick={s.handleRetry}
                         className="px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl transition-colors"
@@ -179,7 +181,7 @@ export function LessonViewer() {
                 )}
 
                 {/* Idle -- no lesson selected */}
-                {s.state.status === 'idle' && !s.lessonId && (
+                {s.state.status === "idle" && !s.lessonId && (
                   <motion.div
                     key="idle"
                     initial={{ opacity: 0 }}
@@ -202,15 +204,15 @@ export function LessonViewer() {
                       </div>
 
                       {/* AI Learning Path Recommendations — students only, non-blocking */}
-                      {s.role === 'student' && s.courseId && s.tenantId && (
+                      {s.role === "student" && s.courseId && s.tenantId && (
                         <LearningPathRecommendation
                           courseId={s.courseId}
                           tenantId={s.tenantId}
                           onNavigateToLesson={(lessonId) => {
                             s.setSearchParams((prev) => {
-                              prev.set('lessonId', lessonId)
-                              return prev
-                            })
+                              prev.set("lessonId", lessonId);
+                              return prev;
+                            });
                           }}
                         />
                       )}
@@ -220,10 +222,13 @@ export function LessonViewer() {
 
                 {/* Lesson Content Tab */}
                 {s.state.lesson &&
-                  s.activeTab === 'content' &&
-                  ['viewing', 'in_progress', 'completing', 'completed'].includes(
-                    s.state.status
-                  ) && (
+                  s.activeTab === "content" &&
+                  [
+                    "viewing",
+                    "in_progress",
+                    "completing",
+                    "completed",
+                  ].includes(s.state.status) && (
                     <motion.div
                       key={s.state.lesson.id}
                       initial={{ opacity: 0, y: 10 }}
@@ -235,20 +240,27 @@ export function LessonViewer() {
                       aria-labelledby="tab-content"
                     >
                       <ScrollProgressBar />
-                      {s.role === 'student' && s.lessonId && (
+                      {s.role === "student" && s.lessonId && (
                         <StruggleHelpPrompt lessonId={s.lessonId} />
                       )}
-                      {s.role === 'student' && s.lessonId && (
-                        <GuideRenderer targetType="lesson" targetId={s.lessonId} />
+                      {s.role === "student" && s.lessonId && (
+                        <GuideRenderer
+                          targetType="lesson"
+                          targetId={s.lessonId}
+                        />
                       )}
                       {s.state.lesson.lesson_resources &&
                       s.state.lesson.lesson_resources.length > 0 ? (
                         <MultiBlockViewer
                           key={s.state.lesson.id}
                           lesson={s.state.lesson}
-                          isCompleted={s.state.status === 'completed'}
-                          savedVideoBlockId={s.state.progress?.last_block_id ?? null}
-                          savedVideoPosition={s.state.progress?.last_video_position ?? null}
+                          isCompleted={s.state.status === "completed"}
+                          savedVideoBlockId={
+                            s.state.progress?.last_block_id ?? null
+                          }
+                          savedVideoPosition={
+                            s.state.progress?.last_video_position ?? null
+                          }
                           onVideoTimeUpdate={s.handleVideoTimeUpdate}
                           onProgressUpdate={s.handleProgressUpdate}
                           onCompletionMet={s.handleCompletionMet}
@@ -272,10 +284,13 @@ export function LessonViewer() {
 
                 {/* Discussion Tab */}
                 {s.state.lesson &&
-                  s.activeTab === 'discussion' &&
-                  ['viewing', 'in_progress', 'completing', 'completed'].includes(
-                    s.state.status
-                  ) && (
+                  s.activeTab === "discussion" &&
+                  [
+                    "viewing",
+                    "in_progress",
+                    "completing",
+                    "completed",
+                  ].includes(s.state.status) && (
                     <motion.div
                       key="discussion-tab"
                       initial={{ opacity: 0, x: 20 }}
@@ -290,7 +305,7 @@ export function LessonViewer() {
                         <DiscussionBoard
                           courseId={s.courseId}
                           lessonId={s.state.lesson.id}
-                          isTeacher={s.role === 'teacher' || s.role === 'admin'}
+                          isTeacher={s.role === "teacher" || s.role === "admin"}
                         />
                       </div>
                     </motion.div>
@@ -298,10 +313,13 @@ export function LessonViewer() {
 
                 {/* AI Tutor Tab */}
                 {s.state.lesson &&
-                  s.activeTab === 'ai_tutor' &&
-                  ['viewing', 'in_progress', 'completing', 'completed'].includes(
-                    s.state.status
-                  ) && (
+                  s.activeTab === "ai_tutor" &&
+                  [
+                    "viewing",
+                    "in_progress",
+                    "completing",
+                    "completed",
+                  ].includes(s.state.status) && (
                     <motion.div
                       key="ai-tutor-tab"
                       initial={{ opacity: 0, x: 20 }}
@@ -325,9 +343,9 @@ export function LessonViewer() {
 
           {/* Bottom Navigation */}
           {s.state.lesson &&
-            s.state.lesson.type !== 'quiz' &&
+            s.state.lesson.type !== "quiz" &&
             (s.prevLesson || s.nextLesson) &&
-            s.activeTab === 'content' && (
+            s.activeTab === "content" && (
               <LessonBottomNav
                 prevLesson={s.prevLesson}
                 nextLesson={s.nextLesson}
@@ -343,15 +361,17 @@ export function LessonViewer() {
               lessonId={s.state.lesson.id}
               tenantId={s.tenantId}
               status={
-                s.state.status === 'completed'
-                  ? 'completed'
-                  : s.state.status === 'in_progress'
-                    ? 'in_progress'
-                    : 'started'
+                s.state.status === "completed"
+                  ? "completed"
+                  : s.state.status === "in_progress"
+                    ? "in_progress"
+                    : "started"
               }
               progressPercentage={s.state.progressPercentage}
               lastPosition={s.state.lastPosition}
-              enabled={s.state.status === 'in_progress' || s.state.status === 'viewing'}
+              enabled={
+                s.state.status === "in_progress" || s.state.status === "viewing"
+              }
             />
           )}
 
@@ -366,13 +386,13 @@ export function LessonViewer() {
             onSelectLesson={s.handleSelectLesson}
             onCelebrationDismiss={() => s.setShowCelebration(false)}
             onModuleContinue={() => {
-              s.setShowModuleComplete(false)
-              s.setSearchParams({})
+              s.setShowModuleComplete(false);
+              s.setSearchParams({});
             }}
             onModuleClose={() => s.setShowModuleComplete(false)}
           />
         </div>
       </div>
     </LearningSessionProvider>
-  )
+  );
 }

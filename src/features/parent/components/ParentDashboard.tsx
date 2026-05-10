@@ -3,18 +3,18 @@
 // Wave 4 — Task 29.3 (Mobile-first, 360-414px)
 // ==========================================================================
 
-import { useState } from 'react'
-import { Link } from 'react-router-dom'
+import { useState } from "react";
+import { Link } from "react-router-dom";
 
-import { SkeletonCard } from '@/components/ui/Skeleton'
+import { SkeletonCard } from "@/components/ui/Skeleton";
 
-import { useParentDashboard } from '../hooks/useChildData'
-import { AchievementFeed } from './AchievementFeed'
-import { AttendanceWeekGrid } from './AttendanceWeekGrid'
-import { ChildSwitcher } from './ChildSwitcher'
-import { GradeCard } from './GradeCard'
-import { PendingAssignmentList } from './PendingAssignmentList'
-import { TrafficLightCard } from './TrafficLightCard'
+import { useParentDashboard } from "../hooks/useChildData";
+import { AchievementFeed } from "./AchievementFeed";
+import { AttendanceWeekGrid } from "./AttendanceWeekGrid";
+import { ChildSwitcher } from "./ChildSwitcher";
+import { GradeCard } from "./GradeCard";
+import { PendingAssignmentList } from "./PendingAssignmentList";
+import { TrafficLightCard } from "./TrafficLightCard";
 
 // ── Skeleton Loading State ──────────────────────────────────────
 
@@ -26,7 +26,7 @@ function DashboardSkeleton() {
       <SkeletonCard lines={2} />
       <SkeletonCard lines={2} />
     </div>
-  )
+  );
 }
 
 // ── Empty State ──────────────────────────────────────────────
@@ -42,18 +42,20 @@ function NoChildrenState() {
           Belum ada siswa yang terhubung
         </h2>
         <p className="text-sm text-slate-500 dark:text-slate-400 max-w-xs mx-auto leading-relaxed">
-          Hubungi sekolah untuk mendaftarkan akun orang tua dan menghubungkan dengan data siswa.
+          Hubungi sekolah untuk mendaftarkan akun orang tua dan menghubungkan
+          dengan data siswa.
         </p>
       </div>
       <div className="mt-2 p-4 rounded-2xl bg-blue-50 dark:bg-blue-950/30 border border-blue-200 dark:border-blue-800/40 w-full max-w-xs">
         <p className="text-sm text-blue-700 dark:text-blue-300 text-left leading-relaxed">
           <span className="font-semibold">Cara mendaftar:</span>
           <br />
-          Minta admin sekolah untuk menambahkan akun Anda ke sistem EduSync sebagai orang tua siswa.
+          Minta admin sekolah untuk menambahkan akun Anda ke sistem EduSync
+          sebagai orang tua siswa.
         </p>
       </div>
     </div>
-  )
+  );
 }
 
 // ── Error State ──────────────────────────────────────────────
@@ -76,35 +78,44 @@ function ErrorState({ onRetry }: { onRetry: () => void }) {
         Coba Lagi
       </button>
     </div>
-  )
+  );
 }
 
 // ── Main Dashboard ───────────────────────────────────────────
 
 export function ParentDashboard() {
-  const [selectedStudentId, setSelectedStudentId] = useState<string | null>(null)
+  const [selectedStudentId, setSelectedStudentId] = useState<string | null>(
+    null,
+  );
 
-  const { children, childrenLoading, selectedChild, dashboardData, isLoading, error, refetchAll } =
-    useParentDashboard(selectedStudentId)
+  const {
+    children,
+    childrenLoading,
+    selectedChild,
+    dashboardData,
+    isLoading,
+    error,
+    refetchAll,
+  } = useParentDashboard(selectedStudentId);
 
   // Auto-select anak pertama jika belum ada yang dipilih
   if (!selectedStudentId && children.length > 0 && !childrenLoading) {
-    setSelectedStudentId(children[0].student_id)
+    setSelectedStudentId(children[0].student_id);
   }
 
   // Error state
   if (error && !isLoading) {
-    return <ErrorState onRetry={refetchAll} />
+    return <ErrorState onRetry={refetchAll} />;
   }
 
   // Loading awal (belum ada children data)
   if (childrenLoading) {
-    return <DashboardSkeleton />
+    return <DashboardSkeleton />;
   }
 
   // No children state
   if (!childrenLoading && children.length === 0) {
-    return <NoChildrenState />
+    return <NoChildrenState />;
   }
 
   return (
@@ -125,7 +136,7 @@ export function ParentDashboard() {
         <TrafficLightCard
           status={dashboardData.traffic_light}
           reason={dashboardData.traffic_light_reason}
-          childName={selectedChild?.student_name.split(' ')[0] ?? 'Anak'}
+          childName={selectedChild?.student_name.split(" ")[0] ?? "Anak"}
         />
       )}
 
@@ -194,5 +205,5 @@ export function ParentDashboard() {
         </p>
       )}
     </div>
-  )
+  );
 }

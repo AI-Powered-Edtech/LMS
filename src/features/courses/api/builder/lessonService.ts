@@ -1,2 +1,2 @@
 // MOVED: This file has been relocated to src/features/course-builder/api/lessonService.ts
-export * from '@/features/course-builder/api/lessonService'
+export * from "@/features/course-builder/api/lessonService";

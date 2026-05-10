@@ -1,5 +1,5 @@
-import { readVilSession } from '@/services/auth/vilSession'
-import { db } from '@/services/db'
+import { readVilSession } from "@/services/auth/vilSession";
+import { db } from "@/services/db";
 
 import type {
   AIAuthoringQuestion,
@@ -7,12 +7,12 @@ import type {
   GenerateFromFileResponse,
   GenerateFromLessonConfig,
   GenerateFromLessonResponse,
-} from '../types'
+} from "../types";
 
 function resolveApiUrl(path: string): string {
-  const apiUrl = import.meta.env.VITE_API_URL ?? ''
-  if (apiUrl) return `${apiUrl}${path}`
-  return new URL(path, window.location.origin).toString()
+  const apiUrl = import.meta.env.VITE_API_URL ?? "";
+  if (apiUrl) return `${apiUrl}${path}`;
+  return new URL(path, window.location.origin).toString();
 }
 
 /**
@@ -28,90 +28,118 @@ export const aiAuthoringService = {
    * Generate AI content (quiz / reading / writing) from an uploaded file.
    * Calls the AI generation endpoint.
    */
-  async generateFromFile(formData: FormData): Promise<GenerateFromFileResponse> {
-    const token = readVilSession()?.access_token
+  async generateFromFile(
+    formData: FormData,
+  ): Promise<GenerateFromFileResponse> {
+    const token = readVilSession()?.access_token;
 
-    const res = await fetch(resolveApiUrl('/api/v1/ai/generate-content'), {
-      method: 'POST',
+    const res = await fetch(resolveApiUrl("/api/v1/ai/generate-content"), {
+      method: "POST",
       headers: {
         ...(token ? { Authorization: `Bearer ${token}` } : {}),
         // Do NOT set Content-Type — browser sets it automatically for FormData (multipart/form-data)
       },
       body: formData,
-    })
+    });
 
-    let data: Record<string, unknown> | null = null
-    let error: { message: string } | null = null
+    let data: Record<string, unknown> | null = null;
+    let error: { message: string } | null = null;
 
     if (!res.ok) {
-      const errBody = await res.json().catch(() => ({}))
-      error = { message: (errBody as { error?: string }).error ?? `HTTP ${res.status}` }
+      const errBody = await res.json().catch(() => ({}));
+      error = {
+        message: (errBody as { error?: string }).error ?? `HTTP ${res.status}`,
+      };
     } else {
-      data = (await res.json()) as Record<string, unknown>
+      data = (await res.json()) as Record<string, unknown>;
     }
 
     if (error) {
-      const msg = error.message ?? ''
-      if (msg.includes('404') || msg.includes('FetchError') || msg.includes('not found')) {
-        throw new Error('Layanan AI belum tersedia saat ini.')
+      const msg = error.message ?? "";
+      if (
+        msg.includes("404") ||
+        msg.includes("FetchError") ||
+        msg.includes("not found")
+      ) {
+        throw new Error("Layanan AI belum tersedia saat ini.");
       }
       if (
-        msg.includes('429') ||
-        msg.toLowerCase().includes('rate limit') ||
-        msg.includes('RATE_LIMITED')
+        msg.includes("429") ||
+        msg.toLowerCase().includes("rate limit") ||
+        msg.includes("RATE_LIMITED")
       ) {
-        throw new Error('Batas penggunaan AI tercapai (20 per jam). Coba lagi nanti.')
-      }
-      if (msg.includes('UNAUTHORIZED_ROLE')) {
-        throw new Error('Anda tidak memiliki izin menggunakan fitur ini.')
-      }
-      if (msg.includes('INSUFFICIENT_CONTENT')) {
         throw new Error(
-          'Konten dokumen terlalu sedikit untuk dibuat soal. Gunakan dokumen yang lebih lengkap.'
-        )
+          "Batas penggunaan AI tercapai (20 per jam). Coba lagi nanti.",
+        );
       }
-      if (msg.includes('DOCX_PARSE_ERROR') || msg.includes('FILE_EXTRACTION_FAILED')) {
-        throw new Error('Gagal membaca isi dokumen. Pastikan file tidak rusak dan coba lagi.')
+      if (msg.includes("UNAUTHORIZED_ROLE")) {
+        throw new Error("Anda tidak memiliki izin menggunakan fitur ini.");
       }
-      if (msg.includes('AI_TIMEOUT')) {
-        throw new Error('Waktu pemrosesan AI habis. Coba lagi dengan dokumen yang lebih pendek.')
-      }
-      if (msg.includes('AI_GENERATION_FAILED') || msg.includes('AI_INVALID_RESPONSE')) {
-        throw new Error('AI gagal membuat soal. Coba lagi.')
+      if (msg.includes("INSUFFICIENT_CONTENT")) {
+        throw new Error(
+          "Konten dokumen terlalu sedikit untuk dibuat soal. Gunakan dokumen yang lebih lengkap.",
+        );
       }
       if (
-        msg.includes('Failed to fetch') ||
-        msg.includes('NetworkError') ||
-        msg.includes('timeout')
+        msg.includes("DOCX_PARSE_ERROR") ||
+        msg.includes("FILE_EXTRACTION_FAILED")
       ) {
-        throw new Error('Gagal terhubung ke server. Periksa koneksi internet Anda.')
+        throw new Error(
+          "Gagal membaca isi dokumen. Pastikan file tidak rusak dan coba lagi.",
+        );
       }
-      throw new Error(msg || 'Gagal memproses materi dengan AI.')
+      if (msg.includes("AI_TIMEOUT")) {
+        throw new Error(
+          "Waktu pemrosesan AI habis. Coba lagi dengan dokumen yang lebih pendek.",
+        );
+      }
+      if (
+        msg.includes("AI_GENERATION_FAILED") ||
+        msg.includes("AI_INVALID_RESPONSE")
+      ) {
+        throw new Error("AI gagal membuat soal. Coba lagi.");
+      }
+      if (
+        msg.includes("Failed to fetch") ||
+        msg.includes("NetworkError") ||
+        msg.includes("timeout")
+      ) {
+        throw new Error(
+          "Gagal terhubung ke server. Periksa koneksi internet Anda.",
+        );
+      }
+      throw new Error(msg || "Gagal memproses materi dengan AI.");
     }
 
     if (data?.error) {
-      const errCode = data.error as string
+      const errCode = data.error as string;
       const errMap: Record<string, string> = {
-        FILE_REQUIRED: 'File wajib diunggah.',
-        FILE_TOO_LARGE: 'Ukuran file maksimal 10MB.',
-        UNSUPPORTED_FILE_TYPE: 'Format file tidak didukung.',
-        INSUFFICIENT_CONTENT: 'Konten dokumen terlalu sedikit untuk dibuat soal.',
-        RATE_LIMITED: 'Batas penggunaan AI tercapai (20 per jam). Coba lagi nanti.',
-        AI_CONFIG_MISSING: 'Konfigurasi AI belum tersedia. Hubungi administrator.',
-        AI_GENERATION_FAILED: 'AI gagal membuat soal. Coba lagi.',
-        AI_TIMEOUT: 'Waktu pemrosesan AI habis. Coba dengan dokumen yang lebih pendek.',
-        DOCX_PARSE_ERROR: 'Gagal membaca file DOCX. Pastikan file tidak rusak.',
-      }
-      throw new Error(errMap[errCode] ?? errCode)
+        FILE_REQUIRED: "File wajib diunggah.",
+        FILE_TOO_LARGE: "Ukuran file maksimal 10MB.",
+        UNSUPPORTED_FILE_TYPE: "Format file tidak didukung.",
+        INSUFFICIENT_CONTENT:
+          "Konten dokumen terlalu sedikit untuk dibuat soal.",
+        RATE_LIMITED:
+          "Batas penggunaan AI tercapai (20 per jam). Coba lagi nanti.",
+        AI_CONFIG_MISSING:
+          "Konfigurasi AI belum tersedia. Hubungi administrator.",
+        AI_GENERATION_FAILED: "AI gagal membuat soal. Coba lagi.",
+        AI_TIMEOUT:
+          "Waktu pemrosesan AI habis. Coba dengan dokumen yang lebih pendek.",
+        DOCX_PARSE_ERROR: "Gagal membaca file DOCX. Pastikan file tidak rusak.",
+      };
+      throw new Error(errMap[errCode] ?? errCode);
     }
 
     if (!data?.questions || !Array.isArray(data.questions)) {
-      throw new Error('Respons AI tidak valid. Coba lagi.')
+      throw new Error("Respons AI tidak valid. Coba lagi.");
     }
 
     // Normalise legacy response: map `id` → `generation_id` if present
     const generation_id: string | null =
-      (data!.generation_id as string | null) ?? (data!.id as string | null) ?? null
+      (data!.generation_id as string | null) ??
+      (data!.id as string | null) ??
+      null;
 
     return {
       generation_id,
@@ -119,7 +147,7 @@ export const aiAuthoringService = {
       tenant_id: data.tenant_id,
       summary: data.summary,
       questions: data.questions,
-    } as GenerateFromFileResponse
+    } as GenerateFromFileResponse;
   },
 
   // ─── Lesson-based Generation ─────────────────────────────────────────────────
@@ -128,13 +156,15 @@ export const aiAuthoringService = {
    * Generate quiz questions from an existing lesson's content.
    * Calls the quiz generation endpoint.
    */
-  async generateFromLesson(config: GenerateFromLessonConfig): Promise<GenerateFromLessonResponse> {
-    const token = readVilSession()?.access_token
+  async generateFromLesson(
+    config: GenerateFromLessonConfig,
+  ): Promise<GenerateFromLessonResponse> {
+    const token = readVilSession()?.access_token;
 
-    const res = await fetch(resolveApiUrl('/api/v1/ai/generate-quiz'), {
-      method: 'POST',
+    const res = await fetch(resolveApiUrl("/api/v1/ai/generate-quiz"), {
+      method: "POST",
       headers: {
-        'Content-Type': 'application/json',
+        "Content-Type": "application/json",
         ...(token ? { Authorization: `Bearer ${token}` } : {}),
       },
       body: JSON.stringify({
@@ -146,71 +176,80 @@ export const aiAuthoringService = {
         grade_level: config.gradeLevel,
         curriculum_ref: config.curriculumRef,
       }),
-    })
+    });
 
-    let data: Record<string, unknown> | null = null
-    let error: { message: string } | null = null
+    let data: Record<string, unknown> | null = null;
+    let error: { message: string } | null = null;
 
     if (!res.ok) {
-      const errBody = await res.json().catch(() => ({}))
-      error = { message: (errBody as { error?: string }).error ?? `HTTP ${res.status}` }
+      const errBody = await res.json().catch(() => ({}));
+      error = {
+        message: (errBody as { error?: string }).error ?? `HTTP ${res.status}`,
+      };
     } else {
-      data = (await res.json()) as Record<string, unknown>
+      data = (await res.json()) as Record<string, unknown>;
     }
 
     if (error) {
-      const msg = error.message ?? ''
-      const errCode = msg.split(':')[0]?.trim() ?? ''
+      const msg = error.message ?? "";
+      const errCode = msg.split(":")[0]?.trim() ?? "";
 
       const friendlyErrors: Record<string, string> = {
-        LESSON_NOT_FOUND: 'Materi tidak ditemukan.',
-        LESSON_ID_REQUIRED: 'ID materi wajib diisi.',
+        LESSON_NOT_FOUND: "Materi tidak ditemukan.",
+        LESSON_ID_REQUIRED: "ID materi wajib diisi.",
         INSUFFICIENT_CONTENT:
-          'Konten materi terlalu singkat untuk dibuat soal. Tambahkan lebih banyak materi.',
-        AI_GENERATION_FAILED: 'Gagal berkomunikasi dengan AI. Coba lagi.',
-        AI_CONFIG_MISSING: 'Konfigurasi AI belum tersedia. Hubungi administrator.',
-        UNAUTHORIZED_ROLE: 'Anda tidak memiliki izin untuk fitur ini.',
-        INVALID_QUESTION_COUNT: 'Jumlah soal harus antara 1–20.',
-        RATE_LIMITED: 'Batas penggunaan AI tercapai. Coba lagi nanti.',
-      }
+          "Konten materi terlalu singkat untuk dibuat soal. Tambahkan lebih banyak materi.",
+        AI_GENERATION_FAILED: "Gagal berkomunikasi dengan AI. Coba lagi.",
+        AI_CONFIG_MISSING:
+          "Konfigurasi AI belum tersedia. Hubungi administrator.",
+        UNAUTHORIZED_ROLE: "Anda tidak memiliki izin untuk fitur ini.",
+        INVALID_QUESTION_COUNT: "Jumlah soal harus antara 1–20.",
+        RATE_LIMITED: "Batas penggunaan AI tercapai. Coba lagi nanti.",
+      };
 
-      const friendly = friendlyErrors[errCode]
-      if (friendly) throw new Error(friendly)
+      const friendly = friendlyErrors[errCode];
+      if (friendly) throw new Error(friendly);
 
       if (
-        msg.includes('Failed to fetch') ||
-        msg.includes('NetworkError') ||
-        msg.includes('timeout')
+        msg.includes("Failed to fetch") ||
+        msg.includes("NetworkError") ||
+        msg.includes("timeout")
       ) {
-        throw new Error('Gagal terhubung ke server. Periksa koneksi internet Anda.')
+        throw new Error(
+          "Gagal terhubung ke server. Periksa koneksi internet Anda.",
+        );
       }
 
-      throw new Error(msg || 'Gagal membuat soal. Coba lagi.')
+      throw new Error(msg || "Gagal membuat soal. Coba lagi.");
     }
 
     if (data?.error) {
-      const errCode = data.error as string
+      const errCode = data.error as string;
       const friendlyErrors: Record<string, string> = {
-        LESSON_NOT_FOUND: 'Materi tidak ditemukan.',
-        LESSON_ID_REQUIRED: 'ID materi wajib diisi.',
+        LESSON_NOT_FOUND: "Materi tidak ditemukan.",
+        LESSON_ID_REQUIRED: "ID materi wajib diisi.",
         INSUFFICIENT_CONTENT:
-          'Konten materi terlalu singkat untuk dibuat soal. Tambahkan lebih banyak materi.',
-        AI_GENERATION_FAILED: 'Gagal berkomunikasi dengan AI. Coba lagi.',
-        AI_CONFIG_MISSING: 'Konfigurasi AI belum tersedia. Hubungi administrator.',
-        UNAUTHORIZED_ROLE: 'Anda tidak memiliki izin untuk fitur ini.',
-        INVALID_QUESTION_COUNT: 'Jumlah soal harus antara 1–20.',
-        RATE_LIMITED: 'Batas penggunaan AI tercapai. Coba lagi nanti.',
-      }
-      throw new Error(friendlyErrors[errCode] ?? 'Gagal membuat soal. Coba lagi.')
+          "Konten materi terlalu singkat untuk dibuat soal. Tambahkan lebih banyak materi.",
+        AI_GENERATION_FAILED: "Gagal berkomunikasi dengan AI. Coba lagi.",
+        AI_CONFIG_MISSING:
+          "Konfigurasi AI belum tersedia. Hubungi administrator.",
+        UNAUTHORIZED_ROLE: "Anda tidak memiliki izin untuk fitur ini.",
+        INVALID_QUESTION_COUNT: "Jumlah soal harus antara 1–20.",
+        RATE_LIMITED: "Batas penggunaan AI tercapai. Coba lagi nanti.",
+      };
+      throw new Error(
+        friendlyErrors[errCode] ?? "Gagal membuat soal. Coba lagi.",
+      );
     }
 
-    const generation_id: string | null = (data!.generation_id as string | null) ?? null
+    const generation_id: string | null =
+      (data!.generation_id as string | null) ?? null;
 
     return {
       generation_id,
       questions: data!.questions,
       lesson_title: data!.lesson_title,
-    } as GenerateFromLessonResponse
+    } as GenerateFromLessonResponse;
   },
 
   // ─── History / Persistence ───────────────────────────────────────────────────
@@ -221,16 +260,16 @@ export const aiAuthoringService = {
    */
   async fetchHistory(userId: string): Promise<AIGeneratedContent[]> {
     const { data, error } = await db
-      .from('ai_generated_content')
+      .from("ai_generated_content")
       .select(
-        'id, file_name, file_type, assignment_type, bloom_level, question_count, summary, questions, used_at, created_at, updated_at, tenant_id, created_by, source_type, lesson_id, subject, grade_level, curriculum_ref'
+        "id, file_name, file_type, assignment_type, bloom_level, question_count, summary, questions, used_at, created_at, updated_at, tenant_id, created_by, source_type, lesson_id, subject, grade_level, curriculum_ref",
       )
-      .eq('created_by', userId)
-      .order('created_at', { ascending: false })
-      .limit(20)
+      .eq("created_by", userId)
+      .order("created_at", { ascending: false })
+      .limit(20);
 
-    if (error) throw new Error(error.message)
-    return (data ?? []) as AIGeneratedContent[]
+    if (error) throw new Error(error.message);
+    return (data ?? []) as AIGeneratedContent[];
   },
 
   /**
@@ -238,28 +277,37 @@ export const aiAuthoringService = {
    */
   async markAsUsed(id: string): Promise<void> {
     const { error } = await db
-      .from('ai_generated_content')
+      .from("ai_generated_content")
       .update({ used_at: new Date().toISOString() })
-      .eq('id', id)
+      .eq("id", id);
 
-    if (error) throw new Error(error.message)
+    if (error) throw new Error(error.message);
   },
 
   /**
    * Persist edited questions back to the saved generation row.
    */
-  async updateQuestions(id: string, questions: AIAuthoringQuestion[]): Promise<void> {
-    const { error } = await db.from('ai_generated_content').update({ questions }).eq('id', id)
+  async updateQuestions(
+    id: string,
+    questions: AIAuthoringQuestion[],
+  ): Promise<void> {
+    const { error } = await db
+      .from("ai_generated_content")
+      .update({ questions })
+      .eq("id", id);
 
-    if (error) throw new Error(error.message)
+    if (error) throw new Error(error.message);
   },
 
   /**
    * Permanently delete a saved generation from history.
    */
   async deleteGeneration(id: string): Promise<void> {
-    const { error } = await db.from('ai_generated_content').delete().eq('id', id)
+    const { error } = await db
+      .from("ai_generated_content")
+      .delete()
+      .eq("id", id);
 
-    if (error) throw new Error(error.message)
+    if (error) throw new Error(error.message);
   },
-}
+};

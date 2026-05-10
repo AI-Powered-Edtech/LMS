@@ -1,30 +1,34 @@
-import type { ConditionType } from '../types'
+import type { ConditionType } from "../types";
 
 interface PathConditionPickerProps {
-  value: ConditionType
-  onChange: (v: ConditionType) => void
-  disabled?: boolean
+  value: ConditionType;
+  onChange: (v: ConditionType) => void;
+  disabled?: boolean;
 }
 
 const CONDITION_LABELS: Record<ConditionType, string> = {
-  quiz_score_below: 'Nilai kuis di bawah threshold',
-  quiz_score_above: 'Nilai kuis di atas threshold',
-  time_spent_below: 'Waktu belajar kurang dari minimum',
-  assignment_score_below: 'Nilai tugas di bawah threshold',
-  lesson_not_completed: 'Pelajaran belum diselesaikan',
-  always: 'Selalu (tanpa kondisi)',
-}
+  quiz_score_below: "Nilai kuis di bawah threshold",
+  quiz_score_above: "Nilai kuis di atas threshold",
+  time_spent_below: "Waktu belajar kurang dari minimum",
+  assignment_score_below: "Nilai tugas di bawah threshold",
+  lesson_not_completed: "Pelajaran belum diselesaikan",
+  always: "Selalu (tanpa kondisi)",
+};
 
 const ALL_CONDITIONS: ConditionType[] = [
-  'quiz_score_below',
-  'quiz_score_above',
-  'time_spent_below',
-  'assignment_score_below',
-  'lesson_not_completed',
-  'always',
-]
+  "quiz_score_below",
+  "quiz_score_above",
+  "time_spent_below",
+  "assignment_score_below",
+  "lesson_not_completed",
+  "always",
+];
 
-export function PathConditionPicker({ value, onChange, disabled }: PathConditionPickerProps) {
+export function PathConditionPicker({
+  value,
+  onChange,
+  disabled,
+}: PathConditionPickerProps) {
   return (
     <select
       value={value}
@@ -38,7 +42,7 @@ export function PathConditionPicker({ value, onChange, disabled }: PathCondition
         </option>
       ))}
     </select>
-  )
+  );
 }
 
-export { CONDITION_LABELS }
+export { CONDITION_LABELS };

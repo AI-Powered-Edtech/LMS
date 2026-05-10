@@ -1,11 +1,11 @@
-import { CheckCircle2, Clock, TrendingDown, TrendingUp } from 'lucide-react'
+import { CheckCircle2, Clock, TrendingDown, TrendingUp } from "lucide-react";
 
 interface GradebookStatsProps {
-  classAverage: number
-  highestScore: number
-  lowestScore: number
-  highestStudent: string
-  lowestStudent: string
+  classAverage: number;
+  highestScore: number;
+  lowestScore: number;
+  highestStudent: string;
+  lowestStudent: string;
 }
 
 export function GradebookStats({
@@ -42,7 +42,9 @@ export function GradebookStats({
         <div className="text-2xl sm:text-3xl font-bold text-slate-800 dark:text-slate-200">
           {highestScore}
         </div>
-        <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">{highestStudent}</p>
+        <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
+          {highestStudent}
+        </p>
       </div>
       <div className="bg-white dark:bg-slate-800 p-4 sm:p-5 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-sm">
         <div className="flex items-center justify-between mb-2">
@@ -56,7 +58,9 @@ export function GradebookStats({
         <div className="text-2xl sm:text-3xl font-bold text-slate-800 dark:text-slate-200">
           {lowestScore}
         </div>
-        <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">{lowestStudent}</p>
+        <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
+          {lowestStudent}
+        </p>
       </div>
       <div className="bg-white dark:bg-slate-800 p-4 sm:p-5 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-sm">
         <div className="flex items-center justify-between mb-2">
@@ -67,9 +71,13 @@ export function GradebookStats({
             <Clock className="w-4 h-4" />
           </div>
         </div>
-        <div className="text-2xl sm:text-3xl font-bold text-slate-800 dark:text-slate-200">0</div>
-        <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">Belum digenerate</p>
+        <div className="text-2xl sm:text-3xl font-bold text-slate-800 dark:text-slate-200">
+          0
+        </div>
+        <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
+          Belum digenerate
+        </p>
       </div>
     </div>
-  )
+  );
 }

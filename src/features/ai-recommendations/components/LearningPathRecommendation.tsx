@@ -1,8 +1,8 @@
-import { Sparkles } from 'lucide-react'
-import { AnimatePresence, motion } from 'motion/react'
+import { Sparkles } from "lucide-react";
+import { AnimatePresence, motion } from "motion/react";
 
-import { useAiRecommendations } from '../queries/recommendationQueries'
-import { RecommendationCard } from './RecommendationCard'
+import { useAiRecommendations } from "../queries/recommendationQueries";
+import { RecommendationCard } from "./RecommendationCard";
 
 // ── Skeleton ──
 function RecommendationSkeleton() {
@@ -15,14 +15,14 @@ function RecommendationSkeleton() {
         />
       ))}
     </div>
-  )
+  );
 }
 
 // ── Props ──
 interface LearningPathRecommendationProps {
-  courseId: string
-  tenantId: string
-  onNavigateToLesson: (lessonId: string) => void
+  courseId: string;
+  tenantId: string;
+  onNavigateToLesson: (lessonId: string) => void;
 }
 
 /**
@@ -38,10 +38,10 @@ export function LearningPathRecommendation({
   tenantId,
   onNavigateToLesson,
 }: LearningPathRecommendationProps) {
-  const { data, isLoading, isError } = useAiRecommendations(courseId, tenantId)
+  const { data, isLoading, isError } = useAiRecommendations(courseId, tenantId);
 
   // Fail silently on error
-  if (isError) return null
+  if (isError) return null;
 
   // Loading: show skeletons (non-blocking — renders below main content)
   if (isLoading) {
@@ -58,13 +58,13 @@ export function LearningPathRecommendation({
         </div>
         <RecommendationSkeleton />
       </section>
-    )
+    );
   }
 
-  const recs = data?.recommendations ?? []
+  const recs = data?.recommendations ?? [];
 
   // Empty: return null — nothing shown
-  if (recs.length === 0) return null
+  if (recs.length === 0) return null;
 
   return (
     <motion.section
@@ -84,7 +84,9 @@ export function LearningPathRecommendation({
             Rekomendasi untuk Kamu
           </h3>
           <p className="text-[11px] text-slate-400 dark:text-slate-500 mt-0.5">
-            {data?.generated_by === 'ai' ? 'Dipersonalisasi oleh AI' : 'Berdasarkan progres kamu'}
+            {data?.generated_by === "ai"
+              ? "Dipersonalisasi oleh AI"
+              : "Berdasarkan progres kamu"}
           </p>
         </div>
       </div>
@@ -103,5 +105,5 @@ export function LearningPathRecommendation({
         </div>
       </AnimatePresence>
     </motion.section>
-  )
+  );
 }

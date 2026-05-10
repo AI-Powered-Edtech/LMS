@@ -1,64 +1,74 @@
-import { AlertCircle, CheckCircle2, Clock, FileText, Search } from 'lucide-react'
+import {
+  AlertCircle,
+  CheckCircle2,
+  Clock,
+  FileText,
+  Search,
+} from "lucide-react";
 
-import { formatCurrency as formatRupiah } from '@/shared/utils/format-id'
-import { cn } from '@/utils/cn'
+import { formatCurrency as formatRupiah } from "@/shared/utils/format-id";
+import { cn } from "@/utils/cn";
 
-import type { InvoiceFilter, InvoiceRecord, InvoiceStatusFilter } from '../../types/finance'
+import type {
+  InvoiceFilter,
+  InvoiceRecord,
+  InvoiceStatusFilter,
+} from "../../types/finance";
 
 const ID_MONTHS = [
-  'Jan',
-  'Feb',
-  'Mar',
-  'Apr',
-  'Mei',
-  'Jun',
-  'Jul',
-  'Agu',
-  'Sep',
-  'Okt',
-  'Nov',
-  'Des',
-]
+  "Jan",
+  "Feb",
+  "Mar",
+  "Apr",
+  "Mei",
+  "Jun",
+  "Jul",
+  "Agu",
+  "Sep",
+  "Okt",
+  "Nov",
+  "Des",
+];
 
 function formatMonthYear(monthYear: string | null): string {
-  if (!monthYear) return '—'
-  const [year, month] = monthYear.split('-')
-  const idx = parseInt(month ?? '1', 10) - 1
-  return `${ID_MONTHS[idx] ?? month} ${year}`
+  if (!monthYear) return "—";
+  const [year, month] = monthYear.split("-");
+  const idx = parseInt(month ?? "1", 10) - 1;
+  return `${ID_MONTHS[idx] ?? month} ${year}`;
 }
 
 function formatDate(dateStr: string | null): string {
-  if (!dateStr) return '—'
-  const d = new Date(dateStr)
-  const wibOffset = 7 * 60
-  const utcMs = d.getTime() + d.getTimezoneOffset() * 60_000
-  const wib = new Date(utcMs + wibOffset * 60_000)
-  return `${String(wib.getDate()).padStart(2, '0')} ${ID_MONTHS[wib.getMonth()]} ${wib.getFullYear()}`
+  if (!dateStr) return "—";
+  const d = new Date(dateStr);
+  const wibOffset = 7 * 60;
+  const utcMs = d.getTime() + d.getTimezoneOffset() * 60_000;
+  const wib = new Date(utcMs + wibOffset * 60_000);
+  return `${String(wib.getDate()).padStart(2, "0")} ${ID_MONTHS[wib.getMonth()]} ${wib.getFullYear()}`;
 }
 
 interface StatusBadgeProps {
-  status: string
+  status: string;
 }
 
 function StatusBadge({ status }: StatusBadgeProps) {
-  const s = status.toLowerCase()
+  const s = status.toLowerCase();
 
-  if (s === 'paid' || s === 'lunas') {
+  if (s === "paid" || s === "lunas") {
     return (
       <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400">
         <CheckCircle2 className="w-3 h-3" />
         Lunas
       </span>
-    )
+    );
   }
 
-  if (s === 'overdue' || s === 'terlambat' || s === 'uncollectible') {
+  if (s === "overdue" || s === "terlambat" || s === "uncollectible") {
     return (
       <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400">
         <AlertCircle className="w-3 h-3" />
         Terlambat
       </span>
-    )
+    );
   }
 
   return (
@@ -66,7 +76,7 @@ function StatusBadge({ status }: StatusBadgeProps) {
       <Clock className="w-3 h-3" />
       Belum Bayar
     </span>
-  )
+  );
 }
 
 function TableRowSkeleton() {
@@ -78,7 +88,7 @@ function TableRowSkeleton() {
         </td>
       ))}
     </tr>
-  )
+  );
 }
 
 function EmptyFinance() {
@@ -87,34 +97,38 @@ function EmptyFinance() {
       <td colSpan={7} className="text-center py-16">
         <div className="flex flex-col items-center gap-3 text-slate-400 dark:text-slate-500">
           <FileText className="w-12 h-12 opacity-40" />
-          <p className="font-medium text-slate-600 dark:text-slate-400">Belum ada data tagihan</p>
-          <p className="text-sm">Tagihan SPP akan muncul di sini setelah ditambahkan.</p>
+          <p className="font-medium text-slate-600 dark:text-slate-400">
+            Belum ada data tagihan
+          </p>
+          <p className="text-sm">
+            Tagihan SPP akan muncul di sini setelah ditambahkan.
+          </p>
         </div>
       </td>
     </tr>
-  )
+  );
 }
 
 const STATUS_OPTIONS: { value: InvoiceStatusFilter; label: string }[] = [
-  { value: 'all', label: 'Semua' },
-  { value: 'paid', label: 'Lunas' },
-  { value: 'pending', label: 'Belum Bayar' },
-  { value: 'overdue', label: 'Terlambat' },
-]
+  { value: "all", label: "Semua" },
+  { value: "paid", label: "Lunas" },
+  { value: "pending", label: "Belum Bayar" },
+  { value: "overdue", label: "Terlambat" },
+];
 
 interface FinanceTransactionTableProps {
-  invoices: InvoiceRecord[]
-  totalCount: number
-  totalPages: number
-  filter: InvoiceFilter
-  searchInput: string
-  isLoading: boolean
-  isMarkingPaid: boolean
-  onSearch: () => void
-  onSearchInputChange: (value: string) => void
-  onStatusChange: (status: InvoiceStatusFilter) => void
-  onMarkAsPaid: (invoiceId: string, amount: number) => void
-  onPageChange: (page: number) => void
+  invoices: InvoiceRecord[];
+  totalCount: number;
+  totalPages: number;
+  filter: InvoiceFilter;
+  searchInput: string;
+  isLoading: boolean;
+  isMarkingPaid: boolean;
+  onSearch: () => void;
+  onSearchInputChange: (value: string) => void;
+  onStatusChange: (status: InvoiceStatusFilter) => void;
+  onMarkAsPaid: (invoiceId: string, amount: number) => void;
+  onPageChange: (page: number) => void;
 }
 
 export function FinanceTransactionTable({
@@ -136,7 +150,9 @@ export function FinanceTransactionTable({
       <div className="px-6 py-4 border-b border-slate-100 dark:border-slate-700 flex flex-col sm:flex-row sm:items-center gap-3">
         <div className="flex items-center gap-2 flex-1 min-w-0">
           <FileText className="w-5 h-5 text-slate-500 dark:text-slate-400 shrink-0" />
-          <h2 className="font-semibold text-slate-800 dark:text-slate-100">Daftar Tagihan SPP</h2>
+          <h2 className="font-semibold text-slate-800 dark:text-slate-100">
+            Daftar Tagihan SPP
+          </h2>
           {totalCount > 0 && (
             <span className="ml-1 px-2 py-0.5 bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-400 text-xs rounded-full font-medium">
               {totalCount}
@@ -150,10 +166,10 @@ export function FinanceTransactionTable({
               key={value}
               onClick={() => onStatusChange(value)}
               className={cn(
-                'px-3 py-1.5 rounded-xl text-xs font-medium transition-colors',
+                "px-3 py-1.5 rounded-xl text-xs font-medium transition-colors",
                 filter.status === value
-                  ? 'bg-blue-600 text-white'
-                  : 'bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-600'
+                  ? "bg-blue-600 text-white"
+                  : "bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-600",
               )}
             >
               {label}
@@ -171,7 +187,7 @@ export function FinanceTransactionTable({
               placeholder="Cari nama siswa..."
               value={searchInput}
               onChange={(e) => onSearchInputChange(e.target.value)}
-              onKeyDown={(e) => e.key === 'Enter' && onSearch()}
+              onKeyDown={(e) => e.key === "Enter" && onSearch()}
               className="w-full pl-9 pr-4 py-2 text-sm bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-600 rounded-xl text-slate-900 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-500/30 focus:border-blue-500"
             />
           </div>
@@ -213,7 +229,9 @@ export function FinanceTransactionTable({
           </thead>
           <tbody>
             {isLoading ? (
-              Array.from({ length: 5 }).map((_, i) => <TableRowSkeleton key={i} />)
+              Array.from({ length: 5 }).map((_, i) => (
+                <TableRowSkeleton key={i} />
+              ))
             ) : invoices.length === 0 ? (
               <EmptyFinance />
             ) : (
@@ -225,7 +243,7 @@ export function FinanceTransactionTable({
                   <td className="px-4 py-3">
                     <div>
                       <p className="font-medium text-slate-800 dark:text-slate-200 truncate max-w-[180px]">
-                        {inv.student_name ?? '—'}
+                        {inv.student_name ?? "—"}
                       </p>
                       {inv.student_email && (
                         <p className="text-xs text-slate-400 dark:text-slate-500 truncate max-w-[180px]">
@@ -235,10 +253,10 @@ export function FinanceTransactionTable({
                     </div>
                   </td>
                   <td className="px-4 py-3 text-slate-600 dark:text-slate-400 max-w-[160px] truncate">
-                    {inv.description ?? 'SPP'}
+                    {inv.description ?? "SPP"}
                   </td>
                   <td className="px-4 py-3 text-slate-600 dark:text-slate-400 whitespace-nowrap">
-                    {formatMonthYear(inv.month_year) !== '—'
+                    {formatMonthYear(inv.month_year) !== "—"
                       ? formatMonthYear(inv.month_year)
                       : formatDate(inv.created_at)}
                   </td>
@@ -249,21 +267,27 @@ export function FinanceTransactionTable({
                     <StatusBadge status={inv.status} />
                   </td>
                   <td className="px-4 py-3 text-slate-500 dark:text-slate-400 whitespace-nowrap text-xs">
-                    {inv.paid_at ? formatDate(inv.paid_at) : '—'}
+                    {inv.paid_at ? formatDate(inv.paid_at) : "—"}
                   </td>
                   <td className="px-4 py-3 text-center">
                     <button
-                      onClick={() => onMarkAsPaid(inv.id, inv.amount_due ?? inv.amount_paid ?? 0)}
+                      onClick={() =>
+                        onMarkAsPaid(
+                          inv.id,
+                          inv.amount_due ?? inv.amount_paid ?? 0,
+                        )
+                      }
                       disabled={
-                        inv.status === 'paid' ||
-                        (inv.status as string).toLowerCase() === 'lunas' ||
+                        inv.status === "paid" ||
+                        (inv.status as string).toLowerCase() === "lunas" ||
                         isMarkingPaid
                       }
                       className="text-xs px-2 py-1 rounded-lg bg-green-600 text-white hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed dark:bg-green-700 dark:hover:bg-green-600 transition-colors whitespace-nowrap"
                     >
-                      {inv.status === 'paid' || (inv.status as string).toLowerCase() === 'lunas'
-                        ? 'Lunas ✓'
-                        : 'Tandai Lunas'}
+                      {inv.status === "paid" ||
+                      (inv.status as string).toLowerCase() === "lunas"
+                        ? "Lunas ✓"
+                        : "Tandai Lunas"}
                     </button>
                   </td>
                 </tr>
@@ -287,7 +311,9 @@ export function FinanceTransactionTable({
               ← Sebelumnya
             </button>
             <button
-              onClick={() => onPageChange(Math.min(totalPages, filter.page + 1))}
+              onClick={() =>
+                onPageChange(Math.min(totalPages, filter.page + 1))
+              }
               disabled={filter.page >= totalPages}
               className="px-3 py-1.5 text-sm rounded-lg border border-slate-200 dark:border-slate-600 text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-700 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
             >
@@ -297,5 +323,5 @@ export function FinanceTransactionTable({
         </div>
       )}
     </div>
-  )
+  );
 }

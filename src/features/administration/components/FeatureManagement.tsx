@@ -15,29 +15,29 @@ import {
   Save,
   ToggleLeft,
   ToggleRight,
-} from 'lucide-react'
-import { useEffect, useState } from 'react'
+} from "lucide-react";
+import { useEffect, useState } from "react";
 
-import { EmptyState } from '@/components/ui'
-import { useAuth } from '@/contexts/AuthContext'
+import { EmptyState } from "@/components/ui";
+import { useAuth } from "@/contexts/AuthContext";
 import {
   useFeatureFlags,
   useSaveFeatureFlags,
   useTenantModules,
   useToggleTenantModule,
-} from '@/features/administration/queries/featureFlagQueries'
-import { useToast } from '@/hooks/useToast'
-import { cn } from '@/utils/cn'
-import { type FeatureFlag } from '@/utils/featureFlags'
+} from "@/features/administration/queries/featureFlagQueries";
+import { useToast } from "@/hooks/useToast";
+import { cn } from "@/utils/cn";
+import { type FeatureFlag } from "@/utils/featureFlags";
 
 // ---------------------------------------------------------------------------
 // Types
 // ---------------------------------------------------------------------------
 
-type TabId = 'modules' | 'flags'
+type TabId = "modules" | "flags";
 
 interface FlagDraft extends FeatureFlag {
-  dirty: boolean
+  dirty: boolean;
 }
 
 // ---------------------------------------------------------------------------
@@ -46,95 +46,120 @@ interface FlagDraft extends FeatureFlag {
 
 interface FeatureManagementProps {
   /** Tab yang aktif saat mount. Default: 'modules' */
-  defaultTab?: TabId
+  defaultTab?: TabId;
 }
 
 // ---------------------------------------------------------------------------
 // Component
 // ---------------------------------------------------------------------------
 
-export function FeatureManagement({ defaultTab = 'modules' }: FeatureManagementProps) {
-  const addToast = useToast((s) => s.addToast)
-  const { tenantId } = useAuth()
+export function FeatureManagement({
+  defaultTab = "modules",
+}: FeatureManagementProps) {
+  const addToast = useToast((s) => s.addToast);
+  const { tenantId } = useAuth();
 
-  const [activeTab, setActiveTab] = useState<TabId>(defaultTab)
-  const [saveSuccess, setSaveSuccess] = useState(false)
+  const [activeTab, setActiveTab] = useState<TabId>(defaultTab);
+  const [saveSuccess, setSaveSuccess] = useState(false);
 
   // ── Module queries ────────────────────────────────────────────────────────
-  const { data: modules = [], isLoading: modulesLoading, error: modulesError } = useTenantModules()
-  const { mutate: toggleModule } = useToggleTenantModule()
+  const {
+    data: modules = [],
+    isLoading: modulesLoading,
+    error: modulesError,
+  } = useTenantModules();
+  const { mutate: toggleModule } = useToggleTenantModule();
 
   // ── Feature flags queries ─────────────────────────────────────────────────
-  const { data: flagsData = [], isLoading: flagsLoading, refetch: refetchFlags } = useFeatureFlags()
-  const { mutate: saveFlags, isPending: saving } = useSaveFeatureFlags()
+  const {
+    data: flagsData = [],
+    isLoading: flagsLoading,
+    refetch: refetchFlags,
+  } = useFeatureFlags();
+  const { mutate: saveFlags, isPending: saving } = useSaveFeatureFlags();
 
   // Local draft state for flags
-  const [flags, setFlags] = useState<FlagDraft[]>([])
+  const [flags, setFlags] = useState<FlagDraft[]>([]);
 
   // Sync server data into local draft state without overwriting unsaved edits.
   useEffect(() => {
-    if (flagsData.length === 0) return
+    if (flagsData.length === 0) return;
 
     setFlags((prev) => {
       if (prev.length === 0) {
-        return flagsData.map((f: FeatureFlag) => ({ ...f, dirty: false }))
+        return flagsData.map((f: FeatureFlag) => ({ ...f, dirty: false }));
       }
 
-      const serverFlagsByName = new Map(flagsData.map((f) => [f.flag_name, f] as const))
+      const serverFlagsByName = new Map(
+        flagsData.map((f) => [f.flag_name, f] as const),
+      );
       const merged = flagsData.map((serverFlag) => {
-        const localDraft = prev.find((f) => f.flag_name === serverFlag.flag_name)
-        if (!localDraft) return { ...serverFlag, dirty: false }
-        return localDraft.dirty ? localDraft : { ...serverFlag, dirty: false }
-      })
+        const localDraft = prev.find(
+          (f) => f.flag_name === serverFlag.flag_name,
+        );
+        if (!localDraft) return { ...serverFlag, dirty: false };
+        return localDraft.dirty ? localDraft : { ...serverFlag, dirty: false };
+      });
 
       // Keep dirty drafts that might disappear from server response
       // (e.g. transient refetch race) to avoid data loss in UI.
       for (const localDraft of prev) {
         if (localDraft.dirty && !serverFlagsByName.has(localDraft.flag_name)) {
-          merged.push(localDraft)
+          merged.push(localDraft);
         }
       }
 
-      return merged
-    })
-  }, [flagsData])
+      return merged;
+    });
+  }, [flagsData]);
 
   // ── Module handlers ───────────────────────────────────────────────────────
   const handleToggleModule = async (moduleId: string) => {
-    const mod = modules.find((m) => m.moduleId === moduleId)
-    if (!mod) return
-    const newEnabled = !mod.isEnabled
+    const mod = modules.find((m) => m.moduleId === moduleId);
+    if (!mod) return;
+    const newEnabled = !mod.isEnabled;
 
     toggleModule(
       { moduleId, isEnabled: newEnabled },
       {
         onError: () => {
-          addToast({ type: 'error', message: 'Gagal mengubah status modul. Silakan coba lagi.' })
+          addToast({
+            type: "error",
+            message: "Gagal mengubah status modul. Silakan coba lagi.",
+          });
         },
-      }
-    )
-  }
+      },
+    );
+  };
 
   // ── Flag handlers ─────────────────────────────────────────────────────────
   const toggleFlagEnabled = (flagName: string) => {
     setFlags((prev) =>
-      prev.map((f) => (f.flag_name === flagName ? { ...f, enabled: !f.enabled, dirty: true } : f))
-    )
-  }
+      prev.map((f) =>
+        f.flag_name === flagName
+          ? { ...f, enabled: !f.enabled, dirty: true }
+          : f,
+      ),
+    );
+  };
 
   const setFlagRollout = (flagName: string, value: number) => {
     setFlags((prev) =>
       prev.map((f) =>
         f.flag_name === flagName
-          ? { ...f, rollout_percentage: Math.min(100, Math.max(0, value)), dirty: true }
-          : f
-      )
-    )
-  }
+          ? {
+              ...f,
+              rollout_percentage: Math.min(100, Math.max(0, value)),
+              dirty: true,
+            }
+          : f,
+      ),
+    );
+  };
 
   const handleSaveFlags = () => {
-    const dirty = flags.filter((f) => f.dirty)
-    if (dirty.length === 0 || !tenantId) return
+    const dirty = flags.filter((f) => f.dirty);
+    if (dirty.length === 0 || !tenantId) return;
 
     saveFlags(
       dirty.map((f) => ({
@@ -144,19 +169,25 @@ export function FeatureManagement({ defaultTab = 'modules' }: FeatureManagementP
       })),
       {
         onSuccess: () => {
-          setFlags((prev) => prev.map((f) => ({ ...f, dirty: false })))
-          setSaveSuccess(true)
-          setTimeout(() => setSaveSuccess(false), 3000)
-          addToast({ type: 'success', message: 'Perubahan fitur berhasil disimpan.' })
+          setFlags((prev) => prev.map((f) => ({ ...f, dirty: false })));
+          setSaveSuccess(true);
+          setTimeout(() => setSaveSuccess(false), 3000);
+          addToast({
+            type: "success",
+            message: "Perubahan fitur berhasil disimpan.",
+          });
         },
         onError: () => {
-          addToast({ type: 'error', message: 'Gagal menyimpan perubahan. Coba lagi.' })
+          addToast({
+            type: "error",
+            message: "Gagal menyimpan perubahan. Coba lagi.",
+          });
         },
-      }
-    )
-  }
+      },
+    );
+  };
 
-  const hasDirtyFlags = flags.some((f) => f.dirty)
+  const hasDirtyFlags = flags.some((f) => f.dirty);
 
   // ---------------------------------------------------------------------------
   // Render
@@ -182,24 +213,24 @@ export function FeatureManagement({ defaultTab = 'modules' }: FeatureManagementP
       {/* Tab Navigation */}
       <div className="flex gap-1 bg-neutral-100 dark:bg-neutral-800 rounded-xl p-1 w-fit">
         <button
-          onClick={() => setActiveTab('modules')}
+          onClick={() => setActiveTab("modules")}
           className={cn(
-            'flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-semibold transition-all',
-            activeTab === 'modules'
-              ? 'bg-white dark:bg-neutral-700 text-neutral-900 dark:text-neutral-100 shadow-sm'
-              : 'text-neutral-500 dark:text-neutral-400 hover:text-neutral-700 dark:hover:text-neutral-300'
+            "flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-semibold transition-all",
+            activeTab === "modules"
+              ? "bg-white dark:bg-neutral-700 text-neutral-900 dark:text-neutral-100 shadow-sm"
+              : "text-neutral-500 dark:text-neutral-400 hover:text-neutral-700 dark:hover:text-neutral-300",
           )}
         >
           <LayoutGrid className="w-4 h-4" />
           Modul Sekolah
         </button>
         <button
-          onClick={() => setActiveTab('flags')}
+          onClick={() => setActiveTab("flags")}
           className={cn(
-            'flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-semibold transition-all',
-            activeTab === 'flags'
-              ? 'bg-white dark:bg-neutral-700 text-neutral-900 dark:text-neutral-100 shadow-sm'
-              : 'text-neutral-500 dark:text-neutral-400 hover:text-neutral-700 dark:hover:text-neutral-300'
+            "flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-semibold transition-all",
+            activeTab === "flags"
+              ? "bg-white dark:bg-neutral-700 text-neutral-900 dark:text-neutral-100 shadow-sm"
+              : "text-neutral-500 dark:text-neutral-400 hover:text-neutral-700 dark:hover:text-neutral-300",
           )}
         >
           <Flag className="w-4 h-4" />
@@ -208,7 +239,7 @@ export function FeatureManagement({ defaultTab = 'modules' }: FeatureManagementP
       </div>
 
       {/* Error banner for module fetch failures */}
-      {modulesError && activeTab === 'modules' && (
+      {modulesError && activeTab === "modules" && (
         <div className="flex items-start gap-2 p-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-xl text-sm text-red-700 dark:text-red-400">
           <AlertCircle className="w-4 h-4 mt-0.5 shrink-0" />
           <div className="flex-1">
@@ -221,13 +252,15 @@ export function FeatureManagement({ defaultTab = 'modules' }: FeatureManagementP
       )}
 
       {/* ── Tab: Modul Sekolah ─────────────────────────────────────────────── */}
-      {activeTab === 'modules' && (
+      {activeTab === "modules" && (
         <div className="bg-neutral-50 dark:bg-neutral-800 rounded-2xl border border-neutral-200 dark:border-neutral-700 shadow-sm p-6">
           {/* Loading state */}
           {modulesLoading ? (
             <div className="flex items-center justify-center py-12">
               <Loader2 className="w-8 h-8 text-primary-600 animate-spin" />
-              <span className="ml-3 text-neutral-500 dark:text-neutral-400">Memuat modul...</span>
+              <span className="ml-3 text-neutral-500 dark:text-neutral-400">
+                Memuat modul...
+              </span>
             </div>
           ) : modules.length === 0 ? (
             <div className="text-center py-8 text-neutral-500 dark:text-neutral-400">
@@ -262,7 +295,7 @@ export function FeatureManagement({ defaultTab = 'modules' }: FeatureManagementP
                           key={role}
                           className="text-[10px] uppercase font-bold px-1.5 py-0.5 bg-neutral-200 dark:bg-neutral-600 text-neutral-600 dark:text-neutral-300 rounded"
                         >
-                          {role === 'teacher' ? 'Guru' : 'Siswa'}
+                          {role === "teacher" ? "Guru" : "Siswa"}
                         </span>
                       ))}
                     </div>
@@ -270,18 +303,22 @@ export function FeatureManagement({ defaultTab = 'modules' }: FeatureManagementP
                   <button
                     role="switch"
                     aria-checked={module.isEnabled}
-                    aria-label={`${module.isEnabled ? 'Nonaktifkan' : 'Aktifkan'} modul ${module.name}`}
+                    aria-label={`${module.isEnabled ? "Nonaktifkan" : "Aktifkan"} modul ${module.name}`}
                     onClick={() => handleToggleModule(module.moduleId)}
                     disabled={module.isCore}
                     className={cn(
-                      'shrink-0 transition-colors',
-                      module.isCore && 'opacity-50 cursor-not-allowed',
+                      "shrink-0 transition-colors",
+                      module.isCore && "opacity-50 cursor-not-allowed",
                       !module.isCore &&
                         (module.isEnabled
-                          ? 'text-primary-600 dark:text-primary-400'
-                          : 'text-neutral-400 dark:text-neutral-600')
+                          ? "text-primary-600 dark:text-primary-400"
+                          : "text-neutral-400 dark:text-neutral-600"),
                     )}
-                    title={module.isCore ? 'Modul inti tidak dapat dinonaktifkan' : undefined}
+                    title={
+                      module.isCore
+                        ? "Modul inti tidak dapat dinonaktifkan"
+                        : undefined
+                    }
                   >
                     {module.isEnabled ? (
                       <ToggleRight className="w-8 h-8" />
@@ -297,12 +334,13 @@ export function FeatureManagement({ defaultTab = 'modules' }: FeatureManagementP
       )}
 
       {/* ── Tab: Fitur Lanjutan ────────────────────────────────────────────── */}
-      {activeTab === 'flags' && (
+      {activeTab === "flags" && (
         <div className="space-y-4">
           {/* Action bar */}
           <div className="flex items-center justify-between gap-4">
             <p className="text-sm text-neutral-500 dark:text-neutral-400">
-              Aktifkan atau nonaktifkan fitur per tenant dengan kontrol rollout bertahap.
+              Aktifkan atau nonaktifkan fitur per tenant dengan kontrol rollout
+              bertahap.
             </p>
             <div className="flex items-center gap-2 shrink-0">
               <button
@@ -311,10 +349,10 @@ export function FeatureManagement({ defaultTab = 'modules' }: FeatureManagementP
                 disabled={flagsLoading}
                 aria-label="Muat ulang"
                 className={cn(
-                  'p-2 rounded-lg text-neutral-500 hover:text-neutral-700 hover:bg-neutral-100',
-                  'dark:text-neutral-400 dark:hover:text-neutral-200 dark:hover:bg-neutral-800',
-                  'transition-colors outline-none focus-visible:ring-2 focus-visible:ring-primary-500',
-                  flagsLoading && 'animate-spin'
+                  "p-2 rounded-lg text-neutral-500 hover:text-neutral-700 hover:bg-neutral-100",
+                  "dark:text-neutral-400 dark:hover:text-neutral-200 dark:hover:bg-neutral-800",
+                  "transition-colors outline-none focus-visible:ring-2 focus-visible:ring-primary-500",
+                  flagsLoading && "animate-spin",
                 )}
               >
                 <RefreshCw className="w-4 h-4" />
@@ -325,11 +363,11 @@ export function FeatureManagement({ defaultTab = 'modules' }: FeatureManagementP
                 onClick={handleSaveFlags}
                 disabled={!hasDirtyFlags || saving}
                 className={cn(
-                  'flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold transition-all',
-                  'focus-visible:ring-2 focus-visible:ring-primary-500 outline-none',
+                  "flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold transition-all",
+                  "focus-visible:ring-2 focus-visible:ring-primary-500 outline-none",
                   hasDirtyFlags && !saving
-                    ? 'bg-primary-600 text-white hover:bg-primary-700'
-                    : 'bg-neutral-100 text-neutral-400 dark:bg-neutral-800 dark:text-neutral-600 cursor-not-allowed'
+                    ? "bg-primary-600 text-white hover:bg-primary-700"
+                    : "bg-neutral-100 text-neutral-400 dark:bg-neutral-800 dark:text-neutral-600 cursor-not-allowed",
                 )}
               >
                 {saving ? (
@@ -388,8 +426,8 @@ export function FeatureManagement({ defaultTab = 'modules' }: FeatureManagementP
                     <tr
                       key={flag.flag_name}
                       className={cn(
-                        'bg-neutral-50 dark:bg-neutral-900 transition-colors',
-                        flag.dirty && 'bg-primary-50/40 dark:bg-primary-950/20'
+                        "bg-neutral-50 dark:bg-neutral-900 transition-colors",
+                        flag.dirty && "bg-primary-50/40 dark:bg-primary-950/20",
                       )}
                     >
                       {/* Flag name */}
@@ -411,7 +449,11 @@ export function FeatureManagement({ defaultTab = 'modules' }: FeatureManagementP
                         <button
                           type="button"
                           onClick={() => toggleFlagEnabled(flag.flag_name)}
-                          aria-label={flag.enabled ? 'Nonaktifkan fitur' : 'Aktifkan fitur'}
+                          aria-label={
+                            flag.enabled
+                              ? "Nonaktifkan fitur"
+                              : "Aktifkan fitur"
+                          }
                           className="inline-flex items-center gap-1.5 transition-colors"
                         >
                           {flag.enabled ? (
@@ -440,16 +482,23 @@ export function FeatureManagement({ defaultTab = 'modules' }: FeatureManagementP
                             min={0}
                             max={100}
                             value={flag.rollout_percentage}
-                            onChange={(e) => setFlagRollout(flag.flag_name, Number(e.target.value))}
+                            onChange={(e) =>
+                              setFlagRollout(
+                                flag.flag_name,
+                                Number(e.target.value),
+                              )
+                            }
                             className={cn(
-                              'w-16 px-2 py-1 text-center text-sm rounded-lg border',
-                              'border-neutral-200 dark:border-neutral-700',
-                              'bg-neutral-50 dark:bg-neutral-800',
-                              'text-neutral-800 dark:text-neutral-200',
-                              'outline-none focus:ring-2 focus:ring-primary-500'
+                              "w-16 px-2 py-1 text-center text-sm rounded-lg border",
+                              "border-neutral-200 dark:border-neutral-700",
+                              "bg-neutral-50 dark:bg-neutral-800",
+                              "text-neutral-800 dark:text-neutral-200",
+                              "outline-none focus:ring-2 focus:ring-primary-500",
                             )}
                           />
-                          <span className="text-neutral-500 dark:text-neutral-400">%</span>
+                          <span className="text-neutral-500 dark:text-neutral-400">
+                            %
+                          </span>
                         </div>
                       </td>
 
@@ -457,10 +506,10 @@ export function FeatureManagement({ defaultTab = 'modules' }: FeatureManagementP
                       <td className="px-5 py-3 text-center">
                         <span
                           className={cn(
-                            'inline-flex items-center justify-center px-2.5 py-0.5 rounded-full text-xs font-semibold',
+                            "inline-flex items-center justify-center px-2.5 py-0.5 rounded-full text-xs font-semibold",
                             flag.tenant_ids?.length > 0
-                              ? 'bg-purple-100 text-purple-700 dark:bg-purple-900/40 dark:text-purple-300'
-                              : 'bg-neutral-100 text-neutral-400 dark:bg-neutral-800 dark:text-neutral-500'
+                              ? "bg-purple-100 text-purple-700 dark:bg-purple-900/40 dark:text-purple-300"
+                              : "bg-neutral-100 text-neutral-400 dark:bg-neutral-800 dark:text-neutral-500",
                           )}
                         >
                           {flag.tenant_ids?.length ?? 0} tenant
@@ -484,9 +533,9 @@ export function FeatureManagement({ defaultTab = 'modules' }: FeatureManagementP
                 onClick={handleSaveFlags}
                 disabled={saving}
                 className={cn(
-                  'flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-bold transition-all',
-                  'bg-primary-600 text-white hover:bg-primary-700',
-                  saving && 'opacity-70 cursor-not-allowed'
+                  "flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-bold transition-all",
+                  "bg-primary-600 text-white hover:bg-primary-700",
+                  saving && "opacity-70 cursor-not-allowed",
                 )}
               >
                 {saving ? (
@@ -501,5 +550,5 @@ export function FeatureManagement({ defaultTab = 'modules' }: FeatureManagementP
         </div>
       )}
     </div>
-  )
+  );
 }

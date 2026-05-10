@@ -1,20 +1,20 @@
-import type { ApiBackend, ApiClient } from './types'
+import type { ApiBackend, ApiClient } from "./types";
 
-let activeBackend: ApiBackend = 'vil'
-let activeClient: ApiClient | null = null
+let activeBackend: ApiBackend = "vil";
+let activeClient: ApiClient | null = null;
 
 export function setActiveApiBackend(backend: ApiBackend): void {
-  activeBackend = backend
+  activeBackend = backend;
 }
 
 export function getActiveApiBackend(): ApiBackend {
-  return activeBackend
+  return activeBackend;
 }
 
 export function setActiveApiClient(client: ApiClient | null): void {
-  activeClient = client
+  activeClient = client;
 }
 
 export function getActiveApiClient(): ApiClient | null {
-  return activeClient
+  return activeClient;
 }

@@ -1,58 +1,58 @@
-import { RotateCcw, X } from 'lucide-react'
-import { useEffect, useRef, useState } from 'react'
+import { RotateCcw, X } from "lucide-react";
+import { useEffect, useRef, useState } from "react";
 
-import { OptimizedImage } from '@/components/ui'
+import { OptimizedImage } from "@/components/ui";
 
 interface ImageBlockViewerProps {
-  url: string
-  alt: string
+  url: string;
+  alt: string;
 }
 
 export function ImageBlockViewer({ url, alt }: ImageBlockViewerProps) {
-  const [isLoading, setIsLoading] = useState(true)
-  const [hasError, setHasError] = useState(false)
-  const [isZoomed, setIsZoomed] = useState(false)
-  const [retryKey, setRetryKey] = useState(0)
+  const [isLoading, setIsLoading] = useState(true);
+  const [hasError, setHasError] = useState(false);
+  const [isZoomed, setIsZoomed] = useState(false);
+  const [retryKey, setRetryKey] = useState(0);
 
   // Ref for close button — used to focus-trap inside the lightbox (L-26)
-  const closeButtonRef = useRef<HTMLButtonElement>(null)
+  const closeButtonRef = useRef<HTMLButtonElement>(null);
 
   const handleLoad = () => {
-    setIsLoading(false)
-    setHasError(false)
-  }
+    setIsLoading(false);
+    setHasError(false);
+  };
 
   const handleError = () => {
-    setIsLoading(false)
-    setHasError(true)
-  }
+    setIsLoading(false);
+    setHasError(true);
+  };
 
   const handleRetry = () => {
-    setIsLoading(true)
-    setHasError(false)
-    setRetryKey((k) => k + 1) // This will cause the OptimizedImage to re-render with new src
-  }
+    setIsLoading(true);
+    setHasError(false);
+    setRetryKey((k) => k + 1); // This will cause the OptimizedImage to re-render with new src
+  };
 
-  const safeUrl = `${url}${url.includes('?') ? '&' : '?'}_r=${retryKey}`
+  const safeUrl = `${url}${url.includes("?") ? "&" : "?"}_r=${retryKey}`;
 
   // Focus the close button as soon as the lightbox opens (L-26)
   useEffect(() => {
     if (isZoomed && closeButtonRef.current) {
-      closeButtonRef.current.focus()
+      closeButtonRef.current.focus();
     }
-  }, [isZoomed])
+  }, [isZoomed]);
 
   // Handle escape key for lightbox (existing — kept inside the overlay onKeyDown
   // for the focus-trap handler; body-level listener removed to avoid duplication)
   useEffect(() => {
     if (isZoomed) {
       // Prevent body scroll when zoomed
-      document.body.style.overflow = 'hidden'
+      document.body.style.overflow = "hidden";
     }
     return () => {
-      document.body.style.overflow = ''
-    }
-  }, [isZoomed])
+      document.body.style.overflow = "";
+    };
+  }, [isZoomed]);
 
   if (hasError) {
     return (
@@ -66,13 +66,15 @@ export function ImageBlockViewer({ url, alt }: ImageBlockViewerProps) {
           Coba Lagi
         </button>
       </div>
-    )
+    );
   }
 
   return (
     <>
       <div className="relative">
-        {isLoading && <div className="animate-pulse bg-slate-200 rounded-xl w-full h-[300px]" />}
+        {isLoading && (
+          <div className="animate-pulse bg-slate-200 rounded-xl w-full h-[300px]" />
+        )}
 
         <OptimizedImage
           key={retryKey}
@@ -84,7 +86,7 @@ export function ImageBlockViewer({ url, alt }: ImageBlockViewerProps) {
           onClick={() => !isLoading && !hasError && setIsZoomed(true)}
           className={`
             w-full rounded-xl object-contain max-h-[600px] cursor-pointer transition-opacity
-            ${isLoading ? 'opacity-0' : 'opacity-100'}
+            ${isLoading ? "opacity-0" : "opacity-100"}
             hover:opacity-90
           `}
         />
@@ -103,14 +105,14 @@ export function ImageBlockViewer({ url, alt }: ImageBlockViewerProps) {
           aria-label="Tampilan gambar penuh"
           onClick={() => setIsZoomed(false)}
           onKeyDown={(e) => {
-            if (e.key === 'Escape') {
-              setIsZoomed(false)
+            if (e.key === "Escape") {
+              setIsZoomed(false);
             }
             // Focus trap: only one focusable element (close button), so always
             // redirect Tab/Shift+Tab back to it.
-            if (e.key === 'Tab') {
-              e.preventDefault()
-              closeButtonRef.current?.focus()
+            if (e.key === "Tab") {
+              e.preventDefault();
+              closeButtonRef.current?.focus();
             }
           }}
         >
@@ -138,5 +140,5 @@ export function ImageBlockViewer({ url, alt }: ImageBlockViewerProps) {
         </div>
       )}
     </>
-  )
+  );
 }

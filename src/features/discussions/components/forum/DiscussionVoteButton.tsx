@@ -9,28 +9,28 @@
  * - Self-vote prevention (hides button for own posts)
  */
 
-import { Check, ThumbsUp } from 'lucide-react'
-import { useState } from 'react'
+import { Check, ThumbsUp } from "lucide-react";
+import { useState } from "react";
 
-import { useToast } from '@/hooks/useToast'
-import { cn } from '@/utils/cn'
+import { useToast } from "@/hooks/useToast";
+import { cn } from "@/utils/cn";
 
-import { discussionService } from '../../api/discussionService'
+import { discussionService } from "../../api/discussionService";
 
 interface DiscussionVoteButtonProps {
-  postId: string
+  postId: string;
   /** Current server-side upvote count */
-  upvoteCount: number
+  upvoteCount: number;
   /** Whether this post is marked as accepted answer */
-  isAcceptedAnswer: boolean
+  isAcceptedAnswer: boolean;
   /** True if the viewing user authored this post (prevents self-vote) */
-  isOwnPost: boolean
+  isOwnPost: boolean;
   /** Show the "Tandai Terbaik" button (teacher/admin only) */
-  showAcceptButton?: boolean
+  showAcceptButton?: boolean;
   /** Called after a successful vote toggle — use to refetch if needed */
-  onVoted?: () => void
+  onVoted?: () => void;
   /** Called after successfully accepting an answer */
-  onAccepted?: () => void
+  onAccepted?: () => void;
 }
 
 export function DiscussionVoteButton({
@@ -42,56 +42,59 @@ export function DiscussionVoteButton({
   onVoted,
   onAccepted,
 }: DiscussionVoteButtonProps) {
-  const { addToast } = useToast()
-  const [isVoting, setIsVoting] = useState(false)
-  const [isAccepting, setIsAccepting] = useState(false)
+  const { addToast } = useToast();
+  const [isVoting, setIsVoting] = useState(false);
+  const [isAccepting, setIsAccepting] = useState(false);
   /** Optimistic local count — null means use server value */
-  const [localDelta, setLocalDelta] = useState(0)
-  const [hasVoted, setHasVoted] = useState(false)
+  const [localDelta, setLocalDelta] = useState(0);
+  const [hasVoted, setHasVoted] = useState(false);
 
-  const displayCount = upvoteCount + localDelta
+  const displayCount = upvoteCount + localDelta;
 
   async function handleVote() {
-    if (isVoting || isOwnPost) return
-    setIsVoting(true)
+    if (isVoting || isOwnPost) return;
+    setIsVoting(true);
 
     try {
-      const result = await discussionService.togglePostVote(postId, 'upvote')
+      const result = await discussionService.togglePostVote(postId, "upvote");
 
-      if (result.action === 'added') {
-        setLocalDelta((d) => d + 1)
-        setHasVoted(true)
-      } else if (result.action === 'removed') {
-        setLocalDelta((d) => Math.max(-upvoteCount, d - 1))
-        setHasVoted(false)
+      if (result.action === "added") {
+        setLocalDelta((d) => d + 1);
+        setHasVoted(true);
+      } else if (result.action === "removed") {
+        setLocalDelta((d) => Math.max(-upvoteCount, d - 1));
+        setHasVoted(false);
       }
 
-      onVoted?.()
+      onVoted?.();
     } catch (err) {
       addToast({
-        type: 'error',
-        message: err instanceof Error ? err.message : 'Gagal memberi vote',
-      })
+        type: "error",
+        message: err instanceof Error ? err.message : "Gagal memberi vote",
+      });
     } finally {
-      setIsVoting(false)
+      setIsVoting(false);
     }
   }
 
   async function handleAccept() {
-    if (isAccepting) return
-    setIsAccepting(true)
+    if (isAccepting) return;
+    setIsAccepting(true);
 
     try {
-      await discussionService.acceptDiscussionAnswer(postId)
-      addToast({ type: 'success', message: 'Jawaban ditandai sebagai terbaik' })
-      onAccepted?.()
+      await discussionService.acceptDiscussionAnswer(postId);
+      addToast({
+        type: "success",
+        message: "Jawaban ditandai sebagai terbaik",
+      });
+      onAccepted?.();
     } catch (err) {
       addToast({
-        type: 'error',
-        message: err instanceof Error ? err.message : 'Gagal menandai jawaban',
-      })
+        type: "error",
+        message: err instanceof Error ? err.message : "Gagal menandai jawaban",
+      });
     } finally {
-      setIsAccepting(false)
+      setIsAccepting(false);
     }
   }
 
@@ -103,19 +106,22 @@ export function DiscussionVoteButton({
           type="button"
           onClick={handleVote}
           disabled={isVoting}
-          aria-label={hasVoted ? 'Hapus upvote' : 'Beri upvote'}
+          aria-label={hasVoted ? "Hapus upvote" : "Beri upvote"}
           aria-pressed={hasVoted}
           className={cn(
-            'flex items-center gap-1.5 rounded-lg px-2.5 py-1 text-sm font-medium transition-colors',
-            'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500',
-            'disabled:cursor-not-allowed disabled:opacity-50',
+            "flex items-center gap-1.5 rounded-lg px-2.5 py-1 text-sm font-medium transition-colors",
+            "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500",
+            "disabled:cursor-not-allowed disabled:opacity-50",
             hasVoted
-              ? 'bg-primary-100 text-primary-700 dark:bg-primary-900/40 dark:text-primary-300'
-              : 'bg-slate-100 text-slate-600 hover:bg-slate-200 dark:bg-slate-700 dark:text-slate-400 dark:hover:bg-slate-600'
+              ? "bg-primary-100 text-primary-700 dark:bg-primary-900/40 dark:text-primary-300"
+              : "bg-slate-100 text-slate-600 hover:bg-slate-200 dark:bg-slate-700 dark:text-slate-400 dark:hover:bg-slate-600",
           )}
         >
           <ThumbsUp
-            className={cn('h-3.5 w-3.5', hasVoted && 'fill-primary-600 dark:fill-primary-400')}
+            className={cn(
+              "h-3.5 w-3.5",
+              hasVoted && "fill-primary-600 dark:fill-primary-400",
+            )}
             aria-hidden="true"
           />
           <span>{displayCount}</span>
@@ -141,17 +147,17 @@ export function DiscussionVoteButton({
           disabled={isAccepting}
           aria-label="Tandai sebagai jawaban terbaik"
           className={cn(
-            'flex items-center gap-1.5 rounded-lg px-2.5 py-1 text-xs font-medium transition-colors',
-            'text-slate-500 hover:bg-emerald-50 hover:text-emerald-600',
-            'dark:text-slate-400 dark:hover:bg-emerald-900/20 dark:hover:text-emerald-400',
-            'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500',
-            'disabled:cursor-not-allowed disabled:opacity-50'
+            "flex items-center gap-1.5 rounded-lg px-2.5 py-1 text-xs font-medium transition-colors",
+            "text-slate-500 hover:bg-emerald-50 hover:text-emerald-600",
+            "dark:text-slate-400 dark:hover:bg-emerald-900/20 dark:hover:text-emerald-400",
+            "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500",
+            "disabled:cursor-not-allowed disabled:opacity-50",
           )}
         >
           <Check className="h-3.5 w-3.5" aria-hidden="true" />
-          {isAccepting ? 'Menyimpan...' : 'Tandai Terbaik'}
+          {isAccepting ? "Menyimpan..." : "Tandai Terbaik"}
         </button>
       )}
     </div>
-  )
+  );
 }

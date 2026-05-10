@@ -1,8 +1,8 @@
-import { useCallback } from 'react'
+import { useCallback } from "react";
 
-import { db } from '@/services/db'
+import { db } from "@/services/db";
 
-import { useAuth } from '../contexts/AuthContext'
+import { useAuth } from "../contexts/AuthContext";
 
 /**
  * useTenantQuery — defense-in-depth helper for tenant-scoped queries.
@@ -21,11 +21,14 @@ import { useAuth } from '../contexts/AuthContext'
  *   await tenantInsert('classes', { name: 'English 101', teacher_id: userId });
  */
 export function useTenantQuery(): {
-  tenantId: string | null
-  tenantQuery: (table: string, columns?: string) => unknown
-  tenantInsert: (table: string, data: Record<string, unknown>) => Promise<unknown>
+  tenantId: string | null;
+  tenantQuery: (table: string, columns?: string) => unknown;
+  tenantInsert: (
+    table: string,
+    data: Record<string, unknown>,
+  ) => Promise<unknown>;
 } {
-  const { tenantId } = useAuth()
+  const { tenantId } = useAuth();
 
   /**
    * Returns a query builder pre-filtered by tenant_id.
@@ -34,15 +37,15 @@ export function useTenantQuery(): {
    * (RLS will still enforce isolation).
    */
   const tenantQuery = useCallback(
-    (table: string, columns = 'id') => {
-      const query = db.from(table)
+    (table: string, columns = "id") => {
+      const query = db.from(table);
       if (tenantId) {
-        return query.select(columns).eq('tenant_id', tenantId)
+        return query.select(columns).eq("tenant_id", tenantId);
       }
-      return query.select(columns)
+      return query.select(columns);
     },
-    [tenantId]
-  )
+    [tenantId],
+  );
 
   /**
    * Inserts a record with tenant_id automatically added.
@@ -50,11 +53,11 @@ export function useTenantQuery(): {
    */
   const tenantInsert = useCallback(
     async (table: string, data: Record<string, unknown>) => {
-      const record = tenantId ? { ...data, tenant_id: tenantId } : data
-      return db.from(table).insert(record)
+      const record = tenantId ? { ...data, tenant_id: tenantId } : data;
+      return db.from(table).insert(record);
     },
-    [tenantId]
-  )
+    [tenantId],
+  );
 
-  return { tenantId, tenantQuery, tenantInsert }
+  return { tenantId, tenantQuery, tenantInsert };
 }

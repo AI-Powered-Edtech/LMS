@@ -116,11 +116,11 @@ email verification
 
 ```ts
 interface OnboardingProgress {
-  id: string
-  tenant_id: string // RLS: isolasi per sekolah
-  user_id: string
-  steps_completed: Record<string, boolean> // { create_course: true, ... }
-  completed_at: string | null
+  id: string;
+  tenant_id: string; // RLS: isolasi per sekolah
+  user_id: string;
+  steps_completed: Record<string, boolean>; // { create_course: true, ... }
+  completed_at: string | null;
 }
 ```
 
@@ -184,12 +184,12 @@ Untuk mengetes ulang onboarding, hapus key dari browser console:
 
 ```javascript
 // Reset wizard Onboarding (student & teacher)
-localStorage.removeItem('onboarded_student')
-localStorage.removeItem('onboarded_teacher')
+localStorage.removeItem("onboarded_student");
+localStorage.removeItem("onboarded_teacher");
 
 // Reset Welcome modal
-localStorage.removeItem('edusync_student_welcomed')
-localStorage.removeItem('edusync_teacher_welcomed')
+localStorage.removeItem("edusync_student_welcomed");
+localStorage.removeItem("edusync_teacher_welcomed");
 
 // Reset OnboardingChecklist admin → reset record DB
 // Hapus baris di tabel onboarding_progress dengan user_id yang sesuai

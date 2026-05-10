@@ -1,22 +1,29 @@
-import { CheckCircle, HelpCircle, Loader2, Search, Trophy, Zap } from 'lucide-react'
-import { AnimatePresence } from 'motion/react'
+import {
+  CheckCircle,
+  HelpCircle,
+  Loader2,
+  Search,
+  Trophy,
+  Zap,
+} from "lucide-react";
+import { AnimatePresence } from "motion/react";
 
-import { AttemptDetailModal } from '@/components/AttemptDetailModal'
-import { FeatureErrorBoundary } from '@/components/FeatureErrorBoundary'
-import { EmptyState } from '@/components/ui'
-import { QuizPlayer } from '@/features/quizzes/components/player/QuizPlayer'
-import { QuizSkeleton } from '@/features/quizzes/components/QuizSkeleton'
-import { QuizAnswerReview } from '@/features/quizzes/components/student/QuizAnswerReview'
-import { QuizAttemptCard } from '@/features/quizzes/components/student/QuizAttemptCard'
-import { QuizCard } from '@/features/quizzes/components/student/QuizCard'
-import { QuizResultsView } from '@/features/quizzes/components/student/QuizResultsView'
-import { StartQuizModal } from '@/features/quizzes/components/student/StartQuizModal'
-import { useQuizPageState } from '@/features/quizzes/hooks/useQuizPageState'
-import { usePageTitle } from '@/hooks/usePageTitle'
-import { cn } from '@/utils/cn'
+import { AttemptDetailModal } from "@/components/AttemptDetailModal";
+import { FeatureErrorBoundary } from "@/components/FeatureErrorBoundary";
+import { EmptyState } from "@/components/ui";
+import { QuizPlayer } from "@/features/quizzes/components/player/QuizPlayer";
+import { QuizSkeleton } from "@/features/quizzes/components/QuizSkeleton";
+import { QuizAnswerReview } from "@/features/quizzes/components/student/QuizAnswerReview";
+import { QuizAttemptCard } from "@/features/quizzes/components/student/QuizAttemptCard";
+import { QuizCard } from "@/features/quizzes/components/student/QuizCard";
+import { QuizResultsView } from "@/features/quizzes/components/student/QuizResultsView";
+import { StartQuizModal } from "@/features/quizzes/components/student/StartQuizModal";
+import { useQuizPageState } from "@/features/quizzes/hooks/useQuizPageState";
+import { usePageTitle } from "@/hooks/usePageTitle";
+import { cn } from "@/utils/cn";
 
 export function QuizModule() {
-  usePageTitle('Modul Kuis')
+  usePageTitle("Modul Kuis");
   const {
     searchQuery,
     setSearchQuery,
@@ -56,19 +63,21 @@ export function QuizModule() {
     handleStartOrResume,
     handleSubmitQuiz,
     handleViewAnswers,
-  } = useQuizPageState()
+  } = useQuizPageState();
 
-  if (isLoading) return <QuizSkeleton />
+  if (isLoading) return <QuizSkeleton />;
 
   if (isLoadingQuestions) {
     return (
       <div className="flex-1 flex items-center justify-center">
         <div className="text-center">
           <Loader2 className="w-8 h-8 animate-spin text-blue-600 dark:text-blue-400 mx-auto mb-4" />
-          <p className="text-slate-600 dark:text-slate-300 font-medium">Memuat soal kuis...</p>
+          <p className="text-slate-600 dark:text-slate-300 font-medium">
+            Memuat soal kuis...
+          </p>
         </div>
       </div>
-    )
+    );
   }
 
   if (isQuizActive && currentQuiz) {
@@ -80,20 +89,21 @@ export function QuizModule() {
               Kuis Belum Memiliki Soal
             </h3>
             <p className="text-slate-500 dark:text-slate-400 mb-6">
-              Kuis ini belum memiliki soal yang dapat dikerjakan. Silakan hubungi pengajar Anda.
+              Kuis ini belum memiliki soal yang dapat dikerjakan. Silakan
+              hubungi pengajar Anda.
             </p>
             <button
               className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 dark:bg-blue-500 dark:hover:bg-blue-600"
               onClick={() => {
-                setIsQuizActive(false)
-                setShowResults(false)
+                setIsQuizActive(false);
+                setShowResults(false);
               }}
             >
               Kembali
             </button>
           </div>
         </div>
-      )
+      );
     }
 
     return (
@@ -101,7 +111,10 @@ export function QuizModule() {
         <QuizPlayer
           attemptId={currentAttemptId!}
           expiresAt={expiresAt}
-          quiz={{ ...currentQuiz, time_limit_minutes: currentQuiz.time_limit_minutes ?? undefined }}
+          quiz={{
+            ...currentQuiz,
+            time_limit_minutes: currentQuiz.time_limit_minutes ?? undefined,
+          }}
           attemptQuestions={attemptQuestions}
           initialAnswers={initialAnswers}
           initialQuestionIndex={initialQuestionIndex}
@@ -109,7 +122,7 @@ export function QuizModule() {
           onSubmit={(answers) => handleSubmitQuiz(answers)}
         />
       </FeatureErrorBoundary>
-    )
+    );
   }
 
   if (showAnswerReview && gradedQuestions.length > 0 && currentQuiz) {
@@ -119,28 +132,31 @@ export function QuizModule() {
         showCorrectAnswers={currentQuiz.show_correct_answers ?? false}
         onBack={() => setShowAnswerReview(false)}
       />
-    )
+    );
   }
 
   if (showResults && quizResult && currentQuiz) {
     const attemptsUsedForQuiz = quizAttempts.filter(
       (a) =>
-        a.quiz_id === currentQuiz.quiz_id && (a.status === 'SUBMITTED' || a.status === 'GRADED')
-    ).length
+        a.quiz_id === currentQuiz.quiz_id &&
+        (a.status === "SUBMITTED" || a.status === "GRADED"),
+    ).length;
     return (
       <QuizResultsView
         result={quizResult}
         quiz={currentQuiz}
         onRetry={() => handleStartOrResume({ ...currentQuiz, isResume: false })}
         onClose={() => {
-          setShowResults(false)
+          setShowResults(false);
         }}
-        onViewAnswers={currentQuiz.show_correct_answers ? handleViewAnswers : undefined}
+        onViewAnswers={
+          currentQuiz.show_correct_answers ? handleViewAnswers : undefined
+        }
         passingScore={currentQuiz.passing_score ?? undefined}
         maxAttempts={currentQuiz.max_attempts ?? undefined}
         attemptsUsed={attemptsUsedForQuiz}
       />
-    )
+    );
   }
 
   return (
@@ -202,8 +218,10 @@ export function QuizModule() {
             <p className="text-2xl font-black text-slate-800 dark:text-slate-100">
               {completedAttempts.length > 0
                 ? Math.round(
-                    completedAttempts.reduce((acc, a) => acc + (a.score || 0), 0) /
-                      completedAttempts.length
+                    completedAttempts.reduce(
+                      (acc, a) => acc + (a.score || 0),
+                      0,
+                    ) / completedAttempts.length,
                   )
                 : 0}
               %
@@ -218,7 +236,9 @@ export function QuizModule() {
             <Zap className="w-5 h-5 text-purple-600 dark:text-purple-400" />
           </div>
           <div>
-            <p className="text-2xl font-black text-slate-800 dark:text-slate-100">{totalPoints}</p>
+            <p className="text-2xl font-black text-slate-800 dark:text-slate-100">
+              {totalPoints}
+            </p>
             <p className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
               Poin Total
             </p>
@@ -254,45 +274,50 @@ export function QuizModule() {
         </div>
       </div>
 
-      <div className="flex gap-2 border-b border-slate-200 dark:border-slate-700" role="tablist">
+      <div
+        className="flex gap-2 border-b border-slate-200 dark:border-slate-700"
+        role="tablist"
+      >
         <button
           role="tab"
-          aria-selected={activeTab === 'available'}
-          onClick={() => setActiveTab('available')}
+          aria-selected={activeTab === "available"}
+          onClick={() => setActiveTab("available")}
           className={cn(
-            'px-4 py-2 font-bold text-sm border-b-2 transition-colors',
-            activeTab === 'available'
-              ? 'border-blue-600 text-blue-600'
-              : 'border-transparent text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200'
+            "px-4 py-2 font-bold text-sm border-b-2 transition-colors",
+            activeTab === "available"
+              ? "border-blue-600 text-blue-600"
+              : "border-transparent text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200",
           )}
         >
           Tersedia
         </button>
         <button
           role="tab"
-          aria-selected={activeTab === 'completed'}
-          onClick={() => setActiveTab('completed')}
+          aria-selected={activeTab === "completed"}
+          onClick={() => setActiveTab("completed")}
           className={cn(
-            'px-4 py-2 font-bold text-sm border-b-2 transition-colors',
-            activeTab === 'completed'
-              ? 'border-blue-600 text-blue-600'
-              : 'border-transparent text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200'
+            "px-4 py-2 font-bold text-sm border-b-2 transition-colors",
+            activeTab === "completed"
+              ? "border-blue-600 text-blue-600"
+              : "border-transparent text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200",
           )}
         >
           Selesai
         </button>
       </div>
 
-      {activeTab === 'available' ? (
+      {activeTab === "available" ? (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {filteredQuizzes.length > 0 ? (
             filteredQuizzes.map((quiz) => {
               const activeAttempt = quizAttempts.find(
-                (a) => a.assignment_id === quiz.assignment_id && a.status === 'IN_PROGRESS'
-              )
+                (a) =>
+                  a.assignment_id === quiz.assignment_id &&
+                  a.status === "IN_PROGRESS",
+              );
               const attemptsCount = quizAttempts.filter(
-                (a) => a.assignment_id === quiz.assignment_id
-              ).length
+                (a) => a.assignment_id === quiz.assignment_id,
+              ).length;
 
               return (
                 <QuizCard
@@ -301,11 +326,15 @@ export function QuizModule() {
                   activeAttempt={activeAttempt}
                   attemptsCount={attemptsCount}
                   onStart={() =>
-                    setPendingQuiz({ ...quiz, isResume: !!activeAttempt, activeAttempt })
+                    setPendingQuiz({
+                      ...quiz,
+                      isResume: !!activeAttempt,
+                      activeAttempt,
+                    })
                   }
                   isStarting={isStarting && currentQuizId === quiz.id}
                 />
-              )
+              );
             })
           ) : (
             <div className="col-span-1 md:col-span-2 lg:col-span-3">
@@ -327,7 +356,7 @@ export function QuizModule() {
                 onReview={() =>
                   setReviewAttempt({
                     attemptId: attempt.id,
-                    studentName: 'Anda',
+                    studentName: "Anda",
                     score: attempt.score,
                     passed: attempt.passed,
                   })
@@ -354,5 +383,5 @@ export function QuizModule() {
         />
       )}
     </div>
-  )
+  );
 }

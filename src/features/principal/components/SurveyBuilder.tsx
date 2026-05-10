@@ -3,13 +3,18 @@
 // Task 30.5
 // ==========================================================================
 
-import { useEffect, useState } from 'react'
+import { useEffect, useState } from "react";
 
-import { Button } from '@/components/ui/Button'
-import { Input } from '@/components/ui/Input'
-import { Modal, ModalBody, ModalFooter, ModalHeader } from '@/components/ui/Modal'
-import { Select } from '@/components/ui/Select'
-import { Spinner } from '@/components/ui/Spinner'
+import { Button } from "@/components/ui/Button";
+import { Input } from "@/components/ui/Input";
+import {
+  Modal,
+  ModalBody,
+  ModalFooter,
+  ModalHeader,
+} from "@/components/ui/Modal";
+import { Select } from "@/components/ui/Select";
+import { Spinner } from "@/components/ui/Spinner";
 
 import type {
   CreateSurveyInput,
@@ -17,68 +22,84 @@ import type {
   SatisfactionSurvey,
   SurveyAudience,
   SurveyQuestion,
-} from '../types'
+} from "../types";
 
 // ── Constants ──────────────────────────────────────────────────
 
 const AUDIENCE_OPTIONS: Array<{ value: SurveyAudience; label: string }> = [
-  { value: 'teachers', label: 'Guru' },
-  { value: 'students', label: 'Siswa' },
-  { value: 'parents', label: 'Orang Tua' },
-  { value: 'all', label: 'Semua (Guru, Siswa, Orang Tua)' },
-]
+  { value: "teachers", label: "Guru" },
+  { value: "students", label: "Siswa" },
+  { value: "parents", label: "Orang Tua" },
+  { value: "all", label: "Semua (Guru, Siswa, Orang Tua)" },
+];
 
-const QUESTION_TYPE_OPTIONS: Array<{ value: QuestionType; label: string; icon: string }> = [
-  { value: 'rating', label: 'Rating 1–5', icon: '⭐' },
-  { value: 'yesno', label: 'Ya / Tidak', icon: '✅' },
-  { value: 'text', label: 'Teks Bebas', icon: '📝' },
-]
+const QUESTION_TYPE_OPTIONS: Array<{
+  value: QuestionType;
+  label: string;
+  icon: string;
+}> = [
+  { value: "rating", label: "Rating 1–5", icon: "⭐" },
+  { value: "yesno", label: "Ya / Tidak", icon: "✅" },
+  { value: "text", label: "Teks Bebas", icon: "📝" },
+];
 
-const DEFAULT_TEMPLATE_QUESTIONS: Array<Omit<SurveyQuestion, 'id'>> = [
-  { type: 'rating', text: 'Seberapa mudah platform EduSync digunakan?', required: true },
-  { type: 'rating', text: 'Seberapa puas Anda dengan fitur yang tersedia?', required: true },
+const DEFAULT_TEMPLATE_QUESTIONS: Array<Omit<SurveyQuestion, "id">> = [
   {
-    type: 'yesno',
-    text: 'Apakah platform ini membantu proses belajar mengajar?',
+    type: "rating",
+    text: "Seberapa mudah platform EduSync digunakan?",
     required: true,
   },
-  { type: 'rating', text: 'Seberapa responsif tim dukungan teknis?', required: false },
   {
-    type: 'text',
-    text: 'Apa saran Anda untuk meningkatkan platform EduSync?',
+    type: "rating",
+    text: "Seberapa puas Anda dengan fitur yang tersedia?",
+    required: true,
+  },
+  {
+    type: "yesno",
+    text: "Apakah platform ini membantu proses belajar mengajar?",
+    required: true,
+  },
+  {
+    type: "rating",
+    text: "Seberapa responsif tim dukungan teknis?",
     required: false,
   },
-]
+  {
+    type: "text",
+    text: "Apa saran Anda untuk meningkatkan platform EduSync?",
+    required: false,
+  },
+];
 
 // ── Helper ─────────────────────────────────────────────────────
 
-function newQuestion(type: QuestionType = 'rating'): SurveyQuestion {
+function newQuestion(type: QuestionType = "rating"): SurveyQuestion {
   return {
     id: `q_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`,
     type,
-    text: '',
+    text: "",
     required: true,
-  }
+  };
 }
 
 function generateFromTemplate(): SurveyQuestion[] {
   return DEFAULT_TEMPLATE_QUESTIONS.map((q) => ({
     ...q,
     id: `q_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`,
-  }))
+  }));
 }
 
 // ── Question Row ───────────────────────────────────────────────
 
 interface QuestionRowProps {
-  question: SurveyQuestion
-  index: number
-  onChange: (q: SurveyQuestion) => void
-  onRemove: () => void
-  canMoveUp: boolean
-  canMoveDown: boolean
-  onMoveUp: () => void
-  onMoveDown: () => void
+  question: SurveyQuestion;
+  index: number;
+  onChange: (q: SurveyQuestion) => void;
+  onRemove: () => void;
+  canMoveUp: boolean;
+  canMoveDown: boolean;
+  onMoveUp: () => void;
+  onMoveDown: () => void;
 }
 
 function QuestionRow({
@@ -91,7 +112,7 @@ function QuestionRow({
   onMoveUp,
   onMoveDown,
 }: QuestionRowProps) {
-  const typeInfo = QUESTION_TYPE_OPTIONS.find((t) => t.value === question.type)
+  const typeInfo = QUESTION_TYPE_OPTIONS.find((t) => t.value === question.type);
 
   return (
     <div className="flex gap-2 items-start p-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/50">
@@ -122,15 +143,22 @@ function QuestionRow({
           <span className="text-sm">{typeInfo?.icon}</span>
           <Select
             value={question.type}
-            onChange={(e) => onChange({ ...question, type: e.target.value as QuestionType })}
+            onChange={(e) =>
+              onChange({ ...question, type: e.target.value as QuestionType })
+            }
             className="text-xs"
-            options={QUESTION_TYPE_OPTIONS.map((t) => ({ value: t.value, label: t.label }))}
+            options={QUESTION_TYPE_OPTIONS.map((t) => ({
+              value: t.value,
+              label: t.label,
+            }))}
           />
           <label className="flex items-center gap-1 text-xs text-slate-500 dark:text-slate-400 whitespace-nowrap">
             <input
               type="checkbox"
               checked={question.required}
-              onChange={(e) => onChange({ ...question, required: e.target.checked })}
+              onChange={(e) =>
+                onChange({ ...question, required: e.target.checked })
+              }
               className="rounded"
             />
             Wajib
@@ -152,18 +180,18 @@ function QuestionRow({
         ✕
       </button>
     </div>
-  )
+  );
 }
 
 // ── Props ──────────────────────────────────────────────────────
 
 export interface SurveyBuilderProps {
-  open: boolean
-  onClose: () => void
-  survey?: SatisfactionSurvey | null // jika ada = edit mode
-  onSave: (input: CreateSurveyInput) => Promise<void>
-  onPublish?: (input: CreateSurveyInput) => Promise<void>
-  isSaving: boolean
+  open: boolean;
+  onClose: () => void;
+  survey?: SatisfactionSurvey | null; // jika ada = edit mode
+  onSave: (input: CreateSurveyInput) => Promise<void>;
+  onPublish?: (input: CreateSurveyInput) => Promise<void>;
+  isSaving: boolean;
 }
 
 // ── Main Component ─────────────────────────────────────────────
@@ -176,47 +204,49 @@ export function SurveyBuilder({
   onPublish,
   isSaving,
 }: SurveyBuilderProps) {
-  const isEdit = !!survey
+  const isEdit = !!survey;
 
-  const [title, setTitle] = useState('')
-  const [audience, setAudience] = useState<SurveyAudience>('all')
-  const [startDate, setStartDate] = useState('')
-  const [endDate, setEndDate] = useState('')
-  const [questions, setQuestions] = useState<SurveyQuestion[]>([])
-  const [errors, setErrors] = useState<Record<string, string>>({})
-  const [publishMode, setPublishMode] = useState(false)
+  const [title, setTitle] = useState("");
+  const [audience, setAudience] = useState<SurveyAudience>("all");
+  const [startDate, setStartDate] = useState("");
+  const [endDate, setEndDate] = useState("");
+  const [questions, setQuestions] = useState<SurveyQuestion[]>([]);
+  const [errors, setErrors] = useState<Record<string, string>>({});
+  const [publishMode, setPublishMode] = useState(false);
 
   // Populate form when opening in edit mode
   useEffect(() => {
     if (open) {
       if (survey) {
-        setTitle(survey.title)
-        setAudience(survey.target_audience)
-        setStartDate(survey.start_date ?? '')
-        setEndDate(survey.end_date ?? '')
-        setQuestions(survey.questions)
+        setTitle(survey.title);
+        setAudience(survey.target_audience);
+        setStartDate(survey.start_date ?? "");
+        setEndDate(survey.end_date ?? "");
+        setQuestions(survey.questions);
       } else {
-        setTitle('')
-        setAudience('all')
-        setStartDate('')
-        setEndDate('')
-        setQuestions([])
+        setTitle("");
+        setAudience("all");
+        setStartDate("");
+        setEndDate("");
+        setQuestions([]);
       }
-      setErrors({})
-      setPublishMode(false)
+      setErrors({});
+      setPublishMode(false);
     }
-  }, [open, survey])
+  }, [open, survey]);
 
   const validate = (): boolean => {
-    const newErrors: Record<string, string> = {}
-    if (!title.trim()) newErrors.title = 'Judul survey wajib diisi.'
-    if (questions.length === 0) newErrors.questions = 'Tambahkan minimal 1 pertanyaan.'
+    const newErrors: Record<string, string> = {};
+    if (!title.trim()) newErrors.title = "Judul survey wajib diisi.";
+    if (questions.length === 0)
+      newErrors.questions = "Tambahkan minimal 1 pertanyaan.";
     questions.forEach((q, i) => {
-      if (!q.text.trim()) newErrors[`q_${i}`] = `Teks pertanyaan ${i + 1} tidak boleh kosong.`
-    })
-    setErrors(newErrors)
-    return Object.keys(newErrors).length === 0
-  }
+      if (!q.text.trim())
+        newErrors[`q_${i}`] = `Teks pertanyaan ${i + 1} tidak boleh kosong.`;
+    });
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
 
   const buildInput = (): CreateSurveyInput => ({
     title: title.trim(),
@@ -224,56 +254,58 @@ export function SurveyBuilder({
     questions,
     start_date: startDate || null,
     end_date: endDate || null,
-  })
+  });
 
   const handleSaveDraft = async () => {
-    if (!validate()) return
-    setPublishMode(false)
-    await onSave(buildInput())
-    onClose()
-  }
+    if (!validate()) return;
+    setPublishMode(false);
+    await onSave(buildInput());
+    onClose();
+  };
 
   const handlePublish = async () => {
-    if (!validate()) return
-    setPublishMode(true)
+    if (!validate()) return;
+    setPublishMode(true);
     if (onPublish) {
-      await onPublish(buildInput())
+      await onPublish(buildInput());
     } else {
-      await onSave(buildInput())
+      await onSave(buildInput());
     }
-    onClose()
-  }
+    onClose();
+  };
 
-  const addQuestion = (type: QuestionType = 'rating') => {
-    setQuestions((prev) => [...prev, newQuestion(type)])
-  }
+  const addQuestion = (type: QuestionType = "rating") => {
+    setQuestions((prev) => [...prev, newQuestion(type)]);
+  };
 
   const updateQuestion = (index: number, q: SurveyQuestion) => {
-    setQuestions((prev) => prev.map((old, i) => (i === index ? q : old)))
-  }
+    setQuestions((prev) => prev.map((old, i) => (i === index ? q : old)));
+  };
 
   const removeQuestion = (index: number) => {
-    setQuestions((prev) => prev.filter((_, i) => i !== index))
-  }
+    setQuestions((prev) => prev.filter((_, i) => i !== index));
+  };
 
-  const moveQuestion = (index: number, direction: 'up' | 'down') => {
+  const moveQuestion = (index: number, direction: "up" | "down") => {
     setQuestions((prev) => {
-      const copy = [...prev]
-      const target = direction === 'up' ? index - 1 : index + 1
-      if (target < 0 || target >= copy.length) return prev
-      ;[copy[index], copy[target]] = [copy[target], copy[index]]
-      return copy
-    })
-  }
+      const copy = [...prev];
+      const target = direction === "up" ? index - 1 : index + 1;
+      if (target < 0 || target >= copy.length) return prev;
+      [copy[index], copy[target]] = [copy[target], copy[index]];
+      return copy;
+    });
+  };
 
   const loadTemplate = () => {
-    setQuestions(generateFromTemplate())
-    if (!title) setTitle('Survey Kepuasan Platform LMS')
-  }
+    setQuestions(generateFromTemplate());
+    if (!title) setTitle("Survey Kepuasan Platform LMS");
+  };
 
   return (
     <Modal open={open} onClose={onClose} size="2xl">
-      <ModalHeader onClose={onClose}>{isEdit ? 'Edit Survey' : 'Buat Survey Baru'}</ModalHeader>
+      <ModalHeader onClose={onClose}>
+        {isEdit ? "Edit Survey" : "Buat Survey Baru"}
+      </ModalHeader>
       <ModalBody>
         <div className="space-y-5">
           {/* ── Survey Info ── */}
@@ -287,7 +319,9 @@ export function SurveyBuilder({
                 value={title}
                 onChange={(e) => setTitle(e.target.value)}
               />
-              {errors.title && <p className="text-xs text-red-500 mt-1">{errors.title}</p>}
+              {errors.title && (
+                <p className="text-xs text-red-500 mt-1">{errors.title}</p>
+              )}
             </div>
 
             <div>
@@ -316,7 +350,11 @@ export function SurveyBuilder({
                 <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
                   Tanggal Selesai
                 </label>
-                <Input type="date" value={endDate} onChange={(e) => setEndDate(e.target.value)} />
+                <Input
+                  type="date"
+                  value={endDate}
+                  onChange={(e) => setEndDate(e.target.value)}
+                />
               </div>
             </div>
           </div>
@@ -325,7 +363,7 @@ export function SurveyBuilder({
           <div>
             <div className="flex items-center justify-between mb-2">
               <label className="text-sm font-medium text-slate-700 dark:text-slate-300">
-                Pertanyaan <span className="text-red-500">*</span>{' '}
+                Pertanyaan <span className="text-red-500">*</span>{" "}
                 <span className="text-xs font-normal text-slate-500">
                   ({questions.length} pertanyaan)
                 </span>
@@ -337,7 +375,9 @@ export function SurveyBuilder({
               )}
             </div>
 
-            {errors.questions && <p className="text-xs text-red-500 mb-2">{errors.questions}</p>}
+            {errors.questions && (
+              <p className="text-xs text-red-500 mb-2">{errors.questions}</p>
+            )}
 
             <div className="space-y-2 max-h-64 overflow-y-auto pr-1">
               {questions.map((q, i) => (
@@ -349,11 +389,13 @@ export function SurveyBuilder({
                     onRemove={() => removeQuestion(i)}
                     canMoveUp={i > 0}
                     canMoveDown={i < questions.length - 1}
-                    onMoveUp={() => moveQuestion(i, 'up')}
-                    onMoveDown={() => moveQuestion(i, 'down')}
+                    onMoveUp={() => moveQuestion(i, "up")}
+                    onMoveDown={() => moveQuestion(i, "down")}
                   />
                   {errors[`q_${i}`] && (
-                    <p className="text-xs text-red-500 mt-1 ml-8">{errors[`q_${i}`]}</p>
+                    <p className="text-xs text-red-500 mt-1 ml-8">
+                      {errors[`q_${i}`]}
+                    </p>
                   )}
                 </div>
               ))}
@@ -377,8 +419,11 @@ export function SurveyBuilder({
           {questions.length > 0 && (
             <div className="p-3 rounded-xl bg-blue-50 dark:bg-blue-900/20 border border-blue-100 dark:border-blue-800/30">
               <p className="text-xs text-blue-700 dark:text-blue-300">
-                <strong>Preview:</strong> Survey &quot;{title || '(tanpa judul)'}&quot; akan dikirim
-                ke <strong>{AUDIENCE_OPTIONS.find((a) => a.value === audience)?.label}</strong>{' '}
+                <strong>Preview:</strong> Survey &quot;
+                {title || "(tanpa judul)"}&quot; akan dikirim ke{" "}
+                <strong>
+                  {AUDIENCE_OPTIONS.find((a) => a.value === audience)?.label}
+                </strong>{" "}
                 dengan {questions.length} pertanyaan.
               </p>
             </div>
@@ -389,7 +434,11 @@ export function SurveyBuilder({
         <Button variant="ghost" onClick={onClose} disabled={isSaving}>
           Batal
         </Button>
-        <Button variant="secondary" onClick={handleSaveDraft} disabled={isSaving}>
+        <Button
+          variant="secondary"
+          onClick={handleSaveDraft}
+          disabled={isSaving}
+        >
           {isSaving && !publishMode ? <Spinner size="sm" /> : null}
           Simpan Draft
         </Button>
@@ -399,5 +448,5 @@ export function SurveyBuilder({
         </Button>
       </ModalFooter>
     </Modal>
-  )
+  );
 }

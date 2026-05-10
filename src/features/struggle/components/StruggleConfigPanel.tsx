@@ -1,20 +1,23 @@
-import { CheckCircle, Save } from 'lucide-react'
-import { useEffect, useState } from 'react'
+import { CheckCircle, Save } from "lucide-react";
+import { useEffect, useState } from "react";
 
-import { Card, Skeleton } from '@/components/ui'
-import { cn } from '@/utils/cn'
+import { Card, Skeleton } from "@/components/ui";
+import { cn } from "@/utils/cn";
 
-import { useStruggleConfig, useUpdateStruggleConfig } from '../queries/useStruggleQueries'
-import type { StruggleConfig } from '../types'
+import {
+  useStruggleConfig,
+  useUpdateStruggleConfig,
+} from "../queries/useStruggleQueries";
+import type { StruggleConfig } from "../types";
 
 interface Props {
-  className?: string
+  className?: string;
 }
 
 export function StruggleConfigPanel({ className }: Props) {
-  const { data: config, isLoading } = useStruggleConfig()
-  const updateMutation = useUpdateStruggleConfig()
-  const [saved, setSaved] = useState(false)
+  const { data: config, isLoading } = useStruggleConfig();
+  const updateMutation = useUpdateStruggleConfig();
+  const [saved, setSaved] = useState(false);
 
   // Local form state
   const [form, setForm] = useState<StruggleConfig>({
@@ -23,7 +26,7 @@ export function StruggleConfigPanel({ className }: Props) {
     notification_enabled: true,
     student_prompt_enabled: true,
     cooldown_hours: 24,
-  })
+  });
 
   // Sync from server — use ?? to guard against null/undefined DB values
   useEffect(() => {
@@ -34,36 +37,37 @@ export function StruggleConfigPanel({ className }: Props) {
         notification_enabled: config.notification_enabled ?? true,
         student_prompt_enabled: config.student_prompt_enabled ?? true,
         cooldown_hours: config.cooldown_hours ?? 24,
-      })
+      });
     }
-  }, [config])
+  }, [config]);
 
   async function handleSave() {
-    await updateMutation.mutateAsync(form)
-    setSaved(true)
-    setTimeout(() => setSaved(false), 3000)
+    await updateMutation.mutateAsync(form);
+    setSaved(true);
+    setTimeout(() => setSaved(false), 3000);
   }
 
   if (isLoading) {
     return (
-      <Card className={cn('space-y-4', className)}>
+      <Card className={cn("space-y-4", className)}>
         <Skeleton className="h-6 w-48" />
         <Skeleton className="h-10 w-full" />
         <Skeleton className="h-10 w-full" />
         <Skeleton className="h-10 w-full" />
         <Skeleton className="h-10 w-full" />
       </Card>
-    )
+    );
   }
 
   return (
-    <Card className={cn('space-y-6', className)}>
+    <Card className={cn("space-y-6", className)}>
       <div>
         <h3 className="text-base font-bold text-slate-900 dark:text-slate-100">
           Pengaturan Deteksi Kesulitan
         </h3>
         <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">
-          Konfigurasi ambang batas dan notifikasi sistem deteksi kesulitan siswa.
+          Konfigurasi ambang batas dan notifikasi sistem deteksi kesulitan
+          siswa.
         </p>
       </div>
 
@@ -83,7 +87,10 @@ export function StruggleConfigPanel({ className }: Props) {
               ...f,
               threshold_medium: Number(e.target.value),
               // Ensure high stays above medium
-              threshold_high: Math.max(f.threshold_high, Number(e.target.value) + 1),
+              threshold_high: Math.max(
+                f.threshold_high,
+                Number(e.target.value) + 1,
+              ),
             }))
           }
           className="w-full accent-amber-500"
@@ -141,7 +148,8 @@ export function StruggleConfigPanel({ className }: Props) {
           Cooldown Notifikasi (jam)
         </label>
         <p className="text-xs text-slate-500 dark:text-slate-400">
-          Minimal jeda antara dua alert untuk siswa yang sama pada pelajaran yang sama.
+          Minimal jeda antara dua alert untuk siswa yang sama pada pelajaran
+          yang sama.
         </p>
         <input
           type="number"
@@ -151,7 +159,10 @@ export function StruggleConfigPanel({ className }: Props) {
           onChange={(e) =>
             setForm((f) => ({
               ...f,
-              cooldown_hours: Math.max(1, Math.min(168, Number(e.target.value))),
+              cooldown_hours: Math.max(
+                1,
+                Math.min(168, Number(e.target.value)),
+              ),
             }))
           }
           className="w-28 px-3 py-2 text-sm rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-blue-500"
@@ -166,7 +177,7 @@ export function StruggleConfigPanel({ className }: Props) {
           className="flex items-center gap-2 px-5 py-2.5 rounded-xl font-bold text-sm bg-blue-600 hover:bg-blue-700 text-white transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
         >
           <Save className="w-4 h-4" />
-          {updateMutation.isPending ? 'Menyimpan...' : 'Simpan'}
+          {updateMutation.isPending ? "Menyimpan..." : "Simpan"}
         </button>
 
         {saved && (
@@ -183,7 +194,7 @@ export function StruggleConfigPanel({ className }: Props) {
         )}
       </div>
     </Card>
-  )
+  );
 }
 
 // ----------------------------------------------------------------
@@ -195,33 +206,37 @@ function ToggleRow({
   checked,
   onChange,
 }: {
-  label: string
-  description: string
-  checked: boolean
-  onChange: (v: boolean) => void
+  label: string;
+  description: string;
+  checked: boolean;
+  onChange: (v: boolean) => void;
 }) {
   return (
     <div className="flex items-center justify-between gap-4">
       <div className="flex-1">
-        <p className="text-sm font-semibold text-slate-700 dark:text-slate-300">{label}</p>
-        <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">{description}</p>
+        <p className="text-sm font-semibold text-slate-700 dark:text-slate-300">
+          {label}
+        </p>
+        <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+          {description}
+        </p>
       </div>
       <button
         role="switch"
         aria-checked={checked}
         onClick={() => onChange(!checked)}
         className={cn(
-          'relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-1',
-          checked ? 'bg-blue-600' : 'bg-slate-200 dark:bg-slate-700'
+          "relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-1",
+          checked ? "bg-blue-600" : "bg-slate-200 dark:bg-slate-700",
         )}
       >
         <span
           className={cn(
-            'pointer-events-none inline-block h-5 w-5 rounded-full bg-white shadow-sm ring-0 transition-transform duration-200',
-            checked ? 'translate-x-5' : 'translate-x-0'
+            "pointer-events-none inline-block h-5 w-5 rounded-full bg-white shadow-sm ring-0 transition-transform duration-200",
+            checked ? "translate-x-5" : "translate-x-0",
           )}
         />
       </button>
     </div>
-  )
+  );
 }

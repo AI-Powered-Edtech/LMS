@@ -8,32 +8,32 @@ import {
   X,
   ZoomIn,
   ZoomOut,
-} from 'lucide-react'
-import type { RefObject } from 'react'
+} from "lucide-react";
+import type { RefObject } from "react";
 
-import { cn } from '@/utils/cn'
-import { sanitizeUrl } from '@/utils/sanitize'
+import { cn } from "@/utils/cn";
+import { sanitizeUrl } from "@/utils/sanitize";
 
-import type { ActiveTool, Annotation } from './types'
+import type { ActiveTool, Annotation } from "./types";
 
 interface DocumentViewerProps {
-  isLoading: boolean
-  submissionText: string
-  fileUrl?: string | null
-  linkUrl?: string | null
-  studentName: string
-  zoom: number
-  activeTool: ActiveTool
-  annotations?: Annotation[]
-  documentRef: RefObject<HTMLDivElement | null>
-  onZoomChange: (zoom: number) => void
-  onToolChange: (tool: ActiveTool) => void
-  onDocumentClick?: (e: React.MouseEvent) => void
-  onAnnotationToggle?: (id: string) => void
-  onAnnotationUpdate?: (id: string, text: string) => void
-  onAnnotationDelete?: (id: string) => void
+  isLoading: boolean;
+  submissionText: string;
+  fileUrl?: string | null;
+  linkUrl?: string | null;
+  studentName: string;
+  zoom: number;
+  activeTool: ActiveTool;
+  annotations?: Annotation[];
+  documentRef: RefObject<HTMLDivElement | null>;
+  onZoomChange: (zoom: number) => void;
+  onToolChange: (tool: ActiveTool) => void;
+  onDocumentClick?: (e: React.MouseEvent) => void;
+  onAnnotationToggle?: (id: string) => void;
+  onAnnotationUpdate?: (id: string, text: string) => void;
+  onAnnotationDelete?: (id: string) => void;
   /** Optional submission ID for external integrations */
-  submissionId?: string | null
+  submissionId?: string | null;
 }
 
 function DocumentSkeleton() {
@@ -49,7 +49,7 @@ function DocumentSkeleton() {
         <div className="h-4 bg-slate-200 dark:bg-slate-700 rounded w-4/5" />
       </div>
     </div>
-  )
+  );
 }
 
 function AnnotationPin({
@@ -58,10 +58,10 @@ function AnnotationPin({
   onUpdate,
   onDelete,
 }: {
-  annotation: Annotation
-  onToggle: (id: string) => void
-  onUpdate: (id: string, text: string) => void
-  onDelete: (id: string) => void
+  annotation: Annotation;
+  onToggle: (id: string) => void;
+  onUpdate: (id: string, text: string) => void;
+  onDelete: (id: string) => void;
 }) {
   return (
     <div
@@ -112,7 +112,7 @@ function AnnotationPin({
         )}
       </div>
     </div>
-  )
+  );
 }
 
 export function DocumentViewer({
@@ -138,12 +138,12 @@ export function DocumentViewer({
       <div className="h-12 bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-700 flex items-center justify-between px-4 shrink-0 z-10">
         <div className="flex items-center gap-1 bg-slate-100 dark:bg-slate-800 p-1 rounded-lg">
           <button
-            onClick={() => onToolChange('pointer')}
+            onClick={() => onToolChange("pointer")}
             className={cn(
-              'p-1.5 rounded-md transition-colors',
-              activeTool === 'pointer'
-                ? 'bg-white dark:bg-slate-700 shadow-sm text-blue-600 dark:text-blue-400'
-                : 'text-slate-500 hover:text-slate-900 dark:hover:text-white'
+              "p-1.5 rounded-md transition-colors",
+              activeTool === "pointer"
+                ? "bg-white dark:bg-slate-700 shadow-sm text-blue-600 dark:text-blue-400"
+                : "text-slate-500 hover:text-slate-900 dark:hover:text-white",
             )}
             title="Pilih (Pointer)"
             aria-label="Pilih (Pointer)"
@@ -151,12 +151,12 @@ export function DocumentViewer({
             <MousePointer2 className="w-4 h-4" />
           </button>
           <button
-            onClick={() => onToolChange('comment')}
+            onClick={() => onToolChange("comment")}
             className={cn(
-              'p-1.5 rounded-md transition-colors',
-              activeTool === 'comment'
-                ? 'bg-white dark:bg-slate-700 shadow-sm text-blue-600 dark:text-blue-400'
-                : 'text-slate-500 hover:text-slate-900 dark:hover:text-white'
+              "p-1.5 rounded-md transition-colors",
+              activeTool === "comment"
+                ? "bg-white dark:bg-slate-700 shadow-sm text-blue-600 dark:text-blue-400"
+                : "text-slate-500 hover:text-slate-900 dark:hover:text-white",
             )}
             title="Tambah Komentar"
             aria-label="Tambah komentar"
@@ -205,13 +205,13 @@ export function DocumentViewer({
             role="presentation"
             onClick={onDocumentClick}
             className={cn(
-              'bg-white dark:bg-slate-800 shadow-md border border-slate-200 dark:border-slate-700 p-12 relative origin-top transition-transform duration-200',
-              activeTool === 'comment' ? 'cursor-crosshair' : 'cursor-default'
+              "bg-white dark:bg-slate-800 shadow-md border border-slate-200 dark:border-slate-700 p-12 relative origin-top transition-transform duration-200",
+              activeTool === "comment" ? "cursor-crosshair" : "cursor-default",
             )}
             style={{
-              width: '100%',
-              maxWidth: '800px',
-              minHeight: '1131px',
+              width: "100%",
+              maxWidth: "800px",
+              minHeight: "1131px",
               transform: `scale(${zoom / 100})`,
               marginBottom: `${zoom > 100 ? (zoom - 100) * 11 : 0}px`,
             }}
@@ -220,7 +220,9 @@ export function DocumentViewer({
               <h2 className="text-2xl font-serif font-bold text-slate-900 dark:text-white">
                 Submission Viewer
               </h2>
-              <p className="text-slate-500 dark:text-slate-400 mt-2">Oleh: {studentName}</p>
+              <p className="text-slate-500 dark:text-slate-400 mt-2">
+                Oleh: {studentName}
+              </p>
             </div>
 
             {(fileUrl || linkUrl) && (
@@ -255,8 +257,10 @@ export function DocumentViewer({
             <div className="prose prose-slate dark:prose-invert font-serif leading-loose text-slate-800 dark:text-slate-200 max-w-none">
               {submissionText ? (
                 submissionText
-                  .split('\n')
-                  .map((paragraph, idx) => (paragraph.trim() ? <p key={idx}>{paragraph}</p> : null))
+                  .split("\n")
+                  .map((paragraph, idx) =>
+                    paragraph.trim() ? <p key={idx}>{paragraph}</p> : null,
+                  )
               ) : (
                 <div className="not-prose rounded-2xl border border-dashed border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/50 p-6 text-sm text-slate-500 dark:text-slate-400">
                   Tidak ada jawaban teks pada attempt ini.
@@ -277,5 +281,5 @@ export function DocumentViewer({
         )}
       </div>
     </div>
-  )
+  );
 }

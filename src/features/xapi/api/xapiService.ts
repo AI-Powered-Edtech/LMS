@@ -1,7 +1,12 @@
-import { db } from '@/services/db'
-import { logger } from '@/utils/logger'
+import { db } from "@/services/db";
+import { logger } from "@/utils/logger";
 
-import type { XAPIContext, XAPIObjectType, XAPIResult, XAPIVerb } from '../types/index'
+import type {
+  XAPIContext,
+  XAPIObjectType,
+  XAPIResult,
+  XAPIVerb,
+} from "../types/index";
 
 /**
  * Records an xAPI statement via the record_xapi_statement RPC.
@@ -16,33 +21,36 @@ export const xapiService = {
     objectType: XAPIObjectType,
     objectId: string,
     result: XAPIResult = {},
-    context: XAPIContext = {}
+    context: XAPIContext = {},
   ): Promise<string | null> {
     try {
-      const { data, error } = await db.rpc('record_xapi_statement', {
+      const { data, error } = await db.rpc("record_xapi_statement", {
         p_verb: verb,
         p_object_type: objectType,
         p_object_id: objectId,
         p_result: result as Record<string, unknown>,
-        p_context: { ...context, platform: context.platform ?? 'edusync' } as Record<
-          string,
-          unknown
-        >,
-      })
+        p_context: {
+          ...context,
+          platform: context.platform ?? "edusync",
+        } as Record<string, unknown>,
+      });
 
       if (error) {
         if (import.meta.env.DEV) {
-          logger.warn('[xAPI] recordStatement error (non-critical):', error.message)
+          logger.warn(
+            "[xAPI] recordStatement error (non-critical):",
+            error.message,
+          );
         }
-        return null
+        return null;
       }
 
-      return data as string | null
+      return data as string | null;
     } catch (err) {
       if (import.meta.env.DEV) {
-        logger.warn('[xAPI] recordStatement exception (non-critical):', err)
+        logger.warn("[xAPI] recordStatement exception (non-critical):", err);
       }
-      return null
+      return null;
     }
   },
-}
+};

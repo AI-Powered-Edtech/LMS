@@ -1,34 +1,36 @@
-import { FileText } from 'lucide-react'
-import { Link } from 'react-router-dom'
+import { FileText } from "lucide-react";
+import { Link } from "react-router-dom";
 
-import { EmptyState, OptimizedImage } from '@/components/ui'
-import { useAuth } from '@/contexts/AuthContext'
-import type { AssignmentGradingQueue } from '@/features/assignments/api/assignmentService'
-import type { AssignmentUiState } from '@/features/assignments/types'
-import { PlagiarismCheckButton } from '@/features/plagiarism'
+import { EmptyState, OptimizedImage } from "@/components/ui";
+import { useAuth } from "@/contexts/AuthContext";
+import type { AssignmentGradingQueue } from "@/features/assignments/api/assignmentService";
+import type { AssignmentUiState } from "@/features/assignments/types";
+import { PlagiarismCheckButton } from "@/features/plagiarism";
 
 interface TeacherSubmissionsPanelProps {
-  assignment: AssignmentUiState
-  gradingQueue?: AssignmentGradingQueue | null
+  assignment: AssignmentUiState;
+  gradingQueue?: AssignmentGradingQueue | null;
 }
 
 export function TeacherSubmissionsPanel({
   assignment,
   gradingQueue,
 }: TeacherSubmissionsPanelProps) {
-  const { tenantId } = useAuth()
-  const submissions = gradingQueue?.students ?? assignment.studentSubmissions
+  const { tenantId } = useAuth();
+  const submissions = gradingQueue?.students ?? assignment.studentSubmissions;
   const submittedCount = submissions.filter(
     (submission: { status: string }) =>
-      submission.status === 'submitted' ||
-      submission.status === 'graded' ||
-      submission.status === 'late'
-  ).length
+      submission.status === "submitted" ||
+      submission.status === "graded" ||
+      submission.status === "late",
+  ).length;
 
   return (
     <div className="bg-white dark:bg-slate-900 p-6 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-sm">
       <div className="flex items-center justify-between mb-6">
-        <h3 className="font-bold text-slate-900 dark:text-white text-lg">Status Pengumpulan</h3>
+        <h3 className="font-bold text-slate-900 dark:text-white text-lg">
+          Status Pengumpulan
+        </h3>
         <div className="text-sm font-bold text-slate-500 dark:text-slate-400">
           {submittedCount} / {submissions.length} Diserahkan
         </div>
@@ -42,11 +44,14 @@ export function TeacherSubmissionsPanel({
           />
         ) : (
           submissions.map((sub) => {
-            const isQueueRow = 'submission_id' in sub
-            const studentName = isQueueRow ? sub.student_name : sub.studentName
-            const studentId = isQueueRow ? sub.student_id : sub.studentId
-            const displayGrade = isQueueRow ? (sub.score ?? sub.raw_score ?? null) : sub.grade
-            const isGraded = displayGrade !== null && displayGrade !== undefined
+            const isQueueRow = "submission_id" in sub;
+            const studentName = isQueueRow ? sub.student_name : sub.studentName;
+            const studentId = isQueueRow ? sub.student_id : sub.studentId;
+            const displayGrade = isQueueRow
+              ? (sub.score ?? sub.raw_score ?? null)
+              : sub.grade;
+            const isGraded =
+              displayGrade !== null && displayGrade !== undefined;
 
             return (
               <div
@@ -66,31 +71,35 @@ export function TeacherSubmissionsPanel({
                       {studentName}
                     </p>
                     <p className="text-xs text-slate-500 dark:text-slate-400">
-                      {sub.status === 'assigned' || sub.status === 'not_submitted'
-                        ? 'Belum diserahkan'
-                        : sub.status === 'submitted'
-                          ? 'Diserahkan'
-                          : sub.status === 'late'
-                            ? 'Terlambat'
-                            : 'Dinilai'}
+                      {sub.status === "assigned" ||
+                      sub.status === "not_submitted"
+                        ? "Belum diserahkan"
+                        : sub.status === "submitted"
+                          ? "Diserahkan"
+                          : sub.status === "late"
+                            ? "Terlambat"
+                            : "Dinilai"}
                     </p>
                   </div>
                 </div>
                 <div className="flex items-center gap-3 flex-shrink-0">
                   {/* Plagiarism check — only for submitted/graded text submissions */}
-                  {(sub.status === 'submitted' ||
-                    sub.status === 'graded' ||
-                    sub.status === 'late') &&
+                  {(sub.status === "submitted" ||
+                    sub.status === "graded" ||
+                    sub.status === "late") &&
                     tenantId &&
                     isQueueRow &&
                     sub.submission_id && (
-                      <PlagiarismCheckButton submissionId={sub.submission_id} tenantId={tenantId} />
+                      <PlagiarismCheckButton
+                        submissionId={sub.submission_id}
+                        tenantId={tenantId}
+                      />
                     )}
                   {isGraded ? (
                     <span className="font-bold text-emerald-600 dark:text-emerald-400">
                       {displayGrade}/{assignment.maxGrade}
                     </span>
-                  ) : sub.status === 'submitted' || sub.status === 'late' ? (
+                  ) : sub.status === "submitted" || sub.status === "late" ? (
                     <Link
                       to={`/grader?assignmentId=${assignment.id}&studentId=${studentId}`}
                       className="text-xs font-bold text-blue-600 dark:text-blue-400 hover:underline"
@@ -100,10 +109,10 @@ export function TeacherSubmissionsPanel({
                   ) : null}
                 </div>
               </div>
-            )
+            );
           })
         )}
       </div>
     </div>
-  )
+  );
 }

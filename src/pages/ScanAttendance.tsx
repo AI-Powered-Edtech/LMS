@@ -1,12 +1,12 @@
-import { useQuery } from '@tanstack/react-query'
-import { Camera, FileText, Upload } from 'lucide-react'
-import { useState } from 'react'
-import { Link } from 'react-router-dom'
+import { useQuery } from "@tanstack/react-query";
+import { Camera, FileText, Upload } from "lucide-react";
+import { useState } from "react";
+import { Link } from "react-router-dom";
 
-import { useToast } from '@/components/ui'
-import { useAuth } from '@/contexts/AuthContext'
-import { classroomService } from '@/features/classroom/api/classroomService'
-import { usePageTitle } from '@/hooks/usePageTitle'
+import { useToast } from "@/components/ui";
+import { useAuth } from "@/contexts/AuthContext";
+import { classroomService } from "@/features/classroom/api/classroomService";
+import { usePageTitle } from "@/hooks/usePageTitle";
 
 /**
  * ScanAttendance — AI-powered attendance book scanning.
@@ -17,27 +17,31 @@ import { usePageTitle } from '@/hooks/usePageTitle'
  * toast. The class selector queries real data from the `classes` table.
  */
 export function ScanAttendance() {
-  usePageTitle('Pindai Kehadiran')
-  const { user, tenantId } = useAuth()
-  const addToast = useToast((s) => s.addToast)
-  const [selectedClassId, setSelectedClassId] = useState<string>('')
+  usePageTitle("Pindai Kehadiran");
+  const { user, tenantId } = useAuth();
+  const addToast = useToast((s) => s.addToast);
+  const [selectedClassId, setSelectedClassId] = useState<string>("");
 
   const { data: classes = [] } = useQuery({
-    queryKey: ['teacher-classes', tenantId],
+    queryKey: ["teacher-classes", tenantId],
     queryFn: async () => {
-      const allClasses = await classroomService.fetchClassrooms(user!.id, 'teacher', tenantId!)
-      return allClasses.map((c) => ({ id: c.id, name: c.name }))
+      const allClasses = await classroomService.fetchClassrooms(
+        user!.id,
+        "teacher",
+        tenantId!,
+      );
+      return allClasses.map((c) => ({ id: c.id, name: c.name }));
     },
     enabled: !!tenantId && !!user,
-  })
+  });
 
   const handleNotAvailable = () => {
     addToast({
-      type: 'info',
+      type: "info",
       message:
-        'Fitur pemindaian AI belum tersedia. Pencatatan kehadiran manual tersedia melalui halaman kelas.',
-    })
-  }
+        "Fitur pemindaian AI belum tersedia. Pencatatan kehadiran manual tersedia melalui halaman kelas.",
+    });
+  };
 
   return (
     <div className="max-w-4xl mx-auto space-y-8 pb-12">
@@ -49,7 +53,8 @@ export function ScanAttendance() {
           </span>
         </h1>
         <p className="text-slate-500 dark:text-slate-400 mt-2">
-          Otomatisasi pencatatan kehadiran dengan memindai buku absensi kelas menggunakan AI.
+          Otomatisasi pencatatan kehadiran dengan memindai buku absensi kelas
+          menggunakan AI.
         </p>
       </div>
 
@@ -81,8 +86,8 @@ export function ScanAttendance() {
           Pindai Buku Absensi
         </h2>
         <p className="text-slate-500 dark:text-slate-400 max-w-md mb-4">
-          Arahkan kamera ke halaman buku absensi atau unggah foto buku absensi untuk mendigitalkan
-          data kehadiran secara otomatis.
+          Arahkan kamera ke halaman buku absensi atau unggah foto buku absensi
+          untuk mendigitalkan data kehadiran secara otomatis.
         </p>
 
         <div className="inline-flex items-center gap-2 px-4 py-2 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-xl text-sm font-medium text-amber-700 dark:text-amber-300 mb-6">
@@ -90,10 +95,10 @@ export function ScanAttendance() {
         </div>
 
         <p className="text-sm text-slate-500 dark:text-slate-400 max-w-md mb-8">
-          Pemindaian memerlukan Edge Function{' '}
+          Pemindaian memerlukan Edge Function{" "}
           <code className="px-1.5 py-0.5 bg-slate-100 dark:bg-slate-700 rounded text-xs font-mono">
             scan-attendance
-          </code>{' '}
+          </code>{" "}
           yang belum di-deploy.
         </p>
 
@@ -128,5 +133,5 @@ export function ScanAttendance() {
         </div>
       </div>
     </div>
-  )
+  );
 }

@@ -1,23 +1,23 @@
-import type { DraggableProvided } from '@hello-pangea/dnd'
-import { GripVertical, Plus, Trash2 } from 'lucide-react'
-import { useState } from 'react'
+import type { DraggableProvided } from "@hello-pangea/dnd";
+import { GripVertical, Plus, Trash2 } from "lucide-react";
+import { useState } from "react";
 
-import { cn } from '@/utils/cn'
+import { cn } from "@/utils/cn";
 
-import type { RubricCriterion, RubricLevel } from '../types'
+import type { RubricCriterion, RubricLevel } from "../types";
 
 interface RubricCriterionRowProps {
-  criterion: RubricCriterion
-  provided: DraggableProvided
-  onUpdate: (updates: Partial<RubricCriterion>) => void
-  onDelete: () => void
-  onAddLevel: () => void
-  onUpdateLevel: (levelId: string, updates: Partial<RubricLevel>) => void
-  onDeleteLevel: (levelId: string) => void
+  criterion: RubricCriterion;
+  provided: DraggableProvided;
+  onUpdate: (updates: Partial<RubricCriterion>) => void;
+  onDelete: () => void;
+  onAddLevel: () => void;
+  onUpdateLevel: (levelId: string, updates: Partial<RubricLevel>) => void;
+  onDeleteLevel: (levelId: string) => void;
 }
 
 const INPUT_CLS =
-  'w-full px-3 py-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm dark:text-white dark:placeholder-slate-500 transition-colors'
+  "w-full px-3 py-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm dark:text-white dark:placeholder-slate-500 transition-colors";
 
 export function RubricCriterionRow({
   criterion,
@@ -28,7 +28,7 @@ export function RubricCriterionRow({
   onUpdateLevel,
   onDeleteLevel,
 }: RubricCriterionRowProps) {
-  const [isExpanded, setIsExpanded] = useState(true)
+  const [isExpanded, setIsExpanded] = useState(true);
 
   return (
     <div
@@ -71,7 +71,9 @@ export function RubricCriterionRow({
               min={1}
               max={1000}
               value={criterion.max_points}
-              onChange={(e) => onUpdate({ max_points: parseInt(e.target.value, 10) || 0 })}
+              onChange={(e) =>
+                onUpdate({ max_points: parseInt(e.target.value, 10) || 0 })
+              }
               className="w-20 px-3 py-1.5 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm dark:text-white text-center font-bold"
             />
           </div>
@@ -84,7 +86,7 @@ export function RubricCriterionRow({
             onClick={() => setIsExpanded((v) => !v)}
             className="p-1.5 text-slate-400 dark:text-slate-500 hover:text-slate-600 dark:hover:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-lg text-xs font-bold transition-colors"
           >
-            {isExpanded ? '▲' : '▼'}
+            {isExpanded ? "▲" : "▼"}
           </button>
           <button
             type="button"
@@ -112,16 +114,20 @@ export function RubricCriterionRow({
                   <input
                     type="text"
                     value={level.label}
-                    onChange={(e) => onUpdateLevel(level.id, { label: e.target.value })}
+                    onChange={(e) =>
+                      onUpdateLevel(level.id, { label: e.target.value })
+                    }
                     placeholder="Label (mis: Baik)"
-                    className={cn(INPUT_CLS, 'font-bold')}
+                    className={cn(INPUT_CLS, "font-bold")}
                   />
                   <input
                     type="text"
                     value={level.description}
-                    onChange={(e) => onUpdateLevel(level.id, { description: e.target.value })}
+                    onChange={(e) =>
+                      onUpdateLevel(level.id, { description: e.target.value })
+                    }
                     placeholder="Deskripsi tingkat..."
-                    className={cn(INPUT_CLS, 'sm:col-span-1')}
+                    className={cn(INPUT_CLS, "sm:col-span-1")}
                   />
                   <div className="flex items-center gap-2">
                     <label className="text-xs font-bold text-slate-500 dark:text-slate-400 whitespace-nowrap">
@@ -133,7 +139,9 @@ export function RubricCriterionRow({
                       max={criterion.max_points}
                       value={level.points}
                       onChange={(e) =>
-                        onUpdateLevel(level.id, { points: parseInt(e.target.value, 10) || 0 })
+                        onUpdateLevel(level.id, {
+                          points: parseInt(e.target.value, 10) || 0,
+                        })
                       }
                       className="w-full px-3 py-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm dark:text-white text-center font-bold"
                     />
@@ -161,5 +169,5 @@ export function RubricCriterionRow({
         </div>
       )}
     </div>
-  )
+  );
 }

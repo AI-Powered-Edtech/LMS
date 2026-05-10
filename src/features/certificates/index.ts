@@ -6,12 +6,12 @@
  */
 
 // Components
-export { CertificateTemplateEditor } from './components/CertificateTemplateEditor'
-export { CertificateTemplateList } from './components/CertificateTemplateList'
-export { CertificateTemplatePreview } from './components/CertificateTemplatePreview'
+export { CertificateTemplateEditor } from "./components/CertificateTemplateEditor";
+export { CertificateTemplateList } from "./components/CertificateTemplateList";
+export { CertificateTemplatePreview } from "./components/CertificateTemplatePreview";
 
 // Query keys
-export { certTemplateKeys } from './queries/certificateTemplateKeys'
+export { certTemplateKeys } from "./queries/certificateTemplateKeys";
 
 // Query hooks
 export {
@@ -20,11 +20,11 @@ export {
   useDeleteCertificateTemplate,
   useSaveCertificateTemplate,
   useSetDefaultTemplate,
-} from './queries/certificateTemplateQueries'
+} from "./queries/certificateTemplateQueries";
 
 // Service
-export { certificateTemplateService } from './api/certificateTemplateService'
+export { certificateTemplateService } from "./api/certificateTemplateService";
 
 // Types
-export type { CertificateTemplate, CertificateTemplateInsert } from './types'
-export { DEFAULT_TEMPLATE } from './types'
+export type { CertificateTemplate, CertificateTemplateInsert } from "./types";
+export { DEFAULT_TEMPLATE } from "./types";

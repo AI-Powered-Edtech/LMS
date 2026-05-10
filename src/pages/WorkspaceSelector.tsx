@@ -1,23 +1,30 @@
-import { ArrowRight, Building, Loader2, LogOut } from 'lucide-react'
-import { motion } from 'motion/react'
-import React, { useEffect, useState } from 'react'
-import { useLocation, useNavigate } from 'react-router-dom'
+import { ArrowRight, Building, Loader2, LogOut } from "lucide-react";
+import { motion } from "motion/react";
+import React, { useEffect, useState } from "react";
+import { useLocation, useNavigate } from "react-router-dom";
 
-import { useToast } from '@/components/ui'
-import { authService } from '@/features/auth/api/authService'
-import { consumePostAuthRedirect, peekPostAuthRedirect } from '@/features/auth/utils/authFlow'
-import { usePageTitle } from '@/hooks/usePageTitle'
+import { useToast } from "@/components/ui";
+import { authService } from "@/features/auth/api/authService";
+import {
+  consumePostAuthRedirect,
+  peekPostAuthRedirect,
+} from "@/features/auth/utils/authFlow";
+import { usePageTitle } from "@/hooks/usePageTitle";
 
-import { useAuth } from '../contexts/AuthContext'
-import { OnboardingLayout } from '../features/onboarding/components/OnboardingLayout'
-import { RolePickerStep } from '../features/onboarding/components/RolePickerStep'
-import { SchoolCreateForm } from '../features/onboarding/components/SchoolCreateForm'
-import { StudentJoinForm } from '../features/onboarding/components/StudentJoinForm'
+import { useAuth } from "../contexts/AuthContext";
+import { OnboardingLayout } from "../features/onboarding/components/OnboardingLayout";
+import { RolePickerStep } from "../features/onboarding/components/RolePickerStep";
+import { SchoolCreateForm } from "../features/onboarding/components/SchoolCreateForm";
+import { StudentJoinForm } from "../features/onboarding/components/StudentJoinForm";
 
-type OnboardingStep = 'pick-role' | 'student-form' | 'teacher-form' | 'admin-form'
+type OnboardingStep =
+  | "pick-role"
+  | "student-form"
+  | "teacher-form"
+  | "admin-form";
 
 export function WorkspaceSelector() {
-  usePageTitle('Pilih Ruang Kerja')
+  usePageTitle("Pilih Ruang Kerja");
   const {
     memberships,
     activeTenant,
@@ -26,144 +33,163 @@ export function WorkspaceSelector() {
     signOut,
     user,
     refreshAuthBootstrap,
-  } = useAuth()
-  const navigate = useNavigate()
-  const location = useLocation()
+  } = useAuth();
+  const navigate = useNavigate();
+  const location = useLocation();
   // Preserve the deep link that TenantGuard captured before redirecting here.
   // Cast is safe: react-router state is typed as unknown.
   const fromState = (
-    location.state as { from?: { pathname?: string; search?: string; hash?: string } } | null
-  )?.from
+    location.state as {
+      from?: { pathname?: string; search?: string; hash?: string };
+    } | null
+  )?.from;
   const returnPath = fromState
-    ? `${fromState.pathname ?? ''}${fromState.search ?? ''}${fromState.hash ?? ''}`
-    : null
-  const addToast = useToast((s) => s.addToast)
+    ? `${fromState.pathname ?? ""}${fromState.search ?? ""}${fromState.hash ?? ""}`
+    : null;
+  const addToast = useToast((s) => s.addToast);
 
-  const [step, setStep] = useState<OnboardingStep>('pick-role')
-  const [fullName, setFullName] = useState('')
-  const [schoolName, setSchoolName] = useState('')
-  const [joinCode, setJoinCode] = useState('')
-  const [isSubmitting, setIsSubmitting] = useState(false)
+  const [step, setStep] = useState<OnboardingStep>("pick-role");
+  const [fullName, setFullName] = useState("");
+  const [schoolName, setSchoolName] = useState("");
+  const [joinCode, setJoinCode] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   useEffect(() => {
     if (activeTenant && memberships.length > 0) {
       // Navigate to original deep link if preserved, otherwise fallback to /app
-      void navigate(returnPath ?? consumePostAuthRedirect() ?? '/app', { replace: true })
+      void navigate(returnPath ?? consumePostAuthRedirect() ?? "/app", {
+        replace: true,
+      });
     }
-  }, [activeTenant, memberships, navigate, returnPath])
+  }, [activeTenant, memberships, navigate, returnPath]);
 
   // ── Handlers ──
 
   const handleStudentJoin = async (e: React.FormEvent) => {
-    e.preventDefault()
+    e.preventDefault();
     if (!joinCode.trim()) {
-      addToast({ type: 'error', message: 'Masukkan kode kelas dari guru Anda.' })
-      return
+      addToast({
+        type: "error",
+        message: "Masukkan kode kelas dari guru Anda.",
+      });
+      return;
     }
     if (!fullName.trim()) {
-      addToast({ type: 'error', message: 'Masukkan nama lengkap Anda.' })
-      return
+      addToast({ type: "error", message: "Masukkan nama lengkap Anda." });
+      return;
     }
 
-    setIsSubmitting(true)
+    setIsSubmitting(true);
     try {
       const result = await authService.onboardStudentJoinClass({
         joinCode: joinCode.trim(),
         fullName: fullName.trim(),
-      })
+      });
 
       addToast({
-        type: 'success',
-        message: `Berhasil bergabung di kelas ${result?.class_name || ''} — ${result?.school_name || 'sekolah Anda'}!`,
-      })
+        type: "success",
+        message: `Berhasil bergabung di kelas ${result?.class_name || ""} — ${result?.school_name || "sekolah Anda"}!`,
+      });
 
-      await refreshAuthBootstrap()
+      await refreshAuthBootstrap();
       if (result?.tenant_id) {
-        await setActiveTenant(result.tenant_id)
+        await setActiveTenant(result.tenant_id);
       }
-      void navigate(returnPath ?? peekPostAuthRedirect() ?? '/app', { replace: true })
+      void navigate(returnPath ?? peekPostAuthRedirect() ?? "/app", {
+        replace: true,
+      });
     } catch (err: unknown) {
       addToast({
-        type: 'error',
+        type: "error",
         message:
           err instanceof Error
             ? err.message
-            : 'Kode kelas tidak ditemukan. Minta kode yang benar dari guru Anda.',
-      })
+            : "Kode kelas tidak ditemukan. Minta kode yang benar dari guru Anda.",
+      });
     } finally {
-      setIsSubmitting(false)
+      setIsSubmitting(false);
     }
-  }
+  };
 
   const handleTeacherCreate = async (e: React.FormEvent) => {
-    e.preventDefault()
+    e.preventDefault();
     if (!schoolName.trim() || !fullName.trim()) {
-      addToast({ type: 'error', message: 'Harap isi nama lengkap dan nama sekolah.' })
-      return
+      addToast({
+        type: "error",
+        message: "Harap isi nama lengkap dan nama sekolah.",
+      });
+      return;
     }
 
-    setIsSubmitting(true)
+    setIsSubmitting(true);
     try {
       const tenantId = await authService.createSchoolTenant({
         schoolName: schoolName.trim(),
         fullName: fullName.trim(),
-        role: 'teacher',
-      })
+        role: "teacher",
+      });
 
       addToast({
-        type: 'success',
+        type: "success",
         message: `Sekolah "${schoolName.trim()}" berhasil dibuat! Anda terdaftar sebagai Guru.`,
-      })
+      });
 
-      await refreshAuthBootstrap()
-      await setActiveTenant(tenantId)
-      void navigate(returnPath ?? peekPostAuthRedirect() ?? '/app', { replace: true })
+      await refreshAuthBootstrap();
+      await setActiveTenant(tenantId);
+      void navigate(returnPath ?? peekPostAuthRedirect() ?? "/app", {
+        replace: true,
+      });
     } catch (err: unknown) {
       addToast({
-        type: 'error',
-        message: err instanceof Error ? err.message : 'Gagal membuat sekolah.',
-      })
+        type: "error",
+        message: err instanceof Error ? err.message : "Gagal membuat sekolah.",
+      });
     } finally {
-      setIsSubmitting(false)
+      setIsSubmitting(false);
     }
-  }
+  };
 
   const handleAdminCreate = async (e: React.FormEvent) => {
-    e.preventDefault()
+    e.preventDefault();
     if (!schoolName.trim() || !fullName.trim()) {
-      addToast({ type: 'error', message: 'Harap isi nama lengkap dan nama sekolah.' })
-      return
+      addToast({
+        type: "error",
+        message: "Harap isi nama lengkap dan nama sekolah.",
+      });
+      return;
     }
 
-    setIsSubmitting(true)
+    setIsSubmitting(true);
     try {
       const tenantId = await authService.createSchoolTenant({
         schoolName: schoolName.trim(),
         fullName: fullName.trim(),
-        role: 'admin',
-      })
+        role: "admin",
+      });
 
       addToast({
-        type: 'success',
+        type: "success",
         message: `Sekolah "${schoolName.trim()}" berhasil dibuat! Anda terdaftar sebagai Admin.`,
-      })
+      });
 
-      await refreshAuthBootstrap()
-      await setActiveTenant(tenantId)
-      void navigate(returnPath ?? peekPostAuthRedirect() ?? '/app', { replace: true })
+      await refreshAuthBootstrap();
+      await setActiveTenant(tenantId);
+      void navigate(returnPath ?? peekPostAuthRedirect() ?? "/app", {
+        replace: true,
+      });
     } catch (err: unknown) {
       addToast({
-        type: 'error',
-        message: err instanceof Error ? err.message : 'Gagal membuat sekolah.',
-      })
+        type: "error",
+        message: err instanceof Error ? err.message : "Gagal membuat sekolah.",
+      });
     } finally {
-      setIsSubmitting(false)
+      setIsSubmitting(false);
     }
-  }
+  };
 
   const handleSignOut = () => {
-    void signOut()
-  }
+    void signOut();
+  };
 
   // ── Loading ──
 
@@ -172,7 +198,7 @@ export function WorkspaceSelector() {
       <div className="flex h-screen items-center justify-center bg-slate-50 dark:bg-slate-950">
         <Loader2 className="h-8 w-8 animate-spin text-blue-500" />
       </div>
-    )
+    );
   }
 
   // ════════════════════════════════════════════════════════════════════════════
@@ -182,23 +208,23 @@ export function WorkspaceSelector() {
     return (
       <OnboardingLayout email={user?.email}>
         {/* ── Step: Pick Role ── */}
-        {step === 'pick-role' && <RolePickerStep onSelectRole={setStep} />}
+        {step === "pick-role" && <RolePickerStep onSelectRole={setStep} />}
 
         {/* ── Step: Student Form ── */}
-        {step === 'student-form' && (
+        {step === "student-form" && (
           <StudentJoinForm
             fullName={fullName}
             joinCode={joinCode}
             isSubmitting={isSubmitting}
             onFullNameChange={setFullName}
             onJoinCodeChange={setJoinCode}
-            onBack={() => setStep('pick-role')}
+            onBack={() => setStep("pick-role")}
             onSubmit={handleStudentJoin}
           />
         )}
 
         {/* ── Step: Teacher Form ── */}
-        {step === 'teacher-form' && (
+        {step === "teacher-form" && (
           <SchoolCreateForm
             userRole="teacher"
             fullName={fullName}
@@ -206,13 +232,13 @@ export function WorkspaceSelector() {
             isSubmitting={isSubmitting}
             onFullNameChange={setFullName}
             onSchoolNameChange={setSchoolName}
-            onBack={() => setStep('pick-role')}
+            onBack={() => setStep("pick-role")}
             onSubmit={handleTeacherCreate}
           />
         )}
 
         {/* ── Step: Admin Form ── */}
-        {step === 'admin-form' && (
+        {step === "admin-form" && (
           <SchoolCreateForm
             userRole="admin"
             fullName={fullName}
@@ -220,7 +246,7 @@ export function WorkspaceSelector() {
             isSubmitting={isSubmitting}
             onFullNameChange={setFullName}
             onSchoolNameChange={setSchoolName}
-            onBack={() => setStep('pick-role')}
+            onBack={() => setStep("pick-role")}
             onSubmit={handleAdminCreate}
           />
         )}
@@ -236,7 +262,7 @@ export function WorkspaceSelector() {
           </button>
         </div>
       </OnboardingLayout>
-    )
+    );
   }
 
   // ════════════════════════════════════════════════════════════════════════════
@@ -248,7 +274,7 @@ export function WorkspaceSelector() {
         <motion.div
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5, ease: 'easeOut' }}
+          transition={{ duration: 0.5, ease: "easeOut" }}
           className="mb-8"
         >
           <h1 className="mb-2 text-2xl font-semibold tracking-tight text-slate-900 dark:text-white">
@@ -320,5 +346,5 @@ export function WorkspaceSelector() {
         </motion.div>
       </div>
     </div>
-  )
+  );
 }

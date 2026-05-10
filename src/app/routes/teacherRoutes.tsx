@@ -1,20 +1,19 @@
-import { Navigate, Outlet, Route } from 'react-router-dom'
+import { Navigate, Outlet, Route } from "react-router-dom";
 
-import { CourseEnrollmentGuard } from '../../components/guards/CourseEnrollmentGuard'
-import { RoleGuard } from '../../components/guards/RoleGuard'
+import { CourseEnrollmentGuard } from "../../components/guards/CourseEnrollmentGuard";
+import { RoleGuard } from "../../components/guards/RoleGuard";
 import {
   AdaptivePathsPage,
   Analytics,
   AssignmentGradebook,
   ClassManagement,
+  Counseling,
   CourseAnalytics,
   CourseBuilder,
   Courses,
   Creator,
   DocumentManager,
-  Counseling,
   Gradebook,
-  RombelAttendance,
   Leaderboard,
   LessonViewer,
   ModerationDashboard,
@@ -23,6 +22,7 @@ import {
   QuestionBankPage,
   QuizGradebook,
   QuizManager,
+  RombelAttendance,
   ScanAttendance,
   SpeedGrader,
   StruggleDashboard,
@@ -31,8 +31,8 @@ import {
   TeacherDashboard,
   TeacherLessonMonitorPage,
   TeachingHub,
-} from '../lazyPages'
-import { S } from './utils'
+} from "../lazyPages";
+import { S } from "./utils";
 
 /**
  * All /app/teacher/* routes.
@@ -42,7 +42,7 @@ export function TeacherRoutes() {
     <Route
       path="teacher"
       element={
-        <RoleGuard allowedRoles={['teacher']}>
+        <RoleGuard allowedRoles={["teacher"]}>
           <Outlet />
         </RoleGuard>
       }
@@ -63,7 +63,10 @@ export function TeacherRoutes() {
           </S>
         }
       />
-      <Route path="quizzes" element={<Navigate to="/app/teacher/quiz-manager" replace />} />
+      <Route
+        path="quizzes"
+        element={<Navigate to="/app/teacher/quiz-manager" replace />}
+      />
       <Route
         path="gradebook"
         element={<Navigate to="/app/teacher/assignment-gradebook" replace />}
@@ -149,7 +152,10 @@ export function TeacherRoutes() {
         }
       />
       {/* P1 fix: duplikasi dashboard — redirect ke Dasbor Guru utama */}
-      <Route path="dashboards" element={<Navigate to="/app/teacher" replace />} />
+      <Route
+        path="dashboards"
+        element={<Navigate to="/app/teacher" replace />}
+      />
       <Route
         path="classes"
         element={
@@ -198,8 +204,14 @@ export function TeacherRoutes() {
           </S>
         }
       />
-      <Route path="ai-quiz-gen" element={<Navigate to="/app/teacher/creator" replace />} />
-      <Route path="ai-generator" element={<Navigate to="/app/teacher/creator" replace />} />
+      <Route
+        path="ai-quiz-gen"
+        element={<Navigate to="/app/teacher/creator" replace />}
+      />
+      <Route
+        path="ai-generator"
+        element={<Navigate to="/app/teacher/creator" replace />}
+      />
       <Route
         path="student-progress/:studentId"
         element={
@@ -219,7 +231,7 @@ export function TeacherRoutes() {
       <Route
         path="moderation"
         element={
-          <RoleGuard allowedRoles={['admin']}>
+          <RoleGuard allowedRoles={["admin"]}>
             <S>
               <ModerationDashboard />
             </S>
@@ -293,5 +305,5 @@ export function TeacherRoutes() {
         }
       />
     </Route>
-  )
+  );
 }

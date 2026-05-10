@@ -1,63 +1,68 @@
-import { ArrowLeft, Eye, Loader2, Send, ShieldCheck } from 'lucide-react'
-import { motion } from 'motion/react'
-import { useEffect, useState } from 'react'
+import { ArrowLeft, Eye, Loader2, Send, ShieldCheck } from "lucide-react";
+import { motion } from "motion/react";
+import { useEffect, useState } from "react";
 
-import { useToast } from '@/hooks/useToast'
-import { cn } from '@/utils/cn'
+import { useToast } from "@/hooks/useToast";
+import { cn } from "@/utils/cn";
 
-import { peerReviewService } from '../api/peerReviewService'
-import { usePeerReviewConfig } from '../queries/peerReviewQueries'
-import { useSubmitPeerReview } from '../queries/peerReviewQueries'
-import type { PeerReview } from '../types'
+import { peerReviewService } from "../api/peerReviewService";
+import { usePeerReviewConfig } from "../queries/peerReviewQueries";
+import { useSubmitPeerReview } from "../queries/peerReviewQueries";
+import type { PeerReview } from "../types";
 
 interface PeerReviewFormProps {
-  review: PeerReview
-  tenantId: string
-  userId: string
-  onBack: () => void
+  review: PeerReview;
+  tenantId: string;
+  userId: string;
+  onBack: () => void;
 }
 
-const MIN_COMMENT_LENGTH = 50
+const MIN_COMMENT_LENGTH = 50;
 
-export function PeerReviewForm({ review, tenantId, userId, onBack }: PeerReviewFormProps) {
-  const addToast = useToast((s) => s.addToast)
-  const submitMutation = useSubmitPeerReview()
-  const { data: _peerReviewConfig } = usePeerReviewConfig(undefined, tenantId)
+export function PeerReviewForm({
+  review,
+  tenantId,
+  userId,
+  onBack,
+}: PeerReviewFormProps) {
+  const addToast = useToast((s) => s.addToast);
+  const submitMutation = useSubmitPeerReview();
+  const { data: _peerReviewConfig } = usePeerReviewConfig(undefined, tenantId);
 
-  const [score, setScore] = useState<string>('')
-  const [comment, setComment] = useState('')
+  const [score, setScore] = useState<string>("");
+  const [comment, setComment] = useState("");
   const [submissionContent, setSubmissionContent] = useState<{
-    submission_text: string | null
-    file_url: string | null
-  } | null>(null)
-  const [loadingSubmission, setLoadingSubmission] = useState(true)
+    submission_text: string | null;
+    file_url: string | null;
+  } | null>(null);
+  const [loadingSubmission, setLoadingSubmission] = useState(true);
 
   useEffect(() => {
-    let cancelled = false
-    setLoadingSubmission(true)
+    let cancelled = false;
+    setLoadingSubmission(true);
     peerReviewService
       .getSubmissionForReview(review.submission_id, tenantId)
       .then((data) => {
-        if (!cancelled) setSubmissionContent(data)
+        if (!cancelled) setSubmissionContent(data);
       })
       .catch(() => {
-        if (!cancelled) setSubmissionContent(null)
+        if (!cancelled) setSubmissionContent(null);
       })
       .finally(() => {
-        if (!cancelled) setLoadingSubmission(false)
-      })
+        if (!cancelled) setLoadingSubmission(false);
+      });
     return () => {
-      cancelled = true
-    }
-  }, [review.submission_id, tenantId])
+      cancelled = true;
+    };
+  }, [review.submission_id, tenantId]);
 
-  const scoreNum = Number(score)
-  const isScoreValid = score !== '' && scoreNum >= 0 && scoreNum <= 100
-  const isCommentValid = comment.trim().length >= MIN_COMMENT_LENGTH
-  const canSubmit = isScoreValid && isCommentValid && !submitMutation.isPending
+  const scoreNum = Number(score);
+  const isScoreValid = score !== "" && scoreNum >= 0 && scoreNum <= 100;
+  const isCommentValid = comment.trim().length >= MIN_COMMENT_LENGTH;
+  const canSubmit = isScoreValid && isCommentValid && !submitMutation.isPending;
 
   const handleSubmit = async () => {
-    if (!canSubmit) return
+    if (!canSubmit) return;
     try {
       await submitMutation.mutateAsync({
         reviewId: review.id,
@@ -65,16 +70,23 @@ export function PeerReviewForm({ review, tenantId, userId, onBack }: PeerReviewF
         comment: comment.trim(),
         tenantId,
         userId,
-      })
-      addToast({ type: 'success', message: 'Review berhasil dikirim.' })
-      onBack()
+      });
+      addToast({ type: "success", message: "Review berhasil dikirim." });
+      onBack();
     } catch {
-      addToast({ type: 'error', message: 'Gagal mengirim review. Silakan coba lagi.' })
+      addToast({
+        type: "error",
+        message: "Gagal mengirim review. Silakan coba lagi.",
+      });
     }
-  }
+  };
 
   return (
-    <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} className="space-y-5">
+    <motion.div
+      initial={{ opacity: 0, y: 8 }}
+      animate={{ opacity: 1, y: 0 }}
+      className="space-y-5"
+    >
       {/* Header */}
       <div className="flex items-center gap-3">
         <button
@@ -86,9 +98,14 @@ export function PeerReviewForm({ review, tenantId, userId, onBack }: PeerReviewF
           <ArrowLeft className="w-5 h-5" />
         </button>
         <div>
-          <h3 className="text-base font-bold text-slate-800 dark:text-white">Tulis Review</h3>
+          <h3 className="text-base font-bold text-slate-800 dark:text-white">
+            Tulis Review
+          </h3>
           <p className="text-xs text-slate-500 dark:text-slate-400">
-            ID Tugas: <span className="font-mono">{review.submission_id.slice(0, 8)}…</span>
+            ID Tugas:{" "}
+            <span className="font-mono">
+              {review.submission_id.slice(0, 8)}…
+            </span>
           </p>
         </div>
       </div>
@@ -147,10 +164,10 @@ export function PeerReviewForm({ review, tenantId, userId, onBack }: PeerReviewF
           onChange={(e) => setScore(e.target.value)}
           placeholder="Contoh: 85"
           className={cn(
-            'w-full px-3 py-2.5 bg-white dark:bg-slate-800 border rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 dark:text-white text-sm transition-colors',
+            "w-full px-3 py-2.5 bg-white dark:bg-slate-800 border rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 dark:text-white text-sm transition-colors",
             score && !isScoreValid
-              ? 'border-red-400 dark:border-red-500'
-              : 'border-slate-200 dark:border-slate-700'
+              ? "border-red-400 dark:border-red-500"
+              : "border-slate-200 dark:border-slate-700",
           )}
         />
         {score && !isScoreValid && (
@@ -172,26 +189,27 @@ export function PeerReviewForm({ review, tenantId, userId, onBack }: PeerReviewF
           onChange={(e) => setComment(e.target.value)}
           placeholder="Berikan komentar yang konstruktif dan spesifik tentang tugas ini..."
           className={cn(
-            'w-full px-3 py-2.5 bg-white dark:bg-slate-800 border rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 dark:text-white text-sm resize-none transition-colors',
+            "w-full px-3 py-2.5 bg-white dark:bg-slate-800 border rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 dark:text-white text-sm resize-none transition-colors",
             comment && !isCommentValid
-              ? 'border-red-400 dark:border-red-500'
-              : 'border-slate-200 dark:border-slate-700'
+              ? "border-red-400 dark:border-red-500"
+              : "border-slate-200 dark:border-slate-700",
           )}
         />
         <div className="flex items-center justify-between">
           {comment && !isCommentValid ? (
             <p className="text-xs text-red-500">
-              Komentar kurang dari {MIN_COMMENT_LENGTH} karakter (saat ini {comment.trim().length}).
+              Komentar kurang dari {MIN_COMMENT_LENGTH} karakter (saat ini{" "}
+              {comment.trim().length}).
             </p>
           ) : (
             <span />
           )}
           <span
             className={cn(
-              'text-xs',
+              "text-xs",
               comment.trim().length >= MIN_COMMENT_LENGTH
-                ? 'text-emerald-600 dark:text-emerald-400'
-                : 'text-slate-400'
+                ? "text-emerald-600 dark:text-emerald-400"
+                : "text-slate-400",
             )}
           >
             {comment.trim().length}/{MIN_COMMENT_LENGTH}+
@@ -214,5 +232,5 @@ export function PeerReviewForm({ review, tenantId, userId, onBack }: PeerReviewF
         Kirim Review
       </button>
     </motion.div>
-  )
+  );
 }

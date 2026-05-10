@@ -226,7 +226,15 @@ export async function getChildAttendance(
 
   // attendance_records tidak memiliki kolom student_id — harus join via enrollment_id
   const { data: enrollments } = await db
-    .from<Array<{ id: string; class_id: string; student_id: string; status: string; joined_at: string }>>("enrollments")
+    .from<
+      Array<{
+        id: string;
+        class_id: string;
+        student_id: string;
+        status: string;
+        joined_at: string;
+      }>
+    >("enrollments")
     .select("id")
     .eq("student_id", studentId)
     .eq("tenant_id", tenantId);
@@ -309,7 +317,15 @@ export async function getChildPendingAssignments(
   // Ambil semua assignment published untuk enrollment siswa ini.
   // Menggunakan kolom student_id sesuai dengan skema enrollments.
   const { data: enrollments, error: eErr } = await db
-    .from<Array<{ id: string; class_id: string; student_id: string; status: string; joined_at: string }>>("enrollments")
+    .from<
+      Array<{
+        id: string;
+        class_id: string;
+        student_id: string;
+        status: string;
+        joined_at: string;
+      }>
+    >("enrollments")
     .select("course_id")
     .eq("student_id", studentId)
     .eq("tenant_id", tenantId);

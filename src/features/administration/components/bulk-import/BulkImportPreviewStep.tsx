@@ -1,27 +1,33 @@
-import { AlertCircle, CheckCircle2, FileText, Upload, XCircle } from 'lucide-react'
-import { useCallback, useRef, useState } from 'react'
+import {
+  AlertCircle,
+  CheckCircle2,
+  FileText,
+  Upload,
+  XCircle,
+} from "lucide-react";
+import { useCallback, useRef, useState } from "react";
 
-import { cn } from '@/utils/cn'
+import { cn } from "@/utils/cn";
 
-import type { BulkImportRow } from '../../api/bulkImportService'
+import type { BulkImportRow } from "../../api/bulkImportService";
 
 interface ParsedRow extends BulkImportRow {
-  _rowIndex: number
-  _errors: string[]
-  _valid: boolean
+  _rowIndex: number;
+  _errors: string[];
+  _valid: boolean;
 }
 
-const VALID_ROLES = ['siswa', 'guru', 'admin'] as const
-const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
-const MAX_FILE_SIZE_MB = 5
-const MAX_FILE_SIZE_BYTES = MAX_FILE_SIZE_MB * 1024 * 1024
-const MAX_ROWS = 500
+const VALID_ROLES = ["siswa", "guru", "admin"] as const;
+const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+const MAX_FILE_SIZE_MB = 5;
+const MAX_FILE_SIZE_BYTES = MAX_FILE_SIZE_MB * 1024 * 1024;
+const MAX_ROWS = 500;
 
 interface BulkImportPreviewStepProps {
-  onFileParsed: (rows: ParsedRow[]) => void
-  onBack: () => void
-  onProcess: (rows: ParsedRow[]) => void
-  isProcessing: boolean
+  onFileParsed: (rows: ParsedRow[]) => void;
+  onBack: () => void;
+  onProcess: (rows: ParsedRow[]) => void;
+  isProcessing: boolean;
 }
 
 export function BulkImportPreviewStep({
@@ -30,57 +36,62 @@ export function BulkImportPreviewStep({
   onProcess,
   isProcessing,
 }: BulkImportPreviewStepProps) {
-  const [parsedRows, setParsedRows] = useState<ParsedRow[]>([])
-  const [fileName, setFileName] = useState('')
-  const [fileError, setFileError] = useState('')
-  const [isDragging, setIsDragging] = useState(false)
-  const [skipInvalid, setSkipInvalid] = useState(true)
-  const fileInputRef = useRef<HTMLInputElement>(null)
+  const [parsedRows, setParsedRows] = useState<ParsedRow[]>([]);
+  const [fileName, setFileName] = useState("");
+  const [fileError, setFileError] = useState("");
+  const [isDragging, setIsDragging] = useState(false);
+  const [skipInvalid, setSkipInvalid] = useState(true);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const validateAndParseFile = useCallback(
     (file: File) => {
-      setFileError('')
+      setFileError("");
 
       if (!file.name.match(/\.(csv)$/i)) {
-        setFileError('Hanya file .csv yang didukung.')
-        return
+        setFileError("Hanya file .csv yang didukung.");
+        return;
       }
 
       if (file.size > MAX_FILE_SIZE_BYTES) {
-        setFileError(`Ukuran file maksimum ${MAX_FILE_SIZE_MB}MB.`)
-        return
+        setFileError(`Ukuran file maksimum ${MAX_FILE_SIZE_MB}MB.`);
+        return;
       }
 
-      setFileName(file.name)
+      setFileName(file.name);
 
-      void import('papaparse').then((Papa) => {
+      void import("papaparse").then((Papa) => {
         Papa.default.parse<Record<string, string>>(file, {
           header: true,
           skipEmptyLines: true,
-          encoding: 'UTF-8',
+          encoding: "UTF-8",
           complete: (results) => {
             if (results.data.length === 0) {
-              setFileError('File CSV kosong atau tidak ada data.')
-              return
+              setFileError("File CSV kosong atau tidak ada data.");
+              return;
             }
 
             const rows: ParsedRow[] = results.data.map((raw, idx) => {
-              const email = (raw['email'] ?? '').trim()
-              const full_name = (raw['nama_lengkap'] ?? '').trim()
-              const role = (raw['peran'] ?? '').trim().toLowerCase()
-              const nis = (raw['nis'] ?? '').trim() || undefined
-              const nomor_hp = (raw['nomor_hp'] ?? '').trim() || undefined
+              const email = (raw["email"] ?? "").trim();
+              const full_name = (raw["nama_lengkap"] ?? "").trim();
+              const role = (raw["peran"] ?? "").trim().toLowerCase();
+              const nis = (raw["nis"] ?? "").trim() || undefined;
+              const nomor_hp = (raw["nomor_hp"] ?? "").trim() || undefined;
 
-              const errors: string[] = []
+              const errors: string[] = [];
 
-              if (!email) errors.push('Email wajib diisi')
-              else if (!EMAIL_REGEX.test(email)) errors.push('Format email tidak valid')
+              if (!email) errors.push("Email wajib diisi");
+              else if (!EMAIL_REGEX.test(email))
+                errors.push("Format email tidak valid");
 
-              if (!full_name) errors.push('Nama lengkap wajib diisi')
+              if (!full_name) errors.push("Nama lengkap wajib diisi");
 
-              if (!role) errors.push('Peran wajib diisi')
-              else if (!VALID_ROLES.includes(role as (typeof VALID_ROLES)[number]))
-                errors.push(`Peran tidak dikenal: "${role}". Gunakan: siswa, guru, atau admin`)
+              if (!role) errors.push("Peran wajib diisi");
+              else if (
+                !VALID_ROLES.includes(role as (typeof VALID_ROLES)[number])
+              )
+                errors.push(
+                  `Peran tidak dikenal: "${role}". Gunakan: siswa, guru, atau admin`,
+                );
 
               return {
                 _rowIndex: idx + 1,
@@ -91,58 +102,58 @@ export function BulkImportPreviewStep({
                 role,
                 nis,
                 nomor_hp,
-              }
-            })
+              };
+            });
 
-            const validParsedRows = rows.filter((r) => r._valid)
+            const validParsedRows = rows.filter((r) => r._valid);
             if (validParsedRows.length > MAX_ROWS) {
               setFileError(
-                `Terlalu banyak baris valid (${validParsedRows.length}). Maksimum ${MAX_ROWS} baris per impor. Silakan bagi menjadi beberapa file.`
-              )
-              return
+                `Terlalu banyak baris valid (${validParsedRows.length}). Maksimum ${MAX_ROWS} baris per impor. Silakan bagi menjadi beberapa file.`,
+              );
+              return;
             }
 
-            setParsedRows(rows)
-            onFileParsed(rows)
+            setParsedRows(rows);
+            onFileParsed(rows);
           },
           error: (err) => {
-            setFileError(`Gagal membaca file: ${err.message}`)
+            setFileError(`Gagal membaca file: ${err.message}`);
           },
-        })
-      })
+        });
+      });
     },
-    [onFileParsed]
-  )
+    [onFileParsed],
+  );
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0]
-    if (file) validateAndParseFile(file)
-  }
+    const file = e.target.files?.[0];
+    if (file) validateAndParseFile(file);
+  };
 
   const handleDrop = useCallback(
     (e: React.DragEvent<HTMLDivElement>) => {
-      e.preventDefault()
-      setIsDragging(false)
-      const file = e.dataTransfer.files?.[0]
-      if (file) validateAndParseFile(file)
+      e.preventDefault();
+      setIsDragging(false);
+      const file = e.dataTransfer.files?.[0];
+      if (file) validateAndParseFile(file);
     },
-    [validateAndParseFile]
-  )
+    [validateAndParseFile],
+  );
 
   const handleDragOver = (e: React.DragEvent<HTMLDivElement>) => {
-    e.preventDefault()
-    setIsDragging(true)
-  }
+    e.preventDefault();
+    setIsDragging(true);
+  };
 
-  const handleDragLeave = () => setIsDragging(false)
+  const handleDragLeave = () => setIsDragging(false);
 
-  const validRows = parsedRows.filter((r) => r._valid)
-  const invalidRows = parsedRows.filter((r) => !r._valid)
-  const rowsToProcess = skipInvalid ? validRows : validRows
+  const validRows = parsedRows.filter((r) => r._valid);
+  const invalidRows = parsedRows.filter((r) => !r._valid);
+  const rowsToProcess = skipInvalid ? validRows : validRows;
 
   const handleProcess = () => {
-    onProcess(rowsToProcess)
-  }
+    onProcess(rowsToProcess);
+  };
 
   return (
     <div className="space-y-6">
@@ -153,18 +164,18 @@ export function BulkImportPreviewStep({
         onDragOver={handleDragOver}
         onDragLeave={handleDragLeave}
         onClick={() => fileInputRef.current?.click()}
-        onKeyDown={(e) => e.key === 'Enter' && fileInputRef.current?.click()}
+        onKeyDown={(e) => e.key === "Enter" && fileInputRef.current?.click()}
         className={cn(
-          'border-2 border-dashed rounded-2xl p-10 text-center cursor-pointer transition-all',
+          "border-2 border-dashed rounded-2xl p-10 text-center cursor-pointer transition-all",
           isDragging
-            ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/20'
-            : 'border-slate-300 dark:border-slate-600 hover:border-blue-400 dark:hover:border-blue-500 hover:bg-slate-50 dark:hover:bg-slate-800/50'
+            ? "border-blue-500 bg-blue-50 dark:bg-blue-900/20"
+            : "border-slate-300 dark:border-slate-600 hover:border-blue-400 dark:hover:border-blue-500 hover:bg-slate-50 dark:hover:bg-slate-800/50",
         )}
       >
         <Upload
           className={cn(
-            'w-12 h-12 mx-auto mb-4 transition-colors',
-            isDragging ? 'text-blue-500' : 'text-slate-400 dark:text-slate-500'
+            "w-12 h-12 mx-auto mb-4 transition-colors",
+            isDragging ? "text-blue-500" : "text-slate-400 dark:text-slate-500",
           )}
         />
         <p className="font-semibold text-slate-700 dark:text-slate-200 mb-1">
@@ -174,14 +185,15 @@ export function BulkImportPreviewStep({
               {fileName}
             </span>
           ) : (
-            'Tarik file ke sini atau klik untuk memilih'
+            "Tarik file ke sini atau klik untuk memilih"
           )}
         </p>
         <p className="text-sm text-slate-500 dark:text-slate-400">
           Format: .csv — Maks. {MAX_FILE_SIZE_MB}MB
         </p>
         <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
-          Maksimum 500 baris per file. Untuk lebih dari 500 pengguna, bagi menjadi beberapa file.
+          Maksimum 500 baris per file. Untuk lebih dari 500 pengguna, bagi
+          menjadi beberapa file.
         </p>
         <input
           ref={fileInputRef}
@@ -206,17 +218,25 @@ export function BulkImportPreviewStep({
               <p className="text-2xl font-bold text-slate-900 dark:text-slate-100">
                 {parsedRows.length}
               </p>
-              <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">Total Baris</p>
+              <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+                Total Baris
+              </p>
             </div>
             <div className="bg-emerald-50 dark:bg-emerald-900/20 rounded-xl p-3 text-center">
-              <p className="text-2xl font-bold text-emerald-600">{validRows.length}</p>
+              <p className="text-2xl font-bold text-emerald-600">
+                {validRows.length}
+              </p>
               <p className="text-xs text-emerald-600/70 dark:text-emerald-400/70 mt-0.5">
                 Baris Valid
               </p>
             </div>
             <div className="bg-red-50 dark:bg-red-900/20 rounded-xl p-3 text-center">
-              <p className="text-2xl font-bold text-red-600">{invalidRows.length}</p>
-              <p className="text-xs text-red-600/70 dark:text-red-400/70 mt-0.5">Bermasalah</p>
+              <p className="text-2xl font-bold text-red-600">
+                {invalidRows.length}
+              </p>
+              <p className="text-xs text-red-600/70 dark:text-red-400/70 mt-0.5">
+                Bermasalah
+              </p>
             </div>
           </div>
 
@@ -229,8 +249,8 @@ export function BulkImportPreviewStep({
                 className="w-4 h-4 rounded accent-amber-500"
               />
               <span className="text-sm text-amber-700 dark:text-amber-400 font-medium">
-                Abaikan {invalidRows.length} baris bermasalah dan proses {validRows.length} baris
-                valid saja
+                Abaikan {invalidRows.length} baris bermasalah dan proses{" "}
+                {validRows.length} baris valid saja
               </span>
             </label>
           )}
@@ -240,7 +260,14 @@ export function BulkImportPreviewStep({
               <table className="w-full text-xs">
                 <thead>
                   <tr className="bg-slate-50 dark:bg-slate-800 border-b border-slate-200 dark:border-slate-700">
-                    {['#', 'Email', 'Nama Lengkap', 'Peran', 'NIS', 'Status'].map((h) => (
+                    {[
+                      "#",
+                      "Email",
+                      "Nama Lengkap",
+                      "Peran",
+                      "NIS",
+                      "Status",
+                    ].map((h) => (
                       <th
                         key={h}
                         className="px-3 py-2.5 text-left font-semibold text-slate-600 dark:text-slate-300 whitespace-nowrap"
@@ -255,37 +282,41 @@ export function BulkImportPreviewStep({
                     <tr
                       key={row._rowIndex}
                       className={cn(
-                        'border-b border-slate-100 dark:border-slate-800',
-                        !row._valid && 'bg-red-50/50 dark:bg-red-900/10'
+                        "border-b border-slate-100 dark:border-slate-800",
+                        !row._valid && "bg-red-50/50 dark:bg-red-900/10",
                       )}
                     >
                       <td className="px-3 py-2 text-slate-400 dark:text-slate-500">
                         {row._rowIndex}
                       </td>
                       <td className="px-3 py-2 font-mono text-slate-700 dark:text-slate-300">
-                        {row.email || <span className="text-red-400 italic">kosong</span>}
+                        {row.email || (
+                          <span className="text-red-400 italic">kosong</span>
+                        )}
                       </td>
                       <td className="px-3 py-2 text-slate-700 dark:text-slate-300">
-                        {row.full_name || <span className="text-red-400 italic">kosong</span>}
+                        {row.full_name || (
+                          <span className="text-red-400 italic">kosong</span>
+                        )}
                       </td>
                       <td className="px-3 py-2">
                         <span
                           className={cn(
-                            'px-2 py-0.5 rounded-full font-medium text-xs',
-                            row.role === 'siswa'
-                              ? 'bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400'
-                              : row.role === 'guru'
-                                ? 'bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-400'
-                                : row.role === 'admin'
-                                  ? 'bg-orange-100 dark:bg-orange-900/30 text-orange-700 dark:text-orange-400'
-                                  : 'bg-red-100 dark:bg-red-900/30 text-red-600'
+                            "px-2 py-0.5 rounded-full font-medium text-xs",
+                            row.role === "siswa"
+                              ? "bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400"
+                              : row.role === "guru"
+                                ? "bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-400"
+                                : row.role === "admin"
+                                  ? "bg-orange-100 dark:bg-orange-900/30 text-orange-700 dark:text-orange-400"
+                                  : "bg-red-100 dark:bg-red-900/30 text-red-600",
                           )}
                         >
-                          {row.role || 'tidak diketahui'}
+                          {row.role || "tidak diketahui"}
                         </span>
                       </td>
                       <td className="px-3 py-2 text-slate-500 dark:text-slate-400">
-                        {row.nis ?? '-'}
+                        {row.nis ?? "-"}
                       </td>
                       <td className="px-3 py-2">
                         {row._valid ? (
@@ -296,7 +327,7 @@ export function BulkImportPreviewStep({
                         ) : (
                           <div className="flex items-start gap-1 text-red-600">
                             <XCircle className="w-3.5 h-3.5 mt-0.5 shrink-0" />
-                            <span>{row._errors.join('; ')}</span>
+                            <span>{row._errors.join("; ")}</span>
                           </div>
                         )}
                       </td>
@@ -325,5 +356,5 @@ export function BulkImportPreviewStep({
         </>
       )}
     </div>
-  )
+  );
 }

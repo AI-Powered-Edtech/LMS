@@ -1,11 +1,11 @@
-import { cn } from '@/utils/cn'
+import { cn } from "@/utils/cn";
 
-import type { LearningPath, PathStep } from '../types'
+import type { LearningPath, PathStep } from "../types";
 
 interface Props {
-  paths: LearningPath[]
-  selectedHash?: string | null
-  onSelect?: (hash: string) => void
+  paths: LearningPath[];
+  selectedHash?: string | null;
+  onSelect?: (hash: string) => void;
 }
 
 function StepNode({ step, index }: { step: PathStep; index: number }) {
@@ -13,10 +13,10 @@ function StepNode({ step, index }: { step: PathStep; index: number }) {
     <div className="flex flex-col items-center gap-0.5 min-w-[80px] max-w-[100px]">
       <div
         className={cn(
-          'flex h-8 w-8 items-center justify-center rounded-full text-xs font-bold',
+          "flex h-8 w-8 items-center justify-center rounded-full text-xs font-bold",
           step.is_completed
-            ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-300'
-            : 'bg-slate-100 text-slate-500 dark:bg-slate-800 dark:text-slate-400'
+            ? "bg-emerald-100 text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-300"
+            : "bg-slate-100 text-slate-500 dark:bg-slate-800 dark:text-slate-400",
         )}
       >
         {index + 1}
@@ -27,18 +27,18 @@ function StepNode({ step, index }: { step: PathStep; index: number }) {
       <div className="h-1 w-full rounded-full bg-slate-100 dark:bg-slate-800">
         <div
           className={cn(
-            'h-1 rounded-full',
+            "h-1 rounded-full",
             step.completion_pct >= 80
-              ? 'bg-emerald-500'
+              ? "bg-emerald-500"
               : step.completion_pct >= 50
-                ? 'bg-amber-500'
-                : 'bg-red-400'
+                ? "bg-amber-500"
+                : "bg-red-400",
           )}
           style={{ width: `${step.completion_pct}%` }}
         />
       </div>
     </div>
-  )
+  );
 }
 
 export function PathFlowDiagram({ paths, selectedHash, onSelect }: Props) {
@@ -47,7 +47,7 @@ export function PathFlowDiagram({ paths, selectedHash, onSelect }: Props) {
       <div className="py-10 text-center text-sm text-slate-400 dark:text-slate-500">
         Belum ada data jalur belajar. Data dihitung setiap minggu.
       </div>
-    )
+    );
   }
 
   return (
@@ -57,13 +57,13 @@ export function PathFlowDiagram({ paths, selectedHash, onSelect }: Props) {
           key={path.path_hash}
           onClick={() => onSelect?.(path.path_hash)}
           className={cn(
-            'flex w-full items-start gap-2 rounded-lg border p-3 text-left transition-colors',
-            'hover:bg-slate-50 dark:hover:bg-slate-800/50',
+            "flex w-full items-start gap-2 rounded-lg border p-3 text-left transition-colors",
+            "hover:bg-slate-50 dark:hover:bg-slate-800/50",
             selectedHash === path.path_hash
-              ? 'border-indigo-400 bg-indigo-50 dark:border-indigo-500/60 dark:bg-indigo-900/20'
+              ? "border-indigo-400 bg-indigo-50 dark:border-indigo-500/60 dark:bg-indigo-900/20"
               : path.is_optimal
-                ? 'border-emerald-300 bg-emerald-50/50 dark:border-emerald-700 dark:bg-emerald-900/10'
-                : 'border-slate-200 dark:border-slate-700'
+                ? "border-emerald-300 bg-emerald-50/50 dark:border-emerald-700 dark:bg-emerald-900/10"
+                : "border-slate-200 dark:border-slate-700",
           )}
         >
           {/* Meta */}
@@ -87,7 +87,9 @@ export function PathFlowDiagram({ paths, selectedHash, onSelect }: Props) {
               <div key={step.lesson_id} className="flex items-center">
                 <StepNode step={step} index={i} />
                 {i < Math.min(path.path_steps.length - 1, 7) && (
-                  <span className="mx-1 text-slate-300 dark:text-slate-600">→</span>
+                  <span className="mx-1 text-slate-300 dark:text-slate-600">
+                    →
+                  </span>
                 )}
               </div>
             ))}
@@ -100,5 +102,5 @@ export function PathFlowDiagram({ paths, selectedHash, onSelect }: Props) {
         </button>
       ))}
     </div>
-  )
+  );
 }

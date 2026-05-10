@@ -1,18 +1,22 @@
-import { AlertTriangle, X } from 'lucide-react'
-import { useState } from 'react'
+import { AlertTriangle, X } from "lucide-react";
+import { useState } from "react";
 
 interface RemedialBannerProps {
-  lessonTitle: string
-  reason: string | null
+  lessonTitle: string;
+  reason: string | null;
 }
 
-export function RemedialBanner({ lessonTitle: _lessonTitle, reason }: RemedialBannerProps) {
-  const [dismissed, setDismissed] = useState(false)
+export function RemedialBanner({
+  lessonTitle: _lessonTitle,
+  reason,
+}: RemedialBannerProps) {
+  const [dismissed, setDismissed] = useState(false);
 
-  if (dismissed) return null
+  if (dismissed) return null;
 
   const message =
-    reason?.trim() || 'Berdasarkan performa Anda, materi ini direkomendasikan sebelum melanjutkan.'
+    reason?.trim() ||
+    "Berdasarkan performa Anda, materi ini direkomendasikan sebelum melanjutkan.";
 
   return (
     <div
@@ -32,5 +36,5 @@ export function RemedialBanner({ lessonTitle: _lessonTitle, reason }: RemedialBa
         <X className="w-4 h-4" />
       </button>
     </div>
-  )
+  );
 }

@@ -1,71 +1,95 @@
-import { ArrowLeft, BookOpen, CheckCircle, Home, RefreshCw, WifiOff } from 'lucide-react'
-import { useEffect, useState } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
+import {
+  ArrowLeft,
+  BookOpen,
+  CheckCircle,
+  Home,
+  RefreshCw,
+  WifiOff,
+} from "lucide-react";
+import { useEffect, useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
 
-import { usePageTitle } from '@/hooks/usePageTitle'
+import { usePageTitle } from "@/hooks/usePageTitle";
 
 const OFFLINE_TIPS = [
-  { icon: CheckCircle, text: 'Quiz yang sudah dimulai tersimpan otomatis' },
-  { icon: CheckCircle, text: 'Lesson video yang sudah dimuat dapat ditonton offline' },
-  { icon: CheckCircle, text: 'Tugas dapat ditulis offline dan disinkronkan saat online' },
-  { icon: CheckCircle, text: 'Halaman yang pernah dibuka tersimpan di cache browser' },
-]
+  { icon: CheckCircle, text: "Quiz yang sudah dimulai tersimpan otomatis" },
+  {
+    icon: CheckCircle,
+    text: "Lesson video yang sudah dimuat dapat ditonton offline",
+  },
+  {
+    icon: CheckCircle,
+    text: "Tugas dapat ditulis offline dan disinkronkan saat online",
+  },
+  {
+    icon: CheckCircle,
+    text: "Halaman yang pernah dibuka tersimpan di cache browser",
+  },
+];
 
 export function Offline() {
-  usePageTitle('Offline')
-  const [isOnline, setIsOnline] = useState(navigator.onLine)
-  const navigate = useNavigate()
+  usePageTitle("Offline");
+  const [isOnline, setIsOnline] = useState(navigator.onLine);
+  const navigate = useNavigate();
 
   useEffect(() => {
-    const handleOnline = () => setIsOnline(true)
-    const handleOffline = () => setIsOnline(false)
+    const handleOnline = () => setIsOnline(true);
+    const handleOffline = () => setIsOnline(false);
 
-    window.addEventListener('online', handleOnline)
-    window.addEventListener('offline', handleOffline)
+    window.addEventListener("online", handleOnline);
+    window.addEventListener("offline", handleOffline);
 
     return () => {
-      window.removeEventListener('online', handleOnline)
-      window.removeEventListener('offline', handleOffline)
-    }
-  }, [])
+      window.removeEventListener("online", handleOnline);
+      window.removeEventListener("offline", handleOffline);
+    };
+  }, []);
 
   // Auto-reload when connection is restored
   useEffect(() => {
     if (isOnline) {
       const timer = setTimeout(() => {
-        window.location.reload()
-      }, 1500)
-      return () => clearTimeout(timer)
+        window.location.reload();
+      }, 1500);
+      return () => clearTimeout(timer);
     }
-  }, [isOnline])
+  }, [isOnline]);
 
   const handleRetry = () => {
-    window.location.reload()
-  }
+    window.location.reload();
+  };
 
   return (
     <div className="flex min-h-screen flex-col items-center justify-center bg-slate-50 px-4 dark:bg-slate-900">
       <div className="mx-auto w-full max-w-md text-center">
         {/* Icon */}
         <div className="mx-auto mb-6 flex h-24 w-24 items-center justify-center rounded-full bg-slate-100 dark:bg-slate-800">
-          <WifiOff className="h-12 w-12 text-slate-400 dark:text-slate-600" aria-hidden="true" />
+          <WifiOff
+            className="h-12 w-12 text-slate-400 dark:text-slate-600"
+            aria-hidden="true"
+          />
         </div>
 
-        <h1 className="text-2xl font-bold text-slate-900 dark:text-white">Anda Sedang Offline</h1>
+        <h1 className="text-2xl font-bold text-slate-900 dark:text-white">
+          Anda Sedang Offline
+        </h1>
         <p className="mt-3 text-slate-500 dark:text-slate-400">
-          Halaman ini membutuhkan koneksi internet. Silakan periksa koneksi Anda dan coba lagi.
+          Halaman ini membutuhkan koneksi internet. Silakan periksa koneksi Anda
+          dan coba lagi.
         </p>
 
         {/* Connection Status Indicator */}
         <div className="mt-6 inline-flex items-center gap-2 rounded-full bg-slate-100 px-4 py-2 dark:bg-slate-800">
           <div
             className={`h-3 w-3 rounded-full transition-colors ${
-              isOnline ? 'animate-pulse bg-green-500' : 'bg-red-500'
+              isOnline ? "animate-pulse bg-green-500" : "bg-red-500"
             }`}
             aria-hidden="true"
           />
           <span className="text-sm font-medium text-slate-700 dark:text-slate-300">
-            {isOnline ? 'Koneksi dipulihkan — memuat ulang…' : 'Tidak ada koneksi internet'}
+            {isOnline
+              ? "Koneksi dipulihkan — memuat ulang…"
+              : "Tidak ada koneksi internet"}
           </span>
         </div>
 
@@ -97,8 +121,13 @@ export function Offline() {
         {/* Cached content tips */}
         <div className="mt-10 rounded-2xl border border-blue-100 bg-blue-50 p-5 text-left dark:border-blue-800 dark:bg-blue-900/20">
           <div className="mb-3 flex items-center gap-2">
-            <BookOpen className="h-4 w-4 text-blue-600 dark:text-blue-400" aria-hidden="true" />
-            <h3 className="font-bold text-blue-900 dark:text-blue-100">Konten Tersedia Offline</h3>
+            <BookOpen
+              className="h-4 w-4 text-blue-600 dark:text-blue-400"
+              aria-hidden="true"
+            />
+            <h3 className="font-bold text-blue-900 dark:text-blue-100">
+              Konten Tersedia Offline
+            </h3>
           </div>
           <ul className="space-y-2">
             {OFFLINE_TIPS.map(({ icon: Icon, text }) => (
@@ -120,9 +149,9 @@ export function Offline() {
       {/* Screen reader accessibility */}
       <p className="sr-only" aria-live="polite">
         {isOnline
-          ? 'Koneksi telah dipulihkan. Halaman akan dimuat ulang secara otomatis.'
-          : 'Anda sedang offline. Koneksi internet Anda saat ini tidak aktif.'}
+          ? "Koneksi telah dipulihkan. Halaman akan dimuat ulang secara otomatis."
+          : "Anda sedang offline. Koneksi internet Anda saat ini tidak aktif."}
       </p>
     </div>
-  )
+  );
 }

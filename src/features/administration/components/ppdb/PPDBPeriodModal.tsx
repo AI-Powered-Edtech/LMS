@@ -1,33 +1,38 @@
-import { Loader2, X } from 'lucide-react'
-import { useState } from 'react'
+import { Loader2, X } from "lucide-react";
+import { useState } from "react";
 
-import type { PPDBPeriod, PPDBPeriodInput } from '../../types/ppdb'
+import type { PPDBPeriod, PPDBPeriodInput } from "../../types/ppdb";
 
 interface PPDBPeriodModalProps {
-  period?: PPDBPeriod | null
-  onClose: () => void
-  onSave: (input: PPDBPeriodInput) => Promise<void>
+  period?: PPDBPeriod | null;
+  onClose: () => void;
+  onSave: (input: PPDBPeriodInput) => Promise<void>;
 }
 
-export function PPDBPeriodModal({ period, onClose, onSave }: PPDBPeriodModalProps) {
+export function PPDBPeriodModal({
+  period,
+  onClose,
+  onSave,
+}: PPDBPeriodModalProps) {
   const [form, setForm] = useState<PPDBPeriodInput>({
     academic_year:
-      period?.academic_year ?? `${new Date().getFullYear()}/${new Date().getFullYear() + 1}`,
-    name: period?.name ?? '',
-    start_date: period?.start_date ?? '',
-    end_date: period?.end_date ?? '',
+      period?.academic_year ??
+      `${new Date().getFullYear()}/${new Date().getFullYear() + 1}`,
+    name: period?.name ?? "",
+    start_date: period?.start_date ?? "",
+    end_date: period?.end_date ?? "",
     quota: period?.quota ?? 100,
-  })
-  const [saving, setSaving] = useState(false)
+  });
+  const [saving, setSaving] = useState(false);
 
   async function handleSubmit(e: React.FormEvent) {
-    e.preventDefault()
-    setSaving(true)
+    e.preventDefault();
+    setSaving(true);
     try {
-      await onSave(form)
-      onClose()
+      await onSave(form);
+      onClose();
     } finally {
-      setSaving(false)
+      setSaving(false);
     }
   }
 
@@ -36,7 +41,7 @@ export function PPDBPeriodModal({ period, onClose, onSave }: PPDBPeriodModalProp
       <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-xl border border-slate-200 dark:border-slate-700 w-full max-w-md">
         <div className="px-6 py-4 border-b border-slate-200 dark:border-slate-700 flex items-center justify-between">
           <h2 className="text-lg font-bold text-slate-900 dark:text-slate-100">
-            {period ? 'Edit Periode' : 'Buat Periode Baru'}
+            {period ? "Edit Periode" : "Buat Periode Baru"}
           </h2>
           <button
             onClick={onClose}
@@ -54,7 +59,9 @@ export function PPDBPeriodModal({ period, onClose, onSave }: PPDBPeriodModalProp
             <input
               type="text"
               value={form.academic_year}
-              onChange={(e) => setForm((f) => ({ ...f, academic_year: e.target.value }))}
+              onChange={(e) =>
+                setForm((f) => ({ ...f, academic_year: e.target.value }))
+              }
               placeholder="2026/2027"
               required
               className="w-full px-3 py-2 text-sm bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-600 rounded-xl text-slate-900 dark:text-slate-100 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500/30 focus:border-blue-500"
@@ -83,7 +90,9 @@ export function PPDBPeriodModal({ period, onClose, onSave }: PPDBPeriodModalProp
               <input
                 type="date"
                 value={form.start_date}
-                onChange={(e) => setForm((f) => ({ ...f, start_date: e.target.value }))}
+                onChange={(e) =>
+                  setForm((f) => ({ ...f, start_date: e.target.value }))
+                }
                 required
                 className="w-full px-3 py-2 text-sm bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-600 rounded-xl text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-blue-500/30 focus:border-blue-500"
               />
@@ -95,7 +104,9 @@ export function PPDBPeriodModal({ period, onClose, onSave }: PPDBPeriodModalProp
               <input
                 type="date"
                 value={form.end_date}
-                onChange={(e) => setForm((f) => ({ ...f, end_date: e.target.value }))}
+                onChange={(e) =>
+                  setForm((f) => ({ ...f, end_date: e.target.value }))
+                }
                 required
                 className="w-full px-3 py-2 text-sm bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-600 rounded-xl text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-blue-500/30 focus:border-blue-500"
               />
@@ -109,7 +120,9 @@ export function PPDBPeriodModal({ period, onClose, onSave }: PPDBPeriodModalProp
             <input
               type="number"
               value={form.quota}
-              onChange={(e) => setForm((f) => ({ ...f, quota: parseInt(e.target.value) || 0 }))}
+              onChange={(e) =>
+                setForm((f) => ({ ...f, quota: parseInt(e.target.value) || 0 }))
+              }
               min={1}
               required
               className="w-full px-3 py-2 text-sm bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-600 rounded-xl text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-blue-500/30 focus:border-blue-500"
@@ -130,11 +143,11 @@ export function PPDBPeriodModal({ period, onClose, onSave }: PPDBPeriodModalProp
               className="flex-1 px-4 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-medium transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
             >
               {saving && <Loader2 className="w-4 h-4 animate-spin" />}
-              {period ? 'Simpan' : 'Buat Periode'}
+              {period ? "Simpan" : "Buat Periode"}
             </button>
           </div>
         </form>
       </div>
     </div>
-  )
+  );
 }

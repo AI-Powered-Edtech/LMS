@@ -2,57 +2,63 @@
 // Container that composes quiz stats overview and question difficulty chart
 // Only visible for TEACHER role
 
-import { BarChart3, Loader2 } from 'lucide-react'
-import { useEffect, useState } from 'react'
+import { BarChart3, Loader2 } from "lucide-react";
+import { useEffect, useState } from "react";
 
-import { EmptyState } from '@/components/ui'
-import { logger } from '@/utils/logger'
+import { EmptyState } from "@/components/ui";
+import { logger } from "@/utils/logger";
 
 import {
   getQuestionStats,
   type QuestionStatsWithQuestion,
   quizAnalyticsService,
   type QuizStats,
-} from '../../api/quizAnalytics.service'
-import { QuestionDifficultyChart } from './QuestionDifficultyChart'
-import { QuizStatsOverview } from './QuizStatsOverview'
+} from "../../api/quizAnalytics.service";
+import { QuestionDifficultyChart } from "./QuestionDifficultyChart";
+import { QuizStatsOverview } from "./QuizStatsOverview";
 
 interface QuizAnalyticsPanelProps {
-  quizId: string
-  className?: string
+  quizId: string;
+  className?: string;
 }
 
-export function QuizAnalyticsPanel({ quizId, className }: QuizAnalyticsPanelProps) {
-  const [quizStats, setQuizStats] = useState<QuizStats | null>(null)
-  const [questionStats, setQuestionStats] = useState<QuestionStatsWithQuestion[]>([])
-  const [isLoading, setIsLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
+export function QuizAnalyticsPanel({
+  quizId,
+  className,
+}: QuizAnalyticsPanelProps) {
+  const [quizStats, setQuizStats] = useState<QuizStats | null>(null);
+  const [questionStats, setQuestionStats] = useState<
+    QuestionStatsWithQuestion[]
+  >([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     const fetchStats = async () => {
-      setIsLoading(true)
-      setError(null)
+      setIsLoading(true);
+      setError(null);
 
       try {
         const [quiz, questions] = await Promise.all([
           quizAnalyticsService.getQuizStats(quizId),
           getQuestionStats(quizId),
-        ])
+        ]);
 
-        setQuizStats(quiz)
-        setQuestionStats(questions)
+        setQuizStats(quiz);
+        setQuestionStats(questions);
       } catch (err) {
-        if (import.meta.env.DEV) logger.error('Failed to load quiz analytics:', err)
-        setError('Gagal memuat statistik kuis')
+        if (import.meta.env.DEV)
+          logger.error("Failed to load quiz analytics:", err);
+        setError("Gagal memuat statistik kuis");
       } finally {
-        setIsLoading(false)
+        setIsLoading(false);
       }
-    }
+    };
 
     if (quizId) {
-      void fetchStats()
+      void fetchStats();
     }
-  }, [quizId])
+  }, [quizId]);
 
   if (isLoading) {
     return (
@@ -66,7 +72,7 @@ export function QuizAnalyticsPanel({ quizId, className }: QuizAnalyticsPanelProp
           <span className="ml-2 text-slate-600">Memuat statistik...</span>
         </div>
       </div>
-    )
+    );
   }
 
   if (error) {
@@ -80,7 +86,7 @@ export function QuizAnalyticsPanel({ quizId, className }: QuizAnalyticsPanelProp
           <p className="text-red-600">{error}</p>
         </div>
       </div>
-    )
+    );
   }
 
   return (
@@ -108,5 +114,5 @@ export function QuizAnalyticsPanel({ quizId, className }: QuizAnalyticsPanelProp
         )}
       </div>
     </div>
-  )
+  );
 }

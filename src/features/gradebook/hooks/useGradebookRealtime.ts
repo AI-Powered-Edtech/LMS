@@ -22,43 +22,46 @@
  * ```
  */
 
-import { useQueryClient } from '@tanstack/react-query'
-import { useCallback, useEffect, useRef, useState } from 'react'
+import { useQueryClient } from "@tanstack/react-query";
+import { useCallback, useEffect, useRef, useState } from "react";
 
-import { gradebookKeys } from '@/features/gradebook/queries/gradebookKeys'
-import type { GradebookEntry } from '@/features/gradebook/types'
-import { getRealtimeProvider } from '@/services/realtime/realtimeProvider'
-import type { PostgresChangesPayload, RealtimeChannelStatus } from '@/services/realtime/types'
+import { gradebookKeys } from "@/features/gradebook/queries/gradebookKeys";
+import type { GradebookEntry } from "@/features/gradebook/types";
+import { getRealtimeProvider } from "@/services/realtime/realtimeProvider";
+import type {
+  PostgresChangesPayload,
+  RealtimeChannelStatus,
+} from "@/services/realtime/types";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
 interface UseGradebookRealtimeOptions {
-  enabled?: boolean
-  onEntryInserted?: (entry: GradebookEntry) => void
-  onEntryUpdated?: (entry: GradebookEntry) => void
-  onEntryDeleted?: (entryId: string) => void
-  onError?: (error: Error) => void
+  enabled?: boolean;
+  onEntryInserted?: (entry: GradebookEntry) => void;
+  onEntryUpdated?: (entry: GradebookEntry) => void;
+  onEntryDeleted?: (entryId: string) => void;
+  onError?: (error: Error) => void;
 }
 
 interface GradebookRealtimeState {
-  isConnected: boolean
-  isSubscribed: boolean
-  isFallbackToPolling: boolean
-  lastUpdateAt?: Date
-  error?: string
+  isConnected: boolean;
+  isSubscribed: boolean;
+  isFallbackToPolling: boolean;
+  lastUpdateAt?: Date;
+  error?: string;
 }
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 
-const SUBSCRIPTION_TIMEOUT = 5000 // 5 seconds
-const MAX_RETRIES = 3
-const RETRY_DELAY = 2000 // 2 seconds
+const SUBSCRIPTION_TIMEOUT = 5000; // 5 seconds
+const MAX_RETRIES = 3;
+const RETRY_DELAY = 2000; // 2 seconds
 
 // ─── Hook ─────────────────────────────────────────────────────────────────────
 
 export function useGradebookRealtime(
   courseId: string | undefined,
-  options: UseGradebookRealtimeOptions = {}
+  options: UseGradebookRealtimeOptions = {},
 ): GradebookRealtimeState {
   const {
     enabled = true,
@@ -66,240 +69,241 @@ export function useGradebookRealtime(
     onEntryUpdated,
     onEntryDeleted,
     onError: _onError,
-  } = options
+  } = options;
 
-  const queryClient = useQueryClient()
+  const queryClient = useQueryClient();
   const [state, setState] = useState<GradebookRealtimeState>({
     isConnected: false,
     isSubscribed: false,
     isFallbackToPolling: false,
-  })
+  });
 
-  const channelRef = useRef<ReturnType<ReturnType<typeof getRealtimeProvider>['channel']> | null>(
-    null
-  )
-  const retryCountRef = useRef(0)
-  const subscriptionTimeoutRef = useRef<NodeJS.Timeout | null>(null)
+  const channelRef = useRef<ReturnType<
+    ReturnType<typeof getRealtimeProvider>["channel"]
+  > | null>(null);
+  const retryCountRef = useRef(0);
+  const subscriptionTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   // ─── Handle Database Changes ──────────────────────────────────────────────
 
   const handleDatabaseChange = useCallback(
     (payload: PostgresChangesPayload) => {
-      if (!courseId) return
+      if (!courseId) return;
 
-      const { eventType, table, new: newRecord, old } = payload
+      const { eventType, table, new: newRecord, old } = payload;
 
       // Update query cache based on event type
-      if (table === 'gradebook_entries') {
-        if (eventType === 'INSERT' && newRecord) {
-          const entry = newRecord as unknown as GradebookEntry
+      if (table === "gradebook_entries") {
+        if (eventType === "INSERT" && newRecord) {
+          const entry = newRecord as unknown as GradebookEntry;
           // New grade entry added
           queryClient.setQueryData(
             gradebookKeys.entries(courseId),
             (oldEntries: GradebookEntry[] | undefined) => {
-              if (!oldEntries) return [entry]
-              return [...oldEntries, entry]
-            }
-          )
-          onEntryInserted?.(entry)
+              if (!oldEntries) return [entry];
+              return [...oldEntries, entry];
+            },
+          );
+          onEntryInserted?.(entry);
         }
 
-        if (eventType === 'UPDATE' && newRecord) {
-          const entry = newRecord as unknown as GradebookEntry
+        if (eventType === "UPDATE" && newRecord) {
+          const entry = newRecord as unknown as GradebookEntry;
           // Grade entry updated
           queryClient.setQueryData(
             gradebookKeys.entries(courseId),
             (oldEntries: GradebookEntry[] | undefined) => {
-              if (!oldEntries) return [entry]
-              return oldEntries.map((e) => (e.id === entry.id ? entry : e))
-            }
-          )
-          onEntryUpdated?.(entry)
+              if (!oldEntries) return [entry];
+              return oldEntries.map((e) => (e.id === entry.id ? entry : e));
+            },
+          );
+          onEntryUpdated?.(entry);
         }
 
-        if (eventType === 'DELETE' && old) {
+        if (eventType === "DELETE" && old) {
           // Grade entry deleted
-          const entryId = (old as any).id
+          const entryId = (old as any).id;
           queryClient.setQueryData(
             gradebookKeys.entries(courseId),
             (oldEntries: GradebookEntry[] | undefined) => {
-              if (!oldEntries) return []
-              return oldEntries.filter((entry) => entry.id !== entryId)
-            }
-          )
-          onEntryDeleted?.(entryId)
+              if (!oldEntries) return [];
+              return oldEntries.filter((entry) => entry.id !== entryId);
+            },
+          );
+          onEntryDeleted?.(entryId);
         }
 
         // Invalidate queries to trigger refetch
         void queryClient.invalidateQueries({
           queryKey: gradebookKeys.entries(courseId),
-        })
+        });
 
         // Update state
         setState((prev) => ({
           ...prev,
           lastUpdateAt: new Date(),
-        }))
+        }));
       }
 
-      if (table === 'gradebook_settings') {
+      if (table === "gradebook_settings") {
         // Settings changed - invalidate settings query
         void queryClient.invalidateQueries({
           queryKey: gradebookKeys.settings(courseId),
-        })
+        });
       }
 
-      if (table === 'gradebook_columns') {
+      if (table === "gradebook_columns") {
         // Columns changed - invalidate columns query
         void queryClient.invalidateQueries({
           queryKey: gradebookKeys.columns(courseId),
-        })
+        });
       }
     },
-    [courseId, queryClient, onEntryInserted, onEntryUpdated, onEntryDeleted]
-  )
+    [courseId, queryClient, onEntryInserted, onEntryUpdated, onEntryDeleted],
+  );
 
   // ─── Setup WebSocket Subscription ─────────────────────────────────────────
 
   const setupSubscription = useCallback(() => {
-    if (!courseId || !enabled) return
+    if (!courseId || !enabled) return;
 
-    const realtime = getRealtimeProvider()
+    const realtime = getRealtimeProvider();
     if (!realtime) {
       setState((prev) => ({
         ...prev,
         isFallbackToPolling: true,
-        error: 'Realtime provider unavailable',
-      }))
-      return
+        error: "Realtime provider unavailable",
+      }));
+      return;
     }
 
     // Create channel
-    const channelName = `gradebook:course:${courseId}`
-    const channel = realtime.channel(channelName)
-    channelRef.current = channel
+    const channelName = `gradebook:course:${courseId}`;
+    const channel = realtime.channel(channelName);
+    channelRef.current = channel;
 
     // Subscribe to database changes
     channel.on(
-      'postgres_changes',
+      "postgres_changes",
       {
-        event: '*', // INSERT, UPDATE, DELETE
-        schema: 'public',
-        table: 'gradebook_entries',
+        event: "*", // INSERT, UPDATE, DELETE
+        schema: "public",
+        table: "gradebook_entries",
         filter: `course_id=eq.${courseId}`,
       },
-      handleDatabaseChange
-    )
+      handleDatabaseChange,
+    );
 
     channel.on(
-      'postgres_changes',
+      "postgres_changes",
       {
-        event: '*',
-        schema: 'public',
-        table: 'gradebook_settings',
+        event: "*",
+        schema: "public",
+        table: "gradebook_settings",
         filter: `course_id=eq.${courseId}`,
       },
-      handleDatabaseChange
-    )
+      handleDatabaseChange,
+    );
 
     channel.on(
-      'postgres_changes',
+      "postgres_changes",
       {
-        event: '*',
-        schema: 'public',
-        table: 'gradebook_columns',
+        event: "*",
+        schema: "public",
+        table: "gradebook_columns",
         filter: `course_id=eq.${courseId}`,
       },
-      handleDatabaseChange
-    )
+      handleDatabaseChange,
+    );
 
     // Subscribe to channel
     channel.subscribe((status: RealtimeChannelStatus, _err?: Error) => {
-      if (status === 'SUBSCRIBED') {
+      if (status === "SUBSCRIBED") {
         if (subscriptionTimeoutRef.current) {
-          clearTimeout(subscriptionTimeoutRef.current)
-          subscriptionTimeoutRef.current = null
+          clearTimeout(subscriptionTimeoutRef.current);
+          subscriptionTimeoutRef.current = null;
         }
 
-        retryCountRef.current = 0
+        retryCountRef.current = 0;
         setState({
           isConnected: true,
           isSubscribed: true,
           isFallbackToPolling: false,
-        })
+        });
       }
 
-      if (status === 'CHANNEL_ERROR' || status === 'CLOSED') {
+      if (status === "CHANNEL_ERROR" || status === "CLOSED") {
         setState((prev) => ({
           ...prev,
           isConnected: false,
           isSubscribed: false,
-          error: status === 'CHANNEL_ERROR' ? 'Connection error' : 'Channel closed',
-        }))
+          error:
+            status === "CHANNEL_ERROR" ? "Connection error" : "Channel closed",
+        }));
 
         // Retry logic
         if (retryCountRef.current < MAX_RETRIES) {
-          retryCountRef.current++
+          retryCountRef.current++;
           setTimeout(() => {
-            setupSubscription()
-          }, RETRY_DELAY * retryCountRef.current)
+            setupSubscription();
+          }, RETRY_DELAY * retryCountRef.current);
         } else {
           setState((prev) => ({
             ...prev,
             isFallbackToPolling: true,
-            error: 'Max retries reached',
-          }))
+            error: "Max retries reached",
+          }));
         }
       }
-    })
+    });
 
     // Timeout detection
     subscriptionTimeoutRef.current = setTimeout(() => {
       setState((prev) => ({
         ...prev,
         isFallbackToPolling: true,
-        error: 'Subscription timeout',
-      }))
-    }, SUBSCRIPTION_TIMEOUT)
-  }, [courseId, enabled, handleDatabaseChange])
+        error: "Subscription timeout",
+      }));
+    }, SUBSCRIPTION_TIMEOUT);
+  }, [courseId, enabled, handleDatabaseChange]);
 
   // ─── Cleanup ──────────────────────────────────────────────────────────────
 
   const cleanup = useCallback(() => {
     if (subscriptionTimeoutRef.current) {
-      clearTimeout(subscriptionTimeoutRef.current)
-      subscriptionTimeoutRef.current = null
+      clearTimeout(subscriptionTimeoutRef.current);
+      subscriptionTimeoutRef.current = null;
     }
 
     if (channelRef.current) {
-      channelRef.current.unsubscribe()
-      const realtime = getRealtimeProvider()
+      channelRef.current.unsubscribe();
+      const realtime = getRealtimeProvider();
       if (realtime) {
-        realtime.removeChannel(channelRef.current)
+        realtime.removeChannel(channelRef.current);
       }
-      channelRef.current = null
+      channelRef.current = null;
     }
-  }, [])
+  }, []);
 
   // ─── Effect ───────────────────────────────────────────────────────────────
 
   useEffect(() => {
     if (!courseId || !enabled) {
-      cleanup()
+      cleanup();
       setState({
         isConnected: false,
         isSubscribed: false,
         isFallbackToPolling: false,
-      })
-      return
+      });
+      return;
     }
 
-    setupSubscription()
+    setupSubscription();
 
-    return cleanup()
-  }, [courseId, enabled, setupSubscription, cleanup])
+    return cleanup();
+  }, [courseId, enabled, setupSubscription, cleanup]);
 
-  return state
+  return state;
 }
 
-export default useGradebookRealtime
+export default useGradebookRealtime;

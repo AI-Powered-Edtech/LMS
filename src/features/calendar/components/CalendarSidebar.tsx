@@ -8,20 +8,23 @@ import {
   Paperclip,
   Plus,
   Video,
-} from 'lucide-react'
-import { motion } from 'motion/react'
+} from "lucide-react";
+import { motion } from "motion/react";
 
-import type { CalendarEvent } from '@/features/calendar/hooks/useCalendarQueries'
-import { getCountdown, getEventColor } from '@/features/calendar/utils/calendarUtils'
-import { cn } from '@/utils/cn'
-import { translateEventType } from '@/utils/statusTranslations'
+import type { CalendarEvent } from "@/features/calendar/hooks/useCalendarQueries";
+import {
+  getCountdown,
+  getEventColor,
+} from "@/features/calendar/utils/calendarUtils";
+import { cn } from "@/utils/cn";
+import { translateEventType } from "@/utils/statusTranslations";
 
 interface CalendarSidebarProps {
-  selectedDate: Date | null
-  events: CalendarEvent[]
-  today: Date
-  onAddEvent: () => void
-  onToggleCompletion: (id: string) => void
+  selectedDate: Date | null;
+  events: CalendarEvent[];
+  today: Date;
+  onAddEvent: () => void;
+  onToggleCompletion: (id: string) => void;
 }
 
 export function CalendarSidebar({
@@ -36,9 +39,9 @@ export function CalendarSidebar({
         (e) =>
           e.date.getDate() === selectedDate.getDate() &&
           e.date.getMonth() === selectedDate.getMonth() &&
-          e.date.getFullYear() === selectedDate.getFullYear()
+          e.date.getFullYear() === selectedDate.getFullYear(),
       )
-    : []
+    : [];
 
   return (
     <div className="bg-slate-50 dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-700 p-6 flex flex-col h-[600px] sticky top-8">
@@ -46,12 +49,12 @@ export function CalendarSidebar({
         <h3 className="text-lg font-bold text-slate-800 dark:text-slate-100 flex items-center gap-2">
           <CalendarIcon className="w-5 h-5 text-blue-500" />
           {selectedDate
-            ? selectedDate.toLocaleDateString('id-ID', {
-                weekday: 'long',
-                day: 'numeric',
-                month: 'long',
+            ? selectedDate.toLocaleDateString("id-ID", {
+                weekday: "long",
+                day: "numeric",
+                month: "long",
               })
-            : 'Pilih Tanggal'}
+            : "Pilih Tanggal"}
         </h3>
         {selectedDate && (
           <button
@@ -67,7 +70,7 @@ export function CalendarSidebar({
       <div className="flex-1 overflow-y-auto space-y-4 pr-2 custom-scrollbar">
         {selectedEvents.length > 0 ? (
           selectedEvents.map((event, index) => {
-            const countdown = getCountdown(event.date, today)
+            const countdown = getCountdown(event.date, today);
             return (
               <motion.div
                 key={event.id}
@@ -75,19 +78,19 @@ export function CalendarSidebar({
                 animate={{ opacity: 1, x: 0 }}
                 transition={{ delay: index * 0.1 }}
                 className={cn(
-                  'bg-white dark:bg-slate-800 p-5 rounded-2xl border shadow-sm transition-all',
+                  "bg-white dark:bg-slate-800 p-5 rounded-2xl border shadow-sm transition-all",
                   event.completed
-                    ? 'border-slate-100 dark:border-slate-700 opacity-75'
-                    : 'border-slate-200 dark:border-slate-700 hover:border-blue-300 dark:hover:border-blue-600 hover:shadow-md'
+                    ? "border-slate-100 dark:border-slate-700 opacity-75"
+                    : "border-slate-200 dark:border-slate-700 hover:border-blue-300 dark:hover:border-blue-600 hover:shadow-md",
                 )}
               >
                 <div className="flex items-start justify-between mb-2">
                   <div className="flex items-center gap-2 flex-wrap">
                     <span
                       className={cn(
-                        'text-[10px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wider',
-                        getEventColor(event.type).split(' ')[0],
-                        'text-white'
+                        "text-[10px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wider",
+                        getEventColor(event.type).split(" ")[0],
+                        "text-white",
                       )}
                     >
                       {translateEventType(event.type)}
@@ -99,8 +102,11 @@ export function CalendarSidebar({
                       </span>
                     )}
                   </div>
-                  {(event.type === 'assignment' || event.type === 'exam') && (
-                    <button onClick={() => onToggleCompletion(event.id)} className="shrink-0">
+                  {(event.type === "assignment" || event.type === "exam") && (
+                    <button
+                      onClick={() => onToggleCompletion(event.id)}
+                      className="shrink-0"
+                    >
                       {event.completed ? (
                         <CheckCircle2 className="w-5 h-5 text-emerald-500" />
                       ) : (
@@ -112,8 +118,9 @@ export function CalendarSidebar({
 
                 <h4
                   className={cn(
-                    'font-bold text-slate-900 dark:text-slate-100 leading-tight mb-3',
-                    event.completed && 'line-through text-slate-500 dark:text-slate-400'
+                    "font-bold text-slate-900 dark:text-slate-100 leading-tight mb-3",
+                    event.completed &&
+                      "line-through text-slate-500 dark:text-slate-400",
                   )}
                 >
                   {event.title}
@@ -123,11 +130,11 @@ export function CalendarSidebar({
                   <div className="flex items-center gap-2">
                     <Clock className="w-4 h-4 text-slate-400 dark:text-slate-500" />
                     <span className="font-medium">
-                      {event.time} {event.endTime ? `- ${event.endTime}` : ''}
+                      {event.time} {event.endTime ? `- ${event.endTime}` : ""}
                     </span>
                   </div>
                   <div className="flex items-center gap-2">
-                    {event.location.includes('Zoom') ? (
+                    {event.location.includes("Zoom") ? (
                       <Video className="w-4 h-4 text-slate-400 dark:text-slate-500" />
                     ) : (
                       <MapPin className="w-4 h-4 text-slate-400 dark:text-slate-500" />
@@ -151,7 +158,7 @@ export function CalendarSidebar({
                   </div>
                 )}
               </motion.div>
-            )
+            );
           })
         ) : (
           <div className="h-full flex flex-col items-center justify-center text-center text-slate-500 dark:text-slate-400 space-y-4">
@@ -159,7 +166,9 @@ export function CalendarSidebar({
               <CalendarIcon className="w-8 h-8 text-slate-300 dark:text-slate-600" />
             </div>
             <div>
-              <p className="font-bold text-slate-700 dark:text-slate-300">Kosong</p>
+              <p className="font-bold text-slate-700 dark:text-slate-300">
+                Kosong
+              </p>
               <p className="text-sm mt-1">Tidak ada jadwal pada tanggal ini.</p>
             </div>
             <button
@@ -172,5 +181,5 @@ export function CalendarSidebar({
         )}
       </div>
     </div>
-  )
+  );
 }

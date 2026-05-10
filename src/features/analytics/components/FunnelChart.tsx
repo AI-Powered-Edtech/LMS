@@ -1,4 +1,4 @@
-import { useMemo } from 'react'
+import { useMemo } from "react";
 import {
   Bar,
   BarChart,
@@ -8,48 +8,48 @@ import {
   Tooltip,
   XAxis,
   YAxis,
-} from 'recharts'
+} from "recharts";
 
-import { useTheme } from '@/contexts/ThemeContext'
+import { useTheme } from "@/contexts/ThemeContext";
 
-import { FunnelStepResult } from '../types'
+import { FunnelStepResult } from "../types";
 
 const EVENT_LABELS: Record<string, string> = {
-  LESSON_STARTED: 'Mulai Pelajaran',
-  LESSON_COMPLETED: 'Selesai Pelajaran',
-  BLOCK_VIEWED: 'Lihat Konten',
-  VIDEO_PROGRESS: 'Tonton Video',
-  QUIZ_STARTED: 'Mulai Kuis',
-  QUIZ_SUBMITTED: 'Kumpul Kuis',
-  ASSIGNMENT_SUBMITTED: 'Kumpul Tugas',
-  FILE_DOWNLOADED: 'Unduh File',
-}
+  LESSON_STARTED: "Mulai Pelajaran",
+  LESSON_COMPLETED: "Selesai Pelajaran",
+  BLOCK_VIEWED: "Lihat Konten",
+  VIDEO_PROGRESS: "Tonton Video",
+  QUIZ_STARTED: "Mulai Kuis",
+  QUIZ_SUBMITTED: "Kumpul Kuis",
+  ASSIGNMENT_SUBMITTED: "Kumpul Tugas",
+  FILE_DOWNLOADED: "Unduh File",
+};
 
 const STEP_COLORS = [
-  '#6366f1',
-  '#8b5cf6',
-  '#a78bfa',
-  '#c4b5fd',
-  '#ddd6fe',
-  '#ede9fe',
-  '#f5f3ff',
-  '#faf5ff',
-]
+  "#6366f1",
+  "#8b5cf6",
+  "#a78bfa",
+  "#c4b5fd",
+  "#ddd6fe",
+  "#ede9fe",
+  "#f5f3ff",
+  "#faf5ff",
+];
 
 interface FunnelChartProps {
-  data: FunnelStepResult[]
+  data: FunnelStepResult[];
 }
 
 // ⚡ Perf: stable formatter refs — avoids Recharts detecting prop change every render
 const tooltipFormatter = (value: unknown, name: unknown): [string, string] => {
-  if (name === 'users') return [`${value}`, 'Pengguna']
-  return [`${value}`, `${name}`]
-}
-const labelFormatter = (v: unknown) => `${v}%`
+  if (name === "users") return [`${value}`, "Pengguna"];
+  return [`${value}`, `${name}`];
+};
+const labelFormatter = (v: unknown) => `${v}%`;
 
 export function FunnelChart({ data }: FunnelChartProps) {
-  const { resolvedTheme } = useTheme()
-  const isDark = resolvedTheme === 'dark'
+  const { resolvedTheme } = useTheme();
+  const isDark = resolvedTheme === "dark";
 
   // ⚡ Perf: memoize chart data transform + maxUsers computation
   const { chartData, maxUsers } = useMemo(() => {
@@ -58,14 +58,14 @@ export function FunnelChart({ data }: FunnelChartProps) {
       users: step.user_count,
       conversion: step.conversion_rate,
       dropOff: step.drop_off_rate,
-    }))
+    }));
     return {
       chartData: mapped,
       maxUsers: Math.max(...mapped.map((d) => d.users), 1),
-    }
-  }, [data])
+    };
+  }, [data]);
 
-  if (data.length === 0) return null
+  if (data.length === 0) return null;
 
   return (
     <div className="w-full">
@@ -80,20 +80,20 @@ export function FunnelChart({ data }: FunnelChartProps) {
             type="category"
             dataKey="name"
             width={120}
-            tick={{ fontSize: 12, fill: isDark ? '#94a3b8' : '#64748b' }}
-            axisLine={{ stroke: isDark ? '#334155' : '#e2e8f0' }}
-            tickLine={{ stroke: isDark ? '#334155' : '#e2e8f0' }}
+            tick={{ fontSize: 12, fill: isDark ? "#94a3b8" : "#64748b" }}
+            axisLine={{ stroke: isDark ? "#334155" : "#e2e8f0" }}
+            tickLine={{ stroke: isDark ? "#334155" : "#e2e8f0" }}
           />
           <Tooltip
             formatter={tooltipFormatter}
             contentStyle={{
               fontSize: 12,
-              backgroundColor: isDark ? '#1e293b' : '#ffffff',
-              border: `1px solid ${isDark ? '#334155' : '#e2e8f0'}`,
-              borderRadius: '0.5rem',
-              color: isDark ? '#f1f5f9' : '#0f172a',
+              backgroundColor: isDark ? "#1e293b" : "#ffffff",
+              border: `1px solid ${isDark ? "#334155" : "#e2e8f0"}`,
+              borderRadius: "0.5rem",
+              color: isDark ? "#f1f5f9" : "#0f172a",
             }}
-            labelStyle={{ color: isDark ? '#94a3b8' : '#64748b' }}
+            labelStyle={{ color: isDark ? "#94a3b8" : "#64748b" }}
           />
           <Bar dataKey="users" radius={[0, 4, 4, 0]}>
             {chartData.map((_, i) => (
@@ -103,11 +103,11 @@ export function FunnelChart({ data }: FunnelChartProps) {
               dataKey="conversion"
               position="right"
               formatter={labelFormatter}
-              style={{ fontSize: 11, fill: isDark ? '#94a3b8' : '#64748b' }}
+              style={{ fontSize: 11, fill: isDark ? "#94a3b8" : "#64748b" }}
             />
           </Bar>
         </BarChart>
       </ResponsiveContainer>
     </div>
-  )
+  );
 }

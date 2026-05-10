@@ -1,51 +1,51 @@
-import { RefreshCw, X } from 'lucide-react'
-import { AnimatePresence, motion } from 'motion/react'
-import { useCallback, useEffect, useState } from 'react'
-import { useLocation } from 'react-router-dom'
+import { RefreshCw, X } from "lucide-react";
+import { AnimatePresence, motion } from "motion/react";
+import { useCallback, useEffect, useState } from "react";
+import { useLocation } from "react-router-dom";
 
-import { isAuthSurfacePath } from '@/features/auth/utils/authFlow'
-import { usePWA } from '@/hooks/usePWA'
+import { isAuthSurfacePath } from "@/features/auth/utils/authFlow";
+import { usePWA } from "@/hooks/usePWA";
 
-const SNOOZE_DURATION_MS = 60 * 60 * 1000 // 1 jam
+const SNOOZE_DURATION_MS = 60 * 60 * 1000; // 1 jam
 
 // ---------------------------------------------------------------------------
 // Component
 // ---------------------------------------------------------------------------
 
 export function PWAUpdateToast() {
-  const location = useLocation()
-  const { isUpdateAvailable, updateApp } = usePWA()
-  const [snoozedUntil, setSnoozedUntil] = useState<number | null>(null)
-  const [isUpdating, setIsUpdating] = useState(false)
+  const location = useLocation();
+  const { isUpdateAvailable, updateApp } = usePWA();
+  const [snoozedUntil, setSnoozedUntil] = useState<number | null>(null);
+  const [isUpdating, setIsUpdating] = useState(false);
 
   // Clear snooze when it expires
   useEffect(() => {
-    if (snoozedUntil === null) return
-    const remaining = snoozedUntil - Date.now()
+    if (snoozedUntil === null) return;
+    const remaining = snoozedUntil - Date.now();
     if (remaining <= 0) {
-      setSnoozedUntil(null)
-      return
+      setSnoozedUntil(null);
+      return;
     }
-    const timer = setTimeout(() => setSnoozedUntil(null), remaining)
-    return () => clearTimeout(timer)
-  }, [snoozedUntil])
+    const timer = setTimeout(() => setSnoozedUntil(null), remaining);
+    return () => clearTimeout(timer);
+  }, [snoozedUntil]);
 
-  const isSnoozed = snoozedUntil !== null && Date.now() < snoozedUntil
+  const isSnoozed = snoozedUntil !== null && Date.now() < snoozedUntil;
 
   const handleUpdate = useCallback(async () => {
-    setIsUpdating(true)
-    await updateApp()
+    setIsUpdating(true);
+    await updateApp();
     // updateApp triggers reload; setIsUpdating(false) won't be reached in most cases
-    setIsUpdating(false)
-  }, [updateApp])
+    setIsUpdating(false);
+  }, [updateApp]);
 
   const handleSnooze = useCallback(() => {
-    setSnoozedUntil(Date.now() + SNOOZE_DURATION_MS)
-  }, [])
+    setSnoozedUntil(Date.now() + SNOOZE_DURATION_MS);
+  }, []);
 
-  const visible = isUpdateAvailable && !isSnoozed
+  const visible = isUpdateAvailable && !isSnoozed;
   if (isAuthSurfacePath(location.pathname)) {
-    return null
+    return null;
   }
 
   return (
@@ -58,14 +58,14 @@ export function PWAUpdateToast() {
           initial={{ opacity: 0, y: -60 }}
           animate={{ opacity: 1, y: 0 }}
           exit={{ opacity: 0, y: -60 }}
-          transition={{ type: 'spring', stiffness: 300, damping: 30 }}
+          transition={{ type: "spring", stiffness: 300, damping: 30 }}
           className="fixed left-4 right-4 top-4 z-[90] mx-auto max-w-md"
         >
           <div className="flex items-center gap-3 rounded-2xl border border-violet-200 bg-white px-4 py-3 shadow-xl dark:border-violet-800 dark:bg-slate-900">
             {/* Icon */}
             <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-violet-100 dark:bg-violet-900/50">
               <RefreshCw
-                className={`h-5 w-5 text-violet-600 dark:text-violet-400 ${isUpdating ? 'animate-spin' : ''}`}
+                className={`h-5 w-5 text-violet-600 dark:text-violet-400 ${isUpdating ? "animate-spin" : ""}`}
                 aria-hidden="true"
               />
             </div>
@@ -87,7 +87,7 @@ export function PWAUpdateToast() {
                 disabled={isUpdating}
                 className="rounded-lg bg-violet-600 px-3 py-1.5 text-xs font-bold text-white transition-colors hover:bg-violet-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-500 focus-visible:ring-offset-1 active:bg-violet-800 disabled:cursor-wait disabled:opacity-70 dark:bg-violet-500 dark:hover:bg-violet-400"
               >
-                {isUpdating ? 'Memperbarui…' : 'Perbarui'}
+                {isUpdating ? "Memperbarui…" : "Perbarui"}
               </button>
               <button
                 onClick={handleSnooze}
@@ -101,5 +101,5 @@ export function PWAUpdateToast() {
         </motion.div>
       )}
     </AnimatePresence>
-  )
+  );
 }

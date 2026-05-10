@@ -1,5 +1,5 @@
-import { HeaderSkeleton } from './HeaderSkeleton'
-import { SidebarSkeleton } from './SidebarSkeleton'
+import { HeaderSkeleton } from "./HeaderSkeleton";
+import { SidebarSkeleton } from "./SidebarSkeleton";
 
 /**
  * App Shell loading state that mirrors the real app layout.
@@ -52,5 +52,5 @@ export function AppLoading() {
         </div>
       </div>
     </div>
-  )
+  );
 }

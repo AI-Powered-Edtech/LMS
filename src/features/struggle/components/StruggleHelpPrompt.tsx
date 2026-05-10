@@ -1,42 +1,43 @@
-import { BookOpen, RefreshCw, X } from 'lucide-react'
-import { motion } from 'motion/react'
-import { useEffect, useState } from 'react'
+import { BookOpen, RefreshCw, X } from "lucide-react";
+import { motion } from "motion/react";
+import { useEffect, useState } from "react";
 
-import { useMyLessonStatus } from '../queries/useStruggleQueries'
+import { useMyLessonStatus } from "../queries/useStruggleQueries";
 
 interface Props {
-  lessonId: string
+  lessonId: string;
 }
 
 function dismissKey(lessonId: string) {
-  return `struggle_dismissed_${lessonId}`
+  return `struggle_dismissed_${lessonId}`;
 }
 
 export function StruggleHelpPrompt({ lessonId }: Props) {
-  const { data: status, isLoading } = useMyLessonStatus(lessonId)
-  const [dismissed, setDismissed] = useState(false)
+  const { data: status, isLoading } = useMyLessonStatus(lessonId);
+  const [dismissed, setDismissed] = useState(false);
 
   // On mount, check sessionStorage for this lesson's dismiss flag
   useEffect(() => {
-    if (sessionStorage.getItem(dismissKey(lessonId)) === '1') {
-      setDismissed(true)
+    if (sessionStorage.getItem(dismissKey(lessonId)) === "1") {
+      setDismissed(true);
     } else {
-      setDismissed(false)
+      setDismissed(false);
     }
-  }, [lessonId])
+  }, [lessonId]);
 
   function dismiss() {
-    sessionStorage.setItem(dismissKey(lessonId), '1')
-    setDismissed(true)
+    sessionStorage.setItem(dismissKey(lessonId), "1");
+    setDismissed(true);
   }
 
   // Do not render while loading or once dismissed
-  if (isLoading || dismissed) return null
+  if (isLoading || dismissed) return null;
 
   // Do not render when severity is low, data missing, or feature disabled
-  if (!status || status.severity === 'low' || !status.prompt_enabled) return null
+  if (!status || status.severity === "low" || !status.prompt_enabled)
+    return null;
 
-  const isMedium = status.severity === 'medium'
+  const isMedium = status.severity === "medium";
 
   if (isMedium) {
     return (
@@ -49,8 +50,9 @@ export function StruggleHelpPrompt({ lessonId }: Props) {
           💡
         </span>
         <p className="flex-1 text-sm text-amber-800 dark:text-amber-300 leading-snug">
-          <span className="font-semibold">Tips belajar:</span> Kalau merasa pelajaran ini sulit,
-          coba baca ulang bagian yang belum dipahami atau tonton video lebih pelan.
+          <span className="font-semibold">Tips belajar:</span> Kalau merasa
+          pelajaran ini sulit, coba baca ulang bagian yang belum dipahami atau
+          tonton video lebih pelan.
         </p>
         <button
           aria-label="Tutup tips"
@@ -60,7 +62,7 @@ export function StruggleHelpPrompt({ lessonId }: Props) {
           <X className="w-4 h-4" />
         </button>
       </motion.div>
-    )
+    );
   }
 
   // High severity
@@ -75,9 +77,12 @@ export function StruggleHelpPrompt({ lessonId }: Props) {
           🤝
         </span>
         <div>
-          <p className="font-semibold text-sm text-red-800 dark:text-red-300">Butuh bantuan?</p>
+          <p className="font-semibold text-sm text-red-800 dark:text-red-300">
+            Butuh bantuan?
+          </p>
           <p className="text-sm text-red-700 dark:text-red-400 mt-0.5 leading-snug">
-            Banyak siswa merasa pelajaran ini challenging. Coba langkah-langkah ini:
+            Banyak siswa merasa pelajaran ini challenging. Coba langkah-langkah
+            ini:
           </p>
         </div>
       </div>
@@ -107,5 +112,5 @@ export function StruggleHelpPrompt({ lessonId }: Props) {
         </button>
       </div>
     </motion.div>
-  )
+  );
 }

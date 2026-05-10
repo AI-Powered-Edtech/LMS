@@ -9,7 +9,7 @@
  *  5. Modals               — extracted to PPDBDetailModal, PPDBPeriodModal, PPDBAddRegModal
  */
 
-import { useQuery, useQueryClient } from '@tanstack/react-query'
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   AlertCircle,
   CheckCircle2,
@@ -19,10 +19,10 @@ import {
   Loader2,
   Megaphone,
   Plus,
-} from 'lucide-react'
-import { useCallback, useEffect, useMemo, useState } from 'react'
+} from "lucide-react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 
-import { cn } from '@/utils/cn'
+import { cn } from "@/utils/cn";
 
 import {
   bulkUpdateRegistrationStatus,
@@ -32,7 +32,7 @@ import {
   fetchRegistrations,
   updatePeriodStatus,
   updateRegistrationStatus,
-} from '../api/ppdbApi'
+} from "../api/ppdbApi";
 import type {
   PPDBPeriodInput,
   PPDBPeriodStatus,
@@ -41,75 +41,76 @@ import type {
   PPDBRegistrationStatus,
   PPDBStatusFilter,
   PPDBSummary,
-} from '../types/ppdb'
-import { exportPPDBToCSV } from '../utils/ppdbExport'
-import { PPDBAddRegModal } from './ppdb/PPDBAddRegModal'
-import { PPDBDetailModal } from './ppdb/PPDBDetailModal'
-import { PPDBPeriodModal } from './ppdb/PPDBPeriodModal'
-import { PPDBRegistrationTable } from './ppdb/PPDBRegistrationTable'
-import { PPDBSummaryCards } from './ppdb/PPDBSummaryCards'
+} from "../types/ppdb";
+import { exportPPDBToCSV } from "../utils/ppdbExport";
+import { PPDBAddRegModal } from "./ppdb/PPDBAddRegModal";
+import { PPDBDetailModal } from "./ppdb/PPDBDetailModal";
+import { PPDBPeriodModal } from "./ppdb/PPDBPeriodModal";
+import { PPDBRegistrationTable } from "./ppdb/PPDBRegistrationTable";
+import { PPDBSummaryCards } from "./ppdb/PPDBSummaryCards";
 
-const PAGE_SIZE = 10
+const PAGE_SIZE = 10;
 
 const PERIOD_STATUS_LABELS: Record<PPDBPeriodStatus, string> = {
-  draft: 'Draf',
-  open: 'Dibuka',
-  closed: 'Ditutup',
-  announced: 'Diumumkan',
-}
+  draft: "Draf",
+  open: "Dibuka",
+  closed: "Ditutup",
+  announced: "Diumumkan",
+};
 
 const ID_MONTHS = [
-  'Jan',
-  'Feb',
-  'Mar',
-  'Apr',
-  'Mei',
-  'Jun',
-  'Jul',
-  'Agu',
-  'Sep',
-  'Okt',
-  'Nov',
-  'Des',
-]
+  "Jan",
+  "Feb",
+  "Mar",
+  "Apr",
+  "Mei",
+  "Jun",
+  "Jul",
+  "Agu",
+  "Sep",
+  "Okt",
+  "Nov",
+  "Des",
+];
 
 function formatDate(dateStr: string | null): string {
-  if (!dateStr) return '—'
-  const d = new Date(dateStr)
-  const wibOffset = 7 * 60
-  const utcMs = d.getTime() + d.getTimezoneOffset() * 60_000
-  const wib = new Date(utcMs + wibOffset * 60_000)
-  return `${String(wib.getDate()).padStart(2, '0')} ${ID_MONTHS[wib.getMonth()]} ${wib.getFullYear()}`
+  if (!dateStr) return "—";
+  const d = new Date(dateStr);
+  const wibOffset = 7 * 60;
+  const utcMs = d.getTime() + d.getTimezoneOffset() * 60_000;
+  const wib = new Date(utcMs + wibOffset * 60_000);
+  return `${String(wib.getDate()).padStart(2, "0")} ${ID_MONTHS[wib.getMonth()]} ${wib.getFullYear()}`;
 }
 
 function PeriodStatusBadge({ status }: { status: PPDBPeriodStatus }) {
   const config: Record<PPDBPeriodStatus, string> = {
-    draft: 'bg-slate-100 text-slate-600 dark:bg-slate-700 dark:text-slate-400',
-    open: 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400',
-    closed: 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400',
-    announced: 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400',
-  }
+    draft: "bg-slate-100 text-slate-600 dark:bg-slate-700 dark:text-slate-400",
+    open: "bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400",
+    closed: "bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400",
+    announced:
+      "bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400",
+  };
 
   return (
     <span
       className={cn(
-        'inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold',
-        config[status]
+        "inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold",
+        config[status],
       )}
     >
       {PERIOD_STATUS_LABELS[status]}
     </span>
-  )
+  );
 }
 
 interface ConfirmDialogProps {
-  title: string
-  message: string
-  confirmLabel: string
-  confirmClass?: string
-  onConfirm: () => void
-  onCancel: () => void
-  loading?: boolean
+  title: string;
+  message: string;
+  confirmLabel: string;
+  confirmClass?: string;
+  onConfirm: () => void;
+  onCancel: () => void;
+  loading?: boolean;
 }
 
 function ConfirmDialog({
@@ -124,8 +125,12 @@ function ConfirmDialog({
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
       <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-xl border border-slate-200 dark:border-slate-700 w-full max-w-sm p-6">
-        <h2 className="text-lg font-bold text-slate-900 dark:text-slate-100 mb-2">{title}</h2>
-        <p className="text-sm text-slate-600 dark:text-slate-400 mb-6">{message}</p>
+        <h2 className="text-lg font-bold text-slate-900 dark:text-slate-100 mb-2">
+          {title}
+        </h2>
+        <p className="text-sm text-slate-600 dark:text-slate-400 mb-6">
+          {message}
+        </p>
         <div className="flex gap-3">
           <button
             onClick={onCancel}
@@ -138,8 +143,8 @@ function ConfirmDialog({
             onClick={onConfirm}
             disabled={loading}
             className={cn(
-              'flex-1 px-4 py-2.5 text-white rounded-xl font-medium transition-colors disabled:opacity-50 flex items-center justify-center gap-2',
-              confirmClass ?? 'bg-blue-600 hover:bg-blue-700'
+              "flex-1 px-4 py-2.5 text-white rounded-xl font-medium transition-colors disabled:opacity-50 flex items-center justify-center gap-2",
+              confirmClass ?? "bg-blue-600 hover:bg-blue-700",
             )}
           >
             {loading && <Loader2 className="w-4 h-4 animate-spin" />}
@@ -148,61 +153,61 @@ function ConfirmDialog({
         </div>
       </div>
     </div>
-  )
+  );
 }
 
 export function PPDBDashboard() {
-  const queryClient = useQueryClient()
+  const queryClient = useQueryClient();
 
-  const [selectedPeriodId, setSelectedPeriodId] = useState<string | null>(null)
+  const [selectedPeriodId, setSelectedPeriodId] = useState<string | null>(null);
   const [filter, setFilter] = useState<PPDBRegistrationFilter>({
-    status: 'all',
-    search: '',
+    status: "all",
+    search: "",
     page: 1,
     pageSize: PAGE_SIZE,
-  })
-  const [searchInput, setSearchInput] = useState('')
-  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set())
-  const [detailReg, setDetailReg] = useState<PPDBRegistration | null>(null)
-  const [periodModalOpen, setPeriodModalOpen] = useState(false)
-  const [addRegModalOpen, setAddRegModalOpen] = useState(false)
+  });
+  const [searchInput, setSearchInput] = useState("");
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+  const [detailReg, setDetailReg] = useState<PPDBRegistration | null>(null);
+  const [periodModalOpen, setPeriodModalOpen] = useState(false);
+  const [addRegModalOpen, setAddRegModalOpen] = useState(false);
   const [confirmAction, setConfirmAction] = useState<{
-    type: 'bulk-accept' | 'bulk-reject' | 'announce'
-  } | null>(null)
-  const [actionLoading, setActionLoading] = useState(false)
-  const [periodDropdownOpen, setPeriodDropdownOpen] = useState(false)
+    type: "bulk-accept" | "bulk-reject" | "announce";
+  } | null>(null);
+  const [actionLoading, setActionLoading] = useState(false);
+  const [periodDropdownOpen, setPeriodDropdownOpen] = useState(false);
 
   const periodsQuery = useQuery({
-    queryKey: ['ppdb', 'periods'],
+    queryKey: ["ppdb", "periods"],
     queryFn: fetchPPDBPeriods,
     staleTime: 60_000,
-  })
+  });
 
-  const periods = useMemo(() => periodsQuery.data ?? [], [periodsQuery.data])
+  const periods = useMemo(() => periodsQuery.data ?? [], [periodsQuery.data]);
 
   useEffect(() => {
     if (!selectedPeriodId && periods.length > 0) {
-      setSelectedPeriodId(periods[0].id)
+      setSelectedPeriodId(periods[0].id);
     }
-  }, [periods, selectedPeriodId])
+  }, [periods, selectedPeriodId]);
 
   const selectedPeriod = useMemo(
     () => periods.find((p) => p.id === selectedPeriodId) ?? null,
-    [periods, selectedPeriodId]
-  )
+    [periods, selectedPeriodId],
+  );
 
   const registrationsQuery = useQuery({
-    queryKey: ['ppdb', 'registrations', selectedPeriodId, filter],
+    queryKey: ["ppdb", "registrations", selectedPeriodId, filter],
     queryFn: () =>
       selectedPeriodId
         ? fetchRegistrations(selectedPeriodId, filter)
         : Promise.resolve({ data: [], count: 0 }),
     enabled: !!selectedPeriodId,
     placeholderData: (prev) => prev,
-  })
+  });
 
   const summaryQuery = useQuery({
-    queryKey: ['ppdb', 'summary', selectedPeriodId],
+    queryKey: ["ppdb", "summary", selectedPeriodId],
     queryFn: () =>
       selectedPeriodId
         ? fetchPPDBSummary(selectedPeriodId)
@@ -217,10 +222,10 @@ export function PPDBDashboard() {
           } as PPDBSummary),
     enabled: !!selectedPeriodId,
     staleTime: 30_000,
-  })
+  });
 
-  const registrations = registrationsQuery.data?.data ?? []
-  const totalCount = registrationsQuery.data?.count ?? 0
+  const registrations = registrationsQuery.data?.data ?? [];
+  const totalCount = registrationsQuery.data?.count ?? 0;
   const summary = summaryQuery.data ?? {
     total: 0,
     quota: 0,
@@ -229,88 +234,88 @@ export function PPDBDashboard() {
     pending: 0,
     reviewed: 0,
     waitlisted: 0,
-  }
-  const totalPages = Math.max(1, Math.ceil(totalCount / PAGE_SIZE))
+  };
+  const totalPages = Math.max(1, Math.ceil(totalCount / PAGE_SIZE));
 
   function invalidateAll() {
-    void queryClient.invalidateQueries({ queryKey: ['ppdb'] })
-    setSelectedIds(new Set())
+    void queryClient.invalidateQueries({ queryKey: ["ppdb"] });
+    setSelectedIds(new Set());
   }
 
   function handleSearch() {
-    setFilter((f) => ({ ...f, search: searchInput, page: 1 }))
+    setFilter((f) => ({ ...f, search: searchInput, page: 1 }));
   }
 
   function handleStatusFilterChange(status: PPDBStatusFilter) {
-    setFilter((f) => ({ ...f, status, page: 1 }))
+    setFilter((f) => ({ ...f, status, page: 1 }));
   }
 
   function handleSelectAll(checked: boolean) {
     if (checked) {
-      setSelectedIds(new Set(registrations.map((r) => r.id)))
+      setSelectedIds(new Set(registrations.map((r) => r.id)));
     } else {
-      setSelectedIds(new Set())
+      setSelectedIds(new Set());
     }
   }
 
   function handleSelectOne(id: string, checked: boolean) {
     setSelectedIds((prev) => {
-      const next = new Set(prev)
-      if (checked) next.add(id)
-      else next.delete(id)
-      return next
-    })
+      const next = new Set(prev);
+      if (checked) next.add(id);
+      else next.delete(id);
+      return next;
+    });
   }
 
   const handleStatusChange = useCallback(
     async (id: string, status: PPDBRegistrationStatus, notes?: string) => {
-      await updateRegistrationStatus(id, status, notes)
-      invalidateAll()
+      await updateRegistrationStatus(id, status, notes);
+      invalidateAll();
     },
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    []
-  )
+    [],
+  );
 
   async function handleBulkAction(status: PPDBRegistrationStatus) {
-    if (selectedIds.size === 0) return
-    setActionLoading(true)
+    if (selectedIds.size === 0) return;
+    setActionLoading(true);
     try {
-      await bulkUpdateRegistrationStatus(Array.from(selectedIds), status)
-      invalidateAll()
+      await bulkUpdateRegistrationStatus(Array.from(selectedIds), status);
+      invalidateAll();
     } finally {
-      setActionLoading(false)
-      setConfirmAction(null)
+      setActionLoading(false);
+      setConfirmAction(null);
     }
   }
 
   async function handleAnnounce() {
-    if (!selectedPeriodId) return
-    setActionLoading(true)
+    if (!selectedPeriodId) return;
+    setActionLoading(true);
     try {
-      await updatePeriodStatus(selectedPeriodId, 'announced')
-      invalidateAll()
+      await updatePeriodStatus(selectedPeriodId, "announced");
+      invalidateAll();
     } finally {
-      setActionLoading(false)
-      setConfirmAction(null)
+      setActionLoading(false);
+      setConfirmAction(null);
     }
   }
 
   async function handleCreatePeriod(input: PPDBPeriodInput) {
-    await createPPDBPeriod(input)
-    invalidateAll()
+    await createPPDBPeriod(input);
+    invalidateAll();
   }
 
   function handleExportCSV() {
-    if (registrations.length === 0) return
-    exportPPDBToCSV(registrations)
+    if (registrations.length === 0) return;
+    exportPPDBToCSV(registrations);
   }
 
   function handlePeriodSelect(id: string) {
-    setSelectedPeriodId(id)
-    setFilter((f) => ({ ...f, page: 1, search: '', status: 'all' }))
-    setSearchInput('')
-    setSelectedIds(new Set())
-    setPeriodDropdownOpen(false)
+    setSelectedPeriodId(id);
+    setFilter((f) => ({ ...f, page: 1, search: "", status: "all" }));
+    setSearchInput("");
+    setSelectedIds(new Set());
+    setPeriodDropdownOpen(false);
   }
 
   return (
@@ -322,7 +327,9 @@ export function PPDBDashboard() {
             <GraduationCap className="w-5 h-5 text-blue-600 dark:text-blue-400" />
           </div>
           <div>
-            <h1 className="text-2xl font-bold text-slate-900 dark:text-slate-100">PPDB Online</h1>
+            <h1 className="text-2xl font-bold text-slate-900 dark:text-slate-100">
+              PPDB Online
+            </h1>
             <p className="text-sm text-slate-500 dark:text-slate-400">
               Penerimaan Peserta Didik Baru
             </p>
@@ -340,7 +347,9 @@ export function PPDBDashboard() {
                   {selectedPeriod.academic_year} — {selectedPeriod.name}
                 </span>
               ) : (
-                <span className="flex-1 text-left text-slate-400">Pilih Periode</span>
+                <span className="flex-1 text-left text-slate-400">
+                  Pilih Periode
+                </span>
               )}
               <ChevronDown className="w-4 h-4 shrink-0" />
             </button>
@@ -352,7 +361,7 @@ export function PPDBDashboard() {
                   role="presentation"
                   onClick={() => setPeriodDropdownOpen(false)}
                   onKeyDown={(e) => {
-                    if (e.key === 'Escape') setPeriodDropdownOpen(false)
+                    if (e.key === "Escape") setPeriodDropdownOpen(false);
                   }}
                 />
                 <div className="absolute right-0 mt-1 w-72 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl shadow-lg z-50 py-1 max-h-64 overflow-y-auto">
@@ -366,15 +375,19 @@ export function PPDBDashboard() {
                         key={p.id}
                         onClick={() => handlePeriodSelect(p.id)}
                         className={cn(
-                          'w-full px-4 py-2.5 text-left text-sm hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors flex items-center justify-between gap-2',
-                          p.id === selectedPeriodId && 'bg-blue-50 dark:bg-blue-900/20'
+                          "w-full px-4 py-2.5 text-left text-sm hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors flex items-center justify-between gap-2",
+                          p.id === selectedPeriodId &&
+                            "bg-blue-50 dark:bg-blue-900/20",
                         )}
                       >
                         <span className="truncate">
                           <span className="font-medium text-slate-800 dark:text-slate-200">
                             {p.academic_year}
                           </span>
-                          <span className="text-slate-500 dark:text-slate-400"> — {p.name}</span>
+                          <span className="text-slate-500 dark:text-slate-400">
+                            {" "}
+                            — {p.name}
+                          </span>
                         </span>
                         <PeriodStatusBadge status={p.status} />
                       </button>
@@ -399,26 +412,27 @@ export function PPDBDashboard() {
         <div className="flex items-center gap-3 text-sm text-slate-600 dark:text-slate-400">
           <PeriodStatusBadge status={selectedPeriod.status} />
           <span>
-            {formatDate(selectedPeriod.start_date)} — {formatDate(selectedPeriod.end_date)}
+            {formatDate(selectedPeriod.start_date)} —{" "}
+            {formatDate(selectedPeriod.end_date)}
           </span>
           <span>Kuota: {selectedPeriod.quota}</span>
 
-          {selectedPeriod.status === 'draft' && (
+          {selectedPeriod.status === "draft" && (
             <button
               onClick={async () => {
-                await updatePeriodStatus(selectedPeriod.id, 'open')
-                invalidateAll()
+                await updatePeriodStatus(selectedPeriod.id, "open");
+                invalidateAll();
               }}
               className="ml-auto px-3 py-1 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-xs font-medium transition-colors"
             >
               Buka Pendaftaran
             </button>
           )}
-          {selectedPeriod.status === 'open' && (
+          {selectedPeriod.status === "open" && (
             <button
               onClick={async () => {
-                await updatePeriodStatus(selectedPeriod.id, 'closed')
-                invalidateAll()
+                await updatePeriodStatus(selectedPeriod.id, "closed");
+                invalidateAll();
               }}
               className="ml-auto px-3 py-1 bg-red-600 hover:bg-red-700 text-white rounded-lg text-xs font-medium transition-colors"
             >
@@ -428,7 +442,9 @@ export function PPDBDashboard() {
         </div>
       )}
 
-      {selectedPeriodId && <PPDBSummaryCards summary={summary} loading={summaryQuery.isLoading} />}
+      {selectedPeriodId && (
+        <PPDBSummaryCards summary={summary} loading={summaryQuery.isLoading} />
+      )}
 
       {selectedPeriodId && (
         <PPDBRegistrationTable
@@ -452,10 +468,12 @@ export function PPDBDashboard() {
 
       {selectedPeriodId && (
         <div className="bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-sm p-6">
-          <h2 className="font-semibold text-slate-800 dark:text-slate-100 mb-4">Aksi</h2>
+          <h2 className="font-semibold text-slate-800 dark:text-slate-100 mb-4">
+            Aksi
+          </h2>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
             <button
-              onClick={() => setConfirmAction({ type: 'bulk-accept' })}
+              onClick={() => setConfirmAction({ type: "bulk-accept" })}
               disabled={selectedIds.size === 0}
               className="flex items-center gap-3 p-4 rounded-xl border border-slate-200 dark:border-slate-600 hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors text-left group disabled:opacity-50 disabled:cursor-not-allowed"
             >
@@ -469,13 +487,13 @@ export function PPDBDashboard() {
                 <p className="text-xs text-slate-500 dark:text-slate-400">
                   {selectedIds.size > 0
                     ? `${selectedIds.size} pendaftar dipilih`
-                    : 'Pilih pendaftar terlebih dahulu'}
+                    : "Pilih pendaftar terlebih dahulu"}
                 </p>
               </div>
             </button>
 
             <button
-              onClick={() => setConfirmAction({ type: 'bulk-reject' })}
+              onClick={() => setConfirmAction({ type: "bulk-reject" })}
               disabled={selectedIds.size === 0}
               className="flex items-center gap-3 p-4 rounded-xl border border-slate-200 dark:border-slate-600 hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors text-left group disabled:opacity-50 disabled:cursor-not-allowed"
             >
@@ -489,7 +507,7 @@ export function PPDBDashboard() {
                 <p className="text-xs text-slate-500 dark:text-slate-400">
                   {selectedIds.size > 0
                     ? `${selectedIds.size} pendaftar dipilih`
-                    : 'Pilih pendaftar terlebih dahulu'}
+                    : "Pilih pendaftar terlebih dahulu"}
                 </p>
               </div>
             </button>
@@ -503,14 +521,20 @@ export function PPDBDashboard() {
                 <Download className="w-5 h-5 text-blue-600 dark:text-blue-400" />
               </div>
               <div>
-                <p className="font-medium text-slate-800 dark:text-slate-200 text-sm">Ekspor CSV</p>
-                <p className="text-xs text-slate-500 dark:text-slate-400">Unduh data pendaftar</p>
+                <p className="font-medium text-slate-800 dark:text-slate-200 text-sm">
+                  Ekspor CSV
+                </p>
+                <p className="text-xs text-slate-500 dark:text-slate-400">
+                  Unduh data pendaftar
+                </p>
               </div>
             </button>
 
             <button
-              onClick={() => setConfirmAction({ type: 'announce' })}
-              disabled={!selectedPeriod || selectedPeriod.status === 'announced'}
+              onClick={() => setConfirmAction({ type: "announce" })}
+              disabled={
+                !selectedPeriod || selectedPeriod.status === "announced"
+              }
               className="flex items-center gap-3 p-4 rounded-xl border border-slate-200 dark:border-slate-600 hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors text-left group disabled:opacity-50 disabled:cursor-not-allowed"
             >
               <div className="w-10 h-10 bg-purple-100 dark:bg-purple-900/30 rounded-xl flex items-center justify-center shrink-0">
@@ -521,9 +545,9 @@ export function PPDBDashboard() {
                   Umumkan Hasil
                 </p>
                 <p className="text-xs text-slate-500 dark:text-slate-400">
-                  {selectedPeriod?.status === 'announced'
-                    ? 'Sudah diumumkan'
-                    : 'Ubah status ke Diumumkan'}
+                  {selectedPeriod?.status === "announced"
+                    ? "Sudah diumumkan"
+                    : "Ubah status ke Diumumkan"}
                 </p>
               </div>
             </button>
@@ -567,7 +591,10 @@ export function PPDBDashboard() {
       )}
 
       {periodModalOpen && (
-        <PPDBPeriodModal onClose={() => setPeriodModalOpen(false)} onSave={handleCreatePeriod} />
+        <PPDBPeriodModal
+          onClose={() => setPeriodModalOpen(false)}
+          onSave={handleCreatePeriod}
+        />
       )}
 
       {addRegModalOpen && selectedPeriodId && (
@@ -578,31 +605,31 @@ export function PPDBDashboard() {
         />
       )}
 
-      {confirmAction?.type === 'bulk-accept' && (
+      {confirmAction?.type === "bulk-accept" && (
         <ConfirmDialog
           title="Terima Pendaftar"
           message={`Anda akan menerima ${selectedIds.size} pendaftar yang dipilih. Lanjutkan?`}
           confirmLabel="Terima"
           confirmClass="bg-emerald-600 hover:bg-emerald-700"
-          onConfirm={() => handleBulkAction('accepted')}
+          onConfirm={() => handleBulkAction("accepted")}
           onCancel={() => setConfirmAction(null)}
           loading={actionLoading}
         />
       )}
 
-      {confirmAction?.type === 'bulk-reject' && (
+      {confirmAction?.type === "bulk-reject" && (
         <ConfirmDialog
           title="Tolak Pendaftar"
           message={`Anda akan menolak ${selectedIds.size} pendaftar yang dipilih. Lanjutkan?`}
           confirmLabel="Tolak"
           confirmClass="bg-red-600 hover:bg-red-700"
-          onConfirm={() => handleBulkAction('rejected')}
+          onConfirm={() => handleBulkAction("rejected")}
           onCancel={() => setConfirmAction(null)}
           loading={actionLoading}
         />
       )}
 
-      {confirmAction?.type === 'announce' && (
+      {confirmAction?.type === "announce" && (
         <ConfirmDialog
           title="Umumkan Hasil PPDB"
           message="Status periode akan diubah menjadi 'Diumumkan'. Pastikan semua pendaftar sudah diproses. Lanjutkan?"
@@ -614,5 +641,5 @@ export function PPDBDashboard() {
         />
       )}
     </div>
-  )
+  );
 }

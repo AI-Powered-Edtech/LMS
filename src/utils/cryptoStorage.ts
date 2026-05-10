@@ -8,10 +8,10 @@
 //   - Active XSS (penyerang menjalankan JS di origin yang sama)
 //   - Akses tingkat OS
 
-const APP_SALT = 'edusync-lms-2026'
+const APP_SALT = "edusync-lms-2026";
 
 // Cache derived keys per userId agar tidak di-derive ulang setiap operasi
-const keyCache = new Map<string, CryptoKey>()
+const keyCache = new Map<string, CryptoKey>();
 
 /**
  * Menurunkan CryptoKey AES-GCM 256-bit dari userId menggunakan PBKDF2.
@@ -21,34 +21,34 @@ const keyCache = new Map<string, CryptoKey>()
  * @returns CryptoKey yang siap digunakan untuk enkripsi/dekripsi
  */
 async function deriveKey(userId: string): Promise<CryptoKey> {
-  const cached = keyCache.get(userId)
-  if (cached) return cached
+  const cached = keyCache.get(userId);
+  if (cached) return cached;
 
   // Encode userId dan salt sebagai bahan PBKDF2
-  const encoder = new TextEncoder()
+  const encoder = new TextEncoder();
   const keyMaterial = await crypto.subtle.importKey(
-    'raw',
+    "raw",
     encoder.encode(userId),
-    'PBKDF2',
+    "PBKDF2",
     false,
-    ['deriveKey']
-  )
+    ["deriveKey"],
+  );
 
   const key = await crypto.subtle.deriveKey(
     {
-      name: 'PBKDF2',
+      name: "PBKDF2",
       salt: encoder.encode(APP_SALT),
       iterations: 100_000,
-      hash: 'SHA-256',
+      hash: "SHA-256",
     },
     keyMaterial,
-    { name: 'AES-GCM', length: 256 },
+    { name: "AES-GCM", length: 256 },
     false, // tidak bisa di-export
-    ['encrypt', 'decrypt']
-  )
+    ["encrypt", "decrypt"],
+  );
 
-  keyCache.set(userId, key)
-  return key
+  keyCache.set(userId, key);
+  return key;
 }
 
 /**
@@ -61,23 +61,30 @@ async function deriveKey(userId: string): Promise<CryptoKey> {
  * @param userId - ID pengguna untuk derivasi kunci
  * @returns String Base64 berisi IV + ciphertext
  */
-export async function encryptData(data: unknown, userId: string): Promise<string> {
-  const key = await deriveKey(userId)
-  const encoder = new TextEncoder()
-  const plaintext = encoder.encode(JSON.stringify(data))
+export async function encryptData(
+  data: unknown,
+  userId: string,
+): Promise<string> {
+  const key = await deriveKey(userId);
+  const encoder = new TextEncoder();
+  const plaintext = encoder.encode(JSON.stringify(data));
 
   // IV acak 12 byte — wajib unik per operasi enkripsi (AES-GCM requirement)
-  const iv = crypto.getRandomValues(new Uint8Array(12))
+  const iv = crypto.getRandomValues(new Uint8Array(12));
 
-  const ciphertext = await crypto.subtle.encrypt({ name: 'AES-GCM', iv }, key, plaintext)
+  const ciphertext = await crypto.subtle.encrypt(
+    { name: "AES-GCM", iv },
+    key,
+    plaintext,
+  );
 
   // Gabungkan IV + ciphertext menjadi satu Uint8Array
-  const combined = new Uint8Array(iv.byteLength + ciphertext.byteLength)
-  combined.set(iv, 0)
-  combined.set(new Uint8Array(ciphertext), iv.byteLength)
+  const combined = new Uint8Array(iv.byteLength + ciphertext.byteLength);
+  combined.set(iv, 0);
+  combined.set(new Uint8Array(ciphertext), iv.byteLength);
 
   // Encode ke Base64 untuk penyimpanan di IndexedDB sebagai string
-  return btoa(String.fromCharCode(...combined))
+  return btoa(String.fromCharCode(...combined));
 }
 
 /**
@@ -88,19 +95,26 @@ export async function encryptData(data: unknown, userId: string): Promise<string
  * @returns Data asli yang telah di-parse dari JSON
  * @throws Error jika kunci salah atau data korup
  */
-export async function decryptData<T>(encrypted: string, userId: string): Promise<T> {
-  const key = await deriveKey(userId)
+export async function decryptData<T>(
+  encrypted: string,
+  userId: string,
+): Promise<T> {
+  const key = await deriveKey(userId);
 
   // Decode Base64 kembali ke binary
-  const binaryString = atob(encrypted)
-  const combined = Uint8Array.from(binaryString, (c) => c.charCodeAt(0))
+  const binaryString = atob(encrypted);
+  const combined = Uint8Array.from(binaryString, (c) => c.charCodeAt(0));
 
   // Pisahkan IV (12 byte pertama) dari ciphertext
-  const iv = combined.slice(0, 12)
-  const ciphertext = combined.slice(12)
+  const iv = combined.slice(0, 12);
+  const ciphertext = combined.slice(12);
 
-  const decrypted = await crypto.subtle.decrypt({ name: 'AES-GCM', iv }, key, ciphertext)
+  const decrypted = await crypto.subtle.decrypt(
+    { name: "AES-GCM", iv },
+    key,
+    ciphertext,
+  );
 
-  const decoder = new TextDecoder()
-  return JSON.parse(decoder.decode(decrypted)) as T
+  const decoder = new TextDecoder();
+  return JSON.parse(decoder.decode(decrypted)) as T;
 }

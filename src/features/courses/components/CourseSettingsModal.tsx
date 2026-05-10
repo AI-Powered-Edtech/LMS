@@ -1,34 +1,42 @@
-import { CheckCircle, GitBranch, Loader2, Settings, Users, X } from 'lucide-react'
-import { AnimatePresence, motion } from 'motion/react'
-import { useEffect, useRef, useState } from 'react'
+import {
+  CheckCircle,
+  GitBranch,
+  Loader2,
+  Settings,
+  Users,
+  X,
+} from "lucide-react";
+import { AnimatePresence, motion } from "motion/react";
+import { useEffect, useRef, useState } from "react";
 
-import { useAuth } from '@/contexts/AuthContext'
-import { PathRuleList } from '@/features/adaptive-paths'
+import { useAuth } from "@/contexts/AuthContext";
+import { PathRuleList } from "@/features/adaptive-paths";
 
-import { useCourseSettings } from '../hooks/useCourseSettings'
-import { CourseCollaborators } from './CourseCollaborators'
+import { useCourseSettings } from "../hooks/useCourseSettings";
+import { CourseCollaborators } from "./CourseCollaborators";
 
 interface CourseSettingsModalProps {
-  isOpen: boolean
-  onClose: () => void
-  courseId: string
+  isOpen: boolean;
+  onClose: () => void;
+  courseId: string;
 }
 
 // ── General Settings Tab ────────────────────────────────────
 
 function GeneralSettingsTab({ courseId }: { courseId: string }) {
-  const { data, isLoading, isSaving, isSaved, error, updateField } = useCourseSettings(courseId)
+  const { data, isLoading, isSaving, isSaved, error, updateField } =
+    useCourseSettings(courseId);
 
   if (isLoading) {
     return (
       <div className="flex items-center justify-center py-12">
         <Loader2 className="w-5 h-5 text-slate-400 animate-spin" />
       </div>
-    )
+    );
   }
 
   const inputClass =
-    'w-full px-4 py-3 text-sm bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-slate-800 dark:text-slate-200 placeholder:text-slate-400 dark:placeholder:text-slate-600 focus:outline-none focus:ring-2 focus:ring-indigo-500/30 focus:border-indigo-400 dark:focus:border-indigo-500 transition-all'
+    "w-full px-4 py-3 text-sm bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-slate-800 dark:text-slate-200 placeholder:text-slate-400 dark:placeholder:text-slate-600 focus:outline-none focus:ring-2 focus:ring-indigo-500/30 focus:border-indigo-400 dark:focus:border-indigo-500 transition-all";
 
   return (
     <div className="space-y-6">
@@ -67,7 +75,7 @@ function GeneralSettingsTab({ courseId }: { courseId: string }) {
           id="settings-title"
           type="text"
           value={data.title}
-          onChange={(e) => updateField('title', e.target.value)}
+          onChange={(e) => updateField("title", e.target.value)}
           className={inputClass}
           placeholder="Masukkan judul kursus..."
         />
@@ -84,7 +92,7 @@ function GeneralSettingsTab({ courseId }: { courseId: string }) {
         <textarea
           id="settings-description"
           value={data.description}
-          onChange={(e) => updateField('description', e.target.value)}
+          onChange={(e) => updateField("description", e.target.value)}
           rows={4}
           className={`${inputClass} resize-none`}
           placeholder="Deskripsi singkat tentang kursus ini..."
@@ -104,7 +112,7 @@ function GeneralSettingsTab({ courseId }: { courseId: string }) {
             id="settings-subject"
             type="text"
             value={data.subject}
-            onChange={(e) => updateField('subject', e.target.value)}
+            onChange={(e) => updateField("subject", e.target.value)}
             className={inputClass}
             placeholder="Contoh: Matematika"
           />
@@ -119,7 +127,7 @@ function GeneralSettingsTab({ courseId }: { courseId: string }) {
           <select
             id="settings-level"
             value={data.level}
-            onChange={(e) => updateField('level', e.target.value)}
+            onChange={(e) => updateField("level", e.target.value)}
             className={inputClass}
           >
             <option value="">Pilih tingkat...</option>
@@ -139,60 +147,64 @@ function GeneralSettingsTab({ courseId }: { courseId: string }) {
         </p>
       )}
     </div>
-  )
+  );
 }
 
 // ── Modal ────────────────────────────────────────────────────
 
-export function CourseSettingsModal({ isOpen, onClose, courseId }: CourseSettingsModalProps) {
-  const { tenantId } = useAuth()
-  const [activeTab, setActiveTab] = useState<'general' | 'collaborators' | 'learning-path'>(
-    'general'
-  )
-  const modalRef = useRef<HTMLDivElement>(null)
+export function CourseSettingsModal({
+  isOpen,
+  onClose,
+  courseId,
+}: CourseSettingsModalProps) {
+  const { tenantId } = useAuth();
+  const [activeTab, setActiveTab] = useState<
+    "general" | "collaborators" | "learning-path"
+  >("general");
+  const modalRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    if (!isOpen) return
-    const modal = modalRef.current
-    if (!modal) return
+    if (!isOpen) return;
+    const modal = modalRef.current;
+    if (!modal) return;
 
     // Focus first focusable element
     const focusable = modal.querySelectorAll<HTMLElement>(
-      'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
-    )
-    if (focusable.length > 0) focusable[0].focus()
+      'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])',
+    );
+    if (focusable.length > 0) focusable[0].focus();
 
     const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') {
-        onClose()
-        return
+      if (e.key === "Escape") {
+        onClose();
+        return;
       }
-      if (e.key !== 'Tab') return
+      if (e.key !== "Tab") return;
 
       const currentFocusable = modal.querySelectorAll<HTMLElement>(
-        'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
-      )
-      const firstEl = currentFocusable[0]
-      const lastEl = currentFocusable[currentFocusable.length - 1]
+        'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])',
+      );
+      const firstEl = currentFocusable[0];
+      const lastEl = currentFocusable[currentFocusable.length - 1];
 
       if (e.shiftKey) {
         if (document.activeElement === firstEl) {
-          e.preventDefault()
-          lastEl.focus()
+          e.preventDefault();
+          lastEl.focus();
         }
       } else {
         if (document.activeElement === lastEl) {
-          e.preventDefault()
-          firstEl.focus()
+          e.preventDefault();
+          firstEl.focus();
         }
       }
-    }
+    };
 
-    modal.addEventListener('keydown', handleKeyDown)
-    return () => modal.removeEventListener('keydown', handleKeyDown)
-  }, [isOpen, onClose])
+    modal.addEventListener("keydown", handleKeyDown);
+    return () => modal.removeEventListener("keydown", handleKeyDown);
+  }, [isOpen, onClose]);
 
-  if (!isOpen) return null
+  if (!isOpen) return null;
 
   return (
     <AnimatePresence>
@@ -228,33 +240,33 @@ export function CourseSettingsModal({ isOpen, onClose, courseId }: CourseSetting
             {/* Sidebar Tabs */}
             <div className="w-56 border-r border-slate-100 dark:border-slate-800 p-4 space-y-2 shrink-0 bg-slate-50/50 dark:bg-slate-900/50">
               <button
-                onClick={() => setActiveTab('general')}
+                onClick={() => setActiveTab("general")}
                 className={`w-full flex items-center gap-3 px-4 py-3 text-sm font-bold rounded-xl transition-all ${
-                  activeTab === 'general'
-                    ? 'bg-indigo-50 dark:bg-indigo-900/20 text-indigo-600 dark:text-indigo-400'
-                    : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800'
+                  activeTab === "general"
+                    ? "bg-indigo-50 dark:bg-indigo-900/20 text-indigo-600 dark:text-indigo-400"
+                    : "text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800"
                 }`}
               >
                 <Settings className="w-4 h-4" />
                 Umum
               </button>
               <button
-                onClick={() => setActiveTab('collaborators')}
+                onClick={() => setActiveTab("collaborators")}
                 className={`w-full flex items-center gap-3 px-4 py-3 text-sm font-bold rounded-xl transition-all ${
-                  activeTab === 'collaborators'
-                    ? 'bg-indigo-50 dark:bg-indigo-900/20 text-indigo-600 dark:text-indigo-400'
-                    : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800'
+                  activeTab === "collaborators"
+                    ? "bg-indigo-50 dark:bg-indigo-900/20 text-indigo-600 dark:text-indigo-400"
+                    : "text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800"
                 }`}
               >
                 <Users className="w-4 h-4" />
                 Kolaborator
               </button>
               <button
-                onClick={() => setActiveTab('learning-path')}
+                onClick={() => setActiveTab("learning-path")}
                 className={`w-full flex items-center gap-3 px-4 py-3 text-sm font-bold rounded-xl transition-all ${
-                  activeTab === 'learning-path'
-                    ? 'bg-indigo-50 dark:bg-indigo-900/20 text-indigo-600 dark:text-indigo-400'
-                    : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800'
+                  activeTab === "learning-path"
+                    ? "bg-indigo-50 dark:bg-indigo-900/20 text-indigo-600 dark:text-indigo-400"
+                    : "text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800"
                 }`}
               >
                 <GitBranch className="w-4 h-4" />
@@ -264,17 +276,17 @@ export function CourseSettingsModal({ isOpen, onClose, courseId }: CourseSetting
 
             {/* Content Area */}
             <div className="flex-1 p-6 overflow-y-auto">
-              {activeTab === 'general' ? (
+              {activeTab === "general" ? (
                 <GeneralSettingsTab courseId={courseId} />
-              ) : activeTab === 'collaborators' ? (
+              ) : activeTab === "collaborators" ? (
                 <CourseCollaborators courseId={courseId} />
               ) : (
-                <PathRuleList courseId={courseId} tenantId={tenantId ?? ''} />
+                <PathRuleList courseId={courseId} tenantId={tenantId ?? ""} />
               )}
             </div>
           </div>
         </motion.div>
       </div>
     </AnimatePresence>
-  )
+  );
 }

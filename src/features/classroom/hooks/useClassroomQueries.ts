@@ -1,142 +1,159 @@
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { useEffect } from 'react'
-import { create } from 'zustand'
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useEffect } from "react";
+import { create } from "zustand";
 
-import { useAuth } from '@/contexts/AuthContext'
-import { Classroom, classroomService } from '@/features/classroom/api/classroomService'
-import { useToast } from '@/hooks/useToast'
-import { createQueryKeys } from '@/lib/queryKeys'
-import { captureError } from '@/utils/sentry'
+import { useAuth } from "@/contexts/AuthContext";
+import {
+  Classroom,
+  classroomService,
+} from "@/features/classroom/api/classroomService";
+import { useToast } from "@/hooks/useToast";
+import { createQueryKeys } from "@/lib/queryKeys";
+import { captureError } from "@/utils/sentry";
 
-const classroomKeys = createQueryKeys('classrooms')
+const classroomKeys = createQueryKeys("classrooms");
 
 // Zustand store for client-side state (activeClassroomId)
 interface ClassroomUIState {
-  activeClassroomId: string | null
-  setActiveClassroomId: (id: string) => void
+  activeClassroomId: string | null;
+  setActiveClassroomId: (id: string) => void;
 }
 
 const useClassroomStore = create<ClassroomUIState>((set) => ({
   activeClassroomId: null,
   setActiveClassroomId: (id) => set({ activeClassroomId: id }),
-}))
+}));
 
 function useClassroomsQuery() {
-  const { user, role, tenantId } = useAuth()
-  const setActiveClassroomId = useClassroomStore((s) => s.setActiveClassroomId)
-  const activeClassroomId = useClassroomStore((s) => s.activeClassroomId)
+  const { user, role, tenantId } = useAuth();
+  const setActiveClassroomId = useClassroomStore((s) => s.setActiveClassroomId);
+  const activeClassroomId = useClassroomStore((s) => s.activeClassroomId);
 
   const query = useQuery<Classroom[]>({
     queryKey: [...classroomKeys.all(tenantId!), user?.id, role],
     queryFn: () =>
       classroomService.fetchClassrooms(
         user!.id,
-        role as 'student' | 'teacher' | 'admin',
-        tenantId!
+        role as "student" | "teacher" | "admin",
+        tenantId!,
       ),
     enabled: !!user && !!tenantId,
-  })
+  });
 
   // Auto-select first classroom when data loads and none selected
   useEffect(() => {
     if (query.data && query.data.length > 0 && !activeClassroomId) {
-      setActiveClassroomId(query.data[0].id)
+      setActiveClassroomId(query.data[0].id);
     }
-  }, [query.data, activeClassroomId, setActiveClassroomId])
+  }, [query.data, activeClassroomId, setActiveClassroomId]);
 
-  return query
+  return query;
 }
 
 function useAddClassroom() {
-  const { user, tenantId } = useAuth()
-  const queryClient = useQueryClient()
+  const { user, tenantId } = useAuth();
+  const queryClient = useQueryClient();
 
   return useMutation({
     mutationFn: async (name: string) => {
-      if (!user || !tenantId) throw new Error('Not authenticated')
-      await classroomService.createClassroom(user.id, name, tenantId)
+      if (!user || !tenantId) throw new Error("Not authenticated");
+      await classroomService.createClassroom(user.id, name, tenantId);
     },
     onSuccess: () => {
-      if (tenantId) void queryClient.invalidateQueries({ queryKey: classroomKeys.all(tenantId!) })
+      if (tenantId)
+        void queryClient.invalidateQueries({
+          queryKey: classroomKeys.all(tenantId!),
+        });
     },
     onError: (err) => {
-      captureError(err, { context: 'useAddClassroom' })
+      captureError(err, { context: "useAddClassroom" });
       useToast.getState().addToast({
-        type: 'error',
-        message: 'Gagal membuat kelas.',
-      })
-      throw err
+        type: "error",
+        message: "Gagal membuat kelas.",
+      });
+      throw err;
     },
-  })
+  });
 }
 
 function useUpdateClassroom() {
-  const { tenantId } = useAuth()
-  const queryClient = useQueryClient()
+  const { tenantId } = useAuth();
+  const queryClient = useQueryClient();
 
   return useMutation({
     mutationFn: async ({ id, name }: { id: string; name: string }) => {
-      await classroomService.updateClassroom(id, name, tenantId!)
+      await classroomService.updateClassroom(id, name, tenantId!);
     },
     onSuccess: () => {
-      if (tenantId) void queryClient.invalidateQueries({ queryKey: classroomKeys.all(tenantId!) })
+      if (tenantId)
+        void queryClient.invalidateQueries({
+          queryKey: classroomKeys.all(tenantId!),
+        });
     },
     onError: (err) => {
-      captureError(err, { context: 'useUpdateClassroom' })
+      captureError(err, { context: "useUpdateClassroom" });
       useToast.getState().addToast({
-        type: 'error',
-        message: 'Gagal memperbarui kelas.',
-      })
+        type: "error",
+        message: "Gagal memperbarui kelas.",
+      });
     },
-  })
+  });
 }
 
 function useJoinClassroom() {
-  const { tenantId } = useAuth()
-  const queryClient = useQueryClient()
+  const { tenantId } = useAuth();
+  const queryClient = useQueryClient();
 
   return useMutation({
     mutationFn: async (joinCode: string) => {
-      await classroomService.joinClassroom(joinCode)
+      await classroomService.joinClassroom(joinCode);
     },
     onSuccess: () => {
-      if (tenantId) void queryClient.invalidateQueries({ queryKey: classroomKeys.all(tenantId!) })
+      if (tenantId)
+        void queryClient.invalidateQueries({
+          queryKey: classroomKeys.all(tenantId!),
+        });
     },
     onError: (err) => {
-      captureError(err, { context: 'useJoinClassroom' })
+      captureError(err, { context: "useJoinClassroom" });
       useToast.getState().addToast({
-        type: 'error',
-        message: 'Gagal bergabung ke kelas.',
-      })
+        type: "error",
+        message: "Gagal bergabung ke kelas.",
+      });
     },
-  })
+  });
 }
 
 /**
  * Drop-in replacement for the old ClassroomContext useClassroom() hook.
  */
 export function useClassroom() {
-  const { data: classrooms = [], isLoading, error, refetch } = useClassroomsQuery()
-  const { activeClassroomId, setActiveClassroomId } = useClassroomStore()
-  const addClassroomMutation = useAddClassroom()
-  const updateClassroomMutation = useUpdateClassroom()
-  const joinClassroomMutation = useJoinClassroom()
+  const {
+    data: classrooms = [],
+    isLoading,
+    error,
+    refetch,
+  } = useClassroomsQuery();
+  const { activeClassroomId, setActiveClassroomId } = useClassroomStore();
+  const addClassroomMutation = useAddClassroom();
+  const updateClassroomMutation = useUpdateClassroom();
+  const joinClassroomMutation = useJoinClassroom();
 
   const addClassroom = async (name: string) => {
-    await addClassroomMutation.mutateAsync(name)
-  }
+    await addClassroomMutation.mutateAsync(name);
+  };
 
   const updateClassroom = async (id: string, name: string) => {
-    await updateClassroomMutation.mutateAsync({ id, name })
-  }
+    await updateClassroomMutation.mutateAsync({ id, name });
+  };
 
   const joinClassroom = async (joinCode: string) => {
-    await joinClassroomMutation.mutateAsync(joinCode)
-  }
+    await joinClassroomMutation.mutateAsync(joinCode);
+  };
 
   const refreshClassrooms = async () => {
-    await refetch()
-  }
+    await refetch();
+  };
 
   return {
     classrooms,
@@ -148,5 +165,5 @@ export function useClassroom() {
     updateClassroom,
     joinClassroom,
     refreshClassrooms,
-  }
+  };
 }

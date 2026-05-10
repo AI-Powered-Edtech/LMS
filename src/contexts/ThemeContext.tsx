@@ -1,112 +1,124 @@
-import React, { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react'
+import React, {
+  createContext,
+  useCallback,
+  useContext,
+  useEffect,
+  useMemo,
+  useState,
+} from "react";
 
-export type Theme = 'light' | 'dark' | 'system'
-export type FontSize = 'sm' | 'md' | 'lg'
+export type Theme = "light" | "dark" | "system";
+export type FontSize = "sm" | "md" | "lg";
 
 interface ThemeContextType {
-  theme: Theme
-  resolvedTheme: 'light' | 'dark'
-  setTheme: (theme: Theme) => void
-  toggleTheme: () => void
-  highContrast: boolean
-  toggleHighContrast: () => void
-  fontSize: FontSize
-  setFontSize: (size: FontSize) => void
+  theme: Theme;
+  resolvedTheme: "light" | "dark";
+  setTheme: (theme: Theme) => void;
+  toggleTheme: () => void;
+  highContrast: boolean;
+  toggleHighContrast: () => void;
+  fontSize: FontSize;
+  setFontSize: (size: FontSize) => void;
 }
 
-const ThemeContext = createContext<ThemeContextType | undefined>(undefined)
+const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
 
-function getSystemTheme(): 'light' | 'dark' {
-  return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'
+function getSystemTheme(): "light" | "dark" {
+  return window.matchMedia("(prefers-color-scheme: dark)").matches
+    ? "dark"
+    : "light";
 }
 
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
   const [theme, setThemeState] = useState<Theme>(() => {
-    const saved = localStorage.getItem('theme')
-    if (saved === 'light' || saved === 'dark' || saved === 'system') {
-      return saved
+    const saved = localStorage.getItem("theme");
+    if (saved === "light" || saved === "dark" || saved === "system") {
+      return saved;
     }
-    return 'system'
-  })
+    return "system";
+  });
 
-  const [resolvedTheme, setResolvedTheme] = useState<'light' | 'dark'>(() =>
-    theme === 'system' ? getSystemTheme() : theme
-  )
+  const [resolvedTheme, setResolvedTheme] = useState<"light" | "dark">(() =>
+    theme === "system" ? getSystemTheme() : theme,
+  );
 
   const [highContrast, setHighContrast] = useState<boolean>(() => {
-    return localStorage.getItem('edusync_high_contrast') === 'true'
-  })
+    return localStorage.getItem("edusync_high_contrast") === "true";
+  });
 
   const [fontSize, setFontSizeState] = useState<FontSize>(() => {
-    const saved = localStorage.getItem('edusync_font_size')
-    if (saved === 'sm' || saved === 'md' || saved === 'lg') return saved
-    return 'md'
-  })
+    const saved = localStorage.getItem("edusync_font_size");
+    if (saved === "sm" || saved === "md" || saved === "lg") return saved;
+    return "md";
+  });
 
   // Sync resolvedTheme when theme changes (user picks light/dark/system)
   useEffect(() => {
-    setResolvedTheme(theme === 'system' ? getSystemTheme() : theme)
-  }, [theme])
+    setResolvedTheme(theme === "system" ? getSystemTheme() : theme);
+  }, [theme]);
 
   // Apply class + persist + ensure smooth transition
   useEffect(() => {
-    localStorage.setItem('theme', theme)
-    const el = document.documentElement
+    localStorage.setItem("theme", theme);
+    const el = document.documentElement;
     // Ensure the html element has a smooth transition for dark mode toggle
     if (!el.style.transition) {
-      el.style.setProperty('transition', 'background-color 0.3s ease, color 0.3s ease')
+      el.style.setProperty(
+        "transition",
+        "background-color 0.3s ease, color 0.3s ease",
+      );
     }
-    if (resolvedTheme === 'dark') {
-      el.classList.add('dark')
+    if (resolvedTheme === "dark") {
+      el.classList.add("dark");
     } else {
-      el.classList.remove('dark')
+      el.classList.remove("dark");
     }
-  }, [theme, resolvedTheme])
+  }, [theme, resolvedTheme]);
 
   // Apply high contrast class on mount and on change
   useEffect(() => {
-    localStorage.setItem('edusync_high_contrast', String(highContrast))
+    localStorage.setItem("edusync_high_contrast", String(highContrast));
     if (highContrast) {
-      document.documentElement.classList.add('high-contrast')
+      document.documentElement.classList.add("high-contrast");
     } else {
-      document.documentElement.classList.remove('high-contrast')
+      document.documentElement.classList.remove("high-contrast");
     }
-  }, [highContrast])
+  }, [highContrast]);
 
   // Apply font size data attribute on mount and on change
   useEffect(() => {
-    localStorage.setItem('edusync_font_size', fontSize)
-    document.documentElement.setAttribute('data-font-size', fontSize)
-  }, [fontSize])
+    localStorage.setItem("edusync_font_size", fontSize);
+    document.documentElement.setAttribute("data-font-size", fontSize);
+  }, [fontSize]);
 
   // Listen for system theme changes when in 'system' mode
   useEffect(() => {
-    if (theme !== 'system') return
-    const mql = window.matchMedia('(prefers-color-scheme: dark)')
+    if (theme !== "system") return;
+    const mql = window.matchMedia("(prefers-color-scheme: dark)");
     const handler = (e: MediaQueryListEvent) => {
-      const newResolved = e.matches ? 'dark' : 'light'
-      setResolvedTheme(newResolved)
-    }
-    mql.addEventListener('change', handler)
-    return () => mql.removeEventListener('change', handler)
-  }, [theme])
+      const newResolved = e.matches ? "dark" : "light";
+      setResolvedTheme(newResolved);
+    };
+    mql.addEventListener("change", handler);
+    return () => mql.removeEventListener("change", handler);
+  }, [theme]);
 
-  const setTheme = useCallback((t: Theme) => setThemeState(t), [])
+  const setTheme = useCallback((t: Theme) => setThemeState(t), []);
 
   const toggleTheme = useCallback(() => {
     setThemeState((prev) => {
-      if (prev === 'system') return 'dark'
-      return prev === 'light' ? 'dark' : 'light'
-    })
-  }, [])
+      if (prev === "system") return "dark";
+      return prev === "light" ? "dark" : "light";
+    });
+  }, []);
 
   const toggleHighContrast = useCallback(() => {
-    setHighContrast((prev) => !prev)
-  }, [])
+    setHighContrast((prev) => !prev);
+  }, []);
 
   const setFontSize = useCallback((size: FontSize) => {
-    setFontSizeState(size)
-  }, [])
+    setFontSizeState(size);
+  }, []);
 
   const value = useMemo(
     () => ({
@@ -128,16 +140,18 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
       toggleHighContrast,
       fontSize,
       setFontSize,
-    ]
-  )
+    ],
+  );
 
-  return <ThemeContext.Provider value={value}>{children}</ThemeContext.Provider>
+  return (
+    <ThemeContext.Provider value={value}>{children}</ThemeContext.Provider>
+  );
 }
 
 export function useTheme() {
-  const context = useContext(ThemeContext)
+  const context = useContext(ThemeContext);
   if (context === undefined) {
-    throw new Error('useTheme must be used within a ThemeProvider')
+    throw new Error("useTheme must be used within a ThemeProvider");
   }
-  return context
+  return context;
 }

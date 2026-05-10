@@ -1,7 +1,7 @@
-import { Route } from 'react-router-dom'
+import { Route } from "react-router-dom";
 
-import { AuthGuard } from '../../components/guards/AuthGuard'
-import { RoleGuard } from '../../components/guards/RoleGuard'
+import { AuthGuard } from "../../components/guards/AuthGuard";
+import { RoleGuard } from "../../components/guards/RoleGuard";
 import {
   AccountDeletionPage,
   Announcements,
@@ -14,6 +14,7 @@ import {
   EnrollPage,
   ForgotPassword,
   Forum,
+  GamificationHub,
   GroupAssignment,
   InviteRedeem,
   Login,
@@ -29,14 +30,13 @@ import {
   PublicProfile,
   ResetPassword,
   Settings,
-  GamificationHub,
   SocialHub,
   TermsOfService,
   Unauthorized,
   VerifyEmail,
   WorkspaceSelector,
-} from '../lazyPages'
-import { S } from './utils'
+} from "../lazyPages";
+import { S } from "./utils";
 
 /**
  * Public routes (login, forgot-password, etc.) rendered at the top level of <Routes>.
@@ -194,7 +194,7 @@ export function PublicRoutes() {
         }
       />
     </>
-  )
+  );
 }
 
 /**
@@ -202,25 +202,31 @@ export function PublicRoutes() {
  * Rendered inside the auth-protected layout.
  */
 export function SharedAuthRoutes() {
-  const allRoles = ['teacher', 'student', 'admin', 'parent', 'principal'] as const
+  const allRoles = [
+    "teacher",
+    "student",
+    "admin",
+    "parent",
+    "principal",
+  ] as const;
   const sharedPages = [
-    { path: 'forum', element: <Forum /> },
-    { path: 'profile', element: <Profile /> },
-    { path: 'p/:username', element: <PublicProfile /> },
-    { path: 'settings', element: <Settings /> },
-    { path: 'calendar', element: <Calendar /> },
-    { path: 'announcements', element: <Announcements /> },
-    { path: 'assignments', element: <Assignments /> },
-    { path: 'group-assignment', element: <GroupAssignment /> },
-    { path: 'group-assignment/:assignmentId', element: <GroupAssignment /> },
-    { path: 'directory', element: <Directory /> },
-    { path: 'social-hub', element: <SocialHub /> },
-    { path: 'gamification-hub', element: <GamificationHub /> },
-    { path: 'notifications', element: <NotificationsPage /> },
-    { path: 'privacy/export-data', element: <DataExportPage /> },
-    { path: 'privacy/delete-account', element: <AccountDeletionPage /> },
-    { path: 'setup-2fa', element: <MFASetupPage /> },
-  ] as const
+    { path: "forum", element: <Forum /> },
+    { path: "profile", element: <Profile /> },
+    { path: "p/:username", element: <PublicProfile /> },
+    { path: "settings", element: <Settings /> },
+    { path: "calendar", element: <Calendar /> },
+    { path: "announcements", element: <Announcements /> },
+    { path: "assignments", element: <Assignments /> },
+    { path: "group-assignment", element: <GroupAssignment /> },
+    { path: "group-assignment/:assignmentId", element: <GroupAssignment /> },
+    { path: "directory", element: <Directory /> },
+    { path: "social-hub", element: <SocialHub /> },
+    { path: "gamification-hub", element: <GamificationHub /> },
+    { path: "notifications", element: <NotificationsPage /> },
+    { path: "privacy/export-data", element: <DataExportPage /> },
+    { path: "privacy/delete-account", element: <AccountDeletionPage /> },
+    { path: "setup-2fa", element: <MFASetupPage /> },
+  ] as const;
 
   return (
     <>
@@ -236,5 +242,5 @@ export function SharedAuthRoutes() {
         />
       ))}
     </>
-  )
+  );
 }

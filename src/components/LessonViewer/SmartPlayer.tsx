@@ -11,18 +11,18 @@
  * - Shows a thin scroll-progress indicator at the viewport top
  */
 
-import { Bot, X } from 'lucide-react'
-import { AnimatePresence, motion } from 'motion/react'
-import { useCallback, useEffect, useRef, useState } from 'react'
+import { Bot, X } from "lucide-react";
+import { AnimatePresence, motion } from "motion/react";
+import { useCallback, useEffect, useRef, useState } from "react";
 
-import { useAuth } from '@/contexts/AuthContext'
-import { AITutorPanel } from '@/features/ai-tutor/components/AITutorPanel'
-import type { Lesson, LessonProgress } from '@/features/lessons'
-import { cn } from '@/utils/cn'
+import { useAuth } from "@/contexts/AuthContext";
+import { AITutorPanel } from "@/features/ai-tutor/components/AITutorPanel";
+import type { Lesson, LessonProgress } from "@/features/lessons";
+import { cn } from "@/utils/cn";
 
-import { MultiBlockViewer } from './MultiBlockViewer'
-import { ProgressReporter } from './ProgressReporter'
-import { ScrollProgressBar } from './ScrollProgressBar'
+import { MultiBlockViewer } from "./MultiBlockViewer";
+import { ProgressReporter } from "./ProgressReporter";
+import { ScrollProgressBar } from "./ScrollProgressBar";
 
 // ---------------------------------------------------------------------------
 // Types
@@ -30,31 +30,31 @@ import { ScrollProgressBar } from './ScrollProgressBar'
 
 interface SmartPlayerProps {
   /** Current lesson object (includes lesson_resources, quizzes, assignments) */
-  lesson: Lesson
+  lesson: Lesson;
   /** Course ID for AI Tutor context */
-  courseId: string
+  courseId: string;
   /** Persisted progress record (may be null for first visit) */
-  progress: LessonProgress | null
+  progress: LessonProgress | null;
   /** Whether the lesson is already marked completed */
-  isCompleted: boolean
+  isCompleted: boolean;
   /** Saved video playback position in seconds */
-  savedVideoPosition?: number | null
+  savedVideoPosition?: number | null;
   /** Block ID of the video whose position was saved */
-  savedVideoBlockId?: string | null
+  savedVideoBlockId?: string | null;
   /** Callback when a video block reports a time update */
-  onVideoTimeUpdate?: (blockId: string, seconds: number) => void
+  onVideoTimeUpdate?: (blockId: string, seconds: number) => void;
   /** Callback when progress percentage changes (0-100) */
-  onProgressUpdate: (pct: number) => void
+  onProgressUpdate: (pct: number) => void;
   /** Callback when all completion conditions are met */
-  onCompletionMet: () => void
+  onCompletionMet: () => void;
   /** Callback on first meaningful interaction */
-  onStartViewing: () => void
+  onStartViewing: () => void;
   /** Callback with resume-anchor data for session restore */
   onResumeAnchorUpdate?: (anchor: {
-    lastBlockId: string
-    lastBlockIndex: number
-    lastBlockOffset: number
-  }) => void
+    lastBlockId: string;
+    lastBlockIndex: number;
+    lastBlockOffset: number;
+  }) => void;
 }
 
 // ---------------------------------------------------------------------------
@@ -74,58 +74,58 @@ export function SmartPlayer({
   onStartViewing,
   onResumeAnchorUpdate,
 }: SmartPlayerProps) {
-  const { tenantId } = useAuth()
+  const { tenantId } = useAuth();
 
   // AI Tutor panel visibility
-  const [isTutorOpen, setIsTutorOpen] = useState(false)
+  const [isTutorOpen, setIsTutorOpen] = useState(false);
 
   // Progress tracking via refs — single source of truth (FL-1 + AR-1 fix).
   // Parent owns canonical state via onProgressUpdate; refs feed ProgressReporter
   // without duplicate useState that caused double tracking & unnecessary re-renders.
-  const progressPctRef = useRef(progress?.progress_percentage ?? 0)
-  const lastPositionRef = useRef(progress?.last_position ?? 0)
+  const progressPctRef = useRef(progress?.progress_percentage ?? 0);
+  const lastPositionRef = useRef(progress?.last_position ?? 0);
 
   // Derive viewer status for ProgressReporter from props (not refs) so it
   // reflects the latest value on re-render (L-21 fix).
-  const reporterStatus: 'started' | 'in_progress' | 'completed' = isCompleted
-    ? 'completed'
+  const reporterStatus: "started" | "in_progress" | "completed" = isCompleted
+    ? "completed"
     : progress && progress.progress_percentage > 0
-      ? 'in_progress'
-      : 'started'
+      ? "in_progress"
+      : "started";
 
   // ---- Handlers -----------------------------------------------------------
 
   const handleProgressUpdate = useCallback(
     (pct: number) => {
-      progressPctRef.current = Math.max(progressPctRef.current, pct)
-      onProgressUpdate(pct)
+      progressPctRef.current = Math.max(progressPctRef.current, pct);
+      onProgressUpdate(pct);
     },
-    [onProgressUpdate]
-  )
+    [onProgressUpdate],
+  );
 
   const handleVideoTimeUpdate = useCallback(
     (blockId: string, seconds: number) => {
-      lastPositionRef.current = Math.max(lastPositionRef.current, seconds)
-      onVideoTimeUpdate?.(blockId, seconds)
+      lastPositionRef.current = Math.max(lastPositionRef.current, seconds);
+      onVideoTimeUpdate?.(blockId, seconds);
     },
-    [onVideoTimeUpdate]
-  )
+    [onVideoTimeUpdate],
+  );
 
   const toggleTutor = useCallback(() => {
-    setIsTutorOpen((prev) => !prev)
-  }, [])
+    setIsTutorOpen((prev) => !prev);
+  }, []);
 
   // Keyboard shortcut: Alt+T toggles AI Tutor (UX-H1)
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.altKey && e.key.toLowerCase() === 't') {
-        e.preventDefault()
-        toggleTutor()
+      if (e.altKey && e.key.toLowerCase() === "t") {
+        e.preventDefault();
+        toggleTutor();
       }
-    }
-    document.addEventListener('keydown', handleKeyDown)
-    return () => document.removeEventListener('keydown', handleKeyDown)
-  }, [toggleTutor])
+    };
+    document.addEventListener("keydown", handleKeyDown);
+    return () => document.removeEventListener("keydown", handleKeyDown);
+  }, [toggleTutor]);
 
   // ---- Render -------------------------------------------------------------
 
@@ -139,8 +139,8 @@ export function SmartPlayer({
         {/* Lesson blocks */}
         <div
           className={cn(
-            'flex-1 overflow-y-auto transition-all duration-300',
-            isTutorOpen && 'lg:mr-[380px]'
+            "flex-1 overflow-y-auto transition-all duration-300",
+            isTutorOpen && "lg:mr-[380px]",
           )}
         >
           <MultiBlockViewer
@@ -160,15 +160,15 @@ export function SmartPlayer({
         <AnimatePresence>
           {isTutorOpen && (
             <motion.aside
-              initial={{ x: '100%', opacity: 0 }}
+              initial={{ x: "100%", opacity: 0 }}
               animate={{ x: 0, opacity: 1 }}
-              exit={{ x: '100%', opacity: 0 }}
-              transition={{ type: 'spring', damping: 24, stiffness: 260 }}
+              exit={{ x: "100%", opacity: 0 }}
+              transition={{ type: "spring", damping: 24, stiffness: 260 }}
               className={cn(
-                'fixed right-0 top-0 bottom-0 w-[380px] z-40 border-l shadow-xl',
-                'bg-white dark:bg-slate-900',
-                'border-slate-200 dark:border-slate-700',
-                'lg:absolute'
+                "fixed right-0 top-0 bottom-0 w-[380px] z-40 border-l shadow-xl",
+                "bg-white dark:bg-slate-900",
+                "border-slate-200 dark:border-slate-700",
+                "lg:absolute",
               )}
             >
               {/* Close button (mobile-friendly) */}
@@ -176,9 +176,9 @@ export function SmartPlayer({
                 onClick={toggleTutor}
                 aria-label="Tutup AI Tutor"
                 className={cn(
-                  'absolute top-3 right-3 z-50 p-2 rounded-xl transition-colors',
-                  'hover:bg-slate-100 dark:hover:bg-slate-800',
-                  'text-slate-400 hover:text-slate-600 dark:text-slate-500 dark:hover:text-slate-300'
+                  "absolute top-3 right-3 z-50 p-2 rounded-xl transition-colors",
+                  "hover:bg-slate-100 dark:hover:bg-slate-800",
+                  "text-slate-400 hover:text-slate-600 dark:text-slate-500 dark:hover:text-slate-300",
                 )}
               >
                 <X className="w-5 h-5" />
@@ -204,16 +204,16 @@ export function SmartPlayer({
             exit={{ scale: 0, opacity: 0 }}
             whileHover={{ scale: 1.08 }}
             whileTap={{ scale: 0.95 }}
-            transition={{ type: 'spring', damping: 18, stiffness: 300 }}
+            transition={{ type: "spring", damping: 18, stiffness: 300 }}
             onClick={toggleTutor}
             aria-label="Buka AI Tutor"
             className={cn(
-              'fixed bottom-24 right-4 z-50 w-12 h-12 rounded-full flex items-center justify-center',
-              'sm:bottom-6 sm:right-6 sm:w-14 sm:h-14',
-              'bg-gradient-to-br from-violet-500 to-purple-600',
-              'shadow-xl shadow-purple-500/30',
-              'hover:shadow-2xl hover:shadow-purple-500/40',
-              'transition-shadow'
+              "fixed bottom-24 right-4 z-50 w-12 h-12 rounded-full flex items-center justify-center",
+              "sm:bottom-6 sm:right-6 sm:w-14 sm:h-14",
+              "bg-gradient-to-br from-violet-500 to-purple-600",
+              "shadow-xl shadow-purple-500/30",
+              "hover:shadow-2xl hover:shadow-purple-500/40",
+              "transition-shadow",
             )}
           >
             <Bot className="w-6 h-6 text-white" />
@@ -233,5 +233,5 @@ export function SmartPlayer({
         />
       )}
     </div>
-  )
+  );
 }

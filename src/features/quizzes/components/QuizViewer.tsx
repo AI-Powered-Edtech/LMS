@@ -1,23 +1,23 @@
-import { AlertTriangle, Cloud, Loader2 } from 'lucide-react'
-import { AnimatePresence, motion } from 'motion/react'
+import { AlertTriangle, Cloud, Loader2 } from "lucide-react";
+import { AnimatePresence, motion } from "motion/react";
 
-import type { QuizQuestion } from '@/features/quizzes/hooks/quizViewerTypes'
-import { useQuizViewerState } from '@/features/quizzes/hooks/useQuizViewerState'
-import { cn } from '@/utils/cn'
+import type { QuizQuestion } from "@/features/quizzes/hooks/quizViewerTypes";
+import { useQuizViewerState } from "@/features/quizzes/hooks/useQuizViewerState";
+import { cn } from "@/utils/cn";
 
-import { QuizViewerQuestion } from './QuizViewerQuestion'
-import { QuizViewerResult } from './QuizViewerResult'
+import { QuizViewerQuestion } from "./QuizViewerQuestion";
+import { QuizViewerResult } from "./QuizViewerResult";
 
 interface QuizViewerProps {
-  quizId: string
-  title: string
-  instructions: string | null
-  questions: QuizQuestion[]
-  maxAttempts: number
-  passingScore?: number
-  isCompleted: boolean
-  onCompletionMet: () => void
-  onStartViewing: () => void
+  quizId: string;
+  title: string;
+  instructions: string | null;
+  questions: QuizQuestion[];
+  maxAttempts: number;
+  passingScore?: number;
+  isCompleted: boolean;
+  onCompletionMet: () => void;
+  onStartViewing: () => void;
 }
 
 export function QuizViewer({
@@ -54,7 +54,7 @@ export function QuizViewer({
     maxAttempts,
     onCompletionMet,
     onStartViewing,
-  })
+  });
 
   if (result) {
     return (
@@ -66,17 +66,19 @@ export function QuizViewer({
         hasAttemptsLeft={hasAttemptsLeft}
         onRetry={handleRetry}
       />
-    )
+    );
   }
 
   return (
     <div className="p-6 md:p-10 max-w-3xl mx-auto w-full h-full overflow-y-auto custom-scrollbar">
       <div className="flex items-center gap-2 text-orange-500 font-bold mb-2">
         <AlertTriangle className="w-5 h-5" />
-        {title.startsWith('Kuis') ? title : `Kuis: ${title}`}
+        {title.startsWith("Kuis") ? title : `Kuis: ${title}`}
       </div>
 
-      {instructions && <p className="text-slate-600 text-sm mb-8">{instructions}</p>}
+      {instructions && (
+        <p className="text-slate-600 text-sm mb-8">{instructions}</p>
+      )}
 
       <div className="space-y-6">
         {[...questions]
@@ -105,10 +107,10 @@ export function QuizViewer({
         onClick={handleSubmit}
         disabled={!allAnswered || isSubmitting}
         className={cn(
-          'w-full mt-6 py-3 rounded-xl font-bold text-white transition-colors',
+          "w-full mt-6 py-3 rounded-xl font-bold text-white transition-colors",
           allAnswered && !isSubmitting
-            ? 'bg-blue-600 hover:bg-blue-700'
-            : 'bg-slate-300 cursor-not-allowed'
+            ? "bg-blue-600 hover:bg-blue-700"
+            : "bg-slate-300 cursor-not-allowed",
         )}
       >
         {isSubmitting ? (
@@ -131,10 +133,10 @@ export function QuizViewer({
           >
             <div
               className={cn(
-                'flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium shadow-sm border',
+                "flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium shadow-sm border",
                 isSaving
-                  ? 'bg-amber-50 border-amber-200 text-amber-700'
-                  : 'bg-green-50 border-green-200 text-green-700'
+                  ? "bg-amber-50 border-amber-200 text-amber-700"
+                  : "bg-green-50 border-green-200 text-green-700",
               )}
             >
               {isSaving ? (
@@ -153,5 +155,5 @@ export function QuizViewer({
         )}
       </AnimatePresence>
     </div>
-  )
+  );
 }

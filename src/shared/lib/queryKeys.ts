@@ -23,28 +23,32 @@
  * All generated keys include tenantId for multi-tenant cache isolation.
  */
 export function createQueryKeys<TScope extends string>(
-  scope: TScope
+  scope: TScope,
 ): {
-  all: (tenantId: string) => readonly [TScope, string]
-  lists: (tenantId: string) => readonly [TScope, string, 'list']
+  all: (tenantId: string) => readonly [TScope, string];
+  lists: (tenantId: string) => readonly [TScope, string, "list"];
   list: (
     tenantId: string,
-    filters?: Record<string, unknown>
-  ) => readonly [TScope, string, 'list', Record<string, unknown> | undefined]
-  details: (tenantId: string) => readonly [TScope, string, 'detail']
-  detail: (tenantId: string, id: string) => readonly [TScope, string, 'detail', string]
+    filters?: Record<string, unknown>,
+  ) => readonly [TScope, string, "list", Record<string, unknown> | undefined];
+  details: (tenantId: string) => readonly [TScope, string, "detail"];
+  detail: (
+    tenantId: string,
+    id: string,
+  ) => readonly [TScope, string, "detail", string];
 } {
   return {
     /** Root key for the entire feature scope: [scope, tenantId] */
     all: (tenantId: string) => [scope, tenantId] as const,
 
     /** List key with optional filters: [scope, tenantId, 'list', filters?] */
-    lists: (tenantId: string) => [scope, tenantId, 'list'] as const,
+    lists: (tenantId: string) => [scope, tenantId, "list"] as const,
     list: (tenantId: string, filters?: Record<string, unknown>) =>
-      [scope, tenantId, 'list', filters] as const,
+      [scope, tenantId, "list", filters] as const,
 
     /** Detail key for a single entity: [scope, tenantId, 'detail', id] */
-    details: (tenantId: string) => [scope, tenantId, 'detail'] as const,
-    detail: (tenantId: string, id: string) => [scope, tenantId, 'detail', id] as const,
-  }
+    details: (tenantId: string) => [scope, tenantId, "detail"] as const,
+    detail: (tenantId: string, id: string) =>
+      [scope, tenantId, "detail", id] as const,
+  };
 }

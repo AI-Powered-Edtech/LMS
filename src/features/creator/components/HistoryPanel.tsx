@@ -1,1 +1,1 @@
-export { HistoryPanel } from '@/features/ai-authoring/components/HistoryPanel'
+export { HistoryPanel } from "@/features/ai-authoring/components/HistoryPanel";

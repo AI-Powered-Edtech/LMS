@@ -1,17 +1,20 @@
-import { valibotResolver } from '@hookform/resolvers/valibot'
-import { ArrowLeft, Loader2, Plus, X } from 'lucide-react'
-import { useEffect } from 'react'
-import { type Resolver, useForm } from 'react-hook-form'
+import { valibotResolver } from "@hookform/resolvers/valibot";
+import { ArrowLeft, Loader2, Plus, X } from "lucide-react";
+import { useEffect } from "react";
+import { type Resolver, useForm } from "react-hook-form";
 
-import { ClassDetailPanel } from '@/features/classroom/components/ClassDetailPanel'
-import { ClassListPanel } from '@/features/classroom/components/ClassListPanel'
-import { useClassManagementState } from '@/features/classroom/hooks/useClassManagementState'
-import { useRoleBasedPath } from '@/hooks/useRoleBasedPath'
-import { type ClassroomFormData, ClassroomFormSchema } from '@/shared/schemas/forms'
+import { ClassDetailPanel } from "@/features/classroom/components/ClassDetailPanel";
+import { ClassListPanel } from "@/features/classroom/components/ClassListPanel";
+import { useClassManagementState } from "@/features/classroom/hooks/useClassManagementState";
+import { useRoleBasedPath } from "@/hooks/useRoleBasedPath";
+import {
+  type ClassroomFormData,
+  ClassroomFormSchema,
+} from "@/shared/schemas/forms";
 
 export function ClassManagement() {
-  const s = useClassManagementState()
-  const getPath = useRoleBasedPath()
+  const s = useClassManagementState();
+  const getPath = useRoleBasedPath();
 
   const {
     register,
@@ -20,30 +23,32 @@ export function ClassManagement() {
     setFocus,
     formState: { errors },
   } = useForm<ClassroomFormData>({
-    resolver: valibotResolver(ClassroomFormSchema) as unknown as Resolver<ClassroomFormData>,
-    defaultValues: { name: '', description: '', subject: '' },
-  })
+    resolver: valibotResolver(
+      ClassroomFormSchema,
+    ) as unknown as Resolver<ClassroomFormData>,
+    defaultValues: { name: "", description: "", subject: "" },
+  });
 
   // Auto-focus name field when form opens
   useEffect(() => {
     if (s.showCreateForm) {
-      setFocus('name')
+      setFocus("name");
     }
-  }, [s.showCreateForm, setFocus])
+  }, [s.showCreateForm, setFocus]);
 
   const onSubmit = async (data: ClassroomFormData) => {
     // Sync value into hook state so existing handleCreateClass logic works
-    s.setNewClassName(data.name.trim())
-    await s.handleCreateClass()
-    reset()
-    s.setShowCreateForm(false)
-  }
+    s.setNewClassName(data.name.trim());
+    await s.handleCreateClass();
+    reset();
+    s.setShowCreateForm(false);
+  };
 
   const handleClose = () => {
-    reset()
-    s.setNewClassName('')
-    s.setShowCreateForm(false)
-  }
+    reset();
+    s.setNewClassName("");
+    s.setShowCreateForm(false);
+  };
 
   return (
     <div className="max-w-7xl mx-auto pb-20">
@@ -51,7 +56,11 @@ export function ClassManagement() {
       <div className="flex items-start justify-between gap-4 mb-6">
         <div className="flex items-center gap-3">
           <button
-            onClick={() => s.navigate(getPath('/app/teacher/dashboard', '/app/admin/dashboard'))}
+            onClick={() =>
+              s.navigate(
+                getPath("/app/teacher/dashboard", "/app/admin/dashboard"),
+              )
+            }
             aria-label="Kembali ke dashboard"
             className="p-2 -ml-2 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-xl transition-colors text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100"
           >
@@ -93,10 +102,10 @@ export function ClassManagement() {
               <input
                 id="class-name"
                 type="text"
-                {...register('name')}
+                {...register("name")}
                 placeholder="Contoh: Kelas 8A, Bahasa Inggris XI-IPA"
                 aria-invalid={!!errors.name}
-                aria-describedby={errors.name ? 'class-name-error' : undefined}
+                aria-describedby={errors.name ? "class-name-error" : undefined}
                 className="w-full px-4 py-2.5 bg-white dark:bg-slate-800 border border-indigo-200 dark:border-indigo-700 rounded-xl text-sm text-slate-900 dark:text-slate-100 outline-none focus:ring-2 focus:ring-indigo-500 aria-[invalid=true]:border-red-400"
               />
               {errors.name && (
@@ -161,5 +170,5 @@ export function ClassManagement() {
         />
       </div>
     </div>
-  )
+  );
 }

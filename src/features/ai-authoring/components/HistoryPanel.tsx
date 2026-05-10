@@ -1,71 +1,78 @@
-import { BookOpen, Clock, FileText, RotateCcw, Trash2, X } from 'lucide-react'
-import { AnimatePresence, motion } from 'motion/react'
+import { BookOpen, Clock, FileText, RotateCcw, Trash2, X } from "lucide-react";
+import { AnimatePresence, motion } from "motion/react";
 
-import { useToast } from '@/components/ui'
-import { cn } from '@/utils/cn'
+import { useToast } from "@/components/ui";
+import { cn } from "@/utils/cn";
 
-import { useAIContentHistory, useDeleteGeneration } from '../queries/aiAuthoringQueries'
-import type { AIGeneratedContent } from '../types'
+import {
+  useAIContentHistory,
+  useDeleteGeneration,
+} from "../queries/aiAuthoringQueries";
+import type { AIGeneratedContent } from "../types";
 
 interface HistoryPanelProps {
-  open: boolean
-  onClose: () => void
-  onLoad: (content: AIGeneratedContent) => void
+  open: boolean;
+  onClose: () => void;
+  onLoad: (content: AIGeneratedContent) => void;
 }
 
 const TYPE_LABELS: Record<string, string> = {
-  quiz: 'Kuis (PG)',
-  reading: 'Membaca',
-  writing: 'Menulis',
-}
+  quiz: "Kuis (PG)",
+  reading: "Membaca",
+  writing: "Menulis",
+};
 
 const TYPE_COLORS: Record<string, string> = {
-  quiz: 'bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400',
-  reading: 'bg-emerald-50 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400',
-  writing: 'bg-amber-50 dark:bg-amber-900/30 text-amber-600 dark:text-amber-400',
-}
+  quiz: "bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400",
+  reading:
+    "bg-emerald-50 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400",
+  writing:
+    "bg-amber-50 dark:bg-amber-900/30 text-amber-600 dark:text-amber-400",
+};
 
 const SOURCE_BADGES: Record<string, { label: string; className: string }> = {
   file: {
-    label: '📄 dari File',
+    label: "📄 dari File",
     className:
-      'bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 border border-blue-200 dark:border-blue-800',
+      "bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 border border-blue-200 dark:border-blue-800",
   },
   lesson: {
-    label: '📚 dari Materi',
+    label: "📚 dari Materi",
     className:
-      'bg-violet-50 dark:bg-violet-900/30 text-violet-600 dark:text-violet-400 border border-violet-200 dark:border-violet-800',
+      "bg-violet-50 dark:bg-violet-900/30 text-violet-600 dark:text-violet-400 border border-violet-200 dark:border-violet-800",
   },
-}
+};
 
 function formatDate(isoString: string): string {
-  const d = new Date(isoString)
-  return d.toLocaleDateString('id-ID', {
-    day: 'numeric',
-    month: 'short',
-    year: 'numeric',
-    hour: '2-digit',
-    minute: '2-digit',
-  })
+  const d = new Date(isoString);
+  return d.toLocaleDateString("id-ID", {
+    day: "numeric",
+    month: "short",
+    year: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+  });
 }
 
 export function HistoryPanel({ open, onClose, onLoad }: HistoryPanelProps) {
-  const addToast = useToast((s) => s.addToast)
-  const { data: history = [], isLoading } = useAIContentHistory()
-  const deleteGeneration = useDeleteGeneration()
+  const addToast = useToast((s) => s.addToast);
+  const { data: history = [], isLoading } = useAIContentHistory();
+  const deleteGeneration = useDeleteGeneration();
 
   const handleLoad = (item: AIGeneratedContent) => {
-    onLoad(item)
-    onClose()
-  }
+    onLoad(item);
+    onClose();
+  };
 
   const handleDelete = async (id: string, e: React.MouseEvent) => {
-    e.stopPropagation()
+    e.stopPropagation();
     await deleteGeneration.mutateAsync(id, {
-      onSuccess: () => addToast({ type: 'success', message: 'Riwayat dihapus.' }),
-      onError: () => addToast({ type: 'error', message: 'Gagal menghapus riwayat.' }),
-    })
-  }
+      onSuccess: () =>
+        addToast({ type: "success", message: "Riwayat dihapus." }),
+      onError: () =>
+        addToast({ type: "error", message: "Gagal menghapus riwayat." }),
+    });
+  };
 
   return (
     <AnimatePresence>
@@ -80,10 +87,10 @@ export function HistoryPanel({ open, onClose, onLoad }: HistoryPanelProps) {
 
           {/* Panel */}
           <motion.div
-            initial={{ x: '100%' }}
+            initial={{ x: "100%" }}
             animate={{ x: 0 }}
-            exit={{ x: '100%' }}
-            transition={{ type: 'spring', damping: 25, stiffness: 200 }}
+            exit={{ x: "100%" }}
+            transition={{ type: "spring", damping: 25, stiffness: 200 }}
             className="fixed right-0 top-0 h-full w-full max-w-md z-[70] bg-white dark:bg-slate-900 border-l border-slate-200 dark:border-slate-700 flex flex-col shadow-2xl"
           >
             {/* Header */}
@@ -127,8 +134,8 @@ export function HistoryPanel({ open, onClose, onLoad }: HistoryPanelProps) {
                 </div>
               ) : (
                 history.map((item) => {
-                  const sourceBadge = SOURCE_BADGES[item.source_type]
-                  const hasCurriculumInfo = item.subject || item.grade_level
+                  const sourceBadge = SOURCE_BADGES[item.source_type];
+                  const hasCurriculumInfo = item.subject || item.grade_level;
 
                   return (
                     <div
@@ -137,7 +144,7 @@ export function HistoryPanel({ open, onClose, onLoad }: HistoryPanelProps) {
                       onClick={() => handleLoad(item)}
                       role="button"
                       tabIndex={0}
-                      onKeyDown={(e) => e.key === 'Enter' && handleLoad(item)}
+                      onKeyDown={(e) => e.key === "Enter" && handleLoad(item)}
                     >
                       <div className="flex items-start gap-3">
                         <div className="w-9 h-9 rounded-xl bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center shrink-0">
@@ -154,18 +161,20 @@ export function HistoryPanel({ open, onClose, onLoad }: HistoryPanelProps) {
                             {/* Assignment type badge */}
                             <span
                               className={cn(
-                                'text-xs font-medium px-2 py-0.5 rounded-full',
-                                TYPE_COLORS[item.assignment_type] ?? TYPE_COLORS.quiz
+                                "text-xs font-medium px-2 py-0.5 rounded-full",
+                                TYPE_COLORS[item.assignment_type] ??
+                                  TYPE_COLORS.quiz,
                               )}
                             >
-                              {TYPE_LABELS[item.assignment_type] ?? item.assignment_type}
+                              {TYPE_LABELS[item.assignment_type] ??
+                                item.assignment_type}
                             </span>
                             {/* Source type badge */}
                             {sourceBadge && (
                               <span
                                 className={cn(
-                                  'text-xs font-medium px-2 py-0.5 rounded-full',
-                                  sourceBadge.className
+                                  "text-xs font-medium px-2 py-0.5 rounded-full",
+                                  sourceBadge.className,
                                 )}
                               >
                                 {sourceBadge.label}
@@ -186,9 +195,14 @@ export function HistoryPanel({ open, onClose, onLoad }: HistoryPanelProps) {
                           {/* Curriculum info */}
                           {hasCurriculumInfo && (
                             <p className="text-xs text-slate-400 dark:text-slate-500 mt-1">
-                              {[item.subject, item.grade_level ? `Kelas ${item.grade_level}` : null]
+                              {[
+                                item.subject,
+                                item.grade_level
+                                  ? `Kelas ${item.grade_level}`
+                                  : null,
+                              ]
                                 .filter(Boolean)
-                                .join(' · ')}
+                                .join(" · ")}
                             </p>
                           )}
                           <p className="text-xs text-slate-400 dark:text-slate-500 mt-1.5">
@@ -214,7 +228,7 @@ export function HistoryPanel({ open, onClose, onLoad }: HistoryPanelProps) {
                         </div>
                       </div>
                     </div>
-                  )
+                  );
                 })
               )}
             </div>
@@ -222,5 +236,5 @@ export function HistoryPanel({ open, onClose, onLoad }: HistoryPanelProps) {
         </>
       )}
     </AnimatePresence>
-  )
+  );
 }

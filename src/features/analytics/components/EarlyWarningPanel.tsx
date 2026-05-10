@@ -1,16 +1,25 @@
-import { AlertTriangle, Loader2, ShieldAlert, TrendingDown, Users } from 'lucide-react'
-import { motion } from 'motion/react'
-import { useState } from 'react'
+import {
+  AlertTriangle,
+  Loader2,
+  ShieldAlert,
+  TrendingDown,
+  Users,
+} from "lucide-react";
+import { motion } from "motion/react";
+import { useState } from "react";
 
-import { cn } from '@/utils/cn'
+import { cn } from "@/utils/cn";
 
-import { useAtRiskStudents, usePredictionSummary } from '../queries/analyticsQueries'
-import type { StudentPrediction } from '../types'
-import { PredictionCard } from './PredictionCard'
-import { RiskRadar } from './RiskRadar'
+import {
+  useAtRiskStudents,
+  usePredictionSummary,
+} from "../queries/analyticsQueries";
+import type { StudentPrediction } from "../types";
+import { PredictionCard } from "./PredictionCard";
+import { RiskRadar } from "./RiskRadar";
 
 interface Props {
-  courseId: string
+  courseId: string;
 }
 
 function SummaryCard({
@@ -19,44 +28,51 @@ function SummaryCard({
   icon: Icon,
   color,
 }: {
-  label: string
-  value: number
-  icon: React.ElementType
-  color: string
+  label: string;
+  value: number;
+  icon: React.ElementType;
+  color: string;
 }) {
   return (
-    <div className={cn('flex items-center gap-3 rounded-lg border p-3', color)}>
+    <div className={cn("flex items-center gap-3 rounded-lg border p-3", color)}>
       <Icon className="h-5 w-5 flex-shrink-0 opacity-70" />
       <div>
         <p className="text-xl font-bold">{value}</p>
         <p className="text-xs opacity-70">{label}</p>
       </div>
     </div>
-  )
+  );
 }
 
 function riskLabel(risk: number) {
   if (risk >= 0.7)
-    return { text: 'Tinggi', cls: 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-300' }
+    return {
+      text: "Tinggi",
+      cls: "bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-300",
+    };
   if (risk >= 0.4)
     return {
-      text: 'Sedang',
-      cls: 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-300',
-    }
+      text: "Sedang",
+      cls: "bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-300",
+    };
   return {
-    text: 'Rendah',
-    cls: 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-300',
-  }
+    text: "Rendah",
+    cls: "bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-300",
+  };
 }
 
 export function EarlyWarningPanel({ courseId }: Props) {
-  const [expandedUser, setExpandedUser] = useState<string | null>(null)
-  const [showRadar, setShowRadar] = useState(false)
+  const [expandedUser, setExpandedUser] = useState<string | null>(null);
+  const [showRadar, setShowRadar] = useState(false);
 
-  const { data: summary, isLoading: summaryLoading } = usePredictionSummary(courseId)
-  const { data: students = [], isLoading: studentsLoading } = useAtRiskStudents(courseId, 0.3)
+  const { data: summary, isLoading: summaryLoading } =
+    usePredictionSummary(courseId);
+  const { data: students = [], isLoading: studentsLoading } = useAtRiskStudents(
+    courseId,
+    0.3,
+  );
 
-  const isLoading = summaryLoading || studentsLoading
+  const isLoading = summaryLoading || studentsLoading;
 
   if (isLoading) {
     return (
@@ -64,10 +80,10 @@ export function EarlyWarningPanel({ courseId }: Props) {
         <Loader2 className="h-4 w-4 animate-spin text-slate-400" />
         <span className="text-sm text-slate-400">Memuat prediksi...</span>
       </div>
-    )
+    );
   }
 
-  if (!summary || summary.total_students === 0) return null
+  if (!summary || summary.total_students === 0) return null;
 
   return (
     <div className="rounded-xl border border-slate-200 bg-white p-5 dark:border-slate-700 dark:bg-slate-900">
@@ -83,7 +99,7 @@ export function EarlyWarningPanel({ courseId }: Props) {
           onClick={() => setShowRadar((v) => !v)}
           className="text-xs text-indigo-600 hover:text-indigo-700 dark:text-indigo-400"
         >
-          {showRadar ? 'Sembunyikan grafik' : 'Lihat grafik risiko'}
+          {showRadar ? "Sembunyikan grafik" : "Lihat grafik risiko"}
         </button>
       </div>
 
@@ -119,7 +135,7 @@ export function EarlyWarningPanel({ courseId }: Props) {
       {showRadar && (
         <motion.div
           initial={{ opacity: 0, height: 0 }}
-          animate={{ opacity: 1, height: 'auto' }}
+          animate={{ opacity: 1, height: "auto" }}
           exit={{ opacity: 0, height: 0 }}
           className="mb-4 overflow-hidden"
         >
@@ -134,32 +150,39 @@ export function EarlyWarningPanel({ courseId }: Props) {
             Siswa Berisiko
           </p>
           {students.map((student: StudentPrediction) => {
-            const rl = riskLabel(student.churn_risk)
-            const isExpanded = expandedUser === student.user_id
+            const rl = riskLabel(student.churn_risk);
+            const isExpanded = expandedUser === student.user_id;
             return (
               <div key={student.user_id}>
                 <button
-                  onClick={() => setExpandedUser(isExpanded ? null : student.user_id)}
+                  onClick={() =>
+                    setExpandedUser(isExpanded ? null : student.user_id)
+                  }
                   className={cn(
-                    'flex w-full items-center gap-3 rounded-lg px-3 py-2 text-left transition-colors',
-                    'hover:bg-slate-50 dark:hover:bg-slate-800',
-                    isExpanded && 'bg-slate-50 dark:bg-slate-800'
+                    "flex w-full items-center gap-3 rounded-lg px-3 py-2 text-left transition-colors",
+                    "hover:bg-slate-50 dark:hover:bg-slate-800",
+                    isExpanded && "bg-slate-50 dark:bg-slate-800",
                   )}
                 >
                   <span className="flex-1 text-sm font-medium text-slate-800 dark:text-white truncate">
                     {student.student_name}
                   </span>
-                  <span className={cn('rounded-full px-2 py-0.5 text-xs font-medium', rl.cls)}>
+                  <span
+                    className={cn(
+                      "rounded-full px-2 py-0.5 text-xs font-medium",
+                      rl.cls,
+                    )}
+                  >
                     {rl.text}
                   </span>
                   <span
                     className={cn(
-                      'text-sm font-bold',
+                      "text-sm font-bold",
                       student.churn_risk >= 0.7
-                        ? 'text-red-600 dark:text-red-400'
+                        ? "text-red-600 dark:text-red-400"
                         : student.churn_risk >= 0.4
-                          ? 'text-amber-600 dark:text-amber-400'
-                          : 'text-emerald-600 dark:text-emerald-400'
+                          ? "text-amber-600 dark:text-amber-400"
+                          : "text-emerald-600 dark:text-emerald-400",
                     )}
                   >
                     {(student.churn_risk * 100).toFixed(0)}%
@@ -167,10 +190,10 @@ export function EarlyWarningPanel({ courseId }: Props) {
                 </button>
                 <PredictionCard prediction={student} isExpanded={isExpanded} />
               </div>
-            )
+            );
           })}
         </div>
       )}
     </div>
-  )
+  );
 }

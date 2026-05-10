@@ -1,86 +1,92 @@
-import { Download, Loader2, Upload } from 'lucide-react'
-import { useCallback, useRef, useState } from 'react'
+import { Download, Loader2, Upload } from "lucide-react";
+import { useCallback, useRef, useState } from "react";
 
-import { useToast } from '@/components/ui'
-import { useAuth } from '@/contexts/AuthContext'
-import type { QuestionBankItem } from '@/features/question-bank/api/questionBankService'
-import { questionBankService } from '@/features/question-bank/api/questionBankService'
+import { useToast } from "@/components/ui";
+import { useAuth } from "@/contexts/AuthContext";
+import type { QuestionBankItem } from "@/features/question-bank/api/questionBankService";
+import { questionBankService } from "@/features/question-bank/api/questionBankService";
 
 interface QuestionExportFormat {
-  version: string
-  exportedAt: string
-  tenantId: string
+  version: string;
+  exportedAt: string;
+  tenantId: string;
   questions: Array<{
-    question_text: string
-    question_type: string
-    options?: Array<{ text: string; is_correct: boolean }>
-    correct_answer?: string
-    explanation?: string
-    difficulty: string
-    subject?: string
-    tags?: string[]
-  }>
+    question_text: string;
+    question_type: string;
+    options?: Array<{ text: string; is_correct: boolean }>;
+    correct_answer?: string;
+    explanation?: string;
+    difficulty: string;
+    subject?: string;
+    tags?: string[];
+  }>;
 }
 
 export function QuestionBankExportImport() {
-  const { tenantId } = useAuth()
-  const addToast = useToast((s) => s.addToast)
-  const [exporting, setExporting] = useState(false)
-  const [importing, setImporting] = useState(false)
-  const fileInputRef = useRef<HTMLInputElement>(null)
+  const { tenantId } = useAuth();
+  const addToast = useToast((s) => s.addToast);
+  const [exporting, setExporting] = useState(false);
+  const [importing, setImporting] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleExport = useCallback(async () => {
-    setExporting(true)
+    setExporting(true);
     try {
       const questions = await questionBankService.searchQuestions({
         limit: 1000,
-      })
+      });
 
       const exportData: QuestionExportFormat = {
-        version: '1.0',
+        version: "1.0",
         exportedAt: new Date().toISOString(),
-        tenantId: tenantId ?? '',
+        tenantId: tenantId ?? "",
         questions: (questions ?? []).map((q: QuestionBankItem) => ({
           question_text: q.question_text,
           question_type: q.question_type,
-          options: q.options?.map((o) => ({ text: o.option_text, is_correct: o.is_correct })),
+          options: q.options?.map((o) => ({
+            text: o.option_text,
+            is_correct: o.is_correct,
+          })),
           explanation: q.explanation ?? undefined,
           difficulty: String(q.difficulty_level),
           subject: q.subject_id ?? undefined,
           tags: q.tags,
         })),
-      }
+      };
 
-      const json = JSON.stringify(exportData, null, 2)
-      const blob = new Blob([json], { type: 'application/json' })
-      const url = URL.createObjectURL(blob)
-      const a = document.createElement('a')
-      a.href = url
-      a.download = `bank-soal-${new Date().toISOString().slice(0, 10)}.json`
-      document.body.appendChild(a)
-      a.click()
-      document.body.removeChild(a)
-      URL.revokeObjectURL(url)
+      const json = JSON.stringify(exportData, null, 2);
+      const blob = new Blob([json], { type: "application/json" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `bank-soal-${new Date().toISOString().slice(0, 10)}.json`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
 
-      addToast({ type: 'success', message: `${questions?.length ?? 0} soal berhasil di-export` })
+      addToast({
+        type: "success",
+        message: `${questions?.length ?? 0} soal berhasil di-export`,
+      });
     } catch {
-      addToast({ type: 'error', message: 'Gagal mengexport soal' })
+      addToast({ type: "error", message: "Gagal mengexport soal" });
     }
-    setExporting(false)
-  }, [tenantId, addToast])
+    setExporting(false);
+  }, [tenantId, addToast]);
 
   const handleImport = useCallback(
     async (event: React.ChangeEvent<HTMLInputElement>) => {
-      const file = event.target.files?.[0]
-      if (!file) return
+      const file = event.target.files?.[0];
+      if (!file) return;
 
-      setImporting(true)
+      setImporting(true);
       try {
-        const text = await file.text()
-        const data: QuestionExportFormat = JSON.parse(text)
+        const text = await file.text();
+        const data: QuestionExportFormat = JSON.parse(text);
 
         if (!data.questions || !Array.isArray(data.questions)) {
-          throw new Error('Format file tidak valid')
+          throw new Error("Format file tidak valid");
         }
 
         // ⚡ Bolt: parallelize I/O-bound loop using Promise.allSettled
@@ -99,28 +105,33 @@ export function QuestionBankExportImport() {
                   order_index: i,
                 })) ?? [],
               tags: q.tags ?? [],
-            })
-          )
-        )
-        const imported = results.filter((r) => r.status === 'fulfilled').length
+            }),
+          ),
+        );
+        const imported = results.filter((r) => r.status === "fulfilled").length;
 
         addToast({
-          type: imported > 0 ? 'success' : 'error',
+          type: imported > 0 ? "success" : "error",
           message: `${imported}/${data.questions.length} soal berhasil di-import`,
-        })
+        });
       } catch {
-        addToast({ type: 'error', message: 'File tidak valid. Pastikan format JSON benar.' })
+        addToast({
+          type: "error",
+          message: "File tidak valid. Pastikan format JSON benar.",
+        });
       }
-      setImporting(false)
+      setImporting(false);
 
-      if (fileInputRef.current) fileInputRef.current.value = ''
+      if (fileInputRef.current) fileInputRef.current.value = "";
     },
-    [addToast]
-  )
+    [addToast],
+  );
 
   return (
     <div className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm p-4 space-y-4">
-      <h3 className="font-semibold text-slate-900 dark:text-white">Export / Import Soal</h3>
+      <h3 className="font-semibold text-slate-900 dark:text-white">
+        Export / Import Soal
+      </h3>
 
       <div className="flex flex-wrap gap-3">
         <button
@@ -163,5 +174,5 @@ export function QuestionBankExportImport() {
         Format: JSON. File export dapat di-import ke instance EduSync lain.
       </p>
     </div>
-  )
+  );
 }

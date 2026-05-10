@@ -1,61 +1,74 @@
-import { FileText, Loader2, X } from 'lucide-react'
-import { useState } from 'react'
+import { FileText, Loader2, X } from "lucide-react";
+import { useState } from "react";
 
-import { sanitizeUrl } from '@/utils/sanitize'
+import { sanitizeUrl } from "@/utils/sanitize";
 
-import type { PPDBRegistration, PPDBRegistrationStatus } from '../../types/ppdb'
+import type {
+  PPDBRegistration,
+  PPDBRegistrationStatus,
+} from "../../types/ppdb";
 
 const ID_MONTHS = [
-  'Jan',
-  'Feb',
-  'Mar',
-  'Apr',
-  'Mei',
-  'Jun',
-  'Jul',
-  'Agu',
-  'Sep',
-  'Okt',
-  'Nov',
-  'Des',
-]
+  "Jan",
+  "Feb",
+  "Mar",
+  "Apr",
+  "Mei",
+  "Jun",
+  "Jul",
+  "Agu",
+  "Sep",
+  "Okt",
+  "Nov",
+  "Des",
+];
 
 function formatDate(dateStr: string | null): string {
-  if (!dateStr) return '—'
-  const d = new Date(dateStr)
-  const wibOffset = 7 * 60
-  const utcMs = d.getTime() + d.getTimezoneOffset() * 60_000
-  const wib = new Date(utcMs + wibOffset * 60_000)
-  return `${String(wib.getDate()).padStart(2, '0')} ${ID_MONTHS[wib.getMonth()]} ${wib.getFullYear()}`
+  if (!dateStr) return "—";
+  const d = new Date(dateStr);
+  const wibOffset = 7 * 60;
+  const utcMs = d.getTime() + d.getTimezoneOffset() * 60_000;
+  const wib = new Date(utcMs + wibOffset * 60_000);
+  return `${String(wib.getDate()).padStart(2, "0")} ${ID_MONTHS[wib.getMonth()]} ${wib.getFullYear()}`;
 }
 
 function translateGender(g: string): string {
-  return g === 'L' ? 'Laki-laki' : 'Perempuan'
+  return g === "L" ? "Laki-laki" : "Perempuan";
 }
 
 interface PPDBDetailModalProps {
-  registration: PPDBRegistration
-  onClose: () => void
-  onStatusChange: (id: string, status: PPDBRegistrationStatus, notes?: string) => Promise<void>
+  registration: PPDBRegistration;
+  onClose: () => void;
+  onStatusChange: (
+    id: string,
+    status: PPDBRegistrationStatus,
+    notes?: string,
+  ) => Promise<void>;
 }
 
-export function PPDBDetailModal({ registration, onClose, onStatusChange }: PPDBDetailModalProps) {
-  const [status, setStatus] = useState<PPDBRegistrationStatus>(registration.status)
-  const [notes, setNotes] = useState(registration.notes ?? '')
-  const [saving, setSaving] = useState(false)
+export function PPDBDetailModal({
+  registration,
+  onClose,
+  onStatusChange,
+}: PPDBDetailModalProps) {
+  const [status, setStatus] = useState<PPDBRegistrationStatus>(
+    registration.status,
+  );
+  const [notes, setNotes] = useState(registration.notes ?? "");
+  const [saving, setSaving] = useState(false);
 
   async function handleSave() {
-    setSaving(true)
+    setSaving(true);
     try {
-      await onStatusChange(registration.id, status, notes)
-      onClose()
+      await onStatusChange(registration.id, status, notes);
+      onClose();
     } finally {
-      setSaving(false)
+      setSaving(false);
     }
   }
 
-  const docs = registration.documents ?? {}
-  const docEntries = Object.entries(docs).filter(([, v]) => v)
+  const docs = registration.documents ?? {};
+  const docEntries = Object.entries(docs).filter(([, v]) => v);
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
@@ -90,21 +103,27 @@ export function PPDBDetailModal({ registration, onClose, onStatusChange }: PPDBD
                 </p>
               </div>
               <div>
-                <p className="text-slate-500 dark:text-slate-400">Tanggal Lahir</p>
+                <p className="text-slate-500 dark:text-slate-400">
+                  Tanggal Lahir
+                </p>
                 <p className="font-medium text-slate-900 dark:text-slate-100">
                   {formatDate(registration.birth_date)}
                 </p>
               </div>
               <div>
-                <p className="text-slate-500 dark:text-slate-400">Jenis Kelamin</p>
+                <p className="text-slate-500 dark:text-slate-400">
+                  Jenis Kelamin
+                </p>
                 <p className="font-medium text-slate-900 dark:text-slate-100">
                   {translateGender(registration.gender)}
                 </p>
               </div>
               <div>
-                <p className="text-slate-500 dark:text-slate-400">Asal Sekolah</p>
+                <p className="text-slate-500 dark:text-slate-400">
+                  Asal Sekolah
+                </p>
                 <p className="font-medium text-slate-900 dark:text-slate-100">
-                  {registration.previous_school || '—'}
+                  {registration.previous_school || "—"}
                 </p>
               </div>
             </div>
@@ -130,13 +149,13 @@ export function PPDBDetailModal({ registration, onClose, onStatusChange }: PPDBD
               <div>
                 <p className="text-slate-500 dark:text-slate-400">Email</p>
                 <p className="font-medium text-slate-900 dark:text-slate-100">
-                  {registration.parent_email || '—'}
+                  {registration.parent_email || "—"}
                 </p>
               </div>
               <div>
                 <p className="text-slate-500 dark:text-slate-400">Alamat</p>
                 <p className="font-medium text-slate-900 dark:text-slate-100">
-                  {registration.address || '—'}
+                  {registration.address || "—"}
                 </p>
               </div>
             </div>
@@ -171,7 +190,9 @@ export function PPDBDetailModal({ registration, onClose, onStatusChange }: PPDBD
             </h3>
             <select
               value={status}
-              onChange={(e) => setStatus(e.target.value as PPDBRegistrationStatus)}
+              onChange={(e) =>
+                setStatus(e.target.value as PPDBRegistrationStatus)
+              }
               className="w-full px-3 py-2 text-sm bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-600 rounded-xl text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-blue-500/30 focus:border-blue-500"
             >
               <option value="pending">Menunggu</option>
@@ -214,5 +235,5 @@ export function PPDBDetailModal({ registration, onClose, onStatusChange }: PPDBD
         </div>
       </div>
     </div>
-  )
+  );
 }

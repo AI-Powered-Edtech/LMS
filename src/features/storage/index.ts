@@ -1,2 +1,2 @@
-export * from './api/storageService'
-export type * from './types'
+export * from "./api/storageService";
+export type * from "./types";

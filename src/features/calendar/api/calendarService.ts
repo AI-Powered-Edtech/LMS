@@ -28,17 +28,35 @@ export const calendarService = {
     const [{ data: assignments }, { data: schedules }, { data: quizzes }] =
       await Promise.all([
         db
-          .from<Array<{ id: string; title: string; due_date: string; description: string | null }>>("assignments")
+          .from<
+            Array<{
+              id: string;
+              title: string;
+              due_date: string;
+              description: string | null;
+            }>
+          >("assignments")
           .select("id, title, due_date, description")
           .eq("tenant_id", tenantId)
           .not("due_date", "is", null)
           .order("due_date"),
         db
-          .from<Array<{ id: string; day: string; start_time: string; end_time: string; tenant_id: string; class_id: string }>>("class_schedules")
+          .from<
+            Array<{
+              id: string;
+              day: string;
+              start_time: string;
+              end_time: string;
+              tenant_id: string;
+              class_id: string;
+            }>
+          >("class_schedules")
           .select("*")
           .eq("tenant_id", tenantId),
         db
-          .from<Array<{ id: string; title: string; created_at: string }>>("quizzes")
+          .from<
+            Array<{ id: string; title: string; created_at: string }>
+          >("quizzes")
           .select("id, title, created_at")
           .eq("tenant_id", tenantId)
           .order("created_at", { ascending: false })

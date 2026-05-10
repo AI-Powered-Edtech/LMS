@@ -1,16 +1,16 @@
-import { ArrowRight, Star, Trophy, X } from 'lucide-react'
-import { motion } from 'motion/react'
-import { useEffect, useRef } from 'react'
+import { ArrowRight, Star, Trophy, X } from "lucide-react";
+import { motion } from "motion/react";
+import { useEffect, useRef } from "react";
 
-import { useReducedMotion } from '@/hooks/useReducedMotion'
-import { cn } from '@/utils/cn'
+import { useReducedMotion } from "@/hooks/useReducedMotion";
+import { cn } from "@/utils/cn";
 
 interface ModuleCompletionModalProps {
-  moduleTitle: string
-  onContinue: () => void
-  onClose: () => void
-  hasNextModule: boolean
-  xpEarned?: number
+  moduleTitle: string;
+  onContinue: () => void;
+  onClose: () => void;
+  hasNextModule: boolean;
+  xpEarned?: number;
 }
 
 export function ModuleCompletionModal({
@@ -20,39 +20,49 @@ export function ModuleCompletionModal({
   hasNextModule,
   xpEarned,
 }: ModuleCompletionModalProps) {
-  const firedRef = useRef(false)
-  const continueRef = useRef<HTMLButtonElement>(null)
-  const reducedMotion = useReducedMotion()
+  const firedRef = useRef(false);
+  const continueRef = useRef<HTMLButtonElement>(null);
+  const reducedMotion = useReducedMotion();
 
   useEffect(() => {
-    if (firedRef.current || reducedMotion) return
-    firedRef.current = true
+    if (firedRef.current || reducedMotion) return;
+    firedRef.current = true;
 
-    import('canvas-confetti')
+    import("canvas-confetti")
       .then(({ default: confetti }) => {
         void confetti({
           particleCount: 120,
           spread: 80,
           origin: { y: 0.55 },
-          colors: ['#6366f1', '#3b82f6', '#f59e0b', '#10b981', '#f43f5e'],
-        })
+          colors: ["#6366f1", "#3b82f6", "#f59e0b", "#10b981", "#f43f5e"],
+        });
         setTimeout(() => {
-          void confetti({ particleCount: 60, spread: 55, origin: { y: 0.5, x: 0.2 }, angle: 60 })
-          void confetti({ particleCount: 60, spread: 55, origin: { y: 0.5, x: 0.8 }, angle: 120 })
-        }, 250)
+          void confetti({
+            particleCount: 60,
+            spread: 55,
+            origin: { y: 0.5, x: 0.2 },
+            angle: 60,
+          });
+          void confetti({
+            particleCount: 60,
+            spread: 55,
+            origin: { y: 0.5, x: 0.8 },
+            angle: 120,
+          });
+        }, 250);
       })
-      .catch(() => {})
-  }, [reducedMotion])
+      .catch(() => {});
+  }, [reducedMotion]);
 
   // Keyboard & focus management (A11-H1)
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') onClose()
-    }
-    document.addEventListener('keydown', handleKeyDown)
-    continueRef.current?.focus()
-    return () => document.removeEventListener('keydown', handleKeyDown)
-  }, [onClose])
+      if (e.key === "Escape") onClose();
+    };
+    document.addEventListener("keydown", handleKeyDown);
+    continueRef.current?.focus();
+    return () => document.removeEventListener("keydown", handleKeyDown);
+  }, [onClose]);
 
   return (
     <motion.div
@@ -66,12 +76,14 @@ export function ModuleCompletionModal({
         animate={{ scale: 1, opacity: 1, y: 0 }}
         exit={reducedMotion ? undefined : { scale: 0.82, opacity: 0, y: 20 }}
         transition={
-          reducedMotion ? { duration: 0 } : { type: 'spring', damping: 18, stiffness: 280 }
+          reducedMotion
+            ? { duration: 0 }
+            : { type: "spring", damping: 18, stiffness: 280 }
         }
         className={cn(
-          'relative rounded-3xl p-8 shadow-2xl text-center max-w-md mx-4 w-full overflow-hidden',
-          'bg-white dark:bg-slate-900',
-          'border border-slate-100 dark:border-slate-800'
+          "relative rounded-3xl p-8 shadow-2xl text-center max-w-md mx-4 w-full overflow-hidden",
+          "bg-white dark:bg-slate-900",
+          "border border-slate-100 dark:border-slate-800",
         )}
       >
         {/* Decorative gradient background */}
@@ -84,9 +96,9 @@ export function ModuleCompletionModal({
         <button
           onClick={onClose}
           className={cn(
-            'absolute top-4 right-4 p-2.5 min-w-[44px] min-h-[44px] flex items-center justify-center rounded-xl transition-colors z-10',
-            'hover:bg-slate-100 dark:hover:bg-slate-800',
-            'text-slate-400 dark:text-slate-500 hover:text-slate-600 dark:hover:text-slate-300'
+            "absolute top-4 right-4 p-2.5 min-w-[44px] min-h-[44px] flex items-center justify-center rounded-xl transition-colors z-10",
+            "hover:bg-slate-100 dark:hover:bg-slate-800",
+            "text-slate-400 dark:text-slate-500 hover:text-slate-600 dark:hover:text-slate-300",
           )}
         >
           <X className="w-5 h-5" />
@@ -97,16 +109,18 @@ export function ModuleCompletionModal({
           <motion.div
             animate={reducedMotion ? {} : { scale: [1, 1.12, 1] }}
             transition={
-              reducedMotion ? { duration: 0 } : { duration: 2, repeat: Infinity, ease: 'easeInOut' }
+              reducedMotion
+                ? { duration: 0 }
+                : { duration: 2, repeat: Infinity, ease: "easeInOut" }
             }
             className="absolute inset-0 rounded-full bg-amber-200/60 dark:bg-amber-500/20"
           />
           <div
             className={cn(
-              'relative w-24 h-24 rounded-full flex items-center justify-center',
-              'bg-gradient-to-br from-amber-100 to-orange-100 dark:from-amber-900/40 dark:to-orange-900/30',
-              'border-2 border-amber-200 dark:border-amber-700/50',
-              'shadow-lg shadow-amber-100 dark:shadow-amber-900/20'
+              "relative w-24 h-24 rounded-full flex items-center justify-center",
+              "bg-gradient-to-br from-amber-100 to-orange-100 dark:from-amber-900/40 dark:to-orange-900/30",
+              "border-2 border-amber-200 dark:border-amber-700/50",
+              "shadow-lg shadow-amber-100 dark:shadow-amber-900/20",
             )}
           >
             <Trophy className="w-11 h-11 text-amber-500 dark:text-amber-400" />
@@ -115,7 +129,9 @@ export function ModuleCompletionModal({
           <motion.div
             animate={reducedMotion ? {} : { rotate: 360 }}
             transition={
-              reducedMotion ? { duration: 0 } : { duration: 6, repeat: Infinity, ease: 'linear' }
+              reducedMotion
+                ? { duration: 0 }
+                : { duration: 6, repeat: Infinity, ease: "linear" }
             }
             className="absolute -top-1 -right-1"
           >
@@ -142,7 +158,9 @@ export function ModuleCompletionModal({
         >
           Selamat! Anda telah menyelesaikan
           <br />
-          <span className="font-semibold text-slate-700 dark:text-slate-200">{moduleTitle}</span>
+          <span className="font-semibold text-slate-700 dark:text-slate-200">
+            {moduleTitle}
+          </span>
         </motion.p>
 
         {/* Achievement pill */}
@@ -151,11 +169,11 @@ export function ModuleCompletionModal({
           animate={{ opacity: 1, scale: 1 }}
           transition={reducedMotion ? { duration: 0 } : { delay: 0.2 }}
           className={cn(
-            'inline-flex items-center gap-2 px-4 py-2 rounded-full text-xs font-bold',
-            xpEarned && xpEarned > 0 ? 'mb-3' : 'mb-6',
-            'bg-gradient-to-r from-green-100 to-emerald-100 text-green-700',
-            'dark:from-green-900/40 dark:to-emerald-900/30 dark:text-green-300',
-            'border border-green-200 dark:border-green-700/50'
+            "inline-flex items-center gap-2 px-4 py-2 rounded-full text-xs font-bold",
+            xpEarned && xpEarned > 0 ? "mb-3" : "mb-6",
+            "bg-gradient-to-r from-green-100 to-emerald-100 text-green-700",
+            "dark:from-green-900/40 dark:to-emerald-900/30 dark:text-green-300",
+            "border border-green-200 dark:border-green-700/50",
           )}
         >
           <Star className="w-3.5 h-3.5 fill-current" />
@@ -185,14 +203,14 @@ export function ModuleCompletionModal({
             ref={continueRef}
             onClick={onContinue}
             className={cn(
-              'flex items-center justify-center gap-2 w-full px-6 py-3.5 font-semibold rounded-xl transition-all duration-200',
-              'bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700',
-              'dark:from-blue-500 dark:to-indigo-500 dark:hover:from-blue-600 dark:hover:to-indigo-600',
-              'text-white shadow-lg shadow-blue-200/60 dark:shadow-blue-900/40',
-              'hover:scale-[1.02] active:scale-[0.98]'
+              "flex items-center justify-center gap-2 w-full px-6 py-3.5 font-semibold rounded-xl transition-all duration-200",
+              "bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700",
+              "dark:from-blue-500 dark:to-indigo-500 dark:hover:from-blue-600 dark:hover:to-indigo-600",
+              "text-white shadow-lg shadow-blue-200/60 dark:shadow-blue-900/40",
+              "hover:scale-[1.02] active:scale-[0.98]",
             )}
           >
-            {hasNextModule ? 'Lanjut ke Modul Berikutnya' : 'Kembali ke Kursus'}
+            {hasNextModule ? "Lanjut ke Modul Berikutnya" : "Kembali ke Kursus"}
             <ArrowRight className="w-4 h-4" />
           </button>
           <button
@@ -204,5 +222,5 @@ export function ModuleCompletionModal({
         </motion.div>
       </motion.div>
     </motion.div>
-  )
+  );
 }

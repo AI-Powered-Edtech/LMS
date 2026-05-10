@@ -5,18 +5,18 @@
  * Hanya dirender jika ada konten bantuan untuk route saat ini.
  */
 
-import { HelpCircle, X } from 'lucide-react'
-import { AnimatePresence, motion } from 'motion/react'
-import { useState } from 'react'
+import { HelpCircle, X } from "lucide-react";
+import { AnimatePresence, motion } from "motion/react";
+import { useState } from "react";
 
-import { usePageHelp } from '@/hooks/usePageHelp'
+import { usePageHelp } from "@/hooks/usePageHelp";
 
 export function HelpButton() {
-  const helpItem = usePageHelp()
-  const [isOpen, setIsOpen] = useState(false)
+  const helpItem = usePageHelp();
+  const [isOpen, setIsOpen] = useState(false);
 
   // Tidak ada konten bantuan untuk halaman ini — jangan render apapun
-  if (!helpItem) return null
+  if (!helpItem) return null;
 
   return (
     <>
@@ -84,7 +84,7 @@ export function HelpButton() {
       <button
         type="button"
         onClick={() => setIsOpen((prev) => !prev)}
-        aria-label={isOpen ? 'Tutup bantuan' : 'Buka bantuan halaman ini'}
+        aria-label={isOpen ? "Tutup bantuan" : "Buka bantuan halaman ini"}
         aria-expanded={isOpen}
         className="fixed bottom-20 right-4 sm:bottom-6 sm:right-6 z-[999] w-11 h-11 rounded-full bg-blue-600 hover:bg-blue-700 active:bg-blue-800 text-white shadow-lg shadow-blue-500/40 dark:shadow-blue-900/60 flex items-center justify-center transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2"
       >
@@ -113,5 +113,5 @@ export function HelpButton() {
         </AnimatePresence>
       </button>
     </>
-  )
+  );
 }

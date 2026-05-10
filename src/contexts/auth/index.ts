@@ -5,6 +5,6 @@ export {
   type Role,
   type Tenant,
   useRoleResolution,
-} from './useRoleResolution'
-export { useSessionManagement } from './useSessionManagement'
-export { useTenantSwitching } from './useTenantSwitching'
+} from "./useRoleResolution";
+export { useSessionManagement } from "./useSessionManagement";
+export { useTenantSwitching } from "./useTenantSwitching";

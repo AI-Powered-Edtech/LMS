@@ -346,7 +346,6 @@ export function subscribeToGroupMessages(
   _tenantId: string,
   _callback: (message: GroupMessage) => void,
 ) {
-   
   return { unsubscribe: () => {} };
 }
 

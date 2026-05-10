@@ -1,20 +1,25 @@
-import { AlertTriangle, Clock, Loader2, Play, X } from 'lucide-react'
-import { motion } from 'motion/react'
+import { AlertTriangle, Clock, Loader2, Play, X } from "lucide-react";
+import { motion } from "motion/react";
 
-import type { StudentQuizAssignment } from '../../types/quizzes.types'
+import type { StudentQuizAssignment } from "../../types/quizzes.types";
 
 interface PendingQuiz extends StudentQuizAssignment {
-  isResume?: boolean
+  isResume?: boolean;
 }
 
 interface StartQuizModalProps {
-  pendingQuiz: PendingQuiz
-  isStarting: boolean
-  onClose: () => void
-  onStart: (quiz: PendingQuiz) => void
+  pendingQuiz: PendingQuiz;
+  isStarting: boolean;
+  onClose: () => void;
+  onStart: (quiz: PendingQuiz) => void;
 }
 
-export function StartQuizModal({ pendingQuiz, isStarting, onClose, onStart }: StartQuizModalProps) {
+export function StartQuizModal({
+  pendingQuiz,
+  isStarting,
+  onClose,
+  onStart,
+}: StartQuizModalProps) {
   return (
     <motion.div
       initial={{ opacity: 0 }}
@@ -22,7 +27,7 @@ export function StartQuizModal({ pendingQuiz, isStarting, onClose, onStart }: St
       exit={{ opacity: 0 }}
       className="fixed inset-0 bg-black/40 backdrop-blur-sm z-50 flex items-center justify-center p-4"
       onClick={onClose}
-      onKeyDown={(e) => e.key === 'Escape' && onClose()}
+      onKeyDown={(e) => e.key === "Escape" && onClose()}
     >
       <motion.div
         initial={{ scale: 0.95, opacity: 0 }}
@@ -31,7 +36,7 @@ export function StartQuizModal({ pendingQuiz, isStarting, onClose, onStart }: St
         onClick={(e) => e.stopPropagation()}
         role="dialog"
         aria-modal="true"
-        aria-label={pendingQuiz.isResume ? 'Lanjutkan Kuis' : 'Mulai Kuis'}
+        aria-label={pendingQuiz.isResume ? "Lanjutkan Kuis" : "Mulai Kuis"}
         className="bg-white dark:bg-slate-900 rounded-3xl shadow-2xl dark:shadow-slate-900/50 max-w-md w-full p-8 relative"
       >
         <button
@@ -47,9 +52,11 @@ export function StartQuizModal({ pendingQuiz, isStarting, onClose, onStart }: St
         </div>
 
         <h2 className="text-2xl font-bold text-slate-900 dark:text-white text-center mb-2">
-          {pendingQuiz.isResume ? 'Lanjutkan Kuis?' : 'Mulai Kuis?'}
+          {pendingQuiz.isResume ? "Lanjutkan Kuis?" : "Mulai Kuis?"}
         </h2>
-        <p className="text-slate-500 dark:text-slate-400 text-center mb-6">{pendingQuiz.title}</p>
+        <p className="text-slate-500 dark:text-slate-400 text-center mb-6">
+          {pendingQuiz.title}
+        </p>
 
         <div className="space-y-3 mb-6">
           <div className="flex items-center justify-between py-3 px-4 bg-slate-50 dark:bg-slate-800 rounded-xl">
@@ -86,10 +93,12 @@ export function StartQuizModal({ pendingQuiz, isStarting, onClose, onStart }: St
           <div className="flex items-start gap-3 p-4 bg-blue-50 dark:bg-blue-900/20 rounded-xl border border-blue-100 dark:border-blue-800 mb-6">
             <Clock className="w-5 h-5 text-blue-500 shrink-0 mt-0.5" />
             <div className="text-sm text-blue-700 dark:text-blue-300">
-              <p className="font-bold mb-1">Anda memiliki kuis yang masih berjalan.</p>
+              <p className="font-bold mb-1">
+                Anda memiliki kuis yang masih berjalan.
+              </p>
               <p>
-                Waktu yang tersisa akan dilanjutkan dari sisa waktu sebelumnya. Harap segera
-                diselesaikan.
+                Waktu yang tersisa akan dilanjutkan dari sisa waktu sebelumnya.
+                Harap segera diselesaikan.
               </p>
             </div>
           </div>
@@ -99,8 +108,8 @@ export function StartQuizModal({ pendingQuiz, isStarting, onClose, onStart }: St
             <div className="text-sm text-amber-700 dark:text-amber-300">
               <p className="font-bold mb-1">Peringatan Waktu!</p>
               <p>
-                Setelah Anda menekan tombol mulai, timer akan langsung berjalan. Waktu tidak dapat
-                dihentikan sementara.
+                Setelah Anda menekan tombol mulai, timer akan langsung berjalan.
+                Waktu tidak dapat dihentikan sementara.
               </p>
             </div>
           </div>
@@ -125,14 +134,14 @@ export function StartQuizModal({ pendingQuiz, isStarting, onClose, onStart }: St
             )}
             {isStarting
               ? pendingQuiz.isResume
-                ? 'Melanjutkan...'
-                : 'Memulai...'
+                ? "Melanjutkan..."
+                : "Memulai..."
               : pendingQuiz.isResume
-                ? 'Lanjutkan Kuis'
-                : 'Mulai Kuis'}
+                ? "Lanjutkan Kuis"
+                : "Mulai Kuis"}
           </button>
         </div>
       </motion.div>
     </motion.div>
-  )
+  );
 }

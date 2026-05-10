@@ -1,52 +1,73 @@
-import { ArrowLeft, FileText, GraduationCap, Loader2, Send } from 'lucide-react'
-import { AnimatePresence, motion } from 'motion/react'
-import { useCallback, useState } from 'react'
+import {
+  ArrowLeft,
+  FileText,
+  GraduationCap,
+  Loader2,
+  Send,
+} from "lucide-react";
+import { AnimatePresence, motion } from "motion/react";
+import { useCallback, useState } from "react";
 
-import { useToast } from '@/components/ui'
-import type { Assignment, AssignmentSubmission } from '@/features/assignments/api/assignmentService'
-import { assignmentService } from '@/features/assignments/api/assignmentService'
-import { sanitizeUrl } from '@/utils/sanitize'
+import { useToast } from "@/components/ui";
+import type {
+  Assignment,
+  AssignmentSubmission,
+} from "@/features/assignments/api/assignmentService";
+import { assignmentService } from "@/features/assignments/api/assignmentService";
+import { sanitizeUrl } from "@/utils/sanitize";
 
 interface GradingModalProps {
-  submission: AssignmentSubmission | null
-  assignment: Assignment | null
-  tenantId: string | null
-  onClose: () => void
+  submission: AssignmentSubmission | null;
+  assignment: Assignment | null;
+  tenantId: string | null;
+  onClose: () => void;
 }
 
 function getStudentName(submission: AssignmentSubmission): string {
   if (Array.isArray(submission.user_profiles)) {
-    return submission.user_profiles[0]?.full_name || 'Siswa'
+    return submission.user_profiles[0]?.full_name || "Siswa";
   }
-  return submission.user_profiles?.full_name || 'Siswa'
+  return submission.user_profiles?.full_name || "Siswa";
 }
 
-export function GradingModal({ submission, assignment, tenantId, onClose }: GradingModalProps) {
-  const { addToast } = useToast()
-  const [score, setScore] = useState(submission?.score || 0)
-  const [feedback, setFeedback] = useState('')
-  const [isSubmittingGrade, setIsSubmittingGrade] = useState(false)
+export function GradingModal({
+  submission,
+  assignment,
+  tenantId,
+  onClose,
+}: GradingModalProps) {
+  const { addToast } = useToast();
+  const [score, setScore] = useState(submission?.score || 0);
+  const [feedback, setFeedback] = useState("");
+  const [isSubmittingGrade, setIsSubmittingGrade] = useState(false);
 
   const handleSaveGrade = useCallback(async () => {
-    if (!submission || !tenantId) return
-    setIsSubmittingGrade(true)
+    if (!submission || !tenantId) return;
+    setIsSubmittingGrade(true);
     try {
-      await assignmentService.gradeSubmission(submission.id, tenantId, score, feedback)
-      onClose()
+      await assignmentService.gradeSubmission(
+        submission.id,
+        tenantId,
+        score,
+        feedback,
+      );
+      onClose();
     } catch (err) {
       addToast({
-        type: 'error',
-        message: 'Gagal menyimpan nilai: ' + (err instanceof Error ? err.message : String(err)),
-      })
+        type: "error",
+        message:
+          "Gagal menyimpan nilai: " +
+          (err instanceof Error ? err.message : String(err)),
+      });
     } finally {
-      setIsSubmittingGrade(false)
+      setIsSubmittingGrade(false);
     }
-  }, [addToast, feedback, onClose, score, submission, tenantId])
+  }, [addToast, feedback, onClose, score, submission, tenantId]);
 
   const handleOpen = useCallback(() => {
-    setScore(submission?.score || 0)
-    setFeedback('')
-  }, [submission])
+    setScore(submission?.score || 0);
+    setFeedback("");
+  }, [submission]);
 
   return (
     <AnimatePresence>
@@ -75,7 +96,9 @@ export function GradingModal({ submission, assignment, tenantId, onClose }: Grad
                   <h3 className="font-bold text-slate-800 dark:text-slate-200">
                     Menilai: {getStudentName(submission)}
                   </h3>
-                  <p className="text-xs text-slate-400 font-medium">Tugas: {assignment?.title}</p>
+                  <p className="text-xs text-slate-400 font-medium">
+                    Tugas: {assignment?.title}
+                  </p>
                 </div>
               </div>
               <button
@@ -92,7 +115,8 @@ export function GradingModal({ submission, assignment, tenantId, onClose }: Grad
                   Hasil Pekerjaan Siswa
                 </h4>
                 <div className="bg-slate-50 dark:bg-slate-700/50 rounded-2xl p-6 border border-slate-100 dark:border-slate-700 min-h-[300px] text-slate-700 dark:text-slate-300 whitespace-pre-wrap text-sm leading-relaxed italic">
-                  {submission.submission_text || 'Siswa tidak menyertakan teks tambahan.'}
+                  {submission.submission_text ||
+                    "Siswa tidak menyertakan teks tambahan."}
                 </div>
                 {submission.file_url && (
                   <a
@@ -116,7 +140,10 @@ export function GradingModal({ submission, assignment, tenantId, onClose }: Grad
                 </h4>
 
                 <div className="space-y-2">
-                  <label htmlFor="score-input" className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase flex justify-between">
+                  <label
+                    htmlFor="score-input"
+                    className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase flex justify-between"
+                  >
                     Skor (0 - {assignment?.max_points})
                     <span className="text-blue-600">
                       {score} / {assignment?.max_points}
@@ -134,7 +161,10 @@ export function GradingModal({ submission, assignment, tenantId, onClose }: Grad
                 </div>
 
                 <div className="space-y-2">
-                  <label htmlFor="feedback-input" className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
+                  <label
+                    htmlFor="feedback-input"
+                    className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider"
+                  >
                     Umpan Balik (Feedback)
                   </label>
                   <textarea
@@ -165,5 +195,5 @@ export function GradingModal({ submission, assignment, tenantId, onClose }: Grad
         </div>
       )}
     </AnimatePresence>
-  )
+  );
 }

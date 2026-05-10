@@ -1,68 +1,86 @@
-import { AlertCircle, CheckCircle2, Clock, Loader2, Lock, Users2 } from 'lucide-react'
-import { motion } from 'motion/react'
-import { useEffect, useState } from 'react'
+import {
+  AlertCircle,
+  CheckCircle2,
+  Clock,
+  Loader2,
+  Lock,
+  Users2,
+} from "lucide-react";
+import { motion } from "motion/react";
+import { useEffect, useState } from "react";
 
-import { useAuth } from '@/contexts/AuthContext'
-import { useRubricByAssignment } from '@/features/rubrics'
-import { useToast } from '@/hooks/useToast'
-import { cn } from '@/utils/cn'
+import { useAuth } from "@/contexts/AuthContext";
+import { useRubricByAssignment } from "@/features/rubrics";
+import { useToast } from "@/hooks/useToast";
+import { cn } from "@/utils/cn";
 
 import {
   useAssignReviews,
   usePeerReviewConfig,
   useSavePeerReviewConfig,
-} from '../queries/peerReviewQueries'
+} from "../queries/peerReviewQueries";
 
 interface PeerReviewConfigPanelProps {
   /** ID of the already-saved assignment. If undefined, panel is locked. */
-  assignmentId: string | undefined
-  tenantId: string
+  assignmentId: string | undefined;
+  tenantId: string;
 }
 
 const STATUS_LABEL: Record<string, string> = {
-  pending: 'Menunggu',
-  assigning: 'Sedang ditugaskan',
-  in_review: 'Sedang direview',
-  completed: 'Selesai',
-}
+  pending: "Menunggu",
+  assigning: "Sedang ditugaskan",
+  in_review: "Sedang direview",
+  completed: "Selesai",
+};
 
 const STATUS_COLOR: Record<string, string> = {
-  pending: 'bg-slate-100 text-slate-600 dark:bg-slate-700 dark:text-slate-300',
-  assigning: 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900/40 dark:text-yellow-300',
-  in_review: 'bg-blue-100 text-blue-700 dark:bg-blue-900/40 dark:text-blue-300',
-  completed: 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-300',
-}
+  pending: "bg-slate-100 text-slate-600 dark:bg-slate-700 dark:text-slate-300",
+  assigning:
+    "bg-yellow-100 text-yellow-700 dark:bg-yellow-900/40 dark:text-yellow-300",
+  in_review: "bg-blue-100 text-blue-700 dark:bg-blue-900/40 dark:text-blue-300",
+  completed:
+    "bg-emerald-100 text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-300",
+};
 
 const INPUT_CLS =
-  'w-full px-3 py-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 dark:text-white text-sm'
+  "w-full px-3 py-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 dark:text-white text-sm";
 
-export function PeerReviewConfigPanel({ assignmentId, tenantId }: PeerReviewConfigPanelProps) {
-  const { user } = useAuth()
-  const addToast = useToast((s) => s.addToast)
+export function PeerReviewConfigPanel({
+  assignmentId,
+  tenantId,
+}: PeerReviewConfigPanelProps) {
+  const { user } = useAuth();
+  const addToast = useToast((s) => s.addToast);
 
-  const { data: config, isLoading: configLoading } = usePeerReviewConfig(assignmentId, tenantId)
-  const { data: rubric } = useRubricByAssignment(assignmentId ?? null, tenantId)
-  const saveMutation = useSavePeerReviewConfig()
-  const assignMutation = useAssignReviews()
+  const { data: config, isLoading: configLoading } = usePeerReviewConfig(
+    assignmentId,
+    tenantId,
+  );
+  const { data: rubric } = useRubricByAssignment(
+    assignmentId ?? null,
+    tenantId,
+  );
+  const saveMutation = useSavePeerReviewConfig();
+  const assignMutation = useAssignReviews();
 
-  const [enabled, setEnabled] = useState(false)
-  const [reviewsPerStudent, setReviewsPerStudent] = useState(3)
-  const [isAnonymous, setIsAnonymous] = useState(true)
-  const [weightInGrade, setWeightInGrade] = useState(20)
-  const [dueDate, setDueDate] = useState('')
-  const [rubricId, setRubricId] = useState<string | null>(null)
+  const [enabled, setEnabled] = useState(false);
+  const [reviewsPerStudent, setReviewsPerStudent] = useState(3);
+  const [isAnonymous, setIsAnonymous] = useState(true);
+  const [weightInGrade, setWeightInGrade] = useState(20);
+  const [dueDate, setDueDate] = useState("");
+  const [rubricId, setRubricId] = useState<string | null>(null);
 
   // Sync form state from loaded config
   useEffect(() => {
     if (config) {
-      setEnabled(true)
-      setReviewsPerStudent(config.reviews_per_student)
-      setIsAnonymous(config.is_anonymous)
-      setWeightInGrade(Math.round(config.weight_in_grade * 100))
-      setDueDate(config.due_date ? config.due_date.slice(0, 16) : '')
-      setRubricId(config.rubric_id)
+      setEnabled(true);
+      setReviewsPerStudent(config.reviews_per_student);
+      setIsAnonymous(config.is_anonymous);
+      setWeightInGrade(Math.round(config.weight_in_grade * 100));
+      setDueDate(config.due_date ? config.due_date.slice(0, 16) : "");
+      setRubricId(config.rubric_id);
     }
-  }, [config])
+  }, [config]);
 
   if (!assignmentId) {
     return (
@@ -77,7 +95,7 @@ export function PeerReviewConfigPanel({ assignmentId, tenantId }: PeerReviewConf
           Konfigurasi Peer Review hanya tersedia setelah tugas disimpan.
         </p>
       </div>
-    )
+    );
   }
 
   if (configLoading) {
@@ -85,11 +103,11 @@ export function PeerReviewConfigPanel({ assignmentId, tenantId }: PeerReviewConf
       <div className="flex items-center justify-center py-12">
         <Loader2 className="w-6 h-6 animate-spin text-blue-500" />
       </div>
-    )
+    );
   }
 
   const handleSave = async () => {
-    if (!user?.id) return
+    if (!user?.id) return;
     try {
       await saveMutation.mutateAsync({
         config: {
@@ -102,33 +120,44 @@ export function PeerReviewConfigPanel({ assignmentId, tenantId }: PeerReviewConf
         },
         tenantId,
         createdBy: user.id,
-      })
-      addToast({ type: 'success', message: 'Konfigurasi peer review disimpan.' })
+      });
+      addToast({
+        type: "success",
+        message: "Konfigurasi peer review disimpan.",
+      });
     } catch {
-      addToast({ type: 'error', message: 'Gagal menyimpan konfigurasi. Silakan coba lagi.' })
+      addToast({
+        type: "error",
+        message: "Gagal menyimpan konfigurasi. Silakan coba lagi.",
+      });
     }
-  }
+  };
 
   const handleAssign = async () => {
-    if (!config) return
+    if (!config) return;
     try {
       const count = await assignMutation.mutateAsync({
         configId: config.id,
         tenantId,
         assignmentId,
-      })
+      });
       addToast({
-        type: 'success',
+        type: "success",
         message: `Berhasil menugaskan ${count} pasangan peer review.`,
-      })
+      });
     } catch (err) {
-      const msg = err instanceof Error ? err.message : 'Gagal menugaskan peer review.'
-      addToast({ type: 'error', message: msg })
+      const msg =
+        err instanceof Error ? err.message : "Gagal menugaskan peer review.";
+      addToast({ type: "error", message: msg });
     }
-  }
+  };
 
   return (
-    <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} className="space-y-6">
+    <motion.div
+      initial={{ opacity: 0, y: 8 }}
+      animate={{ opacity: 1, y: 0 }}
+      className="space-y-6"
+    >
       {/* Enable toggle */}
       <div className="flex items-center justify-between p-4 bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700">
         <div className="flex items-center gap-3">
@@ -136,7 +165,9 @@ export function PeerReviewConfigPanel({ assignmentId, tenantId }: PeerReviewConf
             <Users2 className="w-5 h-5 text-blue-600 dark:text-blue-400" />
           </div>
           <div>
-            <p className="text-sm font-bold text-slate-800 dark:text-white">Aktifkan Peer Review</p>
+            <p className="text-sm font-bold text-slate-800 dark:text-white">
+              Aktifkan Peer Review
+            </p>
             <p className="text-xs text-slate-500 dark:text-slate-400">
               Siswa akan saling menilai tugas satu sama lain
             </p>
@@ -148,14 +179,14 @@ export function PeerReviewConfigPanel({ assignmentId, tenantId }: PeerReviewConf
           aria-checked={enabled}
           onClick={() => setEnabled((v) => !v)}
           className={cn(
-            'relative inline-flex w-11 h-6 rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500',
-            enabled ? 'bg-blue-600' : 'bg-slate-300 dark:bg-slate-600'
+            "relative inline-flex w-11 h-6 rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500",
+            enabled ? "bg-blue-600" : "bg-slate-300 dark:bg-slate-600",
           )}
         >
           <span
             className={cn(
-              'inline-block w-5 h-5 bg-white rounded-full shadow transform transition-transform mt-0.5',
-              enabled ? 'translate-x-5' : 'translate-x-0.5'
+              "inline-block w-5 h-5 bg-white rounded-full shadow transform transition-transform mt-0.5",
+              enabled ? "translate-x-5" : "translate-x-0.5",
             )}
           />
         </button>
@@ -165,7 +196,7 @@ export function PeerReviewConfigPanel({ assignmentId, tenantId }: PeerReviewConf
       {enabled && (
         <motion.div
           initial={{ opacity: 0, height: 0 }}
-          animate={{ opacity: 1, height: 'auto' }}
+          animate={{ opacity: 1, height: "auto" }}
           className="space-y-5"
         >
           {/* Status badge */}
@@ -173,13 +204,13 @@ export function PeerReviewConfigPanel({ assignmentId, tenantId }: PeerReviewConf
             <div className="flex items-center gap-2">
               <span
                 className={cn(
-                  'inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-bold',
-                  STATUS_COLOR[config.status] ?? STATUS_COLOR.pending
+                  "inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-bold",
+                  STATUS_COLOR[config.status] ?? STATUS_COLOR.pending,
                 )}
               >
-                {config.status === 'in_review' ? (
+                {config.status === "in_review" ? (
                   <Clock className="w-3 h-3" />
-                ) : config.status === 'completed' ? (
+                ) : config.status === "completed" ? (
                   <CheckCircle2 className="w-3 h-3" />
                 ) : (
                   <AlertCircle className="w-3 h-3" />
@@ -201,7 +232,9 @@ export function PeerReviewConfigPanel({ assignmentId, tenantId }: PeerReviewConf
                 max={5}
                 value={reviewsPerStudent}
                 onChange={(e) =>
-                  setReviewsPerStudent(Math.min(5, Math.max(1, Number(e.target.value))))
+                  setReviewsPerStudent(
+                    Math.min(5, Math.max(1, Number(e.target.value))),
+                  )
                 }
                 className={INPUT_CLS}
               />
@@ -211,8 +244,10 @@ export function PeerReviewConfigPanel({ assignmentId, tenantId }: PeerReviewConf
             {/* Weight in grade */}
             <div className="space-y-1.5">
               <label className="text-xs font-bold text-slate-700 dark:text-slate-300">
-                Bobot Nilai Peer Review:{' '}
-                <span className="text-blue-600 dark:text-blue-400">{weightInGrade}%</span>
+                Bobot Nilai Peer Review:{" "}
+                <span className="text-blue-600 dark:text-blue-400">
+                  {weightInGrade}%
+                </span>
               </label>
               <input
                 type="range"
@@ -246,14 +281,14 @@ export function PeerReviewConfigPanel({ assignmentId, tenantId }: PeerReviewConf
               aria-checked={isAnonymous}
               onClick={() => setIsAnonymous((v) => !v)}
               className={cn(
-                'relative inline-flex w-10 h-5 rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500',
-                isAnonymous ? 'bg-blue-600' : 'bg-slate-300 dark:bg-slate-600'
+                "relative inline-flex w-10 h-5 rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500",
+                isAnonymous ? "bg-blue-600" : "bg-slate-300 dark:bg-slate-600",
               )}
             >
               <span
                 className={cn(
-                  'inline-block w-4 h-4 bg-white rounded-full shadow transform transition-transform mt-0.5',
-                  isAnonymous ? 'translate-x-5' : 'translate-x-0.5'
+                  "inline-block w-4 h-4 bg-white rounded-full shadow transform transition-transform mt-0.5",
+                  isAnonymous ? "translate-x-5" : "translate-x-0.5",
                 )}
               />
             </button>
@@ -293,7 +328,8 @@ export function PeerReviewConfigPanel({ assignmentId, tenantId }: PeerReviewConf
               </div>
             ) : (
               <p className="text-xs text-slate-400 dark:text-slate-500 italic">
-                Belum ada rubrik untuk tugas ini. Buat rubrik di tab Rubrik terlebih dahulu.
+                Belum ada rubrik untuk tugas ini. Buat rubrik di tab Rubrik
+                terlebih dahulu.
               </p>
             )}
           </div>
@@ -315,7 +351,7 @@ export function PeerReviewConfigPanel({ assignmentId, tenantId }: PeerReviewConf
             </button>
 
             {/* Assign reviews button — only when config exists and status is pending */}
-            {config && config.status === 'pending' && (
+            {config && config.status === "pending" && (
               <button
                 type="button"
                 onClick={handleAssign}
@@ -334,5 +370,5 @@ export function PeerReviewConfigPanel({ assignmentId, tenantId }: PeerReviewConf
         </motion.div>
       )}
     </motion.div>
-  )
+  );
 }

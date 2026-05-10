@@ -1,64 +1,64 @@
-import type { Meta, StoryObj } from '@storybook/react'
+import type { Meta, StoryObj } from "@storybook/react";
 
-import { Button } from './Button'
-import { Tooltip } from './Tooltip'
+import { Button } from "./Button";
+import { Tooltip } from "./Tooltip";
 
 const meta: Meta<typeof Tooltip> = {
-  title: 'UI/Tooltip',
+  title: "UI/Tooltip",
   component: Tooltip,
-  tags: ['autodocs'],
+  tags: ["autodocs"],
   argTypes: {
     position: {
-      control: 'select',
-      options: ['top', 'bottom', 'left', 'right'],
+      control: "select",
+      options: ["top", "bottom", "left", "right"],
     },
   },
   parameters: {
-    layout: 'centered',
+    layout: "centered",
   },
-}
+};
 
-export default meta
-type Story = StoryObj<typeof Tooltip>
+export default meta;
+type Story = StoryObj<typeof Tooltip>;
 
 export const Default: Story = {
   args: {
-    content: 'Ini adalah tooltip',
+    content: "Ini adalah tooltip",
     children: <Button variant="secondary">Arahkan ke sini</Button>,
   },
-}
+};
 
 export const Top: Story = {
   args: {
-    content: 'Posisi atas',
-    position: 'top',
+    content: "Posisi atas",
+    position: "top",
     children: <Button variant="secondary">Atas</Button>,
   },
-}
+};
 
 export const Bottom: Story = {
   args: {
-    content: 'Posisi bawah',
-    position: 'bottom',
+    content: "Posisi bawah",
+    position: "bottom",
     children: <Button variant="secondary">Bawah</Button>,
   },
-}
+};
 
 export const Left: Story = {
   args: {
-    content: 'Posisi kiri',
-    position: 'left',
+    content: "Posisi kiri",
+    position: "left",
     children: <Button variant="secondary">Kiri</Button>,
   },
-}
+};
 
 export const Right: Story = {
   args: {
-    content: 'Posisi kanan',
-    position: 'right',
+    content: "Posisi kanan",
+    position: "right",
     children: <Button variant="secondary">Kanan</Button>,
   },
-}
+};
 
 export const AllPositions: Story = {
   render: () => (
@@ -77,4 +77,4 @@ export const AllPositions: Story = {
       </Tooltip>
     </div>
   ),
-}
+};

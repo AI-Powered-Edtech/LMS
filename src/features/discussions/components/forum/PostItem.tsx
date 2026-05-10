@@ -10,66 +10,77 @@ import {
   Tag,
   ThumbsDown,
   ThumbsUp,
-} from 'lucide-react'
-import { motion } from 'motion/react'
-import { useState } from 'react'
-import ReactMarkdown from 'react-markdown'
-import rehypeKatex from 'rehype-katex'
-import rehypeSanitize from 'rehype-sanitize'
-import remarkMath from 'remark-math'
+} from "lucide-react";
+import { motion } from "motion/react";
+import { useState } from "react";
+import ReactMarkdown from "react-markdown";
+import rehypeKatex from "rehype-katex";
+import rehypeSanitize from "rehype-sanitize";
+import remarkMath from "remark-math";
 
-import { OptimizedImage, useToast } from '@/components/ui'
-import type { ForumPost } from '@/features/discussions/types/forum'
-import type { ForumComment } from '@/features/discussions/types/forum'
-import { cn } from '@/utils/cn'
-import { sanitizeUrl } from '@/utils/sanitize'
-import { katexSanitizeSchema } from '@/utils/sanitizeMarkdown'
+import { OptimizedImage, useToast } from "@/components/ui";
+import type { ForumPost } from "@/features/discussions/types/forum";
+import type { ForumComment } from "@/features/discussions/types/forum";
+import { cn } from "@/utils/cn";
+import { sanitizeUrl } from "@/utils/sanitize";
+import { katexSanitizeSchema } from "@/utils/sanitizeMarkdown";
 
-import { CommentThread } from './CommentThread'
-import { ForumBadge, resolveBadgeType } from './ForumBadge'
+import { CommentThread } from "./CommentThread";
+import { ForumBadge, resolveBadgeType } from "./ForumBadge";
 
 interface PostItemProps {
-  post: ForumPost
-  isTeacher: boolean
-  onMarkBest: (postId: string, commentId: string) => void
-  onReport: (id: string, type: 'post' | 'comment', snippet: string, author: string) => void
-  onVote?: (postId: string) => Promise<void>
+  post: ForumPost;
+  isTeacher: boolean;
+  onMarkBest: (postId: string, commentId: string) => void;
+  onReport: (
+    id: string,
+    type: "post" | "comment",
+    snippet: string,
+    author: string,
+  ) => void;
+  onVote?: (postId: string) => Promise<void>;
 }
 
-export function PostItem({ post, isTeacher, onMarkBest, onReport, onVote }: PostItemProps) {
-  const addToast = useToast((s: any) => s.addToast)
-  const [upvoted, setUpvoted] = useState(false)
-  const [downvoted, setDownvoted] = useState(false)
-  const [showMenu, setShowMenu] = useState(false)
+export function PostItem({
+  post,
+  isTeacher,
+  onMarkBest,
+  onReport,
+  onVote,
+}: PostItemProps) {
+  const addToast = useToast((s: any) => s.addToast);
+  const [upvoted, setUpvoted] = useState(false);
+  const [downvoted, setDownvoted] = useState(false);
+  const [showMenu, setShowMenu] = useState(false);
 
   const handleUpvote = async () => {
     if (upvoted) {
-      setUpvoted(false)
+      setUpvoted(false);
     } else {
-      setUpvoted(true)
-      setDownvoted(false)
+      setUpvoted(true);
+      setDownvoted(false);
       if (onVote) {
-        await onVote(post.id)
+        await onVote(post.id);
       }
     }
-  }
+  };
 
   const handleDownvote = () => {
     if (downvoted) {
-      setDownvoted(false)
+      setDownvoted(false);
     } else {
-      setDownvoted(true)
-      setUpvoted(false)
+      setDownvoted(true);
+      setUpvoted(false);
     }
-  }
+  };
 
-  const currentUpvotes = post.upvotes + (upvoted ? 1 : 0) - (downvoted ? 1 : 0)
+  const currentUpvotes = post.upvotes + (upvoted ? 1 : 0) - (downvoted ? 1 : 0);
 
   const sortedComments = [...post.comments].sort((a, b) => {
-    if (a.id === post.bestAnswerId) return -1
-    if (b.id === post.bestAnswerId) return 1
-    return b.upvotes - a.upvotes
-  })
+    if (a.id === post.bestAnswerId) return -1;
+    if (b.id === post.bestAnswerId) return 1;
+    return b.upvotes - a.upvotes;
+  });
 
   return (
     <motion.div
@@ -84,22 +95,22 @@ export function PostItem({ post, isTeacher, onMarkBest, onReport, onVote }: Post
             onClick={handleUpvote}
             aria-label="Suka postingan"
             className={cn(
-              'w-8 h-8 rounded-full flex items-center justify-center transition-colors',
+              "w-8 h-8 rounded-full flex items-center justify-center transition-colors",
               upvoted
-                ? 'bg-blue-100 text-blue-600 dark:bg-blue-900/30'
-                : 'hover:bg-blue-50 text-slate-400 hover:text-blue-600 dark:hover:bg-blue-900/20'
+                ? "bg-blue-100 text-blue-600 dark:bg-blue-900/30"
+                : "hover:bg-blue-50 text-slate-400 hover:text-blue-600 dark:hover:bg-blue-900/20",
             )}
           >
-            <ThumbsUp className={cn('w-5 h-5', upvoted && 'fill-blue-600')} />
+            <ThumbsUp className={cn("w-5 h-5", upvoted && "fill-blue-600")} />
           </button>
           <span
             className={cn(
-              'font-bold',
+              "font-bold",
               upvoted
-                ? 'text-blue-600'
+                ? "text-blue-600"
                 : downvoted
-                  ? 'text-red-600'
-                  : 'text-slate-700 dark:text-slate-300'
+                  ? "text-red-600"
+                  : "text-slate-700 dark:text-slate-300",
             )}
           >
             {currentUpvotes}
@@ -108,13 +119,15 @@ export function PostItem({ post, isTeacher, onMarkBest, onReport, onVote }: Post
             onClick={handleDownvote}
             aria-label="Tidak suka postingan"
             className={cn(
-              'w-8 h-8 rounded-full flex items-center justify-center transition-colors',
+              "w-8 h-8 rounded-full flex items-center justify-center transition-colors",
               downvoted
-                ? 'bg-red-100 text-red-600 dark:bg-red-900/30'
-                : 'hover:bg-red-50 text-slate-400 hover:text-red-600 dark:hover:bg-red-900/20'
+                ? "bg-red-100 text-red-600 dark:bg-red-900/30"
+                : "hover:bg-red-50 text-slate-400 hover:text-red-600 dark:hover:bg-red-900/20",
             )}
           >
-            <ThumbsDown className={cn('w-5 h-5', downvoted && 'fill-red-600')} />
+            <ThumbsDown
+              className={cn("w-5 h-5", downvoted && "fill-red-600")}
+            />
           </button>
         </div>
 
@@ -143,10 +156,16 @@ export function PostItem({ post, isTeacher, onMarkBest, onReport, onVote }: Post
                 </div>
                 <div className="flex flex-wrap gap-1 mb-1">
                   {post.badges.map((badge, i) => (
-                    <ForumBadge key={i} text={badge} type={resolveBadgeType(badge)} />
+                    <ForumBadge
+                      key={i}
+                      text={badge}
+                      type={resolveBadgeType(badge)}
+                    />
                   ))}
                 </div>
-                <span className="text-sm text-slate-500 dark:text-slate-400">{post.time}</span>
+                <span className="text-sm text-slate-500 dark:text-slate-400">
+                  {post.time}
+                </span>
               </div>
             </div>
 
@@ -164,8 +183,8 @@ export function PostItem({ post, isTeacher, onMarkBest, onReport, onVote }: Post
                     <button
                       onClick={() =>
                         addToast({
-                          type: 'warning',
-                          message: 'Fitur Push ke GCR dalam pengembangan.',
+                          type: "warning",
+                          message: "Fitur Push ke GCR dalam pengembangan.",
                         })
                       }
                       disabled
@@ -176,8 +195,8 @@ export function PostItem({ post, isTeacher, onMarkBest, onReport, onVote }: Post
                   )}
                   <button
                     onClick={() => {
-                      onReport(post.id, 'post', post.content, post.author)
-                      setShowMenu(false)
+                      onReport(post.id, "post", post.content, post.author);
+                      setShowMenu(false);
                     }}
                     className="w-full text-left px-4 py-2 text-sm font-medium text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 flex items-center gap-2"
                   >
@@ -219,7 +238,10 @@ export function PostItem({ post, isTeacher, onMarkBest, onReport, onVote }: Post
           <div className="prose prose-slate dark:prose-invert max-w-none mb-4 prose-pre:bg-slate-800 prose-pre:text-slate-50 prose-pre:rounded-xl">
             <ReactMarkdown
               remarkPlugins={[remarkMath]}
-              rehypePlugins={[rehypeKatex, [rehypeSanitize, katexSanitizeSchema]]}
+              rehypePlugins={[
+                rehypeKatex,
+                [rehypeSanitize, katexSanitizeSchema],
+              ]}
             >
               {post.content}
             </ReactMarkdown>
@@ -254,5 +276,5 @@ export function PostItem({ post, isTeacher, onMarkBest, onReport, onVote }: Post
         </div>
       )}
     </motion.div>
-  )
+  );
 }

@@ -1,9 +1,9 @@
-import { validate } from '../lib/validate'
-import { LessonRowSchema } from '../schemas'
-import { DomainLesson } from './lessonTypes'
+import { validate } from "../lib/validate";
+import { LessonRowSchema } from "../schemas";
+import { DomainLesson } from "./lessonTypes";
 
 export function mapLesson(row: unknown): DomainLesson {
-  const r = validate(LessonRowSchema, row, 'LessonRow')
+  const r = validate(LessonRowSchema, row, "LessonRow");
   return {
     id: r.id,
     moduleId: r.module_id,
@@ -14,5 +14,5 @@ export function mapLesson(row: unknown): DomainLesson {
     durationMinutes: r.duration_minutes,
     passingScore: r.passing_score,
     tenantId: r.tenant_id,
-  }
+  };
 }

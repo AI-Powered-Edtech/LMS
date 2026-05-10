@@ -1,21 +1,23 @@
-import { Check, Loader2, School, Users, X } from 'lucide-react'
-import { AnimatePresence, motion } from 'motion/react'
-import { useEffect, useState } from 'react'
+import { useQueryClient } from "@tanstack/react-query";
+import { Check, Loader2, School, Users, X } from "lucide-react";
+import { AnimatePresence, motion } from "motion/react";
+import { useEffect, useState } from "react";
 
-import { useQueryClient } from '@tanstack/react-query'
-
-import { useAuth } from '@/contexts/AuthContext'
-import { Classroom, classroomService } from '@/features/classroom/api/classroomService'
-import { courseKeys } from '@/features/courses/queries/courseKeys'
-import { useToast } from '@/hooks/useToast'
-import { cn } from '@/utils/cn'
-import { logger } from '@/utils/logger'
+import { useAuth } from "@/contexts/AuthContext";
+import {
+  Classroom,
+  classroomService,
+} from "@/features/classroom/api/classroomService";
+import { courseKeys } from "@/features/courses/queries/courseKeys";
+import { useToast } from "@/hooks/useToast";
+import { cn } from "@/utils/cn";
+import { logger } from "@/utils/logger";
 
 interface AssignCourseModalProps {
-  isOpen: boolean
-  onClose: () => void
-  courseId: string
-  courseTitle: string
+  isOpen: boolean;
+  onClose: () => void;
+  courseId: string;
+  courseTitle: string;
 }
 
 export function AssignCourseModal({
@@ -24,78 +26,88 @@ export function AssignCourseModal({
   courseId,
   courseTitle,
 }: AssignCourseModalProps) {
-  const { addToast } = useToast()
-  const { user, tenantId } = useAuth()
-  const queryClient = useQueryClient()
-  const [classrooms, setClassrooms] = useState<Classroom[]>([])
-  const [assignedClassIds, setAssignedClassIds] = useState<string[]>([])
-  const [loading, setLoading] = useState(true)
-  const [saving, setSaving] = useState(false)
-  const [error, setError] = useState<string | null>(null)
+  const { addToast } = useToast();
+  const { user, tenantId } = useAuth();
+  const queryClient = useQueryClient();
+  const [classrooms, setClassrooms] = useState<Classroom[]>([]);
+  const [assignedClassIds, setAssignedClassIds] = useState<string[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   /* eslint-disable react-hooks/exhaustive-deps */
   useEffect(() => {
     if (isOpen && user?.id) {
-      void loadData()
+      void loadData();
     }
-  }, [isOpen, user?.id, courseId])
+  }, [isOpen, user?.id, courseId]);
   /* eslint-enable react-hooks/exhaustive-deps */
 
   // Close on ESC for keyboard accessibility.
   useEffect(() => {
-    if (!isOpen) return
+    if (!isOpen) return;
     const onKey = (e: KeyboardEvent) => {
-      if (e.key === 'Escape' && !saving) onClose()
-    }
-    window.addEventListener('keydown', onKey)
-    return () => window.removeEventListener('keydown', onKey)
-  }, [isOpen, saving, onClose])
+      if (e.key === "Escape" && !saving) onClose();
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [isOpen, saving, onClose]);
 
   const loadData = async () => {
     try {
-      setLoading(true)
-      setError(null)
+      setLoading(true);
+      setError(null);
 
       // Fetch all classrooms taught by this teacher
-      if (!tenantId) throw new Error('Tenant ID not found')
-      const allClassrooms = await classroomService.fetchClassrooms(user!.id, 'teacher', tenantId)
-      setClassrooms(allClassrooms)
+      if (!tenantId) throw new Error("Tenant ID not found");
+      const allClassrooms = await classroomService.fetchClassrooms(
+        user!.id,
+        "teacher",
+        tenantId,
+      );
+      setClassrooms(allClassrooms);
 
       // Fetch currently assigned classes for this course
-      const currentAssignments = await classroomService.fetchAssignedClassesForCourse(courseId)
-      setAssignedClassIds(currentAssignments)
+      const currentAssignments =
+        await classroomService.fetchAssignedClassesForCourse(courseId);
+      setAssignedClassIds(currentAssignments);
     } catch (err: unknown) {
-      if (import.meta.env.DEV) logger.error('Failed to load classes for assignment:', err)
-      setError('Gagal memuat daftar kelas.')
+      if (import.meta.env.DEV)
+        logger.error("Failed to load classes for assignment:", err);
+      setError("Gagal memuat daftar kelas.");
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }
+  };
 
   const handleToggleClass = async (classId: string) => {
-    if (saving) return
+    if (saving) return;
 
-    const isCurrentlyAssigned = assignedClassIds.includes(classId)
-    const targetClass = classrooms.find((c) => c.id === classId)
+    const isCurrentlyAssigned = assignedClassIds.includes(classId);
+    const targetClass = classrooms.find((c) => c.id === classId);
 
     try {
-      setSaving(true)
+      setSaving(true);
       if (isCurrentlyAssigned) {
-        if (!tenantId) throw new Error('Tenant ID not found')
-        await classroomService.unassignCourseFromClass(courseId, classId, tenantId)
-        setAssignedClassIds((prev) => prev.filter((id) => id !== classId))
+        if (!tenantId) throw new Error("Tenant ID not found");
+        await classroomService.unassignCourseFromClass(
+          courseId,
+          classId,
+          tenantId,
+        );
+        setAssignedClassIds((prev) => prev.filter((id) => id !== classId));
         addToast({
-          type: 'success',
-          message: `Kursus dilepas dari kelas "${targetClass?.name ?? 'Kelas'}"`,
-        })
+          type: "success",
+          message: `Kursus dilepas dari kelas "${targetClass?.name ?? "Kelas"}"`,
+        });
       } else {
-        if (!tenantId) throw new Error('Tenant ID not found')
-        await classroomService.assignCourseToClass(courseId, classId, tenantId)
-        setAssignedClassIds((prev) => [...prev, classId])
+        if (!tenantId) throw new Error("Tenant ID not found");
+        await classroomService.assignCourseToClass(courseId, classId, tenantId);
+        setAssignedClassIds((prev) => [...prev, classId]);
         addToast({
-          type: 'success',
-          message: `Kursus ditugaskan ke kelas "${targetClass?.name ?? 'Kelas'}"`,
-        })
+          type: "success",
+          message: `Kursus ditugaskan ke kelas "${targetClass?.name ?? "Kelas"}"`,
+        });
       }
 
       // Invalidate readiness + assignment-dependent queries so Panel Rilis and
@@ -108,16 +120,22 @@ export function AssignCourseModal({
           queryClient.invalidateQueries({
             queryKey: courseKeys.builder(tenantId, courseId),
           }),
-          queryClient.invalidateQueries({ queryKey: ['classroom', 'assignedCourses'] }),
-        ])
+          queryClient.invalidateQueries({
+            queryKey: ["classroom", "assignedCourses"],
+          }),
+        ]);
       }
     } catch (err: unknown) {
-      if (import.meta.env.DEV) logger.error('Failed to toggle class assignment:', err)
-      addToast({ type: 'error', message: 'Gagal memperbarui penugasan kelas.' })
+      if (import.meta.env.DEV)
+        logger.error("Failed to toggle class assignment:", err);
+      addToast({
+        type: "error",
+        message: "Gagal memperbarui penugasan kelas.",
+      });
     } finally {
-      setSaving(false)
+      setSaving(false);
     }
-  }
+  };
 
   return (
     <AnimatePresence>
@@ -136,7 +154,9 @@ export function AssignCourseModal({
                   <School className="w-5 h-5 text-indigo-500" />
                   Tugaskan ke Kelas
                 </h2>
-                <p className="text-sm text-slate-500 mt-1 truncate max-w-[300px]">{courseTitle}</p>
+                <p className="text-sm text-slate-500 mt-1 truncate max-w-[300px]">
+                  {courseTitle}
+                </p>
               </div>
               <button
                 onClick={onClose}
@@ -152,7 +172,9 @@ export function AssignCourseModal({
               {loading ? (
                 <div className="flex flex-col items-center justify-center py-12">
                   <Loader2 className="w-8 h-8 animate-spin text-indigo-500 mb-4" />
-                  <p className="text-slate-500 text-sm">Memuat daftar kelas...</p>
+                  <p className="text-slate-500 text-sm">
+                    Memuat daftar kelas...
+                  </p>
                 </div>
               ) : error ? (
                 <div className="p-4 bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 rounded-2xl text-center text-sm">
@@ -163,7 +185,9 @@ export function AssignCourseModal({
                   <div className="w-16 h-16 bg-slate-100 dark:bg-slate-800 rounded-full flex items-center justify-center mx-auto mb-4">
                     <Users className="w-8 h-8 text-slate-400" />
                   </div>
-                  <p className="text-slate-900 dark:text-white font-medium">Belum ada kelas</p>
+                  <p className="text-slate-900 dark:text-white font-medium">
+                    Belum ada kelas
+                  </p>
                   <p className="text-slate-500 text-sm mt-1">
                     Buat kelas terlebih dahulu untuk menugaskan materi ini.
                   </p>
@@ -174,26 +198,26 @@ export function AssignCourseModal({
                     Pilih kelas yang akan mendapatkan akses materi ini:
                   </p>
                   {classrooms.map((cls) => {
-                    const isAssigned = assignedClassIds.includes(cls.id)
+                    const isAssigned = assignedClassIds.includes(cls.id);
                     return (
                       <button
                         key={cls.id}
                         onClick={() => handleToggleClass(cls.id)}
                         disabled={saving}
                         className={cn(
-                          'w-full flex items-center justify-between p-4 rounded-2xl border transition-all duration-200 group text-left',
+                          "w-full flex items-center justify-between p-4 rounded-2xl border transition-all duration-200 group text-left",
                           isAssigned
-                            ? 'bg-indigo-50 dark:bg-indigo-900/20 border-indigo-200 dark:border-indigo-800'
-                            : 'bg-white dark:bg-slate-900 border-slate-100 dark:border-slate-800 hover:border-indigo-200 dark:hover:border-indigo-800 hover:shadow-md'
+                            ? "bg-indigo-50 dark:bg-indigo-900/20 border-indigo-200 dark:border-indigo-800"
+                            : "bg-white dark:bg-slate-900 border-slate-100 dark:border-slate-800 hover:border-indigo-200 dark:hover:border-indigo-800 hover:shadow-md",
                         )}
                       >
                         <div className="flex items-center gap-4">
                           <div
                             className={cn(
-                              'w-12 h-12 rounded-xl flex items-center justify-center transition-colors shadow-sm',
+                              "w-12 h-12 rounded-xl flex items-center justify-center transition-colors shadow-sm",
                               isAssigned
-                                ? 'bg-indigo-500 text-white'
-                                : 'bg-slate-50 dark:bg-slate-800 text-slate-400 group-hover:bg-indigo-50'
+                                ? "bg-indigo-500 text-white"
+                                : "bg-slate-50 dark:bg-slate-800 text-slate-400 group-hover:bg-indigo-50",
                             )}
                           >
                             <School className="w-6 h-6" />
@@ -201,10 +225,10 @@ export function AssignCourseModal({
                           <div>
                             <p
                               className={cn(
-                                'font-bold transition-colors',
+                                "font-bold transition-colors",
                                 isAssigned
-                                  ? 'text-indigo-900 dark:text-indigo-200'
-                                  : 'text-slate-900 dark:text-white'
+                                  ? "text-indigo-900 dark:text-indigo-200"
+                                  : "text-slate-900 dark:text-white",
                               )}
                             >
                               {cls.name}
@@ -216,16 +240,16 @@ export function AssignCourseModal({
                         </div>
                         <div
                           className={cn(
-                            'w-6 h-6 rounded-full border-2 flex items-center justify-center transition-all',
+                            "w-6 h-6 rounded-full border-2 flex items-center justify-center transition-all",
                             isAssigned
-                              ? 'bg-indigo-500 border-indigo-500 text-white'
-                              : 'border-slate-200 dark:border-slate-700 group-hover:border-indigo-400'
+                              ? "bg-indigo-500 border-indigo-500 text-white"
+                              : "border-slate-200 dark:border-slate-700 group-hover:border-indigo-400",
                           )}
                         >
                           {isAssigned && <Check className="w-4 h-4" />}
                         </div>
                       </button>
-                    )
+                    );
                   })}
                 </div>
               )}
@@ -244,5 +268,5 @@ export function AssignCourseModal({
         </div>
       )}
     </AnimatePresence>
-  )
+  );
 }

@@ -1,68 +1,79 @@
-import { BarChart2, Map, PieChart, Radio, Target, TrendingUp, Trophy, X } from 'lucide-react'
+import {
+  BarChart2,
+  Map,
+  PieChart,
+  Radio,
+  Target,
+  TrendingUp,
+  Trophy,
+  X,
+} from "lucide-react";
 
-import type { WidgetType } from '../types'
+import type { WidgetType } from "../types";
 
 interface WidgetPickerProps {
-  onSelect: (type: WidgetType) => void
-  onClose: () => void
+  onSelect: (type: WidgetType) => void;
+  onClose: () => void;
 }
 
 const WIDGET_OPTIONS: {
-  type: WidgetType
-  label: string
-  description: string
-  icon: React.ReactNode
+  type: WidgetType;
+  label: string;
+  description: string;
+  icon: React.ReactNode;
 }[] = [
   {
-    type: 'metric_card',
-    label: 'Metrik Angka',
-    description: 'Tampilkan satu angka penting (total siswa, dll)',
+    type: "metric_card",
+    label: "Metrik Angka",
+    description: "Tampilkan satu angka penting (total siswa, dll)",
     icon: <Target className="h-6 w-6" />,
   },
   {
-    type: 'pie_chart',
-    label: 'Diagram Lingkaran Segmen',
-    description: 'Distribusi segmentasi siswa',
+    type: "pie_chart",
+    label: "Diagram Lingkaran Segmen",
+    description: "Distribusi segmentasi siswa",
     icon: <PieChart className="h-6 w-6" />,
   },
   {
-    type: 'engagement_trend',
-    label: 'Tren Keterlibatan',
-    description: 'Grafik tren keterlibatan harian',
+    type: "engagement_trend",
+    label: "Tren Keterlibatan",
+    description: "Grafik tren keterlibatan harian",
     icon: <TrendingUp className="h-6 w-6" />,
   },
   {
-    type: 'risk_radar',
-    label: 'Radar Risiko',
-    description: 'Scatter plot risiko churn siswa',
+    type: "risk_radar",
+    label: "Radar Risiko",
+    description: "Scatter plot risiko churn siswa",
     icon: <Radio className="h-6 w-6" />,
   },
   {
-    type: 'heatmap',
-    label: 'Peta Panas Retensi',
-    description: 'Matriks retensi kohort mingguan',
+    type: "heatmap",
+    label: "Peta Panas Retensi",
+    description: "Matriks retensi kohort mingguan",
     icon: <Map className="h-6 w-6" />,
   },
   {
-    type: 'funnel',
-    label: 'Analisis Corong',
-    description: 'Corong konversi langkah belajar',
+    type: "funnel",
+    label: "Analisis Corong",
+    description: "Corong konversi langkah belajar",
     icon: <BarChart2 className="h-6 w-6" />,
   },
   {
-    type: 'leaderboard',
-    label: 'Papan Peringkat',
-    description: 'Peringkat siswa berdasarkan XP',
+    type: "leaderboard",
+    label: "Papan Peringkat",
+    description: "Peringkat siswa berdasarkan XP",
     icon: <Trophy className="h-6 w-6" />,
   },
-]
+];
 
 export function WidgetPicker({ onSelect, onClose }: WidgetPickerProps) {
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
       <div className="w-full max-w-2xl rounded-2xl bg-white dark:bg-slate-900 shadow-2xl overflow-hidden">
         <div className="flex items-center justify-between p-6 border-b border-slate-200 dark:border-slate-700">
-          <h2 className="text-lg font-bold text-slate-900 dark:text-white">Pilih Widget</h2>
+          <h2 className="text-lg font-bold text-slate-900 dark:text-white">
+            Pilih Widget
+          </h2>
           <button
             onClick={onClose}
             aria-label="Tutup pemilih widget"
@@ -76,8 +87,8 @@ export function WidgetPicker({ onSelect, onClose }: WidgetPickerProps) {
             <button
               key={opt.type}
               onClick={() => {
-                onSelect(opt.type)
-                onClose()
+                onSelect(opt.type);
+                onClose();
               }}
               className="flex flex-col items-center gap-3 p-4 rounded-xl border border-slate-200 dark:border-slate-700 hover:border-indigo-400 hover:bg-indigo-50 dark:hover:bg-indigo-900/20 transition-all text-center group"
             >
@@ -97,5 +108,5 @@ export function WidgetPicker({ onSelect, onClose }: WidgetPickerProps) {
         </div>
       </div>
     </div>
-  )
+  );
 }

@@ -14,24 +14,24 @@
  * to preserve the "fire-and-forget" semantics of the original onClick handlers.
  */
 
-import { useNavigate } from 'react-router-dom'
+import { useNavigate } from "react-router-dom";
 
-import { useAuth } from '@/contexts/AuthContext'
-import { logger } from '@/utils/logger'
-import { captureError } from '@/utils/sentry'
+import { useAuth } from "@/contexts/AuthContext";
+import { logger } from "@/utils/logger";
+import { captureError } from "@/utils/sentry";
 
 export function useSignOut(): () => Promise<void> {
-  const { signOut } = useAuth()
-  const navigate = useNavigate()
+  const { signOut } = useAuth();
+  const navigate = useNavigate();
 
   return async () => {
     try {
-      await signOut()
+      await signOut();
     } catch (err) {
-      if (import.meta.env.DEV) logger.error('[useSignOut] signOut error:', err)
-      captureError(err, { context: 'useSignOut' })
+      if (import.meta.env.DEV) logger.error("[useSignOut] signOut error:", err);
+      captureError(err, { context: "useSignOut" });
     } finally {
-      void navigate('/login')
+      void navigate("/login");
     }
-  }
+  };
 }

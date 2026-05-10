@@ -1,4 +1,4 @@
-import { useAuth } from '@/contexts/AuthContext'
+import { useAuth } from "@/contexts/AuthContext";
 
 /**
  * Returns a function that resolves a role-scoped path for navigation.
@@ -10,11 +10,11 @@ import { useAuth } from '@/contexts/AuthContext'
  * /unauthorized by RoleGuard.
  */
 export function useRoleBasedPath() {
-  const { activeRole } = useAuth()
+  const { activeRole } = useAuth();
 
   return (teacherPath: string, adminPath: string, studentPath?: string) => {
-    if (activeRole === 'admin') return adminPath
-    if (activeRole === 'student' && studentPath) return studentPath
-    return teacherPath
-  }
+    if (activeRole === "admin") return adminPath;
+    if (activeRole === "student" && studentPath) return studentPath;
+    return teacherPath;
+  };
 }

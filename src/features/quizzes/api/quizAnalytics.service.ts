@@ -8,4 +8,4 @@ export {
   type QuestionStatsWithQuestion,
   quizAnalyticsService,
   type QuizStats,
-} from './quizAnalyticsService'
+} from "./quizAnalyticsService";

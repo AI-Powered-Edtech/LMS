@@ -11,17 +11,17 @@
  * Dipanggil oleh: BuilderContext.tsx (via useBuilderOffline callback)
  */
 
-import type { BuilderState } from '@/features/course-builder'
-import { logger } from '@/utils/logger'
+import type { BuilderState } from "@/features/course-builder";
+import { logger } from "@/utils/logger";
 
-import { courseService } from '../../courses/api/courseService'
-import { builderBlockService } from './blockService'
-import { builderLessonService } from './lessonService'
-import { builderModuleService } from './moduleService'
+import { courseService } from "../../courses/api/courseService";
+import { builderBlockService } from "./blockService";
+import { builderLessonService } from "./lessonService";
+import { builderModuleService } from "./moduleService";
 
 export interface BuilderSyncResult {
-  success: boolean
-  error?: unknown
+  success: boolean;
+  error?: unknown;
 }
 
 /**
@@ -36,10 +36,13 @@ export interface BuilderSyncResult {
  */
 export async function syncBuilderToServer(
   state: BuilderState,
-  tenantId: string
+  tenantId: string,
 ): Promise<BuilderSyncResult> {
   if (!state.courseId) {
-    return { success: false, error: new Error('courseId is required for sync') }
+    return {
+      success: false,
+      error: new Error("courseId is required for sync"),
+    };
   }
 
   try {
@@ -47,15 +50,17 @@ export async function syncBuilderToServer(
     await courseService.updateCourse(
       state.courseId,
       { title: state.courseTitle, description: state.courseDescription },
-      tenantId
-    )
+      tenantId,
+    );
 
     // 2. Sync module titles (existing modules yang diedit offline)
     await Promise.allSettled(
       state.modules.map((mod) =>
-        builderModuleService.updateModule(mod.id, tenantId, { title: mod.title })
-      )
-    )
+        builderModuleService.updateModule(mod.id, tenantId, {
+          title: mod.title,
+        }),
+      ),
+    );
 
     // 3. Sync lesson data (existing lessons yang diedit offline)
     await Promise.allSettled(
@@ -65,10 +70,10 @@ export async function syncBuilderToServer(
             title: lesson.title,
             isPublished: lesson.isPublished,
             durationMinutes: lesson.durationMinutes,
-          })
-        )
-      )
-    )
+          }),
+        ),
+      ),
+    );
 
     // 4. Sync block data untuk active lesson (jika ada)
     if (state.activeLesson) {
@@ -79,13 +84,13 @@ export async function syncBuilderToServer(
             content: block.content,
             url: block.url,
             metadata: block.metadata,
-          })
-        )
-      )
+          }),
+        ),
+      );
     }
 
     // 5. Sync blocks untuk lesson yang diedit offline lalu ditutup (pendingBlocksByLesson)
-    const pendingEntries = Object.entries(state.pendingBlocksByLesson)
+    const pendingEntries = Object.entries(state.pendingBlocksByLesson);
     if (pendingEntries.length > 0) {
       const pendingResults = await Promise.allSettled(
         pendingEntries.flatMap(([_lessonId, blocks]) =>
@@ -95,26 +100,26 @@ export async function syncBuilderToServer(
               content: block.content,
               url: block.url,
               metadata: block.metadata,
-            })
-          )
-        )
-      )
+            }),
+          ),
+        ),
+      );
 
       // Log failures in dev mode for observability
       if (import.meta.env.DEV) {
         pendingResults.forEach((result, idx) => {
-          if (result.status === 'rejected') {
+          if (result.status === "rejected") {
             logger.warn(
               `[syncBuilderToServer] pendingBlock sync failed at index ${idx}:`,
-              result.reason
-            )
+              result.reason,
+            );
           }
-        })
+        });
       }
     }
 
-    return { success: true }
+    return { success: true };
   } catch (error) {
-    return { success: false, error }
+    return { success: false, error };
   }
 }

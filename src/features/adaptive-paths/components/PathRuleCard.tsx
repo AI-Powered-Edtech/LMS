@@ -1,15 +1,15 @@
-import { ArrowRight, Edit2, Power, Trash2 } from 'lucide-react'
+import { ArrowRight, Edit2, Power, Trash2 } from "lucide-react";
 
-import type { PathRule } from '../types'
-import { CONDITION_LABELS } from './PathConditionPicker'
+import type { PathRule } from "../types";
+import { CONDITION_LABELS } from "./PathConditionPicker";
 
 interface PathRuleCardProps {
-  rule: PathRule
-  sourceLessonTitle: string
-  targetLessonTitle: string
-  onEdit: () => void
-  onDelete: () => void
-  onToggleActive: () => void
+  rule: PathRule;
+  sourceLessonTitle: string;
+  targetLessonTitle: string;
+  onEdit: () => void;
+  onDelete: () => void;
+  onToggleActive: () => void;
 }
 
 export function PathRuleCard({
@@ -20,23 +20,27 @@ export function PathRuleCard({
   onDelete,
   onToggleActive,
 }: PathRuleCardProps) {
-  const conditionLabel = CONDITION_LABELS[rule.condition_type] ?? rule.condition_type
+  const conditionLabel =
+    CONDITION_LABELS[rule.condition_type] ?? rule.condition_type;
 
-  let conditionDetail = ''
-  if (rule.condition_type === 'quiz_score_below' || rule.condition_type === 'quiz_score_above') {
-    conditionDetail = ` (${rule.condition_value.threshold ?? 70}%)`
-  } else if (rule.condition_type === 'time_spent_below') {
-    const mins = Math.floor((rule.condition_value.min_seconds ?? 300) / 60)
-    const secs = (rule.condition_value.min_seconds ?? 300) % 60
-    conditionDetail = ` (${mins}m ${secs}s)`
+  let conditionDetail = "";
+  if (
+    rule.condition_type === "quiz_score_below" ||
+    rule.condition_type === "quiz_score_above"
+  ) {
+    conditionDetail = ` (${rule.condition_value.threshold ?? 70}%)`;
+  } else if (rule.condition_type === "time_spent_below") {
+    const mins = Math.floor((rule.condition_value.min_seconds ?? 300) / 60);
+    const secs = (rule.condition_value.min_seconds ?? 300) % 60;
+    conditionDetail = ` (${mins}m ${secs}s)`;
   }
 
   return (
     <div
       className={`relative rounded-2xl border p-4 transition-all ${
         rule.is_active
-          ? 'bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-700'
-          : 'bg-slate-50 dark:bg-slate-800/50 border-slate-200 dark:border-slate-700 opacity-60'
+          ? "bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-700"
+          : "bg-slate-50 dark:bg-slate-800/50 border-slate-200 dark:border-slate-700 opacity-60"
       }`}
     >
       {/* Priority badge */}
@@ -88,13 +92,13 @@ export function PathRuleCard({
           onClick={onToggleActive}
           className={`flex items-center gap-1.5 text-xs font-semibold transition-colors px-2 py-1 rounded-lg ${
             rule.is_active
-              ? 'text-emerald-600 dark:text-emerald-400 hover:text-slate-600 dark:hover:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800'
-              : 'text-slate-400 dark:text-slate-500 hover:text-emerald-600 dark:hover:text-emerald-400 hover:bg-emerald-50 dark:hover:bg-emerald-900/20'
+              ? "text-emerald-600 dark:text-emerald-400 hover:text-slate-600 dark:hover:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800"
+              : "text-slate-400 dark:text-slate-500 hover:text-emerald-600 dark:hover:text-emerald-400 hover:bg-emerald-50 dark:hover:bg-emerald-900/20"
           }`}
-          aria-label={rule.is_active ? 'Nonaktifkan aturan' : 'Aktifkan aturan'}
+          aria-label={rule.is_active ? "Nonaktifkan aturan" : "Aktifkan aturan"}
         >
           <Power className="w-3.5 h-3.5" />
-          {rule.is_active ? 'Aktif' : 'Nonaktif'}
+          {rule.is_active ? "Aktif" : "Nonaktif"}
         </button>
 
         <button
@@ -107,5 +111,5 @@ export function PathRuleCard({
         </button>
       </div>
     </div>
-  )
+  );
 }

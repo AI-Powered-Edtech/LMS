@@ -1,5 +1,5 @@
-export type { SearchResult } from './api/searchService'
-export { globalSearch } from './api/searchService'
-export { GlobalSearchModal } from './components/GlobalSearchModal'
-export { SearchResultItem } from './components/SearchResultItem'
-export { useGlobalSearch } from './hooks/useGlobalSearch'
+export type { SearchResult } from "./api/searchService";
+export { globalSearch } from "./api/searchService";
+export { GlobalSearchModal } from "./components/GlobalSearchModal";
+export { SearchResultItem } from "./components/SearchResultItem";
+export { useGlobalSearch } from "./hooks/useGlobalSearch";

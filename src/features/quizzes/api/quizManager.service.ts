@@ -15,7 +15,7 @@ export {
   getTeacherQuizzes,
   setQuizStatus,
   updateQuiz,
-} from './quizCRUD'
+} from "./quizCRUD";
 
 // Question management and grading
 export {
@@ -25,4 +25,4 @@ export {
   gradeAttemptQuestion,
   replaceQuestionOptions,
   updateQuizQuestion,
-} from './quizQuestionManagement'
+} from "./quizQuestionManagement";

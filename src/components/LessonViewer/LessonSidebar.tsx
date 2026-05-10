@@ -1,4 +1,4 @@
-import { useVirtualizer } from '@tanstack/react-virtual'
+import { useVirtualizer } from "@tanstack/react-virtual";
 import {
   ArrowLeft,
   CheckCircle,
@@ -9,43 +9,43 @@ import {
   Lock,
   PlayCircle,
   X,
-} from 'lucide-react'
-import { AnimatePresence, motion } from 'motion/react'
-import { memo, useEffect, useRef, useState } from 'react'
+} from "lucide-react";
+import { AnimatePresence, motion } from "motion/react";
+import { memo, useEffect, useRef, useState } from "react";
 
-import { SkeletonCard } from '@/components/ui'
-import type { Lesson, LessonProgress } from '@/features/lessons'
+import { SkeletonCard } from "@/components/ui";
+import type { Lesson, LessonProgress } from "@/features/lessons";
 import {
   formatDuration,
   getLessonDuration,
   getModuleDuration,
   isLessonLocked,
-} from '@/features/lessons'
-import { cn } from '@/utils/cn'
+} from "@/features/lessons";
+import { cn } from "@/utils/cn";
 
 interface LessonSidebarProps {
-  moduleTitle?: string
-  lessons: Lesson[]
-  progress: Record<string, LessonProgress>
-  activeLessonId: string | null
-  onSelectLesson: (lessonId: string) => void
-  onBack?: () => void
-  isMobileOpen?: boolean
-  onMobileClose?: () => void
-  userRole?: string
+  moduleTitle?: string;
+  lessons: Lesson[];
+  progress: Record<string, LessonProgress>;
+  activeLessonId: string | null;
+  onSelectLesson: (lessonId: string) => void;
+  onBack?: () => void;
+  isMobileOpen?: boolean;
+  onMobileClose?: () => void;
+  userRole?: string;
 }
 
 const typeIcons: Record<string, React.FC<{ className?: string }>> = {
   video: PlayCircle,
   article: FileText,
   quiz: HelpCircle,
-}
+};
 
 const typeLabels: Record<string, string> = {
-  video: 'Video',
-  article: 'Artikel',
-  quiz: 'Kuis',
-}
+  video: "Video",
+  article: "Artikel",
+  quiz: "Kuis",
+};
 
 export const LessonSidebar = memo(function LessonSidebar({
   moduleTitle,
@@ -58,24 +58,26 @@ export const LessonSidebar = memo(function LessonSidebar({
   onMobileClose,
   userRole,
 }: LessonSidebarProps) {
-  const completedCount = lessons.filter((l) => progress[l.id]?.status === 'completed').length
-  const [toastMessage, setToastMessage] = useState<string | null>(null)
-  const toastTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const completedCount = lessons.filter(
+    (l) => progress[l.id]?.status === "completed",
+  ).length;
+  const [toastMessage, setToastMessage] = useState<string | null>(null);
+  const toastTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
     return () => {
-      if (toastTimerRef.current) clearTimeout(toastTimerRef.current)
-    }
-  }, [])
+      if (toastTimerRef.current) clearTimeout(toastTimerRef.current);
+    };
+  }, []);
 
-  const parentRef = useRef<HTMLDivElement>(null)
+  const parentRef = useRef<HTMLDivElement>(null);
 
   const rowVirtualizer = useVirtualizer({
     count: lessons.length,
     getScrollElement: () => parentRef.current,
     estimateSize: () => 100, // estimated height of each lesson card in px
     overscan: 5,
-  })
+  });
 
   // Mobile drawer content
   const sidebarContent = (
@@ -102,11 +104,13 @@ export const LessonSidebar = memo(function LessonSidebar({
           </button>
         )}
         <h2 className="font-bold text-slate-900 dark:text-slate-100 text-lg mb-3 leading-snug">
-          {moduleTitle || 'Daftar Pelajaran'}
+          {moduleTitle || "Daftar Pelajaran"}
         </h2>
         {lessons.length > 0 &&
           (() => {
-            const progressPct = Math.round((completedCount / lessons.length) * 100)
+            const progressPct = Math.round(
+              (completedCount / lessons.length) * 100,
+            );
             return (
               <>
                 <div className="flex items-center justify-between mb-2">
@@ -124,11 +128,12 @@ export const LessonSidebar = memo(function LessonSidebar({
                   />
                 </div>
               </>
-            )
+            );
           })()}
         {lessons.length > 0 && (
           <p className="text-xs text-slate-400 mt-2">
-            {lessons.length} pelajaran &bull; {formatDuration(getModuleDuration(lessons))}
+            {lessons.length} pelajaran &bull;{" "}
+            {formatDuration(getModuleDuration(lessons))}
           </p>
         )}
       </div>
@@ -149,7 +154,10 @@ export const LessonSidebar = memo(function LessonSidebar({
       </AnimatePresence>
 
       {/* Lesson List - Virtualized */}
-      <div ref={parentRef} className="flex-1 overflow-y-auto relative custom-scrollbar">
+      <div
+        ref={parentRef}
+        className="flex-1 overflow-y-auto relative custom-scrollbar"
+      >
         {lessons.length === 0 ? (
           <div className="p-4 space-y-3">
             <SkeletonCard lines={1} />
@@ -162,11 +170,16 @@ export const LessonSidebar = memo(function LessonSidebar({
             style={{ height: `${rowVirtualizer.getTotalSize() + 32}px` }} // +32px for top/bottom padding 16px
           >
             {rowVirtualizer.getVirtualItems().map((virtualRow) => {
-              const lesson = lessons[virtualRow.index]
-              const prog = progress[lesson.id]
-              const isCompleted = prog?.status === 'completed'
-              const isActive = lesson.id === activeLessonId
-              const isLocked = isLessonLocked(lessons, progress, virtualRow.index, userRole)
+              const lesson = lessons[virtualRow.index];
+              const prog = progress[lesson.id];
+              const isCompleted = prog?.status === "completed";
+              const isActive = lesson.id === activeLessonId;
+              const isLocked = isLessonLocked(
+                lessons,
+                progress,
+                virtualRow.index,
+                userRole,
+              );
 
               return (
                 <div
@@ -181,38 +194,43 @@ export const LessonSidebar = memo(function LessonSidebar({
                   <button
                     onClick={() => {
                       if (isLocked) {
-                        if (toastTimerRef.current) clearTimeout(toastTimerRef.current)
-                        setToastMessage('Selesaikan pelajaran sebelumnya terlebih dahulu')
+                        if (toastTimerRef.current)
+                          clearTimeout(toastTimerRef.current);
+                        setToastMessage(
+                          "Selesaikan pelajaran sebelumnya terlebih dahulu",
+                        );
                         toastTimerRef.current = setTimeout(() => {
-                          setToastMessage(null)
-                          toastTimerRef.current = null
-                        }, 3000)
-                        return
+                          setToastMessage(null);
+                          toastTimerRef.current = null;
+                        }, 3000);
+                        return;
                       }
-                      onSelectLesson(lesson.id)
-                      onMobileClose?.()
+                      onSelectLesson(lesson.id);
+                      onMobileClose?.();
                     }}
-                    aria-current={isActive ? 'page' : undefined}
+                    aria-current={isActive ? "page" : undefined}
                     aria-disabled={isLocked}
                     className={cn(
-                      'w-full text-left p-4 rounded-xl transition-all flex items-start gap-4 group border outline-none focus-visible:ring-2 focus-visible:ring-blue-500',
+                      "w-full text-left p-4 rounded-xl transition-all flex items-start gap-4 group border outline-none focus-visible:ring-2 focus-visible:ring-blue-500",
                       isActive
-                        ? 'bg-gradient-to-r from-blue-50 to-indigo-50/40 dark:from-blue-900/30 dark:to-indigo-900/20 border-blue-200/80 dark:border-blue-700/60 shadow-md shadow-blue-100/50 dark:shadow-blue-900/20 ring-1 ring-blue-100 dark:ring-blue-800/50'
+                        ? "bg-gradient-to-r from-blue-50 to-indigo-50/40 dark:from-blue-900/30 dark:to-indigo-900/20 border-blue-200/80 dark:border-blue-700/60 shadow-md shadow-blue-100/50 dark:shadow-blue-900/20 ring-1 ring-blue-100 dark:ring-blue-800/50"
                         : isLocked
-                          ? 'bg-slate-50 dark:bg-slate-800/50 border-slate-100 dark:border-slate-700 cursor-not-allowed opacity-60'
-                          : 'bg-white dark:bg-slate-800 border-slate-100 dark:border-slate-700 hover:border-slate-200 dark:hover:border-slate-600 hover:shadow-sm dark:hover:bg-slate-700/50'
+                          ? "bg-slate-50 dark:bg-slate-800/50 border-slate-100 dark:border-slate-700 cursor-not-allowed opacity-60"
+                          : "bg-white dark:bg-slate-800 border-slate-100 dark:border-slate-700 hover:border-slate-200 dark:hover:border-slate-600 hover:shadow-sm dark:hover:bg-slate-700/50",
                     )}
                   >
                     {/* Status Icon */}
                     <div
                       className={cn(
-                        'mt-0.5 shrink-0 transition-colors',
+                        "mt-0.5 shrink-0 transition-colors",
                         isLocked
-                          ? 'text-slate-400'
+                          ? "text-slate-400"
                           : isCompleted
-                            ? 'text-green-500'
-                            : 'text-slate-300 group-hover:text-green-400',
-                        isActive && !isCompleted && !isLocked ? 'text-blue-500' : ''
+                            ? "text-green-500"
+                            : "text-slate-300 group-hover:text-green-400",
+                        isActive && !isCompleted && !isLocked
+                          ? "text-blue-500"
+                          : "",
                       )}
                     >
                       {isLocked ? (
@@ -227,20 +245,20 @@ export const LessonSidebar = memo(function LessonSidebar({
                     </div>
                     <span className="sr-only">
                       {isLocked
-                        ? 'Pelajaran terkunci'
+                        ? "Pelajaran terkunci"
                         : isCompleted
-                          ? 'Pelajaran selesai'
-                          : 'Pelajaran belum selesai'}
+                          ? "Pelajaran selesai"
+                          : "Pelajaran belum selesai"}
                     </span>
 
                     {/* Content */}
                     <div className="flex-1 min-w-0">
                       <p
                         className={cn(
-                          'text-sm font-bold leading-snug mb-2',
+                          "text-sm font-bold leading-snug mb-2",
                           isActive
-                            ? 'text-blue-900 dark:text-blue-100'
-                            : 'text-slate-700 dark:text-slate-200 group-hover:text-slate-900 dark:group-hover:text-white'
+                            ? "text-blue-900 dark:text-blue-100"
+                            : "text-slate-700 dark:text-slate-200 group-hover:text-slate-900 dark:group-hover:text-white",
                         )}
                       >
                         {lesson.title}
@@ -248,8 +266,8 @@ export const LessonSidebar = memo(function LessonSidebar({
                       <div className="flex items-center gap-3 flex-wrap">
                         <span className="text-[11px] text-slate-500 flex items-center gap-1.5 font-medium">
                           {(() => {
-                            const Icon = typeIcons[lesson.type] || FileText
-                            return <Icon className="w-3.5 h-3.5" />
+                            const Icon = typeIcons[lesson.type] || FileText;
+                            return <Icon className="w-3.5 h-3.5" />;
                           })()}
                           {typeLabels[lesson.type] || lesson.type}
                         </span>
@@ -258,13 +276,13 @@ export const LessonSidebar = memo(function LessonSidebar({
                           {formatDuration(getLessonDuration(lesson))}
                         </span>
 
-                        {lesson.passing_score && lesson.type === 'quiz' ? (
+                        {lesson.passing_score && lesson.type === "quiz" ? (
                           <span
                             className={cn(
-                              'text-[10px] font-bold px-2 py-0.5 rounded-md',
+                              "text-[10px] font-bold px-2 py-0.5 rounded-md",
                               isActive
-                                ? 'bg-orange-100 dark:bg-orange-900/30 text-orange-600 dark:text-orange-400'
-                                : 'bg-slate-100 dark:bg-slate-700 text-slate-500 dark:text-slate-400'
+                                ? "bg-orange-100 dark:bg-orange-900/30 text-orange-600 dark:text-orange-400"
+                                : "bg-slate-100 dark:bg-slate-700 text-slate-500 dark:text-slate-400",
                             )}
                           >
                             Min. Skor: {lesson.passing_score}
@@ -274,20 +292,20 @@ export const LessonSidebar = memo(function LessonSidebar({
                     </div>
                   </button>
                 </div>
-              )
+              );
             })}
           </div>
         )}
       </div>
     </>
-  )
+  );
 
   // Desktop layout (lg and above) - static sidebar
   const desktopSidebar = (
     <aside className="w-full lg:w-80 bg-white border border-slate-200/70 rounded-2xl flex flex-col shrink-0 h-full overflow-hidden shadow-lg shadow-slate-200/50 z-20 dark:bg-slate-800 dark:border-slate-700 dark:shadow-slate-900/50">
       {sidebarContent}
     </aside>
-  )
+  );
 
   // Mobile bottom sheet drawer pattern
   const mobileDrawer = (
@@ -311,10 +329,15 @@ export const LessonSidebar = memo(function LessonSidebar({
       <AnimatePresence>
         {isMobileOpen && (
           <motion.aside
-            initial={{ y: '100%' }}
+            initial={{ y: "100%" }}
             animate={{ y: 0 }}
-            exit={{ y: '100%' }}
-            transition={{ type: 'spring', damping: 28, stiffness: 350, mass: 0.9 }}
+            exit={{ y: "100%" }}
+            transition={{
+              type: "spring",
+              damping: 28,
+              stiffness: 350,
+              mass: 0.9,
+            }}
             className="fixed bottom-0 left-0 right-0 max-h-[75vh] bg-white rounded-t-3xl border-t border-slate-200/70 flex flex-col shadow-2xl shadow-slate-900/30 z-50 lg:hidden dark:bg-slate-900 dark:border-slate-700"
           >
             {/* Sheet grabber handle */}
@@ -326,14 +349,14 @@ export const LessonSidebar = memo(function LessonSidebar({
         )}
       </AnimatePresence>
     </>
-  )
+  );
 
   // On desktop, render static sidebar
   // On mobile, render drawer (even when closed, to allow opening)
   // The actual visibility is controlled by isMobileOpen prop
   if (!isMobileOpen && !onMobileClose) {
     // No mobile props passed - render desktop only (original behavior)
-    return desktopSidebar
+    return desktopSidebar;
   }
 
   // Mobile mode - render both desktop placeholder (hidden on mobile) and drawer
@@ -345,5 +368,5 @@ export const LessonSidebar = memo(function LessonSidebar({
       {/* Mobile drawer */}
       {mobileDrawer}
     </>
-  )
-})
+  );
+});

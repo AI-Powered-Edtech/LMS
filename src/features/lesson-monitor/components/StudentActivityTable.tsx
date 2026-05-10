@@ -1,40 +1,49 @@
-import { AlertTriangle, Clock, Zap } from 'lucide-react'
+import { AlertTriangle, Clock, Zap } from "lucide-react";
 
-import { VirtualTable } from '@/components/ui/VirtualTable'
-import { cn } from '@/utils/cn'
+import { VirtualTable } from "@/components/ui/VirtualTable";
+import { cn } from "@/utils/cn";
 
-import type { StudentActivityData } from '../types'
+import type { StudentActivityData } from "../types";
 
 interface StudentActivityTableProps {
-  data: StudentActivityData[]
-  isLoading?: boolean
+  data: StudentActivityData[];
+  isLoading?: boolean;
 }
 
-export function StudentActivityTable({ data, isLoading }: StudentActivityTableProps) {
+export function StudentActivityTable({
+  data,
+  isLoading,
+}: StudentActivityTableProps) {
   const columns = [
     {
-      key: 'student',
-      header: 'Siswa',
+      key: "student",
+      header: "Siswa",
       render: (row: StudentActivityData) => (
         <div className="flex items-center gap-3">
           <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center text-blue-600 text-xs font-bold">
             {row.studentName.charAt(0).toUpperCase()}
           </div>
           <div>
-            <span className="font-bold text-slate-700 dark:text-slate-300">{row.studentName}</span>
+            <span className="font-bold text-slate-700 dark:text-slate-300">
+              {row.studentName}
+            </span>
             <div className="flex items-center gap-2 mt-1">
               <div
                 className={cn(
-                  'w-2 h-2 rounded-full',
-                  row.status === 'active'
-                    ? 'bg-green-500'
-                    : row.status === 'idle'
-                      ? 'bg-yellow-500'
-                      : 'bg-red-500'
+                  "w-2 h-2 rounded-full",
+                  row.status === "active"
+                    ? "bg-green-500"
+                    : row.status === "idle"
+                      ? "bg-yellow-500"
+                      : "bg-red-500",
                 )}
               ></div>
               <span className="text-xs text-slate-500 dark:text-slate-400 capitalize">
-                {row.status === 'active' ? 'Aktif' : row.status === 'idle' ? 'Idle' : 'Tidak Aktif'}
+                {row.status === "active"
+                  ? "Aktif"
+                  : row.status === "idle"
+                    ? "Idle"
+                    : "Tidak Aktif"}
               </span>
             </div>
           </div>
@@ -42,17 +51,17 @@ export function StudentActivityTable({ data, isLoading }: StudentActivityTablePr
       ),
     },
     {
-      key: 'currentLesson',
-      header: 'Pelajaran Saat Ini',
+      key: "currentLesson",
+      header: "Pelajaran Saat Ini",
       render: (row: StudentActivityData) => (
         <span className="text-sm text-slate-700 dark:text-slate-300">
-          {row.currentLesson || 'Tidak ada'}
+          {row.currentLesson || "Tidak ada"}
         </span>
       ),
     },
     {
-      key: 'progress',
-      header: 'Progress',
+      key: "progress",
+      header: "Progress",
       render: (row: StudentActivityData) => (
         <div className="flex items-center gap-2">
           <div className="flex-1 bg-slate-200 dark:bg-slate-700 rounded-full h-2">
@@ -68,8 +77,8 @@ export function StudentActivityTable({ data, isLoading }: StudentActivityTablePr
       ),
     },
     {
-      key: 'timeSpent',
-      header: 'Waktu',
+      key: "timeSpent",
+      header: "Waktu",
       render: (row: StudentActivityData) => (
         <div className="flex items-center gap-1 text-sm text-slate-500 dark:text-slate-400">
           <Clock className="w-4 h-4" />
@@ -78,20 +87,20 @@ export function StudentActivityTable({ data, isLoading }: StudentActivityTablePr
       ),
     },
     {
-      key: 'lastActivity',
-      header: 'Aktivitas Terakhir',
+      key: "lastActivity",
+      header: "Aktivitas Terakhir",
       render: (row: StudentActivityData) => (
         <span className="text-sm text-slate-500 dark:text-slate-400">
-          {new Date(row.lastActivity).toLocaleTimeString('id-ID', {
-            hour: '2-digit',
-            minute: '2-digit',
+          {new Date(row.lastActivity).toLocaleTimeString("id-ID", {
+            hour: "2-digit",
+            minute: "2-digit",
           })}
         </span>
       ),
     },
     {
-      key: 'alerts',
-      header: 'Status',
+      key: "alerts",
+      header: "Status",
       render: (row: StudentActivityData) => (
         <div className="flex items-center gap-1">
           {row.alerts.length > 0 ? (
@@ -108,7 +117,7 @@ export function StudentActivityTable({ data, isLoading }: StudentActivityTablePr
         </div>
       ),
     },
-  ]
+  ];
 
   return (
     <div className="bg-white dark:bg-slate-800 rounded-3xl border border-slate-200 dark:border-slate-700 shadow-sm overflow-hidden">
@@ -129,10 +138,12 @@ export function StudentActivityTable({ data, isLoading }: StudentActivityTablePr
         getRowKey={(row) => row.studentId}
         emptyState={
           <div className="px-8 py-12 text-center text-slate-500 dark:text-slate-400 font-medium italic">
-            {isLoading ? 'Memuat data aktivitas...' : 'Belum ada data aktivitas siswa.'}
+            {isLoading
+              ? "Memuat data aktivitas..."
+              : "Belum ada data aktivitas siswa."}
           </div>
         }
       />
     </div>
-  )
+  );
 }

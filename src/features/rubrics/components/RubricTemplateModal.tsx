@@ -1,16 +1,16 @@
-import { BookOpen, ClipboardList, Loader2, Search, X } from 'lucide-react'
-import { AnimatePresence, motion } from 'motion/react'
-import { useState } from 'react'
+import { BookOpen, ClipboardList, Loader2, Search, X } from "lucide-react";
+import { AnimatePresence, motion } from "motion/react";
+import { useState } from "react";
 
-import { useAuth } from '@/contexts/AuthContext'
-import { cn } from '@/utils/cn'
+import { useAuth } from "@/contexts/AuthContext";
+import { cn } from "@/utils/cn";
 
-import { useRubricById, useRubricTemplates } from '../queries/rubricQueries'
-import type { Rubric } from '../types'
+import { useRubricById, useRubricTemplates } from "../queries/rubricQueries";
+import type { Rubric } from "../types";
 
 interface RubricTemplateModalProps {
-  onSelect: (rubric: Rubric) => void
-  onClose: () => void
+  onSelect: (rubric: Rubric) => void;
+  onClose: () => void;
 }
 
 function TemplateSkeleton() {
@@ -26,7 +26,7 @@ function TemplateSkeleton() {
         </div>
       ))}
     </div>
-  )
+  );
 }
 
 // Inner component to fetch and return a full rubric after selection
@@ -34,44 +34,47 @@ function TemplateLoader({
   rubricId,
   onLoaded,
 }: {
-  rubricId: string
-  onLoaded: (rubric: Rubric) => void
+  rubricId: string;
+  onLoaded: (rubric: Rubric) => void;
 }) {
-  const { data, isLoading } = useRubricById(rubricId)
+  const { data, isLoading } = useRubricById(rubricId);
 
   if (isLoading) {
     return (
       <div className="flex items-center justify-center py-10">
         <Loader2 className="w-6 h-6 animate-spin text-blue-500" />
       </div>
-    )
+    );
   }
 
   if (data) {
-    onLoaded(data)
+    onLoaded(data);
   }
 
-  return null
+  return null;
 }
 
-export function RubricTemplateModal({ onSelect, onClose }: RubricTemplateModalProps) {
-  const { tenantId } = useAuth()
-  const { data: templates, isLoading } = useRubricTemplates(tenantId)
-  const [search, setSearch] = useState('')
-  const [loadingId, setLoadingId] = useState<string | null>(null)
+export function RubricTemplateModal({
+  onSelect,
+  onClose,
+}: RubricTemplateModalProps) {
+  const { tenantId } = useAuth();
+  const { data: templates, isLoading } = useRubricTemplates(tenantId);
+  const [search, setSearch] = useState("");
+  const [loadingId, setLoadingId] = useState<string | null>(null);
 
   const filtered = (templates ?? []).filter((t) =>
-    t.title.toLowerCase().includes(search.toLowerCase())
-  )
+    t.title.toLowerCase().includes(search.toLowerCase()),
+  );
 
   const handleSelect = (id: string) => {
-    setLoadingId(id)
-  }
+    setLoadingId(id);
+  };
 
   const handleLoaded = (rubric: Rubric) => {
-    setLoadingId(null)
-    onSelect(rubric)
-  }
+    setLoadingId(null);
+    onSelect(rubric);
+  };
 
   return (
     <AnimatePresence>
@@ -90,7 +93,9 @@ export function RubricTemplateModal({ onSelect, onClose }: RubricTemplateModalPr
                 <BookOpen className="w-4.5 h-4.5" />
               </div>
               <div>
-                <h2 className="font-bold text-slate-900 dark:text-white">Template Rubrik</h2>
+                <h2 className="font-bold text-slate-900 dark:text-white">
+                  Template Rubrik
+                </h2>
                 <p className="text-xs text-slate-500 dark:text-slate-400">
                   Pilih template untuk diimpor
                 </p>
@@ -127,11 +132,13 @@ export function RubricTemplateModal({ onSelect, onClose }: RubricTemplateModalPr
               <div className="text-center py-10">
                 <ClipboardList className="w-8 h-8 text-slate-300 dark:text-slate-600 mx-auto mb-2" />
                 <p className="text-sm font-bold text-slate-400 dark:text-slate-500">
-                  {search ? 'Template tidak ditemukan' : 'Belum ada template tersimpan'}
+                  {search
+                    ? "Template tidak ditemukan"
+                    : "Belum ada template tersimpan"}
                 </p>
                 <p className="text-xs text-slate-400 dark:text-slate-500 mt-1">
                   {search
-                    ? 'Coba kata kunci lain'
+                    ? "Coba kata kunci lain"
                     : 'Buat rubrik dan aktifkan opsi "Simpan sebagai Template"'}
                 </p>
               </div>
@@ -145,8 +152,8 @@ export function RubricTemplateModal({ onSelect, onClose }: RubricTemplateModalPr
                   onClick={() => handleSelect(template.id)}
                   disabled={loadingId === template.id}
                   className={cn(
-                    'w-full text-left p-4 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl hover:border-purple-300 dark:hover:border-purple-700 hover:bg-purple-50/50 dark:hover:bg-purple-900/10 transition-all group',
-                    loadingId === template.id && 'opacity-70 cursor-wait'
+                    "w-full text-left p-4 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl hover:border-purple-300 dark:hover:border-purple-700 hover:bg-purple-50/50 dark:hover:bg-purple-900/10 transition-all group",
+                    loadingId === template.id && "opacity-70 cursor-wait",
                   )}
                 >
                   <div className="flex items-start justify-between gap-3">
@@ -176,10 +183,12 @@ export function RubricTemplateModal({ onSelect, onClose }: RubricTemplateModalPr
               ))}
 
             {/* TemplateLoader is invisible — just triggers the fetch */}
-            {loadingId && <TemplateLoader rubricId={loadingId} onLoaded={handleLoaded} />}
+            {loadingId && (
+              <TemplateLoader rubricId={loadingId} onLoaded={handleLoaded} />
+            )}
           </div>
         </motion.div>
       </div>
     </AnimatePresence>
-  )
+  );
 }

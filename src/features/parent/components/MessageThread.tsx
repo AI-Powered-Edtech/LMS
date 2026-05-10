@@ -10,67 +10,88 @@
 // - Input pesan dengan kirim button
 // ==========================================================================
 
-import { useMutation, useQueryClient } from '@tanstack/react-query'
-import { useCallback, useEffect, useRef, useState } from 'react'
-import { useNavigate, useParams } from 'react-router-dom'
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useCallback, useEffect, useRef, useState } from "react";
+import { useNavigate, useParams } from "react-router-dom";
 
-import { useAuth } from '@/contexts/AuthContext'
-import { getRealtimeProvider } from '@/services/realtime'
-import { cn } from '@/utils/cn'
+import { useAuth } from "@/contexts/AuthContext";
+import { getRealtimeProvider } from "@/services/realtime";
+import { cn } from "@/utils/cn";
 
-import type { MessageThread as MessageThreadType, ThreadMessage } from '../api/messageApi'
-import { markThreadRead, sendMessage } from '../api/messageApi'
-import { useParentThreads, useThreadMessages } from '../queries/useParentMessages'
+import type {
+  MessageThread as MessageThreadType,
+  ThreadMessage,
+} from "../api/messageApi";
+import { markThreadRead, sendMessage } from "../api/messageApi";
+import {
+  useParentThreads,
+  useThreadMessages,
+} from "../queries/useParentMessages";
 
 // ── Constants ─────────────────────────────────────────────────────────────
 
 const QUICK_REPLIES = [
-  'Terima kasih',
-  'Anak saya sakit hari ini',
-  'Bisakah kita meeting?',
-  'Mohon informasinya',
-  'Baik, saya mengerti',
-]
+  "Terima kasih",
+  "Anak saya sakit hari ini",
+  "Bisakah kita meeting?",
+  "Mohon informasinya",
+  "Baik, saya mengerti",
+];
 
 // ── Helpers ───────────────────────────────────────────────────────────────
 
 function formatTime(dateStr: string): string {
-  return new Date(dateStr).toLocaleTimeString('id-ID', {
-    hour: '2-digit',
-    minute: '2-digit',
-    timeZone: 'Asia/Jakarta',
-  })
+  return new Date(dateStr).toLocaleTimeString("id-ID", {
+    hour: "2-digit",
+    minute: "2-digit",
+    timeZone: "Asia/Jakarta",
+  });
 }
 
 function formatDateGroup(dateStr: string): string {
-  const date = new Date(dateStr)
-  const today = new Date()
-  const yesterday = new Date(today)
-  yesterday.setDate(today.getDate() - 1)
+  const date = new Date(dateStr);
+  const today = new Date();
+  const yesterday = new Date(today);
+  yesterday.setDate(today.getDate() - 1);
 
   const isSameDay = (a: Date, b: Date) =>
     a.getDate() === b.getDate() &&
     a.getMonth() === b.getMonth() &&
-    a.getFullYear() === b.getFullYear()
+    a.getFullYear() === b.getFullYear();
 
-  if (isSameDay(date, today)) return 'Hari ini'
-  if (isSameDay(date, yesterday)) return 'Kemarin'
-  return date.toLocaleDateString('id-ID', { weekday: 'long', day: 'numeric', month: 'long' })
+  if (isSameDay(date, today)) return "Hari ini";
+  if (isSameDay(date, yesterday)) return "Kemarin";
+  return date.toLocaleDateString("id-ID", {
+    weekday: "long",
+    day: "numeric",
+    month: "long",
+  });
 }
 
 function getInitials(name: string): string {
   return name
-    .split(' ')
+    .split(" ")
     .slice(0, 2)
-    .map((w) => w[0]?.toUpperCase() ?? '')
-    .join('')
+    .map((w) => w[0]?.toUpperCase() ?? "")
+    .join("");
 }
 
 // ── Message Bubble ─────────────────────────────────────────────────────────
 
-function MessageBubble({ message, isMine }: { message: ThreadMessage; isMine: boolean }) {
+function MessageBubble({
+  message,
+  isMine,
+}: {
+  message: ThreadMessage;
+  isMine: boolean;
+}) {
   return (
-    <div className={cn('flex items-end gap-2', isMine ? 'flex-row-reverse' : 'flex-row')}>
+    <div
+      className={cn(
+        "flex items-end gap-2",
+        isMine ? "flex-row-reverse" : "flex-row",
+      )}
+    >
       {/* Avatar (hanya untuk pesan lawan) */}
       {!isMine && (
         <div
@@ -87,19 +108,24 @@ function MessageBubble({ message, isMine }: { message: ThreadMessage; isMine: bo
               decoding="async"
             />
           ) : (
-            getInitials(message.sender_name ?? 'G')
+            getInitials(message.sender_name ?? "G")
           )}
         </div>
       )}
 
-      <div className={cn('max-w-[75%] flex flex-col gap-1', isMine ? 'items-end' : 'items-start')}>
+      <div
+        className={cn(
+          "max-w-[75%] flex flex-col gap-1",
+          isMine ? "items-end" : "items-start",
+        )}
+      >
         {/* Bubble */}
         <div
           className={cn(
-            'px-3.5 py-2.5 rounded-2xl text-sm leading-relaxed',
+            "px-3.5 py-2.5 rounded-2xl text-sm leading-relaxed",
             isMine
-              ? 'bg-blue-600 text-white rounded-br-sm'
-              : 'bg-white dark:bg-slate-700 text-slate-800 dark:text-slate-100 rounded-bl-sm border border-slate-200 dark:border-slate-600'
+              ? "bg-blue-600 text-white rounded-br-sm"
+              : "bg-white dark:bg-slate-700 text-slate-800 dark:text-slate-100 rounded-bl-sm border border-slate-200 dark:border-slate-600",
           )}
         >
           {message.content}
@@ -111,7 +137,7 @@ function MessageBubble({ message, isMine }: { message: ThreadMessage; isMine: bo
         </p>
       </div>
     </div>
-  )
+  );
 }
 
 // ── Date Separator ─────────────────────────────────────────────────────────
@@ -125,7 +151,7 @@ function DateSeparator({ date }: { date: string }) {
       </p>
       <div className="flex-1 h-px bg-slate-200 dark:bg-slate-700" />
     </div>
-  )
+  );
 }
 
 // ── Loading Skeleton ───────────────────────────────────────────────────────
@@ -137,95 +163,105 @@ function MessagesSkeleton() {
         <div
           key={i}
           className={cn(
-            'flex items-end gap-2 animate-pulse',
-            i % 2 === 0 ? 'flex-row-reverse' : 'flex-row'
+            "flex items-end gap-2 animate-pulse",
+            i % 2 === 0 ? "flex-row-reverse" : "flex-row",
           )}
         >
           <div className="w-7 h-7 rounded-full bg-slate-200 dark:bg-slate-700 flex-shrink-0" />
           <div
             className={cn(
-              'h-10 rounded-2xl bg-slate-200 dark:bg-slate-700',
-              i % 2 === 0 ? 'w-32' : 'w-48'
+              "h-10 rounded-2xl bg-slate-200 dark:bg-slate-700",
+              i % 2 === 0 ? "w-32" : "w-48",
             )}
           />
         </div>
       ))}
     </div>
-  )
+  );
 }
 
 // ── Main Component ─────────────────────────────────────────────────────────
 
 export function MessageThread() {
-  const { threadId } = useParams<{ threadId: string }>()
-  const { user } = useAuth()
-  const navigate = useNavigate()
-  const queryClient = useQueryClient()
+  const { threadId } = useParams<{ threadId: string }>();
+  const { user } = useAuth();
+  const navigate = useNavigate();
+  const queryClient = useQueryClient();
 
-  const [inputText, setInputText] = useState('')
-  const [showQuickReplies, setShowQuickReplies] = useState(false)
-  const scrollAreaRef = useRef<HTMLDivElement>(null)
-  const inputRef = useRef<HTMLTextAreaElement>(null)
+  const [inputText, setInputText] = useState("");
+  const [showQuickReplies, setShowQuickReplies] = useState(false);
+  const scrollAreaRef = useRef<HTMLDivElement>(null);
+  const inputRef = useRef<HTMLTextAreaElement>(null);
 
   // ── Queries ────────────────────────────────────────────────
-  const { data: messages, isLoading: messagesLoading } = useThreadMessages(threadId ?? undefined)
+  const { data: messages, isLoading: messagesLoading } = useThreadMessages(
+    threadId ?? undefined,
+  );
 
   // Fetch thread info (untuk header)
-  const { data: threads } = useParentThreads()
-  const currentThread: MessageThreadType | undefined = threads?.find((t) => t.id === threadId)
+  const { data: threads } = useParentThreads();
+  const currentThread: MessageThreadType | undefined = threads?.find(
+    (t) => t.id === threadId,
+  );
 
   // ── Mark read saat buka thread ─────────────────────────────
   useEffect(() => {
     if (threadId && currentThread?.parent_unread_count) {
-      void markThreadRead(threadId, 'parent').then(() => {
-        void queryClient.invalidateQueries({ queryKey: ['parent', 'threads', user?.id ?? ''] })
-      })
+      void markThreadRead(threadId, "parent").then(() => {
+        void queryClient.invalidateQueries({
+          queryKey: ["parent", "threads", user?.id ?? ""],
+        });
+      });
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [threadId])
+  }, [threadId]);
 
   // ── Realtime subscription ────────────────────────────────
   useEffect(() => {
-    if (!threadId) return
+    if (!threadId) return;
 
     const channel = getRealtimeProvider()
       .channel(`messages:${threadId}`)
       .on(
-        'postgres_changes',
+        "postgres_changes",
         {
-          event: 'INSERT',
-          schema: 'public',
-          table: 'parent_teacher_messages',
+          event: "INSERT",
+          schema: "public",
+          table: "parent_teacher_messages",
           filter: `thread_id=eq.${threadId}`,
         },
         (_payload) => {
           // Refetch messages saat ada pesan baru
-          void queryClient.invalidateQueries({ queryKey: ['parent', 'messages', threadId] })
-          void queryClient.invalidateQueries({ queryKey: ['parent', 'threads', user?.id ?? ''] })
-        }
+          void queryClient.invalidateQueries({
+            queryKey: ["parent", "messages", threadId],
+          });
+          void queryClient.invalidateQueries({
+            queryKey: ["parent", "threads", user?.id ?? ""],
+          });
+        },
       )
-      .subscribe()
+      .subscribe();
 
     return () => {
-      void getRealtimeProvider().removeChannel(channel)
-    }
-  }, [threadId, queryClient, user?.id])
+      void getRealtimeProvider().removeChannel(channel);
+    };
+  }, [threadId, queryClient, user?.id]);
 
   // ── Scroll to bottom ────────────────────────────────────────
   const scrollToBottom = useCallback((smooth = false) => {
     if (scrollAreaRef.current) {
       scrollAreaRef.current.scrollTo({
         top: scrollAreaRef.current.scrollHeight,
-        behavior: smooth ? 'smooth' : 'instant',
-      })
+        behavior: smooth ? "smooth" : "instant",
+      });
     }
-  }, [])
+  }, []);
 
   useEffect(() => {
     if (!messagesLoading && messages) {
-      scrollToBottom()
+      scrollToBottom();
     }
-  }, [messages, messagesLoading, scrollToBottom])
+  }, [messages, messagesLoading, scrollToBottom]);
 
   // ── Send message mutation ───────────────────────────────────
   const { mutate: doSend, isPending: isSending } = useMutation({
@@ -233,53 +269,56 @@ export function MessageThread() {
     onSuccess: (newMessage) => {
       // Optimistic: tambahkan ke cache sebelum refetch
       queryClient.setQueryData(
-        ['parent', 'messages', threadId ?? ''],
-        (old: ThreadMessage[] | undefined) => [...(old ?? []), newMessage]
-      )
-      setInputText('')
-      setShowQuickReplies(false)
-      setTimeout(() => scrollToBottom(true), 50)
+        ["parent", "messages", threadId ?? ""],
+        (old: ThreadMessage[] | undefined) => [...(old ?? []), newMessage],
+      );
+      setInputText("");
+      setShowQuickReplies(false);
+      setTimeout(() => scrollToBottom(true), 50);
     },
-  })
+  });
 
   function handleSend() {
-    const trimmed = inputText.trim()
-    if (!trimmed || isSending) return
-    doSend(trimmed)
+    const trimmed = inputText.trim();
+    if (!trimmed || isSending) return;
+    doSend(trimmed);
   }
 
   function handleKeyDown(e: React.KeyboardEvent<HTMLTextAreaElement>) {
-    if (e.key === 'Enter' && !e.shiftKey) {
-      e.preventDefault()
-      handleSend()
+    if (e.key === "Enter" && !e.shiftKey) {
+      e.preventDefault();
+      handleSend();
     }
   }
 
   function handleQuickReply(text: string) {
-    setInputText(text)
-    setShowQuickReplies(false)
-    inputRef.current?.focus()
+    setInputText(text);
+    setShowQuickReplies(false);
+    inputRef.current?.focus();
   }
 
   // ── Group messages by date ──────────────────────────────────
   const groupedMessages = (messages ?? []).reduce<
     Array<{ date: string; messages: ThreadMessage[] }>
   >((groups, msg) => {
-    const msgDate = msg.created_at.split('T')[0]
-    const last = groups[groups.length - 1]
+    const msgDate = msg.created_at.split("T")[0];
+    const last = groups[groups.length - 1];
     if (last && last.date === msgDate) {
-      last.messages.push(msg)
+      last.messages.push(msg);
     } else {
-      groups.push({ date: msgDate, messages: [msg] })
+      groups.push({ date: msgDate, messages: [msg] });
     }
-    return groups
-  }, [])
+    return groups;
+  }, []);
 
-  const teacherName = currentThread?.teacher_name ?? 'Guru'
-  const studentName = currentThread?.student_name
+  const teacherName = currentThread?.teacher_name ?? "Guru";
+  const studentName = currentThread?.student_name;
 
   return (
-    <div className="-mx-4 -mt-4 flex flex-col" style={{ height: 'calc(100dvh - 120px)' }}>
+    <div
+      className="-mx-4 -mt-4 flex flex-col"
+      style={{ height: "calc(100dvh - 120px)" }}
+    >
       {/* ── Header ──────────────────────────────────────────── */}
       <div
         className="flex items-center gap-3 px-4 py-3 flex-shrink-0
@@ -287,7 +326,7 @@ export function MessageThread() {
                    border-b border-slate-200 dark:border-slate-700"
       >
         <button
-          onClick={() => navigate('/app/parent/pesan')}
+          onClick={() => navigate("/app/parent/pesan")}
           className="min-h-[44px] min-w-[44px] -ml-2 flex items-center justify-center
                      rounded-xl text-slate-500 dark:text-slate-400
                      active:bg-slate-100 dark:active:bg-slate-800
@@ -304,7 +343,9 @@ export function MessageThread() {
             {teacherName}
           </p>
           {studentName && (
-            <p className="text-xs text-slate-400 dark:text-slate-500">Re: {studentName}</p>
+            <p className="text-xs text-slate-400 dark:text-slate-500">
+              Re: {studentName}
+            </p>
           )}
         </div>
       </div>
@@ -332,7 +373,11 @@ export function MessageThread() {
               <DateSeparator date={dayMessages[0].created_at} />
               <div className="space-y-2">
                 {dayMessages.map((msg) => (
-                  <MessageBubble key={msg.id} message={msg} isMine={msg.sender_id === user?.id} />
+                  <MessageBubble
+                    key={msg.id}
+                    message={msg}
+                    isMine={msg.sender_id === user?.id}
+                  />
                 ))}
               </div>
             </div>
@@ -371,17 +416,17 @@ export function MessageThread() {
         className="flex-shrink-0 flex items-end gap-2 px-3 py-3
                    bg-white dark:bg-slate-800
                    border-t border-slate-200 dark:border-slate-700"
-        style={{ paddingBottom: 'max(env(safe-area-inset-bottom), 12px)' }}
+        style={{ paddingBottom: "max(env(safe-area-inset-bottom), 12px)" }}
       >
         {/* Quick replies toggle */}
         <button
           onClick={() => setShowQuickReplies((v) => !v)}
           className={cn(
-            'flex-shrink-0 min-h-[44px] min-w-[44px] rounded-full flex items-center justify-center',
-            'text-slate-400 dark:text-slate-500',
-            'active:bg-slate-100 dark:active:bg-slate-700',
-            'transition-colors focus:outline-none',
-            showQuickReplies && 'text-blue-500 dark:text-blue-400'
+            "flex-shrink-0 min-h-[44px] min-w-[44px] rounded-full flex items-center justify-center",
+            "text-slate-400 dark:text-slate-500",
+            "active:bg-slate-100 dark:active:bg-slate-700",
+            "transition-colors focus:outline-none",
+            showQuickReplies && "text-blue-500 dark:text-blue-400",
           )}
           aria-label="Pesan cepat"
         >
@@ -400,16 +445,16 @@ export function MessageThread() {
             placeholder="Ketik pesan..."
             rows={1}
             className={cn(
-              'w-full resize-none rounded-2xl px-4 py-2.5',
-              'text-sm text-slate-900 dark:text-slate-100',
-              'bg-slate-100 dark:bg-slate-700/50',
-              'border border-slate-200 dark:border-slate-600',
-              'placeholder-slate-400 dark:placeholder-slate-500',
-              'focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent',
-              'max-h-[120px] overflow-y-auto leading-relaxed',
-              'transition-all'
+              "w-full resize-none rounded-2xl px-4 py-2.5",
+              "text-sm text-slate-900 dark:text-slate-100",
+              "bg-slate-100 dark:bg-slate-700/50",
+              "border border-slate-200 dark:border-slate-600",
+              "placeholder-slate-400 dark:placeholder-slate-500",
+              "focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent",
+              "max-h-[120px] overflow-y-auto leading-relaxed",
+              "transition-all",
             )}
-            style={{ minHeight: '44px' }}
+            style={{ minHeight: "44px" }}
           />
         </div>
 
@@ -418,12 +463,12 @@ export function MessageThread() {
           onClick={handleSend}
           disabled={!inputText.trim() || isSending}
           className={cn(
-            'flex-shrink-0 min-h-[44px] min-w-[44px] rounded-full flex items-center justify-center',
-            'transition-all focus:outline-none',
+            "flex-shrink-0 min-h-[44px] min-w-[44px] rounded-full flex items-center justify-center",
+            "transition-all focus:outline-none",
             inputText.trim() && !isSending
-              ? 'bg-blue-600 text-white active:bg-blue-700'
-              : 'bg-slate-200 dark:bg-slate-700 text-slate-400 dark:text-slate-500',
-            'focus-visible:ring-2 focus-visible:ring-blue-500'
+              ? "bg-blue-600 text-white active:bg-blue-700"
+              : "bg-slate-200 dark:bg-slate-700 text-slate-400 dark:text-slate-500",
+            "focus-visible:ring-2 focus-visible:ring-blue-500",
           )}
           aria-label="Kirim pesan"
         >
@@ -439,5 +484,5 @@ export function MessageThread() {
         </button>
       </div>
     </div>
-  )
+  );
 }

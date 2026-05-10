@@ -1,12 +1,12 @@
-import type { Lesson } from '../types'
+import type { Lesson } from "../types";
 
 /**
  * Count words in a text string.
  * Handles null/empty content gracefully.
  */
 function countWords(text: string | null | undefined): number {
-  if (!text) return 0
-  return text.trim().split(/\s+/).filter(Boolean).length
+  if (!text) return 0;
+  return text.trim().split(/\s+/).filter(Boolean).length;
 }
 
 /**
@@ -24,37 +24,40 @@ function countWords(text: string | null | undefined): number {
 export function getLessonDuration(lesson: Lesson): number {
   // 1. Manual override
   if (lesson.duration_minutes != null && lesson.duration_minutes > 0) {
-    return lesson.duration_minutes
+    return lesson.duration_minutes;
   }
 
   // 2. Auto-estimate by type
   switch (lesson.type) {
-    case 'video':
-      return 5
+    case "video":
+      return 5;
 
-    case 'article':
-    case 'text': {
-      const words = countWords(lesson.content)
-      if (words === 0) return 1
-      return Math.max(1, Math.round(words / 200))
+    case "article":
+    case "text": {
+      const words = countWords(lesson.content);
+      if (words === 0) return 1;
+      return Math.max(1, Math.round(words / 200));
     }
 
-    case 'quiz': {
+    case "quiz": {
       // Count total questions across all quizzes attached to the lesson
       const questionCount =
-        lesson.quizzes?.reduce((sum, quiz) => sum + (quiz.quiz_questions?.length ?? 0), 0) ?? 0
+        lesson.quizzes?.reduce(
+          (sum, quiz) => sum + (quiz.quiz_questions?.length ?? 0),
+          0,
+        ) ?? 0;
       // Also count quiz-type resources as a fallback signal
       const quizResourceCount =
-        lesson.lesson_resources?.filter((r) => r.type === 'quiz').length ?? 0
-      const estimated = questionCount > 0 ? questionCount : quizResourceCount
-      return Math.max(1, estimated)
+        lesson.lesson_resources?.filter((r) => r.type === "quiz").length ?? 0;
+      const estimated = questionCount > 0 ? questionCount : quizResourceCount;
+      return Math.max(1, estimated);
     }
 
-    case 'assignment':
-      return 10
+    case "assignment":
+      return 10;
 
     default:
-      return 3
+      return 3;
   }
 }
 
@@ -62,7 +65,10 @@ export function getLessonDuration(lesson: Lesson): number {
  * Get total duration for a list of lessons in minutes.
  */
 export function getModuleDuration(lessons: Lesson[]): number {
-  return lessons.reduce((total, lesson) => total + getLessonDuration(lesson), 0)
+  return lessons.reduce(
+    (total, lesson) => total + getLessonDuration(lesson),
+    0,
+  );
 }
 
 /**
@@ -75,9 +81,9 @@ export function getModuleDuration(lessons: Lesson[]): number {
  */
 export function formatDuration(minutes: number): string {
   if (minutes < 60) {
-    return `${minutes} menit`
+    return `${minutes} menit`;
   }
-  const hours = Math.floor(minutes / 60)
-  const remaining = minutes % 60
-  return `${hours}j ${remaining}m`
+  const hours = Math.floor(minutes / 60);
+  const remaining = minutes % 60;
+  return `${hours}j ${remaining}m`;
 }

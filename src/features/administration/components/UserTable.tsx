@@ -7,12 +7,12 @@ import {
   Shield,
   Users,
   XCircle,
-} from 'lucide-react'
-import React from 'react'
+} from "lucide-react";
+import React from "react";
 
-import { EmptyState } from '@/components/ui'
-import type { TenantUser } from '@/features/administration/api/adminUserService'
-import { cn } from '@/utils/cn'
+import { EmptyState } from "@/components/ui";
+import type { TenantUser } from "@/features/administration/api/adminUserService";
+import { cn } from "@/utils/cn";
 
 const ROLE_CONFIG: Record<
   string,
@@ -20,33 +20,33 @@ const ROLE_CONFIG: Record<
 > = {
   ADMIN: {
     icon: <Shield className="w-3 h-3" />,
-    color: 'text-purple-700',
-    bg: 'bg-purple-50',
-    border: 'border-purple-200',
+    color: "text-purple-700",
+    bg: "bg-purple-50",
+    border: "border-purple-200",
   },
   TEACHER: {
     icon: <BookOpen className="w-3 h-3" />,
-    color: 'text-blue-700',
-    bg: 'bg-blue-50',
-    border: 'border-blue-200',
+    color: "text-blue-700",
+    bg: "bg-blue-50",
+    border: "border-blue-200",
   },
   STUDENT: {
     icon: <GraduationCap className="w-3 h-3" />,
-    color: 'text-emerald-700',
-    bg: 'bg-emerald-50',
-    border: 'border-emerald-200',
+    color: "text-emerald-700",
+    bg: "bg-emerald-50",
+    border: "border-emerald-200",
   },
-}
+};
 
 interface UserTableProps {
-  users: TenantUser[]
-  loading: boolean
-  actionMenuId: string | null
-  setActionMenuId: (id: string | null) => void
-  onChangeRole: (user: TenantUser) => void
-  onDeactivate: (user: TenantUser) => void
-  formatDate: (dateStr: string | null) => string
-  getInitials: (first: string, last: string) => string
+  users: TenantUser[];
+  loading: boolean;
+  actionMenuId: string | null;
+  setActionMenuId: (id: string | null) => void;
+  onChangeRole: (user: TenantUser) => void;
+  onDeactivate: (user: TenantUser) => void;
+  formatDate: (dateStr: string | null) => string;
+  getInitials: (first: string, last: string) => string;
 }
 
 export function UserTable({
@@ -75,7 +75,10 @@ export function UserTable({
         <tbody className="divide-y divide-slate-100 dark:divide-slate-700">
           {loading && users.length === 0 ? (
             <tr>
-              <td colSpan={6} className="px-6 py-12 text-center text-slate-400 dark:text-slate-500">
+              <td
+                colSpan={6}
+                className="px-6 py-12 text-center text-slate-400 dark:text-slate-500"
+              >
                 <RefreshCw className="w-5 h-5 animate-spin mx-auto mb-2" />
                 Memuat data...
               </td>
@@ -105,37 +108,39 @@ export function UserTable({
                       <p className="font-semibold text-slate-900 dark:text-slate-100">
                         {user.first_name} {user.last_name}
                       </p>
-                      <p className="text-xs text-slate-500 dark:text-slate-400">{user.email}</p>
+                      <p className="text-xs text-slate-500 dark:text-slate-400">
+                        {user.email}
+                      </p>
                     </div>
                   </div>
                 </td>
                 <td className="px-6 py-4">
                   <div className="flex gap-1 flex-wrap">
                     {user.roles.map((role: string) => {
-                      const cfg = ROLE_CONFIG[role] || ROLE_CONFIG.STUDENT
+                      const cfg = ROLE_CONFIG[role] || ROLE_CONFIG.STUDENT;
                       return (
                         <span
                           key={role}
                           className={cn(
-                            'inline-flex items-center gap-1 px-2 py-0.5 text-xs font-semibold rounded-full border',
+                            "inline-flex items-center gap-1 px-2 py-0.5 text-xs font-semibold rounded-full border",
                             cfg.color,
                             cfg.bg,
-                            cfg.border
+                            cfg.border,
                           )}
                         >
                           {cfg.icon} {role}
                         </span>
-                      )
+                      );
                     })}
                   </div>
                 </td>
                 <td className="px-6 py-4">
                   <span
                     className={cn(
-                      'inline-flex items-center gap-1 px-2 py-0.5 text-xs font-semibold rounded-full',
+                      "inline-flex items-center gap-1 px-2 py-0.5 text-xs font-semibold rounded-full",
                       user.is_active
-                        ? 'bg-green-50 text-green-700 border border-green-200'
-                        : 'bg-red-50 text-red-700 border border-red-200'
+                        ? "bg-green-50 text-green-700 border border-green-200"
+                        : "bg-red-50 text-red-700 border border-red-200",
                     )}
                   >
                     {user.is_active ? (
@@ -143,7 +148,7 @@ export function UserTable({
                     ) : (
                       <XCircle className="w-3 h-3" />
                     )}
-                    {user.is_active ? 'Aktif' : 'Nonaktif'}
+                    {user.is_active ? "Aktif" : "Nonaktif"}
                   </span>
                 </td>
                 <td className="px-6 py-4 text-slate-600 dark:text-slate-400">
@@ -155,7 +160,9 @@ export function UserTable({
                 <td className="px-6 py-4 text-right relative">
                   <button
                     onClick={() =>
-                      setActionMenuId(actionMenuId === user.user_id ? null : user.user_id)
+                      setActionMenuId(
+                        actionMenuId === user.user_id ? null : user.user_id,
+                      )
                     }
                     aria-label="Aksi pengguna"
                     className="p-1.5 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-lg transition-colors"
@@ -166,8 +173,8 @@ export function UserTable({
                     <div className="absolute right-6 top-full mt-1 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl shadow-lg py-1 z-50 w-48">
                       <button
                         onClick={() => {
-                          onChangeRole(user)
-                          setActionMenuId(null)
+                          onChangeRole(user);
+                          setActionMenuId(null);
                         }}
                         className="w-full px-4 py-2 text-left text-sm text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-700 flex items-center gap-2"
                       >
@@ -179,11 +186,13 @@ export function UserTable({
                       >
                         {user.is_active ? (
                           <>
-                            <XCircle className="w-4 h-4 text-red-500" /> Nonaktifkan
+                            <XCircle className="w-4 h-4 text-red-500" />{" "}
+                            Nonaktifkan
                           </>
                         ) : (
                           <>
-                            <CheckCircle className="w-4 h-4 text-green-500" /> Aktifkan
+                            <CheckCircle className="w-4 h-4 text-green-500" />{" "}
+                            Aktifkan
                           </>
                         )}
                       </button>
@@ -196,5 +205,5 @@ export function UserTable({
         </tbody>
       </table>
     </div>
-  )
+  );
 }

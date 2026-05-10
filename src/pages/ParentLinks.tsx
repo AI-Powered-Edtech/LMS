@@ -1,61 +1,67 @@
-import { Link2, Plus } from 'lucide-react'
-import { useState } from 'react'
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { Link2, Plus } from "lucide-react";
+import { useState } from "react";
 
-import { Button } from '@/components/ui/Button'
-import { Card } from '@/components/ui/Card'
-import { Input } from '@/components/ui/Input'
-import { Modal, ModalBody, ModalFooter, ModalHeader } from '@/components/ui/Modal'
-
-import { useAuth } from '@/contexts/AuthContext'
-import { db } from '@/services/db'
-import { useToast } from '@/hooks/useToast'
-import { usePageTitle } from '@/hooks/usePageTitle'
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import { Button } from "@/components/ui/Button";
+import { Card } from "@/components/ui/Card";
+import { Input } from "@/components/ui/Input";
+import {
+  Modal,
+  ModalBody,
+  ModalFooter,
+  ModalHeader,
+} from "@/components/ui/Modal";
+import { useAuth } from "@/contexts/AuthContext";
+import { usePageTitle } from "@/hooks/usePageTitle";
+import { useToast } from "@/hooks/useToast";
+import { db } from "@/services/db";
 
 interface ParentLink {
-  id: string
-  tenant_id: string
-  parent_id: string
-  student_id: string
-  relation: 'ayah' | 'ibu' | 'wali'
-  is_primary: boolean
-  receive_notifications: boolean
-  created_at: string
+  id: string;
+  tenant_id: string;
+  parent_id: string;
+  student_id: string;
+  relation: "ayah" | "ibu" | "wali";
+  is_primary: boolean;
+  receive_notifications: boolean;
+  created_at: string;
 }
 
 async function listLinks(tenantId: string): Promise<ParentLink[]> {
   const { data, error } = await db
-    .from<Array<ParentLink>>('parent_student_links')
-    .select('id, tenant_id, parent_id, student_id, relation, is_primary, receive_notifications, created_at')
-    .eq('tenant_id', tenantId)
-    .order('created_at', { ascending: false })
-    .limit(200)
-  if (error) throw error
-  return (data ?? []) as ParentLink[]
+    .from<Array<ParentLink>>("parent_student_links")
+    .select(
+      "id, tenant_id, parent_id, student_id, relation, is_primary, receive_notifications, created_at",
+    )
+    .eq("tenant_id", tenantId)
+    .order("created_at", { ascending: false })
+    .limit(200);
+  if (error) throw error;
+  return (data ?? []) as ParentLink[];
 }
 
 export function ParentLinks() {
-  usePageTitle('Tautan Orang Tua — Siswa')
-  const { tenantId } = useAuth()
-  const { addToast } = useToast()
-  const qc = useQueryClient()
+  usePageTitle("Tautan Orang Tua — Siswa");
+  const { tenantId } = useAuth();
+  const { addToast } = useToast();
+  const qc = useQueryClient();
 
   const { data: links = [], isLoading } = useQuery({
-    queryKey: ['parent_student_links', tenantId],
+    queryKey: ["parent_student_links", tenantId],
     queryFn: () => (tenantId ? listLinks(tenantId) : Promise.resolve([])),
     enabled: !!tenantId,
-  })
+  });
 
-  const [isOpen, setIsOpen] = useState(false)
-  const [parentId, setParentId] = useState('')
-  const [studentId, setStudentId] = useState('')
-  const [relation, setRelation] = useState<'ayah' | 'ibu' | 'wali'>('wali')
-  const [isPrimary, setIsPrimary] = useState(false)
+  const [isOpen, setIsOpen] = useState(false);
+  const [parentId, setParentId] = useState("");
+  const [studentId, setStudentId] = useState("");
+  const [relation, setRelation] = useState<"ayah" | "ibu" | "wali">("wali");
+  const [isPrimary, setIsPrimary] = useState(false);
 
   const create = useMutation({
     mutationFn: async () => {
       const { error } = await db
-        .from<Array<ParentLink>>('parent_student_links')
+        .from<Array<ParentLink>>("parent_student_links")
         .insert({
           tenant_id: tenantId!,
           parent_id: parentId,
@@ -63,23 +69,25 @@ export function ParentLinks() {
           relation,
           is_primary: isPrimary,
           receive_notifications: true,
-        })
-      if (error) throw error
+        });
+      if (error) throw error;
     },
     onSuccess: () => {
-      addToast({ type: 'success', message: 'Tautan dibuat' })
-      setIsOpen(false)
-      setParentId('')
-      setStudentId('')
-      void qc.invalidateQueries({ queryKey: ['parent_student_links', tenantId] })
+      addToast({ type: "success", message: "Tautan dibuat" });
+      setIsOpen(false);
+      setParentId("");
+      setStudentId("");
+      void qc.invalidateQueries({
+        queryKey: ["parent_student_links", tenantId],
+      });
     },
     onError: (err) =>
       addToast({
-        type: 'error',
-        message: 'Gagal membuat tautan',
-        description: err instanceof Error ? err.message : 'Terjadi kesalahan',
+        type: "error",
+        message: "Gagal membuat tautan",
+        description: err instanceof Error ? err.message : "Terjadi kesalahan",
       }),
-  })
+  });
 
   return (
     <div className="w-full max-w-5xl mx-auto px-4 md:px-8 pt-8 pb-20 space-y-6">
@@ -90,19 +98,28 @@ export function ParentLinks() {
             Tautan Orang Tua — Siswa
           </h1>
           <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">
-            Hubungkan akun orang tua dengan siswa-nya untuk parent dashboard + notifikasi.
+            Hubungkan akun orang tua dengan siswa-nya untuk parent dashboard +
+            notifikasi.
           </p>
         </div>
-        <Button variant="primary" icon={<Plus className="w-4 h-4" />} onClick={() => setIsOpen(true)}>
+        <Button
+          variant="primary"
+          icon={<Plus className="w-4 h-4" />}
+          onClick={() => setIsOpen(true)}
+        >
           Tautkan
         </Button>
       </div>
 
       <Card>
         {isLoading ? (
-          <div className="py-12 text-center text-sm text-slate-500">Memuat...</div>
+          <div className="py-12 text-center text-sm text-slate-500">
+            Memuat...
+          </div>
         ) : links.length === 0 ? (
-          <div className="py-12 text-center text-sm text-slate-500">Belum ada tautan.</div>
+          <div className="py-12 text-center text-sm text-slate-500">
+            Belum ada tautan.
+          </div>
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
@@ -131,10 +148,12 @@ export function ParentLinks() {
                           Primer
                         </span>
                       ) : (
-                        '—'
+                        "—"
                       )}
                     </td>
-                    <td className="px-4 py-2">{l.receive_notifications ? 'Ya' : 'Tidak'}</td>
+                    <td className="px-4 py-2">
+                      {l.receive_notifications ? "Ya" : "Tidak"}
+                    </td>
                   </tr>
                 ))}
               </tbody>
@@ -146,11 +165,14 @@ export function ParentLinks() {
       <Modal open={isOpen} onClose={() => setIsOpen(false)}>
         <form
           onSubmit={(e) => {
-            e.preventDefault()
-            create.mutate()
+            e.preventDefault();
+            create.mutate();
           }}
         >
-          <ModalHeader title="Tautkan Orang Tua ke Siswa" onClose={() => setIsOpen(false)} />
+          <ModalHeader
+            title="Tautkan Orang Tua ke Siswa"
+            onClose={() => setIsOpen(false)}
+          />
           <ModalBody>
             <div className="space-y-4">
               <Input
@@ -190,11 +212,11 @@ export function ParentLinks() {
               Batal
             </Button>
             <Button type="submit" variant="primary" disabled={create.isPending}>
-              {create.isPending ? 'Menyimpan...' : 'Simpan'}
+              {create.isPending ? "Menyimpan..." : "Simpan"}
             </Button>
           </ModalFooter>
         </form>
       </Modal>
     </div>
-  )
+  );
 }

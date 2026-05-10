@@ -1,16 +1,16 @@
-import { Trophy } from 'lucide-react'
-import { motion } from 'motion/react'
-import { useCallback, useEffect, useMemo, useState } from 'react'
-import { useLocation, useNavigate } from 'react-router-dom'
+import { Trophy } from "lucide-react";
+import { motion } from "motion/react";
+import { useCallback, useEffect, useMemo, useState } from "react";
+import { useLocation, useNavigate } from "react-router-dom";
 
-import { HubView } from '@/components/HubView'
-import { Card } from '@/components/ui'
-import { useAuth } from '@/contexts/AuthContext'
-import type { Announcement } from '@/features/announcements'
-import { useAnnouncements } from '@/features/announcements'
-import { useAssignments } from '@/features/assignments/hooks/useAssignments'
-import { useClassroom } from '@/features/classroom/hooks/useClassroomQueries'
-import { useCourses } from '@/features/courses'
+import { HubView } from "@/components/HubView";
+import { Card } from "@/components/ui";
+import { useAuth } from "@/contexts/AuthContext";
+import type { Announcement } from "@/features/announcements";
+import { useAnnouncements } from "@/features/announcements";
+import { useAssignments } from "@/features/assignments/hooks/useAssignments";
+import { useClassroom } from "@/features/classroom/hooks/useClassroomQueries";
+import { useCourses } from "@/features/courses";
 import {
   AnnouncementsPreview,
   ContinueLearning,
@@ -19,21 +19,21 @@ import {
   StudentProgressHero,
   UpcomingAssignments,
   WelcomeCard,
-} from '@/features/dashboards/components/sections'
-import type { LeaderboardEntry } from '@/features/gamification'
-import { useLeaderboard } from '@/features/gamification'
-import { BadgeShowcase } from '@/features/gamification/components/BadgeShowcase'
-import { BadgeUnlockToast } from '@/features/gamification/components/BadgeUnlockToast'
-import { LevelUpToast } from '@/features/gamification/components/LevelUpToast'
-import { StudentWelcome } from '@/features/onboarding'
-import { useStudentProgressData } from '@/features/progress/hooks/useStudentProgressQueries'
-import { RecommendationFeed } from '@/features/recommendations'
-import { usePageTitle } from '@/hooks/usePageTitle'
-import { navigationItems } from '@/shared/config/navigation'
-import { cn } from '@/utils/cn'
+} from "@/features/dashboards/components/sections";
+import type { LeaderboardEntry } from "@/features/gamification";
+import { useLeaderboard } from "@/features/gamification";
+import { BadgeShowcase } from "@/features/gamification/components/BadgeShowcase";
+import { BadgeUnlockToast } from "@/features/gamification/components/BadgeUnlockToast";
+import { LevelUpToast } from "@/features/gamification/components/LevelUpToast";
+import { StudentWelcome } from "@/features/onboarding";
+import { useStudentProgressData } from "@/features/progress/hooks/useStudentProgressQueries";
+import { RecommendationFeed } from "@/features/recommendations";
+import { usePageTitle } from "@/hooks/usePageTitle";
+import { navigationItems } from "@/shared/config/navigation";
+import { cn } from "@/utils/cn";
 
-import { BadgeRewardModal } from './dashboard/BadgeRewardModal'
-import { JoinClassModal } from './dashboard/JoinClassModal'
+import { BadgeRewardModal } from "./dashboard/BadgeRewardModal";
+import { JoinClassModal } from "./dashboard/JoinClassModal";
 
 const containerVariants = {
   hidden: { opacity: 0 },
@@ -43,7 +43,7 @@ const containerVariants = {
       staggerChildren: 0.1,
     },
   },
-}
+};
 
 const itemVariants = {
   hidden: { y: 20, opacity: 0 },
@@ -55,94 +55,98 @@ const itemVariants = {
       ease: [0.16, 1, 0.3, 1] as any,
     },
   },
-}
+};
 
 export function Dashboard() {
-  usePageTitle('Dasbor')
-  const { role, user, profile } = useAuth()
+  usePageTitle("Dasbor");
+  const { role, user, profile } = useAuth();
 
-  const { xp, dailyGoal, achievements } = useStudentProgressData()
-  const { assignments, loading: assignmentsLoading } = useAssignments()
-  const { classrooms, activeClassroomId, joinClassroom } = useClassroom()
+  const { xp, dailyGoal, achievements } = useStudentProgressData();
+  const { assignments, loading: assignmentsLoading } = useAssignments();
+  const { classrooms, activeClassroomId, joinClassroom } = useClassroom();
 
-  const { data: courses, isLoading: loadingCourses } = useCourses({ limit: 4 })
-  const { data: announcements, isLoading: loadingAnnouncements } = useAnnouncements({
-    limit: 2,
-    status: 'published',
-  })
+  const { data: courses, isLoading: loadingCourses } = useCourses({ limit: 4 });
+  const { data: announcements, isLoading: loadingAnnouncements } =
+    useAnnouncements({
+      limit: 2,
+      status: "published",
+    });
   const {
     data: leaderboard,
     isLoading: loadingLeaderboard,
     isError: leaderboardError,
     refetch: refetchLeaderboard,
-  } = useLeaderboard(activeClassroomId)
+  } = useLeaderboard(activeClassroomId);
 
-  const [showBadgeModal, setShowBadgeModal] = useState(false)
-  const [showJoinModal, setShowJoinModal] = useState(false)
-  const [joinInitialCode, setJoinInitialCode] = useState('')
+  const [showBadgeModal, setShowBadgeModal] = useState(false);
+  const [showJoinModal, setShowJoinModal] = useState(false);
+  const [joinInitialCode, setJoinInitialCode] = useState("");
 
-  const navigate = useNavigate()
-  const location = useLocation()
-  const impersonatedStudent = location.state?.impersonateStudent
+  const navigate = useNavigate();
+  const location = useLocation();
+  const impersonatedStudent = location.state?.impersonateStudent;
 
   // Handle deep link join: /?join=XH2K7
   useEffect(() => {
-    const searchParams = new URLSearchParams(location.search)
-    const joinCode = searchParams.get('join')
-    if (joinCode && role === 'student') {
-      setJoinInitialCode(joinCode.toUpperCase())
-      setShowJoinModal(true)
-      window.history.replaceState({}, document.title, location.pathname)
+    const searchParams = new URLSearchParams(location.search);
+    const joinCode = searchParams.get("join");
+    if (joinCode && role === "student") {
+      setJoinInitialCode(joinCode.toUpperCase());
+      setShowJoinModal(true);
+      window.history.replaceState({}, document.title, location.pathname);
     }
-  }, [location, role])
+  }, [location, role]);
 
   // Open Join Class modal when navigated with state: { openJoinClass: true }
   // (used by StudentCoursesList's empty state CTA).
   useEffect(() => {
-    const state = location.state as { openJoinClass?: boolean } | null
-    if (state?.openJoinClass && role === 'student') {
-      setShowJoinModal(true)
+    const state = location.state as { openJoinClass?: boolean } | null;
+    if (state?.openJoinClass && role === "student") {
+      setShowJoinModal(true);
       // Clear the state so refreshing the page doesn't re-open the modal.
-      navigate(location.pathname, { replace: true, state: {} })
+      navigate(location.pathname, { replace: true, state: {} });
     }
-  }, [location.state, location.pathname, role, navigate])
+  }, [location.state, location.pathname, role, navigate]);
 
   // ⚡ Perf: memoize all derived data to prevent recalculation on every render
   const userName = useMemo(() => {
     return impersonatedStudent
       ? impersonatedStudent.name
-      : role === 'teacher'
-        ? profile?.first_name || 'Bapak/Ibu Guru'
-        : profile?.first_name || 'Siswa'
-  }, [impersonatedStudent, role, profile?.first_name])
+      : role === "teacher"
+        ? profile?.first_name || "Bapak/Ibu Guru"
+        : profile?.first_name || "Siswa";
+  }, [impersonatedStudent, role, profile?.first_name]);
 
   const activeCourses = useMemo(() => {
     return Array.isArray(courses)
       ? courses
-      : ((courses as unknown as { courses?: unknown[] })?.courses ?? [])
-  }, [courses])
+      : ((courses as unknown as { courses?: unknown[] })?.courses ?? []);
+  }, [courses]);
 
   const announcementList: Announcement[] = useMemo(() => {
-    return Array.isArray(announcements) ? announcements : []
-  }, [announcements])
+    return Array.isArray(announcements) ? announcements : [];
+  }, [announcements]);
 
   const leaderboardList: LeaderboardEntry[] = useMemo(() => {
-    return Array.isArray(leaderboard) ? leaderboard : []
-  }, [leaderboard])
+    return Array.isArray(leaderboard) ? leaderboard : [];
+  }, [leaderboard]);
 
   // ⚡ Perf: memoize hub items filter — navigationItems is static, only role changes
   const hubItems = useMemo(() => {
     return navigationItems.filter(
-      (item) => item.location === 'learning-hub' && item.roles.includes(role)
-    )
-  }, [role])
+      (item) => item.location === "learning-hub" && item.roles.includes(role),
+    );
+  }, [role]);
 
   // ⚡ Perf: stabilize callback refs to prevent child re-renders
-  const openJoinModal = useCallback(() => setShowJoinModal(true), [])
-  const handleNavigateBack = useCallback(() => navigate(-1), [navigate])
-  const handleRetryLeaderboard = useCallback(() => refetchLeaderboard(), [refetchLeaderboard])
-  const handleCloseJoinModal = useCallback(() => setShowJoinModal(false), [])
-  const handleCloseBadgeModal = useCallback(() => setShowBadgeModal(false), [])
+  const openJoinModal = useCallback(() => setShowJoinModal(true), []);
+  const handleNavigateBack = useCallback(() => navigate(-1), [navigate]);
+  const handleRetryLeaderboard = useCallback(
+    () => refetchLeaderboard(),
+    [refetchLeaderboard],
+  );
+  const handleCloseJoinModal = useCallback(() => setShowJoinModal(false), []);
+  const handleCloseBadgeModal = useCallback(() => setShowBadgeModal(false), []);
 
   return (
     <div
@@ -155,7 +159,7 @@ export function Dashboard() {
         animate="visible"
         className="max-w-7xl mx-auto w-full space-y-6"
       >
-        {role === 'student' ? (
+        {role === "student" ? (
           <motion.div variants={itemVariants}>
             <StudentProgressHero
               userName={userName}
@@ -182,15 +186,22 @@ export function Dashboard() {
             </motion.div>
 
             <motion.div variants={itemVariants}>
-              <UpcomingAssignments assignments={assignments || []} loading={assignmentsLoading} />
+              <UpcomingAssignments
+                assignments={assignments || []}
+                loading={assignmentsLoading}
+              />
             </motion.div>
           </>
         )}
 
-        {role === 'student' && (
+        {role === "student" && (
           <motion.div variants={itemVariants}>
             <ContinueLearning
-              courses={activeCourses as Parameters<typeof ContinueLearning>[0]['courses']}
+              courses={
+                activeCourses as Parameters<
+                  typeof ContinueLearning
+                >[0]["courses"]
+              }
               loading={loadingCourses}
               onJoinClass={openJoinModal}
             />
@@ -198,7 +209,7 @@ export function Dashboard() {
         )}
 
         {/* Koleksi Lencana (Student Only) */}
-        {role === 'student' && (
+        {role === "student" && (
           <motion.div variants={itemVariants}>
             <Card>
               <div className="flex items-center justify-between mb-4">
@@ -212,7 +223,7 @@ export function Dashboard() {
           </motion.div>
         )}
 
-        {role === 'student' && user?.id && (
+        {role === "student" && user?.id && (
           <motion.div variants={itemVariants}>
             <RecommendationFeed userId={user.id} />
           </motion.div>
@@ -222,13 +233,16 @@ export function Dashboard() {
         <motion.div
           variants={itemVariants}
           className={cn(
-            'grid gap-6',
+            "grid gap-6",
             !loadingAnnouncements && announcementList.length === 0
-              ? 'grid-cols-1'
-              : 'grid-cols-1 lg:grid-cols-2'
+              ? "grid-cols-1"
+              : "grid-cols-1 lg:grid-cols-2",
           )}
         >
-          <AnnouncementsPreview announcements={announcementList} loading={loadingAnnouncements} />
+          <AnnouncementsPreview
+            announcements={announcementList}
+            loading={loadingAnnouncements}
+          />
           <LeaderboardPreview
             xp={xp}
             role={role}
@@ -257,7 +271,11 @@ export function Dashboard() {
         </motion.div>
 
         <motion.div variants={itemVariants}>
-          <GamificationWidgets xp={xp} dailyGoal={dailyGoal} achievements={achievements} />
+          <GamificationWidgets
+            xp={xp}
+            dailyGoal={dailyGoal}
+            achievements={achievements}
+          />
         </motion.div>
       </motion.div>
 
@@ -271,7 +289,7 @@ export function Dashboard() {
       <BadgeRewardModal open={showBadgeModal} onClose={handleCloseBadgeModal} />
       <BadgeUnlockToast />
       <LevelUpToast />
-      {role === 'student' && <StudentWelcome />}
+      {role === "student" && <StudentWelcome />}
     </div>
-  )
+  );
 }

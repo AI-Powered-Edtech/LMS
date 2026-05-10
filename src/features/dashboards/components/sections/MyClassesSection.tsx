@@ -1,22 +1,26 @@
-import { Plus, User, Users } from 'lucide-react'
-import { useNavigate } from 'react-router-dom'
+import { Plus, User, Users } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 
-import { Button, Card, EmptyState, SkeletonCard } from '@/components/ui'
+import { Button, Card, EmptyState, SkeletonCard } from "@/components/ui";
 
 interface Classroom {
-  id: string
-  name: string
-  teacher_name?: string
+  id: string;
+  name: string;
+  teacher_name?: string;
 }
 
 interface MyClassesSectionProps {
-  classrooms: Classroom[]
-  loading?: boolean
-  onJoinClass: () => void
+  classrooms: Classroom[];
+  loading?: boolean;
+  onJoinClass: () => void;
 }
 
-export function MyClassesSection({ classrooms, loading, onJoinClass }: MyClassesSectionProps) {
-  const navigate = useNavigate()
+export function MyClassesSection({
+  classrooms,
+  loading,
+  onJoinClass,
+}: MyClassesSectionProps) {
+  const navigate = useNavigate();
 
   return (
     <Card>
@@ -43,11 +47,18 @@ export function MyClassesSection({ classrooms, loading, onJoinClass }: MyClasses
       ) : classrooms.length > 0 ? (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
           {classrooms.map((cls) => (
-            <Card key={cls.id} padding="sm" hover onClick={() => navigate(`/classes/${cls.id}`)}>
-              <h3 className="font-bold text-slate-800 dark:text-slate-200">{cls.name}</h3>
+            <Card
+              key={cls.id}
+              padding="sm"
+              hover
+              onClick={() => navigate(`/classes/${cls.id}`)}
+            >
+              <h3 className="font-bold text-slate-800 dark:text-slate-200">
+                {cls.name}
+              </h3>
               <p className="text-sm text-slate-500 dark:text-slate-400 mt-1 flex items-center gap-1.5">
                 <User className="w-3.5 h-3.5" />
-                {cls.teacher_name || 'Guru'}
+                {cls.teacher_name || "Guru"}
               </p>
             </Card>
           ))}
@@ -57,9 +68,9 @@ export function MyClassesSection({ classrooms, loading, onJoinClass }: MyClasses
           icon={<Users className="w-12 h-12" />}
           title="Belum bergabung di kelas mana pun"
           description="Masukkan kode kelas dari gurumu untuk mulai belajar."
-          action={{ label: 'Masukkan Kode Kelas', onClick: onJoinClass }}
+          action={{ label: "Masukkan Kode Kelas", onClick: onJoinClass }}
         />
       )}
     </Card>
-  )
+  );
 }

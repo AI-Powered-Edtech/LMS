@@ -1,82 +1,87 @@
-import { Loader2 } from 'lucide-react'
-import { useEffect, useState } from 'react'
+import { Loader2 } from "lucide-react";
+import { useEffect, useState } from "react";
 
-import { useAuth } from '@/contexts/AuthContext'
-import { useToast } from '@/hooks/useToast'
+import { useAuth } from "@/contexts/AuthContext";
+import { useToast } from "@/hooks/useToast";
 
-import { administrationService } from '../../api/administrationService'
+import { administrationService } from "../../api/administrationService";
 
 interface AddInvoiceModalProps {
-  onClose: () => void
-  onSuccess: () => void
+  onClose: () => void;
+  onSuccess: () => void;
 }
 
 interface StudentOption {
-  id: string
-  full_name: string | null
-  email: string
+  id: string;
+  full_name: string | null;
+  email: string;
 }
 
 export function AddInvoiceModal({ onClose, onSuccess }: AddInvoiceModalProps) {
-  const addToast = useToast((s) => s.addToast)
-  const { tenantId } = useAuth()
+  const addToast = useToast((s) => s.addToast);
+  const { tenantId } = useAuth();
 
-  const [studentId, setStudentId] = useState('')
-  const [amount, setAmount] = useState('')
-  const [description, setDescription] = useState('SPP Bulanan')
-  const [dueDate, setDueDate] = useState('')
+  const [studentId, setStudentId] = useState("");
+  const [amount, setAmount] = useState("");
+  const [description, setDescription] = useState("SPP Bulanan");
+  const [dueDate, setDueDate] = useState("");
   const [monthYear, setMonthYear] = useState(() => {
-    const now = new Date()
-    return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`
-  })
-  const [isSubmitting, setIsSubmitting] = useState(false)
-  const [students, setStudents] = useState<StudentOption[]>([])
-  const [studentsLoading, setStudentsLoading] = useState(true)
+    const now = new Date();
+    return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}`;
+  });
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [students, setStudents] = useState<StudentOption[]>([]);
+  const [studentsLoading, setStudentsLoading] = useState(true);
 
   useEffect(() => {
-    if (!tenantId) return
-    let cancelled = false
+    if (!tenantId) return;
+    let cancelled = false;
     async function loadStudents() {
-      setStudentsLoading(true)
+      setStudentsLoading(true);
       try {
-        const data = await administrationService.fetchStudentsForInvoice(tenantId!)
-        if (!cancelled) setStudents(data)
+        const data = await administrationService.fetchStudentsForInvoice(
+          tenantId!,
+        );
+        if (!cancelled) setStudents(data);
       } finally {
-        if (!cancelled) setStudentsLoading(false)
+        if (!cancelled) setStudentsLoading(false);
       }
     }
-    void loadStudents()
+    void loadStudents();
     return () => {
-      cancelled = true
-    }
-  }, [tenantId])
+      cancelled = true;
+    };
+  }, [tenantId]);
 
   async function handleSubmit(e: React.FormEvent) {
-    e.preventDefault()
+    e.preventDefault();
     if (!studentId || !amount || isNaN(Number(amount)) || Number(amount) <= 0) {
-      addToast({ message: 'Mohon isi ID siswa dan jumlah tagihan yang valid', type: 'error' })
-      return
+      addToast({
+        message: "Mohon isi ID siswa dan jumlah tagihan yang valid",
+        type: "error",
+      });
+      return;
     }
 
-    setIsSubmitting(true)
+    setIsSubmitting(true);
     try {
       await administrationService.createInvoice({
         student_id: studentId,
         amount: Number(amount),
-        description: description || 'SPP Bulanan',
+        description: description || "SPP Bulanan",
         due_date: dueDate || null,
         month_year: monthYear || null,
-      })
-      addToast({ message: 'Tagihan berhasil dibuat', type: 'success' })
-      onSuccess()
-      onClose()
+      });
+      addToast({ message: "Tagihan berhasil dibuat", type: "success" });
+      onSuccess();
+      onClose();
     } catch (err) {
       addToast({
-        message: 'Gagal membuat tagihan: ' + (err as Error).message,
-        type: 'error',
-      })
+        message: "Gagal membuat tagihan: " + (err as Error).message,
+        type: "error",
+      });
     } finally {
-      setIsSubmitting(false)
+      setIsSubmitting(false);
     }
   }
 
@@ -188,11 +193,11 @@ export function AddInvoiceModal({ onClose, onSuccess }: AddInvoiceModalProps) {
               className="flex-1 px-4 py-2.5 bg-blue-600 hover:bg-blue-700 dark:bg-blue-600 dark:hover:bg-blue-500 text-white rounded-xl font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
             >
               {isSubmitting && <Loader2 className="w-4 h-4 animate-spin" />}
-              {isSubmitting ? 'Menyimpan...' : 'Simpan Tagihan'}
+              {isSubmitting ? "Menyimpan..." : "Simpan Tagihan"}
             </button>
           </div>
         </form>
       </div>
     </div>
-  )
+  );
 }

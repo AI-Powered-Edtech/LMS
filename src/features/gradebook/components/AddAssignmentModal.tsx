@@ -1,13 +1,13 @@
-import { X } from 'lucide-react'
+import { X } from "lucide-react";
 
-import type { Assignment } from '@/features/gradebook/hooks/useGradebookQueries'
+import type { Assignment } from "@/features/gradebook/hooks/useGradebookQueries";
 
 interface AddAssignmentModalProps {
-  isOpen: boolean
-  newAssignment: Partial<Assignment>
-  onClose: () => void
-  onSubmit: (e: React.FormEvent) => void
-  onUpdate: (assignment: Partial<Assignment>) => void
+  isOpen: boolean;
+  newAssignment: Partial<Assignment>;
+  onClose: () => void;
+  onSubmit: (e: React.FormEvent) => void;
+  onUpdate: (assignment: Partial<Assignment>) => void;
 }
 
 export function AddAssignmentModal({
@@ -17,13 +17,13 @@ export function AddAssignmentModal({
   onSubmit,
   onUpdate,
 }: AddAssignmentModalProps) {
-  if (!isOpen) return null
+  if (!isOpen) return null;
 
   return (
     <div
       role="presentation"
       className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-sm"
-      onKeyDown={(e) => e.key === 'Escape' && onClose()}
+      onKeyDown={(e) => e.key === "Escape" && onClose()}
     >
       <div
         role="dialog"
@@ -32,7 +32,9 @@ export function AddAssignmentModal({
         className="bg-white dark:bg-slate-800 rounded-2xl shadow-xl w-full max-w-md overflow-hidden"
       >
         <div className="p-6 border-b border-slate-100 dark:border-slate-700 flex items-center justify-between">
-          <h3 className="text-lg font-bold text-slate-900 dark:text-white">Tambah Kolom Nilai</h3>
+          <h3 className="text-lg font-bold text-slate-900 dark:text-white">
+            Tambah Kolom Nilai
+          </h3>
           <button
             onClick={onClose}
             aria-label="Tutup modal"
@@ -50,7 +52,9 @@ export function AddAssignmentModal({
               type="text"
               required
               value={newAssignment.title}
-              onChange={(e) => onUpdate({ ...newAssignment, title: e.target.value })}
+              onChange={(e) =>
+                onUpdate({ ...newAssignment, title: e.target.value })
+              }
               className="w-full px-3 py-2 border border-slate-200 dark:border-slate-600 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white dark:bg-slate-900 text-slate-900 dark:text-white"
               placeholder="Contoh: Ujian Harian 1"
             />
@@ -64,7 +68,7 @@ export function AddAssignmentModal({
               onChange={(e) =>
                 onUpdate({
                   ...newAssignment,
-                  type: e.target.value as Assignment['type'],
+                  type: e.target.value as Assignment["type"],
                 })
               }
               className="w-full px-3 py-2 border border-slate-200 dark:border-slate-600 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white dark:bg-slate-900 text-slate-900 dark:text-white"
@@ -87,7 +91,12 @@ export function AddAssignmentModal({
                 required
                 min="1"
                 value={newAssignment.maxScore}
-                onChange={(e) => onUpdate({ ...newAssignment, maxScore: parseInt(e.target.value) })}
+                onChange={(e) =>
+                  onUpdate({
+                    ...newAssignment,
+                    maxScore: parseInt(e.target.value),
+                  })
+                }
                 className="w-full px-3 py-2 border border-slate-200 dark:border-slate-600 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white dark:bg-slate-900 text-slate-900 dark:text-white"
               />
             </div>
@@ -98,7 +107,9 @@ export function AddAssignmentModal({
               <input
                 type="text"
                 value={newAssignment.date}
-                onChange={(e) => onUpdate({ ...newAssignment, date: e.target.value })}
+                onChange={(e) =>
+                  onUpdate({ ...newAssignment, date: e.target.value })
+                }
                 className="w-full px-3 py-2 border border-slate-200 dark:border-slate-600 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white dark:bg-slate-900 text-slate-900 dark:text-white"
                 placeholder="Contoh: 12 Okt"
               />
@@ -122,5 +133,5 @@ export function AddAssignmentModal({
         </form>
       </div>
     </div>
-  )
+  );
 }

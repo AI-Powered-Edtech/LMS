@@ -3,21 +3,21 @@
 // Menggantikan ComingSoonPage di /app/parent/nilai
 // ==========================================================================
 
-import { useState } from 'react'
-import { Link } from 'react-router-dom'
+import { useState } from "react";
+import { Link } from "react-router-dom";
 
-import { Card } from '@/components/ui/Card'
-import { Skeleton, SkeletonCard } from '@/components/ui/Skeleton'
-import { cn } from '@/utils/cn'
+import { Card } from "@/components/ui/Card";
+import { Skeleton, SkeletonCard } from "@/components/ui/Skeleton";
+import { cn } from "@/utils/cn";
 
-import { useChildGrades } from '../queries/useChildGrades'
-import { useParentChildren } from '../queries/useParentChildren'
-import type { ChildGradeSummary, ChildInfo } from '../types'
+import { useChildGrades } from "../queries/useChildGrades";
+import { useParentChildren } from "../queries/useParentChildren";
+import type { ChildGradeSummary, ChildInfo } from "../types";
 
 // ── Helper Components ───────────────────────────────────────────
 
-function TrendIcon({ trend }: { trend: ChildGradeSummary['trend'] }) {
-  if (trend === 'up') {
+function TrendIcon({ trend }: { trend: ChildGradeSummary["trend"] }) {
+  if (trend === "up") {
     return (
       <span
         className="text-green-600 dark:text-green-400 font-bold text-lg leading-none"
@@ -25,9 +25,9 @@ function TrendIcon({ trend }: { trend: ChildGradeSummary['trend'] }) {
       >
         ↑
       </span>
-    )
+    );
   }
-  if (trend === 'down') {
+  if (trend === "down") {
     return (
       <span
         className="text-red-500 dark:text-red-400 font-bold text-lg leading-none"
@@ -35,7 +35,7 @@ function TrendIcon({ trend }: { trend: ChildGradeSummary['trend'] }) {
       >
         ↓
       </span>
-    )
+    );
   }
   return (
     <span
@@ -44,21 +44,21 @@ function TrendIcon({ trend }: { trend: ChildGradeSummary['trend'] }) {
     >
       →
     </span>
-  )
+  );
 }
 
 function ScoreBar({ score }: { score: number }) {
   const color =
     score >= 80
-      ? 'bg-green-500 dark:bg-green-400'
+      ? "bg-green-500 dark:bg-green-400"
       : score >= 60
-        ? 'bg-yellow-500 dark:bg-yellow-400'
-        : 'bg-red-500 dark:bg-red-400'
+        ? "bg-yellow-500 dark:bg-yellow-400"
+        : "bg-red-500 dark:bg-red-400";
 
   return (
     <div className="h-2 w-full rounded-full bg-slate-100 dark:bg-slate-700 overflow-hidden">
       <div
-        className={cn('h-full rounded-full transition-all duration-500', color)}
+        className={cn("h-full rounded-full transition-all duration-500", color)}
         style={{ width: `${Math.min(score, 100)}%` }}
         role="progressbar"
         aria-valuenow={score}
@@ -66,13 +66,13 @@ function ScoreBar({ score }: { score: number }) {
         aria-valuemax={100}
       />
     </div>
-  )
+  );
 }
 
 function scoreColor(score: number): string {
-  if (score >= 80) return 'text-green-600 dark:text-green-400'
-  if (score >= 60) return 'text-yellow-600 dark:text-yellow-400'
-  return 'text-red-600 dark:text-red-400'
+  if (score >= 80) return "text-green-600 dark:text-green-400";
+  if (score >= 60) return "text-yellow-600 dark:text-yellow-400";
+  return "text-red-600 dark:text-red-400";
 }
 
 // ── Child Dropdown ──────────────────────────────────────────────
@@ -82,11 +82,11 @@ function ChildDropdown({
   selectedId,
   onSelect,
 }: {
-  children: ChildInfo[]
-  selectedId: string
-  onSelect: (id: string) => void
+  children: ChildInfo[];
+  selectedId: string;
+  onSelect: (id: string) => void;
 }) {
-  if (children.length <= 1) return null
+  if (children.length <= 1) return null;
 
   return (
     <select
@@ -106,7 +106,7 @@ function ChildDropdown({
         </option>
       ))}
     </select>
-  )
+  );
 }
 
 // ── Skeleton ────────────────────────────────────────────────────
@@ -125,7 +125,7 @@ function GradesSkeleton() {
         <SkeletonCard key={i} lines={2} />
       ))}
     </div>
-  )
+  );
 }
 
 // ── Summary Card ────────────────────────────────────────────────
@@ -133,8 +133,11 @@ function GradesSkeleton() {
 function SummaryCard({ grades }: { grades: ChildGradeSummary[] }) {
   const avg =
     grades.length > 0
-      ? Math.round((grades.reduce((sum, g) => sum + g.latest_score, 0) / grades.length) * 10) / 10
-      : 0
+      ? Math.round(
+          (grades.reduce((sum, g) => sum + g.latest_score, 0) / grades.length) *
+            10,
+        ) / 10
+      : 0;
 
   return (
     <Card padding="md" className="space-y-3">
@@ -148,8 +151,10 @@ function SummaryCard({ grades }: { grades: ChildGradeSummary[] }) {
       </div>
 
       <div className="flex items-baseline gap-2">
-        <span className="text-sm text-slate-500 dark:text-slate-400">Rata-rata:</span>
-        <span className={cn('text-2xl font-bold', scoreColor(avg))}>{avg}</span>
+        <span className="text-sm text-slate-500 dark:text-slate-400">
+          Rata-rata:
+        </span>
+        <span className={cn("text-2xl font-bold", scoreColor(avg))}>{avg}</span>
       </div>
 
       <ScoreBar score={avg} />
@@ -158,7 +163,7 @@ function SummaryCard({ grades }: { grades: ChildGradeSummary[] }) {
         {grades.length} mata pelajaran tercatat
       </p>
     </Card>
-  )
+  );
 }
 
 // ── Subject Card ────────────────────────────────────────────────
@@ -173,7 +178,9 @@ function SubjectCard({ grade }: { grade: ChildGradeSummary }) {
           {grade.subject}
         </h3>
         <div className="flex items-center gap-2 flex-shrink-0">
-          <span className={cn('text-xl font-bold', scoreColor(grade.latest_score))}>
+          <span
+            className={cn("text-xl font-bold", scoreColor(grade.latest_score))}
+          >
             {grade.latest_score}
           </span>
           <TrendIcon trend={grade.trend} />
@@ -189,7 +196,7 @@ function SubjectCard({ grade }: { grade: ChildGradeSummary }) {
         </p>
       )}
     </Card>
-  )
+  );
 }
 
 // ── Empty State ─────────────────────────────────────────────────
@@ -205,11 +212,12 @@ function EmptyGrades() {
           Belum ada data nilai
         </h2>
         <p className="text-sm text-slate-500 dark:text-slate-400 max-w-xs mx-auto leading-relaxed">
-          Data nilai anak Anda belum tersedia. Nilai akan muncul setelah guru memasukkan penilaian.
+          Data nilai anak Anda belum tersedia. Nilai akan muncul setelah guru
+          memasukkan penilaian.
         </p>
       </div>
     </div>
-  )
+  );
 }
 
 // ── Error State ─────────────────────────────────────────────────
@@ -232,21 +240,21 @@ function ErrorState({ onRetry }: { onRetry: () => void }) {
         Coba Lagi
       </button>
     </div>
-  )
+  );
 }
 
 // ── Main Component ──────────────────────────────────────────────
 
 export function GradesDetailPage() {
-  const [selectedStudentId, setSelectedStudentId] = useState<string>('')
+  const [selectedStudentId, setSelectedStudentId] = useState<string>("");
 
-  const childrenQuery = useParentChildren()
-  const children = childrenQuery.data ?? []
+  const childrenQuery = useParentChildren();
+  const children = childrenQuery.data ?? [];
   const effectiveStudentId =
-    selectedStudentId || (children.length > 0 ? children[0].student_id : '')
+    selectedStudentId || (children.length > 0 ? children[0].student_id : "");
 
-  const gradesQuery = useChildGrades(effectiveStudentId)
-  const grades = gradesQuery.data ?? []
+  const gradesQuery = useChildGrades(effectiveStudentId);
+  const grades = gradesQuery.data ?? [];
 
   // Loading children
   if (childrenQuery.isLoading) {
@@ -255,7 +263,7 @@ export function GradesDetailPage() {
         <Skeleton className="h-8 w-48" />
         <GradesSkeleton />
       </div>
-    )
+    );
   }
 
   // No children linked
@@ -268,11 +276,14 @@ export function GradesDetailPage() {
         <p className="text-sm text-slate-500 dark:text-slate-400 max-w-xs mx-auto">
           Tidak ada siswa yang terhubung ke akun Anda.
         </p>
-        <Link to="/app/parent" className="text-sm text-blue-600 dark:text-blue-400 font-medium">
+        <Link
+          to="/app/parent"
+          className="text-sm text-blue-600 dark:text-blue-400 font-medium"
+        >
           ← Kembali ke Beranda
         </Link>
       </div>
-    )
+    );
   }
 
   return (
@@ -289,7 +300,9 @@ export function GradesDetailPage() {
         >
           <span aria-hidden="true">←</span>
         </Link>
-        <h1 className="text-base font-bold text-slate-800 dark:text-slate-100">Nilai Anak Saya</h1>
+        <h1 className="text-base font-bold text-slate-800 dark:text-slate-100">
+          Nilai Anak Saya
+        </h1>
       </div>
 
       {/* Child switcher */}
@@ -330,5 +343,5 @@ export function GradesDetailPage() {
         </>
       )}
     </div>
-  )
+  );
 }

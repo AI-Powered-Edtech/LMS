@@ -2,51 +2,54 @@
 // PendingAssignmentList — Daftar tugas yang belum diselesaikan
 // ==========================================================================
 
-import { Card } from '@/components/ui/Card'
-import { Skeleton } from '@/components/ui/Skeleton'
-import { cn } from '@/utils/cn'
+import { Card } from "@/components/ui/Card";
+import { Skeleton } from "@/components/ui/Skeleton";
+import { cn } from "@/utils/cn";
 
-import type { PendingAssignment } from '../types'
+import type { PendingAssignment } from "../types";
 
 interface PendingAssignmentListProps {
-  assignments: PendingAssignment[]
-  isLoading?: boolean
+  assignments: PendingAssignment[];
+  isLoading?: boolean;
 }
 
 /** Format tanggal deadline menjadi teks mudah dibaca */
 function formatDeadline(dueDateStr: string): string {
-  if (!dueDateStr) return 'Tidak ada batas waktu'
+  if (!dueDateStr) return "Tidak ada batas waktu";
 
-  const dueDate = new Date(dueDateStr)
-  const now = new Date()
-  const diffMs = dueDate.getTime() - now.getTime()
-  const diffHours = Math.floor(diffMs / (1000 * 60 * 60))
-  const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24))
+  const dueDate = new Date(dueDateStr);
+  const now = new Date();
+  const diffMs = dueDate.getTime() - now.getTime();
+  const diffHours = Math.floor(diffMs / (1000 * 60 * 60));
+  const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
 
   if (diffMs < 0) {
     // Sudah lewat
-    const absDays = Math.abs(diffDays)
-    if (absDays === 0) return 'Terlambat hari ini'
-    if (absDays === 1) return 'Terlambat 1 hari'
-    return `Terlambat ${absDays} hari`
+    const absDays = Math.abs(diffDays);
+    if (absDays === 0) return "Terlambat hari ini";
+    if (absDays === 1) return "Terlambat 1 hari";
+    return `Terlambat ${absDays} hari`;
   }
 
   if (diffHours < 24) {
-    if (diffHours === 0) return 'Kurang dari 1 jam lagi'
-    return `${diffHours} jam lagi`
+    if (diffHours === 0) return "Kurang dari 1 jam lagi";
+    return `${diffHours} jam lagi`;
   }
 
-  if (diffDays === 1) return 'Besok'
-  if (diffDays <= 7) return `${diffDays} hari lagi`
+  if (diffDays === 1) return "Besok";
+  if (diffDays <= 7) return `${diffDays} hari lagi`;
 
-  return dueDate.toLocaleDateString('id-ID', {
-    weekday: 'short',
-    day: 'numeric',
-    month: 'short',
-  })
+  return dueDate.toLocaleDateString("id-ID", {
+    weekday: "short",
+    day: "numeric",
+    month: "short",
+  });
 }
 
-export function PendingAssignmentList({ assignments, isLoading }: PendingAssignmentListProps) {
+export function PendingAssignmentList({
+  assignments,
+  isLoading,
+}: PendingAssignmentListProps) {
   return (
     <Card padding="sm" className="space-y-3">
       {/* Header */}
@@ -97,40 +100,40 @@ export function PendingAssignmentList({ assignments, isLoading }: PendingAssignm
       {!isLoading && assignments.length > 0 && (
         <ul className="space-y-2" role="list">
           {assignments.map((assignment) => {
-            const deadline = formatDeadline(assignment.due_date)
+            const deadline = formatDeadline(assignment.due_date);
 
             return (
               <li
                 key={assignment.id}
                 className={cn(
-                  'flex items-start gap-3 p-2 rounded-xl',
+                  "flex items-start gap-3 p-2 rounded-xl",
                   assignment.is_overdue
-                    ? 'bg-red-50 dark:bg-red-950/20'
-                    : 'bg-slate-50 dark:bg-slate-800/40'
+                    ? "bg-red-50 dark:bg-red-950/20"
+                    : "bg-slate-50 dark:bg-slate-800/40",
                 )}
                 aria-label={`${assignment.title}: ${deadline}`}
               >
                 {/* Icon */}
                 <span
                   className={cn(
-                    'flex-shrink-0 w-8 h-8 rounded-xl flex items-center justify-center text-base',
+                    "flex-shrink-0 w-8 h-8 rounded-xl flex items-center justify-center text-base",
                     assignment.is_overdue
-                      ? 'bg-red-100 dark:bg-red-900/40 text-red-600 dark:text-red-400'
-                      : 'bg-blue-100 dark:bg-blue-900/40 text-blue-600 dark:text-blue-400'
+                      ? "bg-red-100 dark:bg-red-900/40 text-red-600 dark:text-red-400"
+                      : "bg-blue-100 dark:bg-blue-900/40 text-blue-600 dark:text-blue-400",
                   )}
                   aria-hidden="true"
                 >
-                  {assignment.is_overdue ? '⚠️' : '📌'}
+                  {assignment.is_overdue ? "⚠️" : "📌"}
                 </span>
 
                 {/* Info */}
                 <div className="flex-1 min-w-0">
                   <p
                     className={cn(
-                      'text-sm font-medium leading-tight truncate',
+                      "text-sm font-medium leading-tight truncate",
                       assignment.is_overdue
-                        ? 'text-red-700 dark:text-red-300'
-                        : 'text-slate-800 dark:text-slate-200'
+                        ? "text-red-700 dark:text-red-300"
+                        : "text-slate-800 dark:text-slate-200",
                     )}
                   >
                     {assignment.title}
@@ -140,20 +143,20 @@ export function PendingAssignmentList({ assignments, isLoading }: PendingAssignm
                   </p>
                   <p
                     className={cn(
-                      'text-[11px] font-medium mt-0.5',
+                      "text-[11px] font-medium mt-0.5",
                       assignment.is_overdue
-                        ? 'text-red-600 dark:text-red-400'
-                        : 'text-slate-500 dark:text-slate-400'
+                        ? "text-red-600 dark:text-red-400"
+                        : "text-slate-500 dark:text-slate-400",
                     )}
                   >
                     {deadline}
                   </p>
                 </div>
               </li>
-            )
+            );
           })}
         </ul>
       )}
     </Card>
-  )
+  );
 }

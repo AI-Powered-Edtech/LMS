@@ -11,8 +11,13 @@ export type {
   GeneratedOpenQuestion,
   GeneratedQuestion,
   GeneratedQuizQuestion,
-} from './types'
-export { BLOOM_DESCRIPTIONS, BLOOM_LABELS, isOpenQuestion, isQuizQuestion } from './types'
+} from "./types";
+export {
+  BLOOM_DESCRIPTIONS,
+  BLOOM_LABELS,
+  isOpenQuestion,
+  isQuizQuestion,
+} from "./types";
 
 // Hooks — sourced directly from ai-authoring with backward-compat names
 export {
@@ -21,4 +26,4 @@ export {
   useGenerateFromFile as useGenerateAIContent,
   useMarkContentUsed,
   useUpdateGenerationQuestions,
-} from '@/features/ai-authoring'
+} from "@/features/ai-authoring";

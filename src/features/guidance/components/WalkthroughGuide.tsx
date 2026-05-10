@@ -1,37 +1,37 @@
-import { ChevronLeft, ChevronRight, X } from 'lucide-react'
-import { AnimatePresence, motion } from 'motion/react'
-import { useState } from 'react'
+import { ChevronLeft, ChevronRight, X } from "lucide-react";
+import { AnimatePresence, motion } from "motion/react";
+import { useState } from "react";
 
-import type { ApplicableGuide } from '../types'
+import type { ApplicableGuide } from "../types";
 
 interface Props {
-  guide: ApplicableGuide
-  onDismiss: () => void
-  onComplete: () => void
+  guide: ApplicableGuide;
+  onDismiss: () => void;
+  onComplete: () => void;
 }
 
 // Content is split by \n--- for multi-step walkthroughs, otherwise single step
 function parseSteps(content: string): string[] {
   const steps = content
-    .split('\n---\n')
+    .split("\n---\n")
     .map((s) => s.trim())
-    .filter(Boolean)
-  return steps.length > 0 ? steps : [content]
+    .filter(Boolean);
+  return steps.length > 0 ? steps : [content];
 }
 
 export function WalkthroughGuide({ guide, onDismiss, onComplete }: Props) {
-  const steps = parseSteps(guide.content)
-  const [step, setStep] = useState(0)
+  const steps = parseSteps(guide.content);
+  const [step, setStep] = useState(0);
 
-  const isLast = step === steps.length - 1
+  const isLast = step === steps.length - 1;
 
   const handleNext = () => {
     if (isLast) {
-      onComplete()
+      onComplete();
     } else {
-      setStep((s) => s + 1)
+      setStep((s) => s + 1);
     }
-  }
+  };
 
   return (
     <motion.div
@@ -43,7 +43,9 @@ export function WalkthroughGuide({ guide, onDismiss, onComplete }: Props) {
     >
       {/* Header */}
       <div className="flex items-center justify-between border-b border-slate-100 px-5 py-3 dark:border-slate-800">
-        <p className="text-sm font-semibold text-slate-800 dark:text-white">{guide.title}</p>
+        <p className="text-sm font-semibold text-slate-800 dark:text-white">
+          {guide.title}
+        </p>
         <div className="flex items-center gap-3">
           <span className="text-xs text-slate-400 dark:text-slate-500">
             {step + 1} / {steps.length}
@@ -65,7 +67,9 @@ export function WalkthroughGuide({ guide, onDismiss, onComplete }: Props) {
             <span
               key={i}
               className={`h-1.5 rounded-full transition-all ${
-                i === step ? 'w-4 bg-indigo-500' : 'w-1.5 bg-slate-200 dark:bg-slate-700'
+                i === step
+                  ? "w-4 bg-indigo-500"
+                  : "w-1.5 bg-slate-200 dark:bg-slate-700"
               }`}
             />
           ))}
@@ -102,10 +106,10 @@ export function WalkthroughGuide({ guide, onDismiss, onComplete }: Props) {
           onClick={handleNext}
           className="flex items-center gap-1 rounded-lg bg-indigo-600 px-4 py-1.5 text-sm font-medium text-white hover:bg-indigo-700 transition-colors"
         >
-          {isLast ? 'Selesai' : 'Lanjut'}
+          {isLast ? "Selesai" : "Lanjut"}
           {!isLast && <ChevronRight className="h-4 w-4" />}
         </button>
       </div>
     </motion.div>
-  )
+  );
 }

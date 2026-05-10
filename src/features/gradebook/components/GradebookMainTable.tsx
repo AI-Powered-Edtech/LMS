@@ -1,39 +1,43 @@
-import { Edit2, MoreVertical, Save, Search, Users, X } from 'lucide-react'
+import { Edit2, MoreVertical, Save, Search, Users, X } from "lucide-react";
 
-import { EmptyState, OptimizedImage } from '@/components/ui'
-import type { Assignment } from '@/features/gradebook/hooks/useGradebookQueries'
+import { EmptyState, OptimizedImage } from "@/components/ui";
+import type { Assignment } from "@/features/gradebook/hooks/useGradebookQueries";
 import {
   getGradeBg,
   getGradeColor,
   getTypeColor,
   getTypeLabel,
-} from '@/features/gradebook/hooks/useGradebookState'
-import { cn } from '@/utils/cn'
+} from "@/features/gradebook/hooks/useGradebookState";
+import { cn } from "@/utils/cn";
 
 interface GradeEntry {
-  score: number | null
+  score: number | null;
 }
 
 interface Student {
-  id: string
-  name: string
-  nis: string
+  id: string;
+  name: string;
+  nis: string;
 }
 
 interface GradebookMainTableProps {
-  filteredStudents: Student[]
-  assignments: Assignment[]
-  grades: Record<string, Record<string, GradeEntry>>
-  studentStatsMap: Map<string, { average: number; total: number }>
-  editingCell: { studentId: string; assignmentId: string } | null
-  editValue: string
-  searchQuery: string
-  onSearchChange: (query: string) => void
-  onCellClick: (studentId: string, assignmentId: string, currentScore: number | null) => void
-  onSaveEdit: () => void
-  onCancelEdit: () => void
-  onEditValueChange: (value: string) => void
-  onKeyDown: (e: React.KeyboardEvent) => void
+  filteredStudents: Student[];
+  assignments: Assignment[];
+  grades: Record<string, Record<string, GradeEntry>>;
+  studentStatsMap: Map<string, { average: number; total: number }>;
+  editingCell: { studentId: string; assignmentId: string } | null;
+  editValue: string;
+  searchQuery: string;
+  onSearchChange: (query: string) => void;
+  onCellClick: (
+    studentId: string,
+    assignmentId: string,
+    currentScore: number | null,
+  ) => void;
+  onSaveEdit: () => void;
+  onCancelEdit: () => void;
+  onEditValueChange: (value: string) => void;
+  onKeyDown: (e: React.KeyboardEvent) => void;
 }
 
 export function GradebookMainTable({
@@ -70,7 +74,10 @@ export function GradebookMainTable({
           <span className="text-xs font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider whitespace-nowrap">
             Tampilkan:
           </span>
-          <select aria-label="Filter jenis penilaian" className="text-sm border-slate-200 dark:border-slate-600 rounded-lg bg-slate-50 dark:bg-slate-900 focus:ring-blue-500 py-1.5 pl-3 pr-8 text-slate-900 dark:text-white">
+          <select
+            aria-label="Filter jenis penilaian"
+            className="text-sm border-slate-200 dark:border-slate-600 rounded-lg bg-slate-50 dark:bg-slate-900 focus:ring-blue-500 py-1.5 pl-3 pr-8 text-slate-900 dark:text-white"
+          >
             <option>Semua Tugas</option>
             <option>Kuis Saja</option>
             <option>Esai Saja</option>
@@ -110,8 +117,8 @@ export function GradebookMainTable({
                     </span>
                     <span
                       className={cn(
-                        'text-[10px] px-2 py-0.5 rounded-full mt-1',
-                        getTypeColor(assignment.type)
+                        "text-[10px] px-2 py-0.5 rounded-full mt-1",
+                        getTypeColor(assignment.type),
                       )}
                     >
                       {getTypeLabel(assignment.type)}
@@ -124,9 +131,9 @@ export function GradebookMainTable({
           </thead>
           <tbody className="divide-y divide-slate-100 dark:divide-slate-700">
             {filteredStudents.map((student) => {
-              const stats = studentStatsMap.get(student.id)
-              const avg = stats?.average ?? 0
-              const total = stats?.total ?? 0
+              const stats = studentStatsMap.get(student.id);
+              const avg = stats?.average ?? 0;
+              const total = stats?.total ?? 0;
               return (
                 <tr
                   key={student.id}
@@ -156,19 +163,19 @@ export function GradebookMainTable({
                   <td className="p-4 text-center">
                     <span
                       className={cn(
-                        'inline-flex items-center justify-center w-12 h-8 rounded-lg text-sm font-bold',
+                        "inline-flex items-center justify-center w-12 h-8 rounded-lg text-sm font-bold",
                         getGradeBg(avg),
-                        getGradeColor(avg)
+                        getGradeColor(avg),
                       )}
                     >
                       {avg}%
                     </span>
                   </td>
                   {assignments.map((assignment) => {
-                    const score = grades[student.id]?.[assignment.id] ?? null
+                    const score = grades[student.id]?.[assignment.id] ?? null;
                     const isEditing =
                       editingCell?.studentId === student.id &&
-                      editingCell?.assignmentId === assignment.id
+                      editingCell?.assignmentId === assignment.id;
 
                     return (
                       <td key={assignment.id} className="p-4 text-center">
@@ -180,7 +187,9 @@ export function GradebookMainTable({
                               max="100"
                               autoFocus
                               value={editValue}
-                              onChange={(e) => onEditValueChange(e.target.value)}
+                              onChange={(e) =>
+                                onEditValueChange(e.target.value)
+                              }
                               onKeyDown={onKeyDown}
                               className="w-16 px-2 py-1 text-center border-2 border-blue-500 rounded-md text-sm focus:outline-none bg-white dark:bg-slate-900 text-slate-900 dark:text-white"
                             />
@@ -207,19 +216,34 @@ export function GradebookMainTable({
                             tabIndex={0}
                             className="relative group/cell inline-flex items-center justify-center w-16 h-8 rounded-md cursor-pointer hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors"
                             onClick={() =>
-                              onCellClick(student.id, assignment.id, score?.score ?? null)
+                              onCellClick(
+                                student.id,
+                                assignment.id,
+                                score?.score ?? null,
+                              )
                             }
                             onKeyDown={(e) => {
-                              if (e.key === 'Enter' || e.key === ' ')
-                                onCellClick(student.id, assignment.id, score?.score ?? null)
+                              if (e.key === "Enter" || e.key === " ")
+                                onCellClick(
+                                  student.id,
+                                  assignment.id,
+                                  score?.score ?? null,
+                                );
                             }}
                           >
                             {score && score.score !== null ? (
-                              <span className={cn('text-sm', getGradeColor(score.score))}>
+                              <span
+                                className={cn(
+                                  "text-sm",
+                                  getGradeColor(score.score),
+                                )}
+                              >
                                 {score.score}
                               </span>
                             ) : (
-                              <span className="text-sm text-slate-300 dark:text-slate-600">-</span>
+                              <span className="text-sm text-slate-300 dark:text-slate-600">
+                                -
+                              </span>
                             )}
                             <div className="absolute inset-0 bg-slate-200/50 dark:bg-slate-600/50 rounded-md opacity-0 group-hover/cell:opacity-100 flex items-center justify-center transition-opacity">
                               <Edit2 className="w-3.5 h-3.5 text-slate-600 dark:text-slate-300" />
@@ -227,7 +251,7 @@ export function GradebookMainTable({
                           </div>
                         )}
                       </td>
-                    )
+                    );
                   })}
                   <td className="p-4 text-right">
                     <button
@@ -239,7 +263,7 @@ export function GradebookMainTable({
                     </button>
                   </td>
                 </tr>
-              )
+              );
             })}
             {filteredStudents.length === 0 && (
               <tr>
@@ -256,5 +280,5 @@ export function GradebookMainTable({
         </table>
       </div>
     </div>
-  )
+  );
 }

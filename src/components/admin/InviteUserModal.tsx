@@ -4,7 +4,10 @@ import { useForm } from "react-hook-form";
 
 import { useToast } from "@/hooks/useToast";
 import { db } from "@/services/db";
-import { type InviteUserFormData, InviteUserFormSchema } from "@/shared/schemas/forms";
+import {
+  type InviteUserFormData,
+  InviteUserFormSchema,
+} from "@/shared/schemas/forms";
 import { logger } from "@/utils/logger";
 
 import { useAuth } from "../../contexts/AuthContext";

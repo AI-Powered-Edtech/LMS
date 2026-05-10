@@ -1,21 +1,21 @@
-import { Award } from 'lucide-react'
-import { AnimatePresence, motion } from 'motion/react'
+import { Award } from "lucide-react";
+import { AnimatePresence, motion } from "motion/react";
 
-import { ModuleCompletionModal } from '@/components/LessonViewer'
+import { ModuleCompletionModal } from "@/components/LessonViewer";
 
-import type { Lesson } from '../../index'
+import type { Lesson } from "../../index";
 
 interface LessonCelebrationsProps {
-  showXPReward: boolean
-  showCelebration: boolean
-  showModuleComplete: boolean
-  moduleTitle: string
-  isLastLesson: boolean
-  nextLesson: Lesson | null
-  onSelectLesson: (id: string) => void
-  onCelebrationDismiss: () => void
-  onModuleContinue: () => void
-  onModuleClose: () => void
+  showXPReward: boolean;
+  showCelebration: boolean;
+  showModuleComplete: boolean;
+  moduleTitle: string;
+  isLastLesson: boolean;
+  nextLesson: Lesson | null;
+  onSelectLesson: (id: string) => void;
+  onCelebrationDismiss: () => void;
+  onModuleContinue: () => void;
+  onModuleClose: () => void;
 }
 
 export function LessonCelebrations({
@@ -39,7 +39,7 @@ export function LessonCelebrations({
             initial={{ opacity: 0, y: 20, scale: 0.8 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: -20, scale: 0.8 }}
-            transition={{ type: 'spring', damping: 15, stiffness: 300 }}
+            transition={{ type: "spring", damping: 15, stiffness: 300 }}
             className="absolute bottom-8 right-8 z-50 pointer-events-none flex items-center gap-2 bg-yellow-400 text-yellow-900 font-extrabold text-lg px-5 py-3 rounded-2xl shadow-xl"
           >
             +10 XP
@@ -66,8 +66,8 @@ export function LessonCelebrations({
               {nextLesson ? (
                 <button
                   onClick={() => {
-                    onSelectLesson(nextLesson.id)
-                    onCelebrationDismiss()
+                    onSelectLesson(nextLesson.id);
+                    onCelebrationDismiss();
                   }}
                   className="text-blue-600 dark:text-blue-400 hover:text-blue-700 font-semibold text-lg"
                 >
@@ -78,7 +78,9 @@ export function LessonCelebrations({
                   Semua pelajaran di modul ini telah selesai!
                 </p>
               ) : (
-                <p className="text-slate-500 dark:text-slate-400">Progres Anda telah disimpan.</p>
+                <p className="text-slate-500 dark:text-slate-400">
+                  Progres Anda telah disimpan.
+                </p>
               )}
             </div>
           </motion.div>
@@ -98,5 +100,5 @@ export function LessonCelebrations({
         )}
       </AnimatePresence>
     </>
-  )
+  );
 }

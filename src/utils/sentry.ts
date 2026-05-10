@@ -1,35 +1,35 @@
 // EduSync LMS — Sentry error tracking + performance monitoring
-import * as Sentry from '@sentry/react'
+import * as Sentry from "@sentry/react";
 
 /** Patterns to strip from event payloads — tokens, passwords, secrets */
 const SENSITIVE_KEYS =
-  /token|password|secret|authorization|cookie|session|apikey|api_key|credentials/i
+  /token|password|secret|authorization|cookie|session|apikey|api_key|credentials/i;
 
 /**
  * Recursively scrub values whose keys match sensitive patterns.
  * Returns a shallow-cloned object with matched values replaced by `[Filtered]`.
  */
 function scrubSensitiveData<T>(obj: T): T {
-  if (obj === null || obj === undefined) return obj
-  if (typeof obj !== 'object') return obj
-  if (Array.isArray(obj)) return obj.map(scrubSensitiveData) as unknown as T
+  if (obj === null || obj === undefined) return obj;
+  if (typeof obj !== "object") return obj;
+  if (Array.isArray(obj)) return obj.map(scrubSensitiveData) as unknown as T;
 
-  const result: Record<string, unknown> = {}
+  const result: Record<string, unknown> = {};
   for (const [key, value] of Object.entries(obj as Record<string, unknown>)) {
     if (SENSITIVE_KEYS.test(key)) {
-      result[key] = '[Filtered]'
-    } else if (typeof value === 'object' && value !== null) {
-      result[key] = scrubSensitiveData(value)
+      result[key] = "[Filtered]";
+    } else if (typeof value === "object" && value !== null) {
+      result[key] = scrubSensitiveData(value);
     } else {
-      result[key] = value
+      result[key] = value;
     }
   }
-  return result as T
+  return result as T;
 }
 
 export function initSentry(): void {
-  const dsn = import.meta.env.VITE_SENTRY_DSN
-  if (!dsn) return // Skip in dev if no DSN configured
+  const dsn = import.meta.env.VITE_SENTRY_DSN;
+  if (!dsn) return; // Skip in dev if no DSN configured
 
   Sentry.init({
     dsn,
@@ -60,63 +60,67 @@ export function initSentry(): void {
 
     beforeBreadcrumb(breadcrumb) {
       // Strip Authorization headers from HTTP breadcrumbs
-      if (breadcrumb.category === 'xhr' || breadcrumb.category === 'fetch') {
-        const headers = breadcrumb.data?.headers as Record<string, string> | undefined
+      if (breadcrumb.category === "xhr" || breadcrumb.category === "fetch") {
+        const headers = breadcrumb.data?.headers as
+          | Record<string, string>
+          | undefined;
         if (headers) {
-          const cleaned = { ...headers }
+          const cleaned = { ...headers };
           for (const key of Object.keys(cleaned)) {
             if (/^authorization$/i.test(key)) {
-              cleaned[key] = '[Filtered]'
+              cleaned[key] = "[Filtered]";
             }
           }
-          breadcrumb.data = { ...breadcrumb.data, headers: cleaned }
+          breadcrumb.data = { ...breadcrumb.data, headers: cleaned };
         }
 
         // Also strip authorization from request headers if present
-        const requestHeaders = breadcrumb.data?.requestHeaders as Record<string, string> | undefined
+        const requestHeaders = breadcrumb.data?.requestHeaders as
+          | Record<string, string>
+          | undefined;
         if (requestHeaders) {
-          const cleaned = { ...requestHeaders }
+          const cleaned = { ...requestHeaders };
           for (const key of Object.keys(cleaned)) {
             if (/^authorization$/i.test(key)) {
-              cleaned[key] = '[Filtered]'
+              cleaned[key] = "[Filtered]";
             }
           }
-          breadcrumb.data = { ...breadcrumb.data, requestHeaders: cleaned }
+          breadcrumb.data = { ...breadcrumb.data, requestHeaders: cleaned };
         }
       }
 
-      return breadcrumb
+      return breadcrumb;
     },
 
     beforeSend(event) {
       // Scrub cookies
-      if (event.request?.cookies) delete event.request.cookies
+      if (event.request?.cookies) delete event.request.cookies;
 
       // Scrub user email
       if (event.user?.email) {
-        event.user.email = '[Filtered]'
+        event.user.email = "[Filtered]";
       }
 
       // Scrub request headers
       if (event.request?.headers) {
-        event.request.headers = scrubSensitiveData(event.request.headers)
+        event.request.headers = scrubSensitiveData(event.request.headers);
       }
 
       // Scrub request data (POST bodies, query strings)
       if (event.request?.data) {
         event.request.data = scrubSensitiveData(
-          event.request.data as Record<string, unknown>
-        ) as typeof event.request.data
+          event.request.data as Record<string, unknown>,
+        ) as typeof event.request.data;
       }
 
       // Scrub query strings
       if (event.request?.query_string) {
-        if (typeof event.request.query_string === 'string') {
+        if (typeof event.request.query_string === "string") {
           // Replace token/password values in query strings
           event.request.query_string = event.request.query_string.replace(
             /(token|password|secret|apikey|api_key|authorization|session)=([^&]*)/gi,
-            '$1=[Filtered]'
-          )
+            "$1=[Filtered]",
+          );
         }
       }
 
@@ -125,38 +129,41 @@ export function initSentry(): void {
         event.breadcrumbs = event.breadcrumbs.map((bc) => ({
           ...bc,
           data: bc.data ? scrubSensitiveData(bc.data) : bc.data,
-        }))
+        }));
       }
 
       // Scrub extra context
       if (event.extra) {
-        event.extra = scrubSensitiveData(event.extra)
+        event.extra = scrubSensitiveData(event.extra);
       }
 
-      return event
+      return event;
     },
-  })
+  });
 }
 
 export function setSentryUser(id: string, role: string): void {
-  Sentry.setUser({ id, role })
+  Sentry.setUser({ id, role });
 }
 
 export function clearSentryUser(): void {
-  Sentry.setUser(null)
+  Sentry.setUser(null);
 }
 
-export function captureError(error: unknown, context?: Record<string, unknown>): void {
-  if (context) Sentry.setContext('extra', context)
-  Sentry.captureException(error)
+export function captureError(
+  error: unknown,
+  context?: Record<string, unknown>,
+): void {
+  if (context) Sentry.setContext("extra", context);
+  Sentry.captureException(error);
 }
 
 export function addBreadcrumb(
   message: string,
   category: string,
-  data?: Record<string, unknown>
+  data?: Record<string, unknown>,
 ): void {
-  Sentry.addBreadcrumb({ message, category, data, level: 'info' })
+  Sentry.addBreadcrumb({ message, category, data, level: "info" });
 }
 
-export { Sentry }
+export { Sentry };

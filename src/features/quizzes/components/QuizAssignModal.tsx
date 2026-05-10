@@ -1,86 +1,103 @@
-import { Loader2, X } from 'lucide-react'
-import { useEffect, useState } from 'react'
+import { Loader2, X } from "lucide-react";
+import { useEffect, useState } from "react";
 
-import { useAuth } from '@/contexts/AuthContext'
-import { Classroom, classroomService } from '@/features/classroom/api/classroomService'
-import { QuizAssignment, quizService } from '@/features/quizzes'
-import { useToast } from '@/hooks/useToast'
-import { cn } from '@/utils/cn'
-import { logger } from '@/utils/logger'
+import { useAuth } from "@/contexts/AuthContext";
+import {
+  Classroom,
+  classroomService,
+} from "@/features/classroom/api/classroomService";
+import { QuizAssignment, quizService } from "@/features/quizzes";
+import { useToast } from "@/hooks/useToast";
+import { cn } from "@/utils/cn";
+import { logger } from "@/utils/logger";
 
 interface QuizAssignModalProps {
-  quizId: string
-  isOpen: boolean
-  onClose: () => void
-  onSuccess: () => void
+  quizId: string;
+  isOpen: boolean;
+  onClose: () => void;
+  onSuccess: () => void;
 }
 
 interface AssignmentFormState {
-  selected: boolean
-  availableFrom: string
-  dueAt: string
-  maxAttempts: string
-  existingAssignmentId?: string
+  selected: boolean;
+  availableFrom: string;
+  dueAt: string;
+  maxAttempts: string;
+  existingAssignmentId?: string;
 }
 
 const toLocalDateTime = (value?: string | null) => {
-  if (!value) return ''
-  const date = new Date(value)
-  if (Number.isNaN(date.getTime())) return ''
-  return new Date(date.getTime() - date.getTimezoneOffset() * 60000).toISOString().slice(0, 16)
-}
+  if (!value) return "";
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return "";
+  return new Date(date.getTime() - date.getTimezoneOffset() * 60000)
+    .toISOString()
+    .slice(0, 16);
+};
 
-export function QuizAssignModal({ quizId, isOpen, onClose, onSuccess }: QuizAssignModalProps) {
-  const { addToast } = useToast()
-  const { user, tenantId } = useAuth()
-  const [classes, setClasses] = useState<Classroom[]>([])
-  const [isLoading, setIsLoading] = useState(false)
-  const [isSubmitting, setIsSubmitting] = useState(false)
-  const [assignments, setAssignments] = useState<Record<string, AssignmentFormState>>({})
+export function QuizAssignModal({
+  quizId,
+  isOpen,
+  onClose,
+  onSuccess,
+}: QuizAssignModalProps) {
+  const { addToast } = useToast();
+  const { user, tenantId } = useAuth();
+  const [classes, setClasses] = useState<Classroom[]>([]);
+  const [isLoading, setIsLoading] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [assignments, setAssignments] = useState<
+    Record<string, AssignmentFormState>
+  >({});
 
   /* eslint-disable react-hooks/exhaustive-deps */
   useEffect(() => {
     if (isOpen && user && tenantId) {
-      void loadClasses()
+      void loadClasses();
     }
-  }, [isOpen, quizId, user, tenantId])
+  }, [isOpen, quizId, user, tenantId]);
   /* eslint-enable react-hooks/exhaustive-deps */
 
   const loadClasses = async () => {
-    if (!user || !tenantId) return
+    if (!user || !tenantId) return;
 
-    setIsLoading(true)
+    setIsLoading(true);
     try {
       const [fetchedClasses, existingAssignments] = (await Promise.all([
-        classroomService.fetchClassrooms(user.id, 'teacher', tenantId),
+        classroomService.fetchClassrooms(user.id, "teacher", tenantId),
         quizService.getAssignmentsByQuiz(quizId, tenantId),
-      ])) as [Classroom[], QuizAssignment[]]
+      ])) as [Classroom[], QuizAssignment[]];
 
       const existingByClassId = new Map(
-        existingAssignments.map((assignment) => [assignment.class_id, assignment])
-      )
+        existingAssignments.map((assignment) => [
+          assignment.class_id,
+          assignment,
+        ]),
+      );
 
-      const initialAssignments: Record<string, AssignmentFormState> = {}
+      const initialAssignments: Record<string, AssignmentFormState> = {};
       fetchedClasses.forEach((classroom) => {
-        const existing = existingByClassId.get(classroom.id)
+        const existing = existingByClassId.get(classroom.id);
         initialAssignments[classroom.id] = {
           selected: !!existing,
           availableFrom: toLocalDateTime(existing?.available_from),
           dueAt: toLocalDateTime(existing?.due_at),
-          maxAttempts: existing?.max_attempts ? String(existing.max_attempts) : '',
+          maxAttempts: existing?.max_attempts
+            ? String(existing.max_attempts)
+            : "",
           existingAssignmentId: existing?.id,
-        }
-      })
+        };
+      });
 
-      setClasses(fetchedClasses)
-      setAssignments(initialAssignments)
+      setClasses(fetchedClasses);
+      setAssignments(initialAssignments);
     } catch (error) {
-      if (import.meta.env.DEV) logger.error('Failed to load classes', error)
-      addToast({ type: 'error', message: 'Gagal memuat daftar kelas.' })
+      if (import.meta.env.DEV) logger.error("Failed to load classes", error);
+      addToast({ type: "error", message: "Gagal memuat daftar kelas." });
     } finally {
-      setIsLoading(false)
+      setIsLoading(false);
     }
-  }
+  };
 
   const handleAssign = async () => {
     const selectedAssignments = Object.entries(assignments)
@@ -90,30 +107,37 @@ export function QuizAssignModal({ quizId, isOpen, onClose, onSuccess }: QuizAssi
         available_from: config.availableFrom || undefined,
         due_at: config.dueAt || undefined,
         max_attempts: config.maxAttempts ? Number(config.maxAttempts) : null,
-      }))
+      }));
 
-    if (selectedAssignments.length === 0 || !tenantId) return
+    if (selectedAssignments.length === 0 || !tenantId) return;
 
-    setIsSubmitting(true)
+    setIsSubmitting(true);
     try {
-      await quizService.assignQuizToClasses(quizId, tenantId, selectedAssignments)
-      onSuccess()
-      onClose()
+      await quizService.assignQuizToClasses(
+        quizId,
+        tenantId,
+        selectedAssignments,
+      );
+      onSuccess();
+      onClose();
     } catch (error) {
-      if (import.meta.env.DEV) logger.error('Failed to assign quiz', error)
-      addToast({ type: 'error', message: 'Gagal menugaskan kuis. Silakan coba lagi.' })
+      if (import.meta.env.DEV) logger.error("Failed to assign quiz", error);
+      addToast({
+        type: "error",
+        message: "Gagal menugaskan kuis. Silakan coba lagi.",
+      });
     } finally {
-      setIsSubmitting(false)
+      setIsSubmitting(false);
     }
-  }
+  };
 
-  if (!isOpen) return null
+  if (!isOpen) return null;
 
   return (
     <div
       role="presentation"
       className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50 backdrop-blur-sm p-4"
-      onKeyDown={(e) => e.key === 'Escape' && onClose()}
+      onKeyDown={(e) => e.key === "Escape" && onClose()}
     >
       <div
         role="dialog"
@@ -145,10 +169,10 @@ export function QuizAssignModal({ quizId, isOpen, onClose, onSuccess }: QuizAssi
                 <div
                   key={classroom.id}
                   className={cn(
-                    'bg-white dark:bg-slate-700 border rounded-xl p-4 transition-colors',
+                    "bg-white dark:bg-slate-700 border rounded-xl p-4 transition-colors",
                     assignments[classroom.id]?.selected
-                      ? 'border-blue-500 shadow-sm ring-1 ring-blue-500'
-                      : 'border-slate-200 dark:border-slate-600'
+                      ? "border-blue-500 shadow-sm ring-1 ring-blue-500"
+                      : "border-slate-200 dark:border-slate-600",
                   )}
                 >
                   <div className="flex items-start gap-4">
@@ -259,7 +283,10 @@ export function QuizAssignModal({ quizId, isOpen, onClose, onSuccess }: QuizAssi
           <button
             onClick={handleAssign}
             disabled={
-              isSubmitting || !Object.values(assignments).some((assignment) => assignment.selected)
+              isSubmitting ||
+              !Object.values(assignments).some(
+                (assignment) => assignment.selected,
+              )
             }
             className="px-6 py-2 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 disabled:opacity-50 rounded-lg transition-colors flex items-center gap-2"
           >
@@ -269,5 +296,5 @@ export function QuizAssignModal({ quizId, isOpen, onClose, onSuccess }: QuizAssi
         </div>
       </div>
     </div>
-  )
+  );
 }

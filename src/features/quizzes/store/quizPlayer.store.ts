@@ -1,9 +1,9 @@
 // Quiz Player Store - Zustand state management
 // Part of the Quiz Engine Refactor
 
-import { create } from 'zustand'
+import { create } from "zustand";
 
-import type { SubmitAnswer } from '../types/quizzes.types'
+import type { SubmitAnswer } from "../types/quizzes.types";
 
 // ============================================
 // Store State
@@ -23,10 +23,10 @@ import type { SubmitAnswer } from '../types/quizzes.types'
  */
 interface QuizPlayerState {
   // Answer state
-  answers: Record<string, SubmitAnswer>
+  answers: Record<string, SubmitAnswer>;
 
   // Navigation state
-  currentQuestion: number
+  currentQuestion: number;
 
   /**
    * @deprecated Timer dikelola oleh `useQuizTimer` hook secara lokal di `QuizPlayer.tsx`.
@@ -34,23 +34,23 @@ interface QuizPlayerState {
    * Jangan gunakan nilai ini untuk menampilkan countdown kepada pengguna.
    * Gunakan `useQuizTimer` hook di dalam `QuizPlayer.tsx` sebagai gantinya.
    */
-  timeRemaining: number | null
+  timeRemaining: number | null;
 
   /**
    * @note `QuizPlayer.tsx` menggunakan local `useState<Set<string>>` untuk flagged state,
    * bukan dari store ini. Store `flagged` tersedia untuk komponen lain di luar
    * `QuizPlayer.tsx` yang mungkin perlu membaca/mengubah status flag soal.
    */
-  flagged: Set<string>
+  flagged: Set<string>;
 
   // Actions
-  setAnswer: (questionId: string, answer: SubmitAnswer) => void
-  setAnswers: (answers: Record<string, SubmitAnswer>) => void
-  goTo: (questionIndex: number) => void
-  nextQuestion: () => void
-  previousQuestion: () => void
-  toggleFlag: (questionId: string) => void
-  resetStore: () => void
+  setAnswer: (questionId: string, answer: SubmitAnswer) => void;
+  setAnswers: (answers: Record<string, SubmitAnswer>) => void;
+  goTo: (questionIndex: number) => void;
+  nextQuestion: () => void;
+  previousQuestion: () => void;
+  toggleFlag: (questionId: string) => void;
+  resetStore: () => void;
 }
 
 // ============================================
@@ -71,41 +71,41 @@ export const useQuizPlayerStore = create<QuizPlayerState>((set, get) => ({
         ...state.answers,
         [questionId]: answer,
       },
-    }))
+    }));
   },
 
   setAnswers: (answers: Record<string, SubmitAnswer>) => {
-    set({ answers })
+    set({ answers });
   },
 
   goTo: (questionIndex: number) => {
     if (questionIndex >= 0) {
-      set({ currentQuestion: questionIndex })
+      set({ currentQuestion: questionIndex });
     }
   },
 
   nextQuestion: () => {
-    const { currentQuestion } = get()
-    set({ currentQuestion: currentQuestion + 1 })
+    const { currentQuestion } = get();
+    set({ currentQuestion: currentQuestion + 1 });
   },
 
   previousQuestion: () => {
-    const { currentQuestion } = get()
+    const { currentQuestion } = get();
     if (currentQuestion > 0) {
-      set({ currentQuestion: currentQuestion - 1 })
+      set({ currentQuestion: currentQuestion - 1 });
     }
   },
 
   toggleFlag: (questionId: string) => {
     set((state) => {
-      const newFlagged = new Set(state.flagged)
+      const newFlagged = new Set(state.flagged);
       if (newFlagged.has(questionId)) {
-        newFlagged.delete(questionId)
+        newFlagged.delete(questionId);
       } else {
-        newFlagged.add(questionId)
+        newFlagged.add(questionId);
       }
-      return { flagged: newFlagged }
-    })
+      return { flagged: newFlagged };
+    });
   },
 
   resetStore: () => {
@@ -114,9 +114,9 @@ export const useQuizPlayerStore = create<QuizPlayerState>((set, get) => ({
       currentQuestion: 0,
       timeRemaining: null,
       flagged: new Set<string>(),
-    })
+    });
   },
-}))
+}));
 
 // ============================================
 // Default store (for type exports)

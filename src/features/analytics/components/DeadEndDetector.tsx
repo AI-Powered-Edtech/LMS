@@ -1,54 +1,57 @@
-import { AlertTriangle } from 'lucide-react'
-import { useMemo } from 'react'
+import { AlertTriangle } from "lucide-react";
+import { useMemo } from "react";
 
-import type { LearningPath } from '../types'
+import type { LearningPath } from "../types";
 
 interface Props {
-  paths: LearningPath[]
+  paths: LearningPath[];
 }
 
 interface DeadEnd {
-  lesson_id: string
-  lesson_title: string
-  user_count: number
-  avg_completion_pct: number
+  lesson_id: string;
+  lesson_title: string;
+  user_count: number;
+  avg_completion_pct: number;
 }
 
 function findDeadEnds(paths: LearningPath[]): DeadEnd[] {
-  const deadEndMap = new Map<string, DeadEnd>()
+  const deadEndMap = new Map<string, DeadEnd>();
 
   for (const path of paths) {
-    const steps = path.path_steps
-    if (steps.length === 0) continue
-    const lastStep = steps[steps.length - 1]
+    const steps = path.path_steps;
+    if (steps.length === 0) continue;
+    const lastStep = steps[steps.length - 1];
     if (!lastStep.is_completed) {
-      const existing = deadEndMap.get(lastStep.lesson_id)
+      const existing = deadEndMap.get(lastStep.lesson_id);
       if (existing) {
-        existing.user_count += path.user_count
+        existing.user_count += path.user_count;
       } else {
         deadEndMap.set(lastStep.lesson_id, {
           lesson_id: lastStep.lesson_id,
           lesson_title: lastStep.lesson_title,
           user_count: path.user_count,
           avg_completion_pct: lastStep.completion_pct,
-        })
+        });
       }
     }
   }
 
-  return Array.from(deadEndMap.values()).sort((a, b) => b.user_count - a.user_count)
+  return Array.from(deadEndMap.values()).sort(
+    (a, b) => b.user_count - a.user_count,
+  );
 }
 
 export function DeadEndDetector({ paths }: Props) {
   // ⚡ Perf: memoize findDeadEnds — O(paths × steps) with Map + sort, recomputed on every render otherwise
-  const deadEnds = useMemo(() => findDeadEnds(paths), [paths])
+  const deadEnds = useMemo(() => findDeadEnds(paths), [paths]);
 
   if (deadEnds.length === 0) {
     return (
       <div className="py-8 text-center text-sm text-slate-400 dark:text-slate-500">
-        Tidak ada dead end terdeteksi. Semua jalur berakhir dengan pelajaran yang selesai.
+        Tidak ada dead end terdeteksi. Semua jalur berakhir dengan pelajaran
+        yang selesai.
       </div>
-    )
+    );
   }
 
   return (
@@ -78,5 +81,5 @@ export function DeadEndDetector({ paths }: Props) {
         ))}
       </div>
     </div>
-  )
+  );
 }

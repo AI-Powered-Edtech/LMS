@@ -1,16 +1,17 @@
-import { useQueryClient } from '@tanstack/react-query'
-import { AlertTriangle, BookOpen, Home, Users } from 'lucide-react'
-import { useLocation, useNavigate } from 'react-router-dom'
+import { useQueryClient } from "@tanstack/react-query";
+import { AlertTriangle, BookOpen, Home, Users } from "lucide-react";
+import { useLocation, useNavigate } from "react-router-dom";
 
-import { translateCourseStatus } from '@/utils/statusTranslations'
+import { translateCourseStatus } from "@/utils/statusTranslations";
 
-import { useStudentEnrollments } from '../queries/lessonQueries'
+import { useStudentEnrollments } from "../queries/lessonQueries";
 
 export function StudentCoursesList() {
-  const queryClient = useQueryClient()
-  const navigate = useNavigate()
-  const location = useLocation()
-  const enrollmentError = (location.state as { error?: string } | null)?.error ?? null
+  const queryClient = useQueryClient();
+  const navigate = useNavigate();
+  const location = useLocation();
+  const enrollmentError =
+    (location.state as { error?: string } | null)?.error ?? null;
 
   const {
     data: courses = [],
@@ -18,17 +19,17 @@ export function StudentCoursesList() {
     isRefetching,
     error: queryError,
     refetch,
-  } = useStudentEnrollments()
+  } = useStudentEnrollments();
 
   const handleRetryEnrollments = async () => {
     await queryClient.invalidateQueries({
       predicate: (query) =>
         Array.isArray(query.queryKey) &&
-        query.queryKey[0] === 'lessons' &&
-        query.queryKey[2] === 'enrollments',
-    })
-    await refetch()
-  }
+        query.queryKey[0] === "lessons" &&
+        query.queryKey[2] === "enrollments",
+    });
+    await refetch();
+  };
 
   if (queryError) {
     return (
@@ -48,11 +49,11 @@ export function StudentCoursesList() {
             disabled={isRefetching}
             className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-xl transition-colors"
           >
-            {isRefetching ? 'Memuat...' : 'Coba Lagi'}
+            {isRefetching ? "Memuat..." : "Coba Lagi"}
           </button>
         </div>
       </div>
-    )
+    );
   }
 
   if (loading) {
@@ -60,7 +61,7 @@ export function StudentCoursesList() {
       <div className="flex items-center justify-center h-[80vh]">
         <div className="w-8 h-8 rounded-full border-4 border-slate-200 border-t-blue-600 animate-spin" />
       </div>
-    )
+    );
   }
 
   return (
@@ -91,19 +92,24 @@ export function StudentCoursesList() {
               Belum Terdaftar di Kursus
             </h2>
             <p className="text-slate-500 max-w-md mx-auto mb-6">
-              Kamu belum di-enroll di kursus apa pun. Gabung ke kelas menggunakan
-              kode dari guru, atau hubungi guru/admin untuk ditambahkan ke kursus.
+              Kamu belum di-enroll di kursus apa pun. Gabung ke kelas
+              menggunakan kode dari guru, atau hubungi guru/admin untuk
+              ditambahkan ke kursus.
             </p>
             <div className="flex flex-wrap items-center justify-center gap-3">
               <button
-                onClick={() => navigate('/app/student/dashboard', { state: { openJoinClass: true } })}
+                onClick={() =>
+                  navigate("/app/student/dashboard", {
+                    state: { openJoinClass: true },
+                  })
+                }
                 className="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-xl transition-colors shadow-sm"
               >
                 <Users className="w-4 h-4" />
                 Gabung Kelas
               </button>
               <button
-                onClick={() => navigate('/app/student/dashboard')}
+                onClick={() => navigate("/app/student/dashboard")}
                 className="inline-flex items-center gap-2 px-4 py-2 bg-slate-100 hover:bg-slate-200 dark:bg-slate-700 dark:hover:bg-slate-600 text-slate-700 dark:text-slate-200 font-semibold rounded-xl transition-colors"
               >
                 <Home className="w-4 h-4" />
@@ -120,8 +126,8 @@ export function StudentCoursesList() {
                 tabIndex={0}
                 onClick={() => navigate(`/app/student/courses/${course.id}`)}
                 onKeyDown={(e) => {
-                  if (e.key === 'Enter' || e.key === ' ')
-                    void navigate(`/app/student/courses/${course.id}`)
+                  if (e.key === "Enter" || e.key === " ")
+                    void navigate(`/app/student/courses/${course.id}`);
                 }}
                 className="group flex flex-col bg-white dark:bg-slate-800 rounded-3xl border border-slate-200 dark:border-slate-700 overflow-hidden hover:shadow-xl hover:shadow-blue-500/10 hover:-translate-y-1 transition-all cursor-pointer"
               >
@@ -152,8 +158,8 @@ export function StudentCoursesList() {
                 <div className="p-4 bg-slate-50 dark:bg-slate-800/50 border-t border-slate-100 dark:border-slate-700/50 group-hover:bg-blue-50 dark:group-hover:bg-blue-900/20 transition-colors">
                   <button
                     onClick={(e) => {
-                      e.stopPropagation()
-                      void navigate(`/app/student/courses/${course.id}`)
+                      e.stopPropagation();
+                      void navigate(`/app/student/courses/${course.id}`);
                     }}
                     onKeyDown={(e) => e.stopPropagation()}
                     className="w-full py-2 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl transition-colors shadow-sm shadow-blue-200 dark:shadow-none"
@@ -167,5 +173,5 @@ export function StudentCoursesList() {
         )}
       </div>
     </div>
-  )
+  );
 }

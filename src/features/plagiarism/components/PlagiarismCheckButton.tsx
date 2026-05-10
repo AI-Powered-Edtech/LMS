@@ -1,18 +1,18 @@
-import { ShieldCheck } from 'lucide-react'
-import { useState } from 'react'
+import { ShieldCheck } from "lucide-react";
+import { useState } from "react";
 
-import { useToast } from '@/hooks/useToast'
+import { useToast } from "@/hooks/useToast";
 
-import { plagiarismService } from '../api/plagiarismService'
-import type { PlagiarismStatus } from '../types'
-import { PlagiarismBadge } from './PlagiarismBadge'
+import { plagiarismService } from "../api/plagiarismService";
+import type { PlagiarismStatus } from "../types";
+import { PlagiarismBadge } from "./PlagiarismBadge";
 
 interface PlagiarismCheckButtonProps {
-  submissionId: string
-  tenantId: string
+  submissionId: string;
+  tenantId: string;
   /** Pre-loaded status from DB (if a check was already run before). */
-  initialScore?: number | null
-  initialStatus?: PlagiarismStatus | null
+  initialScore?: number | null;
+  initialStatus?: PlagiarismStatus | null;
 }
 
 /**
@@ -26,48 +26,51 @@ export function PlagiarismCheckButton({
   initialScore = null,
   initialStatus = null,
 }: PlagiarismCheckButtonProps) {
-  const { addToast } = useToast()
+  const { addToast } = useToast();
 
-  const [isChecking, setIsChecking] = useState(false)
-  const [score, setScore] = useState<number | null>(initialScore)
-  const [status, setStatus] = useState<PlagiarismStatus | null>(initialStatus)
+  const [isChecking, setIsChecking] = useState(false);
+  const [score, setScore] = useState<number | null>(initialScore);
+  const [status, setStatus] = useState<PlagiarismStatus | null>(initialStatus);
 
-  const hasResult = status === 'completed' || status === 'error'
+  const hasResult = status === "completed" || status === "error";
 
   const handleCheck = async () => {
-    if (isChecking) return
-    setIsChecking(true)
-    setStatus('processing')
+    if (isChecking) return;
+    setIsChecking(true);
+    setStatus("processing");
 
     try {
-      const result = await plagiarismService.checkPlagiarism(submissionId)
-      setScore(result.similarity_score)
-      setStatus(result.status)
+      const result = await plagiarismService.checkPlagiarism(submissionId);
+      setScore(result.similarity_score);
+      setStatus(result.status);
 
       if (result.similarity_score > 50) {
         addToast({
-          type: 'warning',
-          message: 'Kemiripan teks tinggi terdeteksi',
+          type: "warning",
+          message: "Kemiripan teks tinggi terdeteksi",
           description: `Skor kemiripan: ${result.similarity_score}%. Harap tinjau submisi ini.`,
-        })
+        });
       } else {
         addToast({
-          type: 'success',
-          message: 'Pemeriksaan plagiarisme selesai',
+          type: "success",
+          message: "Pemeriksaan plagiarisme selesai",
           description: `Skor kemiripan: ${result.similarity_score}%`,
-        })
+        });
       }
     } catch (err) {
-      setStatus('error')
+      setStatus("error");
       addToast({
-        type: 'error',
-        message: 'Gagal memeriksa plagiarisme',
-        description: err instanceof Error ? err.message : 'Terjadi kesalahan tidak diketahui',
-      })
+        type: "error",
+        message: "Gagal memeriksa plagiarisme",
+        description:
+          err instanceof Error
+            ? err.message
+            : "Terjadi kesalahan tidak diketahui",
+      });
     } finally {
-      setIsChecking(false)
+      setIsChecking(false);
     }
-  }
+  };
 
   if (hasResult && status) {
     return (
@@ -82,11 +85,11 @@ export function PlagiarismCheckButton({
           Periksa ulang
         </button>
       </div>
-    )
+    );
   }
 
-  if (status === 'processing' || isChecking) {
-    return <PlagiarismBadge score={null} status="processing" />
+  if (status === "processing" || isChecking) {
+    return <PlagiarismBadge score={null} status="processing" />;
   }
 
   // Real handler at plagiarism_handlers::check_plagiarism_handler (mounted in
@@ -109,5 +112,5 @@ export function PlagiarismCheckButton({
       <ShieldCheck className="w-3.5 h-3.5 shrink-0" />
       Periksa Plagiarisme
     </button>
-  )
+  );
 }

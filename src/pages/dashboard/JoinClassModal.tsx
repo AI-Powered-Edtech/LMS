@@ -1,64 +1,72 @@
-import { valibotResolver } from '@hookform/resolvers/valibot'
-import { AlertTriangle, CheckCircle2, Plus } from 'lucide-react'
-import { motion } from 'motion/react'
-import { useEffect, useState } from 'react'
-import { useForm } from 'react-hook-form'
+import { valibotResolver } from "@hookform/resolvers/valibot";
+import { AlertTriangle, CheckCircle2, Plus } from "lucide-react";
+import { motion } from "motion/react";
+import { useEffect, useState } from "react";
+import { useForm } from "react-hook-form";
 
-import { Button, Input, Modal, ModalBody, ModalHeader } from '@/components/ui'
-import { FormField } from '@/components/ui/FormField'
-import { type JoinClassFormData, JoinClassFormSchema } from '@/shared/schemas/forms'
+import { Button, Input, Modal, ModalBody, ModalHeader } from "@/components/ui";
+import { FormField } from "@/components/ui/FormField";
+import {
+  type JoinClassFormData,
+  JoinClassFormSchema,
+} from "@/shared/schemas/forms";
 
 interface JoinClassModalProps {
-  open: boolean
-  onClose: () => void
-  initialCode?: string
-  onJoin: (code: string) => Promise<void>
+  open: boolean;
+  onClose: () => void;
+  initialCode?: string;
+  onJoin: (code: string) => Promise<void>;
 }
 
-export function JoinClassModal({ open, onClose, initialCode = '', onJoin }: JoinClassModalProps) {
+export function JoinClassModal({
+  open,
+  onClose,
+  initialCode = "",
+  onJoin,
+}: JoinClassModalProps) {
   const { control, handleSubmit, reset, watch } = useForm<JoinClassFormData>({
     resolver: valibotResolver(JoinClassFormSchema),
     defaultValues: { code: initialCode },
-  })
-  const code = watch('code')
+  });
+  const code = watch("code");
 
-  const [isJoining, setIsJoining] = useState(false)
-  const [error, setError] = useState<string | null>(null)
-  const [success, setSuccess] = useState(false)
+  const [isJoining, setIsJoining] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [success, setSuccess] = useState(false);
 
   useEffect(() => {
     if (open) {
-      reset({ code: initialCode })
+      reset({ code: initialCode });
     }
-  }, [open, initialCode, reset])
+  }, [open, initialCode, reset]);
 
   const onSubmit = async (data: JoinClassFormData) => {
-    const codeToJoin = data.code.trim().toUpperCase()
-    if (!codeToJoin) return
+    const codeToJoin = data.code.trim().toUpperCase();
+    if (!codeToJoin) return;
 
-    setIsJoining(true)
-    setError(null)
+    setIsJoining(true);
+    setError(null);
     try {
-      await onJoin(codeToJoin)
-      setSuccess(true)
+      await onJoin(codeToJoin);
+      setSuccess(true);
       setTimeout(() => {
-        onClose()
-        reset()
-        setSuccess(false)
-      }, 2000)
+        onClose();
+        reset();
+        setSuccess(false);
+      }, 2000);
     } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : 'Gagal bergabung ke kelas')
+      setError(err instanceof Error ? err.message : "Gagal bergabung ke kelas");
     } finally {
-      setIsJoining(false)
+      setIsJoining(false);
     }
-  }
+  };
 
   const handleClose = () => {
-    onClose()
-    setSuccess(false)
-    setError(null)
-    reset()
-  }
+    onClose();
+    setSuccess(false);
+    setError(null);
+    reset();
+  };
 
   return (
     <Modal open={open} onClose={handleClose} size="sm">
@@ -106,12 +114,12 @@ export function JoinClassModal({ open, onClose, initialCode = '', onJoin }: Join
                 disabled={!code?.trim()}
                 icon={<Plus className="w-4 h-4" />}
               >
-                {isJoining ? 'Bergabung...' : 'Gabung'}
+                {isJoining ? "Bergabung..." : "Gabung"}
               </Button>
             </form>
           </>
         )}
       </ModalBody>
     </Modal>
-  )
+  );
 }

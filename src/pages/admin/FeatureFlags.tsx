@@ -4,27 +4,27 @@
  * Konten telah dipindahkan ke FeatureManagement (tab "Fitur Lanjutan").
  * Route /app/admin/feature-flags tetap dipertahankan untuk backward compatibility.
  */
-import { ArrowRight, Flag } from 'lucide-react'
-import { useNavigate } from 'react-router-dom'
+import { ArrowRight, Flag } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 
-import { useAuth } from '@/contexts/AuthContext'
-import { FeatureManagement } from '@/features/administration/components/FeatureManagement'
-import { usePageTitle } from '@/hooks/usePageTitle'
+import { useAuth } from "@/contexts/AuthContext";
+import { FeatureManagement } from "@/features/administration/components/FeatureManagement";
+import { usePageTitle } from "@/hooks/usePageTitle";
 
 export default function FeatureFlagsPage() {
-  usePageTitle('Pengaturan Fitur')
-  const navigate = useNavigate()
-  const { role } = useAuth()
+  usePageTitle("Pengaturan Fitur");
+  const navigate = useNavigate();
+  const { role } = useAuth();
 
   // SECURITY: RBAC check — only admin can access this page
-  if (role !== 'admin') {
+  if (role !== "admin") {
     return (
       <div className="p-6 max-w-5xl mx-auto text-center">
         <p className="text-red-600 dark:text-red-400 font-bold">
           Akses ditolak. Hanya admin yang dapat mengakses halaman ini.
         </p>
       </div>
-    )
+    );
   }
 
   return (
@@ -48,12 +48,13 @@ export default function FeatureFlagsPage() {
             Manajemen fitur telah dipindahkan
           </p>
           <p className="text-sm text-blue-700 dark:text-blue-300 mt-0.5">
-            Pengaturan fitur kini tersedia di halaman Administrasi bersama konfigurasi modul
-            sekolah. Halaman ini tetap dapat diakses untuk kompatibilitas.
+            Pengaturan fitur kini tersedia di halaman Administrasi bersama
+            konfigurasi modul sekolah. Halaman ini tetap dapat diakses untuk
+            kompatibilitas.
           </p>
         </div>
         <button
-          onClick={() => navigate('/app/admin/dashboard')}
+          onClick={() => navigate("/app/admin/dashboard")}
           className="flex items-center gap-1.5 px-3 py-1.5 bg-blue-600 text-white text-xs font-semibold rounded-lg hover:bg-blue-700 transition-colors shrink-0"
         >
           Buka Administrasi
@@ -64,5 +65,5 @@ export default function FeatureFlagsPage() {
       {/* Render FeatureManagement langsung dengan tab Fitur Lanjutan aktif */}
       <FeatureManagement defaultTab="flags" />
     </div>
-  )
+  );
 }

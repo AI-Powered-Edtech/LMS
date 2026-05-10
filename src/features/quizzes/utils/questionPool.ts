@@ -14,24 +14,24 @@
 
 export interface PoolConfig {
   /** Total questions available in the quiz */
-  totalQuestions: number
+  totalQuestions: number;
   /** How many questions to show per attempt (null = show all) */
-  poolSize: number | null
+  poolSize: number | null;
   /** Whether to shuffle question order */
-  shuffleQuestions: boolean
+  shuffleQuestions: boolean;
   /** Whether to shuffle option order within questions */
-  shuffleOptions: boolean
+  shuffleOptions: boolean;
 }
 
 export interface PoolSelection<T> {
   /** The selected & ordered items */
-  items: T[]
+  items: T[];
   /** Number selected out of total */
-  selectedCount: number
+  selectedCount: number;
   /** Total available */
-  totalCount: number
+  totalCount: number;
   /** Whether pool selection was applied */
-  isPooled: boolean
+  isPooled: boolean;
 }
 
 // ─── Seeded PRNG ─────────────────────────────────────────
@@ -42,23 +42,23 @@ export interface PoolSelection<T> {
  */
 function mulberry32(seed: number): () => number {
   return function () {
-    let t = (seed += 0x6d2b79f5)
-    t = Math.imul(t ^ (t >>> 15), t | 1)
-    t ^= t + Math.imul(t ^ (t >>> 7), t | 61)
-    return ((t ^ (t >>> 14)) >>> 0) / 4294967296
-  }
+    let t = (seed += 0x6d2b79f5);
+    t = Math.imul(t ^ (t >>> 15), t | 1);
+    t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  };
 }
 
 /**
  * Convert a string seed to a numeric seed via simple hash.
  */
 function hashSeed(seed: string): number {
-  let hash = 0
+  let hash = 0;
   for (let i = 0; i < seed.length; i++) {
-    const char = seed.charCodeAt(i)
-    hash = ((hash << 5) - hash + char) | 0
+    const char = seed.charCodeAt(i);
+    hash = ((hash << 5) - hash + char) | 0;
   }
-  return hash >>> 0
+  return hash >>> 0;
 }
 
 // ─── Core Functions ──────────────────────────────────────
@@ -68,15 +68,15 @@ function hashSeed(seed: string): number {
  * Returns a new array; does not mutate the input.
  */
 export function seededShuffle<T>(items: T[], seed: string): T[] {
-  const array = [...items]
-  const rng = mulberry32(hashSeed(seed))
+  const array = [...items];
+  const rng = mulberry32(hashSeed(seed));
 
   for (let i = array.length - 1; i > 0; i--) {
-    const j = Math.floor(rng() * (i + 1))
-    ;[array[i], array[j]] = [array[j], array[i]]
+    const j = Math.floor(rng() * (i + 1));
+    [array[i], array[j]] = [array[j], array[i]];
   }
 
-  return array
+  return array;
 }
 
 /**
@@ -87,30 +87,36 @@ export function seededShuffle<T>(items: T[], seed: string): T[] {
  * @param seed - Attempt seed for deterministic selection
  * @returns PoolSelection with the selected items
  */
-export function selectFromPool<T>(items: T[], config: PoolConfig, seed: string): PoolSelection<T> {
-  const totalCount = items.length
+export function selectFromPool<T>(
+  items: T[],
+  config: PoolConfig,
+  seed: string,
+): PoolSelection<T> {
+  const totalCount = items.length;
 
   // If no pool size or pool size >= total, use all questions
   if (!config.poolSize || config.poolSize >= totalCount) {
-    const ordered = config.shuffleQuestions ? seededShuffle(items, seed) : items
+    const ordered = config.shuffleQuestions
+      ? seededShuffle(items, seed)
+      : items;
     return {
       items: ordered,
       selectedCount: totalCount,
       totalCount,
       isPooled: false,
-    }
+    };
   }
 
   // Shuffle all items deterministically, then take the first poolSize
-  const shuffled = seededShuffle(items, seed)
-  const selected = shuffled.slice(0, config.poolSize)
+  const shuffled = seededShuffle(items, seed);
+  const selected = shuffled.slice(0, config.poolSize);
 
   return {
     items: selected,
     selectedCount: config.poolSize,
     totalCount,
     isPooled: true,
-  }
+  };
 }
 
 /**
@@ -120,16 +126,16 @@ export function selectFromPool<T>(items: T[], config: PoolConfig, seed: string):
 export function validatePoolConfig(config: PoolConfig): string | null {
   if (config.poolSize !== null) {
     if (config.poolSize < 1) {
-      return 'Jumlah soal per percobaan harus minimal 1'
+      return "Jumlah soal per percobaan harus minimal 1";
     }
     if (config.poolSize > config.totalQuestions) {
-      return `Jumlah soal per percobaan (${config.poolSize}) melebihi total soal (${config.totalQuestions})`
+      return `Jumlah soal per percobaan (${config.poolSize}) melebihi total soal (${config.totalQuestions})`;
     }
     if (config.totalQuestions < 2) {
-      return 'Dibutuhkan minimal 2 soal untuk mengaktifkan question pool'
+      return "Dibutuhkan minimal 2 soal untuk mengaktifkan question pool";
     }
   }
-  return null
+  return null;
 }
 
 /**
@@ -137,15 +143,15 @@ export function validatePoolConfig(config: PoolConfig): string | null {
  */
 export function getPoolSummary(config: PoolConfig): string {
   if (!config.poolSize || config.poolSize >= config.totalQuestions) {
-    return `Semua ${config.totalQuestions} soal ditampilkan`
+    return `Semua ${config.totalQuestions} soal ditampilkan`;
   }
-  return `${config.poolSize} dari ${config.totalQuestions} soal dipilih secara acak`
+  return `${config.poolSize} dari ${config.totalQuestions} soal dipilih secara acak`;
 }
 
 // ─── Phase 33A: Server-side bank pool helpers ─────────────────────────────
 
 /** sessionStorage key prefix for pool mode flag */
-const POOL_MODE_KEY_PREFIX = 'edusync:pool_mode:'
+const POOL_MODE_KEY_PREFIX = "edusync:pool_mode:";
 
 /**
  * Mark a quiz as using server-side pool mode.
@@ -155,9 +161,9 @@ const POOL_MODE_KEY_PREFIX = 'edusync:pool_mode:'
 export function setPoolModeFlag(quizId: string, isActive: boolean): void {
   try {
     if (isActive) {
-      sessionStorage.setItem(`${POOL_MODE_KEY_PREFIX}${quizId}`, '1')
+      sessionStorage.setItem(`${POOL_MODE_KEY_PREFIX}${quizId}`, "1");
     } else {
-      sessionStorage.removeItem(`${POOL_MODE_KEY_PREFIX}${quizId}`)
+      sessionStorage.removeItem(`${POOL_MODE_KEY_PREFIX}${quizId}`);
     }
   } catch {
     // sessionStorage may be unavailable in some contexts — fail silently
@@ -176,9 +182,9 @@ export function setPoolModeFlag(quizId: string, isActive: boolean): void {
  */
 export function isPoolModeActive(quizId: string): boolean {
   try {
-    return sessionStorage.getItem(`${POOL_MODE_KEY_PREFIX}${quizId}`) === '1'
+    return sessionStorage.getItem(`${POOL_MODE_KEY_PREFIX}${quizId}`) === "1";
   } catch {
-    return false
+    return false;
   }
 }
 
@@ -188,7 +194,7 @@ export function isPoolModeActive(quizId: string): boolean {
  */
 export function clearPoolModeFlag(quizId: string): void {
   try {
-    sessionStorage.removeItem(`${POOL_MODE_KEY_PREFIX}${quizId}`)
+    sessionStorage.removeItem(`${POOL_MODE_KEY_PREFIX}${quizId}`);
   } catch {
     // fail silently
   }

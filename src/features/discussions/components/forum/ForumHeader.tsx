@@ -1,7 +1,7 @@
-import { ForumBadge } from './ForumBadge'
+import { ForumBadge } from "./ForumBadge";
 
 interface ForumHeaderProps {
-  knowledgePoints: number
+  knowledgePoints: number;
 }
 
 export function ForumHeader({ knowledgePoints }: ForumHeaderProps) {
@@ -15,7 +15,8 @@ export function ForumHeader({ knowledgePoints }: ForumHeaderProps) {
           </span>
         </h1>
         <p className="text-slate-500 dark:text-slate-400 mt-2">
-          Tanya, jawab, dan belajar bersama komunitas. Dapatkan Knowledge Points (KP)!
+          Tanya, jawab, dan belajar bersama komunitas. Dapatkan Knowledge Points
+          (KP)!
         </p>
       </div>
 
@@ -33,5 +34,5 @@ export function ForumHeader({ knowledgePoints }: ForumHeaderProps) {
         </div>
       </div>
     </div>
-  )
+  );
 }

@@ -1,16 +1,18 @@
-import { BookOpen, Sparkles, X } from 'lucide-react'
-import { AnimatePresence, motion } from 'motion/react'
+import { BookOpen, Sparkles, X } from "lucide-react";
+import { AnimatePresence, motion } from "motion/react";
 
-import { useCreatorBridgeStore } from '../store/creatorBridge.store'
+import { useCreatorBridgeStore } from "../store/creatorBridge.store";
 
 interface AIImportBannerProps {
   /** Called when user clicks "Tambahkan" — passes pending quiz data */
-  onImport: (data: import('../store/creatorBridge.store').PendingQuizData) => void
+  onImport: (
+    data: import("../store/creatorBridge.store").PendingQuizData,
+  ) => void;
 }
 
 export function AIImportBanner({ onImport }: AIImportBannerProps) {
-  const pendingQuiz = useCreatorBridgeStore((s) => s.pendingQuiz)
-  const clearPendingQuiz = useCreatorBridgeStore((s) => s.clearPendingQuiz)
+  const pendingQuiz = useCreatorBridgeStore((s) => s.pendingQuiz);
+  const clearPendingQuiz = useCreatorBridgeStore((s) => s.clearPendingQuiz);
 
   return (
     <AnimatePresence>
@@ -53,5 +55,5 @@ export function AIImportBanner({ onImport }: AIImportBannerProps) {
         </motion.div>
       )}
     </AnimatePresence>
-  )
+  );
 }

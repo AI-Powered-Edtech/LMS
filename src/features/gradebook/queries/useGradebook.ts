@@ -1,8 +1,8 @@
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
-import { useAuth } from '@/contexts/AuthContext'
-import { STALE } from '@/utils/queryConstants'
-import { captureError } from '@/utils/sentry'
+import { useAuth } from "@/contexts/AuthContext";
+import { STALE } from "@/utils/queryConstants";
+import { captureError } from "@/utils/sentry";
 
 import {
   fetchGradebookEntries,
@@ -10,16 +10,16 @@ import {
   syncGradebook,
   updateGradebookEntry,
   upsertGradebookSettings,
-} from '../api/gradebookApi'
-import type { GradebookEntry, GradebookSettings } from '../types'
+} from "../api/gradebookApi";
+import type { GradebookEntry, GradebookSettings } from "../types";
 
 // ── Query keys ───────────────────────────────────────────────────────────────
 
 export const gradebookKeys = {
-  all: ['gradebook'] as const,
-  entries: (courseId: string) => ['gradebook', 'entries', courseId] as const,
-  settings: (courseId: string) => ['gradebook', 'settings', courseId] as const,
-}
+  all: ["gradebook"] as const,
+  entries: (courseId: string) => ["gradebook", "entries", courseId] as const,
+  settings: (courseId: string) => ["gradebook", "settings", courseId] as const,
+};
 
 // ── Queries ──────────────────────────────────────────────────────────────────
 
@@ -27,8 +27,8 @@ export const gradebookKeys = {
  * Mengambil semua entri gradebook untuk satu kursus.
  */
 export function useGradebookEntries(courseId: string) {
-  const { tenantId, activeRole } = useAuth()
-  const shouldPoll = activeRole === 'teacher' || activeRole === 'admin'
+  const { tenantId, activeRole } = useAuth();
+  const shouldPoll = activeRole === "teacher" || activeRole === "admin";
 
   return useQuery({
     queryKey: gradebookKeys.entries(courseId),
@@ -37,15 +37,15 @@ export function useGradebookEntries(courseId: string) {
     staleTime: STALE.DYNAMIC,
     refetchInterval: shouldPoll ? 30_000 : false,
     refetchIntervalInBackground: false,
-  })
+  });
 }
 
 /**
  * Mengambil pengaturan gradebook untuk satu kursus.
  */
 export function useGradebookSettings(courseId: string) {
-  const { tenantId, activeRole } = useAuth()
-  const shouldPoll = activeRole === 'teacher' || activeRole === 'admin'
+  const { tenantId, activeRole } = useAuth();
+  const shouldPoll = activeRole === "teacher" || activeRole === "admin";
 
   return useQuery({
     queryKey: gradebookKeys.settings(courseId),
@@ -54,7 +54,7 @@ export function useGradebookSettings(courseId: string) {
     staleTime: STALE.DYNAMIC,
     refetchInterval: shouldPoll ? 30_000 : false,
     refetchIntervalInBackground: false,
-  })
+  });
 }
 
 // ── Mutations ────────────────────────────────────────────────────────────────
@@ -64,60 +64,67 @@ export function useGradebookSettings(courseId: string) {
  * Invalidasi otomatis semua entri gradebook kursus bersangkutan.
  */
 export function useUpdateGradebookEntry() {
-  const queryClient = useQueryClient()
+  const queryClient = useQueryClient();
 
   return useMutation({
     mutationFn: ({
       id,
       updates,
     }: {
-      id: string
-      courseId: string
-      updates: Partial<Pick<GradebookEntry, 'score' | 'notes' | 'grade_letter'>>
+      id: string;
+      courseId: string;
+      updates: Partial<
+        Pick<GradebookEntry, "score" | "notes" | "grade_letter">
+      >;
     }) => updateGradebookEntry(id, updates),
 
     onSuccess: (_data, variables) => {
       void queryClient.invalidateQueries({
         queryKey: gradebookKeys.entries(variables.courseId),
-      })
+      });
     },
     onError: (err) => {
-      captureError(err, { context: 'useUpdateGradebookEntry' })
+      captureError(err, { context: "useUpdateGradebookEntry" });
     },
-  })
+  });
 }
 
 /**
  * Memanggil sync_gradebook_entries dan menyegarkan semua data gradebook.
  */
 export function useSyncGradebook() {
-  const { tenantId } = useAuth()
-  const queryClient = useQueryClient()
+  const { tenantId } = useAuth();
+  const queryClient = useQueryClient();
 
   return useMutation({
     mutationFn: (courseId: string) => syncGradebook(courseId, tenantId!),
     onSuccess: (_data, courseId) => {
-      void queryClient.invalidateQueries({ queryKey: gradebookKeys.entries(courseId) })
+      void queryClient.invalidateQueries({
+        queryKey: gradebookKeys.entries(courseId),
+      });
     },
     onError: (err) => {
-      captureError(err, { context: 'useSyncGradebook' })
+      captureError(err, { context: "useSyncGradebook" });
     },
-  })
+  });
 }
 
 /**
  * Menyimpan (insert atau update) pengaturan gradebook.
  */
 export function useUpsertGradebookSettings() {
-  const queryClient = useQueryClient()
+  const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: (settings: Omit<GradebookSettings, 'id'>) => upsertGradebookSettings(settings),
+    mutationFn: (settings: Omit<GradebookSettings, "id">) =>
+      upsertGradebookSettings(settings),
     onSuccess: (data) => {
-      void queryClient.invalidateQueries({ queryKey: gradebookKeys.settings(data.course_id) })
+      void queryClient.invalidateQueries({
+        queryKey: gradebookKeys.settings(data.course_id),
+      });
     },
     onError: (err) => {
-      captureError(err, { context: 'useUpsertGradebookSettings' })
+      captureError(err, { context: "useUpsertGradebookSettings" });
     },
-  })
+  });
 }

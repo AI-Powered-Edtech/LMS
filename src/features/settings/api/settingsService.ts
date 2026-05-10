@@ -1,4 +1,4 @@
-import { db } from '@/services/db'
+import { db } from "@/services/db";
 
 /**
  * Settings Service
@@ -10,24 +10,24 @@ export const settingsService = {
    */
   async updateProfile(
     userId: string,
-    data: { firstName: string; lastName: string }
+    data: { firstName: string; lastName: string },
   ): Promise<void> {
     const { error } = await db
-      .from('profiles')
+      .from("profiles")
       .update({
         first_name: data.firstName,
-        last_name: data.lastName || '',
+        last_name: data.lastName || "",
         updated_at: new Date().toISOString(),
       })
-      .eq('id', userId)
-    if (error) throw error
+      .eq("id", userId);
+    if (error) throw error;
   },
 
   /**
    * Change the authenticated user's password via auth provider.
    */
   async changePassword(newPassword: string): Promise<void> {
-    const { error } = await db.auth.updateUser({ password: newPassword })
-    if (error) throw error
+    const { error } = await db.auth.updateUser({ password: newPassword });
+    if (error) throw error;
   },
-}
+};

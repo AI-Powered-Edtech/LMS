@@ -5,21 +5,23 @@
 //        /app/parent/survey/:surveyId
 // ==========================================================================
 
-import { ArrowLeft } from 'lucide-react'
-import { useNavigate, useParams } from 'react-router-dom'
+import { ArrowLeft } from "lucide-react";
+import { useNavigate, useParams } from "react-router-dom";
 
-import { SurveyResponseForm } from '@/features/principal/components/SurveyResponseForm'
+import { SurveyResponseForm } from "@/features/principal/components/SurveyResponseForm";
 
 export function SurveyRespondPage() {
-  const { surveyId } = useParams<{ surveyId: string }>()
-  const navigate = useNavigate()
+  const { surveyId } = useParams<{ surveyId: string }>();
+  const navigate = useNavigate();
 
   if (!surveyId) {
     return (
       <div className="max-w-2xl mx-auto py-16 px-4 text-center">
-        <p className="text-slate-500 dark:text-slate-400">Survei tidak ditemukan.</p>
+        <p className="text-slate-500 dark:text-slate-400">
+          Survei tidak ditemukan.
+        </p>
       </div>
-    )
+    );
   }
 
   return (
@@ -37,7 +39,7 @@ export function SurveyRespondPage() {
         <SurveyResponseForm surveyId={surveyId} />
       </div>
     </div>
-  )
+  );
 }
 
-export default SurveyRespondPage
+export default SurveyRespondPage;

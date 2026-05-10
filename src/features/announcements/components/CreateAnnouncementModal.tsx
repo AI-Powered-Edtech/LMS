@@ -1,37 +1,47 @@
-import { valibotResolver } from '@hookform/resolvers/valibot'
-import { Paperclip, Send, X } from 'lucide-react'
-import { AnimatePresence, motion } from 'motion/react'
-import { type Resolver, useForm } from 'react-hook-form'
+import { valibotResolver } from "@hookform/resolvers/valibot";
+import { Paperclip, Send, X } from "lucide-react";
+import { AnimatePresence, motion } from "motion/react";
+import { type Resolver, useForm } from "react-hook-form";
 
-import { OfflineFormNotice } from '@/components/ui/OfflineFormNotice'
-import { type AnnouncementFormData, AnnouncementFormSchema } from '@/shared/schemas/forms'
+import { OfflineFormNotice } from "@/components/ui/OfflineFormNotice";
+import {
+  type AnnouncementFormData,
+  AnnouncementFormSchema,
+} from "@/shared/schemas/forms";
 
 interface ExtendedFormData extends AnnouncementFormData {
-  target_audience: 'all_students' | 'course_students' | 'course_staff' | 'system'
-  is_pinned: boolean
-  allow_comments: boolean
-  requires_rsvp: boolean
-  location: string
-  contact_person: string
-  course_id: string | null
+  target_audience:
+    | "all_students"
+    | "course_students"
+    | "course_staff"
+    | "system";
+  is_pinned: boolean;
+  allow_comments: boolean;
+  requires_rsvp: boolean;
+  location: string;
+  contact_person: string;
+  course_id: string | null;
 }
 
 interface CreateAnnouncementModalProps {
-  isOpen: boolean
-  onClose: () => void
-  onSubmit: (formData: ExtendedFormData, status: 'draft' | 'published') => Promise<void>
-  isPending: boolean
+  isOpen: boolean;
+  onClose: () => void;
+  onSubmit: (
+    formData: ExtendedFormData,
+    status: "draft" | "published",
+  ) => Promise<void>;
+  isPending: boolean;
 }
 
 const EXTRA_DEFAULTS = {
-  target_audience: 'all_students' as const,
+  target_audience: "all_students" as const,
   is_pinned: false,
   allow_comments: true,
   requires_rsvp: false,
-  location: '',
-  contact_person: '',
+  location: "",
+  contact_person: "",
   course_id: null,
-}
+};
 
 export function CreateAnnouncementModal({
   isOpen,
@@ -47,33 +57,35 @@ export function CreateAnnouncementModal({
     reset,
     formState: { errors },
   } = useForm<ExtendedFormData>({
-    resolver: valibotResolver(AnnouncementFormSchema) as unknown as Resolver<ExtendedFormData>,
+    resolver: valibotResolver(
+      AnnouncementFormSchema,
+    ) as unknown as Resolver<ExtendedFormData>,
     defaultValues: {
-      title: '',
-      content: '',
-      priority: 'normal',
+      title: "",
+      content: "",
+      priority: "normal",
       ...EXTRA_DEFAULTS,
     },
-  })
+  });
 
-  const is_pinned = watch('is_pinned')
-  const allow_comments = watch('allow_comments')
-  const requires_rsvp = watch('requires_rsvp')
+  const is_pinned = watch("is_pinned");
+  const allow_comments = watch("allow_comments");
+  const requires_rsvp = watch("requires_rsvp");
 
   const handleFormSubmit = handleSubmit(async (data) => {
-    await onSubmit(data, 'published')
-    reset({ title: '', content: '', priority: 'normal', ...EXTRA_DEFAULTS })
-  })
+    await onSubmit(data, "published");
+    reset({ title: "", content: "", priority: "normal", ...EXTRA_DEFAULTS });
+  });
 
   const handleDraft = handleSubmit(async (data) => {
-    await onSubmit(data, 'draft')
-    reset({ title: '', content: '', priority: 'normal', ...EXTRA_DEFAULTS })
-  })
+    await onSubmit(data, "draft");
+    reset({ title: "", content: "", priority: "normal", ...EXTRA_DEFAULTS });
+  });
 
   const handleClose = () => {
-    reset()
-    onClose()
-  }
+    reset();
+    onClose();
+  };
 
   return (
     <AnimatePresence>
@@ -117,10 +129,12 @@ export function CreateAnnouncementModal({
                 <input
                   id="ann-title"
                   type="text"
-                  {...register('title')}
+                  {...register("title")}
                   placeholder="Contoh: Libur Nasional Idul Fitri"
                   aria-invalid={!!errors.title}
-                  aria-describedby={errors.title ? 'ann-title-error' : undefined}
+                  aria-describedby={
+                    errors.title ? "ann-title-error" : undefined
+                  }
                   className="w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-600 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 text-slate-900 dark:text-slate-100 aria-[invalid=true]:border-red-400"
                 />
                 {errors.title && (
@@ -140,14 +154,19 @@ export function CreateAnnouncementModal({
                 <textarea
                   id="ann-content"
                   rows={5}
-                  {...register('content')}
+                  {...register("content")}
                   placeholder="Tuliskan detail pengumuman di sini..."
                   aria-invalid={!!errors.content}
-                  aria-describedby={errors.content ? 'ann-content-error' : undefined}
+                  aria-describedby={
+                    errors.content ? "ann-content-error" : undefined
+                  }
                   className="w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-600 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none text-slate-900 dark:text-slate-100 aria-[invalid=true]:border-red-400"
                 />
                 {errors.content && (
-                  <p id="ann-content-error" className="text-xs text-red-500 mt-1">
+                  <p
+                    id="ann-content-error"
+                    className="text-xs text-red-500 mt-1"
+                  >
                     {errors.content.message}
                   </p>
                 )}
@@ -163,11 +182,13 @@ export function CreateAnnouncementModal({
                   </label>
                   <select
                     id="ann-audience"
-                    {...register('target_audience')}
+                    {...register("target_audience")}
                     className="w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-600 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 font-medium text-slate-900 dark:text-slate-100"
                   >
                     <option value="all_students">Semua Siswa</option>
-                    <option value="course_students">Siswa Kursus Tertentu</option>
+                    <option value="course_students">
+                      Siswa Kursus Tertentu
+                    </option>
                     <option value="course_staff">Hanya Staf Kursus</option>
                     <option value="system">Sistem (Admin Saja)</option>
                   </select>
@@ -181,7 +202,7 @@ export function CreateAnnouncementModal({
                   </label>
                   <select
                     id="ann-priority"
-                    {...register('priority')}
+                    {...register("priority")}
                     className="w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-600 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 font-medium text-slate-900 dark:text-slate-100"
                   >
                     <option value="normal">Normal</option>
@@ -202,7 +223,7 @@ export function CreateAnnouncementModal({
                   <input
                     id="ann-location"
                     type="text"
-                    {...register('location')}
+                    {...register("location")}
                     placeholder="Contoh: Aula Serbaguna"
                     className="w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-600 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm text-slate-900 dark:text-slate-100"
                   />
@@ -217,7 +238,7 @@ export function CreateAnnouncementModal({
                   <input
                     id="ann-contact"
                     type="text"
-                    {...register('contact_person')}
+                    {...register("contact_person")}
                     placeholder="Contoh: Ibu Rina (0812...)"
                     className="w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-600 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm text-slate-900 dark:text-slate-100"
                   />
@@ -233,7 +254,7 @@ export function CreateAnnouncementModal({
                   <input
                     type="checkbox"
                     checked={is_pinned}
-                    onChange={(e) => setValue('is_pinned', e.target.checked)}
+                    onChange={(e) => setValue("is_pinned", e.target.checked)}
                     className="w-5 h-5 rounded border-slate-300 dark:border-slate-600 text-blue-600 focus:ring-blue-500"
                   />
                   <div>
@@ -250,7 +271,9 @@ export function CreateAnnouncementModal({
                   <input
                     type="checkbox"
                     checked={allow_comments}
-                    onChange={(e) => setValue('allow_comments', e.target.checked)}
+                    onChange={(e) =>
+                      setValue("allow_comments", e.target.checked)
+                    }
                     className="w-5 h-5 rounded border-slate-300 dark:border-slate-600 text-blue-600 focus:ring-blue-500"
                   />
                   <div>
@@ -267,7 +290,9 @@ export function CreateAnnouncementModal({
                   <input
                     type="checkbox"
                     checked={requires_rsvp}
-                    onChange={(e) => setValue('requires_rsvp', e.target.checked)}
+                    onChange={(e) =>
+                      setValue("requires_rsvp", e.target.checked)
+                    }
                     className="w-5 h-5 rounded border-slate-300 dark:border-slate-600 text-blue-600 focus:ring-blue-500"
                   />
                   <div>
@@ -317,5 +342,5 @@ export function CreateAnnouncementModal({
         </div>
       )}
     </AnimatePresence>
-  )
+  );
 }

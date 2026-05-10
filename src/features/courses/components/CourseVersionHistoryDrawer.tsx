@@ -1,5 +1,5 @@
-import { format } from 'date-fns'
-import { id } from 'date-fns/locale'
+import { format } from "date-fns";
+import { id } from "date-fns/locale";
 import {
   AlertTriangle,
   CheckCircle,
@@ -12,13 +12,13 @@ import {
   PlusCircle,
   Save,
   X,
-} from 'lucide-react'
-import { useState } from 'react'
+} from "lucide-react";
+import { useState } from "react";
 
-import { useAuth } from '@/contexts/AuthContext'
-import { useBuilder } from '@/contexts/BuilderContext'
-import type { DomainModule } from '@/shared/types/moduleTypes'
-import { cn } from '@/utils/cn'
+import { useAuth } from "@/contexts/AuthContext";
+import { useBuilder } from "@/contexts/BuilderContext";
+import type { DomainModule } from "@/shared/types/moduleTypes";
+import { cn } from "@/utils/cn";
 
 import {
   computeVersionDiff,
@@ -26,8 +26,12 @@ import {
   type VersionDiff,
   versionService,
   type VersionSnapshotModule,
-} from '../api/versionService'
-import { useCourseVersions, useRestoreVersion, useSaveVersion } from '../queries/useCourseVersions'
+} from "../api/versionService";
+import {
+  useCourseVersions,
+  useRestoreVersion,
+  useSaveVersion,
+} from "../queries/useCourseVersions";
 
 // ============================================================
 // Diff preview sub-components
@@ -36,37 +40,47 @@ import { useCourseVersions, useRestoreVersion, useSaveVersion } from '../queries
 function ImpactBadge({ level }: { level: ImpactLevel }) {
   const config = {
     low: {
-      label: 'Dampak Rendah',
-      cls: 'bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-300',
+      label: "Dampak Rendah",
+      cls: "bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-300",
     },
     medium: {
-      label: 'Dampak Sedang',
-      cls: 'bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-300',
+      label: "Dampak Sedang",
+      cls: "bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-300",
     },
     high: {
-      label: 'Dampak Tinggi',
-      cls: 'bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300',
+      label: "Dampak Tinggi",
+      cls: "bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300",
     },
-  }
-  const { label, cls } = config[level]
-  return <span className={cn('text-xs font-bold px-2.5 py-0.5 rounded-full', cls)}>{label}</span>
+  };
+  const { label, cls } = config[level];
+  return (
+    <span className={cn("text-xs font-bold px-2.5 py-0.5 rounded-full", cls)}>
+      {label}
+    </span>
+  );
 }
 
 interface DiffPreviewProps {
-  diff: VersionDiff
-  versionNumber: number
-  isRestoring: boolean
-  onConfirm: () => void
-  onCancel: () => void
+  diff: VersionDiff;
+  versionNumber: number;
+  isRestoring: boolean;
+  onConfirm: () => void;
+  onCancel: () => void;
 }
 
-function DiffPreview({ diff, versionNumber, isRestoring, onConfirm, onCancel }: DiffPreviewProps) {
+function DiffPreview({
+  diff,
+  versionNumber,
+  isRestoring,
+  onConfirm,
+  onCancel,
+}: DiffPreviewProps) {
   const hasChanges =
     diff.restoredModules.length > 0 ||
     diff.lostModules.length > 0 ||
     diff.addedLessonCount > 0 ||
     diff.removedLessonCount > 0 ||
-    diff.modifiedModuleTitles.length > 0
+    diff.modifiedModuleTitles.length > 0;
 
   return (
     <div className="flex flex-col gap-4">
@@ -99,7 +113,8 @@ function DiffPreview({ diff, versionNumber, isRestoring, onConfirm, onCancel }: 
 
       {!hasChanges ? (
         <div className="text-center py-4 text-sm text-slate-500 dark:text-slate-400 bg-slate-50 dark:bg-slate-800/50 rounded-xl">
-          Tidak ada perubahan struktural yang terdeteksi antara versi ini dan versi saat ini.
+          Tidak ada perubahan struktural yang terdeteksi antara versi ini dan
+          versi saat ini.
         </div>
       ) : (
         <div className="flex flex-col gap-3">
@@ -163,7 +178,8 @@ function DiffPreview({ diff, versionNumber, isRestoring, onConfirm, onCancel }: 
               )}
               {diff.removedLessonCount > 0 && (
                 <p className="text-red-700 dark:text-red-400">
-                  − {diff.removedLessonCount} pelajaran dari versi saat ini akan dihapus
+                  − {diff.removedLessonCount} pelajaran dari versi saat ini akan
+                  dihapus
                 </p>
               )}
             </div>
@@ -175,8 +191,8 @@ function DiffPreview({ diff, versionNumber, isRestoring, onConfirm, onCancel }: 
       <div className="flex items-start gap-2 bg-amber-50 dark:bg-amber-900/20 border border-amber-100 dark:border-amber-800/30 rounded-lg p-3">
         <AlertTriangle className="w-4 h-4 text-amber-500 shrink-0 mt-0.5" />
         <p className="text-xs text-amber-700 dark:text-amber-300 leading-relaxed">
-          Semua perubahan setelah versi ini akan hilang. Progress siswa pada modul yang dihapus
-          mungkin terdampak.
+          Semua perubahan setelah versi ini akan hilang. Progress siswa pada
+          modul yang dihapus mungkin terdampak.
         </p>
       </div>
 
@@ -203,7 +219,7 @@ function DiffPreview({ diff, versionNumber, isRestoring, onConfirm, onCancel }: 
         </button>
       </div>
     </div>
-  )
+  );
 }
 
 // ============================================================
@@ -211,18 +227,23 @@ function DiffPreview({ diff, versionNumber, isRestoring, onConfirm, onCancel }: 
 // ============================================================
 
 type DrawerView =
-  | { type: 'list' }
-  | { type: 'loading_diff'; versionId: string }
-  | { type: 'diff'; versionId: string; versionNumber: number; diff: VersionDiff }
+  | { type: "list" }
+  | { type: "loading_diff"; versionId: string }
+  | {
+      type: "diff";
+      versionId: string;
+      versionNumber: number;
+      diff: VersionDiff;
+    };
 
 // ============================================================
 // Main Drawer
 // ============================================================
 
 interface CourseVersionHistoryDrawerProps {
-  isOpen: boolean
-  onClose: () => void
-  courseId: string
+  isOpen: boolean;
+  onClose: () => void;
+  courseId: string;
 }
 
 export function CourseVersionHistoryDrawer({
@@ -230,76 +251,85 @@ export function CourseVersionHistoryDrawer({
   onClose,
   courseId,
 }: CourseVersionHistoryDrawerProps) {
-  const { tenantId } = useAuth()
-  const { state } = useBuilder()
-  const { data: versions, isLoading: isLoadingVersions } = useCourseVersions(courseId)
-  const saveVersionMutation = useSaveVersion()
-  const restoreVersionMutation = useRestoreVersion()
+  const { tenantId } = useAuth();
+  const { state } = useBuilder();
+  const { data: versions, isLoading: isLoadingVersions } =
+    useCourseVersions(courseId);
+  const saveVersionMutation = useSaveVersion();
+  const restoreVersionMutation = useRestoreVersion();
 
-  const [commitMessage, setCommitMessage] = useState('')
-  const [isCreating, setIsCreating] = useState(false)
-  const [drawerView, setDrawerView] = useState<DrawerView>({ type: 'list' })
-  const [diffError, setDiffError] = useState<string | null>(null)
+  const [commitMessage, setCommitMessage] = useState("");
+  const [isCreating, setIsCreating] = useState(false);
+  const [drawerView, setDrawerView] = useState<DrawerView>({ type: "list" });
+  const [diffError, setDiffError] = useState<string | null>(null);
 
-  if (!isOpen) return null
+  if (!isOpen) return null;
 
   const handleSaveVersion = async (e: React.FormEvent) => {
-    e.preventDefault()
-    if (!commitMessage.trim()) return
-    await saveVersionMutation.mutateAsync({ courseId, message: commitMessage })
-    setCommitMessage('')
-    setIsCreating(false)
-  }
+    e.preventDefault();
+    if (!commitMessage.trim()) return;
+    await saveVersionMutation.mutateAsync({ courseId, message: commitMessage });
+    setCommitMessage("");
+    setIsCreating(false);
+  };
 
-  const handlePreviewDiff = async (versionId: string, versionNumber: number) => {
-    if (!tenantId) return
+  const handlePreviewDiff = async (
+    versionId: string,
+    versionNumber: number,
+  ) => {
+    if (!tenantId) return;
 
-    setDiffError(null)
-    setDrawerView({ type: 'loading_diff', versionId })
+    setDiffError(null);
+    setDrawerView({ type: "loading_diff", versionId });
 
     try {
-      const snapshotModules = await versionService.fetchVersionSnapshot(versionId, tenantId)
+      const snapshotModules = await versionService.fetchVersionSnapshot(
+        versionId,
+        tenantId,
+      );
 
       // Convert builder DomainModule → VersionSnapshotModule for comparison
-      const currentModules: VersionSnapshotModule[] = state.modules.map((m: DomainModule) => ({
-        id: m.id,
-        title: m.title,
-        order: m.orderIndex,
-        lessons: (m.lessons ?? []).map((l) => ({
-          id: l.id,
-          title: l.title,
-          is_published: l.isPublished,
-        })),
-      }))
+      const currentModules: VersionSnapshotModule[] = state.modules.map(
+        (m: DomainModule) => ({
+          id: m.id,
+          title: m.title,
+          order: m.orderIndex,
+          lessons: (m.lessons ?? []).map((l) => ({
+            id: l.id,
+            title: l.title,
+            is_published: l.isPublished,
+          })),
+        }),
+      );
 
-      const diff = computeVersionDiff(currentModules, snapshotModules)
-      setDrawerView({ type: 'diff', versionId, versionNumber, diff })
+      const diff = computeVersionDiff(currentModules, snapshotModules);
+      setDrawerView({ type: "diff", versionId, versionNumber, diff });
     } catch {
-      setDiffError('Gagal memuat pratinjau perubahan. Coba lagi.')
-      setDrawerView({ type: 'list' })
+      setDiffError("Gagal memuat pratinjau perubahan. Coba lagi.");
+      setDrawerView({ type: "list" });
     }
-  }
+  };
 
   const handleConfirmRestore = async () => {
-    if (drawerView.type !== 'diff') return
+    if (drawerView.type !== "diff") return;
     try {
       await restoreVersionMutation.mutateAsync({
         versionId: drawerView.versionId,
         courseId,
-      })
-      setDrawerView({ type: 'list' })
-      onClose()
+      });
+      setDrawerView({ type: "list" });
+      onClose();
     } catch {
       // toast shown by onError — reset to list view but drawer stays open
-      setDrawerView({ type: 'list' })
+      setDrawerView({ type: "list" });
     }
-  }
+  };
 
   const handleClose = () => {
-    setDrawerView({ type: 'list' })
-    setDiffError(null)
-    onClose()
-  }
+    setDrawerView({ type: "list" });
+    setDiffError(null);
+    onClose();
+  };
 
   return (
     <>
@@ -330,7 +360,7 @@ export function CourseVersionHistoryDrawer({
 
         <div className="flex-1 overflow-y-auto p-6 flex flex-col gap-6">
           {/* ── Diff Loading ── */}
-          {drawerView.type === 'loading_diff' && (
+          {drawerView.type === "loading_diff" && (
             <div className="flex flex-col items-center gap-3 py-12">
               <Loader2 className="w-6 h-6 text-indigo-500 animate-spin" />
               <p className="text-sm text-slate-500 dark:text-slate-400">
@@ -340,18 +370,18 @@ export function CourseVersionHistoryDrawer({
           )}
 
           {/* ── Diff Preview ── */}
-          {drawerView.type === 'diff' && (
+          {drawerView.type === "diff" && (
             <DiffPreview
               diff={drawerView.diff}
               versionNumber={drawerView.versionNumber}
               isRestoring={restoreVersionMutation.isPending}
               onConfirm={handleConfirmRestore}
-              onCancel={() => setDrawerView({ type: 'list' })}
+              onCancel={() => setDrawerView({ type: "list" })}
             />
           )}
 
           {/* ── List View ── */}
-          {drawerView.type === 'list' && (
+          {drawerView.type === "list" && (
             <>
               {/* Diff load error */}
               {diffError && (
@@ -397,7 +427,9 @@ export function CourseVersionHistoryDrawer({
                     </button>
                     <button
                       type="submit"
-                      disabled={!commitMessage.trim() || saveVersionMutation.isPending}
+                      disabled={
+                        !commitMessage.trim() || saveVersionMutation.isPending
+                      }
                       className="px-4 py-1.5 bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-medium rounded-lg flex items-center gap-2 disabled:opacity-50"
                     >
                       {saveVersionMutation.isPending ? (
@@ -434,10 +466,10 @@ export function CourseVersionHistoryDrawer({
                         {/* Timeline Dot */}
                         <div
                           className={cn(
-                            'absolute -left-[9px] top-1 w-4 h-4 rounded-full border-2',
+                            "absolute -left-[9px] top-1 w-4 h-4 rounded-full border-2",
                             index === 0
-                              ? 'bg-indigo-500 border-white dark:border-slate-900 shadow-[0_0_0_2px_rgba(99,102,241,0.2)]'
-                              : 'bg-white dark:bg-slate-900 border-slate-300 dark:border-slate-600'
+                              ? "bg-indigo-500 border-white dark:border-slate-900 shadow-[0_0_0_2px_rgba(99,102,241,0.2)]"
+                              : "bg-white dark:bg-slate-900 border-slate-300 dark:border-slate-600",
                           )}
                         />
 
@@ -448,19 +480,28 @@ export function CourseVersionHistoryDrawer({
                             </span>
                             <span className="flex items-center gap-1 text-xs text-slate-500 dark:text-slate-400">
                               <Clock className="w-3 h-3" />
-                              {format(new Date(version.created_at), 'dd MMM yyyy, HH:mm', {
-                                locale: id,
-                              })}
+                              {format(
+                                new Date(version.created_at),
+                                "dd MMM yyyy, HH:mm",
+                                {
+                                  locale: id,
+                                },
+                              )}
                             </span>
                           </div>
 
                           <p className="text-sm font-medium text-slate-900 dark:text-white mt-1">
-                            {version.commit_message || 'Checkpoint otomatis'}
+                            {version.commit_message || "Checkpoint otomatis"}
                           </p>
 
                           {index !== 0 && (
                             <button
-                              onClick={() => handlePreviewDiff(version.id, version.version_number)}
+                              onClick={() =>
+                                handlePreviewDiff(
+                                  version.id,
+                                  version.version_number,
+                                )
+                              }
                               className="mt-2 text-sm font-medium text-indigo-600 dark:text-indigo-400 hover:text-indigo-700 dark:hover:text-indigo-300 self-start text-left flex items-center gap-1.5"
                             >
                               <GitCompare className="w-3.5 h-3.5" />
@@ -478,5 +519,5 @@ export function CourseVersionHistoryDrawer({
         </div>
       </div>
     </>
-  )
+  );
 }

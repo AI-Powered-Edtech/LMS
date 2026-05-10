@@ -8,8 +8,8 @@
 // ==========================================================================
 
 import { readVilSession } from "@/services/auth/vilSession";
-import { detectStubResponse } from "@/utils/detectStubResponse";
 import { db } from "@/services/db";
+import { detectStubResponse } from "@/utils/detectStubResponse";
 import { logger } from "@/utils/logger";
 
 import type { AvailableReportMonth, ParentMonthlyReport } from "../types";
@@ -88,7 +88,9 @@ export async function getAvailableReportMonths(
   // Ambil tanggal completion pelajaran per bulan
   // lesson_progress menggunakan user_id (bukan student_id)
   const { data: lessonData, error: lessonError } = await db
-    .from<Array<{ lesson_id: string; completed: boolean; completed_at?: string }>>("lesson_progress")
+    .from<
+      Array<{ lesson_id: string; completed: boolean; completed_at?: string }>
+    >("lesson_progress")
     .select("completed_at")
     .eq("user_id", studentId)
     .eq("tenant_id", tenantId)
@@ -108,7 +110,15 @@ export async function getAvailableReportMonths(
   // Ambil juga dari attendance_records sebagai fallback
   // attendance_records tidak memiliki student_id — join via enrollment_id
   const { data: enrollments } = await db
-    .from<Array<{ id: string; class_id: string; student_id: string; status: string; joined_at: string }>>("enrollments")
+    .from<
+      Array<{
+        id: string;
+        class_id: string;
+        student_id: string;
+        status: string;
+        joined_at: string;
+      }>
+    >("enrollments")
     .select("id")
     .eq("student_id", studentId)
     .eq("tenant_id", tenantId);

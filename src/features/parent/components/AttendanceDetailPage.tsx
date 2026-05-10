@@ -13,53 +13,53 @@ import {
   isSameMonth,
   startOfMonth,
   subMonths,
-} from 'date-fns'
-import { id as idLocale } from 'date-fns/locale'
-import { useCallback, useMemo, useState } from 'react'
-import { Link } from 'react-router-dom'
+} from "date-fns";
+import { id as idLocale } from "date-fns/locale";
+import { useCallback, useMemo, useState } from "react";
+import { Link } from "react-router-dom";
 
-import { Card } from '@/components/ui/Card'
-import { Skeleton, SkeletonCard } from '@/components/ui/Skeleton'
-import { cn } from '@/utils/cn'
+import { Card } from "@/components/ui/Card";
+import { Skeleton, SkeletonCard } from "@/components/ui/Skeleton";
+import { cn } from "@/utils/cn";
 
-import { useChildAttendance } from '../queries/useChildAttendance'
-import { useParentChildren } from '../queries/useParentChildren'
-import type { AttendanceDay, ChildInfo } from '../types'
+import { useChildAttendance } from "../queries/useChildAttendance";
+import { useParentChildren } from "../queries/useParentChildren";
+import type { AttendanceDay, ChildInfo } from "../types";
 
 // ── Status Config ───────────────────────────────────────────────
 
 const STATUS_CONFIG = {
   hadir: {
-    emoji: '✅',
-    label: 'Hadir',
-    bg: 'bg-green-100 dark:bg-green-950/40',
-    text: 'text-green-700 dark:text-green-300',
-    dotColor: 'bg-green-500',
+    emoji: "✅",
+    label: "Hadir",
+    bg: "bg-green-100 dark:bg-green-950/40",
+    text: "text-green-700 dark:text-green-300",
+    dotColor: "bg-green-500",
   },
   sakit: {
-    emoji: '🤒',
-    label: 'Sakit',
-    bg: 'bg-yellow-100 dark:bg-yellow-950/40',
-    text: 'text-yellow-700 dark:text-yellow-300',
-    dotColor: 'bg-yellow-500',
+    emoji: "🤒",
+    label: "Sakit",
+    bg: "bg-yellow-100 dark:bg-yellow-950/40",
+    text: "text-yellow-700 dark:text-yellow-300",
+    dotColor: "bg-yellow-500",
   },
   izin: {
-    emoji: '📝',
-    label: 'Izin',
-    bg: 'bg-blue-100 dark:bg-blue-950/40',
-    text: 'text-blue-700 dark:text-blue-300',
-    dotColor: 'bg-blue-500',
+    emoji: "📝",
+    label: "Izin",
+    bg: "bg-blue-100 dark:bg-blue-950/40",
+    text: "text-blue-700 dark:text-blue-300",
+    dotColor: "bg-blue-500",
   },
   alpha: {
-    emoji: '❌',
-    label: 'Alpha',
-    bg: 'bg-red-100 dark:bg-red-950/40',
-    text: 'text-red-700 dark:text-red-300',
-    dotColor: 'bg-red-500',
+    emoji: "❌",
+    label: "Alpha",
+    bg: "bg-red-100 dark:bg-red-950/40",
+    text: "text-red-700 dark:text-red-300",
+    dotColor: "bg-red-500",
   },
-} as const
+} as const;
 
-const DAY_HEADERS = ['Sen', 'Sel', 'Rab', 'Kam', 'Jum'] as const
+const DAY_HEADERS = ["Sen", "Sel", "Rab", "Kam", "Jum"] as const;
 
 // ── Helper Components ───────────────────────────────────────────
 
@@ -68,11 +68,11 @@ function ChildDropdown({
   selectedId,
   onSelect,
 }: {
-  children: ChildInfo[]
-  selectedId: string
-  onSelect: (id: string) => void
+  children: ChildInfo[];
+  selectedId: string;
+  onSelect: (id: string) => void;
 }) {
-  if (children.length <= 1) return null
+  if (children.length <= 1) return null;
 
   return (
     <select
@@ -92,7 +92,7 @@ function ChildDropdown({
         </option>
       ))}
     </select>
-  )
+  );
 }
 
 function AttendanceSkeleton() {
@@ -109,51 +109,61 @@ function AttendanceSkeleton() {
       </div>
       <SkeletonCard lines={5} />
     </div>
-  )
+  );
 }
 
 // ── Summary Card ────────────────────────────────────────────────
 
 interface MonthlySummary {
-  hadir: number
-  sakit: number
-  izin: number
-  alpha: number
-  total: number
-  rate: number
+  hadir: number;
+  sakit: number;
+  izin: number;
+  alpha: number;
+  total: number;
+  rate: number;
 }
 
 function SummaryCard({ summary }: { summary: MonthlySummary }) {
   const rateColor =
     summary.rate >= 85
-      ? 'text-green-600 dark:text-green-400'
+      ? "text-green-600 dark:text-green-400"
       : summary.rate >= 70
-        ? 'text-yellow-600 dark:text-yellow-400'
-        : 'text-red-600 dark:text-red-400'
+        ? "text-yellow-600 dark:text-yellow-400"
+        : "text-red-600 dark:text-red-400";
 
   const barColor =
     summary.rate >= 85
-      ? 'bg-green-500 dark:bg-green-400'
+      ? "bg-green-500 dark:bg-green-400"
       : summary.rate >= 70
-        ? 'bg-yellow-500 dark:bg-yellow-400'
-        : 'bg-red-500 dark:bg-red-400'
+        ? "bg-yellow-500 dark:bg-yellow-400"
+        : "bg-red-500 dark:bg-red-400";
 
   const items = [
     {
-      label: 'Hadir',
+      label: "Hadir",
       value: summary.hadir,
-      emoji: '✅',
-      color: 'text-green-600 dark:text-green-400',
+      emoji: "✅",
+      color: "text-green-600 dark:text-green-400",
     },
     {
-      label: 'Sakit',
+      label: "Sakit",
       value: summary.sakit,
-      emoji: '🤒',
-      color: 'text-yellow-600 dark:text-yellow-400',
+      emoji: "🤒",
+      color: "text-yellow-600 dark:text-yellow-400",
     },
-    { label: 'Izin', value: summary.izin, emoji: '📝', color: 'text-blue-600 dark:text-blue-400' },
-    { label: 'Alpha', value: summary.alpha, emoji: '❌', color: 'text-red-600 dark:text-red-400' },
-  ]
+    {
+      label: "Izin",
+      value: summary.izin,
+      emoji: "📝",
+      color: "text-blue-600 dark:text-blue-400",
+    },
+    {
+      label: "Alpha",
+      value: summary.alpha,
+      emoji: "❌",
+      color: "text-red-600 dark:text-red-400",
+    },
+  ];
 
   return (
     <Card padding="md" className="space-y-3">
@@ -178,8 +188,10 @@ function SummaryCard({ summary }: { summary: MonthlySummary }) {
             <span className="text-base" aria-hidden="true">
               {emoji}
             </span>
-            <span className={cn('text-lg font-bold', color)}>{value}</span>
-            <span className="text-[10px] text-slate-500 dark:text-slate-400">{label}</span>
+            <span className={cn("text-lg font-bold", color)}>{value}</span>
+            <span className="text-[10px] text-slate-500 dark:text-slate-400">
+              {label}
+            </span>
           </div>
         ))}
       </div>
@@ -187,14 +199,19 @@ function SummaryCard({ summary }: { summary: MonthlySummary }) {
       {/* Attendance rate */}
       <div className="space-y-1.5">
         <div className="flex items-center justify-between">
-          <span className="text-xs text-slate-500 dark:text-slate-400">Tingkat Kehadiran</span>
-          <span className={cn('text-sm font-bold', rateColor)}>
-            {summary.total > 0 ? `${summary.rate}%` : '—'}
+          <span className="text-xs text-slate-500 dark:text-slate-400">
+            Tingkat Kehadiran
+          </span>
+          <span className={cn("text-sm font-bold", rateColor)}>
+            {summary.total > 0 ? `${summary.rate}%` : "—"}
           </span>
         </div>
         <div className="h-2 w-full rounded-full bg-slate-100 dark:bg-slate-700 overflow-hidden">
           <div
-            className={cn('h-full rounded-full transition-all duration-500', barColor)}
+            className={cn(
+              "h-full rounded-full transition-all duration-500",
+              barColor,
+            )}
             style={{ width: `${Math.min(summary.rate, 100)}%` }}
             role="progressbar"
             aria-valuenow={summary.rate}
@@ -204,7 +221,7 @@ function SummaryCard({ summary }: { summary: MonthlySummary }) {
         </div>
       </div>
     </Card>
-  )
+  );
 }
 
 // ── Calendar Grid ───────────────────────────────────────────────
@@ -213,36 +230,36 @@ function CalendarGrid({
   currentMonth,
   attendanceMap,
 }: {
-  currentMonth: Date
-  attendanceMap: Map<string, AttendanceDay['status']>
+  currentMonth: Date;
+  attendanceMap: Map<string, AttendanceDay["status"]>;
 }) {
-  const today = new Date()
-  today.setHours(0, 0, 0, 0)
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
 
   // Get all days in the month
-  const monthStart = startOfMonth(currentMonth)
-  const monthEnd = endOfMonth(currentMonth)
-  const allDays = eachDayOfInterval({ start: monthStart, end: monthEnd })
+  const monthStart = startOfMonth(currentMonth);
+  const monthEnd = endOfMonth(currentMonth);
+  const allDays = eachDayOfInterval({ start: monthStart, end: monthEnd });
 
   // Filter only weekdays (Mon-Fri) — getDay: 0=Sun, 1=Mon, ..., 6=Sat
   const weekdays = allDays.filter((d) => {
-    const day = getDay(d)
-    return day >= 1 && day <= 5
-  })
+    const day = getDay(d);
+    return day >= 1 && day <= 5;
+  });
 
   // Group by week (weeks start on Monday)
-  const weeks: Date[][] = []
-  let currentWeek: Date[] = []
+  const weeks: Date[][] = [];
+  let currentWeek: Date[] = [];
 
   for (const day of weekdays) {
-    const dayOfWeek = getDay(day) // 1=Mon ... 5=Fri
+    const dayOfWeek = getDay(day); // 1=Mon ... 5=Fri
     if (currentWeek.length > 0 && dayOfWeek === 1) {
-      weeks.push(currentWeek)
-      currentWeek = []
+      weeks.push(currentWeek);
+      currentWeek = [];
     }
-    currentWeek.push(day)
+    currentWeek.push(day);
   }
-  if (currentWeek.length > 0) weeks.push(currentWeek)
+  if (currentWeek.length > 0) weeks.push(currentWeek);
 
   return (
     <Card padding="md" className="space-y-3">
@@ -251,7 +268,7 @@ function CalendarGrid({
           📅
         </span>
         <h2 className="text-xs font-bold text-slate-600 dark:text-slate-400 uppercase tracking-wide">
-          {format(currentMonth, 'MMMM yyyy', { locale: idLocale })}
+          {format(currentMonth, "MMMM yyyy", { locale: idLocale })}
         </h2>
       </div>
 
@@ -271,78 +288,86 @@ function CalendarGrid({
       <div className="space-y-1">
         {weeks.map((week, weekIdx) => {
           // Determine which column each day should go in (Mon=0, Tue=1, etc.)
-          const cells: (Date | null)[] = [null, null, null, null, null]
+          const cells: (Date | null)[] = [null, null, null, null, null];
           for (const day of week) {
-            const colIdx = getDay(day) - 1 // Mon=0, Tue=1, ...Fri=4
-            cells[colIdx] = day
+            const colIdx = getDay(day) - 1; // Mon=0, Tue=1, ...Fri=4
+            cells[colIdx] = day;
           }
 
           return (
             <div key={weekIdx} className="grid grid-cols-5 gap-1">
               {cells.map((day, colIdx) => {
                 if (!day) {
-                  return <div key={`empty-${weekIdx}-${colIdx}`} className="aspect-square" />
+                  return (
+                    <div
+                      key={`empty-${weekIdx}-${colIdx}`}
+                      className="aspect-square"
+                    />
+                  );
                 }
 
-                const dateStr = format(day, 'yyyy-MM-dd')
-                const isFuture = isAfter(day, today)
-                const isCurrentMonth = isSameMonth(day, currentMonth)
-                const status = attendanceMap.get(dateStr)
-                const hasData = status !== undefined && !isFuture
-                const config = hasData ? STATUS_CONFIG[status] : null
-                const dayNumber = day.getDate()
+                const dateStr = format(day, "yyyy-MM-dd");
+                const isFuture = isAfter(day, today);
+                const isCurrentMonth = isSameMonth(day, currentMonth);
+                const status = attendanceMap.get(dateStr);
+                const hasData = status !== undefined && !isFuture;
+                const config = hasData ? STATUS_CONFIG[status] : null;
+                const dayNumber = day.getDate();
 
                 return (
                   <div
                     key={dateStr}
                     className={cn(
-                      'aspect-square rounded-lg flex flex-col items-center justify-center',
-                      'text-xs transition-colors',
-                      !isCurrentMonth && 'opacity-30',
+                      "aspect-square rounded-lg flex flex-col items-center justify-center",
+                      "text-xs transition-colors",
+                      !isCurrentMonth && "opacity-30",
                       isFuture
-                        ? 'bg-slate-50 dark:bg-slate-800/30 text-slate-400 dark:text-slate-600'
+                        ? "bg-slate-50 dark:bg-slate-800/30 text-slate-400 dark:text-slate-600"
                         : hasData && config
                           ? cn(config.bg)
-                          : 'bg-slate-50 dark:bg-slate-800/30'
+                          : "bg-slate-50 dark:bg-slate-800/30",
                     )}
-                    aria-label={`${dayNumber}: ${isFuture ? 'Belum terjadi' : hasData && config ? config.label : 'Tidak ada data'}`}
+                    aria-label={`${dayNumber}: ${isFuture ? "Belum terjadi" : hasData && config ? config.label : "Tidak ada data"}`}
                   >
                     <span
                       className={cn(
-                        'text-[10px] font-semibold leading-none',
+                        "text-[10px] font-semibold leading-none",
                         isFuture
-                          ? 'text-slate-400 dark:text-slate-600'
+                          ? "text-slate-400 dark:text-slate-600"
                           : hasData && config
                             ? config.text
-                            : 'text-slate-400 dark:text-slate-500'
+                            : "text-slate-400 dark:text-slate-500",
                       )}
                     >
                       {dayNumber}
                     </span>
-                    <span className="text-sm leading-none mt-0.5" aria-hidden="true">
-                      {isFuture ? '' : hasData && config ? config.emoji : '○'}
+                    <span
+                      className="text-sm leading-none mt-0.5"
+                      aria-hidden="true"
+                    >
+                      {isFuture ? "" : hasData && config ? config.emoji : "○"}
                     </span>
                   </div>
-                )
+                );
               })}
             </div>
-          )
+          );
         })}
       </div>
     </Card>
-  )
+  );
 }
 
 // ── Legend ───────────────────────────────────────────────────────
 
 function Legend() {
   const items = [
-    { emoji: '✅', label: 'Hadir' },
-    { emoji: '🤒', label: 'Sakit' },
-    { emoji: '📝', label: 'Izin' },
-    { emoji: '❌', label: 'Alpha' },
-    { emoji: '○', label: 'Tidak ada data' },
-  ]
+    { emoji: "✅", label: "Hadir" },
+    { emoji: "🤒", label: "Sakit" },
+    { emoji: "📝", label: "Izin" },
+    { emoji: "❌", label: "Alpha" },
+    { emoji: "○", label: "Tidak ada data" },
+  ];
 
   return (
     <Card padding="sm">
@@ -366,7 +391,7 @@ function Legend() {
         ))}
       </div>
     </Card>
-  )
+  );
 }
 
 // ── Empty State ─────────────────────────────────────────────────
@@ -386,7 +411,7 @@ function EmptyAttendance() {
         </p>
       </div>
     </div>
-  )
+  );
 }
 
 // ── Error State ─────────────────────────────────────────────────
@@ -409,82 +434,86 @@ function ErrorState({ onRetry }: { onRetry: () => void }) {
         Coba Lagi
       </button>
     </div>
-  )
+  );
 }
 
 // ── Main Component ──────────────────────────────────────────────
 
 export function AttendanceDetailPage() {
-  const [selectedStudentId, setSelectedStudentId] = useState<string>('')
-  const [currentMonth, setCurrentMonth] = useState<Date>(() => new Date())
+  const [selectedStudentId, setSelectedStudentId] = useState<string>("");
+  const [currentMonth, setCurrentMonth] = useState<Date>(() => new Date());
 
-  const year = currentMonth.getFullYear()
-  const month = currentMonth.getMonth() + 1
+  const year = currentMonth.getFullYear();
+  const month = currentMonth.getMonth() + 1;
 
   const handlePrevMonth = useCallback(() => {
-    setCurrentMonth((prev) => subMonths(prev, 1))
-  }, [])
+    setCurrentMonth((prev) => subMonths(prev, 1));
+  }, []);
 
   const handleNextMonth = useCallback(() => {
-    setCurrentMonth((prev) => addMonths(prev, 1))
-  }, [])
+    setCurrentMonth((prev) => addMonths(prev, 1));
+  }, []);
 
-  const childrenQuery = useParentChildren()
-  const children = childrenQuery.data ?? []
+  const childrenQuery = useParentChildren();
+  const children = childrenQuery.data ?? [];
   const effectiveStudentId =
-    selectedStudentId || (children.length > 0 ? children[0].student_id : '')
+    selectedStudentId || (children.length > 0 ? children[0].student_id : "");
 
-  const attendanceQuery = useChildAttendance(effectiveStudentId, year, month)
-  const attendanceDays = useMemo(() => attendanceQuery.data ?? [], [attendanceQuery.data])
+  const attendanceQuery = useChildAttendance(effectiveStudentId, year, month);
+  const attendanceDays = useMemo(
+    () => attendanceQuery.data ?? [],
+    [attendanceQuery.data],
+  );
 
   // Build attendance map
   const attendanceMap = useMemo(() => {
-    const map = new Map<string, AttendanceDay['status']>()
+    const map = new Map<string, AttendanceDay["status"]>();
     for (const day of attendanceDays) {
-      map.set(day.date, day.status)
+      map.set(day.date, day.status);
     }
-    return map
-  }, [attendanceDays])
+    return map;
+  }, [attendanceDays]);
 
   // Calculate summary
   const summary = useMemo((): MonthlySummary => {
-    const today = new Date()
-    today.setHours(0, 0, 0, 0)
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
 
     // Count only past weekdays in this month
-    const monthStart = startOfMonth(currentMonth)
-    const monthEnd = endOfMonth(currentMonth)
-    const allDays = eachDayOfInterval({ start: monthStart, end: monthEnd })
+    const monthStart = startOfMonth(currentMonth);
+    const monthEnd = endOfMonth(currentMonth);
+    const allDays = eachDayOfInterval({ start: monthStart, end: monthEnd });
     const pastWeekdays = allDays.filter((d) => {
-      const day = getDay(d)
-      return day >= 1 && day <= 5 && !isAfter(d, today)
-    })
+      const day = getDay(d);
+      return day >= 1 && day <= 5 && !isAfter(d, today);
+    });
 
-    let hadir = 0
-    let sakit = 0
-    let izin = 0
-    let alpha = 0
+    let hadir = 0;
+    let sakit = 0;
+    let izin = 0;
+    let alpha = 0;
 
     for (const day of pastWeekdays) {
-      const dateStr = format(day, 'yyyy-MM-dd')
-      const status = attendanceMap.get(dateStr)
-      if (status === 'hadir') hadir++
-      else if (status === 'sakit') sakit++
-      else if (status === 'izin') izin++
-      else alpha++
+      const dateStr = format(day, "yyyy-MM-dd");
+      const status = attendanceMap.get(dateStr);
+      if (status === "hadir") hadir++;
+      else if (status === "sakit") sakit++;
+      else if (status === "izin") izin++;
+      else alpha++;
     }
 
-    const total = pastWeekdays.length
-    const rate = total > 0 ? Math.round((hadir / total) * 100) : 0
+    const total = pastWeekdays.length;
+    const rate = total > 0 ? Math.round((hadir / total) * 100) : 0;
 
-    return { hadir, sakit, izin, alpha, total, rate }
-  }, [attendanceMap, currentMonth])
+    return { hadir, sakit, izin, alpha, total, rate };
+  }, [attendanceMap, currentMonth]);
 
   // Determine if we can go to next month (no future beyond current month)
-  const now = new Date()
+  const now = new Date();
   const canGoNext =
     currentMonth.getFullYear() < now.getFullYear() ||
-    (currentMonth.getFullYear() === now.getFullYear() && currentMonth.getMonth() < now.getMonth())
+    (currentMonth.getFullYear() === now.getFullYear() &&
+      currentMonth.getMonth() < now.getMonth());
 
   // Loading children
   if (childrenQuery.isLoading) {
@@ -493,7 +522,7 @@ export function AttendanceDetailPage() {
         <Skeleton className="h-8 w-48" />
         <AttendanceSkeleton />
       </div>
-    )
+    );
   }
 
   // No children
@@ -506,11 +535,14 @@ export function AttendanceDetailPage() {
         <p className="text-sm text-slate-500 dark:text-slate-400 max-w-xs mx-auto">
           Tidak ada siswa yang terhubung ke akun Anda.
         </p>
-        <Link to="/app/parent" className="text-sm text-blue-600 dark:text-blue-400 font-medium">
+        <Link
+          to="/app/parent"
+          className="text-sm text-blue-600 dark:text-blue-400 font-medium"
+        >
           ← Kembali ke Beranda
         </Link>
       </div>
-    )
+    );
   }
 
   return (
@@ -527,7 +559,9 @@ export function AttendanceDetailPage() {
         >
           <span aria-hidden="true">←</span>
         </Link>
-        <h1 className="text-base font-bold text-slate-800 dark:text-slate-100">Kehadiran</h1>
+        <h1 className="text-base font-bold text-slate-800 dark:text-slate-100">
+          Kehadiran
+        </h1>
       </div>
 
       {/* Child switcher */}
@@ -552,19 +586,19 @@ export function AttendanceDetailPage() {
         </button>
 
         <span className="text-sm font-semibold text-slate-800 dark:text-slate-100">
-          {format(currentMonth, 'MMMM yyyy', { locale: idLocale })}
+          {format(currentMonth, "MMMM yyyy", { locale: idLocale })}
         </span>
 
         <button
           onClick={handleNextMonth}
           disabled={!canGoNext}
           className={cn(
-            'min-h-[40px] min-w-[40px] flex items-center justify-center',
-            'rounded-xl transition-colors',
-            'focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500',
+            "min-h-[40px] min-w-[40px] flex items-center justify-center",
+            "rounded-xl transition-colors",
+            "focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500",
             canGoNext
-              ? 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 active:bg-slate-200 dark:active:bg-slate-700'
-              : 'bg-slate-50 dark:bg-slate-800/30 text-slate-300 dark:text-slate-600 cursor-not-allowed'
+              ? "bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 active:bg-slate-200 dark:active:bg-slate-700"
+              : "bg-slate-50 dark:bg-slate-800/30 text-slate-300 dark:text-slate-600 cursor-not-allowed",
           )}
           aria-label="Bulan berikutnya"
         >
@@ -585,12 +619,15 @@ export function AttendanceDetailPage() {
           <SummaryCard summary={summary} />
 
           {/* Calendar */}
-          <CalendarGrid currentMonth={currentMonth} attendanceMap={attendanceMap} />
+          <CalendarGrid
+            currentMonth={currentMonth}
+            attendanceMap={attendanceMap}
+          />
 
           {/* Legend */}
           <Legend />
         </>
       )}
     </div>
-  )
+  );
 }

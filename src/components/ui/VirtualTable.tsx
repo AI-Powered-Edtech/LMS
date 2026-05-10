@@ -1,25 +1,25 @@
-import { useVirtualizer } from '@tanstack/react-virtual'
-import { useCallback, useRef, useState } from 'react'
+import { useVirtualizer } from "@tanstack/react-virtual";
+import { useCallback, useRef, useState } from "react";
 
 interface Column<T> {
-  key: string
-  header: string
-  width?: string
-  render: (row: T, index: number) => React.ReactNode
+  key: string;
+  header: string;
+  width?: string;
+  render: (row: T, index: number) => React.ReactNode;
 }
 
 interface VirtualTableProps<T> {
-  data: T[]
-  columns: Column<T>[]
-  rowHeight?: number
-  maxHeight?: number
-  getRowKey: (row: T, index: number) => string
-  emptyState?: React.ReactNode
-  className?: string
-  caption?: string
-  'data-testid'?: string
-  onRowClick?: (row: T, index: number) => void
-  rowClassName?: (row: T, index: number) => string
+  data: T[];
+  columns: Column<T>[];
+  rowHeight?: number;
+  maxHeight?: number;
+  getRowKey: (row: T, index: number) => string;
+  emptyState?: React.ReactNode;
+  className?: string;
+  caption?: string;
+  "data-testid"?: string;
+  onRowClick?: (row: T, index: number) => void;
+  rowClassName?: (row: T, index: number) => string;
 }
 
 export function VirtualTable<T>({
@@ -29,62 +29,62 @@ export function VirtualTable<T>({
   maxHeight = 600,
   getRowKey,
   emptyState,
-  className = '',
+  className = "",
   caption,
-  'data-testid': testId,
+  "data-testid": testId,
   onRowClick,
   rowClassName,
 }: VirtualTableProps<T>) {
-  const parentRef = useRef<HTMLDivElement>(null)
-  const [focusedIndex, setFocusedIndex] = useState(-1)
+  const parentRef = useRef<HTMLDivElement>(null);
+  const [focusedIndex, setFocusedIndex] = useState(-1);
 
   const virtualizer = useVirtualizer({
     count: data.length,
     getScrollElement: () => parentRef.current,
     estimateSize: () => rowHeight,
     overscan: 5,
-  })
+  });
 
   const handleKeyDown = useCallback(
     (e: React.KeyboardEvent) => {
-      if (!onRowClick || data.length === 0) return
+      if (!onRowClick || data.length === 0) return;
 
-      let nextIndex = focusedIndex
+      let nextIndex = focusedIndex;
       switch (e.key) {
-        case 'ArrowDown':
-          e.preventDefault()
-          nextIndex = Math.min(focusedIndex + 1, data.length - 1)
-          break
-        case 'ArrowUp':
-          e.preventDefault()
-          nextIndex = Math.max(focusedIndex - 1, 0)
-          break
-        case 'Home':
-          e.preventDefault()
-          nextIndex = 0
-          break
-        case 'End':
-          e.preventDefault()
-          nextIndex = data.length - 1
-          break
-        case 'Enter':
-        case ' ':
-          e.preventDefault()
+        case "ArrowDown":
+          e.preventDefault();
+          nextIndex = Math.min(focusedIndex + 1, data.length - 1);
+          break;
+        case "ArrowUp":
+          e.preventDefault();
+          nextIndex = Math.max(focusedIndex - 1, 0);
+          break;
+        case "Home":
+          e.preventDefault();
+          nextIndex = 0;
+          break;
+        case "End":
+          e.preventDefault();
+          nextIndex = data.length - 1;
+          break;
+        case "Enter":
+        case " ":
+          e.preventDefault();
           if (focusedIndex >= 0 && focusedIndex < data.length) {
-            onRowClick(data[focusedIndex], focusedIndex)
+            onRowClick(data[focusedIndex], focusedIndex);
           }
-          return
+          return;
         default:
-          return
+          return;
       }
-      setFocusedIndex(nextIndex)
-      virtualizer.scrollToIndex(nextIndex)
+      setFocusedIndex(nextIndex);
+      virtualizer.scrollToIndex(nextIndex);
     },
-    [focusedIndex, data, onRowClick, virtualizer]
-  )
+    [focusedIndex, data, onRowClick, virtualizer],
+  );
 
   if (data.length === 0 && emptyState) {
-    return <>{emptyState}</>
+    return <>{emptyState}</>;
   }
 
   return (
@@ -116,29 +116,36 @@ export function VirtualTable<T>({
         </thead>
         <tbody
           className="bg-white dark:bg-slate-900 divide-y divide-slate-100 dark:divide-slate-800"
-          style={{ height: `${virtualizer.getTotalSize()}px`, position: 'relative' }}
+          style={{
+            height: `${virtualizer.getTotalSize()}px`,
+            position: "relative",
+          }}
         >
           {virtualizer.getVirtualItems().map((virtualRow) => {
-            const row = data[virtualRow.index]
-            const isFocused = focusedIndex === virtualRow.index
+            const row = data[virtualRow.index];
+            const isFocused = focusedIndex === virtualRow.index;
             return (
               <tr
                 key={getRowKey(row, virtualRow.index)}
                 data-index={virtualRow.index}
                 ref={virtualizer.measureElement}
-                onClick={onRowClick ? () => onRowClick(row, virtualRow.index) : undefined}
+                onClick={
+                  onRowClick
+                    ? () => onRowClick(row, virtualRow.index)
+                    : undefined
+                }
                 tabIndex={onRowClick ? -1 : undefined}
                 aria-selected={onRowClick ? isFocused : undefined}
                 className={`hover:bg-slate-50 dark:hover:bg-slate-800/60 transition-colors ${
-                  rowClassName ? rowClassName(row, virtualRow.index) : ''
-                } ${onRowClick ? 'cursor-pointer' : ''} ${
-                  isFocused ? 'ring-2 ring-inset ring-blue-500' : ''
+                  rowClassName ? rowClassName(row, virtualRow.index) : ""
+                } ${onRowClick ? "cursor-pointer" : ""} ${
+                  isFocused ? "ring-2 ring-inset ring-blue-500" : ""
                 }`}
                 style={{
-                  position: 'absolute',
+                  position: "absolute",
                   top: 0,
                   left: 0,
-                  width: '100%',
+                  width: "100%",
                   transform: `translateY(${virtualRow.start}px)`,
                 }}
               >
@@ -152,10 +159,10 @@ export function VirtualTable<T>({
                   </td>
                 ))}
               </tr>
-            )
+            );
           })}
         </tbody>
       </table>
     </div>
-  )
+  );
 }

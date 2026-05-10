@@ -10,13 +10,18 @@
 
 // ─── Types ───────────────────────────────────────────────
 
-export type QuestionQuality = 'excellent' | 'good' | 'fair' | 'poor' | 'discard'
+export type QuestionQuality =
+  | "excellent"
+  | "good"
+  | "fair"
+  | "poor"
+  | "discard";
 
 export interface ItemAnalysisResult {
-  question_id: string
-  difficulty: number
-  discrimination: number
-  quality: QuestionQuality
+  question_id: string;
+  difficulty: number;
+  discrimination: number;
+  quality: QuestionQuality;
 }
 
 // ─── Difficulty Index ────────────────────────────────────
@@ -27,9 +32,12 @@ export interface ItemAnalysisResult {
  *
  * Ideal range: 0.3–0.7 for good discrimination.
  */
-export function computeDifficultyIndex(correctCount: number, totalAttempts: number): number {
-  if (totalAttempts <= 0) return 0
-  return Math.max(0, Math.min(1, correctCount / totalAttempts))
+export function computeDifficultyIndex(
+  correctCount: number,
+  totalAttempts: number,
+): number {
+  if (totalAttempts <= 0) return 0;
+  return Math.max(0, Math.min(1, correctCount / totalAttempts));
 }
 
 // ─── Discrimination Index ────────────────────────────────
@@ -51,9 +59,12 @@ export function computeDifficultyIndex(correctCount: number, totalAttempts: numb
  */
 export function computeDiscriminationIndex(
   upperGroupCorrectRate: number,
-  lowerGroupCorrectRate: number
+  lowerGroupCorrectRate: number,
 ): number {
-  return Math.max(-1, Math.min(1, upperGroupCorrectRate - lowerGroupCorrectRate))
+  return Math.max(
+    -1,
+    Math.min(1, upperGroupCorrectRate - lowerGroupCorrectRate),
+  );
 }
 
 /**
@@ -63,20 +74,24 @@ export function computeDiscriminationIndex(
  * @param studentScoresOnQuestion - Array of { totalScore, isCorrect } for each student
  */
 export function computeDiscriminationFromScores(
-  studentScoresOnQuestion: { totalScore: number; isCorrect: boolean }[]
+  studentScoresOnQuestion: { totalScore: number; isCorrect: boolean }[],
 ): number {
-  if (studentScoresOnQuestion.length < 4) return 0 // Need at least 4 students
+  if (studentScoresOnQuestion.length < 4) return 0; // Need at least 4 students
 
-  const sorted = [...studentScoresOnQuestion].sort((a, b) => b.totalScore - a.totalScore)
+  const sorted = [...studentScoresOnQuestion].sort(
+    (a, b) => b.totalScore - a.totalScore,
+  );
 
-  const groupSize = Math.max(1, Math.ceil(sorted.length * 0.27))
-  const upperGroup = sorted.slice(0, groupSize)
-  const lowerGroup = sorted.slice(sorted.length - groupSize)
+  const groupSize = Math.max(1, Math.ceil(sorted.length * 0.27));
+  const upperGroup = sorted.slice(0, groupSize);
+  const lowerGroup = sorted.slice(sorted.length - groupSize);
 
-  const upperCorrectRate = upperGroup.filter((s) => s.isCorrect).length / upperGroup.length
-  const lowerCorrectRate = lowerGroup.filter((s) => s.isCorrect).length / lowerGroup.length
+  const upperCorrectRate =
+    upperGroup.filter((s) => s.isCorrect).length / upperGroup.length;
+  const lowerCorrectRate =
+    lowerGroup.filter((s) => s.isCorrect).length / lowerGroup.length;
 
-  return computeDiscriminationIndex(upperCorrectRate, lowerCorrectRate)
+  return computeDiscriminationIndex(upperCorrectRate, lowerCorrectRate);
 }
 
 // ─── Point-Biserial Correlation ──────────────────────────
@@ -96,27 +111,27 @@ export function computeDiscriminationFromScores(
  * @param questionScores - Array of { isCorrect, totalScore }
  */
 export function computePointBiserial(
-  questionScores: { isCorrect: boolean; totalScore: number }[]
+  questionScores: { isCorrect: boolean; totalScore: number }[],
 ): number {
-  if (questionScores.length < 2) return 0
+  if (questionScores.length < 2) return 0;
 
-  const correctGroup = questionScores.filter((s) => s.isCorrect)
-  const incorrectGroup = questionScores.filter((s) => !s.isCorrect)
+  const correctGroup = questionScores.filter((s) => s.isCorrect);
+  const incorrectGroup = questionScores.filter((s) => !s.isCorrect);
 
-  if (correctGroup.length === 0 || incorrectGroup.length === 0) return 0
+  if (correctGroup.length === 0 || incorrectGroup.length === 0) return 0;
 
-  const meanCorrect = mean(correctGroup.map((s) => s.totalScore))
-  const meanIncorrect = mean(incorrectGroup.map((s) => s.totalScore))
+  const meanCorrect = mean(correctGroup.map((s) => s.totalScore));
+  const meanIncorrect = mean(incorrectGroup.map((s) => s.totalScore));
 
-  const allScores = questionScores.map((s) => s.totalScore)
-  const sd = standardDeviation(allScores)
+  const allScores = questionScores.map((s) => s.totalScore);
+  const sd = standardDeviation(allScores);
 
-  if (sd === 0) return 0
+  if (sd === 0) return 0;
 
-  const p = correctGroup.length / questionScores.length
-  const q = 1 - p
+  const p = correctGroup.length / questionScores.length;
+  const q = 1 - p;
 
-  return ((meanCorrect - meanIncorrect) / sd) * Math.sqrt(p * q)
+  return ((meanCorrect - meanIncorrect) / sd) * Math.sqrt(p * q);
 }
 
 // ─── Quality Classification ─────────────────────────────
@@ -133,13 +148,15 @@ export function computePointBiserial(
  */
 export function classifyQuestionQuality(
   difficulty: number,
-  discrimination: number
+  discrimination: number,
 ): QuestionQuality {
-  if (discrimination < 0) return 'discard'
-  if (discrimination < 0.1) return 'poor'
-  if (discrimination >= 0.3 && difficulty >= 0.3 && difficulty <= 0.7) return 'excellent'
-  if (discrimination >= 0.2 && difficulty >= 0.2 && difficulty <= 0.8) return 'good'
-  return 'fair'
+  if (discrimination < 0) return "discard";
+  if (discrimination < 0.1) return "poor";
+  if (discrimination >= 0.3 && difficulty >= 0.3 && difficulty <= 0.7)
+    return "excellent";
+  if (discrimination >= 0.2 && difficulty >= 0.2 && difficulty <= 0.8)
+    return "good";
+  return "fair";
 }
 
 /**
@@ -148,28 +165,28 @@ export function classifyQuestionQuality(
  * @param questionsData - Map of questionId → array of { totalScore, isCorrect }
  */
 export function analyzeQuestions(
-  questionsData: Record<string, { totalScore: number; isCorrect: boolean }[]>
+  questionsData: Record<string, { totalScore: number; isCorrect: boolean }[]>,
 ): ItemAnalysisResult[] {
   return Object.entries(questionsData).map(([questionId, scores]) => {
-    const correctCount = scores.filter((s) => s.isCorrect).length
-    const difficulty = computeDifficultyIndex(correctCount, scores.length)
-    const discrimination = computeDiscriminationFromScores(scores)
-    const quality = classifyQuestionQuality(difficulty, discrimination)
+    const correctCount = scores.filter((s) => s.isCorrect).length;
+    const difficulty = computeDifficultyIndex(correctCount, scores.length);
+    const discrimination = computeDiscriminationFromScores(scores);
+    const quality = classifyQuestionQuality(difficulty, discrimination);
 
-    return { question_id: questionId, difficulty, discrimination, quality }
-  })
+    return { question_id: questionId, difficulty, discrimination, quality };
+  });
 }
 
 // ─── Helpers ─────────────────────────────────────────────
 
 function mean(values: number[]): number {
-  if (values.length === 0) return 0
-  return values.reduce((sum, v) => sum + v, 0) / values.length
+  if (values.length === 0) return 0;
+  return values.reduce((sum, v) => sum + v, 0) / values.length;
 }
 
 function standardDeviation(values: number[]): number {
-  if (values.length < 2) return 0
-  const m = mean(values)
-  const squareDiffs = values.map((v) => (v - m) ** 2)
-  return Math.sqrt(squareDiffs.reduce((sum, d) => sum + d, 0) / values.length)
+  if (values.length < 2) return 0;
+  const m = mean(values);
+  const squareDiffs = values.map((v) => (v - m) ** 2);
+  return Math.sqrt(squareDiffs.reduce((sum, d) => sum + d, 0) / values.length);
 }

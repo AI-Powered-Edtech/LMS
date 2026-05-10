@@ -2,19 +2,19 @@
 // GradeCard — Daftar nilai terbaru dengan trend arrows
 // ==========================================================================
 
-import { Card } from '@/components/ui/Card'
-import { Skeleton } from '@/components/ui/Skeleton'
-import { cn } from '@/utils/cn'
+import { Card } from "@/components/ui/Card";
+import { Skeleton } from "@/components/ui/Skeleton";
+import { cn } from "@/utils/cn";
 
-import type { ChildGradeSummary } from '../types'
+import type { ChildGradeSummary } from "../types";
 
 interface GradeCardProps {
-  grades: ChildGradeSummary[]
-  isLoading?: boolean
+  grades: ChildGradeSummary[];
+  isLoading?: boolean;
 }
 
-function TrendIcon({ trend }: { trend: ChildGradeSummary['trend'] }) {
-  if (trend === 'up') {
+function TrendIcon({ trend }: { trend: ChildGradeSummary["trend"] }) {
+  if (trend === "up") {
     return (
       <span
         className="text-green-600 dark:text-green-400 font-bold text-base leading-none"
@@ -22,9 +22,9 @@ function TrendIcon({ trend }: { trend: ChildGradeSummary['trend'] }) {
       >
         ↑
       </span>
-    )
+    );
   }
-  if (trend === 'down') {
+  if (trend === "down") {
     return (
       <span
         className="text-red-500 dark:text-red-400 font-bold text-base leading-none"
@@ -32,7 +32,7 @@ function TrendIcon({ trend }: { trend: ChildGradeSummary['trend'] }) {
       >
         ↓
       </span>
-    )
+    );
   }
   return (
     <span
@@ -41,21 +41,21 @@ function TrendIcon({ trend }: { trend: ChildGradeSummary['trend'] }) {
     >
       →
     </span>
-  )
+  );
 }
 
 function ScoreBar({ score }: { score: number }) {
   const color =
     score >= 80
-      ? 'bg-green-500 dark:bg-green-400'
+      ? "bg-green-500 dark:bg-green-400"
       : score >= 60
-        ? 'bg-yellow-500 dark:bg-yellow-400'
-        : 'bg-red-500 dark:bg-red-400'
+        ? "bg-yellow-500 dark:bg-yellow-400"
+        : "bg-red-500 dark:bg-red-400";
 
   return (
     <div className="h-1.5 w-full rounded-full bg-slate-100 dark:bg-slate-700 overflow-hidden">
       <div
-        className={cn('h-full rounded-full transition-all duration-500', color)}
+        className={cn("h-full rounded-full transition-all duration-500", color)}
         style={{ width: `${Math.min(score, 100)}%` }}
         role="progressbar"
         aria-valuenow={score}
@@ -63,7 +63,7 @@ function ScoreBar({ score }: { score: number }) {
         aria-valuemax={100}
       />
     </div>
-  )
+  );
 }
 
 export function GradeCard({ grades, isLoading }: GradeCardProps) {
@@ -74,7 +74,9 @@ export function GradeCard({ grades, isLoading }: GradeCardProps) {
         <span className="text-lg" aria-hidden="true">
           📊
         </span>
-        <h2 className="text-sm font-semibold text-slate-800 dark:text-slate-100">NILAI TERBARU</h2>
+        <h2 className="text-sm font-semibold text-slate-800 dark:text-slate-100">
+          NILAI TERBARU
+        </h2>
       </div>
 
       {/* Loading state */}
@@ -108,12 +110,12 @@ export function GradeCard({ grades, isLoading }: GradeCardProps) {
                 <div className="flex items-center gap-1.5 flex-shrink-0">
                   <span
                     className={cn(
-                      'text-sm font-bold',
+                      "text-sm font-bold",
                       grade.latest_score >= 80
-                        ? 'text-green-600 dark:text-green-400'
+                        ? "text-green-600 dark:text-green-400"
                         : grade.latest_score >= 60
-                          ? 'text-yellow-600 dark:text-yellow-400'
-                          : 'text-red-600 dark:text-red-400'
+                          ? "text-yellow-600 dark:text-yellow-400"
+                          : "text-red-600 dark:text-red-400",
                     )}
                   >
                     {grade.latest_score}
@@ -127,5 +129,5 @@ export function GradeCard({ grades, isLoading }: GradeCardProps) {
         </ul>
       )}
     </Card>
-  )
+  );
 }

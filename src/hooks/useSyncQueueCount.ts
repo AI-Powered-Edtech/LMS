@@ -1,7 +1,7 @@
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useEffect, useState } from "react";
 
-import { logger } from '@/utils/logger'
-import { getPendingCount } from '@/utils/offlineStorage'
+import { logger } from "@/utils/logger";
+import { getPendingCount } from "@/utils/offlineStorage";
 
 /**
  * Returns the number of items waiting in the offline sync queue.
@@ -12,37 +12,38 @@ import { getPendingCount } from '@/utils/offlineStorage'
  * instead of deserialising all records.
  */
 export function useSyncQueueCount(): number {
-  const [count, setCount] = useState(0)
+  const [count, setCount] = useState(0);
 
   const refresh = useCallback(async () => {
     try {
-      const total = await getPendingCount()
-      setCount(total)
+      const total = await getPendingCount();
+      setCount(total);
     } catch (err) {
       // IndexedDB unavailable — count stays 0
-      if (import.meta.env.DEV) logger.warn('[useSyncQueueCount] IndexedDB unavailable:', err)
+      if (import.meta.env.DEV)
+        logger.warn("[useSyncQueueCount] IndexedDB unavailable:", err);
     }
-  }, [])
+  }, []);
 
   useEffect(() => {
-    void refresh()
+    void refresh();
 
     const handleChange = () => {
-      void refresh()
-    }
+      void refresh();
+    };
 
-    window.addEventListener('online', handleChange)
-    window.addEventListener('offline', handleChange)
+    window.addEventListener("online", handleChange);
+    window.addEventListener("offline", handleChange);
 
     // Poll every 5s so new items added while offline surface quickly
-    const interval = setInterval(refresh, 5000)
+    const interval = setInterval(refresh, 5000);
 
     return () => {
-      window.removeEventListener('online', handleChange)
-      window.removeEventListener('offline', handleChange)
-      clearInterval(interval)
-    }
-  }, [refresh])
+      window.removeEventListener("online", handleChange);
+      window.removeEventListener("offline", handleChange);
+      clearInterval(interval);
+    };
+  }, [refresh]);
 
-  return count
+  return count;
 }

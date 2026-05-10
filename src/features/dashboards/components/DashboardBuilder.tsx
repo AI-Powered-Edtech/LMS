@@ -1,50 +1,65 @@
-import { GripVertical, Loader2, Plus, Save, Trash2 } from 'lucide-react'
-import { motion } from 'motion/react'
-import { useCallback, useState } from 'react'
+import { GripVertical, Loader2, Plus, Save, Trash2 } from "lucide-react";
+import { motion } from "motion/react";
+import { useCallback, useState } from "react";
 
-import { cn } from '@/utils/cn'
+import { cn } from "@/utils/cn";
 
-import { useSaveDashboard } from '../queries/dashboardQueries'
-import type { DashboardConfig, LayoutItem, WidgetConfig, WidgetType } from '../types'
-import { WidgetPicker } from './WidgetPicker'
-import { WidgetRenderer } from './WidgetRenderer'
+import { useSaveDashboard } from "../queries/dashboardQueries";
+import type {
+  DashboardConfig,
+  LayoutItem,
+  WidgetConfig,
+  WidgetType,
+} from "../types";
+import { WidgetPicker } from "./WidgetPicker";
+import { WidgetRenderer } from "./WidgetRenderer";
 
 interface DashboardBuilderProps {
-  initialDashboard?: DashboardConfig | null
-  courseId?: string
-  onSaved?: (dashboard: DashboardConfig) => void
+  initialDashboard?: DashboardConfig | null;
+  courseId?: string;
+  onSaved?: (dashboard: DashboardConfig) => void;
 }
 
 function generateId() {
-  return `w_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`
+  return `w_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`;
 }
 
 const WIDGET_LABEL_MAP: Record<WidgetType, string> = {
-  metric_card: 'Metrik',
-  pie_chart: 'Diagram Lingkaran',
-  engagement_trend: 'Tren',
-  risk_radar: 'Radar Risiko',
-  heatmap: 'Peta Panas',
-  funnel: 'Corong',
-  leaderboard: 'Papan Peringkat',
-  line_chart: 'Grafik Garis',
-  bar_chart: 'Grafik Batang',
-  table: 'Tabel',
-  radar: 'Radar',
-}
+  metric_card: "Metrik",
+  pie_chart: "Diagram Lingkaran",
+  engagement_trend: "Tren",
+  risk_radar: "Radar Risiko",
+  heatmap: "Peta Panas",
+  funnel: "Corong",
+  leaderboard: "Papan Peringkat",
+  line_chart: "Grafik Garis",
+  bar_chart: "Grafik Batang",
+  table: "Tabel",
+  radar: "Radar",
+};
 
-export function DashboardBuilder({ initialDashboard, courseId, onSaved }: DashboardBuilderProps) {
-  const [name, setName] = useState(initialDashboard?.name ?? 'Dashboard Baru')
-  const [description, setDescription] = useState(initialDashboard?.description ?? '')
-  const [isShared, setIsShared] = useState(initialDashboard?.is_shared ?? false)
-  const [widgets, setWidgets] = useState<WidgetConfig[]>(initialDashboard?.widgets ?? [])
-  const [showPicker, setShowPicker] = useState(false)
-  const [saved, setSaved] = useState(false)
+export function DashboardBuilder({
+  initialDashboard,
+  courseId,
+  onSaved,
+}: DashboardBuilderProps) {
+  const [name, setName] = useState(initialDashboard?.name ?? "Dashboard Baru");
+  const [description, setDescription] = useState(
+    initialDashboard?.description ?? "",
+  );
+  const [isShared, setIsShared] = useState(
+    initialDashboard?.is_shared ?? false,
+  );
+  const [widgets, setWidgets] = useState<WidgetConfig[]>(
+    initialDashboard?.widgets ?? [],
+  );
+  const [showPicker, setShowPicker] = useState(false);
+  const [saved, setSaved] = useState(false);
 
-  const { mutate: saveDashboard, isPending } = useSaveDashboard()
+  const { mutate: saveDashboard, isPending } = useSaveDashboard();
 
   const handleAddWidget = useCallback((type: WidgetType) => {
-    const id = generateId()
+    const id = generateId();
     setWidgets((prev) => [
       ...prev,
       {
@@ -52,12 +67,12 @@ export function DashboardBuilder({ initialDashboard, courseId, onSaved }: Dashbo
         type,
         config: { label: WIDGET_LABEL_MAP[type] ?? type },
       },
-    ])
-  }, [])
+    ]);
+  }, []);
 
   const handleRemoveWidget = useCallback((widgetId: string) => {
-    setWidgets((prev) => prev.filter((w) => w.id !== widgetId))
-  }, [])
+    setWidgets((prev) => prev.filter((w) => w.id !== widgetId));
+  }, []);
 
   const handleSave = () => {
     // Build a simple sequential layout
@@ -67,7 +82,7 @@ export function DashboardBuilder({ initialDashboard, courseId, onSaved }: Dashbo
       y: Math.floor(i / 2) * 4,
       w: 6,
       h: 4,
-    }))
+    }));
 
     saveDashboard(
       {
@@ -80,13 +95,13 @@ export function DashboardBuilder({ initialDashboard, courseId, onSaved }: Dashbo
       },
       {
         onSuccess: (data) => {
-          setSaved(true)
-          setTimeout(() => setSaved(false), 2000)
-          onSaved?.(data)
+          setSaved(true);
+          setTimeout(() => setSaved(false), 2000);
+          onSaved?.(data);
         },
-      }
-    )
-  }
+      },
+    );
+  };
 
   return (
     <div className="space-y-6">
@@ -131,10 +146,10 @@ export function DashboardBuilder({ initialDashboard, courseId, onSaved }: Dashbo
             onClick={handleSave}
             disabled={isPending || !name.trim()}
             className={cn(
-              'flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-semibold transition-all',
+              "flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-semibold transition-all",
               saved
-                ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400'
-                : 'bg-indigo-600 text-white hover:bg-indigo-700 disabled:opacity-50'
+                ? "bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400"
+                : "bg-indigo-600 text-white hover:bg-indigo-700 disabled:opacity-50",
             )}
           >
             {isPending ? (
@@ -142,7 +157,7 @@ export function DashboardBuilder({ initialDashboard, courseId, onSaved }: Dashbo
             ) : (
               <Save className="h-4 w-4" />
             )}
-            {saved ? 'Tersimpan!' : 'Simpan'}
+            {saved ? "Tersimpan!" : "Simpan"}
           </button>
         </div>
       </div>
@@ -169,11 +184,13 @@ export function DashboardBuilder({ initialDashboard, courseId, onSaved }: Dashbo
             className="flex flex-col items-center justify-center gap-3 rounded-2xl border-2 border-dashed border-slate-200 dark:border-slate-700 p-16 text-slate-400 cursor-pointer hover:border-indigo-300 hover:text-indigo-400 transition-colors"
             onClick={() => setShowPicker(true)}
             onKeyDown={(e) => {
-              if (e.key === 'Enter' || e.key === ' ') setShowPicker(true)
+              if (e.key === "Enter" || e.key === " ") setShowPicker(true);
             }}
           >
             <Plus className="h-10 w-10" />
-            <p className="text-sm font-medium">Klik untuk menambahkan widget pertama</p>
+            <p className="text-sm font-medium">
+              Klik untuk menambahkan widget pertama
+            </p>
           </div>
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -183,7 +200,7 @@ export function DashboardBuilder({ initialDashboard, courseId, onSaved }: Dashbo
                 initial={{ opacity: 0, scale: 0.95 }}
                 animate={{ opacity: 1, scale: 1 }}
                 className="relative rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 overflow-hidden"
-                style={{ minHeight: '200px' }}
+                style={{ minHeight: "200px" }}
               >
                 {/* Widget header */}
                 <div className="flex items-center justify-between px-3 py-2 border-b border-slate-100 dark:border-slate-800">
@@ -201,8 +218,12 @@ export function DashboardBuilder({ initialDashboard, courseId, onSaved }: Dashbo
                     <Trash2 className="h-3.5 w-3.5" />
                   </button>
                 </div>
-                <div className="p-3" style={{ height: '160px' }}>
-                  <WidgetRenderer widget={widget} courseId={courseId} className="h-full" />
+                <div className="p-3" style={{ height: "160px" }}>
+                  <WidgetRenderer
+                    widget={widget}
+                    courseId={courseId}
+                    className="h-full"
+                  />
                 </div>
               </motion.div>
             ))}
@@ -211,8 +232,11 @@ export function DashboardBuilder({ initialDashboard, courseId, onSaved }: Dashbo
       </div>
 
       {showPicker && (
-        <WidgetPicker onSelect={handleAddWidget} onClose={() => setShowPicker(false)} />
+        <WidgetPicker
+          onSelect={handleAddWidget}
+          onClose={() => setShowPicker(false)}
+        />
       )}
     </div>
-  )
+  );
 }

@@ -1,22 +1,22 @@
-import { MessageSquare, Send } from 'lucide-react'
+import { MessageSquare, Send } from "lucide-react";
 
-import { EmptyState } from '@/components/ui'
-import { cn } from '@/utils/cn'
+import { EmptyState } from "@/components/ui";
+import { cn } from "@/utils/cn";
 
 interface Comment {
-  id: string
-  text: string
-  author: string
-  time: string
+  id: string;
+  text: string;
+  author: string;
+  time: string;
 }
 
 interface PrivateCommentsPanelProps {
-  comments: Comment[]
-  newComment: string
-  role: string
-  assignmentId: string
-  onCommentChange: (text: string) => void
-  onAddComment: (assignmentId: string) => void
+  comments: Comment[];
+  newComment: string;
+  role: string;
+  assignmentId: string;
+  onCommentChange: (text: string) => void;
+  onAddComment: (assignmentId: string) => void;
 }
 
 export function PrivateCommentsPanel({
@@ -27,14 +27,16 @@ export function PrivateCommentsPanel({
   onCommentChange,
   onAddComment,
 }: PrivateCommentsPanelProps) {
-  const currentAuthor = role === 'teacher' ? 'Guru' : 'Anda'
+  const currentAuthor = role === "teacher" ? "Guru" : "Anda";
 
   return (
     <div className="flex flex-col h-full">
       <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-sm flex flex-col h-full overflow-hidden">
         <div className="p-4 border-b border-slate-100 dark:border-slate-800 bg-slate-50 dark:bg-slate-900/80 flex items-center gap-2">
           <MessageSquare className="w-5 h-5 text-slate-400 dark:text-slate-500" />
-          <h3 className="font-bold text-slate-800 dark:text-white">Komentar Pribadi</h3>
+          <h3 className="font-bold text-slate-800 dark:text-white">
+            Komentar Pribadi
+          </h3>
         </div>
 
         <div className="flex-1 p-4 overflow-y-auto space-y-4 min-h-[200px]">
@@ -42,16 +44,18 @@ export function PrivateCommentsPanel({
             <div
               key={comment.id}
               className={cn(
-                'flex flex-col max-w-[85%]',
-                comment.author === currentAuthor ? 'ml-auto items-end' : 'items-start'
+                "flex flex-col max-w-[85%]",
+                comment.author === currentAuthor
+                  ? "ml-auto items-end"
+                  : "items-start",
               )}
             >
               <div
                 className={cn(
-                  'p-3 rounded-2xl text-sm',
+                  "p-3 rounded-2xl text-sm",
                   comment.author === currentAuthor
-                    ? 'bg-blue-600 text-white rounded-tr-none'
-                    : 'bg-slate-100 dark:bg-slate-800 text-slate-800 dark:text-slate-200 rounded-tl-none'
+                    ? "bg-blue-600 text-white rounded-tr-none"
+                    : "bg-slate-100 dark:bg-slate-800 text-slate-800 dark:text-slate-200 rounded-tl-none",
                 )}
               >
                 {comment.text}
@@ -75,7 +79,7 @@ export function PrivateCommentsPanel({
               type="text"
               value={newComment}
               onChange={(e) => onCommentChange(e.target.value)}
-              onKeyDown={(e) => e.key === 'Enter' && onAddComment(assignmentId)}
+              onKeyDown={(e) => e.key === "Enter" && onAddComment(assignmentId)}
               placeholder="Tambahkan komentar..."
               className="w-full pl-4 pr-10 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm dark:text-white"
             />
@@ -90,5 +94,5 @@ export function PrivateCommentsPanel({
         </div>
       </div>
     </div>
-  )
+  );
 }

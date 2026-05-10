@@ -8,143 +8,158 @@ import {
   Sparkles,
   Square,
   X,
-} from 'lucide-react'
-import { AnimatePresence, motion } from 'motion/react'
-import { useEffect, useRef, useState } from 'react'
+} from "lucide-react";
+import { AnimatePresence, motion } from "motion/react";
+import { useEffect, useRef, useState } from "react";
 
-import { cn } from '@/utils/cn'
+import { cn } from "@/utils/cn";
 
-import { useGenerateFromLesson } from '../queries/aiAuthoringQueries'
-import type { AIGeneratedContent, AIQuizQuestion, GenerateFromLessonConfig } from '../types'
-import { QUESTION_TYPE_COLORS, QUESTION_TYPE_LABELS } from '../types'
-import { HistoryPanel } from './HistoryPanel'
+import { useGenerateFromLesson } from "../queries/aiAuthoringQueries";
+import type {
+  AIGeneratedContent,
+  AIQuizQuestion,
+  GenerateFromLessonConfig,
+} from "../types";
+import { QUESTION_TYPE_COLORS, QUESTION_TYPE_LABELS } from "../types";
+import { HistoryPanel } from "./HistoryPanel";
 
 interface AIQuizGeneratorPanelProps {
-  lessonId: string
-  onInsertQuestions: (questions: AIQuizQuestion[]) => void
-  onClose: () => void
+  lessonId: string;
+  onInsertQuestions: (questions: AIQuizQuestion[]) => void;
+  onClose: () => void;
 }
 
-type QuestionType = 'MCQ' | 'TRUE_FALSE' | 'MULTIPLE_SELECT' | 'SHORT_ANSWER'
+type QuestionType = "MCQ" | "TRUE_FALSE" | "MULTIPLE_SELECT" | "SHORT_ANSWER";
 
-const QUIZ_QUESTION_TYPES: QuestionType[] = ['MCQ', 'TRUE_FALSE', 'MULTIPLE_SELECT', 'SHORT_ANSWER']
+const QUIZ_QUESTION_TYPES: QuestionType[] = [
+  "MCQ",
+  "TRUE_FALSE",
+  "MULTIPLE_SELECT",
+  "SHORT_ANSWER",
+];
 
 export function AIQuizGeneratorPanel({
   lessonId,
   onInsertQuestions,
   onClose,
 }: AIQuizGeneratorPanelProps) {
-  const mutation = useGenerateFromLesson()
+  const mutation = useGenerateFromLesson();
 
   // Config state
-  const [questionCount, setQuestionCount] = useState(5)
-  const [selectedTypes, setSelectedTypes] = useState<QuestionType[]>(['MCQ'])
-  const [difficulty, setDifficulty] = useState<'easy' | 'medium' | 'hard'>('medium')
+  const [questionCount, setQuestionCount] = useState(5);
+  const [selectedTypes, setSelectedTypes] = useState<QuestionType[]>(["MCQ"]);
+  const [difficulty, setDifficulty] = useState<"easy" | "medium" | "hard">(
+    "medium",
+  );
 
   // Curriculum alignment (optional, collapsible)
-  const [curriculumOpen, setCurriculumOpen] = useState(false)
-  const [subject, setSubject] = useState('')
-  const [gradeLevel, setGradeLevel] = useState('')
-  const [curriculumRef, setCurriculumRef] = useState('')
+  const [curriculumOpen, setCurriculumOpen] = useState(false);
+  const [subject, setSubject] = useState("");
+  const [gradeLevel, setGradeLevel] = useState("");
+  const [curriculumRef, setCurriculumRef] = useState("");
 
   // History panel
-  const [historyOpen, setHistoryOpen] = useState(false)
+  const [historyOpen, setHistoryOpen] = useState(false);
 
   // Selection state for generated questions
-  const [selectedIndices, setSelectedIndices] = useState<Set<number>>(new Set())
+  const [selectedIndices, setSelectedIndices] = useState<Set<number>>(
+    new Set(),
+  );
 
   // Keep a local result so we can merge history loads
   const [localResult, setLocalResult] = useState<{
-    generation_id: string | null
-    questions: AIQuizQuestion[]
-    lesson_title: string
-  } | null>(null)
+    generation_id: string | null;
+    questions: AIQuizQuestion[];
+    lesson_title: string;
+  } | null>(null);
 
   // Sync mutation.data → localResult
   useEffect(() => {
     if (mutation.data) {
-      setLocalResult(mutation.data)
+      setLocalResult(mutation.data);
     }
-  }, [mutation.data])
+  }, [mutation.data]);
 
   // Auto-select all when a result arrives for the first time
-  const prevResultRef = useRef<typeof localResult>(null)
+  const prevResultRef = useRef<typeof localResult>(null);
   useEffect(() => {
     if (localResult && localResult !== prevResultRef.current) {
-      prevResultRef.current = localResult
-      setSelectedIndices(new Set(localResult.questions.map((_, i) => i)))
+      prevResultRef.current = localResult;
+      setSelectedIndices(new Set(localResult.questions.map((_, i) => i)));
     }
-  }, [localResult])
+  }, [localResult]);
 
   const toggleType = (type: QuestionType) => {
     setSelectedTypes((prev) =>
-      prev.includes(type) ? prev.filter((t) => t !== type) : [...prev, type]
-    )
-  }
+      prev.includes(type) ? prev.filter((t) => t !== type) : [...prev, type],
+    );
+  };
 
   const handleGenerate = () => {
-    if (selectedTypes.length === 0) return
+    if (selectedTypes.length === 0) return;
     const config: GenerateFromLessonConfig = {
       lessonId,
       questionCount,
       questionTypes: selectedTypes,
       difficulty,
-    }
-    if (subject.trim()) config.subject = subject.trim()
-    if (gradeLevel.trim()) config.gradeLevel = gradeLevel.trim()
-    if (curriculumRef.trim()) config.curriculumRef = curriculumRef.trim()
+    };
+    if (subject.trim()) config.subject = subject.trim();
+    if (gradeLevel.trim()) config.gradeLevel = gradeLevel.trim();
+    if (curriculumRef.trim()) config.curriculumRef = curriculumRef.trim();
 
-    setLocalResult(null)
-    setSelectedIndices(new Set())
-    mutation.mutate(config)
-  }
+    setLocalResult(null);
+    setSelectedIndices(new Set());
+    mutation.mutate(config);
+  };
 
   const toggleQuestion = (idx: number) => {
     setSelectedIndices((prev) => {
-      const next = new Set(prev)
-      if (next.has(idx)) next.delete(idx)
-      else next.add(idx)
-      return next
-    })
-  }
+      const next = new Set(prev);
+      if (next.has(idx)) next.delete(idx);
+      else next.add(idx);
+      return next;
+    });
+  };
 
   const toggleAll = () => {
-    if (!localResult) return
+    if (!localResult) return;
     if (selectedIndices.size === localResult.questions.length) {
-      setSelectedIndices(new Set())
+      setSelectedIndices(new Set());
     } else {
-      setSelectedIndices(new Set(localResult.questions.map((_, i) => i)))
+      setSelectedIndices(new Set(localResult.questions.map((_, i) => i)));
     }
-  }
+  };
 
   const handleInsert = () => {
-    if (!localResult) return
-    const chosen = localResult.questions.filter((_, i) => selectedIndices.has(i))
-    if (chosen.length === 0) return
-    onInsertQuestions(chosen)
-  }
+    if (!localResult) return;
+    const chosen = localResult.questions.filter((_, i) =>
+      selectedIndices.has(i),
+    );
+    if (chosen.length === 0) return;
+    onInsertQuestions(chosen);
+  };
 
   const handleLoadFromHistory = (content: AIGeneratedContent) => {
     // Filter to only quiz questions from history
     const quizQuestions = content.questions.filter(
-      (q): q is AIQuizQuestion => q.question_type !== 'OPEN'
-    )
+      (q): q is AIQuizQuestion => q.question_type !== "OPEN",
+    );
     setLocalResult({
       generation_id: content.id,
       questions: quizQuestions,
       lesson_title: content.file_name,
-    })
-    setHistoryOpen(false)
-  }
+    });
+    setHistoryOpen(false);
+  };
 
   const handleReset = () => {
-    mutation.reset()
-    setLocalResult(null)
-    setSelectedIndices(new Set())
-  }
+    mutation.reset();
+    setLocalResult(null);
+    setSelectedIndices(new Set());
+  };
 
-  const isGenerating = mutation.isPending
-  const errorMessage = mutation.error?.message ?? null
+  const isGenerating = mutation.isPending;
+  const errorMessage = mutation.error?.message ?? null;
 
   return (
     <>
@@ -152,12 +167,12 @@ export function AIQuizGeneratorPanel({
         initial={{ opacity: 0, x: 40 }}
         animate={{ opacity: 1, x: 0 }}
         exit={{ opacity: 0, x: 40 }}
-        transition={{ type: 'spring', stiffness: 300, damping: 30 }}
+        transition={{ type: "spring", stiffness: 300, damping: 30 }}
         className={cn(
-          'fixed right-0 top-0 h-full w-full max-w-lg z-50',
-          'bg-white dark:bg-slate-900',
-          'border-l border-slate-200 dark:border-slate-700',
-          'shadow-2xl flex flex-col overflow-hidden'
+          "fixed right-0 top-0 h-full w-full max-w-lg z-50",
+          "bg-white dark:bg-slate-900",
+          "border-l border-slate-200 dark:border-slate-700",
+          "shadow-2xl flex flex-col overflow-hidden",
         )}
         role="dialog"
         aria-modal="true"
@@ -236,11 +251,11 @@ export function AIQuizGeneratorPanel({
                     onClick={() => toggleType(type)}
                     disabled={isGenerating}
                     className={cn(
-                      'px-3 py-1.5 rounded-lg text-xs font-bold transition-all border',
+                      "px-3 py-1.5 rounded-lg text-xs font-bold transition-all border",
                       selectedTypes.includes(type)
-                        ? 'bg-violet-600 text-white border-violet-600 dark:bg-violet-500 dark:border-violet-500'
-                        : 'bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-400 border-slate-200 dark:border-slate-700 hover:border-violet-300 dark:hover:border-violet-700',
-                      'disabled:opacity-50 disabled:cursor-not-allowed'
+                        ? "bg-violet-600 text-white border-violet-600 dark:bg-violet-500 dark:border-violet-500"
+                        : "bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-400 border-slate-200 dark:border-slate-700 hover:border-violet-300 dark:hover:border-violet-700",
+                      "disabled:opacity-50 disabled:cursor-not-allowed",
                     )}
                   >
                     {QUESTION_TYPE_LABELS[type]}
@@ -262,9 +277,9 @@ export function AIQuizGeneratorPanel({
               <div className="flex gap-2">
                 {(
                   [
-                    { value: 'easy', label: 'Mudah', color: 'emerald' },
-                    { value: 'medium', label: 'Sedang', color: 'amber' },
-                    { value: 'hard', label: 'Sulit', color: 'rose' },
+                    { value: "easy", label: "Mudah", color: "emerald" },
+                    { value: "medium", label: "Sedang", color: "amber" },
+                    { value: "hard", label: "Sulit", color: "rose" },
                   ] as const
                 ).map(({ value, label, color }) => (
                   <button
@@ -273,15 +288,15 @@ export function AIQuizGeneratorPanel({
                     onClick={() => setDifficulty(value)}
                     disabled={isGenerating}
                     className={cn(
-                      'flex-1 py-2 rounded-xl text-xs font-black transition-all border',
+                      "flex-1 py-2 rounded-xl text-xs font-black transition-all border",
                       difficulty === value
-                        ? color === 'emerald'
-                          ? 'bg-emerald-500 text-white border-emerald-500'
-                          : color === 'amber'
-                            ? 'bg-amber-500 text-white border-amber-500'
-                            : 'bg-rose-500 text-white border-rose-500'
-                        : 'bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-400 border-slate-200 dark:border-slate-700 hover:border-slate-300 dark:hover:border-slate-600',
-                      'disabled:opacity-50 disabled:cursor-not-allowed'
+                        ? color === "emerald"
+                          ? "bg-emerald-500 text-white border-emerald-500"
+                          : color === "amber"
+                            ? "bg-amber-500 text-white border-amber-500"
+                            : "bg-rose-500 text-white border-rose-500"
+                        : "bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-400 border-slate-200 dark:border-slate-700 hover:border-slate-300 dark:hover:border-slate-600",
+                      "disabled:opacity-50 disabled:cursor-not-allowed",
                     )}
                   >
                     {label}
@@ -309,7 +324,7 @@ export function AIQuizGeneratorPanel({
                 {curriculumOpen && (
                   <motion.div
                     initial={{ height: 0, opacity: 0 }}
-                    animate={{ height: 'auto', opacity: 1 }}
+                    animate={{ height: "auto", opacity: 1 }}
                     exit={{ height: 0, opacity: 0 }}
                     transition={{ duration: 0.2 }}
                     className="overflow-hidden"
@@ -379,11 +394,11 @@ export function AIQuizGeneratorPanel({
             onClick={handleGenerate}
             disabled={isGenerating || selectedTypes.length === 0}
             className={cn(
-              'w-full flex items-center justify-center gap-2 py-3.5 rounded-2xl font-black text-sm transition-all',
-              'bg-gradient-to-r from-violet-600 to-indigo-600 text-white',
-              'hover:from-violet-700 hover:to-indigo-700 shadow-lg shadow-violet-200 dark:shadow-violet-900/30',
-              'disabled:opacity-50 disabled:cursor-not-allowed disabled:shadow-none',
-              'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-500 focus-visible:ring-offset-2'
+              "w-full flex items-center justify-center gap-2 py-3.5 rounded-2xl font-black text-sm transition-all",
+              "bg-gradient-to-r from-violet-600 to-indigo-600 text-white",
+              "hover:from-violet-700 hover:to-indigo-700 shadow-lg shadow-violet-200 dark:shadow-violet-900/30",
+              "disabled:opacity-50 disabled:cursor-not-allowed disabled:shadow-none",
+              "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-500 focus-visible:ring-offset-2",
             )}
           >
             {isGenerating ? (
@@ -427,7 +442,9 @@ export function AIQuizGeneratorPanel({
                   <p className="text-sm font-bold text-red-700 dark:text-red-300">
                     Gagal membuat soal
                   </p>
-                  <p className="text-xs text-red-600 dark:text-red-400 mt-0.5">{errorMessage}</p>
+                  <p className="text-xs text-red-600 dark:text-red-400 mt-0.5">
+                    {errorMessage}
+                  </p>
                 </div>
                 <button
                   onClick={handleReset}
@@ -467,8 +484,8 @@ export function AIQuizGeneratorPanel({
                     className="text-xs text-violet-600 dark:text-violet-400 hover:underline font-bold"
                   >
                     {selectedIndices.size === localResult.questions.length
-                      ? 'Batal semua'
-                      : 'Pilih semua'}
+                      ? "Batal semua"
+                      : "Pilih semua"}
                   </button>
                 </div>
 
@@ -481,10 +498,10 @@ export function AIQuizGeneratorPanel({
                       transition={{ delay: idx * 0.05 }}
                       onClick={() => toggleQuestion(idx)}
                       className={cn(
-                        'p-3.5 rounded-xl border cursor-pointer transition-all select-none',
+                        "p-3.5 rounded-xl border cursor-pointer transition-all select-none",
                         selectedIndices.has(idx)
-                          ? 'bg-violet-50 dark:bg-violet-900/20 border-violet-300 dark:border-violet-700'
-                          : 'bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 hover:border-slate-300 dark:hover:border-slate-600 opacity-60'
+                          ? "bg-violet-50 dark:bg-violet-900/20 border-violet-300 dark:border-violet-700"
+                          : "bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 hover:border-slate-300 dark:hover:border-slate-600 opacity-60",
                       )}
                     >
                       <div className="flex items-start gap-2.5">
@@ -499,12 +516,13 @@ export function AIQuizGeneratorPanel({
                           <div className="flex items-center gap-2 mb-1 flex-wrap">
                             <span
                               className={cn(
-                                'text-[10px] font-black uppercase tracking-wide px-2 py-0.5 rounded-full',
+                                "text-[10px] font-black uppercase tracking-wide px-2 py-0.5 rounded-full",
                                 QUESTION_TYPE_COLORS[q.question_type] ??
-                                  'bg-slate-100 text-slate-600 dark:bg-slate-700 dark:text-slate-300'
+                                  "bg-slate-100 text-slate-600 dark:bg-slate-700 dark:text-slate-300",
                               )}
                             >
-                              {QUESTION_TYPE_LABELS[q.question_type] ?? q.question_type}
+                              {QUESTION_TYPE_LABELS[q.question_type] ??
+                                q.question_type}
                             </span>
                             {q.points !== undefined && (
                               <span className="text-[10px] text-slate-400 dark:text-slate-500 font-bold">
@@ -521,13 +539,13 @@ export function AIQuizGeneratorPanel({
                                 <li
                                   key={oi}
                                   className={cn(
-                                    'text-xs pl-2',
+                                    "text-xs pl-2",
                                     opt.is_correct
-                                      ? 'text-emerald-600 dark:text-emerald-400 font-bold'
-                                      : 'text-slate-500 dark:text-slate-400'
+                                      ? "text-emerald-600 dark:text-emerald-400 font-bold"
+                                      : "text-slate-500 dark:text-slate-400",
                                   )}
                                 >
-                                  {opt.is_correct ? '✓ ' : '○ '}
+                                  {opt.is_correct ? "✓ " : "○ "}
                                   {opt.text}
                                 </li>
                               ))}
@@ -562,13 +580,15 @@ export function AIQuizGeneratorPanel({
                 onClick={handleInsert}
                 disabled={selectedIndices.size === 0}
                 className={cn(
-                  'w-full flex items-center justify-center gap-2 py-3 rounded-2xl font-black text-sm transition-all',
-                  'bg-emerald-600 hover:bg-emerald-700 text-white shadow-md shadow-emerald-200 dark:shadow-emerald-900/30',
-                  'disabled:opacity-40 disabled:cursor-not-allowed disabled:shadow-none',
-                  'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500'
+                  "w-full flex items-center justify-center gap-2 py-3 rounded-2xl font-black text-sm transition-all",
+                  "bg-emerald-600 hover:bg-emerald-700 text-white shadow-md shadow-emerald-200 dark:shadow-emerald-900/30",
+                  "disabled:opacity-40 disabled:cursor-not-allowed disabled:shadow-none",
+                  "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500",
                 )}
               >
-                Gunakan{selectedIndices.size > 0 ? ` ${selectedIndices.size} ` : ' '}Soal Terpilih
+                Gunakan
+                {selectedIndices.size > 0 ? ` ${selectedIndices.size} ` : " "}
+                Soal Terpilih
               </button>
             </motion.div>
           )}
@@ -582,5 +602,5 @@ export function AIQuizGeneratorPanel({
         onLoad={handleLoadFromHistory}
       />
     </>
-  )
+  );
 }

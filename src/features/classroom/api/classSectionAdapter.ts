@@ -10,23 +10,23 @@
  * disable rombel-preference for the rollout safety period.
  */
 
-import { db } from '@/services/db'
-import { logger } from '@/utils/logger'
+import { db } from "@/services/db";
+import { logger } from "@/utils/logger";
 
 export interface ClassSection {
-  id: string
+  id: string;
   /** Source table this row came from. Useful for telemetry / progressive cutover. */
-  source: 'rombel' | 'classes'
-  name: string
-  code: string | null
-  wali_kelas_id: string | null
-  student_count: number | null
+  source: "rombel" | "classes";
+  name: string;
+  code: string | null;
+  wali_kelas_id: string | null;
+  student_count: number | null;
 }
 
 export interface ClassSectionStudent {
-  student_id: string
-  full_name: string
-  email: string | null
+  student_id: string;
+  full_name: string;
+  email: string | null;
 }
 
 /**
@@ -34,9 +34,9 @@ export interface ClassSectionStudent {
  * lazily so tests can stub it. Defaults to true.
  */
 export function isRombelAdapterEnabled(): boolean {
-  const env = (import.meta as { env?: Record<string, unknown> }).env ?? {}
-  const raw = (env.VITE_USE_ROMBEL_ADAPTER as string | undefined) ?? 'true'
-  return raw !== 'false' && raw !== '0'
+  const env = (import.meta as { env?: Record<string, unknown> }).env ?? {};
+  const raw = (env.VITE_USE_ROMBEL_ADAPTER as string | undefined) ?? "true";
+  return raw !== "false" && raw !== "0";
 }
 
 /**
@@ -51,76 +51,76 @@ export function isRombelAdapterEnabled(): boolean {
  */
 export async function listClassSections(): Promise<ClassSection[]> {
   if (!isRombelAdapterEnabled()) {
-    return listClassSectionsLegacy()
+    return listClassSectionsLegacy();
   }
 
-  const out: ClassSection[] = []
+  const out: ClassSection[] = [];
 
   try {
     const { data, error } = await db
-      .from('rombel')
-      .select('id, name, code, wali_kelas_id, status')
-      .eq('status', 'active')
-      .order('code', { ascending: true })
+      .from("rombel")
+      .select("id, name, code, wali_kelas_id, status")
+      .eq("status", "active")
+      .order("code", { ascending: true });
 
-    if (error) throw error
+    if (error) throw error;
     for (const row of (data ?? []) as Record<string, unknown>[]) {
       out.push({
         id: row.id as string,
-        source: 'rombel',
-        name: (row.name as string) ?? '',
+        source: "rombel",
+        name: (row.name as string) ?? "",
         code: (row.code as string | null) ?? null,
         wali_kelas_id: (row.wali_kelas_id as string | null) ?? null,
         student_count: null,
-      })
+      });
     }
   } catch (err) {
-    logger.warn('[ClassSectionAdapter] rombel fetch failed; falling back', err)
+    logger.warn("[ClassSectionAdapter] rombel fetch failed; falling back", err);
   }
 
   try {
     const { data, error } = await db
-      .from('classes')
-      .select('id, name, teacher_id, rombel_id')
-      .is('rombel_id', null)
-      .order('name', { ascending: true })
+      .from("classes")
+      .select("id, name, teacher_id, rombel_id")
+      .is("rombel_id", null)
+      .order("name", { ascending: true });
 
-    if (error) throw error
+    if (error) throw error;
     for (const row of (data ?? []) as Record<string, unknown>[]) {
       out.push({
         id: row.id as string,
-        source: 'classes',
-        name: (row.name as string) ?? '',
+        source: "classes",
+        name: (row.name as string) ?? "",
         code: null,
         wali_kelas_id: (row.teacher_id as string | null) ?? null,
         student_count: null,
-      })
+      });
     }
   } catch (err) {
-    logger.warn('[ClassSectionAdapter] classes fallback failed', err)
+    logger.warn("[ClassSectionAdapter] classes fallback failed", err);
   }
 
-  return out
+  return out;
 }
 
 async function listClassSectionsLegacy(): Promise<ClassSection[]> {
   try {
     const { data, error } = await db
-      .from('classes')
-      .select('id, name, teacher_id')
-      .order('name', { ascending: true })
-    if (error) throw error
+      .from("classes")
+      .select("id, name, teacher_id")
+      .order("name", { ascending: true });
+    if (error) throw error;
     return ((data ?? []) as Record<string, unknown>[]).map((row) => ({
       id: row.id as string,
-      source: 'classes' as const,
-      name: (row.name as string) ?? '',
+      source: "classes" as const,
+      name: (row.name as string) ?? "",
       code: null,
       wali_kelas_id: (row.teacher_id as string | null) ?? null,
       student_count: null,
-    }))
+    }));
   } catch (err) {
-    logger.warn('[ClassSectionAdapter:legacy] classes fetch failed', err)
-    return []
+    logger.warn("[ClassSectionAdapter:legacy] classes fetch failed", err);
+    return [];
   }
 }
 
@@ -134,59 +134,61 @@ async function listClassSectionsLegacy(): Promise<ClassSection[]> {
  * best-effort).
  */
 export async function getClassSectionStudents(
-  section: Pick<ClassSection, 'id' | 'source'>,
+  section: Pick<ClassSection, "id" | "source">,
   tenantId?: string,
 ): Promise<ClassSectionStudent[]> {
-  const memberIds: string[] = []
+  const memberIds: string[] = [];
 
-  if (section.source === 'rombel') {
+  if (section.source === "rombel") {
     const { data, error } = await db
-      .from('rombel_members')
-      .select('student_id, left_at')
-      .eq('rombel_id', section.id)
-      .is('left_at', null)
-    if (error) throw error
+      .from("rombel_members")
+      .select("student_id, left_at")
+      .eq("rombel_id", section.id)
+      .is("left_at", null);
+    if (error) throw error;
     for (const r of (data ?? []) as Array<{ student_id: string }>) {
-      if (r.student_id) memberIds.push(r.student_id)
+      if (r.student_id) memberIds.push(r.student_id);
     }
   } else {
     let q = db
-      .from('enrollments')
-      .select('student_id')
-      .eq('class_id', section.id)
-      .eq('status', 'ACTIVE')
+      .from("enrollments")
+      .select("student_id")
+      .eq("class_id", section.id)
+      .eq("status", "ACTIVE");
     if (tenantId) {
       // Defense-in-depth tenant scoping when caller provides tenantId
       // (preserves attendanceService.fetchClassStudents original guarantee).
-      q = q.eq('tenant_id', tenantId)
+      q = q.eq("tenant_id", tenantId);
     }
-    const { data, error } = await q
-    if (error) throw error
+    const { data, error } = await q;
+    if (error) throw error;
     for (const r of (data ?? []) as Array<{ student_id: string }>) {
-      if (r.student_id) memberIds.push(r.student_id)
+      if (r.student_id) memberIds.push(r.student_id);
     }
   }
 
-  if (memberIds.length === 0) return []
+  if (memberIds.length === 0) return [];
 
   const { data: profiles, error } = await db
-    .from('profiles')
-    .select('id, full_name, email')
-    .in('id', memberIds)
-  if (error) throw error
+    .from("profiles")
+    .select("id, full_name, email")
+    .in("id", memberIds);
+  if (error) throw error;
 
-  const out: ClassSectionStudent[] = ((profiles ?? []) as Array<{
-    id: string
-    full_name: string | null
-    email: string | null
-  }>).map((p) => ({
+  const out: ClassSectionStudent[] = (
+    (profiles ?? []) as Array<{
+      id: string;
+      full_name: string | null;
+      email: string | null;
+    }>
+  ).map((p) => ({
     student_id: p.id,
-    full_name: p.full_name ?? 'Siswa',
+    full_name: p.full_name ?? "Siswa",
     email: p.email,
-  }))
+  }));
 
-  out.sort((a, b) => a.full_name.localeCompare(b.full_name))
-  return out
+  out.sort((a, b) => a.full_name.localeCompare(b.full_name));
+  return out;
 }
 
 /**
@@ -211,28 +213,28 @@ export async function getClassSectionStudentsByEntityId(
   entityId: string,
   tenantId: string,
 ): Promise<ClassSectionStudent[]> {
-  let source: 'rombel' | 'classes' = 'classes'
+  let source: "rombel" | "classes" = "classes";
 
   if (isRombelAdapterEnabled()) {
     try {
       const { data, error } = await db
-        .from('rombel')
-        .select('id')
-        .eq('id', entityId)
-        .eq('tenant_id', tenantId)
-        .limit(1)
+        .from("rombel")
+        .select("id")
+        .eq("id", entityId)
+        .eq("tenant_id", tenantId)
+        .limit(1);
       if (!error && Array.isArray(data) && data.length > 0) {
-        source = 'rombel'
+        source = "rombel";
       }
     } catch (err) {
       logger.warn(
-        '[ClassSectionAdapter] rombel lookup failed; defaulting to classes source',
+        "[ClassSectionAdapter] rombel lookup failed; defaulting to classes source",
         err,
-      )
+      );
     }
   }
 
-  return getClassSectionStudents({ id: entityId, source }, tenantId)
+  return getClassSectionStudents({ id: entityId, source }, tenantId);
 }
 
 /**
@@ -248,9 +250,7 @@ export async function getClassSectionStudentsByEntityId(
  * }
  */
 export function assertSourceExhaustive(value: never): never {
-	throw new Error(
-		`Unhandled ClassSection.source variant: ${String(value)}`,
-	);
+  throw new Error(`Unhandled ClassSection.source variant: ${String(value)}`);
 }
 
 // ---------------------------------------------------------------------------
@@ -258,10 +258,10 @@ export function assertSourceExhaustive(value: never): never {
 // ---------------------------------------------------------------------------
 
 export interface StudentClassSection {
-  enrollmentId: string
-  classId: string
-  className: string
-  source: "rombel" | "classes"
+  enrollmentId: string;
+  classId: string;
+  className: string;
+  source: "rombel" | "classes";
 }
 
 /**
@@ -282,7 +282,7 @@ export async function getStudentClassSections(
   studentId: string,
   tenantId: string,
 ): Promise<StudentClassSection[]> {
-  const out: StudentClassSection[] = []
+  const out: StudentClassSection[] = [];
 
   if (isRombelAdapterEnabled()) {
     try {
@@ -291,26 +291,26 @@ export async function getStudentClassSections(
         .select("id, rombel_id")
         .eq("student_id", studentId)
         .eq("tenant_id", tenantId)
-        .is("left_at", null)
-      if (error) throw error
-      const rows = (members ?? []) as Array<{ id: string; rombel_id: string }>
+        .is("left_at", null);
+      if (error) throw error;
+      const rows = (members ?? []) as Array<{ id: string; rombel_id: string }>;
       const rombelIds = Array.from(
         new Set(rows.map((r) => r.rombel_id).filter(Boolean)),
-      )
+      );
       if (rombelIds.length > 0) {
         const { data: rombelRows, error: rombelErr } = await db
           .from("rombel")
           .select("id, name, code")
           .eq("tenant_id", tenantId)
-          .in("id", rombelIds)
-        if (rombelErr) throw rombelErr
-        const nameById = new Map<string, string>()
+          .in("id", rombelIds);
+        if (rombelErr) throw rombelErr;
+        const nameById = new Map<string, string>();
         for (const r of (rombelRows ?? []) as Array<{
-          id: string
-          name: string | null
-          code: string | null
+          id: string;
+          name: string | null;
+          code: string | null;
         }>) {
-          nameById.set(r.id, r.name || r.code || "Rombel")
+          nameById.set(r.id, r.name || r.code || "Rombel");
         }
         for (const r of rows) {
           out.push({
@@ -318,14 +318,14 @@ export async function getStudentClassSections(
             classId: r.rombel_id,
             className: nameById.get(r.rombel_id) ?? "Rombel",
             source: "rombel",
-          })
+          });
         }
       }
     } catch (err) {
       logger.warn(
         "[ClassSectionAdapter] rombel student-sections fetch failed; falling back to enrollments",
         err,
-      )
+      );
     }
   }
 
@@ -335,28 +335,28 @@ export async function getStudentClassSections(
       .select("id, class_id")
       .eq("student_id", studentId)
       .eq("tenant_id", tenantId)
-      .eq("status", "ACTIVE")
-    if (error) throw error
+      .eq("status", "ACTIVE");
+    if (error) throw error;
     const rows = (enrollmentsRaw ?? []) as Array<{
-      id: string
-      class_id: string
-    }>
+      id: string;
+      class_id: string;
+    }>;
     const classIds = Array.from(
       new Set(rows.map((r) => r.class_id).filter(Boolean)),
-    )
+    );
     if (classIds.length > 0) {
       const { data: classesRaw, error: classesErr } = await db
         .from("classes")
         .select("id, name")
         .eq("tenant_id", tenantId)
-        .in("id", classIds)
-      if (classesErr) throw classesErr
-      const nameById = new Map<string, string>()
+        .in("id", classIds);
+      if (classesErr) throw classesErr;
+      const nameById = new Map<string, string>();
       for (const c of (classesRaw ?? []) as Array<{
-        id: string
-        name: string | null
+        id: string;
+        name: string | null;
       }>) {
-        nameById.set(c.id, c.name ?? "")
+        nameById.set(c.id, c.name ?? "");
       }
       for (const r of rows) {
         out.push({
@@ -364,17 +364,17 @@ export async function getStudentClassSections(
           classId: r.class_id,
           className: nameById.get(r.class_id) ?? "Kelas",
           source: "classes",
-        })
+        });
       }
     }
   } catch (err) {
     logger.warn(
       "[ClassSectionAdapter] enrollments student-sections fetch failed",
       err,
-    )
+    );
   }
 
-  return out
+  return out;
 }
 
 /**
@@ -383,11 +383,11 @@ export async function getStudentClassSections(
  * legacy and FE config use "alpha" -- we standardize on "alpha".
  */
 export interface StudentAttendanceRecord {
-  id: string
-  date: string
-  status: "hadir" | "sakit" | "izin" | "alpha"
-  className: string
-  source: "rombel" | "classes"
+  id: string;
+  date: string;
+  status: "hadir" | "sakit" | "izin" | "alpha";
+  className: string;
+  source: "rombel" | "classes";
 }
 
 const STUDENT_ATTENDANCE_STATUS_ALIASES: Record<
@@ -399,13 +399,13 @@ const STUDENT_ATTENDANCE_STATUS_ALIASES: Record<
   izin: "izin",
   alpa: "alpha",
   alpha: "alpha",
-}
+};
 
 function normalizeStudentAttendanceStatus(
   raw: string | null | undefined,
 ): StudentAttendanceRecord["status"] | null {
-  if (!raw) return null
-  return STUDENT_ATTENDANCE_STATUS_ALIASES[raw.toLowerCase()] ?? null
+  if (!raw) return null;
+  return STUDENT_ATTENDANCE_STATUS_ALIASES[raw.toLowerCase()] ?? null;
 }
 
 /**
@@ -422,18 +422,18 @@ export async function getStudentAttendance(
   tenantId: string,
   limit = 60,
 ): Promise<StudentAttendanceRecord[]> {
-  const out: StudentAttendanceRecord[] = []
+  const out: StudentAttendanceRecord[] = [];
 
-  const sections = await getStudentClassSections(studentId, tenantId)
-  const rombelNameById = new Map<string, string>()
-  const enrollmentIdToClassName = new Map<string, string>()
-  const enrollmentIds: string[] = []
+  const sections = await getStudentClassSections(studentId, tenantId);
+  const rombelNameById = new Map<string, string>();
+  const enrollmentIdToClassName = new Map<string, string>();
+  const enrollmentIds: string[] = [];
   for (const s of sections) {
     if (s.source === "rombel") {
-      rombelNameById.set(s.classId, s.className)
+      rombelNameById.set(s.classId, s.className);
     } else {
-      enrollmentIdToClassName.set(s.enrollmentId, s.className)
-      enrollmentIds.push(s.enrollmentId)
+      enrollmentIdToClassName.set(s.enrollmentId, s.className);
+      enrollmentIds.push(s.enrollmentId);
     }
   }
 
@@ -445,26 +445,26 @@ export async function getStudentAttendance(
         .eq("student_id", studentId)
         .eq("tenant_id", tenantId)
         .order("attendance_date", { ascending: false })
-        .limit(limit)
-      if (error) throw error
+        .limit(limit);
+      if (error) throw error;
       for (const r of (data ?? []) as Array<{
-        id: string
-        attendance_date: string
-        status: string
-        rombel_id: string
+        id: string;
+        attendance_date: string;
+        status: string;
+        rombel_id: string;
       }>) {
-        const status = normalizeStudentAttendanceStatus(r.status)
-        if (!status) continue
+        const status = normalizeStudentAttendanceStatus(r.status);
+        if (!status) continue;
         out.push({
           id: r.id,
           date: r.attendance_date,
           status,
           className: rombelNameById.get(r.rombel_id) ?? "Rombel",
           source: "rombel",
-        })
+        });
       }
     } catch (err) {
-      logger.warn("[ClassSectionAdapter] rombel_attendance fetch failed", err)
+      logger.warn("[ClassSectionAdapter] rombel_attendance fetch failed", err);
     }
   }
 
@@ -476,29 +476,29 @@ export async function getStudentAttendance(
         .eq("tenant_id", tenantId)
         .in("enrollment_id", enrollmentIds)
         .order("date", { ascending: false })
-        .limit(limit)
-      if (error) throw error
+        .limit(limit);
+      if (error) throw error;
       for (const r of (data ?? []) as Array<{
-        id: string
-        date: string
-        status: string
-        enrollment_id: string
+        id: string;
+        date: string;
+        status: string;
+        enrollment_id: string;
       }>) {
-        const status = normalizeStudentAttendanceStatus(r.status)
-        if (!status) continue
+        const status = normalizeStudentAttendanceStatus(r.status);
+        if (!status) continue;
         out.push({
           id: r.id,
           date: r.date,
           status,
           className: enrollmentIdToClassName.get(r.enrollment_id) ?? "Kelas",
           source: "classes",
-        })
+        });
       }
     } catch (err) {
-      logger.warn("[ClassSectionAdapter] attendance_records fetch failed", err)
+      logger.warn("[ClassSectionAdapter] attendance_records fetch failed", err);
     }
   }
 
-  out.sort((a, b) => (a.date < b.date ? 1 : a.date > b.date ? -1 : 0))
-  return out.slice(0, limit)
+  out.sort((a, b) => (a.date < b.date ? 1 : a.date > b.date ? -1 : 0));
+  return out.slice(0, limit);
 }

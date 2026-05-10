@@ -1,1 +1,1 @@
-export { QuestionCard } from '@/features/ai-authoring/components/QuestionCard'
+export { QuestionCard } from "@/features/ai-authoring/components/QuestionCard";

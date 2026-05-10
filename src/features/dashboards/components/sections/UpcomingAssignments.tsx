@@ -1,29 +1,32 @@
-import { AlertTriangle, ArrowRight } from 'lucide-react'
-import { Link, useNavigate } from 'react-router-dom'
+import { AlertTriangle, ArrowRight } from "lucide-react";
+import { Link, useNavigate } from "react-router-dom";
 
-import { Badge, Card, EmptyState, SkeletonCard } from '@/components/ui'
-import { cn } from '@/utils/cn'
-import { translateLessonType } from '@/utils/statusTranslations'
+import { Badge, Card, EmptyState, SkeletonCard } from "@/components/ui";
+import { cn } from "@/utils/cn";
+import { translateLessonType } from "@/utils/statusTranslations";
 
 interface Assignment {
-  id: string
-  title: string
-  type: string
-  status: string
-  dueDate: string
+  id: string;
+  title: string;
+  type: string;
+  status: string;
+  dueDate: string;
 }
 
 interface UpcomingAssignmentsProps {
-  assignments: Assignment[]
-  loading: boolean
+  assignments: Assignment[];
+  loading: boolean;
 }
 
-export function UpcomingAssignments({ assignments, loading }: UpcomingAssignmentsProps) {
-  const navigate = useNavigate()
+export function UpcomingAssignments({
+  assignments,
+  loading,
+}: UpcomingAssignmentsProps) {
+  const navigate = useNavigate();
 
   const pendingAssignments = assignments
-    .filter((a) => a.status === 'assigned' || a.status === 'late')
-    .slice(0, 3)
+    .filter((a) => a.status === "assigned" || a.status === "late")
+    .slice(0, 3);
 
   return (
     <Card>
@@ -52,19 +55,21 @@ export function UpcomingAssignments({ assignments, loading }: UpcomingAssignment
               role="button"
               tabIndex={0}
               className="flex items-center gap-4 p-4 rounded-2xl border border-slate-100 dark:border-slate-700 hover:border-slate-200 hover:bg-slate-50 dark:bg-slate-800 dark:hover:bg-slate-700/60 transition-colors group cursor-pointer"
-              onClick={() => navigate('/assignments')}
+              onClick={() => navigate("/assignments")}
               onKeyDown={(e) => {
-                if (e.key === 'Enter' || e.key === ' ') {
-                  e.preventDefault()
-                  void navigate('/assignments')
+                if (e.key === "Enter" || e.key === " ") {
+                  e.preventDefault();
+                  void navigate("/assignments");
                 }
               }}
               aria-label={`Tugas: ${task.title}`}
             >
               <div
                 className={cn(
-                  'w-3 h-3 rounded-full shrink-0',
-                  task.status === 'late' ? 'bg-red-500 animate-pulse' : 'bg-yellow-400'
+                  "w-3 h-3 rounded-full shrink-0",
+                  task.status === "late"
+                    ? "bg-red-500 animate-pulse"
+                    : "bg-yellow-400",
                 )}
               />
               <div className="flex-1">
@@ -77,17 +82,17 @@ export function UpcomingAssignments({ assignments, loading }: UpcomingAssignment
                   </Badge>
                   <span
                     className={cn(
-                      'text-xs font-bold',
-                      task.status === 'late'
-                        ? 'text-red-600 dark:text-red-400'
-                        : 'text-slate-500 dark:text-slate-400'
+                      "text-xs font-bold",
+                      task.status === "late"
+                        ? "text-red-600 dark:text-red-400"
+                        : "text-slate-500 dark:text-slate-400",
                     )}
                   >
-                    {new Date(task.dueDate).toLocaleString('id-ID', {
-                      day: 'numeric',
-                      month: 'short',
-                      hour: '2-digit',
-                      minute: '2-digit',
+                    {new Date(task.dueDate).toLocaleString("id-ID", {
+                      day: "numeric",
+                      month: "short",
+                      hour: "2-digit",
+                      minute: "2-digit",
                     })}
                   </span>
                 </div>
@@ -104,5 +109,5 @@ export function UpcomingAssignments({ assignments, loading }: UpcomingAssignment
         />
       )}
     </Card>
-  )
+  );
 }

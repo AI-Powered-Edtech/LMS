@@ -1,27 +1,30 @@
-import { RefreshCcw, WifiOff } from 'lucide-react'
-import { ReactNode, useEffect, useState } from 'react'
+import { RefreshCcw, WifiOff } from "lucide-react";
+import { ReactNode, useEffect, useState } from "react";
 
 interface LazyLoadTimeoutProps {
   /** Fallback shown while loading (before timeout) */
-  children: ReactNode
+  children: ReactNode;
   /** Timeout in ms before showing the error state (default: 15000) */
-  timeout?: number
+  timeout?: number;
 }
 
 /**
  * Wraps a Suspense fallback. If the lazy chunk hasn't loaded after `timeout` ms,
  * shows a friendly error with a retry button.
  */
-export function LazyLoadTimeout({ children, timeout = 15_000 }: LazyLoadTimeoutProps) {
-  const [timedOut, setTimedOut] = useState(false)
+export function LazyLoadTimeout({
+  children,
+  timeout = 15_000,
+}: LazyLoadTimeoutProps) {
+  const [timedOut, setTimedOut] = useState(false);
 
   useEffect(() => {
-    const timer = setTimeout(() => setTimedOut(true), timeout)
-    return () => clearTimeout(timer)
-  }, [timeout])
+    const timer = setTimeout(() => setTimedOut(true), timeout);
+    return () => clearTimeout(timer);
+  }, [timeout]);
 
   if (!timedOut) {
-    return <>{children}</>
+    return <>{children}</>;
   }
 
   return (
@@ -33,7 +36,8 @@ export function LazyLoadTimeout({ children, timeout = 15_000 }: LazyLoadTimeoutP
         Halaman terlalu lama dimuat
       </h2>
       <p className="text-slate-500 dark:text-slate-400 mb-6 max-w-sm">
-        Koneksi mungkin lambat atau terjadi masalah saat memuat halaman. Silakan coba muat ulang.
+        Koneksi mungkin lambat atau terjadi masalah saat memuat halaman. Silakan
+        coba muat ulang.
       </p>
       <button
         onClick={() => window.location.reload()}
@@ -43,5 +47,5 @@ export function LazyLoadTimeout({ children, timeout = 15_000 }: LazyLoadTimeoutP
         Muat Ulang Halaman
       </button>
     </div>
-  )
+  );
 }

@@ -1,15 +1,18 @@
-import { AlertTriangle, Loader2, Package, RefreshCw } from 'lucide-react'
-import { useCallback, useEffect, useRef, useState } from 'react'
+import { AlertTriangle, Loader2, Package, RefreshCw } from "lucide-react";
+import { useCallback, useEffect, useRef, useState } from "react";
 
-import { useAuth } from '@/contexts/AuthContext'
-import { lessonService, type UpsertScormRuntimeParams } from '@/features/lessons/api/lessonService'
-import { logger } from '@/utils/logger'
+import { useAuth } from "@/contexts/AuthContext";
+import {
+  lessonService,
+  type UpsertScormRuntimeParams,
+} from "@/features/lessons/api/lessonService";
+import { logger } from "@/utils/logger";
 
 import {
   createScormBridge,
   type ScormBridge,
   type ScormCommitPayload,
-} from '../utils/scormApiBridge'
+} from "../utils/scormApiBridge";
 
 // ==========================================================================
 // ScormPlayer — Renders SCORM 1.2/2004 content in a sandboxed iframe
@@ -21,45 +24,45 @@ import {
 // ==========================================================================
 
 interface ScormPlayerProps {
-  scormPackageId: string
-  lessonId: string
-  onCompletionMet: () => void
+  scormPackageId: string;
+  lessonId: string;
+  onCompletionMet: () => void;
 }
 
 interface ScormPackage {
-  id: string
-  tenant_id: string
-  lesson_id: string | null
-  title: string
-  scorm_version: '1.2' | '2004'
-  storage_path: string
-  entry_point: string
+  id: string;
+  tenant_id: string;
+  lesson_id: string | null;
+  title: string;
+  scorm_version: "1.2" | "2004";
+  storage_path: string;
+  entry_point: string;
 }
 
-type PlayerState = 'loading' | 'ready' | 'error'
+type PlayerState = "loading" | "ready" | "error";
 
 export function ScormPlayer({
   scormPackageId,
   lessonId: _lessonId,
   onCompletionMet,
 }: ScormPlayerProps) {
-  const { user, tenantId } = useAuth()
-  const [playerState, setPlayerState] = useState<PlayerState>('loading')
-  const [errorMessage, setErrorMessage] = useState<string>('')
-  const [packageInfo, setPackageInfo] = useState<ScormPackage | null>(null)
-  const [iframeUrl, setIframeUrl] = useState<string>('')
-  const [retryKey, setRetryKey] = useState(0)
+  const { user, tenantId } = useAuth();
+  const [playerState, setPlayerState] = useState<PlayerState>("loading");
+  const [errorMessage, setErrorMessage] = useState<string>("");
+  const [packageInfo, setPackageInfo] = useState<ScormPackage | null>(null);
+  const [iframeUrl, setIframeUrl] = useState<string>("");
+  const [retryKey, setRetryKey] = useState(0);
 
-  const bridgeRef = useRef<ScormBridge | null>(null)
-  const iframeRef = useRef<HTMLIFrameElement | null>(null)
-  const commitTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
-  const hasCalledCompletionRef = useRef(false)
+  const bridgeRef = useRef<ScormBridge | null>(null);
+  const iframeRef = useRef<HTMLIFrameElement | null>(null);
+  const commitTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const hasCalledCompletionRef = useRef(false);
 
   // ── Persist SCORM state via RPC ──────────────────────────────
 
   const persistState = useCallback(
     async (payload: ScormCommitPayload) => {
-      if (!user || !tenantId) return
+      if (!user || !tenantId) return;
 
       try {
         const params: UpsertScormRuntimeParams = {
@@ -72,14 +75,14 @@ export function ScormPlayer({
           lessonStatus: payload.lessonStatus,
           totalTimeSeconds: payload.totalTimeSeconds,
           suspendData: payload.suspendData,
-        }
-        await lessonService.upsertScormRuntime(params)
+        };
+        await lessonService.upsertScormRuntime(params);
       } catch (err) {
-        logger.error('[ScormPlayer] persistState error:', err)
+        logger.error("[ScormPlayer] persistState error:", err);
       }
     },
-    [user, tenantId, scormPackageId]
-  )
+    [user, tenantId, scormPackageId],
+  );
 
   // ── Debounced commit handler ─────────────────────────────────
 
@@ -87,23 +90,25 @@ export function ScormPlayer({
     async (payload: ScormCommitPayload) => {
       // Debounce commits to avoid hammering the DB
       if (commitTimeoutRef.current) {
-        clearTimeout(commitTimeoutRef.current)
+        clearTimeout(commitTimeoutRef.current);
       }
 
       commitTimeoutRef.current = setTimeout(async () => {
-        await persistState(payload)
+        await persistState(payload);
 
         // Check for completion
-        const isComplete = payload.lessonStatus === 'completed' || payload.lessonStatus === 'passed'
+        const isComplete =
+          payload.lessonStatus === "completed" ||
+          payload.lessonStatus === "passed";
 
         if (isComplete && !hasCalledCompletionRef.current) {
-          hasCalledCompletionRef.current = true
-          onCompletionMet()
+          hasCalledCompletionRef.current = true;
+          onCompletionMet();
         }
-      }, 2000) // 2s debounce
+      }, 2000); // 2s debounce
     },
-    [persistState, onCompletionMet]
-  )
+    [persistState, onCompletionMet],
+  );
 
   // ── Terminate handler (immediate persist) ────────────────────
 
@@ -111,154 +116,175 @@ export function ScormPlayer({
     async (payload: ScormCommitPayload) => {
       // Cancel any pending debounced commit
       if (commitTimeoutRef.current) {
-        clearTimeout(commitTimeoutRef.current)
-        commitTimeoutRef.current = null
+        clearTimeout(commitTimeoutRef.current);
+        commitTimeoutRef.current = null;
       }
 
       // Persist immediately on terminate
-      await persistState(payload)
+      await persistState(payload);
 
-      const isComplete = payload.lessonStatus === 'completed' || payload.lessonStatus === 'passed'
+      const isComplete =
+        payload.lessonStatus === "completed" ||
+        payload.lessonStatus === "passed";
 
       if (isComplete && !hasCalledCompletionRef.current) {
-        hasCalledCompletionRef.current = true
-        onCompletionMet()
+        hasCalledCompletionRef.current = true;
+        onCompletionMet();
       }
     },
-    [persistState, onCompletionMet]
-  )
+    [persistState, onCompletionMet],
+  );
 
   // ── Initialize: fetch package + runtime data ────────────────
 
   useEffect(() => {
-    let cancelled = false
+    let cancelled = false;
 
     async function init() {
       if (!user || !tenantId || !scormPackageId) {
-        setPlayerState('error')
-        setErrorMessage('Data autentikasi tidak lengkap.')
-        return
+        setPlayerState("error");
+        setErrorMessage("Data autentikasi tidak lengkap.");
+        return;
       }
 
       try {
-        setPlayerState('loading')
+        setPlayerState("loading");
 
         // 1. Fetch SCORM package info
-        const pkg = await lessonService.getScormPackage(scormPackageId, tenantId!)
+        const pkg = await lessonService.getScormPackage(
+          scormPackageId,
+          tenantId!,
+        );
 
         if (!pkg) {
-          if (cancelled) return
-          setPlayerState('error')
-          setErrorMessage('Paket SCORM tidak ditemukan.')
-          return
+          if (cancelled) return;
+          setPlayerState("error");
+          setErrorMessage("Paket SCORM tidak ditemukan.");
+          return;
         }
 
-        if (cancelled) return
-        setPackageInfo(pkg as ScormPackage)
+        if (cancelled) return;
+        setPackageInfo(pkg as ScormPackage);
 
         // 2. Fetch existing runtime data (for resume)
         // FIXED: C2 — pass tenantId for tenant isolation
-        const runtime = await lessonService.getScormRuntimeData(user.id, scormPackageId, tenantId!)
+        const runtime = await lessonService.getScormRuntimeData(
+          user.id,
+          scormPackageId,
+          tenantId!,
+        );
 
-        if (cancelled) return
+        if (cancelled) return;
 
         // 3. Build initial CMI data
-        const initialData: Record<string, string> = {}
+        const initialData: Record<string, string> = {};
 
         if (runtime?.cmi_data) {
           // Restore previous CMI state
-          Object.assign(initialData, runtime.cmi_data)
+          Object.assign(initialData, runtime.cmi_data);
         }
 
         // Set learner identity (always override with current user)
-        if (pkg.scorm_version === '1.2') {
-          initialData['cmi.core.student_id'] = user.id
-          initialData['cmi.core.student_name'] =
-            (user.user_metadata?.full_name as string) || 'Student'
+        if (pkg.scorm_version === "1.2") {
+          initialData["cmi.core.student_id"] = user.id;
+          initialData["cmi.core.student_name"] =
+            (user.user_metadata?.full_name as string) || "Student";
           if (runtime?.suspend_data) {
-            initialData['cmi.suspend_data'] = runtime.suspend_data
+            initialData["cmi.suspend_data"] = runtime.suspend_data;
           }
           if (runtime?.total_time) {
-            const h = Math.floor(runtime.total_time / 3600)
-            const m = Math.floor((runtime.total_time % 3600) / 60)
-            const s = runtime.total_time % 60
-            initialData['cmi.core.total_time'] =
-              `${h.toString().padStart(2, '0')}:${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`
+            const h = Math.floor(runtime.total_time / 3600);
+            const m = Math.floor((runtime.total_time % 3600) / 60);
+            const s = runtime.total_time % 60;
+            initialData["cmi.core.total_time"] =
+              `${h.toString().padStart(2, "0")}:${m.toString().padStart(2, "0")}:${s.toString().padStart(2, "0")}`;
           }
           if (runtime?.lesson_status) {
-            initialData['cmi.core.lesson_status'] = runtime.lesson_status
-            initialData['cmi.core.entry'] = runtime.lesson_status === 'incomplete' ? 'resume' : ''
+            initialData["cmi.core.lesson_status"] = runtime.lesson_status;
+            initialData["cmi.core.entry"] =
+              runtime.lesson_status === "incomplete" ? "resume" : "";
           }
         } else {
           // SCORM 2004
-          initialData['cmi.learner_id'] = user.id
-          initialData['cmi.learner_name'] = (user.user_metadata?.full_name as string) || 'Student'
+          initialData["cmi.learner_id"] = user.id;
+          initialData["cmi.learner_name"] =
+            (user.user_metadata?.full_name as string) || "Student";
           if (runtime?.suspend_data) {
-            initialData['cmi.suspend_data'] = runtime.suspend_data
+            initialData["cmi.suspend_data"] = runtime.suspend_data;
           }
           if (runtime?.lesson_status) {
-            if (runtime.lesson_status === 'passed' || runtime.lesson_status === 'failed') {
-              initialData['cmi.completion_status'] = 'completed'
-              initialData['cmi.success_status'] = runtime.lesson_status
+            if (
+              runtime.lesson_status === "passed" ||
+              runtime.lesson_status === "failed"
+            ) {
+              initialData["cmi.completion_status"] = "completed";
+              initialData["cmi.success_status"] = runtime.lesson_status;
             } else {
-              initialData['cmi.completion_status'] = runtime.lesson_status
-              initialData['cmi.success_status'] = 'unknown'
+              initialData["cmi.completion_status"] = runtime.lesson_status;
+              initialData["cmi.success_status"] = "unknown";
             }
-            initialData['cmi.entry'] = runtime.lesson_status === 'incomplete' ? 'resume' : ''
+            initialData["cmi.entry"] =
+              runtime.lesson_status === "incomplete" ? "resume" : "";
           }
         }
 
         // 4. Create and attach SCORM bridge
         const bridge = createScormBridge({
-          version: pkg.scorm_version as '1.2' | '2004',
+          version: pkg.scorm_version as "1.2" | "2004",
           initialData,
           onCommit: handleCommit,
           onTerminate: handleTerminate,
-        })
+        });
 
-        bridge.attach(window)
-        bridgeRef.current = bridge
+        bridge.attach(window);
+        bridgeRef.current = bridge;
 
         // 5. Build iframe URL from VIL Storage
-        const vilApiUrl = import.meta.env.VITE_API_URL || ''
-        const contentUrl = `${vilApiUrl}/storage/scorm-packages/${pkg.storage_path}/${pkg.entry_point}`
-        setIframeUrl(contentUrl)
+        const vilApiUrl = import.meta.env.VITE_API_URL || "";
+        const contentUrl = `${vilApiUrl}/storage/scorm-packages/${pkg.storage_path}/${pkg.entry_point}`;
+        setIframeUrl(contentUrl);
 
         // Check if already completed
-        if (runtime?.lesson_status === 'completed' || runtime?.lesson_status === 'passed') {
-          hasCalledCompletionRef.current = true
-          onCompletionMet()
+        if (
+          runtime?.lesson_status === "completed" ||
+          runtime?.lesson_status === "passed"
+        ) {
+          hasCalledCompletionRef.current = true;
+          onCompletionMet();
         }
 
-        setPlayerState('ready')
+        setPlayerState("ready");
       } catch (err) {
-        if (cancelled) return
-        logger.error('[ScormPlayer] init error:', err)
-        setPlayerState('error')
-        setErrorMessage('Gagal memuat konten SCORM.')
+        if (cancelled) return;
+        logger.error("[ScormPlayer] init error:", err);
+        setPlayerState("error");
+        setErrorMessage("Gagal memuat konten SCORM.");
       }
     }
 
-    void init()
+    void init();
 
     return () => {
-      cancelled = true
+      cancelled = true;
       // Cleanup bridge and pending commits
       if (commitTimeoutRef.current) {
-        clearTimeout(commitTimeoutRef.current)
+        clearTimeout(commitTimeoutRef.current);
       }
       if (bridgeRef.current) {
         // Flush any unsaved state before detach
-        if (bridgeRef.current.isInitialized() && !bridgeRef.current.isTerminated()) {
-          const finalPayload = bridgeRef.current.getPayload()
-          persistState(finalPayload).catch(() => {})
+        if (
+          bridgeRef.current.isInitialized() &&
+          !bridgeRef.current.isTerminated()
+        ) {
+          const finalPayload = bridgeRef.current.getPayload();
+          persistState(finalPayload).catch(() => {});
         }
-        bridgeRef.current.detach(window)
-        bridgeRef.current = null
+        bridgeRef.current.detach(window);
+        bridgeRef.current = null;
       }
-    }
+    };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [scormPackageId, user?.id, tenantId, retryKey])
+  }, [scormPackageId, user?.id, tenantId, retryKey]);
 
   // ── Beforeunload: flush state ────────────────────────────────
   // Uses lessonService.sendBeaconUpsert() which internally uses fetch with
@@ -267,49 +293,54 @@ export function ScormPlayer({
 
   useEffect(() => {
     const handleBeforeUnload = () => {
-      if (bridgeRef.current?.isInitialized() && !bridgeRef.current.isTerminated()) {
-        const payload = bridgeRef.current.getPayload()
+      if (
+        bridgeRef.current?.isInitialized() &&
+        !bridgeRef.current.isTerminated()
+      ) {
+        const payload = bridgeRef.current.getPayload();
         lessonService.sendBeaconUpsert({
-          userId: user?.id ?? '',
+          userId: user?.id ?? "",
           scormPackageId,
-          tenantId: tenantId ?? '',
+          tenantId: tenantId ?? "",
           cmiData: payload.cmiData,
           scoreRaw: payload.scoreRaw,
           scoreMax: payload.scoreMax,
           lessonStatus: payload.lessonStatus,
           totalTimeSeconds: payload.totalTimeSeconds,
           suspendData: payload.suspendData,
-        })
+        });
       }
-    }
+    };
 
-    window.addEventListener('beforeunload', handleBeforeUnload)
-    return () => window.removeEventListener('beforeunload', handleBeforeUnload)
-  }, [user?.id, tenantId, scormPackageId])
+    window.addEventListener("beforeunload", handleBeforeUnload);
+    return () => window.removeEventListener("beforeunload", handleBeforeUnload);
+  }, [user?.id, tenantId, scormPackageId]);
 
   // ── Retry handler ────────────────────────────────────────────
 
   const handleRetry = useCallback(() => {
-    hasCalledCompletionRef.current = false
-    setPlayerState('loading')
-    setErrorMessage('')
-    setIframeUrl('')
+    hasCalledCompletionRef.current = false;
+    setPlayerState("loading");
+    setErrorMessage("");
+    setIframeUrl("");
     // Increment key to force re-run of the init effect
-    setRetryKey((k) => k + 1)
-  }, [])
+    setRetryKey((k) => k + 1);
+  }, []);
 
   // ── Render ───────────────────────────────────────────────────
 
-  if (playerState === 'loading') {
+  if (playerState === "loading") {
     return (
       <div className="flex flex-col items-center justify-center py-16 px-6 gap-4">
         <Loader2 className="h-8 w-8 text-blue-500 animate-spin" />
-        <p className="text-sm text-slate-500 dark:text-slate-400">Memuat konten SCORM...</p>
+        <p className="text-sm text-slate-500 dark:text-slate-400">
+          Memuat konten SCORM...
+        </p>
       </div>
-    )
+    );
   }
 
-  if (playerState === 'error') {
+  if (playerState === "error") {
     return (
       <div className="flex flex-col items-center justify-center py-16 px-6 gap-4">
         <div className="flex items-center gap-2 text-amber-600 dark:text-amber-400">
@@ -317,7 +348,7 @@ export function ScormPlayer({
           <span className="font-medium">Gagal Memuat SCORM</span>
         </div>
         <p className="text-sm text-slate-500 dark:text-slate-400 text-center max-w-md">
-          {errorMessage || 'Terjadi kesalahan saat memuat konten SCORM.'}
+          {errorMessage || "Terjadi kesalahan saat memuat konten SCORM."}
         </p>
         <button
           onClick={handleRetry}
@@ -330,7 +361,7 @@ export function ScormPlayer({
           Coba Lagi
         </button>
       </div>
-    )
+    );
   }
 
   return (
@@ -338,7 +369,9 @@ export function ScormPlayer({
       {/* Header */}
       <div className="flex items-center gap-2 mb-3 text-sm text-slate-600 dark:text-slate-400">
         <Package className="h-4 w-4" />
-        <span className="font-medium">{packageInfo?.title || 'Modul SCORM'}</span>
+        <span className="font-medium">
+          {packageInfo?.title || "Modul SCORM"}
+        </span>
         <span className="text-xs px-1.5 py-0.5 rounded bg-slate-100 dark:bg-slate-700 text-slate-500 dark:text-slate-400">
           SCORM {packageInfo?.scorm_version}
         </span>
@@ -347,14 +380,14 @@ export function ScormPlayer({
       {/* SCORM Content iframe */}
       <div
         className="relative w-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg overflow-hidden"
-        style={{ minHeight: '500px' }}
+        style={{ minHeight: "500px" }}
       >
         <iframe
           ref={iframeRef}
           src={iframeUrl}
-          title={packageInfo?.title || 'Konten SCORM'}
+          title={packageInfo?.title || "Konten SCORM"}
           className="w-full border-0"
-          style={{ height: '600px', minHeight: '500px' }}
+          style={{ height: "600px", minHeight: "500px" }}
           sandbox="allow-scripts allow-same-origin allow-forms allow-popups"
           allow="autoplay; fullscreen"
         />
@@ -368,5 +401,5 @@ export function ScormPlayer({
         </div>
       )}
     </div>
-  )
+  );
 }

@@ -1,67 +1,76 @@
-import { Activity, BarChart3, Users, Zap } from 'lucide-react'
-import { useEffect, useMemo, useState } from 'react'
+import { Activity, BarChart3, Users, Zap } from "lucide-react";
+import { useEffect, useMemo, useState } from "react";
 
-import { EmptyState } from '@/components/ui'
-import { useCourses } from '@/features/courses/queries/courseQueries'
-import { usePageTitle } from '@/hooks/usePageTitle'
+import { EmptyState } from "@/components/ui";
+import { useCourses } from "@/features/courses/queries/courseQueries";
+import { usePageTitle } from "@/hooks/usePageTitle";
 
-import { LessonTimeline } from '../components/LessonTimeline'
-import { LiveProgressCard } from '../components/LiveProgressCard'
-import { StudentActivityTable } from '../components/StudentActivityTable'
-import { useActivityAlerts } from '../hooks/useActivityAlerts'
-import { useLessonMonitorData } from '../queries/useLessonMonitor'
+import { LessonTimeline } from "../components/LessonTimeline";
+import { LiveProgressCard } from "../components/LiveProgressCard";
+import { StudentActivityTable } from "../components/StudentActivityTable";
+import { useActivityAlerts } from "../hooks/useActivityAlerts";
+import { useLessonMonitorData } from "../queries/useLessonMonitor";
 
-const LESSON_MONITOR_COURSE_STORAGE_KEY = 'lesson-monitor:selected-course-id'
+const LESSON_MONITOR_COURSE_STORAGE_KEY = "lesson-monitor:selected-course-id";
 
 function readStoredCourseId(): string {
-  if (typeof window === 'undefined') return ''
+  if (typeof window === "undefined") return "";
   try {
-    return window.localStorage.getItem(LESSON_MONITOR_COURSE_STORAGE_KEY) ?? ''
+    return window.localStorage.getItem(LESSON_MONITOR_COURSE_STORAGE_KEY) ?? "";
   } catch {
-    return ''
+    return "";
   }
 }
 
 export function TeacherLessonMonitorPage() {
-  usePageTitle('Monitor Pelajaran')
-  const [selectedCourseId, setSelectedCourseId] = useState<string>(readStoredCourseId)
+  usePageTitle("Monitor Pelajaran");
+  const [selectedCourseId, setSelectedCourseId] =
+    useState<string>(readStoredCourseId);
 
-  const { data: coursesData } = useCourses()
-  const courses = coursesData?.courses ?? []
+  const { data: coursesData } = useCourses();
+  const courses = coursesData?.courses ?? [];
 
   // Auto-select kursus pertama bila belum ada pilihan yang valid.
   // - Jika ada nilai di localStorage namun kursus tsb tidak lagi tersedia,
   //   fallback ke kursus pertama.
   useEffect(() => {
-    if (courses.length === 0) return
-    const hasValidSelection = selectedCourseId && courses.some((c) => c.id === selectedCourseId)
+    if (courses.length === 0) return;
+    const hasValidSelection =
+      selectedCourseId && courses.some((c) => c.id === selectedCourseId);
     if (!hasValidSelection) {
-      setSelectedCourseId(courses[0].id)
+      setSelectedCourseId(courses[0].id);
     }
-  }, [courses, selectedCourseId])
+  }, [courses, selectedCourseId]);
 
   // Persist pilihan kursus ke localStorage agar tetap konsisten lintas sesi.
   useEffect(() => {
-    if (typeof window === 'undefined') return
+    if (typeof window === "undefined") return;
     try {
       if (selectedCourseId) {
-        window.localStorage.setItem(LESSON_MONITOR_COURSE_STORAGE_KEY, selectedCourseId)
+        window.localStorage.setItem(
+          LESSON_MONITOR_COURSE_STORAGE_KEY,
+          selectedCourseId,
+        );
       } else {
-        window.localStorage.removeItem(LESSON_MONITOR_COURSE_STORAGE_KEY)
+        window.localStorage.removeItem(LESSON_MONITOR_COURSE_STORAGE_KEY);
       }
     } catch {
       // Abaikan bila storage tidak dapat diakses (private mode dll).
     }
-  }, [selectedCourseId])
-  const { data: monitorData, isLoading, error } = useLessonMonitorData(selectedCourseId)
+  }, [selectedCourseId]);
+  const {
+    data: monitorData,
+    isLoading,
+    error,
+  } = useLessonMonitorData(selectedCourseId);
   // Memoize to keep a stable array reference; otherwise `|| []` creates a
   // fresh literal every render and causes useActivityAlerts to loop.
   const studentActivity = useMemo(
     () => monitorData?.studentActivity ?? [],
     [monitorData?.studentActivity],
-  )
+  );
   const { highPriorityAlerts, mediumPriorityAlerts, dismissAlert } =
-    useActivityAlerts(studentActivity)
+    useActivityAlerts(studentActivity);
 
   if (error) {
     return (
@@ -72,7 +81,7 @@ export function TeacherLessonMonitorPage() {
           </p>
         </div>
       </div>
-    )
+    );
   }
 
   return (
@@ -85,7 +94,8 @@ export function TeacherLessonMonitorPage() {
             Monitor Pelajaran
           </h1>
           <p className="text-slate-500 dark:text-slate-400 mt-2 text-lg">
-            Pantau progress siswa secara real-time dan berikan bantuan tepat waktu
+            Pantau progress siswa secara real-time dan berikan bantuan tepat
+            waktu
           </p>
         </div>
         <div className="flex items-center gap-2">
@@ -98,7 +108,9 @@ export function TeacherLessonMonitorPage() {
 
       {/* Course Selector */}
       <div className="bg-white dark:bg-slate-800 rounded-3xl border border-slate-200 dark:border-slate-700 shadow-sm p-6">
-        <h3 className="text-lg font-bold text-slate-900 dark:text-slate-100 mb-4">Pilih Kursus</h3>
+        <h3 className="text-lg font-bold text-slate-900 dark:text-slate-100 mb-4">
+          Pilih Kursus
+        </h3>
         <select
           value={selectedCourseId}
           onChange={(e) => setSelectedCourseId(e.target.value)}
@@ -133,7 +145,9 @@ export function TeacherLessonMonitorPage() {
                     <p className="text-2xl font-bold text-slate-900 dark:text-slate-100">
                       {monitorData.summary.totalActiveStudents}
                     </p>
-                    <p className="text-sm text-slate-500 dark:text-slate-400">Siswa Aktif</p>
+                    <p className="text-sm text-slate-500 dark:text-slate-400">
+                      Siswa Aktif
+                    </p>
                   </div>
                 </div>
               </div>
@@ -147,7 +161,9 @@ export function TeacherLessonMonitorPage() {
                     <p className="text-2xl font-bold text-slate-900 dark:text-slate-100">
                       {monitorData.summary.totalLessonsInProgress}
                     </p>
-                    <p className="text-sm text-slate-500 dark:text-slate-400">Pelajaran Aktif</p>
+                    <p className="text-sm text-slate-500 dark:text-slate-400">
+                      Pelajaran Aktif
+                    </p>
                   </div>
                 </div>
               </div>
@@ -161,7 +177,9 @@ export function TeacherLessonMonitorPage() {
                     <p className="text-2xl font-bold text-slate-900 dark:text-slate-100">
                       {monitorData.summary.studentsNeedingHelp}
                     </p>
-                    <p className="text-sm text-slate-500 dark:text-slate-400">Perlu Bantuan</p>
+                    <p className="text-sm text-slate-500 dark:text-slate-400">
+                      Perlu Bantuan
+                    </p>
                   </div>
                 </div>
               </div>
@@ -175,7 +193,9 @@ export function TeacherLessonMonitorPage() {
                     <p className="text-2xl font-bold text-slate-900 dark:text-slate-100">
                       {monitorData.summary.averageCompletionRate}%
                     </p>
-                    <p className="text-sm text-slate-500 dark:text-slate-400">Completion Rate</p>
+                    <p className="text-sm text-slate-500 dark:text-slate-400">
+                      Completion Rate
+                    </p>
                   </div>
                 </div>
               </div>
@@ -183,7 +203,8 @@ export function TeacherLessonMonitorPage() {
           )}
 
           {/* Activity Alerts */}
-          {(highPriorityAlerts.length > 0 || mediumPriorityAlerts.length > 0) && (
+          {(highPriorityAlerts.length > 0 ||
+            mediumPriorityAlerts.length > 0) && (
             <div className="space-y-4">
               <h2 className="text-xl font-bold text-slate-900 dark:text-slate-100">
                 Pemberitahuan Siswa
@@ -215,9 +236,11 @@ export function TeacherLessonMonitorPage() {
                         <h4 className="font-bold text-red-900 dark:text-red-100">
                           {alert.studentName}
                         </h4>
-                        <p className="text-red-700 dark:text-red-300 text-sm">{alert.message}</p>
+                        <p className="text-red-700 dark:text-red-300 text-sm">
+                          {alert.message}
+                        </p>
                         <p className="text-red-600 dark:text-red-400 text-xs mt-1">
-                          {alert.timestamp.toLocaleTimeString('id-ID')}
+                          {alert.timestamp.toLocaleTimeString("id-ID")}
                         </p>
                       </div>
                     </div>
@@ -273,7 +296,7 @@ export function TeacherLessonMonitorPage() {
                           {alert.message}
                         </p>
                         <p className="text-yellow-600 dark:text-yellow-400 text-xs mt-1">
-                          {alert.timestamp.toLocaleTimeString('id-ID')}
+                          {alert.timestamp.toLocaleTimeString("id-ID")}
                         </p>
                       </div>
                     </div>
@@ -333,5 +356,5 @@ export function TeacherLessonMonitorPage() {
         </>
       )}
     </div>
-  )
+  );
 }

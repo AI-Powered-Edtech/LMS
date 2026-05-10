@@ -1,57 +1,69 @@
-import { Plus, Save, X } from 'lucide-react'
-import { useState } from 'react'
+import { Plus, Save, X } from "lucide-react";
+import { useState } from "react";
 
-import { useSaveFunnel } from '../queries/analyticsQueries'
+import { useSaveFunnel } from "../queries/analyticsQueries";
 
 const ALL_EVENT_TYPES = [
-  'LESSON_STARTED',
-  'LESSON_COMPLETED',
-  'BLOCK_VIEWED',
-  'VIDEO_PROGRESS',
-  'QUIZ_STARTED',
-  'QUIZ_SUBMITTED',
-  'ASSIGNMENT_SUBMITTED',
-  'FILE_DOWNLOADED',
-] as const
+  "LESSON_STARTED",
+  "LESSON_COMPLETED",
+  "BLOCK_VIEWED",
+  "VIDEO_PROGRESS",
+  "QUIZ_STARTED",
+  "QUIZ_SUBMITTED",
+  "ASSIGNMENT_SUBMITTED",
+  "FILE_DOWNLOADED",
+] as const;
 
 const EVENT_LABELS: Record<string, string> = {
-  LESSON_STARTED: 'Mulai Pelajaran',
-  LESSON_COMPLETED: 'Selesai Pelajaran',
-  BLOCK_VIEWED: 'Lihat Konten',
-  VIDEO_PROGRESS: 'Tonton Video',
-  QUIZ_STARTED: 'Mulai Kuis',
-  QUIZ_SUBMITTED: 'Kumpul Kuis',
-  ASSIGNMENT_SUBMITTED: 'Kumpul Tugas',
-  FILE_DOWNLOADED: 'Unduh File',
-}
+  LESSON_STARTED: "Mulai Pelajaran",
+  LESSON_COMPLETED: "Selesai Pelajaran",
+  BLOCK_VIEWED: "Lihat Konten",
+  VIDEO_PROGRESS: "Tonton Video",
+  QUIZ_STARTED: "Mulai Kuis",
+  QUIZ_SUBMITTED: "Kumpul Kuis",
+  ASSIGNMENT_SUBMITTED: "Kumpul Tugas",
+  FILE_DOWNLOADED: "Unduh File",
+};
 
 interface FunnelBuilderProps {
-  courseId?: string
-  onSaved?: (funnelId: string) => void
-  onCancel?: () => void
+  courseId?: string;
+  onSaved?: (funnelId: string) => void;
+  onCancel?: () => void;
 }
 
-export function FunnelBuilder({ courseId, onSaved, onCancel }: FunnelBuilderProps) {
-  const [name, setName] = useState('')
-  const [steps, setSteps] = useState<string[]>(['LESSON_STARTED', 'QUIZ_SUBMITTED'])
-  const saveFunnel = useSaveFunnel()
+export function FunnelBuilder({
+  courseId,
+  onSaved,
+  onCancel,
+}: FunnelBuilderProps) {
+  const [name, setName] = useState("");
+  const [steps, setSteps] = useState<string[]>([
+    "LESSON_STARTED",
+    "QUIZ_SUBMITTED",
+  ]);
+  const saveFunnel = useSaveFunnel();
 
   const addStep = () => {
-    const unused = ALL_EVENT_TYPES.find((e) => !steps.includes(e))
-    if (unused) setSteps((prev) => [...prev, unused])
-  }
+    const unused = ALL_EVENT_TYPES.find((e) => !steps.includes(e));
+    if (unused) setSteps((prev) => [...prev, unused]);
+  };
 
-  const removeStep = (i: number) => setSteps((prev) => prev.filter((_, idx) => idx !== i))
+  const removeStep = (i: number) =>
+    setSteps((prev) => prev.filter((_, idx) => idx !== i));
 
   const changeStep = (i: number, value: string) => {
-    setSteps((prev) => prev.map((s, idx) => (idx === i ? value : s)))
-  }
+    setSteps((prev) => prev.map((s, idx) => (idx === i ? value : s)));
+  };
 
   const handleSave = async () => {
-    if (!name.trim() || steps.length < 2) return
-    const id = await saveFunnel.mutateAsync({ name: name.trim(), steps, courseId })
-    onSaved?.(id)
-  }
+    if (!name.trim() || steps.length < 2) return;
+    const id = await saveFunnel.mutateAsync({
+      name: name.trim(),
+      steps,
+      courseId,
+    });
+    onSaved?.(id);
+  };
 
   return (
     <div className="space-y-4 rounded-xl border border-slate-200 bg-white p-4 dark:border-slate-700 dark:bg-slate-900">
@@ -89,7 +101,10 @@ export function FunnelBuilder({ courseId, onSaved, onCancel }: FunnelBuilderProp
               ))}
             </select>
             {steps.length > 2 && (
-              <button onClick={() => removeStep(i)} className="text-slate-400 hover:text-red-500">
+              <button
+                onClick={() => removeStep(i)}
+                className="text-slate-400 hover:text-red-500"
+              >
                 <X className="h-4 w-4" />
               </button>
             )}
@@ -121,9 +136,9 @@ export function FunnelBuilder({ courseId, onSaved, onCancel }: FunnelBuilderProp
           className="flex items-center gap-1.5 rounded-lg bg-indigo-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-indigo-700 disabled:opacity-50"
         >
           <Save className="h-3.5 w-3.5" />
-          {saveFunnel.isPending ? 'Menyimpan...' : 'Simpan Funnel'}
+          {saveFunnel.isPending ? "Menyimpan..." : "Simpan Funnel"}
         </button>
       </div>
     </div>
-  )
+  );
 }

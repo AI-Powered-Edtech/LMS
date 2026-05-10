@@ -6,18 +6,18 @@ import {
   RefreshCw,
   TrendingUp,
   XCircle,
-} from 'lucide-react'
-import { Link } from 'react-router-dom'
+} from "lucide-react";
+import { Link } from "react-router-dom";
 
-import { AttemptDetailModal } from '@/components/AttemptDetailModal'
-import { QuestionDifficultyPanel } from '@/features/quizzes/components/QuestionDifficultyPanel'
-import { QuizGradebookFilters } from '@/features/quizzes/components/QuizGradebookFilters'
-import { QuizGradebookTable } from '@/features/quizzes/components/QuizGradebookTable'
-import { useQuizGradebookState } from '@/features/quizzes/hooks/useQuizGradebookState'
-import { cn } from '@/utils/cn'
+import { AttemptDetailModal } from "@/components/AttemptDetailModal";
+import { QuestionDifficultyPanel } from "@/features/quizzes/components/QuestionDifficultyPanel";
+import { QuizGradebookFilters } from "@/features/quizzes/components/QuizGradebookFilters";
+import { QuizGradebookTable } from "@/features/quizzes/components/QuizGradebookTable";
+import { useQuizGradebookState } from "@/features/quizzes/hooks/useQuizGradebookState";
+import { cn } from "@/utils/cn";
 
 export function QuizGradebook() {
-  const s = useQuizGradebookState()
+  const s = useQuizGradebookState();
 
   return (
     <div className="max-w-7xl mx-auto space-y-6">
@@ -50,7 +50,9 @@ export function QuizGradebook() {
             disabled={!s.selectedAssignment || s.isLoading}
             className="flex items-center gap-2 px-4 py-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-sm font-medium text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors shadow-sm disabled:opacity-50"
           >
-            <RefreshCw className={cn('w-4 h-4', s.isLoading && 'animate-spin')} />
+            <RefreshCw
+              className={cn("w-4 h-4", s.isLoading && "animate-spin")}
+            />
             Refresh
           </button>
         </div>
@@ -70,32 +72,32 @@ export function QuizGradebook() {
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
           {[
             {
-              label: 'Rata-rata Skor',
+              label: "Rata-rata Skor",
               value: `${s.avgScore}`,
-              sub: 'dari 100',
+              sub: "dari 100",
               icon: <TrendingUp className="w-4 h-4" />,
-              color: 'bg-blue-50 text-blue-600',
+              color: "bg-blue-50 text-blue-600",
             },
             {
-              label: 'Total Percobaan',
+              label: "Total Percobaan",
               value: `${s.filteredAttempts.length}`,
-              sub: 'attempt',
+              sub: "attempt",
               icon: <HelpCircle className="w-4 h-4" />,
-              color: 'bg-purple-50 text-purple-600',
+              color: "bg-purple-50 text-purple-600",
             },
             {
-              label: 'Lulus',
+              label: "Lulus",
               value: `${s.passCount}`,
               sub: `${s.filteredAttempts.length > 0 ? Math.round((s.passCount / s.filteredAttempts.length) * 100) : 0}% pass rate`,
               icon: <CheckCircle2 className="w-4 h-4" />,
-              color: 'bg-emerald-50 text-emerald-600',
+              color: "bg-emerald-50 text-emerald-600",
             },
             {
-              label: 'Tidak Lulus',
+              label: "Tidak Lulus",
               value: `${s.failCount}`,
               sub: `nilai < ${s.passingScore}`,
               icon: <XCircle className="w-4 h-4" />,
-              color: 'bg-red-50 text-red-600',
+              color: "bg-red-50 text-red-600",
             },
           ].map((stat) => (
             <div
@@ -107,7 +109,10 @@ export function QuizGradebook() {
                   {stat.label}
                 </span>
                 <div
-                  className={cn('w-8 h-8 rounded-lg flex items-center justify-center', stat.color)}
+                  className={cn(
+                    "w-8 h-8 rounded-lg flex items-center justify-center",
+                    stat.color,
+                  )}
                 >
                   {stat.icon}
                 </div>
@@ -115,7 +120,9 @@ export function QuizGradebook() {
               <div className="text-2xl sm:text-3xl font-bold text-slate-800 dark:text-slate-100">
                 {stat.value}
               </div>
-              <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">{stat.sub}</p>
+              <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+                {stat.sub}
+              </p>
             </div>
           ))}
         </div>
@@ -151,5 +158,5 @@ export function QuizGradebook() {
         />
       )}
     </div>
-  )
+  );
 }
