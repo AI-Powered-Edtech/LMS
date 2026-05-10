@@ -2162,5 +2162,52 @@
     "assignmentStatus": {
       "title": "Status Penugasan (__COUNT__ kelas)"
     }
+  },
+  "adminNotificationBell": {
+    "panel": {
+      "title": "Notifikasi Admin",
+      "unreadCount": "__COUNT__ belum dibaca",
+      "allRead": "Semua sudah dibaca"
+    },
+    "typeLabels": {
+      "invitationAccepted": "Undangan Diterima",
+      "moderationReport": "Laporan Moderasi",
+      "syncFailure": "Gagal Sinkronisasi",
+      "systemAlert": "Peringatan Sistem",
+      "userJoined": "Pengguna Baru",
+      "notification": "Notifikasi"
+    },
+    "time": {
+      "justNow": "baru saja",
+      "minutesAgo": "__COUNT__ menit lalu",
+      "hoursAgo": "__COUNT__ jam lalu",
+      "yesterday": "kemarin",
+      "daysAgo": "__COUNT__ hari lalu"
+    },
+    "status": {
+      "read": "sudah dibaca",
+      "unread": "belum dibaca",
+      "clickToOpen": "klik untuk buka"
+    },
+    "aria": {
+      "panel": "Panel notifikasi admin",
+      "bell": "Notifikasi admin",
+      "bellUnread": "Notifikasi admin (__COUNT__ belum dibaca)"
+    },
+    "actions": {
+      "markAllRead": "Tandai semua dibaca",
+      "markAllReadAria": "Tandai semua __COUNT__ notifikasi sebagai sudah dibaca",
+      "settingsAria": "Pengaturan notifikasi",
+      "viewAll": "Lihat semua notifikasi admin"
+    },
+    "loading": "Memuat notifikasi",
+    "error": {
+      "title": "Gagal memuat notifikasi",
+      "description": "Terjadi kesalahan saat memuat notifikasi"
+    },
+    "empty": {
+      "title": "Tidak ada notifikasi baru",
+      "description": "Notifikasi sistem akan muncul di sini"
+    }
   }
 }

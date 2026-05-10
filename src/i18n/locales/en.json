@@ -2162,5 +2162,52 @@
     "assignmentStatus": {
       "title": "Assignment Status (__COUNT__ classes)"
     }
+  },
+  "adminNotificationBell": {
+    "panel": {
+      "title": "Admin Notifications",
+      "unreadCount": "__COUNT__ unread",
+      "allRead": "All caught up"
+    },
+    "typeLabels": {
+      "invitationAccepted": "Invitation Accepted",
+      "moderationReport": "Moderation Report",
+      "syncFailure": "Sync Failed",
+      "systemAlert": "System Alert",
+      "userJoined": "New User",
+      "notification": "Notification"
+    },
+    "time": {
+      "justNow": "just now",
+      "minutesAgo": "__COUNT__ minutes ago",
+      "hoursAgo": "__COUNT__ hours ago",
+      "yesterday": "yesterday",
+      "daysAgo": "__COUNT__ days ago"
+    },
+    "status": {
+      "read": "read",
+      "unread": "unread",
+      "clickToOpen": "click to open"
+    },
+    "aria": {
+      "panel": "Admin notification panel",
+      "bell": "Admin notifications",
+      "bellUnread": "Admin notifications (__COUNT__ unread)"
+    },
+    "actions": {
+      "markAllRead": "Mark all as read",
+      "markAllReadAria": "Mark all __COUNT__ notifications as read",
+      "settingsAria": "Notification settings",
+      "viewAll": "View all admin notifications"
+    },
+    "loading": "Loading notifications",
+    "error": {
+      "title": "Failed to load notifications",
+      "description": "An error occurred while loading notifications"
+    },
+    "empty": {
+      "title": "No new notifications",
+      "description": "System notifications will appear here"
+    }
   }
 }
