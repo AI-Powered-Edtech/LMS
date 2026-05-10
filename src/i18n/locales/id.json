@@ -2610,5 +2610,11 @@
     "errors": {
       "uploadFailed": "Upload gagal"
     }
+  },
+  "globalErrors": {
+    "unexpected": "Terjadi kesalahan tak terduga",
+    "newVersion": "Versi baru tersedia",
+    "reloadDescription": "Klik \"Muat Ulang\" untuk mendapatkan versi terbaru",
+    "reload": "Muat Ulang"
   }
 }

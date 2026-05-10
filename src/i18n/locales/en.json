@@ -2610,5 +2610,11 @@
     "errors": {
       "uploadFailed": "Upload failed"
     }
+  },
+  "globalErrors": {
+    "unexpected": "An unexpected error occurred",
+    "newVersion": "A new version is available",
+    "reloadDescription": "Click \"Reload\" to get the latest version",
+    "reload": "Reload"
   }
 }

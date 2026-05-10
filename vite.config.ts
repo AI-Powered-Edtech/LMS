@@ -146,11 +146,15 @@ export default defineConfig(({ mode }) => {
             // Bigger entry budget + 7-day TTL so siswa bisa baca materi tanpa
             // koneksi (terutama daerah rural dengan internet intermittent).
             {
-              urlPattern: /\/api\/v1\/data\/(lessons|lesson_progress|lesson_resources)/i,
+              urlPattern:
+                /\/api\/v1\/data\/(lessons|lesson_progress|lesson_resources)/i,
               handler: "StaleWhileRevalidate" as const,
               options: {
                 cacheName: "lessons-content",
-                expiration: { maxEntries: 200, maxAgeSeconds: 7 * 24 * 60 * 60 },
+                expiration: {
+                  maxEntries: 200,
+                  maxAgeSeconds: 7 * 24 * 60 * 60,
+                },
               },
             },
             // VIL backend API (catch-all for everything else)
@@ -259,7 +263,7 @@ export default defineConfig(({ mode }) => {
     build: {
       target: "es2020",
       sourcemap: hasSentryToken ? true : false,
-      cssCodeSplit: false,
+      cssCodeSplit: true,
       minify: "terser",
       terserOptions: {
         compress: {
