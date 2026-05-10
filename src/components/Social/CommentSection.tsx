@@ -482,6 +482,7 @@ export function CommentSection({
         <div className="flex-1 relative">
           <input
             type="text"
+            aria-label="Tulis komentar atau pertanyaan"
             value={replyingTo ? "" : newComment}
             onChange={(e) => !replyingTo && setNewComment(e.target.value)}
             placeholder="Tulis komentar atau pertanyaan..."

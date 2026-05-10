@@ -155,26 +155,23 @@ export function Timetable() {
                 {pendingAddSlot ? WEEKDAYS[pendingAddSlot.weekday - 1] : ""} jam
                 ke-{pendingAddSlot?.period}.
               </p>
-              <label
-                htmlFor="timetable-subject"
-                className="block text-sm font-medium text-slate-700 dark:text-slate-300"
-              >
-                Mata pelajaran
+              <label className="block text-sm font-medium text-slate-700 dark:text-slate-300">
+                <span className="mb-1 block">Mata pelajaran</span>
+                <select
+                  id="timetable-subject"
+                  value={selectedSubjectId}
+                  onChange={(e) => setSelectedSubjectId(e.target.value)}
+                  className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm dark:border-slate-700 dark:bg-slate-900"
+                  required
+                >
+                  <option value="">— pilih mapel —</option>
+                  {subjects.map((subject) => (
+                    <option key={subject.id} value={subject.id}>
+                      {subject.code} — {subject.name}
+                    </option>
+                  ))}
+                </select>
               </label>
-              <select
-                id="timetable-subject"
-                value={selectedSubjectId}
-                onChange={(e) => setSelectedSubjectId(e.target.value)}
-                className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm dark:border-slate-700 dark:bg-slate-900"
-                required
-              >
-                <option value="">— pilih mapel —</option>
-                {subjects.map((subject) => (
-                  <option key={subject.id} value={subject.id}>
-                    {subject.code} — {subject.name}
-                  </option>
-                ))}
-              </select>
             </div>
           </ModalBody>
           <ModalFooter>
@@ -194,25 +191,22 @@ export function Timetable() {
 
       <Card>
         <div className="flex items-center gap-4 mb-4">
-          <label
-            htmlFor="timetable-rombel"
-            className="text-sm font-medium text-slate-700 dark:text-slate-300"
-          >
-            Rombel:
+          <label className="flex items-center gap-3 text-sm font-medium text-slate-700 dark:text-slate-300">
+            <span>Rombel:</span>
+            <select
+              id="timetable-rombel"
+              value={selectedRombelId}
+              onChange={(e) => setSelectedRombelId(e.target.value)}
+              className="w-64"
+            >
+              <option value="">— pilih rombel —</option>
+              {rombels.map((r) => (
+                <option key={r.id} value={r.id}>
+                  {r.name}
+                </option>
+              ))}
+            </select>
           </label>
-          <select
-            id="timetable-rombel"
-            value={selectedRombelId}
-            onChange={(e) => setSelectedRombelId(e.target.value)}
-            className="w-64"
-          >
-            <option value="">— pilih rombel —</option>
-            {rombels.map((r) => (
-              <option key={r.id} value={r.id}>
-                {r.name}
-              </option>
-            ))}
-          </select>
         </div>
 
         {!selectedRombelId ? (
