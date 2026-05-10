@@ -1,38 +1,48 @@
-import { formatDistanceToNow } from 'date-fns'
-import { id as localeId } from 'date-fns/locale'
-import { Edit2, MessageSquare, MoreVertical, Pin, Send, Trash2 } from 'lucide-react'
-import { AnimatePresence, motion } from 'motion/react'
-import { memo, useCallback, useEffect, useState } from 'react'
+import { formatDistanceToNow } from "date-fns";
+import { id as localeId } from "date-fns/locale";
+import {
+  Edit2,
+  MessageSquare,
+  MoreVertical,
+  Pin,
+  Send,
+  Trash2,
+} from "lucide-react";
+import { AnimatePresence, motion } from "motion/react";
+import { memo, useCallback, useEffect, useState } from "react";
 
-import { OptimizedImage } from '@/components/ui'
-import { useAuth } from '@/contexts/AuthContext'
-import { Discussion, discussionService } from '@/features/discussions/api/discussionService'
-import { useToast } from '@/hooks/useToast'
-import { cn } from '@/utils/cn'
-import { logger } from '@/utils/logger'
+import { ConfirmDialog, OptimizedImage } from "@/components/ui";
+import { useAuth } from "@/contexts/AuthContext";
+import {
+  Discussion,
+  discussionService,
+} from "@/features/discussions/api/discussionService";
+import { useToast } from "@/hooks/useToast";
+import { cn } from "@/utils/cn";
+import { logger } from "@/utils/logger";
 
 // ⚡ Perf: CommentItem extracted to file-level and wrapped in React.memo.
 // Previously defined INSIDE CommentSection's render body, which caused React
 // to treat it as a brand-new component type on every parent render — unmounting
 // and remounting all comment DOM (losing focus, scroll position, animations).
 interface CommentItemProps {
-  comment: Discussion
-  isReply?: boolean
-  userId?: string
-  userRole?: string | null
-  editingComment: string | null
-  editContent: string
-  openMenuId: string | null
-  replyingTo: string | null
-  newComment: string
-  onSetEditingComment: (id: string | null) => void
-  onSetEditContent: (content: string) => void
-  onSetOpenMenuId: (id: string | null) => void
-  onSetReplyingTo: (id: string | null) => void
-  onSetNewComment: (content: string) => void
-  onSubmit: (e?: React.FormEvent, parentId?: string | null) => void
-  onDelete: (id: string) => void
-  onTogglePin: (id: string, currentPin: boolean) => void
+  comment: Discussion;
+  isReply?: boolean;
+  userId?: string;
+  userRole?: string | null;
+  editingComment: string | null;
+  editContent: string;
+  openMenuId: string | null;
+  replyingTo: string | null;
+  newComment: string;
+  onSetEditingComment: (id: string | null) => void;
+  onSetEditContent: (content: string) => void;
+  onSetOpenMenuId: (id: string | null) => void;
+  onSetReplyingTo: (id: string | null) => void;
+  onSetNewComment: (content: string) => void;
+  onSubmit: (e?: React.FormEvent, parentId?: string | null) => void;
+  onDelete: (id: string) => void;
+  onTogglePin: (id: string, currentPin: boolean) => void;
 }
 
 const CommentItem = memo(function CommentItem({
@@ -54,23 +64,23 @@ const CommentItem = memo(function CommentItem({
   onDelete,
   onTogglePin,
 }: CommentItemProps) {
-  const isAuthor = comment.author_id === userId
-  const isAdmin = userRole === 'admin' || userRole === 'teacher'
-  const canManage = isAuthor || isAdmin
+  const isAuthor = comment.author_id === userId;
+  const isAdmin = userRole === "admin" || userRole === "teacher";
+  const canManage = isAuthor || isAdmin;
 
   return (
-    <div className={cn('flex gap-3', isReply && 'ml-11 mt-4')}>
+    <div className={cn("flex gap-3", isReply && "ml-11 mt-4")}>
       <div className="w-8 h-8 bg-slate-200 rounded-full shrink-0 overflow-hidden">
         {comment.author?.avatar_url ? (
           <OptimizedImage
             src={comment.author.avatar_url}
-            alt={`Foto profil ${comment.author?.full_name || 'pengguna'}`}
+            alt={`Foto profil ${comment.author?.full_name || "pengguna"}`}
             className="w-full h-full object-cover"
           />
         ) : (
           <OptimizedImage
             src={`https://api.dicebear.com/7.x/avataaars/svg?seed=${comment.author?.full_name || comment.author_id}`}
-            alt={`Foto profil ${comment.author?.full_name || 'pengguna'}`}
+            alt={`Foto profil ${comment.author?.full_name || "pengguna"}`}
             className="w-full h-full object-cover"
           />
         )}
@@ -79,7 +89,7 @@ const CommentItem = memo(function CommentItem({
         <div className="bg-slate-50 p-3 rounded-2xl rounded-tl-none border border-slate-100 group relative">
           <div className="flex items-center justify-between mb-1">
             <span className="text-sm font-bold text-slate-900">
-              {comment.author?.full_name || 'User'}
+              {comment.author?.full_name || "User"}
             </span>
             <span className="text-xs text-slate-500">
               {formatDistanceToNow(new Date(comment.created_at), {
@@ -92,8 +102,8 @@ const CommentItem = memo(function CommentItem({
           {editingComment === comment.id ? (
             <form
               onSubmit={(e) => {
-                e.preventDefault()
-                onSubmit(undefined, comment.parent_id)
+                e.preventDefault();
+                onSubmit(undefined, comment.parent_id);
               }}
               className="mt-2"
             >
@@ -123,8 +133,8 @@ const CommentItem = memo(function CommentItem({
           ) : (
             <p
               className={cn(
-                'text-sm text-slate-700 whitespace-pre-wrap',
-                comment.is_deleted && 'text-slate-400 italic'
+                "text-sm text-slate-700 whitespace-pre-wrap",
+                comment.is_deleted && "text-slate-400 italic",
               )}
             >
               {comment.content}
@@ -137,18 +147,25 @@ const CommentItem = memo(function CommentItem({
               <button
                 onClick={() => onTogglePin(comment.id, !!comment.is_pinned)}
                 className="p-1 text-slate-400 hover:text-blue-600 rounded focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
-                title={comment.is_pinned ? 'Lepaskan sematan' : 'Sematkan'}
-                aria-label={comment.is_pinned ? 'Lepaskan sematan' : 'Sematkan'}
+                title={comment.is_pinned ? "Lepaskan sematan" : "Sematkan"}
+                aria-label={comment.is_pinned ? "Lepaskan sematan" : "Sematkan"}
               >
                 <Pin
-                  className={cn('w-4 h-4', comment.is_pinned && 'fill-blue-500 text-blue-500')}
+                  className={cn(
+                    "w-4 h-4",
+                    comment.is_pinned && "fill-blue-500 text-blue-500",
+                  )}
                 />
               </button>
             )}
             {!comment.is_deleted && canManage && (
               <div className="relative">
                 <button
-                  onClick={() => onSetOpenMenuId(openMenuId === comment.id ? null : comment.id)}
+                  onClick={() =>
+                    onSetOpenMenuId(
+                      openMenuId === comment.id ? null : comment.id,
+                    )
+                  }
                   className="p-1 text-slate-400 hover:text-slate-600 rounded focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-500"
                   aria-label="Opsi tambahan"
                 >
@@ -159,9 +176,9 @@ const CommentItem = memo(function CommentItem({
                     {isAuthor && (
                       <button
                         onClick={() => {
-                          onSetEditingComment(comment.id)
-                          onSetEditContent(comment.content)
-                          onSetOpenMenuId(null)
+                          onSetEditingComment(comment.id);
+                          onSetEditContent(comment.content);
+                          onSetOpenMenuId(null);
                         }}
                         className="w-full text-left px-4 py-2 text-sm text-slate-700 hover:bg-slate-50 flex flex-center gap-2"
                       >
@@ -185,7 +202,9 @@ const CommentItem = memo(function CommentItem({
         {!comment.is_deleted && !isReply && (
           <div className="flex items-center gap-4 mt-1 ml-2">
             <button
-              onClick={() => onSetReplyingTo(replyingTo === comment.id ? null : comment.id)}
+              onClick={() =>
+                onSetReplyingTo(replyingTo === comment.id ? null : comment.id)
+              }
               className="text-xs text-slate-500 font-medium hover:text-blue-600 transition-colors"
             >
               Balas
@@ -198,14 +217,14 @@ const CommentItem = memo(function CommentItem({
           {replyingTo === comment.id && !isReply && (
             <motion.div
               initial={{ height: 0, opacity: 0 }}
-              animate={{ height: 'auto', opacity: 1 }}
+              animate={{ height: "auto", opacity: 1 }}
               exit={{ height: 0, opacity: 0 }}
               className="mt-3 overflow-hidden"
             >
               <form
                 onSubmit={(e) => {
-                  e.preventDefault()
-                  onSubmit(undefined, comment.id)
+                  e.preventDefault();
+                  onSubmit(undefined, comment.id);
                 }}
                 className="flex gap-3"
               >
@@ -256,26 +275,31 @@ const CommentItem = memo(function CommentItem({
           ))}
       </div>
     </div>
-  )
-})
+  );
+});
 
 interface CommentSectionProps {
-  entityId: string
-  entityType: 'announcement' | 'course' | 'lesson'
-  className?: string
+  entityId: string;
+  entityType: "announcement" | "course" | "lesson";
+  className?: string;
 }
 
-export function CommentSection({ entityId, entityType, className }: CommentSectionProps) {
-  const { user, tenantId, role } = useAuth()
-  const addToast = useToast((s) => s.addToast)
+export function CommentSection({
+  entityId,
+  entityType,
+  className,
+}: CommentSectionProps) {
+  const { user, tenantId, role } = useAuth();
+  const addToast = useToast((s) => s.addToast);
 
-  const [comments, setComments] = useState<Discussion[]>([])
-  const [loading, setLoading] = useState(true)
-  const [newComment, setNewComment] = useState('')
-  const [replyingTo, setReplyingTo] = useState<string | null>(null)
-  const [editingComment, setEditingComment] = useState<string | null>(null)
-  const [editContent, setEditContent] = useState('')
-  const [openMenuId, setOpenMenuId] = useState<string | null>(null)
+  const [comments, setComments] = useState<Discussion[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [newComment, setNewComment] = useState("");
+  const [replyingTo, setReplyingTo] = useState<string | null>(null);
+  const [editingComment, setEditingComment] = useState<string | null>(null);
+  const [editContent, setEditContent] = useState("");
+  const [openMenuId, setOpenMenuId] = useState<string | null>(null);
+  const [pendingDeleteId, setPendingDeleteId] = useState<string | null>(null);
 
   const loadComments = useCallback(async () => {
     try {
@@ -283,7 +307,7 @@ export function CommentSection({ entityId, entityType, className }: CommentSecti
         tenantId: tenantId!,
         [`${entityType}Id`]: entityId,
         parentId: null, // Fetch top-level comments first
-      })
+      });
 
       // Note: For a fully threaded view, we might want to fetch all and format into a tree,
       // or fetch replies on demand. For simplicity, we fetch all for this entity if parentId isn't specified,
@@ -291,46 +315,53 @@ export function CommentSection({ entityId, entityType, className }: CommentSecti
       const allComments = await discussionService.fetchDiscussions({
         tenantId: tenantId!,
         [`${entityType}Id`]: entityId,
-      })
+      });
 
       // Build Tree
-      const commentMap = new Map<string, Discussion>()
-      const roots: Discussion[] = []
+      const commentMap = new Map<string, Discussion>();
+      const roots: Discussion[] = [];
 
       allComments.forEach((c) => {
-        c.replies = []
-        commentMap.set(c.id, c)
-      })
+        c.replies = [];
+        commentMap.set(c.id, c);
+      });
 
       allComments.forEach((c) => {
         if (c.parent_id) {
-          const parent = commentMap.get(c.parent_id)
+          const parent = commentMap.get(c.parent_id);
           if (parent) {
-            parent.replies?.push(c)
+            parent.replies?.push(c);
           }
         } else {
-          roots.push(c)
+          roots.push(c);
         }
-      })
+      });
 
-      setComments(roots)
+      setComments(roots);
     } catch (error) {
-      if (import.meta.env.DEV) logger.error('Error loading comments:', error)
-      addToast({ type: 'error', message: 'Gagal memuat komentar' })
+      if (import.meta.env.DEV) logger.error("Error loading comments:", error);
+      addToast({ type: "error", message: "Gagal memuat komentar" });
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }, [entityId, entityType, addToast, tenantId])
+  }, [entityId, entityType, addToast, tenantId]);
 
   useEffect(() => {
-    void loadComments()
-  }, [entityId, entityType, loadComments])
+    void loadComments();
+  }, [entityId, entityType, loadComments]);
 
-  const handleSubmit = async (e?: React.FormEvent, parentId: string | null = null) => {
-    if (e) e.preventDefault()
+  const handleSubmit = async (
+    e?: React.FormEvent,
+    parentId: string | null = null,
+  ) => {
+    if (e) e.preventDefault();
 
-    const content = parentId ? (editingComment ? editContent : newComment) : newComment
-    if (!content.trim() || !user || !tenantId) return
+    const content = parentId
+      ? editingComment
+        ? editContent
+        : newComment
+      : newComment;
+    if (!content.trim() || !user || !tenantId) return;
 
     try {
       await discussionService.saveDiscussion({
@@ -340,50 +371,73 @@ export function CommentSection({ entityId, entityType, className }: CommentSecti
         [`${entityType}_id`]: entityId,
         content: content.trim(),
         parent_id: parentId,
-      })
+      });
 
-      setNewComment('')
-      setReplyingTo(null)
-      setEditingComment(null)
-      setEditContent('')
+      setNewComment("");
+      setReplyingTo(null);
+      setEditingComment(null);
+      setEditContent("");
       // subscription will trigger reload
     } catch {
-      addToast({ type: 'error', message: 'Gagal mengirim komentar' })
+      addToast({ type: "error", message: "Gagal mengirim komentar" });
     }
-  }
+  };
 
-  const handleDelete = async (id: string) => {
-    if (!confirm('Hapus komentar ini?')) return
+  const handleDelete = (id: string) => {
+    setPendingDeleteId(id);
+  };
+
+  const confirmDelete = async () => {
+    if (!pendingDeleteId) return;
     try {
-      await discussionService.deleteDiscussion(id, tenantId!)
-      setOpenMenuId(null)
+      await discussionService.deleteDiscussion(pendingDeleteId, tenantId!);
+      setOpenMenuId(null);
+      setPendingDeleteId(null);
     } catch {
-      addToast({ type: 'error', message: 'Gagal menghapus komentar' })
+      addToast({ type: "error", message: "Gagal menghapus komentar" });
     }
-  }
+  };
 
   const handleTogglePin = useCallback(
     async (id: string, currentPin: boolean) => {
       try {
-        await discussionService.togglePin(id, !currentPin, tenantId!)
+        await discussionService.togglePin(id, !currentPin, tenantId!);
       } catch {
-        addToast({ type: 'error', message: 'Gagal mengubah status sematan komentar' })
+        addToast({
+          type: "error",
+          message: "Gagal mengubah status sematan komentar",
+        });
       }
     },
-    [addToast, tenantId]
-  )
+    [addToast, tenantId],
+  );
 
   if (loading) {
-    return <div className="py-8 text-center text-slate-500 text-sm">Memuat diskusi...</div>
+    return (
+      <div className="py-8 text-center text-slate-500 text-sm">
+        Memuat diskusi...
+      </div>
+    );
   }
 
   return (
-    <div className={cn('space-y-6', className)}>
+    <div className={cn("space-y-6", className)}>
+      <ConfirmDialog
+        open={pendingDeleteId !== null}
+        title="Hapus komentar?"
+        description="Komentar ini akan dihapus dari diskusi."
+        confirmLabel="Hapus"
+        variant="danger"
+        onCancel={() => setPendingDeleteId(null)}
+        onConfirm={confirmDelete}
+      />
       <div className="flex items-center justify-between">
         <h4 className="font-bold text-slate-800 flex items-center gap-2">
           <MessageSquare className="w-4 h-4 text-blue-500" /> Diskusi & Komentar
         </h4>
-        <span className="text-sm font-medium text-slate-500">{comments.length} Komentar</span>
+        <span className="text-sm font-medium text-slate-500">
+          {comments.length} Komentar
+        </span>
       </div>
 
       <div className="space-y-4">
@@ -417,18 +471,18 @@ export function CommentSection({ entityId, entityType, className }: CommentSecti
 
       <form
         onSubmit={(e) => {
-          e.preventDefault()
-          void handleSubmit()
+          e.preventDefault();
+          void handleSubmit();
         }}
         className="mt-6 flex gap-3 pt-4 border-t border-slate-100"
       >
         <div className="w-8 h-8 bg-blue-100 text-blue-600 rounded-full shrink-0 flex items-center justify-center font-bold text-sm">
-          {user?.email?.charAt(0).toUpperCase() || 'U'}
+          {user?.email?.charAt(0).toUpperCase() || "U"}
         </div>
         <div className="flex-1 relative">
           <input
             type="text"
-            value={replyingTo ? '' : newComment}
+            value={replyingTo ? "" : newComment}
             onChange={(e) => !replyingTo && setNewComment(e.target.value)}
             placeholder="Tulis komentar atau pertanyaan..."
             className="w-full pl-4 pr-12 py-2.5 bg-white border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all text-sm"
@@ -445,5 +499,5 @@ export function CommentSection({ entityId, entityType, className }: CommentSecti
         </div>
       </form>
     </div>
-  )
+  );
 }

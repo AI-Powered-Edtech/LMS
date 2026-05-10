@@ -7,84 +7,116 @@ import {
   Search,
   User,
   XCircle,
-} from 'lucide-react'
-import { AnimatePresence, motion } from 'motion/react'
-import { useMemo, useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+} from "lucide-react";
+import { AnimatePresence, motion } from "motion/react";
+import { useMemo, useState } from "react";
+import { useNavigate } from "react-router-dom";
 
-import { EmptyState } from '@/components/ui'
-import { ModerationSkeleton } from '@/features/moderation/components/ModerationSkeleton'
+import { ConfirmDialog, EmptyState } from "@/components/ui";
+import { ModerationSkeleton } from "@/features/moderation/components/ModerationSkeleton";
 import {
   useModerationReports,
   useResolveReport,
-} from '@/features/moderation/queries/moderationQueries'
-import { useDebounce } from '@/hooks/useDebounce'
-import { usePageTitle } from '@/hooks/usePageTitle'
-import { cn } from '@/utils/cn'
-import { translateContentType } from '@/utils/statusTranslations'
+} from "@/features/moderation/queries/moderationQueries";
+import { useDebounce } from "@/hooks/useDebounce";
+import { useLocaleFormatters } from "@/hooks/useLocaleFormatters";
+import { usePageTitle } from "@/hooks/usePageTitle";
+import { cn } from "@/utils/cn";
+import { translateContentType } from "@/utils/statusTranslations";
 
 export function ModerationDashboard() {
-  usePageTitle('Dasbor Moderasi')
-  const navigate = useNavigate()
-  const { data: reports = [], isLoading } = useModerationReports()
-  const resolveReport = useResolveReport()
-  const [filterStatus, setFilterStatus] = useState<'all' | 'pending' | 'resolved'>('pending')
-  const [searchQuery, setSearchQuery] = useState('')
+  usePageTitle("Dasbor Moderasi");
+  const navigate = useNavigate();
+  const { data: reports = [], isLoading } = useModerationReports();
+  const resolveReport = useResolveReport();
+  const [filterStatus, setFilterStatus] = useState<
+    "all" | "pending" | "resolved"
+  >("pending");
+  const [searchQuery, setSearchQuery] = useState("");
+  const [pendingRemoveReportId, setPendingRemoveReportId] = useState<
+    string | null
+  >(null);
+  const { formatDateTime } = useLocaleFormatters();
 
   // ⚡ Perf: Debounce search input to avoid re-filtering on every keystroke
-  const debouncedSearch = useDebounce(searchQuery, 300)
+  const debouncedSearch = useDebounce(searchQuery, 300);
 
   // ⚡ Perf: Memoize filteredReports — was recomputed on every render without useMemo
   const filteredReports = useMemo(
     () =>
       reports.filter((report) => {
         const matchesStatus =
-          filterStatus === 'all'
+          filterStatus === "all"
             ? true
-            : filterStatus === 'pending'
-              ? report.status === 'pending'
-              : report.status !== 'pending'
+            : filterStatus === "pending"
+              ? report.status === "pending"
+              : report.status !== "pending";
 
         const matchesSearch =
-          report.description.toLowerCase().includes(debouncedSearch.toLowerCase()) ||
-          report.reporterName.toLowerCase().includes(debouncedSearch.toLowerCase()) ||
-          report.contentSnippet?.toLowerCase().includes(debouncedSearch.toLowerCase())
+          report.description
+            .toLowerCase()
+            .includes(debouncedSearch.toLowerCase()) ||
+          report.reporterName
+            .toLowerCase()
+            .includes(debouncedSearch.toLowerCase()) ||
+          report.contentSnippet
+            ?.toLowerCase()
+            .includes(debouncedSearch.toLowerCase());
 
-        return matchesStatus && matchesSearch
+        return matchesStatus && matchesSearch;
       }),
-    [reports, filterStatus, debouncedSearch]
-  )
+    [reports, filterStatus, debouncedSearch],
+  );
 
   const getStatusColor = (status: string) => {
     switch (status) {
-      case 'pending':
-        return 'bg-yellow-100 text-yellow-700 border-yellow-200'
-      case 'approved':
-        return 'bg-green-100 text-green-700 border-green-200'
-      case 'rejected':
-        return 'bg-red-100 text-red-700 border-red-200'
+      case "pending":
+        return "bg-yellow-100 text-yellow-700 border-yellow-200";
+      case "approved":
+        return "bg-green-100 text-green-700 border-green-200";
+      case "rejected":
+        return "bg-red-100 text-red-700 border-red-200";
       default:
-        return 'bg-slate-100 text-slate-700 dark:text-slate-300 border-slate-200 dark:border-slate-700'
+        return "bg-slate-100 text-slate-700 dark:text-slate-300 border-slate-200 dark:border-slate-700";
     }
-  }
+  };
+
+  const confirmRemoveContent = () => {
+    if (!pendingRemoveReportId) return;
+    resolveReport.mutate({
+      reportId: pendingRemoveReportId,
+      status: "approved",
+    });
+    setPendingRemoveReportId(null);
+  };
 
   const getReasonLabel = (reason: string) => {
     const labels: Record<string, string> = {
-      ai_generated: 'Konten AI',
-      inappropriate: 'Tidak Pantas',
-      spam: 'Spam',
-      harassment: 'Pelecehan',
-      other: 'Lainnya',
-    }
-    return labels[reason] || reason
-  }
+      ai_generated: "Konten AI",
+      inappropriate: "Tidak Pantas",
+      spam: "Spam",
+      harassment: "Pelecehan",
+      other: "Lainnya",
+    };
+    return labels[reason] || reason;
+  };
 
   if (isLoading) {
-    return <ModerationSkeleton />
+    return <ModerationSkeleton />;
   }
 
   return (
     <div className="max-w-7xl mx-auto p-4 md:p-8 space-y-6">
+      <ConfirmDialog
+        open={pendingRemoveReportId !== null}
+        title="Hapus konten yang dilaporkan?"
+        description="Konten akan ditandai untuk dihapus dari antrean moderasi. Tindakan ini tidak bisa dibatalkan."
+        confirmLabel="Hapus Konten"
+        variant="danger"
+        isLoading={resolveReport.isPending}
+        onCancel={() => setPendingRemoveReportId(null)}
+        onConfirm={confirmRemoveContent}
+      />
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
           <button
@@ -102,40 +134,41 @@ export function ModerationDashboard() {
             </span>
           </h1>
           <p className="text-slate-500 dark:text-slate-400 mt-1">
-            Tinjau laporan pengguna dan ambil tindakan terhadap konten yang melanggar.
+            Tinjau laporan pengguna dan ambil tindakan terhadap konten yang
+            melanggar.
           </p>
         </div>
 
         <div className="flex items-center gap-2 bg-white dark:bg-slate-800 p-1 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm">
           <button
-            onClick={() => setFilterStatus('pending')}
+            onClick={() => setFilterStatus("pending")}
             className={cn(
-              'px-4 py-2 rounded-lg text-sm font-bold transition-colors',
-              filterStatus === 'pending'
-                ? 'bg-slate-900 text-white'
-                : 'text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-700'
+              "px-4 py-2 rounded-lg text-sm font-bold transition-colors",
+              filterStatus === "pending"
+                ? "bg-slate-900 text-white"
+                : "text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-700",
             )}
           >
             Perlu Tinjauan
           </button>
           <button
-            onClick={() => setFilterStatus('resolved')}
+            onClick={() => setFilterStatus("resolved")}
             className={cn(
-              'px-4 py-2 rounded-lg text-sm font-bold transition-colors',
-              filterStatus === 'resolved'
-                ? 'bg-slate-900 text-white'
-                : 'text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-700'
+              "px-4 py-2 rounded-lg text-sm font-bold transition-colors",
+              filterStatus === "resolved"
+                ? "bg-slate-900 text-white"
+                : "text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-700",
             )}
           >
             Selesai
           </button>
           <button
-            onClick={() => setFilterStatus('all')}
+            onClick={() => setFilterStatus("all")}
             className={cn(
-              'px-4 py-2 rounded-lg text-sm font-bold transition-colors',
-              filterStatus === 'all'
-                ? 'bg-slate-900 text-white'
-                : 'text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-700'
+              "px-4 py-2 rounded-lg text-sm font-bold transition-colors",
+              filterStatus === "all"
+                ? "bg-slate-900 text-white"
+                : "text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-700",
             )}
           >
             Semua
@@ -174,19 +207,19 @@ export function ModerationDashboard() {
                       <div className="flex items-center gap-3">
                         <span
                           className={cn(
-                            'px-2.5 py-1 rounded-lg text-xs font-bold border uppercase tracking-wider',
-                            getStatusColor(report.status)
+                            "px-2.5 py-1 rounded-lg text-xs font-bold border uppercase tracking-wider",
+                            getStatusColor(report.status),
                           )}
                         >
-                          {report.status === 'pending'
-                            ? 'Menunggu'
-                            : report.status === 'approved'
-                              ? 'Disetujui'
-                              : 'Ditolak'}
+                          {report.status === "pending"
+                            ? "Menunggu"
+                            : report.status === "approved"
+                              ? "Disetujui"
+                              : "Ditolak"}
                         </span>
                         <span className="text-xs text-slate-400 font-medium flex items-center gap-1">
                           <Clock className="w-3 h-3" />
-                          {new Date(report.timestamp).toLocaleString('id-ID')}
+                          {formatDateTime(report.timestamp)}
                         </span>
                       </div>
                     </div>
@@ -206,26 +239,24 @@ export function ModerationDashboard() {
                     <div className="bg-blue-50/50 p-4 rounded-xl border border-blue-100">
                       <div className="flex items-center gap-2 mb-2 text-blue-800 font-bold text-sm">
                         <MessageSquare className="w-4 h-4" />
-                        Konten yang Dilaporkan ({translateContentType(report.contentType)})
+                        Konten yang Dilaporkan (
+                        {translateContentType(report.contentType)})
                       </div>
                       <p className="text-slate-800 dark:text-slate-200 text-sm line-clamp-3 mb-2">
-                        {report.contentSnippet || 'Konten tidak tersedia'}
+                        {report.contentSnippet || "Konten tidak tersedia"}
                       </p>
                       <div className="flex items-center gap-2 text-xs text-slate-500 dark:text-slate-400 font-medium">
                         <User className="w-3 h-3" />
-                        Penulis: {report.contentAuthor || 'Tidak diketahui'}
+                        Penulis: {report.contentAuthor || "Tidak diketahui"}
                       </div>
                     </div>
                   </div>
 
                   {/* Actions */}
-                  {report.status === 'pending' && (
+                  {report.status === "pending" && (
                     <div className="flex flex-row md:flex-col gap-3 justify-center border-t md:border-t-0 md:border-l border-slate-100 dark:border-slate-700 pt-4 md:pt-0 md:pl-6 md:w-48 shrink-0">
                       <button
-                        onClick={() => {
-                          if (!confirm('Hapus konten ini? Aksi ini tidak bisa dibatalkan.')) return
-                          resolveReport.mutate({ reportId: report.id, status: 'approved' })
-                        }}
+                        onClick={() => setPendingRemoveReportId(report.id)}
                         className="flex-1 md:flex-none flex items-center justify-center gap-2 px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-xl font-bold text-sm transition-colors shadow-sm"
                       >
                         <CheckCircle className="w-4 h-4" />
@@ -233,7 +264,10 @@ export function ModerationDashboard() {
                       </button>
                       <button
                         onClick={() =>
-                          resolveReport.mutate({ reportId: report.id, status: 'rejected' })
+                          resolveReport.mutate({
+                            reportId: report.id,
+                            status: "rejected",
+                          })
                         }
                         className="flex-1 md:flex-none flex items-center justify-center gap-2 px-4 py-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 rounded-xl font-bold text-sm transition-colors"
                       >
@@ -255,5 +289,5 @@ export function ModerationDashboard() {
         </AnimatePresence>
       </div>
     </div>
-  )
+  );
 }

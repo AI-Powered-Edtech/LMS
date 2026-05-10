@@ -1,4 +1,9 @@
-import { DragDropContext, Draggable, Droppable, type DropResult } from '@hello-pangea/dnd'
+import {
+  DragDropContext,
+  Draggable,
+  Droppable,
+  type DropResult,
+} from "@hello-pangea/dnd";
 import {
   ChevronDown,
   ChevronRight,
@@ -13,106 +18,129 @@ import {
   Trash2,
   Video,
   X,
-} from 'lucide-react'
-import { AnimatePresence, motion } from 'motion/react'
-import { useState } from 'react'
+} from "lucide-react";
+import { AnimatePresence, motion } from "motion/react";
+import { useState } from "react";
 
-import { useBuilder } from '@/contexts/BuilderContext'
-import { useAICopilotFeatureGate } from '@/features/ai-builder-copilot/hooks/useAICopilotFeatureGate'
-import { useBuilderAICopilotStore } from '@/features/ai-builder-copilot/store/builderAICopilot.store'
-import { SaveTemplateModal } from '@/features/courses/components/SaveTemplateModal'
-import { TemplateModal } from '@/features/courses/components/TemplateModal'
-import { cn } from '@/utils/cn'
-import { translateLessonType } from '@/utils/statusTranslations'
+import { ConfirmDialog } from "@/components/ui";
+import { useBuilder } from "@/contexts/BuilderContext";
+import { useAICopilotFeatureGate } from "@/features/ai-builder-copilot/hooks/useAICopilotFeatureGate";
+import { useBuilderAICopilotStore } from "@/features/ai-builder-copilot/store/builderAICopilot.store";
+import { SaveTemplateModal } from "@/features/courses/components/SaveTemplateModal";
+import { TemplateModal } from "@/features/courses/components/TemplateModal";
+import { cn } from "@/utils/cn";
+import { translateLessonType } from "@/utils/statusTranslations";
 
 interface TemplateModalConfig {
-  isOpen: boolean
-  type: 'course' | 'module' | 'lesson'
-  targetId: string
+  isOpen: boolean;
+  type: "course" | "module" | "lesson";
+  targetId: string;
 }
 
 interface SaveTemplateConfig {
-  isOpen: boolean
-  type: 'course' | 'module' | 'lesson'
-  sourceId: string
-  defaultTitle: string
+  isOpen: boolean;
+  type: "course" | "module" | "lesson";
+  sourceId: string;
+  defaultTitle: string;
+}
+
+interface PendingDeleteConfig {
+  type: "module" | "lesson";
+  id: string;
+  title: string;
 }
 
 export function BuilderSidebar() {
-  const { state, actions, mobile } = useBuilder()
-  const { enabled: copilotEnabled } = useAICopilotFeatureGate()
-  const openCopilot = useBuilderAICopilotStore((s) => s.openDrawer)
-  const [expandedModules, setExpandedModules] = useState<Set<string>>(new Set())
-  const [addingLessonTo, setAddingLessonTo] = useState<string | null>(null)
-  const [templateModalConfig, setTemplateModalConfig] = useState<TemplateModalConfig>({
-    isOpen: false,
-    type: 'module',
-    targetId: '',
-  })
-  const [saveTemplateConfig, setSaveTemplateConfig] = useState<SaveTemplateConfig>({
-    isOpen: false,
-    type: 'module',
-    sourceId: '',
-    defaultTitle: '',
-  })
+  const { state, actions, mobile } = useBuilder();
+  const { enabled: copilotEnabled } = useAICopilotFeatureGate();
+  const openCopilot = useBuilderAICopilotStore((s) => s.openDrawer);
+  const [expandedModules, setExpandedModules] = useState<Set<string>>(
+    new Set(),
+  );
+  const [addingLessonTo, setAddingLessonTo] = useState<string | null>(null);
+  const [templateModalConfig, setTemplateModalConfig] =
+    useState<TemplateModalConfig>({
+      isOpen: false,
+      type: "module",
+      targetId: "",
+    });
+  const [saveTemplateConfig, setSaveTemplateConfig] =
+    useState<SaveTemplateConfig>({
+      isOpen: false,
+      type: "module",
+      sourceId: "",
+      defaultTitle: "",
+    });
+  const [pendingDelete, setPendingDelete] =
+    useState<PendingDeleteConfig | null>(null);
 
   const toggleModule = (id: string) => {
     setExpandedModules((prev) => {
-      const next = new Set(prev)
-      if (next.has(id)) next.delete(id)
-      else next.add(id)
-      return next
-    })
-  }
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  };
 
   const getLessonIcon = (type: string) => {
     switch (type?.toLowerCase()) {
-      case 'video':
-        return <Video className="w-4 h-4 text-blue-500" />
-      case 'article':
-        return <FileText className="w-4 h-4 text-indigo-500" />
-      case 'quiz':
-        return <HelpCircle className="w-4 h-4 text-rose-500" />
+      case "video":
+        return <Video className="w-4 h-4 text-blue-500" />;
+      case "article":
+        return <FileText className="w-4 h-4 text-indigo-500" />;
+      case "quiz":
+        return <HelpCircle className="w-4 h-4 text-rose-500" />;
       default:
-        return <FileText className="w-4 h-4 text-slate-400" />
+        return <FileText className="w-4 h-4 text-slate-400" />;
     }
-  }
+  };
 
   const handleDragEnd = (result: DropResult) => {
-    if (!result.destination) return
+    if (!result.destination) return;
 
-    const { source, destination, type } = result
+    const { source, destination, type } = result;
 
-    if (type === 'MODULE') {
-      const moduleIds = state.modules.map((m) => m.id)
-      const [moved] = moduleIds.splice(source.index, 1)
-      moduleIds.splice(destination.index, 0, moved)
-      void actions.reorderModules(moduleIds)
+    if (type === "MODULE") {
+      const moduleIds = state.modules.map((m) => m.id);
+      const [moved] = moduleIds.splice(source.index, 1);
+      moduleIds.splice(destination.index, 0, moved);
+      void actions.reorderModules(moduleIds);
     }
 
-    if (type === 'LESSON') {
-      const moduleId = source.droppableId
-      const mod = state.modules.find((m) => m.id === moduleId)
-      if (!mod) return
-      const lessonIds = mod.lessons.map((l) => l.id)
-      const [moved] = lessonIds.splice(source.index, 1)
-      lessonIds.splice(destination.index, 0, moved)
-      void actions.reorderLessons(lessonIds)
+    if (type === "LESSON") {
+      const moduleId = source.droppableId;
+      const mod = state.modules.find((m) => m.id === moduleId);
+      if (!mod) return;
+      const lessonIds = mod.lessons.map((l) => l.id);
+      const [moved] = lessonIds.splice(source.index, 1);
+      lessonIds.splice(destination.index, 0, moved);
+      void actions.reorderLessons(lessonIds);
     }
-  }
+  };
 
   const handleAddModule = () => {
-    const count = state.modules.length + 1
-    void actions.addModule(`Modul ${count}`)
-  }
+    const count = state.modules.length + 1;
+    void actions.addModule(`Modul ${count}`);
+  };
 
   const handleAddLesson = (moduleId: string, type: string) => {
-    const typeLabel = type.charAt(0).toUpperCase() + type.slice(1)
-    void actions.addLesson(moduleId, type, `New ${typeLabel}`)
-    setAddingLessonTo(null)
+    const typeLabel = type.charAt(0).toUpperCase() + type.slice(1);
+    void actions.addLesson(moduleId, type, `New ${typeLabel}`);
+    setAddingLessonTo(null);
     // Auto-expand the module
-    setExpandedModules((prev) => new Set(prev).add(moduleId))
-  }
+    setExpandedModules((prev) => new Set(prev).add(moduleId));
+  };
+
+  const confirmDelete = () => {
+    if (!pendingDelete) return;
+    if (pendingDelete.type === "module") {
+      void actions.deleteModule(pendingDelete.id);
+    } else {
+      void actions.deleteLesson(pendingDelete.id);
+    }
+    setPendingDelete(null);
+  };
 
   const sidebarContent = (
     <div className="w-[340px] bg-slate-50/30 border-r border-slate-200/60 flex flex-col h-full shrink-0 relative z-10 backdrop-blur-xl">
@@ -140,7 +168,11 @@ export function BuilderSidebar() {
             <button
               onClick={() => {
                 if (state.courseId) {
-                  setTemplateModalConfig({ isOpen: true, type: 'module', targetId: state.courseId })
+                  setTemplateModalConfig({
+                    isOpen: true,
+                    type: "module",
+                    targetId: state.courseId,
+                  });
                 }
               }}
               disabled={!state.courseId}
@@ -182,9 +214,12 @@ export function BuilderSidebar() {
             <div className="w-16 h-16 bg-slate-50/80 rounded-2xl flex items-center justify-center mb-4 border border-slate-100/50">
               <FolderOpen className="w-8 h-8 text-slate-300" />
             </div>
-            <p className="text-sm font-bold text-slate-600 mb-2">Belum ada modul</p>
+            <p className="text-sm font-bold text-slate-600 mb-2">
+              Belum ada modul
+            </p>
             <p className="text-xs text-slate-400 mb-6 leading-relaxed">
-              Mulai bangun kursus Anda dengan menambahkan modul pertama sebagai kerangka.
+              Mulai bangun kursus Anda dengan menambahkan modul pertama sebagai
+              kerangka.
             </p>
             <button
               onClick={handleAddModule}
@@ -196,9 +231,9 @@ export function BuilderSidebar() {
             {copilotEnabled && (
               <button
                 onClick={() =>
-                  openCopilot('outline', {
-                    entryPoint: 'sidebar_empty',
-                    preSelectedTab: 'outline',
+                  openCopilot("outline", {
+                    entryPoint: "sidebar_empty",
+                    preSelectedTab: "outline",
                   })
                 }
                 className="text-sm font-bold text-violet-600 dark:text-violet-400 bg-violet-50 dark:bg-violet-950/30 hover:bg-violet-100 dark:hover:bg-violet-950/50 border border-violet-200 dark:border-violet-800 px-6 py-2.5 rounded-xl transition-all shadow-sm hover:-translate-y-0.5 flex items-center gap-2"
@@ -212,7 +247,11 @@ export function BuilderSidebar() {
           <DragDropContext onDragEnd={handleDragEnd}>
             <Droppable droppableId="modules" type="MODULE">
               {(provided) => (
-                <div ref={provided.innerRef} {...provided.droppableProps} className="space-y-1">
+                <div
+                  ref={provided.innerRef}
+                  {...provided.droppableProps}
+                  className="space-y-1"
+                >
                   {state.modules.map((mod, modIdx) => (
                     <Draggable key={mod.id} draggableId={mod.id} index={modIdx}>
                       {(dragProvided, snapshot) => (
@@ -220,8 +259,9 @@ export function BuilderSidebar() {
                           ref={dragProvided.innerRef}
                           {...dragProvided.draggableProps}
                           className={cn(
-                            'rounded-lg transition-colors',
-                            snapshot.isDragging && 'shadow-lg ring-2 ring-blue-200 bg-blue-50'
+                            "rounded-lg transition-colors",
+                            snapshot.isDragging &&
+                              "shadow-lg ring-2 ring-blue-200 bg-blue-50",
                           )}
                         >
                           {/* Module Header */}
@@ -230,16 +270,16 @@ export function BuilderSidebar() {
                             tabIndex={0}
                             aria-expanded={expandedModules.has(mod.id)}
                             onKeyDown={(e) => {
-                              if (e.key === 'Enter' || e.key === ' ') {
-                                e.preventDefault()
-                                toggleModule(mod.id)
+                              if (e.key === "Enter" || e.key === " ") {
+                                e.preventDefault();
+                                toggleModule(mod.id);
                               }
                             }}
                             className={cn(
-                              'flex items-center gap-2 px-3 py-3 rounded-xl cursor-pointer group',
-                              'hover:bg-white hover:shadow-sm transition-all border border-transparent hover:border-slate-200/50',
+                              "flex items-center gap-2 px-3 py-3 rounded-xl cursor-pointer group",
+                              "hover:bg-white hover:shadow-sm transition-all border border-transparent hover:border-slate-200/50",
                               expandedModules.has(mod.id) &&
-                                'bg-white shadow-sm border-slate-200/50 mb-1'
+                                "bg-white shadow-sm border-slate-200/50 mb-1",
                             )}
                             onClick={() => toggleModule(mod.id)}
                           >
@@ -263,13 +303,13 @@ export function BuilderSidebar() {
                             <div className="flex opacity-0 group-hover:opacity-100 transition-opacity">
                               <button
                                 onClick={(e) => {
-                                  e.stopPropagation()
+                                  e.stopPropagation();
                                   setSaveTemplateConfig({
                                     isOpen: true,
-                                    type: 'module',
+                                    type: "module",
                                     sourceId: mod.id,
                                     defaultTitle: mod.title,
-                                  })
+                                  });
                                 }}
                                 className="p-2 hover:bg-indigo-50 text-slate-500 hover:text-indigo-600 rounded transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500"
                                 aria-label="Simpan sebagai Template"
@@ -279,10 +319,12 @@ export function BuilderSidebar() {
                               </button>
                               <button
                                 onClick={(e) => {
-                                  e.stopPropagation()
-                                  if (confirm('Hapus modul ini beserta seluruh materinya?')) {
-                                    void actions.deleteModule(mod.id)
-                                  }
+                                  e.stopPropagation();
+                                  setPendingDelete({
+                                    type: "module",
+                                    id: mod.id,
+                                    title: mod.title,
+                                  });
                                 }}
                                 className="p-2 hover:bg-red-50 text-slate-500 hover:text-red-600 rounded transition-colors ml-0.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-500"
                                 aria-label="Hapus modul"
@@ -298,7 +340,7 @@ export function BuilderSidebar() {
                             {expandedModules.has(mod.id) && (
                               <motion.div
                                 initial={{ height: 0, opacity: 0 }}
-                                animate={{ height: 'auto', opacity: 1 }}
+                                animate={{ height: "auto", opacity: 1 }}
                                 exit={{ height: 0, opacity: 0 }}
                                 transition={{ duration: 0.15 }}
                                 className="overflow-hidden"
@@ -323,41 +365,53 @@ export function BuilderSidebar() {
                                               role="button"
                                               tabIndex={0}
                                               onClick={() => {
-                                                void actions.selectLesson(lesson.id)
-                                                if (mobile.isMobile) mobile.closeSidebar()
+                                                void actions.selectLesson(
+                                                  lesson.id,
+                                                );
+                                                if (mobile.isMobile)
+                                                  mobile.closeSidebar();
                                               }}
                                               onKeyDown={(e) => {
-                                                if (e.key === 'Enter' || e.key === ' ') {
-                                                  void actions.selectLesson(lesson.id)
-                                                  if (mobile.isMobile) mobile.closeSidebar()
+                                                if (
+                                                  e.key === "Enter" ||
+                                                  e.key === " "
+                                                ) {
+                                                  void actions.selectLesson(
+                                                    lesson.id,
+                                                  );
+                                                  if (mobile.isMobile)
+                                                    mobile.closeSidebar();
                                                 }
                                               }}
                                               className={cn(
-                                                'flex items-center gap-3 px-3 py-2.5 rounded-xl cursor-pointer group/lesson transition-all text-xs border border-transparent mb-1',
-                                                state.activeLesson?.id === lesson.id
-                                                  ? 'bg-indigo-600 text-white shadow-md shadow-indigo-100 font-bold'
-                                                  : 'text-slate-600 hover:bg-white hover:border-slate-100',
+                                                "flex items-center gap-3 px-3 py-2.5 rounded-xl cursor-pointer group/lesson transition-all text-xs border border-transparent mb-1",
+                                                state.activeLesson?.id ===
+                                                  lesson.id
+                                                  ? "bg-indigo-600 text-white shadow-md shadow-indigo-100 font-bold"
+                                                  : "text-slate-600 hover:bg-white hover:border-slate-100",
                                                 lesSnapshot.isDragging &&
-                                                  'shadow-xl ring-2 ring-indigo-500 bg-white scale-105 z-50'
+                                                  "shadow-xl ring-2 ring-indigo-500 bg-white scale-105 z-50",
                                               )}
                                             >
                                               <div
                                                 {...lesDragProvided.dragHandleProps}
                                                 className={cn(
-                                                  'p-0.5 shrink-0 transition-colors',
-                                                  state.activeLesson?.id === lesson.id
-                                                    ? 'text-white/50 hover:text-white/80'
-                                                    : 'text-slate-300 hover:text-slate-500'
+                                                  "p-0.5 shrink-0 transition-colors",
+                                                  state.activeLesson?.id ===
+                                                    lesson.id
+                                                    ? "text-white/50 hover:text-white/80"
+                                                    : "text-slate-300 hover:text-slate-500",
                                                 )}
                                               >
                                                 <GripVertical className="w-3.5 h-3.5" />
                                               </div>
                                               <div
                                                 className={cn(
-                                                  'p-1.5 rounded-lg transition-colors',
-                                                  state.activeLesson?.id === lesson.id
-                                                    ? 'bg-white/20'
-                                                    : 'bg-slate-100 group-hover/lesson:bg-white'
+                                                  "p-1.5 rounded-lg transition-colors",
+                                                  state.activeLesson?.id ===
+                                                    lesson.id
+                                                    ? "bg-white/20"
+                                                    : "bg-slate-100 group-hover/lesson:bg-white",
                                                 )}
                                               >
                                                 {getLessonIcon(lesson.type)}
@@ -365,10 +419,11 @@ export function BuilderSidebar() {
                                               <div className="flex-1 min-w-0">
                                                 <h4
                                                   className={cn(
-                                                    'text-sm font-bold truncate',
-                                                    state.activeLesson?.id === lesson.id
-                                                      ? 'text-white'
-                                                      : 'text-slate-700'
+                                                    "text-sm font-bold truncate",
+                                                    state.activeLesson?.id ===
+                                                      lesson.id
+                                                      ? "text-white"
+                                                      : "text-slate-700",
                                                   )}
                                                 >
                                                   {lesson.title}
@@ -376,13 +431,16 @@ export function BuilderSidebar() {
                                                 <div className="flex items-center gap-2 mt-0.5">
                                                   <span
                                                     className={cn(
-                                                      'text-[10px] font-medium uppercase tracking-wider',
-                                                      state.activeLesson?.id === lesson.id
-                                                        ? 'text-white/70'
-                                                        : 'text-slate-400'
+                                                      "text-[10px] font-medium uppercase tracking-wider",
+                                                      state.activeLesson?.id ===
+                                                        lesson.id
+                                                        ? "text-white/70"
+                                                        : "text-slate-400",
                                                     )}
                                                   >
-                                                    {translateLessonType(lesson.type)}
+                                                    {translateLessonType(
+                                                      lesson.type,
+                                                    )}
                                                   </span>
                                                   {!lesson.isPublished && (
                                                     <span className="text-[9px] font-black px-1.5 py-0.5 rounded-full bg-amber-400/90 text-amber-900 shadow-sm shadow-amber-200">
@@ -393,19 +451,20 @@ export function BuilderSidebar() {
                                               </div>
                                               <button
                                                 onClick={(e) => {
-                                                  e.stopPropagation()
+                                                  e.stopPropagation();
                                                   setSaveTemplateConfig({
                                                     isOpen: true,
-                                                    type: 'lesson',
+                                                    type: "lesson",
                                                     sourceId: lesson.id,
                                                     defaultTitle: lesson.title,
-                                                  })
+                                                  });
                                                 }}
                                                 className={cn(
-                                                  'p-2 rounded-md transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500',
-                                                  state.activeLesson?.id === lesson.id
-                                                    ? 'hover:bg-white/20 text-white/70 hover:text-white'
-                                                    : 'hover:bg-indigo-50 text-slate-500 hover:text-indigo-600'
+                                                  "p-2 rounded-md transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500",
+                                                  state.activeLesson?.id ===
+                                                    lesson.id
+                                                    ? "hover:bg-white/20 text-white/70 hover:text-white"
+                                                    : "hover:bg-indigo-50 text-slate-500 hover:text-indigo-600",
                                                 )}
                                                 aria-label="Simpan sebagai Template"
                                                 title="Simpan sebagai Template"
@@ -414,16 +473,19 @@ export function BuilderSidebar() {
                                               </button>
                                               <button
                                                 onClick={(e) => {
-                                                  e.stopPropagation()
-                                                  if (confirm('Hapus materi ini?')) {
-                                                    void actions.deleteLesson(lesson.id)
-                                                  }
+                                                  e.stopPropagation();
+                                                  setPendingDelete({
+                                                    type: "lesson",
+                                                    id: lesson.id,
+                                                    title: lesson.title,
+                                                  });
                                                 }}
                                                 className={cn(
-                                                  'p-2 rounded-md transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-rose-500',
-                                                  state.activeLesson?.id === lesson.id
-                                                    ? 'hover:bg-white/20 text-white/70 hover:text-white'
-                                                    : 'hover:bg-rose-50 text-slate-500 hover:text-rose-600'
+                                                  "p-2 rounded-md transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-rose-500",
+                                                  state.activeLesson?.id ===
+                                                    lesson.id
+                                                    ? "hover:bg-white/20 text-white/70 hover:text-white"
+                                                    : "hover:bg-rose-50 text-slate-500 hover:text-rose-600",
                                                 )}
                                                 aria-label="Hapus pelajaran"
                                                 title="Hapus pelajaran"
@@ -441,39 +503,48 @@ export function BuilderSidebar() {
                                         <div className="flex flex-col gap-2 py-2 px-2 bg-white/40 rounded-xl mt-2 border border-slate-100">
                                           <div className="flex gap-2">
                                             {[
-                                              { type: 'article', color: 'indigo' },
-                                              { type: 'video', color: 'blue' },
-                                              { type: 'quiz', color: 'rose' },
+                                              {
+                                                type: "article",
+                                                color: "indigo",
+                                              },
+                                              { type: "video", color: "blue" },
+                                              { type: "quiz", color: "rose" },
                                             ].map((t) => (
                                               <button
                                                 key={t.type}
-                                                onClick={() => handleAddLesson(mod.id, t.type)}
+                                                onClick={() =>
+                                                  handleAddLesson(
+                                                    mod.id,
+                                                    t.type,
+                                                  )
+                                                }
                                                 className={cn(
-                                                  'flex-1 py-2 rounded-lg text-xs font-bold transition-all border border-dashed hover:scale-105 active:scale-95',
-                                                  t.type === 'article' &&
-                                                    'text-indigo-600 border-indigo-200 bg-indigo-50/50 hover:bg-indigo-50',
-                                                  t.type === 'video' &&
-                                                    'text-blue-600 border-blue-200 bg-blue-50/50 hover:bg-blue-50',
-                                                  t.type === 'quiz' &&
-                                                    'text-rose-600 border-rose-200 bg-rose-50/50 hover:bg-rose-50'
+                                                  "flex-1 py-2 rounded-lg text-xs font-bold transition-all border border-dashed hover:scale-105 active:scale-95",
+                                                  t.type === "article" &&
+                                                    "text-indigo-600 border-indigo-200 bg-indigo-50/50 hover:bg-indigo-50",
+                                                  t.type === "video" &&
+                                                    "text-blue-600 border-blue-200 bg-blue-50/50 hover:bg-blue-50",
+                                                  t.type === "quiz" &&
+                                                    "text-rose-600 border-rose-200 bg-rose-50/50 hover:bg-rose-50",
                                                 )}
                                               >
                                                 {{
-                                                  article: 'ARTIKEL',
-                                                  video: 'VIDEO',
-                                                  quiz: 'KUIS',
-                                                }[t.type] || t.type.toUpperCase()}
+                                                  article: "ARTIKEL",
+                                                  video: "VIDEO",
+                                                  quiz: "KUIS",
+                                                }[t.type] ||
+                                                  t.type.toUpperCase()}
                                               </button>
                                             ))}
                                           </div>
                                           <button
                                             onClick={() => {
-                                              setAddingLessonTo(null)
+                                              setAddingLessonTo(null);
                                               setTemplateModalConfig({
                                                 isOpen: true,
-                                                type: 'lesson',
+                                                type: "lesson",
                                                 targetId: mod.id,
-                                              })
+                                              });
                                             }}
                                             className="w-full py-2 rounded-lg text-xs font-bold text-emerald-600 border border-dashed border-emerald-200 bg-emerald-50/50 hover:bg-emerald-50 transition-all hover:scale-105 active:scale-95 flex items-center justify-center gap-1"
                                           >
@@ -483,7 +554,9 @@ export function BuilderSidebar() {
                                         </div>
                                       ) : (
                                         <button
-                                          onClick={() => setAddingLessonTo(mod.id)}
+                                          onClick={() =>
+                                            setAddingLessonTo(mod.id)
+                                          }
                                           className="w-full mt-2 py-2 text-[10px] font-black text-slate-400 hover:text-indigo-600 hover:bg-white hover:shadow-sm rounded-xl transition-all flex items-center justify-center gap-1.5 border border-dashed border-slate-200 hover:border-indigo-200 group/add"
                                         >
                                           <Plus className="w-3.5 h-3.5 group-hover/add:rotate-90 transition-transform duration-300" />
@@ -508,7 +581,7 @@ export function BuilderSidebar() {
         )}
       </div>
     </div>
-  )
+  );
 
   return (
     <>
@@ -531,10 +604,10 @@ export function BuilderSidebar() {
                 onClick={mobile.closeSidebar}
               />
               <motion.div
-                initial={{ x: '-100%' }}
+                initial={{ x: "-100%" }}
                 animate={{ x: 0 }}
-                exit={{ x: '-100%' }}
-                transition={{ type: 'spring', damping: 25, stiffness: 200 }}
+                exit={{ x: "-100%" }}
+                transition={{ type: "spring", damping: 25, stiffness: 200 }}
                 className="relative z-10 flex h-full shadow-2xl"
               >
                 {sidebarContent}
@@ -543,6 +616,22 @@ export function BuilderSidebar() {
           )}
         </AnimatePresence>
       </nav>
+
+      <ConfirmDialog
+        open={pendingDelete !== null}
+        title={
+          pendingDelete?.type === "module" ? "Hapus modul?" : "Hapus materi?"
+        }
+        description={
+          pendingDelete?.type === "module"
+            ? `Modul "${pendingDelete.title}" beserta seluruh materinya akan dihapus.`
+            : `Materi "${pendingDelete?.title ?? ""}" akan dihapus dari struktur kursus.`
+        }
+        confirmLabel="Hapus"
+        variant="danger"
+        onCancel={() => setPendingDelete(null)}
+        onConfirm={confirmDelete}
+      />
 
       {/* Template import modal (for module-level templates) */}
       <TemplateModal
@@ -561,5 +650,5 @@ export function BuilderSidebar() {
         defaultTitle={saveTemplateConfig.defaultTitle}
       />
     </>
-  )
+  );
 }

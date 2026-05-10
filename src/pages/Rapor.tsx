@@ -1,79 +1,90 @@
-import { CheckCircle2, FileSignature, Lock } from 'lucide-react'
-import { useState } from 'react'
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { CheckCircle2, FileSignature, Lock } from "lucide-react";
+import { useState } from "react";
 
-import { Button } from '@/components/ui/Button'
-import { Card } from '@/components/ui/Card'
-
-import { useAuth } from '@/contexts/AuthContext'
-import { useRombelList } from '@/features/rombel/hooks/useRombel'
-import { raporService, type RaporDocument } from '@/features/rapor/api/raporService'
-import { useToast } from '@/hooks/useToast'
-import { usePageTitle } from '@/hooks/usePageTitle'
-import { useQuery, useQueryClient } from '@tanstack/react-query'
+import { ConfirmDialog } from "@/components/ui";
+import { Button } from "@/components/ui/Button";
+import { Card } from "@/components/ui/Card";
+import { useAuth } from "@/contexts/AuthContext";
+import {
+  type RaporDocument,
+  raporService,
+} from "@/features/rapor/api/raporService";
+import { useRombelList } from "@/features/rombel/hooks/useRombel";
+import { usePageTitle } from "@/hooks/usePageTitle";
+import { useToast } from "@/hooks/useToast";
 
 const STATUS_LABEL: Record<string, string> = {
-  draft: 'Draf',
-  guru_signed: 'Ditandatangani Guru',
-  wali_signed: 'Ditandatangani Wali Kelas',
-  kepsek_signed: 'Ditandatangani Kepsek',
-  published: 'Diterbitkan',
-}
+  draft: "Draf",
+  guru_signed: "Ditandatangani Guru",
+  wali_signed: "Ditandatangani Wali Kelas",
+  kepsek_signed: "Ditandatangani Kepsek",
+  published: "Diterbitkan",
+};
 
-const NEXT_ROLE: Record<string, 'guru' | 'wali_kelas' | 'kepsek' | null> = {
-  draft: 'guru',
-  guru_signed: 'wali_kelas',
-  wali_signed: 'kepsek',
+const NEXT_ROLE: Record<string, "guru" | "wali_kelas" | "kepsek" | null> = {
+  draft: "guru",
+  guru_signed: "wali_kelas",
+  wali_signed: "kepsek",
   kepsek_signed: null,
   published: null,
-}
+};
 
 export function Rapor() {
-  usePageTitle('Rapor Kurmer')
-  const { tenantId, user, role } = useAuth()
-  const { addToast } = useToast()
-  const { data: rombels = [] } = useRombelList()
-  const qc = useQueryClient()
+  usePageTitle("Rapor Kurmer");
+  const { tenantId, user, role } = useAuth();
+  const { addToast } = useToast();
+  const { data: rombels = [] } = useRombelList();
+  const qc = useQueryClient();
 
-  const [selectedRombelId, setSelectedRombelId] = useState<string>('')
+  const [selectedRombelId, setSelectedRombelId] = useState<string>("");
+  const [pendingSign, setPendingSign] = useState<RaporDocument | null>(null);
 
   const { data: rapors = [], isLoading } = useQuery({
-    queryKey: ['rapor_documents', tenantId, selectedRombelId],
+    queryKey: ["rapor_documents", tenantId, selectedRombelId],
     queryFn: () =>
       tenantId && selectedRombelId
         ? raporService.list(tenantId, selectedRombelId)
         : Promise.resolve([]),
     enabled: !!tenantId && !!selectedRombelId,
-  })
+  });
 
   async function handleSign(rapor: RaporDocument) {
-    const next = NEXT_ROLE[rapor.status]
-    if (!next || !user) return
+    const next = NEXT_ROLE[rapor.status];
+    if (!next || !user) return;
     const allowedByRole =
-      (next === 'guru' && (role === 'teacher' || role === 'admin')) ||
-      (next === 'wali_kelas' && (role === 'teacher' || role === 'admin')) ||
-      (next === 'kepsek' && (role === 'principal' || role === 'admin'))
+      (next === "guru" && (role === "teacher" || role === "admin")) ||
+      (next === "wali_kelas" && (role === "teacher" || role === "admin")) ||
+      (next === "kepsek" && (role === "principal" || role === "admin"));
     if (!allowedByRole) {
       addToast({
-        type: 'error',
+        type: "error",
         message: `Anda tidak berhak menandatangani sebagai ${next}`,
-      })
-      return
+      });
+      return;
     }
-    if (!window.confirm(`Tanda tangani rapor ${rapor.student_name} sebagai ${next}?`)) return
+    setPendingSign(rapor);
+  }
+
+  async function confirmSign() {
+    if (!pendingSign || !user) return;
+    const next = NEXT_ROLE[pendingSign.status];
+    if (!next) return;
     try {
       await raporService.sign({
-        raporId: rapor.id,
+        raporId: pendingSign.id,
         signerId: user.id,
         signerRole: next,
-      })
-      addToast({ type: 'success', message: 'Rapor ditandatangani' })
-      void qc.invalidateQueries({ queryKey: ['rapor_documents'] })
+      });
+      addToast({ type: "success", message: "Rapor ditandatangani" });
+      void qc.invalidateQueries({ queryKey: ["rapor_documents"] });
+      setPendingSign(null);
     } catch (err) {
       addToast({
-        type: 'error',
-        message: 'Gagal menandatangani',
-        description: err instanceof Error ? err.message : 'Terjadi kesalahan',
-      })
+        type: "error",
+        message: "Gagal menandatangani",
+        description: err instanceof Error ? err.message : "Terjadi kesalahan",
+      });
     }
   }
 
@@ -85,13 +96,26 @@ export function Rapor() {
           Rapor Kurmer
         </h1>
         <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">
-          Daftar rapor per rombel dengan workflow tanda tangan: guru → wali kelas → kepala sekolah.
+          Daftar rapor per rombel dengan workflow tanda tangan: guru → wali
+          kelas → kepala sekolah.
         </p>
       </div>
 
+      <ConfirmDialog
+        open={pendingSign !== null}
+        title="Tanda tangani rapor?"
+        description={`Rapor ${pendingSign?.student_name ?? ""} akan ditandatangani sebagai ${pendingSign ? NEXT_ROLE[pendingSign.status] : ""}.`}
+        confirmLabel="Tanda Tangani"
+        variant="warning"
+        onCancel={() => setPendingSign(null)}
+        onConfirm={confirmSign}
+      />
+
       <Card>
         <div className="flex items-center gap-4 mb-4">
-          <label className="text-sm font-medium text-slate-700 dark:text-slate-300">Rombel:</label>
+          <label className="text-sm font-medium text-slate-700 dark:text-slate-300">
+            Rombel:
+          </label>
           <select
             value={selectedRombelId}
             onChange={(e) => setSelectedRombelId(e.target.value)}
@@ -111,7 +135,9 @@ export function Rapor() {
             Pilih rombel untuk melihat daftar rapor.
           </div>
         ) : isLoading ? (
-          <div className="py-12 text-center text-sm text-slate-500">Memuat...</div>
+          <div className="py-12 text-center text-sm text-slate-500">
+            Memuat...
+          </div>
         ) : rapors.length === 0 ? (
           <div className="py-12 text-center text-sm text-slate-500">
             Belum ada rapor untuk rombel ini.
@@ -129,18 +155,21 @@ export function Rapor() {
               </thead>
               <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
                 {rapors.map((r) => {
-                  const next = NEXT_ROLE[r.status]
+                  const next = NEXT_ROLE[r.status];
                   return (
                     <tr key={r.id}>
                       <td className="px-4 py-3 font-medium text-slate-900 dark:text-white">
                         {r.student_name}
                       </td>
-                      <td className="px-4 py-3 text-slate-500">{r.nisn ?? '—'}</td>
+                      <td className="px-4 py-3 text-slate-500">
+                        {r.nisn ?? "—"}
+                      </td>
                       <td className="px-4 py-3">
                         <span className="inline-flex items-center gap-1.5 text-xs">
-                          {r.status === 'published' || r.status === 'kepsek_signed' ? (
+                          {r.status === "published" ||
+                          r.status === "kepsek_signed" ? (
                             <CheckCircle2 className="w-3.5 h-3.5 text-emerald-500" />
-                          ) : r.status === 'draft' ? (
+                          ) : r.status === "draft" ? (
                             <Lock className="w-3.5 h-3.5 text-slate-400" />
                           ) : (
                             <FileSignature className="w-3.5 h-3.5 text-amber-500" />
@@ -150,7 +179,11 @@ export function Rapor() {
                       </td>
                       <td className="px-4 py-3 text-right">
                         {next ? (
-                          <Button variant="ghost" size="sm" onClick={() => handleSign(r)}>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => handleSign(r)}
+                          >
                             Tanda Tangani sebagai {next}
                           </Button>
                         ) : (
@@ -158,7 +191,7 @@ export function Rapor() {
                         )}
                       </td>
                     </tr>
-                  )
+                  );
                 })}
               </tbody>
             </table>
@@ -166,5 +199,5 @@ export function Rapor() {
         )}
       </Card>
     </div>
-  )
+  );
 }
