@@ -2,9 +2,9 @@
   "ci": {
     "collect": {
       "url": [
-        "http://localhost:5173/#/login",
-        "http://localhost:5173/#/privacy",
-        "http://localhost:5173/#/terms"
+        "http://localhost:4173/#/login",
+        "http://localhost:4173/#/privacy",
+        "http://localhost:4173/#/terms"
       ],
       "numberOfRuns": 1,
       "settings": {
