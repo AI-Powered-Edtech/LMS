@@ -246,6 +246,7 @@ export function TeacherLessonMonitorPage() {
                     </div>
                     <button
                       onClick={() => dismissAlert(alert.id)}
+                      aria-label="Tutup notifikasi"
                       className="text-red-400 hover:text-red-600 dark:hover:text-red-300"
                     >
                       <svg
@@ -302,6 +303,7 @@ export function TeacherLessonMonitorPage() {
                     </div>
                     <button
                       onClick={() => dismissAlert(alert.id)}
+                      aria-label="Tutup notifikasi"
                       className="text-yellow-400 hover:text-yellow-600 dark:hover:text-yellow-300"
                     >
                       <svg
