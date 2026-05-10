@@ -2398,5 +2398,86 @@
       "savedCurrency": "Hemat __VALUE__",
       "savedHours": "Hemat __VALUE__ jam"
     }
+  },
+  "executiveDashboard": {
+    "defaults": {
+      "school": "Sekolah",
+      "academicYear": "2025/2026",
+      "principal": "Kepala Sekolah"
+    },
+    "header": {
+      "title": "Dashboard Eksekutif",
+      "academicYear": "Tahun Ajaran",
+      "welcome": "Selamat datang"
+    },
+    "trend": {
+      "title": "Tren Aktivitas 6 Bulan",
+      "subtitle": "Siswa aktif, penyelesaian pelajaran, dan percobaan kuis",
+      "empty": "Belum ada data tren aktivitas.",
+      "activeStudents": "Siswa Aktif",
+      "lessonCompletions": "Penyelesaian Pelajaran",
+      "quizAttempts": "Percobaan Kuis"
+    },
+    "roi": {
+      "title": "Estimasi Penghematan",
+      "sheetsSaved": "lembar dihemat",
+      "paperEquivalent": "Setara __VALUE__ per bulan",
+      "hoursEfficient": "jam/minggu lebih efisien",
+      "digitalGrading": "Dari penilaian tugas digital",
+      "digitalAdoptionScore": "Skor Adopsi Digital",
+      "viewDetail": "Lihat Detail ROI"
+    },
+    "academic": {
+      "title": "Ikhtisar Akademik",
+      "avgScore": "Rata-rata Nilai",
+      "projectedPassRate": "Tingkat Kelulusan Proyeksi",
+      "needsAttention": "Siswa Butuh Perhatian",
+      "viewAnalytics": "Lihat Analitik"
+    },
+    "quickActions": {
+      "title": "Tindakan Cepat",
+      "downloadMonthly": "Unduh Laporan Bulanan",
+      "pdfExcel": "Format PDF / Excel",
+      "foundationExport": "Export untuk Yayasan",
+      "excelCsv": "Format Excel/CSV",
+      "dashboardSettings": "Pengaturan Dashboard",
+      "displayConfig": "Konfigurasi tampilan",
+      "scheduleReport": "Jadwalkan Laporan",
+      "autoMonthly": "Laporan otomatis bulanan",
+      "beforeAfter": "Analitik Sebelum & Sesudah",
+      "realImpact": "Dampak nyata implementasi LMS",
+      "manageSurvey": "Kelola Survey Kepuasan",
+      "surveyDesc": "Survey guru, siswa & orang tua"
+    },
+    "empty": {
+      "title": "Belum Ada Data",
+      "description": "Data akan muncul setelah guru dan siswa mulai menggunakan EduSync secara aktif."
+    },
+    "metrics": {
+      "activeStudents": "Siswa Aktif",
+      "studentsSub": "__ACTIVE__ / __TOTAL__ siswa",
+      "activeTeachers": "Guru Aktif",
+      "teachersSub": "__ACTIVE__ / __TOTAL__ guru",
+      "activeCourses": "Kursus Aktif",
+      "publishedCourses": "kursus published",
+      "avgScore": "Rata-rata Nilai",
+      "avgQuizScore": "rata-rata nilai kuis"
+    },
+    "badges": {
+      "active": "Aktif",
+      "good": "Baik",
+      "fair": "Cukup",
+      "needsAttention": "Perlu Perhatian"
+    },
+    "units": {
+      "students": "siswa"
+    },
+    "shortcuts": {
+      "analyticsTitle": "Lihat Analitik Sebelum & Sesudah LMS",
+      "analyticsDescription": "Bandingkan kondisi sekolah sebelum dan sesudah implementasi EduSync",
+      "surveyTitle": "Kelola Survey Kepuasan",
+      "surveyDescription": "Buat survey untuk guru, siswa, dan orang tua",
+      "activeSurveys": "__COUNT__ survey aktif — klik untuk lihat respons"
+    }
   }
 }

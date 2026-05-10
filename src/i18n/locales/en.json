@@ -2398,5 +2398,86 @@
       "savedCurrency": "Saved __VALUE__",
       "savedHours": "Saved __VALUE__ hours"
     }
+  },
+  "executiveDashboard": {
+    "defaults": {
+      "school": "School",
+      "academicYear": "2025/2026",
+      "principal": "Principal"
+    },
+    "header": {
+      "title": "Executive Dashboard",
+      "academicYear": "Academic Year",
+      "welcome": "Welcome"
+    },
+    "trend": {
+      "title": "6-Month Activity Trend",
+      "subtitle": "Active students, lesson completions, and quiz attempts",
+      "empty": "No activity trend data yet.",
+      "activeStudents": "Active Students",
+      "lessonCompletions": "Lesson Completions",
+      "quizAttempts": "Quiz Attempts"
+    },
+    "roi": {
+      "title": "Estimated Savings",
+      "sheetsSaved": "sheets saved",
+      "paperEquivalent": "Equivalent to __VALUE__ per month",
+      "hoursEfficient": "hours/week more efficient",
+      "digitalGrading": "From digital assignment grading",
+      "digitalAdoptionScore": "Digital Adoption Score",
+      "viewDetail": "View ROI Details"
+    },
+    "academic": {
+      "title": "Academic Overview",
+      "avgScore": "Average Score",
+      "projectedPassRate": "Projected Pass Rate",
+      "needsAttention": "Students Needing Attention",
+      "viewAnalytics": "View Analytics"
+    },
+    "quickActions": {
+      "title": "Quick Actions",
+      "downloadMonthly": "Download Monthly Report",
+      "pdfExcel": "PDF / Excel format",
+      "foundationExport": "Export for Foundation",
+      "excelCsv": "Excel/CSV format",
+      "dashboardSettings": "Dashboard Settings",
+      "displayConfig": "Display configuration",
+      "scheduleReport": "Schedule Report",
+      "autoMonthly": "Automatic monthly reports",
+      "beforeAfter": "Before & After Analytics",
+      "realImpact": "Real LMS implementation impact",
+      "manageSurvey": "Manage Satisfaction Surveys",
+      "surveyDesc": "Teacher, student & parent surveys"
+    },
+    "empty": {
+      "title": "No Data Yet",
+      "description": "Data will appear after teachers and students start using EduSync actively."
+    },
+    "metrics": {
+      "activeStudents": "Active Students",
+      "studentsSub": "__ACTIVE__ / __TOTAL__ students",
+      "activeTeachers": "Active Teachers",
+      "teachersSub": "__ACTIVE__ / __TOTAL__ teachers",
+      "activeCourses": "Active Courses",
+      "publishedCourses": "published courses",
+      "avgScore": "Average Score",
+      "avgQuizScore": "average quiz score"
+    },
+    "badges": {
+      "active": "Active",
+      "good": "Good",
+      "fair": "Fair",
+      "needsAttention": "Needs Attention"
+    },
+    "units": {
+      "students": "students"
+    },
+    "shortcuts": {
+      "analyticsTitle": "View Before & After LMS Analytics",
+      "analyticsDescription": "Compare school conditions before and after EduSync implementation",
+      "surveyTitle": "Manage Satisfaction Surveys",
+      "surveyDescription": "Create surveys for teachers, students, and parents",
+      "activeSurveys": "__COUNT__ active surveys — click to view responses"
+    }
   }
 }
