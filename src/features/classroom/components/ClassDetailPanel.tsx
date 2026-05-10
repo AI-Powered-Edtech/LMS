@@ -96,6 +96,7 @@ export function ClassDetailPanel({
                 <div className="flex items-center gap-2">
                   <input
                     type="text"
+                    aria-label="Nama kelas"
                     value={renameValue}
                     onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
                       onSetRenameValue(e.target.value)
@@ -103,7 +104,6 @@ export function ClassDetailPanel({
                     onKeyDown={(e: React.KeyboardEvent<HTMLInputElement>) =>
                       e.key === "Enter" && onHandleRename(selectedClass.id)
                     }
-                    autoFocus
                     className="text-xl font-bold text-slate-900 dark:text-slate-100 bg-slate-50 dark:bg-slate-700 border border-slate-200 dark:border-slate-600 rounded-xl px-3 py-1.5 outline-none focus:ring-2 focus:ring-indigo-500 flex-1"
                   />
                   <button

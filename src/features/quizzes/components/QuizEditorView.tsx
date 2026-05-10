@@ -317,10 +317,14 @@ export function QuizEditorView({
 
         <div className="space-y-4">
           <div>
-            <label className="block text-xs font-bold text-slate-500 dark:text-slate-400 mb-1">
+            <label
+              htmlFor="quiz-title"
+              className="block text-xs font-bold text-slate-500 dark:text-slate-400 mb-1"
+            >
               Judul Kuis
             </label>
             <input
+              id="quiz-title"
               type="text"
               {...register("title")}
               disabled={isPublished}
@@ -340,10 +344,14 @@ export function QuizEditorView({
           </div>
 
           <div>
-            <label className="block text-xs font-bold text-slate-500 dark:text-slate-400 mb-1">
+            <label
+              htmlFor="quiz-instructions"
+              className="block text-xs font-bold text-slate-500 dark:text-slate-400 mb-1"
+            >
               Instruksi
             </label>
             <textarea
+              id="quiz-instructions"
               {...register("instructions")}
               disabled={isPublished}
               rows={2}
@@ -354,10 +362,14 @@ export function QuizEditorView({
 
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
             <div>
-              <label className="block text-xs font-bold text-slate-500 dark:text-slate-400 mb-1">
+              <label
+                htmlFor="quiz-mode"
+                className="block text-xs font-bold text-slate-500 dark:text-slate-400 mb-1"
+              >
                 Mode
               </label>
               <select
+                id="quiz-mode"
                 {...register("mode")}
                 disabled={isPublished}
                 className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-700 border border-slate-200 dark:border-slate-600 rounded-xl text-sm outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-60 dark:text-slate-100"
@@ -368,10 +380,14 @@ export function QuizEditorView({
               </select>
             </div>
             <div>
-              <label className="block text-xs font-bold text-slate-500 dark:text-slate-400 mb-1">
+              <label
+                htmlFor="quiz-time-limit"
+                className="block text-xs font-bold text-slate-500 dark:text-slate-400 mb-1"
+              >
                 Waktu (menit)
               </label>
               <input
+                id="quiz-time-limit"
                 type="number"
                 {...register("time_limit_minutes", { valueAsNumber: true })}
                 disabled={isPublished}
@@ -385,10 +401,14 @@ export function QuizEditorView({
               )}
             </div>
             <div>
-              <label className="block text-xs font-bold text-slate-500 dark:text-slate-400 mb-1">
+              <label
+                htmlFor="quiz-max-attempts"
+                className="block text-xs font-bold text-slate-500 dark:text-slate-400 mb-1"
+              >
                 Maks. Percobaan
               </label>
               <input
+                id="quiz-max-attempts"
                 type="number"
                 {...register("max_attempts", { valueAsNumber: true })}
                 disabled={isPublished}
@@ -401,10 +421,14 @@ export function QuizEditorView({
               )}
             </div>
             <div>
-              <label className="block text-xs font-bold text-slate-500 dark:text-slate-400 mb-1">
+              <label
+                htmlFor="quiz-passing-score"
+                className="block text-xs font-bold text-slate-500 dark:text-slate-400 mb-1"
+              >
                 Nilai Lulus (%)
               </label>
               <input
+                id="quiz-passing-score"
                 type="number"
                 {...register("passing_score", { valueAsNumber: true })}
                 disabled={isPublished}
