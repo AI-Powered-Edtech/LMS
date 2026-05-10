@@ -3,7 +3,7 @@ import { BookOpen, Filter, Loader2, Plus, Search } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 
-import { useToast } from "@/components/ui";
+import { ConfirmDialog, useToast } from "@/components/ui";
 import {
   QuestionBankItem,
   questionBankService,
@@ -24,6 +24,7 @@ export function QuestionBankPage() {
   const [searchTerm, setSearchTerm] = useState("");
   const [debouncedSearchTerm, setDebouncedSearchTerm] = useState("");
   const [typeFilter, setTypeFilter] = useState("");
+  const [pendingDeleteId, setPendingDeleteId] = useState<string | null>(null);
 
   // Editor modal state
   const [showEditor, setShowEditor] = useState(false);
@@ -80,12 +81,17 @@ export function QuestionBankPage() {
     setShowEditor(true);
   };
 
-  const handleDelete = async (id: string) => {
-    if (!confirm(t("questionBank.deleteConfirm"))) return;
+  const handleDelete = (id: string) => {
+    setPendingDeleteId(id);
+  };
+
+  const confirmDelete = async () => {
+    if (!pendingDeleteId) return;
 
     try {
-      await questionBankService.archiveQuestion(id);
-      setQuestions((q) => q.filter((item) => item.id !== id));
+      await questionBankService.archiveQuestion(pendingDeleteId);
+      setQuestions((q) => q.filter((item) => item.id !== pendingDeleteId));
+      setPendingDeleteId(null);
     } catch (error) {
       if (import.meta.env.DEV)
         logger.error("Failed to delete question:", error);
@@ -99,6 +105,15 @@ export function QuestionBankPage() {
 
   return (
     <div className="p-8 max-w-7xl mx-auto">
+      <ConfirmDialog
+        open={pendingDeleteId !== null}
+        title={t("questionBank.deleteConfirm")}
+        confirmLabel={t("common.delete")}
+        variant="danger"
+        onCancel={() => setPendingDeleteId(null)}
+        onConfirm={confirmDelete}
+      />
+
       <div className="flex flex-col md:flex-row justify-between md:items-center gap-4 mb-8">
         <div>
           <h1 className="text-2xl font-bold mb-2 flex items-center gap-2">
@@ -128,6 +143,7 @@ export function QuestionBankPage() {
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
             <input
               type="text"
+              aria-label={t("questionBank.search.placeholder")}
               placeholder={t("questionBank.search.placeholder")}
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
@@ -139,6 +155,7 @@ export function QuestionBankPage() {
             <div className="w-48 relative">
               <Filter className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
               <select
+                aria-label={t("questionBank.filter.all")}
                 value={typeFilter}
                 onChange={(e) => setTypeFilter(e.target.value)}
                 className="w-full pl-9 pr-8 py-2 border dark:border-slate-600 rounded-lg bg-slate-50 dark:bg-slate-700/50 focus:ring-2 focus:ring-indigo-500 outline-none appearance-none"

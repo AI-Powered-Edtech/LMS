@@ -2,6 +2,7 @@ import { HelpCircle } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 
+import { ConfirmDialog } from "@/components/ui";
 import { useAuth } from "@/contexts/AuthContext";
 import { classroomService } from "@/features/classroom/api/classroomService";
 import { useClassroom } from "@/features/classroom/hooks/useClassroomQueries";
@@ -65,6 +66,9 @@ export function QuizManager() {
   const [error, setError] = useState<string | null>(null);
   const [editingQuizId, setEditingQuizId] = useState<string | null>(null);
   const [expandedQuizId, setExpandedQuizId] = useState<string | null>(null);
+  const [pendingDeleteQuizId, setPendingDeleteQuizId] = useState<string | null>(
+    null,
+  );
 
   // Editor state
   const [isSaving, setIsSaving] = useState(false);
@@ -297,11 +301,16 @@ export function QuizManager() {
 
   // ─── Delete Quiz ────────────────────────────────────────
 
-  const handleDelete = async (quizId: string) => {
-    if (!confirm(t("quizManager.confirmDelete"))) return;
+  const handleDelete = (quizId: string) => {
+    setPendingDeleteQuizId(quizId);
+  };
+
+  const confirmDeleteQuiz = async () => {
+    if (!pendingDeleteQuizId) return;
     try {
-      await quizService.deleteQuiz(quizId, tenantId!);
-      setQuizzes((prev) => prev.filter((q) => q.id !== quizId));
+      await quizService.deleteQuiz(pendingDeleteQuizId, tenantId!);
+      setQuizzes((prev) => prev.filter((q) => q.id !== pendingDeleteQuizId));
+      setPendingDeleteQuizId(null);
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : String(err));
     }
@@ -332,23 +341,33 @@ export function QuizManager() {
 
   if (view === "list") {
     return (
-      <QuizListView
-        quizzes={quizzes}
-        isLoading={isLoading}
-        error={error}
-        activeTab={activeTab}
-        setActiveTab={setActiveTab}
-        expandedQuizId={expandedQuizId}
-        setExpandedQuizId={setExpandedQuizId}
-        activeClass={activeClass}
-        studentCount={studentCount}
-        assignModalQuizId={assignModalQuizId}
-        setAssignModalQuizId={setAssignModalQuizId}
-        openNewQuiz={openNewQuiz}
-        openEditQuiz={openEditQuiz}
-        handleDelete={handleDelete}
-        loadQuizzes={loadQuizzes}
-      />
+      <>
+        <ConfirmDialog
+          open={pendingDeleteQuizId !== null}
+          title={t("quizManager.confirmDelete")}
+          confirmLabel={t("common.delete")}
+          variant="danger"
+          onCancel={() => setPendingDeleteQuizId(null)}
+          onConfirm={confirmDeleteQuiz}
+        />
+        <QuizListView
+          quizzes={quizzes}
+          isLoading={isLoading}
+          error={error}
+          activeTab={activeTab}
+          setActiveTab={setActiveTab}
+          expandedQuizId={expandedQuizId}
+          setExpandedQuizId={setExpandedQuizId}
+          activeClass={activeClass}
+          studentCount={studentCount}
+          assignModalQuizId={assignModalQuizId}
+          setAssignModalQuizId={setAssignModalQuizId}
+          openNewQuiz={openNewQuiz}
+          openEditQuiz={openEditQuiz}
+          handleDelete={handleDelete}
+          loadQuizzes={loadQuizzes}
+        />
+      </>
     );
   }
 
