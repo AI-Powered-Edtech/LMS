@@ -321,22 +321,21 @@ export function AdminQuizOverview() {
       {activeTab === "quizzes" && (
         <>
           <div className="flex-1">
-            <label
-              htmlFor="search-input-1"
-              className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5"
-            >
+            <div className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">
               Pencarian
-            </label>
-            <div className="relative mb-4"></div>
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
-            <input
-              id="search-input-1"
-              type="text"
-              placeholder="Cari kuis, kelas, atau guru..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full pl-10 pr-4 py-2 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-500"
-            />
+            </div>
+            <div className="relative mb-4">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
+              <input
+                id="search-input-1"
+                type="text"
+                aria-label="Cari kuis, kelas, atau guru"
+                placeholder="Cari kuis, kelas, atau guru..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="w-full pl-10 pr-4 py-2 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-500"
+              />
+            </div>
           </div>
 
           <div className="bg-white rounded-2xl border border-slate-200 overflow-hidden">
