@@ -109,7 +109,10 @@ export function AnalyticsStudentTable({
                       <td className="px-6 py-4 font-semibold text-slate-900 dark:text-slate-100">
                         {student.name}
                         {isKritis && (
-                          <span className="ml-2 inline-block w-2 h-2 rounded-full bg-red-500 animate-pulse" />
+                          <span
+                            className="ml-2 inline-block w-2 h-2 rounded-full bg-red-500 animate-pulse"
+                            aria-hidden="true"
+                          />
                         )}
                       </td>
                       <td className="px-6 py-4 text-center">
@@ -122,7 +125,14 @@ export function AnalyticsStudentTable({
                           >
                             {Math.round(student.progress)}%
                           </span>
-                          <div className="w-16 h-1.5 bg-slate-100 dark:bg-slate-700 rounded-full mt-1 overflow-hidden">
+                          <div
+                            className="w-16 h-1.5 bg-slate-100 dark:bg-slate-700 rounded-full mt-1 overflow-hidden"
+                            role="progressbar"
+                            aria-label={`Progress ${student.name}`}
+                            aria-valuemin={0}
+                            aria-valuemax={100}
+                            aria-valuenow={Math.round(student.progress)}
+                          >
                             <div
                               className={cn(
                                 "h-full rounded-full",

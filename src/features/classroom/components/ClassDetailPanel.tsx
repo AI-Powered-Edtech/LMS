@@ -12,37 +12,38 @@ import {
   UserPlus,
   Users,
   X,
-} from 'lucide-react'
-import { useState } from 'react'
+} from "lucide-react";
+import { useState } from "react";
 
-import { EmptyState } from '@/components/ui'
-import type { EnrolledStudent } from '@/features/classroom/api/classroomService'
-import { QRCodeGenerator } from '@/features/classroom/components/QRCodeGenerator'
-import { useRoleBasedPath } from '@/hooks/useRoleBasedPath'
+import { ConfirmDialog, EmptyState } from "@/components/ui";
+import type { EnrolledStudent } from "@/features/classroom/api/classroomService";
+import { QRCodeGenerator } from "@/features/classroom/components/QRCodeGenerator";
+import { useLocaleFormatters } from "@/hooks/useLocaleFormatters";
+import { useRoleBasedPath } from "@/hooks/useRoleBasedPath";
 
 interface SelectedClass {
-  id: string
-  name: string
-  join_code: string
-  created_at: string
+  id: string;
+  name: string;
+  join_code: string;
+  created_at: string;
 }
 
 interface ClassDetailPanelProps {
-  selectedClass: SelectedClass | undefined
-  students: EnrolledStudent[]
-  studentCounts: Record<string, number>
-  loadingStudents: boolean
-  renamingClassId: string | null
-  renameValue: string
-  copiedId: string | null
-  onSetRenamingClassId: (id: string | null) => void
-  onSetRenameValue: (value: string) => void
-  onHandleRename: (classId: string) => void
-  onDeleteClass: (classId: string, className: string) => void
-  onHandleCopy: (text: string, id: string) => void
-  onSetActiveClassroomId: (id: string) => void
-  onNavigate: (path: string) => void
-  onRemoveStudent: (student: EnrolledStudent) => void
+  selectedClass: SelectedClass | undefined;
+  students: EnrolledStudent[];
+  studentCounts: Record<string, number>;
+  loadingStudents: boolean;
+  renamingClassId: string | null;
+  renameValue: string;
+  copiedId: string | null;
+  onSetRenamingClassId: (id: string | null) => void;
+  onSetRenameValue: (value: string) => void;
+  onHandleRename: (classId: string) => void;
+  onDeleteClass: (classId: string, className: string) => void;
+  onHandleCopy: (text: string, id: string) => void;
+  onSetActiveClassroomId: (id: string) => void;
+  onNavigate: (path: string) => void;
+  onRemoveStudent: (student: EnrolledStudent) => void;
 }
 
 export function ClassDetailPanel({
@@ -62,8 +63,11 @@ export function ClassDetailPanel({
   onNavigate,
   onRemoveStudent,
 }: ClassDetailPanelProps) {
-  const getPath = useRoleBasedPath()
-  const [showQR, setShowQR] = useState(false)
+  const getPath = useRoleBasedPath();
+  const { formatDate } = useLocaleFormatters();
+  const [showQR, setShowQR] = useState(false);
+  const [pendingRemoveStudent, setPendingRemoveStudent] =
+    useState<EnrolledStudent | null>(null);
 
   if (!selectedClass) {
     return (
@@ -73,10 +77,12 @@ export function ClassDetailPanel({
           <p className="font-medium text-slate-500 dark:text-slate-400">
             Pilih kelas untuk melihat detail
           </p>
-          <p className="text-sm mt-1">Pilih kelas dari panel kiri untuk mengelolanya.</p>
+          <p className="text-sm mt-1">
+            Pilih kelas dari panel kiri untuk mengelolanya.
+          </p>
         </div>
       </div>
-    )
+    );
   }
 
   return (
@@ -95,7 +101,7 @@ export function ClassDetailPanel({
                       onSetRenameValue(e.target.value)
                     }
                     onKeyDown={(e: React.KeyboardEvent<HTMLInputElement>) =>
-                      e.key === 'Enter' && onHandleRename(selectedClass.id)
+                      e.key === "Enter" && onHandleRename(selectedClass.id)
                     }
                     autoFocus
                     className="text-xl font-bold text-slate-900 dark:text-slate-100 bg-slate-50 dark:bg-slate-700 border border-slate-200 dark:border-slate-600 rounded-xl px-3 py-1.5 outline-none focus:ring-2 focus:ring-indigo-500 flex-1"
@@ -122,8 +128,8 @@ export function ClassDetailPanel({
                   </h2>
                   <button
                     onClick={() => {
-                      onSetRenamingClassId(selectedClass.id)
-                      onSetRenameValue(selectedClass.name)
+                      onSetRenamingClassId(selectedClass.id);
+                      onSetRenameValue(selectedClass.name);
                     }}
                     className="p-1.5 text-slate-400 hover:text-indigo-600 dark:hover:text-indigo-400 hover:bg-indigo-50 dark:hover:bg-indigo-900/30 rounded-lg transition-colors"
                     title="Rename"
@@ -134,16 +140,18 @@ export function ClassDetailPanel({
                 </div>
               )}
               <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">
-                Dibuat{' '}
-                {new Date(selectedClass.created_at).toLocaleDateString('id-ID', {
-                  year: 'numeric',
-                  month: 'long',
-                  day: 'numeric',
+                Dibuat{" "}
+                {formatDate(selectedClass.created_at, {
+                  year: "numeric",
+                  month: "long",
+                  day: "numeric",
                 })}
               </p>
             </div>
             <button
-              onClick={() => onDeleteClass(selectedClass.id, selectedClass.name)}
+              onClick={() =>
+                onDeleteClass(selectedClass.id, selectedClass.name)
+              }
               className="p-2 text-slate-400 hover:text-red-600 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/30 rounded-xl transition-colors"
               title="Hapus kelas"
               aria-label="Hapus kelas"
@@ -177,32 +185,39 @@ export function ClassDetailPanel({
                 <div className="flex gap-1.5 ml-auto flex-wrap">
                   <button
                     onClick={() =>
-                      onHandleCopy(selectedClass.join_code, 'code-' + selectedClass.id)
+                      onHandleCopy(
+                        selectedClass.join_code,
+                        "code-" + selectedClass.id,
+                      )
                     }
                     className="flex items-center gap-1.5 px-3 py-1.5 bg-white dark:bg-slate-700 border border-slate-200 dark:border-slate-600 hover:border-indigo-300 dark:hover:border-indigo-600 text-slate-600 dark:text-slate-300 hover:text-indigo-600 dark:hover:text-indigo-400 font-medium text-xs rounded-lg transition-colors"
                   >
-                    {copiedId === 'code-' + selectedClass.id ? (
+                    {copiedId === "code-" + selectedClass.id ? (
                       <Check className="w-3.5 h-3.5 text-emerald-500" />
                     ) : (
                       <Copy className="w-3.5 h-3.5" />
                     )}
-                    {copiedId === 'code-' + selectedClass.id ? 'Tersalin!' : 'Salin Kode'}
+                    {copiedId === "code-" + selectedClass.id
+                      ? "Tersalin!"
+                      : "Salin Kode"}
                   </button>
                   <button
                     onClick={() =>
                       onHandleCopy(
                         `${window.location.origin}/join?code=${selectedClass.join_code}`,
-                        'link-' + selectedClass.id
+                        "link-" + selectedClass.id,
                       )
                     }
                     className="flex items-center gap-1.5 px-3 py-1.5 bg-white dark:bg-slate-700 border border-slate-200 dark:border-slate-600 hover:border-indigo-300 dark:hover:border-indigo-600 text-slate-600 dark:text-slate-300 hover:text-indigo-600 dark:hover:text-indigo-400 font-medium text-xs rounded-lg transition-colors"
                   >
-                    {copiedId === 'link-' + selectedClass.id ? (
+                    {copiedId === "link-" + selectedClass.id ? (
                       <Check className="w-3.5 h-3.5 text-emerald-500" />
                     ) : (
                       <LinkIcon className="w-3.5 h-3.5" />
                     )}
-                    {copiedId === 'link-' + selectedClass.id ? 'Tersalin!' : 'Salin Link'}
+                    {copiedId === "link-" + selectedClass.id
+                      ? "Tersalin!"
+                      : "Salin Link"}
                   </button>
                   <button
                     onClick={() => setShowQR((v) => !v)}
@@ -232,8 +247,13 @@ export function ClassDetailPanel({
           <div className="flex flex-wrap gap-2 mt-4 pt-4 border-t border-slate-100 dark:border-slate-700">
             <button
               onClick={() => {
-                onSetActiveClassroomId(selectedClass.id)
-                onNavigate(getPath('/app/teacher/quiz-manager', '/app/admin/quiz-manager'))
+                onSetActiveClassroomId(selectedClass.id);
+                onNavigate(
+                  getPath(
+                    "/app/teacher/quiz-manager",
+                    "/app/admin/quiz-manager",
+                  ),
+                );
               }}
               className="flex items-center gap-1.5 px-3 py-2 bg-indigo-50 dark:bg-indigo-900/30 text-indigo-700 dark:text-indigo-300 font-bold text-xs rounded-lg hover:bg-indigo-100 dark:hover:bg-indigo-900/50 transition-colors"
             >
@@ -243,8 +263,8 @@ export function ClassDetailPanel({
             </button>
             <button
               onClick={() => {
-                onSetActiveClassroomId(selectedClass.id)
-                onNavigate(getPath('/assignments', '/app/admin/assignments'))
+                onSetActiveClassroomId(selectedClass.id);
+                onNavigate(getPath("/assignments", "/app/admin/assignments"));
               }}
               className="flex items-center gap-1.5 px-3 py-2 bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 font-bold text-xs rounded-lg hover:bg-blue-100 dark:hover:bg-blue-900/50 transition-colors"
             >
@@ -254,8 +274,10 @@ export function ClassDetailPanel({
             </button>
             <button
               onClick={() => {
-                onSetActiveClassroomId(selectedClass.id)
-                onNavigate(getPath('/app/teacher/analytics', '/app/admin/analytics'))
+                onSetActiveClassroomId(selectedClass.id);
+                onNavigate(
+                  getPath("/app/teacher/analytics", "/app/admin/analytics"),
+                );
               }}
               className="flex items-center gap-1.5 px-3 py-2 bg-emerald-50 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-300 font-bold text-xs rounded-lg hover:bg-emerald-100 dark:hover:bg-emerald-900/50 transition-colors"
             >
@@ -308,15 +330,15 @@ export function ClassDetailPanel({
                     </p>
                   </div>
                   <p className="text-[10px] text-slate-400 dark:text-slate-500 font-medium shrink-0 hidden sm:block">
-                    Bergabung{' '}
-                    {new Date(student.enrolled_at).toLocaleDateString('id-ID', {
-                      day: 'numeric',
-                      month: 'short',
-                      year: 'numeric',
+                    Bergabung{" "}
+                    {formatDate(student.enrolled_at, {
+                      day: "numeric",
+                      month: "short",
+                      year: "numeric",
                     })}
                   </p>
                   <button
-                    onClick={() => onRemoveStudent(student)}
+                    onClick={() => setPendingRemoveStudent(student)}
                     className="p-2 text-slate-300 dark:text-slate-600 hover:text-red-600 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/30 rounded-lg transition-colors shrink-0"
                     title="Keluarkan dari kelas"
                     aria-label="Keluarkan dari kelas"
@@ -329,6 +351,24 @@ export function ClassDetailPanel({
           )}
         </div>
       </div>
+
+      <ConfirmDialog
+        open={pendingRemoveStudent !== null}
+        title="Keluarkan siswa dari kelas?"
+        description={
+          pendingRemoveStudent
+            ? `${pendingRemoveStudent.full_name} tidak lagi terdaftar di kelas ini.`
+            : undefined
+        }
+        confirmLabel="Keluarkan"
+        variant="danger"
+        onCancel={() => setPendingRemoveStudent(null)}
+        onConfirm={() => {
+          if (!pendingRemoveStudent) return;
+          onRemoveStudent(pendingRemoveStudent);
+          setPendingRemoveStudent(null);
+        }}
+      />
     </div>
-  )
+  );
 }

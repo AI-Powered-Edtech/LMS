@@ -135,7 +135,9 @@ export function GuideAnalytics({ courseId }: Props) {
                 <th className="pb-2 text-right font-medium text-slate-500 dark:text-slate-400">
                   Selesai
                 </th>
-                <th className="pb-2" />
+                <th className="pb-2">
+                  <span className="sr-only">Aksi</span>
+                </th>
               </tr>
             </thead>
             <tbody>
