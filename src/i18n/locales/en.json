@@ -1952,5 +1952,50 @@
     "noStudentsFound": "No students found",
     "gradeAssignments": "Assignment Grades (__COUNT__)",
     "nis": "ID: __NIS__"
+  },
+  "studentProgress": {
+    "pageTitle": "Student Progress",
+    "subtitle": "Learning Progress & Achievements",
+    "defaultStudentName": "Unnamed Student",
+    "defaultCourseTitle": "Unenrolled Course",
+    "fallbackCourseLabel": "Course",
+    "errors": {
+      "tenantMissing": "Unable to load data: tenant not found.",
+      "loadFailed": "Failed to load student progress",
+      "dataNotFound": "Data not found"
+    },
+    "noStudentSelected": {
+      "descriptionPrefix": "Select a student from ",
+      "descriptionLink": "User Management",
+      "descriptionSuffix": " to view their learning progress."
+    },
+    "breadcrumb": {
+      "dashboard": "Dashboard",
+      "studentProgress": "Student Progress"
+    },
+    "stats": {
+      "lessonsDone": "Lessons Done",
+      "totalXp": "Total XP",
+      "achievements": "Achievements"
+    },
+    "courses": {
+      "title": "Course Progress",
+      "empty": "No course progress yet.",
+      "progressAria": "Progress __TITLE__: __PERCENT__%",
+      "lessonsProgress": "__DONE__ / __TOTAL__ Lessons Done",
+      "lastActivity": "Last activity: __DATE__"
+    },
+    "quiz": {
+      "title": "Quiz History",
+      "empty": "No quiz history yet.",
+      "itemPrefix": "Quiz: ",
+      "fallback": "Quiz #__ID__",
+      "score": "Score: __SCORE__"
+    },
+    "badges": {
+      "title": "Badge List",
+      "empty": "No badges earned yet.",
+      "fallback": "Badge"
+    }
   }
 }

@@ -1,5 +1,6 @@
 import { Award, BarChart2, BookOpen, TrendingUp } from "lucide-react";
 import { useEffect, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { useParams } from "react-router-dom";
 
 import { Breadcrumb, OptimizedImage } from "@/components/ui";
@@ -14,7 +15,8 @@ import { cn } from "@/utils/cn";
 import { logger } from "@/utils/logger";
 
 export function StudentProgress() {
-  usePageTitle("Progres Siswa");
+  const { t } = useTranslation();
+  usePageTitle(t("studentProgress.pageTitle"));
   const { studentId } = useParams();
   const { tenantId } = useAuth();
   const [data, setData] = useState<StudentProgressData | null>(null);
@@ -30,7 +32,7 @@ export function StudentProgress() {
       }
 
       if (!tenantId) {
-        setError("Tidak dapat memuat data: tenant tidak ditemukan.");
+        setError(t("studentProgress.errors.tenantMissing"));
         setLoading(false);
         return;
       }
@@ -46,7 +48,7 @@ export function StudentProgress() {
       } catch (err: unknown) {
         if (import.meta.env.DEV)
           logger.warn("Student progress unavailable:", err);
-        setError("Gagal memuat progres siswa");
+        setError(t("studentProgress.errors.loadFailed"));
       } finally {
         setLoading(false);
       }
@@ -58,7 +60,7 @@ export function StudentProgress() {
   if (loading) {
     return (
       <div className="max-w-6xl mx-auto space-y-4 pb-12">
-        <h1 className="sr-only">Progres Siswa</h1>
+        <h1 className="sr-only">{t("studentProgress.pageTitle")}</h1>
         <ProgressSkeleton />
       </div>
     );
@@ -70,17 +72,17 @@ export function StudentProgress() {
       <div className="flex-1 w-full flex flex-col items-center justify-center p-12 text-slate-500 dark:text-slate-400">
         <TrendingUp className="w-12 h-12 mb-4 text-slate-300 dark:text-slate-600" />
         <h1 className="text-lg font-medium text-slate-700 dark:text-slate-300 mb-2">
-          Progres Siswa
+          {t("studentProgress.pageTitle")}
         </h1>
         <p className="text-sm text-center">
-          Pilih siswa dari halaman{" "}
+          {t("studentProgress.noStudentSelected.descriptionPrefix")}
           <a
             href="/app/admin/users"
             className="text-blue-600 dark:text-blue-400 underline"
           >
-            Manajemen Pengguna
-          </a>{" "}
-          untuk melihat progres belajar mereka.
+            {t("studentProgress.noStudentSelected.descriptionLink")}
+          </a>
+          {t("studentProgress.noStudentSelected.descriptionSuffix")}
         </p>
       </div>
     );
@@ -90,10 +92,10 @@ export function StudentProgress() {
     return (
       <div className="flex-1 w-full flex flex-col items-center justify-center p-12 text-slate-500 dark:text-slate-400">
         <h1 className="text-xl font-bold text-slate-800 dark:text-slate-200 mb-2">
-          Progres Siswa
+          {t("studentProgress.pageTitle")}
         </h1>
         <p className="text-red-500 font-bold mb-2">
-          {error || "Data tidak ditemukan"}
+          {error || t("studentProgress.errors.dataNotFound")}
         </p>
       </div>
     );
@@ -107,7 +109,8 @@ export function StudentProgress() {
     achievements,
     courseProgress,
   } = data;
-  const studentName = profile?.full_name || "Siswa Tanpa Nama";
+  const studentName =
+    profile?.full_name || t("studentProgress.defaultStudentName");
   const avatarUrl =
     profile?.avatar_url ||
     `https://api.dicebear.com/7.x/avataaars/svg?seed=${studentName}`;
@@ -116,8 +119,11 @@ export function StudentProgress() {
     <div className="max-w-6xl mx-auto space-y-8 pb-12">
       <Breadcrumb
         items={[
-          { label: "Dashboard", href: "/app/teacher/dashboard" },
-          { label: "Kemajuan Siswa" },
+          {
+            label: t("studentProgress.breadcrumb.dashboard"),
+            href: "/app/teacher/dashboard",
+          },
+          { label: t("studentProgress.breadcrumb.studentProgress") },
         ]}
         className="mb-2"
       />
@@ -134,7 +140,7 @@ export function StudentProgress() {
             {studentName}
           </h1>
           <p className="text-slate-500 dark:text-slate-400">
-            Progres Belajar & Pencapaian
+            {t("studentProgress.subtitle")}
           </p>
         </div>
       </div>
@@ -146,7 +152,7 @@ export function StudentProgress() {
           </div>
           <div>
             <p className="text-sm font-bold text-slate-500 dark:text-slate-400 uppercase">
-              Materi Selesai
+              {t("studentProgress.stats.lessonsDone")}
             </p>
             <p className="text-2xl font-black text-slate-900 dark:text-slate-100">
               {completedLessonsCount}
@@ -159,7 +165,7 @@ export function StudentProgress() {
           </div>
           <div>
             <p className="text-sm font-bold text-slate-500 dark:text-slate-400 uppercase">
-              Total XP
+              {t("studentProgress.stats.totalXp")}
             </p>
             <p className="text-2xl font-black text-slate-900 dark:text-slate-100">
               {totalXP}
@@ -172,7 +178,7 @@ export function StudentProgress() {
           </div>
           <div>
             <p className="text-sm font-bold text-slate-500 dark:text-slate-400 uppercase">
-              Pencapaian
+              {t("studentProgress.stats.achievements")}
             </p>
             <p className="text-2xl font-black text-slate-900 dark:text-slate-100">
               {achievements.length}
@@ -183,55 +189,68 @@ export function StudentProgress() {
 
       <div className="bg-white dark:bg-slate-800 p-6 rounded-3xl shadow-sm border border-slate-200 dark:border-slate-700">
         <h2 className="text-xl font-bold text-slate-800 dark:text-slate-200 mb-6 flex items-center gap-2">
-          <BookOpen className="w-5 h-5 text-blue-600" /> Progres Kursus
+          <BookOpen className="w-5 h-5 text-blue-600" />{" "}
+          {t("studentProgress.courses.title")}
         </h2>
         <div className="space-y-4">
           {!courseProgress || courseProgress.length === 0 ? (
             <p className="text-slate-500 dark:text-slate-400 italic text-sm text-center py-4">
-              Belum ada progres kursus.
+              {t("studentProgress.courses.empty")}
             </p>
           ) : (
-            courseProgress.map((cp) => (
-              <div
-                key={cp.id}
-                className="p-4 bg-slate-50 dark:bg-slate-700/50 rounded-xl border border-slate-100 dark:border-slate-700"
-              >
-                <div className="flex justify-between items-center mb-2">
-                  <h3 className="font-bold text-slate-800 dark:text-slate-200">
-                    {cp.courses?.title || "Kursus Tidak Terdaftar"}
-                  </h3>
-                  <span className="text-sm font-bold text-blue-600">
-                    {cp.percentage}%
-                  </span>
-                </div>
+            courseProgress.map((cp) => {
+              const courseTitle =
+                cp.courses?.title || t("studentProgress.defaultCourseTitle");
+              const fallbackLabel =
+                cp.courses?.title || t("studentProgress.fallbackCourseLabel");
+              return (
                 <div
-                  role="progressbar"
-                  aria-valuenow={cp.percentage}
-                  aria-valuemin={0}
-                  aria-valuemax={100}
-                  aria-label={`Progres ${cp.courses?.title || "Kursus"}: ${cp.percentage}%`}
-                  className="w-full bg-slate-200 rounded-full h-2.5 mb-2 overflow-hidden"
+                  key={cp.id}
+                  className="p-4 bg-slate-50 dark:bg-slate-700/50 rounded-xl border border-slate-100 dark:border-slate-700"
                 >
-                  <div
-                    className="bg-blue-600 h-2.5 rounded-full transition-all duration-500"
-                    style={{ width: `${Math.min(cp.percentage ?? 0, 100)}%` }}
-                  ></div>
-                </div>
-                <div className="flex justify-between text-xs text-slate-500 dark:text-slate-400">
-                  <span>
-                    {cp.completed_lessons} / {cp.total_lessons} Materi Selesai
-                  </span>
-                  {cp.last_activity_at && (
-                    <span>
-                      Aktivitas terakhir:{" "}
-                      {new Date(cp.last_activity_at).toLocaleDateString(
-                        "id-ID",
-                      )}
+                  <div className="flex justify-between items-center mb-2">
+                    <h3 className="font-bold text-slate-800 dark:text-slate-200">
+                      {courseTitle}
+                    </h3>
+                    <span className="text-sm font-bold text-blue-600">
+                      {cp.percentage}%
                     </span>
-                  )}
+                  </div>
+                  <div
+                    role="progressbar"
+                    aria-valuenow={cp.percentage}
+                    aria-valuemin={0}
+                    aria-valuemax={100}
+                    aria-label={t("studentProgress.courses.progressAria")
+                      .replace("__TITLE__", fallbackLabel)
+                      .replace("__PERCENT__", String(cp.percentage))}
+                    className="w-full bg-slate-200 rounded-full h-2.5 mb-2 overflow-hidden"
+                  >
+                    <div
+                      className="bg-blue-600 h-2.5 rounded-full transition-all duration-500"
+                      style={{ width: `${Math.min(cp.percentage ?? 0, 100)}%` }}
+                    ></div>
+                  </div>
+                  <div className="flex justify-between text-xs text-slate-500 dark:text-slate-400">
+                    <span>
+                      {t("studentProgress.courses.lessonsProgress")
+                        .replace("__DONE__", String(cp.completed_lessons))
+                        .replace("__TOTAL__", String(cp.total_lessons))}
+                    </span>
+                    {cp.last_activity_at && (
+                      <span>
+                        {t("studentProgress.courses.lastActivity").replace(
+                          "__DATE__",
+                          new Date(cp.last_activity_at).toLocaleDateString(
+                            "id-ID",
+                          ),
+                        )}
+                      </span>
+                    )}
+                  </div>
                 </div>
-              </div>
-            ))
+              );
+            })
           )}
         </div>
       </div>
@@ -239,12 +258,13 @@ export function StudentProgress() {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
         <div className="bg-white dark:bg-slate-800 p-6 rounded-3xl shadow-sm border border-slate-200 dark:border-slate-700">
           <h2 className="text-xl font-bold text-slate-800 dark:text-slate-200 mb-6 flex items-center gap-2">
-            <BarChart2 className="w-5 h-5 text-blue-600" /> Riwayat Kuis
+            <BarChart2 className="w-5 h-5 text-blue-600" />{" "}
+            {t("studentProgress.quiz.title")}
           </h2>
           <div className="space-y-4">
             {quizAttempts.length === 0 ? (
               <p className="text-slate-500 dark:text-slate-400 italic text-sm text-center py-4">
-                Belum ada riwayat kuis.
+                {t("studentProgress.quiz.empty")}
               </p>
             ) : (
               quizAttempts.map((attempt) => {
@@ -257,7 +277,11 @@ export function StudentProgress() {
                     <div>
                       {/* FIXED: Display quiz title if available, or shortened UUID instead of raw UUID */}
                       <p className="font-bold text-slate-800 dark:text-slate-200">
-                        Kuis: {"Kuis #" + attempt.quiz_id.slice(0, 8)}
+                        {t("studentProgress.quiz.itemPrefix")}
+                        {t("studentProgress.quiz.fallback").replace(
+                          "__ID__",
+                          attempt.quiz_id.slice(0, 8),
+                        )}
                       </p>
                       <p className="text-xs text-slate-500 dark:text-slate-400">
                         {attempt.created_at
@@ -275,7 +299,10 @@ export function StudentProgress() {
                           : "bg-red-100 text-red-700",
                       )}
                     >
-                      Nilai: {attempt.score}
+                      {t("studentProgress.quiz.score").replace(
+                        "__SCORE__",
+                        String(attempt.score),
+                      )}
                     </span>
                   </div>
                 );
@@ -286,12 +313,13 @@ export function StudentProgress() {
 
         <div className="bg-white dark:bg-slate-800 p-6 rounded-3xl shadow-sm border border-slate-200 dark:border-slate-700">
           <h2 className="text-xl font-bold text-slate-800 dark:text-slate-200 mb-6 flex items-center gap-2">
-            <Award className="w-5 h-5 text-amber-500" /> Daftar Lencana
+            <Award className="w-5 h-5 text-amber-500" />{" "}
+            {t("studentProgress.badges.title")}
           </h2>
           <div className="grid grid-cols-2 gap-4">
             {achievements.length === 0 ? (
               <p className="text-slate-500 dark:text-slate-400 italic text-sm text-center py-4 col-span-2">
-                Belum ada lencana yang diraih.
+                {t("studentProgress.badges.empty")}
               </p>
             ) : (
               achievements.map((ach) => (
@@ -307,7 +335,7 @@ export function StudentProgress() {
                         : "🎯"}
                   </div>
                   <p className="font-bold text-slate-800 dark:text-slate-200 text-sm">
-                    {ach.badges?.name || "Badge"}
+                    {ach.badges?.name || t("studentProgress.badges.fallback")}
                   </p>
                   <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
                     {new Date(ach.earned_at).toLocaleDateString("id-ID")}

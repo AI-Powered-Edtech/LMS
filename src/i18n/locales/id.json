@@ -1952,5 +1952,50 @@
     "noStudentsFound": "Tidak ada siswa yang ditemukan",
     "gradeAssignments": "Nilai Tugas (__COUNT__)",
     "nis": "NIS: __NIS__"
+  },
+  "studentProgress": {
+    "pageTitle": "Progres Siswa",
+    "subtitle": "Progres Belajar & Pencapaian",
+    "defaultStudentName": "Siswa Tanpa Nama",
+    "defaultCourseTitle": "Kursus Tidak Terdaftar",
+    "fallbackCourseLabel": "Kursus",
+    "errors": {
+      "tenantMissing": "Tidak dapat memuat data: tenant tidak ditemukan.",
+      "loadFailed": "Gagal memuat progres siswa",
+      "dataNotFound": "Data tidak ditemukan"
+    },
+    "noStudentSelected": {
+      "descriptionPrefix": "Pilih siswa dari halaman ",
+      "descriptionLink": "Manajemen Pengguna",
+      "descriptionSuffix": " untuk melihat progres belajar mereka."
+    },
+    "breadcrumb": {
+      "dashboard": "Dashboard",
+      "studentProgress": "Kemajuan Siswa"
+    },
+    "stats": {
+      "lessonsDone": "Materi Selesai",
+      "totalXp": "Total XP",
+      "achievements": "Pencapaian"
+    },
+    "courses": {
+      "title": "Progres Kursus",
+      "empty": "Belum ada progres kursus.",
+      "progressAria": "Progres __TITLE__: __PERCENT__%",
+      "lessonsProgress": "__DONE__ / __TOTAL__ Materi Selesai",
+      "lastActivity": "Aktivitas terakhir: __DATE__"
+    },
+    "quiz": {
+      "title": "Riwayat Kuis",
+      "empty": "Belum ada riwayat kuis.",
+      "itemPrefix": "Kuis: ",
+      "fallback": "Kuis #__ID__",
+      "score": "Nilai: __SCORE__"
+    },
+    "badges": {
+      "title": "Daftar Lencana",
+      "empty": "Belum ada lencana yang diraih.",
+      "fallback": "Badge"
+    }
   }
 }
