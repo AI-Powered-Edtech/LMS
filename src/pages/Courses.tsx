@@ -13,15 +13,17 @@ import {
   Users,
 } from "lucide-react";
 import { AnimatePresence, motion } from "motion/react";
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router-dom";
 
 import { AssignCourseModal } from "@/components/Classroom/AssignCourseModal";
+import { ConfirmDialog } from "@/components/ui";
 import { useAuth } from "@/contexts/AuthContext";
 import { Course, courseService } from "@/features/courses";
 import { useInfiniteCoursesQuery } from "@/features/courses/queries/courseQueries";
 import { useDebounce } from "@/hooks/useDebounce";
+import { useLocaleFormatters } from "@/hooks/useLocaleFormatters";
 import { useRoleBasedPath } from "@/hooks/useRoleBasedPath";
 import { useToast } from "@/hooks/useToast";
 import { defaultCsvFilename, exportCsv } from "@/shared/utils/export-table";
@@ -75,6 +77,26 @@ export const Courses: React.FC = () => {
   const [newSubject, setNewSubject] = useState("");
   const [newLevel, setNewLevel] = useState("");
   const [isCreating, setIsCreating] = useState(false);
+  const [confirmDiscardOpen, setConfirmDiscardOpen] = useState(false);
+
+  const hasCreateDraft =
+    newTitle.trim() ||
+    newDescription.trim() ||
+    newSubject.trim() ||
+    newLevel.trim();
+
+  const discardCreateDraft = useCallback(() => {
+    setConfirmDiscardOpen(false);
+    setIsModalOpen(false);
+  }, []);
+
+  const requestCloseCreateModal = useCallback(() => {
+    if (hasCreateDraft) {
+      setConfirmDiscardOpen(true);
+      return;
+    }
+    setIsModalOpen(false);
+  }, [hasCreateDraft]);
 
   // Assign Class Modal State
   const [assignModal, setAssignModal] = useState<{
@@ -91,20 +113,12 @@ export const Courses: React.FC = () => {
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === "Escape" && isModalOpen) {
-        if (
-          newTitle.trim() ||
-          newDescription.trim() ||
-          newSubject.trim() ||
-          newLevel.trim()
-        ) {
-          if (!window.confirm(t("courses.create.unsavedConfirm"))) return;
-        }
-        setIsModalOpen(false);
+        requestCloseCreateModal();
       }
     };
     document.addEventListener("keydown", handleKeyDown);
     return () => document.removeEventListener("keydown", handleKeyDown);
-  }, [isModalOpen, newDescription, newLevel, newSubject, newTitle, t]);
+  }, [isModalOpen, requestCloseCreateModal]);
 
   // P2 fix: focus trap untuk modal create-course (a11y)
   const modalDialogRef = useRef<HTMLDivElement>(null);
@@ -160,7 +174,10 @@ export const Courses: React.FC = () => {
     refetch,
   } = useInfiniteCoursesQuery(debouncedSearch);
 
-  const courses = data?.pages.flatMap((p) => p.courses) ?? [];
+  const courses = useMemo(
+    () => data?.pages.flatMap((p) => p.courses) ?? [],
+    [data?.pages],
+  );
 
   // Sentinel for IntersectionObserver — triggers loading the next page
   const sentinelRef = useRef<HTMLDivElement>(null);
@@ -186,15 +203,19 @@ export const Courses: React.FC = () => {
 
   // Server-side search covers title. Client-side filter covers description
   // (the service only does ilike on title, so we locally filter description as well)
-  const filteredCourses = debouncedSearch
-    ? courses.filter(
-        (c) =>
-          c.title.toLowerCase().includes(debouncedSearch.toLowerCase()) ||
-          (c.description ?? "")
-            .toLowerCase()
-            .includes(debouncedSearch.toLowerCase()),
-      )
-    : courses;
+  const filteredCourses = useMemo(
+    () =>
+      debouncedSearch
+        ? courses.filter(
+            (c) =>
+              c.title.toLowerCase().includes(debouncedSearch.toLowerCase()) ||
+              (c.description ?? "")
+                .toLowerCase()
+                .includes(debouncedSearch.toLowerCase()),
+          )
+        : courses,
+    [courses, debouncedSearch],
+  );
 
   const handleCreateCourse = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -428,6 +449,16 @@ export const Courses: React.FC = () => {
         </div>
       )}
 
+      <ConfirmDialog
+        open={confirmDiscardOpen}
+        title={t("courses.create.unsavedConfirm")}
+        description={t("courses.create.description")}
+        confirmLabel={t("common.confirm")}
+        variant="warning"
+        onCancel={() => setConfirmDiscardOpen(false)}
+        onConfirm={discardCreateDraft}
+      />
+
       {/* Create Course Modal */}
       <AnimatePresence>
         {isModalOpen && (
@@ -437,16 +468,7 @@ export const Courses: React.FC = () => {
             className="fixed inset-0 z-50 flex items-center justify-center px-4 bg-black/60 backdrop-blur-md"
             onClick={(e) => {
               if (e.target === e.currentTarget) {
-                if (
-                  newTitle.trim() ||
-                  newDescription.trim() ||
-                  newSubject.trim() ||
-                  newLevel.trim()
-                ) {
-                  if (!window.confirm(t("courses.create.unsavedConfirm")))
-                    return;
-                }
-                setIsModalOpen(false);
+                requestCloseCreateModal();
               }
             }}
           >
@@ -486,12 +508,16 @@ export const Courses: React.FC = () => {
                 >
                   {/* Judul Materi */}
                   <div>
-                    <label className="flex items-center gap-2 text-sm font-bold text-gray-700 dark:text-gray-300 mb-2">
+                    <label
+                      htmlFor="course-title"
+                      className="flex items-center gap-2 text-sm font-bold text-gray-700 dark:text-gray-300 mb-2"
+                    >
                       <FileText className="w-4 h-4 text-gray-400" />
                       {t("courses.create.titleLabel")}{" "}
                       <span className="text-red-500">*</span>
                     </label>
                     <input
+                      id="course-title"
                       type="text"
                       required
                       maxLength={255}
@@ -499,19 +525,22 @@ export const Courses: React.FC = () => {
                       onChange={(e) => setNewTitle(e.target.value)}
                       className="w-full px-4 py-3.5 border border-gray-200 dark:border-gray-600/80 rounded-xl bg-gray-50/50 dark:bg-gray-700/30 text-gray-900 dark:text-white focus:bg-white dark:focus:bg-gray-700 focus:ring-4 focus:ring-indigo-500/20 focus:border-indigo-500 outline-none transition-all font-medium text-base shadow-sm"
                       placeholder={t("courses.create.titlePlaceholder")}
-                      autoFocus
                     />
                   </div>
 
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     {/* Mata Pelajaran */}
                     <div>
-                      <label className="flex items-center gap-2 text-sm font-bold text-gray-700 dark:text-gray-300 mb-2">
+                      <label
+                        htmlFor="course-subject"
+                        className="flex items-center gap-2 text-sm font-bold text-gray-700 dark:text-gray-300 mb-2"
+                      >
                         <BookOpen className="w-4 h-4 text-gray-400" />
                         {t("courses.create.subjectLabel")}
                       </label>
                       <div className="relative">
                         <input
+                          id="course-subject"
                           type="text"
                           maxLength={100}
                           value={newSubject}
@@ -525,12 +554,16 @@ export const Courses: React.FC = () => {
 
                     {/* Tingkat / Level */}
                     <div>
-                      <label className="flex items-center gap-2 text-sm font-bold text-gray-700 dark:text-gray-300 mb-2">
+                      <label
+                        htmlFor="course-level"
+                        className="flex items-center gap-2 text-sm font-bold text-gray-700 dark:text-gray-300 mb-2"
+                      >
                         <LayoutList className="w-4 h-4 text-gray-400" />
                         {t("courses.create.levelLabel")}
                       </label>
                       <div className="relative">
                         <select
+                          id="course-level"
                           value={newLevel}
                           onChange={(e) => setNewLevel(e.target.value)}
                           className="w-full pl-4 pr-10 py-3.5 border border-gray-200 dark:border-gray-600/80 rounded-xl bg-gray-50/50 dark:bg-gray-700/30 text-gray-900 dark:text-white focus:bg-white dark:focus:bg-gray-700 focus:ring-4 focus:ring-indigo-500/20 focus:border-indigo-500 outline-none transition-all font-medium appearance-none shadow-sm cursor-pointer"
@@ -561,11 +594,15 @@ export const Courses: React.FC = () => {
 
                   {/* Deskripsi */}
                   <div>
-                    <label className="flex items-center gap-2 text-sm font-bold text-gray-700 dark:text-gray-300 mb-2">
+                    <label
+                      htmlFor="course-description"
+                      className="flex items-center gap-2 text-sm font-bold text-gray-700 dark:text-gray-300 mb-2"
+                    >
                       <FileText className="w-4 h-4 text-gray-400" />
                       {t("courses.create.shortDescriptionLabel")}
                     </label>
                     <textarea
+                      id="course-description"
                       rows={3}
                       value={newDescription}
                       onChange={(e) => setNewDescription(e.target.value)}
@@ -581,18 +618,7 @@ export const Courses: React.FC = () => {
               <div className="px-8 py-5 border-t border-gray-100 dark:border-gray-700/50 bg-gray-50/50 dark:bg-gray-800/50 flex gap-3 justify-end items-center mt-auto">
                 <button
                   type="button"
-                  onClick={() => {
-                    if (
-                      newTitle.trim() ||
-                      newDescription.trim() ||
-                      newSubject.trim() ||
-                      newLevel.trim()
-                    ) {
-                      if (!window.confirm(t("courses.create.unsavedConfirm")))
-                        return;
-                    }
-                    setIsModalOpen(false);
-                  }}
+                  onClick={requestCloseCreateModal}
                   className="px-6 py-2.5 text-gray-600 dark:text-gray-300 font-bold hover:bg-gray-200 dark:hover:bg-gray-700 rounded-xl transition-colors"
                   disabled={isCreating}
                 >
@@ -645,7 +671,8 @@ function CourseCard({
   onNavigate,
   onAssign,
 }: CourseCardProps) {
-  const { t, i18n } = useTranslation();
+  const { t } = useTranslation();
+  const { formatDate } = useLocaleFormatters();
   const moduleCount = course.modules?.length ?? course.module_count ?? null;
 
   return (
@@ -720,14 +747,11 @@ function CourseCard({
             {/* M-1: Guard against null updated_at to avoid "Invalid Date" */}
             <span>
               {course.updated_at
-                ? new Date(course.updated_at).toLocaleDateString(
-                    i18n.language === "en" ? "en-US" : "id-ID",
-                    {
-                      day: "2-digit",
-                      month: "short",
-                      year: "numeric",
-                    },
-                  )
+                ? formatDate(course.updated_at, {
+                    day: "2-digit",
+                    month: "short",
+                    year: "numeric",
+                  })
                 : "-"}
             </span>
           </div>
