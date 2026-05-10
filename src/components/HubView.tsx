@@ -1,7 +1,7 @@
 import { ArrowRight, Inbox } from "lucide-react";
 import { motion } from "motion/react";
-import { Link } from "react-router-dom";
 import { useTranslation } from "react-i18next";
+import { Link } from "react-router-dom";
 
 import { NavItem } from "@/shared/config/navigation";
 import { cn } from "@/utils/cn";

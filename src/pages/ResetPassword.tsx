@@ -1,8 +1,8 @@
 import { valibotResolver } from '@hookform/resolvers/valibot'
 import { Eye, EyeOff } from 'lucide-react'
 import { useEffect, useRef, useState } from 'react'
-import { useTranslation } from 'react-i18next'
 import { useForm } from 'react-hook-form'
+import { useTranslation } from 'react-i18next'
 import { Link, useNavigate } from 'react-router-dom'
 
 import { FormField } from '@/components/ui/FormField'

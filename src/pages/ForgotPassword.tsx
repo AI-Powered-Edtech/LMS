@@ -1,7 +1,7 @@
 import { valibotResolver } from '@hookform/resolvers/valibot'
 import { useState } from 'react'
-import { useTranslation } from 'react-i18next'
 import { useForm } from 'react-hook-form'
+import { useTranslation } from 'react-i18next'
 import { Link } from 'react-router-dom'
 
 import { FormField } from '@/components/ui/FormField'

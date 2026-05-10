@@ -1,8 +1,8 @@
 import { Eye, EyeOff } from "lucide-react";
 import React, { useState } from "react";
 import type { UseFormReturn } from "react-hook-form";
-import { Link } from "react-router-dom";
 import { useTranslation } from "react-i18next";
+import { Link } from "react-router-dom";
 
 import { FormField } from "@/components/ui/FormField";
 import type { LoginFormData } from "@/shared/schemas/forms";
