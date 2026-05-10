@@ -1,36 +1,58 @@
-import { Check, Clock, FileText, Plus, Trash2, Upload, VideoIcon } from 'lucide-react'
-import { AnimatePresence, motion } from 'motion/react'
-import { useEffect, useState } from 'react'
+import {
+  Check,
+  Clock,
+  FileText,
+  Plus,
+  Trash2,
+  Upload,
+  VideoIcon,
+} from "lucide-react";
+import { AnimatePresence, motion } from "motion/react";
+import { useEffect, useState } from "react";
+import { useTranslation } from "react-i18next";
 
-import { Modal, ModalBody, ModalFooter, ModalHeader, Tabs } from '@/components/ui'
-import { useAuth } from '@/contexts/AuthContext'
+import {
+  Modal,
+  ModalBody,
+  ModalFooter,
+  ModalHeader,
+  Tabs,
+} from "@/components/ui";
+import { useAuth } from "@/contexts/AuthContext";
 import {
   type VideoCaption,
   videoCaptionService,
-} from '@/features/courses/services/videoCaptionService'
-import type { InteractiveEvent, InteractiveVideoMetadata } from '@/features/lessons/types'
-import { getTeacherQuizzes } from '@/features/quizzes/api/quizManager.service'
-import { type VideoAsset, VideoProcessingStatus, VideoUploader } from '@/features/video'
-import { logger } from '@/utils/logger'
+} from "@/features/courses/services/videoCaptionService";
+import type {
+  InteractiveEvent,
+  InteractiveVideoMetadata,
+} from "@/features/lessons/types";
+import { getTeacherQuizzes } from "@/features/quizzes/api/quizManager.service";
+import {
+  type VideoAsset,
+  VideoProcessingStatus,
+  VideoUploader,
+} from "@/features/video";
+import { logger } from "@/utils/logger";
 
 interface InteractiveVideoEditorProps {
-  metadata: InteractiveVideoMetadata
-  onSave: (metadata: InteractiveVideoMetadata) => void
-  onClose: () => void
-  lessonId?: string // optional — enables caption tab when provided
-  blockId?: string // optional — for per-block caption scoping
+  metadata: InteractiveVideoMetadata;
+  onSave: (metadata: InteractiveVideoMetadata) => void;
+  onClose: () => void;
+  lessonId?: string; // optional — enables caption tab when provided
+  blockId?: string; // optional — for per-block caption scoping
   /** Called when a video is uploaded so the parent can auto-fill the URL field */
-  onVideoUploaded?: (videoUrl: string, hlsUrl: string | null) => void
+  onVideoUploaded?: (videoUrl: string, hlsUrl: string | null) => void;
 }
 
 const LANGUAGE_OPTIONS = [
-  { code: 'id', label: 'Bahasa Indonesia' },
-  { code: 'en', label: 'English' },
-  { code: 'jv', label: 'Basa Jawa' },
-  { code: 'su', label: 'Basa Sunda' },
-]
+  { code: "id", labelKey: "interactiveVideoEditor.languages.id" },
+  { code: "en", labelKey: "interactiveVideoEditor.languages.en" },
+  { code: "jv", labelKey: "interactiveVideoEditor.languages.jv" },
+  { code: "su", labelKey: "interactiveVideoEditor.languages.su" },
+];
 
-type ActiveTab = 'upload' | 'events' | 'captions'
+type ActiveTab = "upload" | "events" | "captions";
 
 export function InteractiveVideoEditor({
   metadata,
@@ -40,95 +62,110 @@ export function InteractiveVideoEditor({
   blockId,
   onVideoUploaded,
 }: InteractiveVideoEditorProps) {
-  const { tenantId } = useAuth()
-  const [events, setEvents] = useState<InteractiveEvent[]>(metadata.interactiveEvents || [])
-  const [quizzes, setQuizzes] = useState<{ id: string; title: string }[]>([])
-  const [_loading, setLoading] = useState(true)
+  const { t } = useTranslation();
+  const { tenantId } = useAuth();
+  const [events, setEvents] = useState<InteractiveEvent[]>(
+    metadata.interactiveEvents || [],
+  );
+  const [quizzes, setQuizzes] = useState<{ id: string; title: string }[]>([]);
+  const [_loading, setLoading] = useState(true);
 
   // Tab state — 'upload' tab always first when lessonId is provided
-  const [activeTab, setActiveTab] = useState<ActiveTab>('upload')
+  const [activeTab, setActiveTab] = useState<ActiveTab>("upload");
 
   // Upload state
-  const [uploadedAsset, setUploadedAsset] = useState<VideoAsset | null>(null)
+  const [uploadedAsset, setUploadedAsset] = useState<VideoAsset | null>(null);
 
   // Caption state
-  const [captions, setCaptions] = useState<VideoCaption[]>([])
-  const [captionLoading, setCaptionLoading] = useState(false)
-  const [uploadFile, setUploadFile] = useState<File | null>(null)
-  const [uploadLang, setUploadLang] = useState('id')
-  const [uploadLabel, setUploadLabel] = useState('Bahasa Indonesia')
-  const [captionUploading, setCaptionUploading] = useState(false)
-  const [captionError, setCaptionError] = useState<string | null>(null)
+  const [captions, setCaptions] = useState<VideoCaption[]>([]);
+  const [captionLoading, setCaptionLoading] = useState(false);
+  const [uploadFile, setUploadFile] = useState<File | null>(null);
+  const [uploadLang, setUploadLang] = useState("id");
+  const [uploadLabel, setUploadLabel] = useState(() =>
+    t("interactiveVideoEditor.languages.id"),
+  );
+  const [captionUploading, setCaptionUploading] = useState(false);
+  const [captionError, setCaptionError] = useState<string | null>(null);
 
   // Load quizzes for event selector
   useEffect(() => {
     async function loadQuizzes() {
-      if (!tenantId) return
+      if (!tenantId) return;
       try {
-        const data = await getTeacherQuizzes(tenantId)
-         
-        setQuizzes(data.map((q: any) => ({ id: String(q.id ?? ''), title: String(q.title ?? '') })))
+        const data = await getTeacherQuizzes(tenantId);
+
+        setQuizzes(
+          data.map((q: any) => ({
+            id: String(q.id ?? ""),
+            title: String(q.title ?? ""),
+          })),
+        );
       } catch (err) {
-        logger.error('Failed to load quizzes', err)
+        logger.error("Failed to load quizzes", err);
       } finally {
-        setLoading(false)
+        setLoading(false);
       }
     }
-    void loadQuizzes()
-  }, [tenantId])
+    void loadQuizzes();
+  }, [tenantId]);
 
   // Load captions when lessonId is available
   useEffect(() => {
-    if (!lessonId) return
-    setCaptionLoading(true)
+    if (!lessonId) return;
+    setCaptionLoading(true);
     videoCaptionService
       .getCaptions(lessonId, blockId)
       .then(setCaptions)
-      .catch((err) => logger.error('Failed to load captions', err))
-      .finally(() => setCaptionLoading(false))
-  }, [lessonId, blockId])
+      .catch((err) => logger.error("Failed to load captions", err))
+      .finally(() => setCaptionLoading(false));
+  }, [lessonId, blockId]);
 
   // ─── Video upload handler ─────────────────────────────────────────────────
 
   const handleVideoUploaded = (asset: VideoAsset) => {
-    setUploadedAsset(asset)
+    setUploadedAsset(asset);
     // Notify parent to auto-fill video URL field
-    const videoUrl = asset.hls_url ?? asset.mp4_url ?? ''
-    onVideoUploaded?.(videoUrl, asset.hls_url ?? null)
-  }
+    const videoUrl = asset.hls_url ?? asset.mp4_url ?? "";
+    onVideoUploaded?.(videoUrl, asset.hls_url ?? null);
+  };
 
   // ─── Event handlers ───────────────────────────────────────────────────────
 
   const handleAddEvent = () => {
-    setEvents([...events, { timeInSeconds: 0, type: 'quiz' }])
-  }
+    setEvents([...events, { timeInSeconds: 0, type: "quiz" }]);
+  };
 
-  const handleUpdateEvent = (index: number, updates: Partial<InteractiveEvent>) => {
-    const newEvents = [...events]
-    newEvents[index] = { ...newEvents[index], ...updates }
-    setEvents(newEvents)
-  }
+  const handleUpdateEvent = (
+    index: number,
+    updates: Partial<InteractiveEvent>,
+  ) => {
+    const newEvents = [...events];
+    newEvents[index] = { ...newEvents[index], ...updates };
+    setEvents(newEvents);
+  };
 
   const handleDeleteEvent = (index: number) => {
-    const newEvents = [...events]
-    newEvents.splice(index, 1)
-    setEvents(newEvents)
-  }
+    const newEvents = [...events];
+    newEvents.splice(index, 1);
+    setEvents(newEvents);
+  };
 
   const handleSave = () => {
     onSave({
       ...metadata,
-      interactiveEvents: events.sort((a, b) => a.timeInSeconds - b.timeInSeconds),
-    })
-    onClose()
-  }
+      interactiveEvents: events.sort(
+        (a, b) => a.timeInSeconds - b.timeInSeconds,
+      ),
+    });
+    onClose();
+  };
 
   // ─── Caption handlers ─────────────────────────────────────────────────────
 
   const handleUploadCaption = async () => {
-    if (!tenantId || !lessonId || !uploadFile) return
-    setCaptionUploading(true)
-    setCaptionError(null)
+    if (!tenantId || !lessonId || !uploadFile) return;
+    setCaptionUploading(true);
+    setCaptionError(null);
     try {
       const newCaption = await videoCaptionService.uploadCaption(
         tenantId,
@@ -136,76 +173,89 @@ export function InteractiveVideoEditor({
         blockId ?? null,
         uploadLang,
         uploadLabel,
-        uploadFile
-      )
-      setCaptions((prev) => [...prev, newCaption])
-      setUploadFile(null)
-      setUploadLabel('Bahasa Indonesia')
-      setUploadLang('id')
+        uploadFile,
+      );
+      setCaptions((prev) => [...prev, newCaption]);
+      setUploadFile(null);
+      setUploadLabel(t("interactiveVideoEditor.languages.id"));
+      setUploadLang("id");
     } catch (err) {
-      setCaptionError(err instanceof Error ? err.message : 'Upload gagal')
+      setCaptionError(
+        err instanceof Error
+          ? err.message
+          : t("interactiveVideoEditor.errors.uploadFailed"),
+      );
     } finally {
-      setCaptionUploading(false)
+      setCaptionUploading(false);
     }
-  }
+  };
 
   const handleDeleteCaption = async (captionId: string) => {
     try {
-      await videoCaptionService.deleteCaption(captionId)
-      setCaptions((prev) => prev.filter((c) => c.id !== captionId))
+      await videoCaptionService.deleteCaption(captionId);
+      setCaptions((prev) => prev.filter((c) => c.id !== captionId));
     } catch (err) {
-      logger.error('Failed to delete caption', err)
+      logger.error("Failed to delete caption", err);
     }
-  }
+  };
 
   const handleSetDefault = async (captionId: string) => {
-    if (!lessonId) return
+    if (!lessonId) return;
     try {
-      await videoCaptionService.setDefaultCaption(captionId, lessonId)
-      setCaptions((prev) => prev.map((c) => ({ ...c, is_default: c.id === captionId })))
+      await videoCaptionService.setDefaultCaption(captionId, lessonId);
+      setCaptions((prev) =>
+        prev.map((c) => ({ ...c, is_default: c.id === captionId })),
+      );
     } catch (err) {
-      logger.error('Failed to set default caption', err)
+      logger.error("Failed to set default caption", err);
     }
-  }
+  };
 
   // ─── Time helpers ─────────────────────────────────────────────────────────
 
   const formatTime = (seconds: number) => {
-    const m = Math.floor(seconds / 60)
-    const s = Math.floor(seconds % 60)
-    return `${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`
-  }
+    const m = Math.floor(seconds / 60);
+    const s = Math.floor(seconds % 60);
+    return `${m.toString().padStart(2, "0")}:${s.toString().padStart(2, "0")}`;
+  };
 
   const parseTime = (timeStr: string) => {
-    const parts = timeStr.split(':')
+    const parts = timeStr.split(":");
     if (parts.length === 2) {
-      return parseInt(parts[0]) * 60 + parseInt(parts[1])
+      return parseInt(parts[0]) * 60 + parseInt(parts[1]);
     }
-    return parseInt(timeStr) || 0
-  }
+    return parseInt(timeStr) || 0;
+  };
 
   // ─── Tab config ───────────────────────────────────────────────────────────
 
   const tabItems = [
     {
-      id: 'upload',
-      label: 'Unggah Video',
+      id: "upload",
+      label: t("interactiveVideoEditor.tabs.upload"),
       icon: <VideoIcon className="w-4 h-4" />,
     },
-    { id: 'events', label: 'Event Interaktif', icon: <Clock className="w-4 h-4" /> },
     {
-      id: 'captions',
-      label: 'Teks & Subtitel',
+      id: "events",
+      label: t("interactiveVideoEditor.tabs.events"),
+      icon: <Clock className="w-4 h-4" />,
+    },
+    {
+      id: "captions",
+      label: t("interactiveVideoEditor.tabs.captions"),
       icon: <FileText className="w-4 h-4" />,
       count: captions.length > 0 ? captions.length : undefined,
     },
-  ]
+  ];
 
   // ─── Render ───────────────────────────────────────────────────────────────
 
   return (
     <Modal open={true} onClose={onClose} size="2xl">
-      <ModalHeader title="Edit Interaksi Video" onClose={onClose} />
+      <ModalHeader
+        title={t("interactiveVideoEditor.modalTitle")}
+        onClose={onClose}
+      />
 
       {/* Tabs — only shown when lessonId is provided */}
       {lessonId && (
@@ -220,32 +270,35 @@ export function InteractiveVideoEditor({
 
       <ModalBody className="space-y-4">
         {/* ── Upload Video Tab ── */}
-        {activeTab === 'upload' && lessonId && (
+        {activeTab === "upload" && lessonId && (
           <div className="space-y-4">
             <div className="flex items-start gap-3 p-4 rounded-xl bg-blue-50 dark:bg-blue-950/30 border border-blue-200 dark:border-blue-800">
               <VideoIcon className="w-5 h-5 text-blue-500 dark:text-blue-400 shrink-0 mt-0.5" />
               <div>
                 <p className="text-sm font-semibold text-blue-800 dark:text-blue-200 mb-1">
-                  Unggah video langsung ke EduSync
+                  {t("interactiveVideoEditor.upload.title")}
                 </p>
                 <p className="text-xs text-blue-700 dark:text-blue-300 leading-relaxed">
-                  Video akan disimpan di VIL Storage. Setelah selesai, URL video akan otomatis
-                  diisi ke kolom URL di atas.
+                  {t("interactiveVideoEditor.upload.description")}
                 </p>
               </div>
             </div>
 
-            <VideoUploader lessonId={lessonId} blockId={blockId} onUploaded={handleVideoUploaded} />
+            <VideoUploader
+              lessonId={lessonId}
+              blockId={blockId}
+              onUploaded={handleVideoUploaded}
+            />
 
             {/* Show processing status if upload resulted in an asset still being processed */}
-            {uploadedAsset && uploadedAsset.status === 'processing' && (
+            {uploadedAsset && uploadedAsset.status === "processing" && (
               <VideoProcessingStatus asset={uploadedAsset} />
             )}
           </div>
         )}
 
         {/* ── Events Tab ── */}
-        {activeTab === 'events' && (
+        {activeTab === "events" && (
           <>
             <AnimatePresence mode="popLayout">
               {events.length === 0 ? (
@@ -259,17 +312,17 @@ export function InteractiveVideoEditor({
                     <Clock className="w-8 h-8 text-neutral-400 dark:text-neutral-500" />
                   </div>
                   <h3 className="text-lg font-bold text-neutral-700 dark:text-neutral-200 mb-2">
-                    Belum ada event
+                    {t("interactiveVideoEditor.events.empty.title")}
                   </h3>
                   <p className="text-neutral-500 dark:text-neutral-400 max-w-sm mx-auto mb-6 text-sm">
-                    Tambahkan event untuk memunculkan kuis saat video diputar.
+                    {t("interactiveVideoEditor.events.empty.description")}
                   </p>
                   <button
                     onClick={handleAddEvent}
                     className="inline-flex items-center gap-2 px-4 py-2 bg-indigo-50 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400 font-semibold rounded-lg hover:bg-indigo-100 dark:hover:bg-indigo-900/50 transition-colors"
                   >
                     <Plus className="w-4 h-4" />
-                    Tambah Event Pertama
+                    {t("interactiveVideoEditor.events.empty.addFirst")}
                   </button>
                 </motion.div>
               ) : (
@@ -284,20 +337,22 @@ export function InteractiveVideoEditor({
                   >
                     <div className="w-full md:w-32 shrink-0">
                       <label className="block text-xs font-semibold text-neutral-500 dark:text-neutral-400 mb-1.5 uppercase tracking-wider">
-                        Waktu (MM:SS)
+                        {t("interactiveVideoEditor.events.timeLabel")}
                       </label>
                       <input
                         type="text"
                         placeholder="00:00"
                         value={formatTime(event.timeInSeconds)}
                         onChange={(e) => {
-                          const val = e.target.value
+                          const val = e.target.value;
                           if (/^[0-9:]*$/.test(val)) {
                             // Update on blur only
                           }
                         }}
                         onBlur={(e) =>
-                          handleUpdateEvent(idx, { timeInSeconds: parseTime(e.target.value) })
+                          handleUpdateEvent(idx, {
+                            timeInSeconds: parseTime(e.target.value),
+                          })
                         }
                         className="w-full px-3 py-2 bg-neutral-50 dark:bg-neutral-700 border border-neutral-200 dark:border-neutral-600 rounded-lg text-sm font-medium text-neutral-900 dark:text-neutral-100 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:bg-neutral-50 dark:focus:bg-neutral-600 transition-colors"
                       />
@@ -305,14 +360,18 @@ export function InteractiveVideoEditor({
 
                     <div className="w-full md:flex-1">
                       <label className="block text-xs font-semibold text-neutral-500 dark:text-neutral-400 mb-1.5 uppercase tracking-wider">
-                        Pilih Kuis
+                        {t("interactiveVideoEditor.events.quizLabel")}
                       </label>
                       <select
-                        value={event.quizId || ''}
-                        onChange={(e) => handleUpdateEvent(idx, { quizId: e.target.value })}
+                        value={event.quizId || ""}
+                        onChange={(e) =>
+                          handleUpdateEvent(idx, { quizId: e.target.value })
+                        }
                         className="w-full px-3 py-2 bg-neutral-50 dark:bg-neutral-700 border border-neutral-200 dark:border-neutral-600 rounded-lg text-sm font-medium text-neutral-900 dark:text-neutral-100 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:bg-neutral-50 dark:focus:bg-neutral-600 transition-colors"
                       >
-                        <option value="">-- Pilih Kuis --</option>
+                        <option value="">
+                          {t("interactiveVideoEditor.events.quizPlaceholder")}
+                        </option>
                         {quizzes.map((q) => (
                           <option key={q.id} value={q.id}>
                             {q.title}
@@ -324,7 +383,7 @@ export function InteractiveVideoEditor({
                     <button
                       onClick={() => handleDeleteEvent(idx)}
                       className="p-2 text-danger-400 hover:text-danger-600 dark:hover:text-danger-400 hover:bg-danger-50 dark:hover:bg-danger-900/30 rounded-lg transition-colors mt-6 md:mt-0"
-                      title="Hapus Event"
+                      title={t("interactiveVideoEditor.events.deleteTitle")}
                     >
                       <Trash2 className="w-5 h-5" />
                     </button>
@@ -338,31 +397,31 @@ export function InteractiveVideoEditor({
                 className="w-full py-3 border-2 border-dashed border-neutral-200 dark:border-neutral-700 rounded-xl text-neutral-500 dark:text-neutral-400 font-medium hover:border-indigo-300 dark:hover:border-indigo-600 hover:text-indigo-600 dark:hover:text-indigo-400 hover:bg-indigo-50/50 dark:hover:bg-indigo-900/20 transition-all flex items-center justify-center gap-2"
               >
                 <Plus className="w-4 h-4" />
-                Tambah Event Lagi
+                {t("interactiveVideoEditor.events.addAgain")}
               </button>
             )}
           </>
         )}
 
         {/* ── Captions Tab ── */}
-        {activeTab === 'captions' && lessonId && (
+        {activeTab === "captions" && lessonId && (
           <div className="space-y-6">
             {/* Existing captions list */}
             {captionLoading ? (
               <div className="text-center py-8 text-neutral-500 dark:text-neutral-400 text-sm">
-                Memuat daftar subtitle...
+                {t("interactiveVideoEditor.captions.loading")}
               </div>
             ) : captions.length === 0 ? (
               <div className="text-center py-8 border-2 border-dashed border-neutral-200 dark:border-neutral-700 rounded-2xl">
                 <FileText className="w-8 h-8 text-neutral-300 dark:text-neutral-600 mx-auto mb-2" />
                 <p className="text-neutral-500 dark:text-neutral-400 text-sm">
-                  Belum ada subtitle. Unggah file WebVTT di bawah.
+                  {t("interactiveVideoEditor.captions.empty")}
                 </p>
               </div>
             ) : (
               <div className="space-y-2">
                 <h4 className="text-xs font-semibold text-neutral-500 dark:text-neutral-400 uppercase tracking-wider">
-                  Subtitle Tersedia
+                  {t("interactiveVideoEditor.captions.available")}
                 </h4>
                 {captions.map((caption) => (
                   <div
@@ -378,7 +437,7 @@ export function InteractiveVideoEditor({
                         {caption.language_code.toUpperCase()}
                         {caption.is_default && (
                           <span className="ml-2 text-green-600 dark:text-green-400 font-semibold">
-                            • Default
+                            • {t("interactiveVideoEditor.captions.default")}
                           </span>
                         )}
                       </p>
@@ -387,15 +446,17 @@ export function InteractiveVideoEditor({
                       <button
                         onClick={() => handleSetDefault(caption.id)}
                         className="text-xs text-indigo-600 dark:text-indigo-400 hover:underline shrink-0"
-                        title="Jadikan default"
+                        title={t(
+                          "interactiveVideoEditor.captions.makeDefaultTitle",
+                        )}
                       >
-                        Set default
+                        {t("interactiveVideoEditor.captions.setDefault")}
                       </button>
                     )}
                     <button
                       onClick={() => handleDeleteCaption(caption.id)}
                       className="p-1.5 text-danger-400 hover:text-danger-600 hover:bg-danger-50 dark:hover:bg-danger-900/30 rounded-lg transition-colors shrink-0"
-                      title="Hapus subtitle"
+                      title={t("interactiveVideoEditor.captions.deleteTitle")}
                     >
                       <Trash2 className="w-4 h-4" />
                     </button>
@@ -407,33 +468,35 @@ export function InteractiveVideoEditor({
             {/* Upload form */}
             <div className="border border-neutral-200 dark:border-neutral-700 rounded-2xl p-4 space-y-4">
               <h4 className="text-sm font-semibold text-neutral-700 dark:text-neutral-200">
-                Unggah Subtitle Baru (WebVTT)
+                {t("interactiveVideoEditor.captions.uploadNew")}
               </h4>
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
                   <label className="block text-xs font-semibold text-neutral-500 dark:text-neutral-400 mb-1.5 uppercase tracking-wider">
-                    Bahasa
+                    {t("interactiveVideoEditor.captions.language")}
                   </label>
                   <select
                     value={uploadLang}
                     onChange={(e) => {
-                      const opt = LANGUAGE_OPTIONS.find((o) => o.code === e.target.value)
-                      setUploadLang(e.target.value)
-                      if (opt) setUploadLabel(opt.label)
+                      const opt = LANGUAGE_OPTIONS.find(
+                        (o) => o.code === e.target.value,
+                      );
+                      setUploadLang(e.target.value);
+                      if (opt) setUploadLabel(t(opt.labelKey));
                     }}
                     className="w-full px-3 py-2 bg-neutral-50 dark:bg-neutral-700 border border-neutral-200 dark:border-neutral-600 rounded-lg text-sm font-medium text-neutral-900 dark:text-neutral-100 focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-colors"
                   >
                     {LANGUAGE_OPTIONS.map((opt) => (
                       <option key={opt.code} value={opt.code}>
-                        {opt.label}
+                        {t(opt.labelKey)}
                       </option>
                     ))}
                   </select>
                 </div>
                 <div>
                   <label className="block text-xs font-semibold text-neutral-500 dark:text-neutral-400 mb-1.5 uppercase tracking-wider">
-                    Label Tampil
+                    {t("interactiveVideoEditor.captions.displayLabel")}
                   </label>
                   <input
                     type="text"
@@ -446,12 +509,14 @@ export function InteractiveVideoEditor({
 
               <div>
                 <label className="block text-xs font-semibold text-neutral-500 dark:text-neutral-400 mb-1.5 uppercase tracking-wider">
-                  File WebVTT
+                  {t("interactiveVideoEditor.captions.fileWebvtt")}
                 </label>
                 <label className="flex items-center gap-3 p-3 border-2 border-dashed border-neutral-200 dark:border-neutral-700 rounded-xl cursor-pointer hover:border-indigo-300 dark:hover:border-indigo-600 transition-colors">
                   <Upload className="w-5 h-5 text-neutral-400 shrink-0" />
                   <span className="text-sm text-neutral-500 dark:text-neutral-400 flex-1 truncate">
-                    {uploadFile ? uploadFile.name : 'Klik untuk memilih file .vtt'}
+                    {uploadFile
+                      ? uploadFile.name
+                      : t("interactiveVideoEditor.captions.chooseFile")}
                   </span>
                   <input
                     type="file"
@@ -463,7 +528,9 @@ export function InteractiveVideoEditor({
               </div>
 
               {captionError && (
-                <p className="text-sm text-danger-600 dark:text-danger-400">{captionError}</p>
+                <p className="text-sm text-danger-600 dark:text-danger-400">
+                  {captionError}
+                </p>
               )}
 
               <button
@@ -474,12 +541,12 @@ export function InteractiveVideoEditor({
                 {captionUploading ? (
                   <>
                     <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                    Mengupload...
+                    {t("interactiveVideoEditor.captions.uploading")}
                   </>
                 ) : (
                   <>
                     <Upload className="w-4 h-4" />
-                    Unggah Subtitle
+                    {t("interactiveVideoEditor.captions.uploadButton")}
                   </>
                 )}
               </button>
@@ -493,18 +560,18 @@ export function InteractiveVideoEditor({
           onClick={onClose}
           className="px-5 py-2.5 text-neutral-600 dark:text-neutral-400 font-medium hover:bg-neutral-200/50 dark:hover:bg-neutral-700/50 rounded-xl transition-colors"
         >
-          Batal
+          {t("interactiveVideoEditor.actions.cancel")}
         </button>
-        {activeTab === 'events' && (
+        {activeTab === "events" && (
           <button
             onClick={handleSave}
             className="px-5 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold rounded-xl transition-colors shadow-sm shadow-indigo-200 dark:shadow-indigo-900 flex items-center gap-2"
           >
             <Check className="w-4 h-4" />
-            Simpan Perubahan
+            {t("interactiveVideoEditor.actions.saveChanges")}
           </button>
         )}
       </ModalFooter>
     </Modal>
-  )
+  );
 }

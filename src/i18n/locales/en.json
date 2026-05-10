@@ -2557,5 +2557,58 @@
         "failed": "Failed"
       }
     }
+  },
+  "interactiveVideoEditor": {
+    "modalTitle": "Edit Video Interactions",
+    "languages": {
+      "id": "Indonesian",
+      "en": "English",
+      "jv": "Javanese",
+      "su": "Sundanese"
+    },
+    "tabs": {
+      "upload": "Upload Video",
+      "events": "Interactive Events",
+      "captions": "Captions & Subtitles"
+    },
+    "upload": {
+      "title": "Upload video directly to EduSync",
+      "description": "The video will be stored in VIL Storage. Once complete, the video URL will be filled into the URL field above automatically."
+    },
+    "events": {
+      "empty": {
+        "title": "No events yet",
+        "description": "Add an event to show a quiz while the video plays.",
+        "addFirst": "Add First Event"
+      },
+      "timeLabel": "Time (MM:SS)",
+      "quizLabel": "Select Quiz",
+      "quizPlaceholder": "-- Select Quiz --",
+      "deleteTitle": "Delete Event",
+      "addAgain": "Add Another Event"
+    },
+    "captions": {
+      "loading": "Loading subtitle list...",
+      "empty": "No subtitles yet. Upload a WebVTT file below.",
+      "available": "Available Subtitles",
+      "default": "Default",
+      "makeDefaultTitle": "Make default",
+      "setDefault": "Set default",
+      "deleteTitle": "Delete subtitle",
+      "uploadNew": "Upload New Subtitle (WebVTT)",
+      "language": "Language",
+      "displayLabel": "Display Label",
+      "fileWebvtt": "WebVTT File",
+      "chooseFile": "Click to choose a .vtt file",
+      "uploading": "Uploading...",
+      "uploadButton": "Upload Subtitle"
+    },
+    "actions": {
+      "cancel": "Cancel",
+      "saveChanges": "Save Changes"
+    },
+    "errors": {
+      "uploadFailed": "Upload failed"
+    }
   }
 }

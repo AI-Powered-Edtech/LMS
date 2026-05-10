@@ -2557,5 +2557,58 @@
         "failed": "Gagal"
       }
     }
+  },
+  "interactiveVideoEditor": {
+    "modalTitle": "Edit Interaksi Video",
+    "languages": {
+      "id": "Bahasa Indonesia",
+      "en": "English",
+      "jv": "Basa Jawa",
+      "su": "Basa Sunda"
+    },
+    "tabs": {
+      "upload": "Unggah Video",
+      "events": "Event Interaktif",
+      "captions": "Teks & Subtitel"
+    },
+    "upload": {
+      "title": "Unggah video langsung ke EduSync",
+      "description": "Video akan disimpan di VIL Storage. Setelah selesai, URL video akan otomatis diisi ke kolom URL di atas."
+    },
+    "events": {
+      "empty": {
+        "title": "Belum ada event",
+        "description": "Tambahkan event untuk memunculkan kuis saat video diputar.",
+        "addFirst": "Tambah Event Pertama"
+      },
+      "timeLabel": "Waktu (MM:SS)",
+      "quizLabel": "Pilih Kuis",
+      "quizPlaceholder": "-- Pilih Kuis --",
+      "deleteTitle": "Hapus Event",
+      "addAgain": "Tambah Event Lagi"
+    },
+    "captions": {
+      "loading": "Memuat daftar subtitle...",
+      "empty": "Belum ada subtitle. Unggah file WebVTT di bawah.",
+      "available": "Subtitle Tersedia",
+      "default": "Default",
+      "makeDefaultTitle": "Jadikan default",
+      "setDefault": "Set default",
+      "deleteTitle": "Hapus subtitle",
+      "uploadNew": "Unggah Subtitle Baru (WebVTT)",
+      "language": "Bahasa",
+      "displayLabel": "Label Tampil",
+      "fileWebvtt": "File WebVTT",
+      "chooseFile": "Klik untuk memilih file .vtt",
+      "uploading": "Mengupload...",
+      "uploadButton": "Unggah Subtitle"
+    },
+    "actions": {
+      "cancel": "Batal",
+      "saveChanges": "Simpan Perubahan"
+    },
+    "errors": {
+      "uploadFailed": "Upload gagal"
+    }
   }
 }
