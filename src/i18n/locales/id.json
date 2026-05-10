@@ -1997,5 +1997,42 @@
       "empty": "Belum ada lencana yang diraih.",
       "fallback": "Badge"
     }
+  },
+  "certificateTemplate": {
+    "title": "Template Sertifikat",
+    "subtitle": "Buat dan kelola desain sertifikat untuk kursus Anda",
+    "createButton": "Buat Template Baru",
+    "defaultBadge": "Default",
+    "editButton": "Edit",
+    "setDefaultButton": "Jadikan Default",
+    "deleteButton": "Hapus",
+    "empty": {
+      "title": "Belum ada template",
+      "description": "Buat template sertifikat untuk memberikan tampilan unik pada sertifikat kursus Anda."
+    },
+    "preview": {
+      "placeholderStudent": "Nama Siswa",
+      "placeholderCourse": "Nama Kursus"
+    },
+    "editor": {
+      "editTitle": "Edit Template",
+      "createTitle": "Buat Template Baru"
+    },
+    "deleteConfirm": {
+      "title": "Hapus Template?",
+      "description": "Tindakan ini tidak dapat dibatalkan. Template yang dihapus tidak bisa dipulihkan.",
+      "deleting": "Menghapus...",
+      "confirm": "Ya, Hapus",
+      "cancel": "Batal"
+    },
+    "toasts": {
+      "deleteSuccess": "Template berhasil dihapus",
+      "deleteFailedPrefix": "Gagal menghapus template: __MSG__",
+      "setDefaultSuccess": "Template dijadikan default",
+      "setDefaultFailedPrefix": "Gagal mengubah default: __MSG__"
+    },
+    "errors": {
+      "generic": "Terjadi kesalahan"
+    }
   }
 }

@@ -1997,5 +1997,42 @@
       "empty": "No badges earned yet.",
       "fallback": "Badge"
     }
+  },
+  "certificateTemplate": {
+    "title": "Certificate Templates",
+    "subtitle": "Design and manage certificates for your courses",
+    "createButton": "New Template",
+    "defaultBadge": "Default",
+    "editButton": "Edit",
+    "setDefaultButton": "Set as Default",
+    "deleteButton": "Delete",
+    "empty": {
+      "title": "No templates yet",
+      "description": "Create a certificate template to give your course certificates a unique look."
+    },
+    "preview": {
+      "placeholderStudent": "Student Name",
+      "placeholderCourse": "Course Name"
+    },
+    "editor": {
+      "editTitle": "Edit Template",
+      "createTitle": "New Template"
+    },
+    "deleteConfirm": {
+      "title": "Delete Template?",
+      "description": "This action cannot be undone. Deleted templates cannot be restored.",
+      "deleting": "Deleting...",
+      "confirm": "Yes, Delete",
+      "cancel": "Cancel"
+    },
+    "toasts": {
+      "deleteSuccess": "Template deleted successfully",
+      "deleteFailedPrefix": "Failed to delete template: __MSG__",
+      "setDefaultSuccess": "Template set as default",
+      "setDefaultFailedPrefix": "Failed to change default: __MSG__"
+    },
+    "errors": {
+      "generic": "An error occurred"
+    }
   }
 }
