@@ -2479,5 +2479,83 @@
       "surveyDescription": "Buat survey untuk guru, siswa, dan orang tua",
       "activeSurveys": "__COUNT__ survey aktif — klik untuk lihat respons"
     }
+  },
+  "administrationDashboard": {
+    "pageTitle": "Dasbor Administrasi",
+    "header": {
+      "title": "Administrasi Terpusat",
+      "subtitle": "Kelola sinkronisasi data PDDIKTI/Dapodik dan konfigurasi sistem sekolah."
+    },
+    "status": {
+      "syncing": "Menyinkronkan",
+      "disruption": "Gangguan",
+      "online": "Sistem Online"
+    },
+    "actions": {
+      "processing": "Memproses...",
+      "sync": "Sinkronisasi",
+      "syncShort": "Sinkron"
+    },
+    "sync": {
+      "success": "Sinkronisasi berhasil! __COUNT__ data diperbarui.",
+      "failed": "Sinkronisasi gagal. Silakan coba lagi.",
+      "error": "Terjadi kesalahan saat sinkronisasi. Silakan coba lagi."
+    },
+    "time": {
+      "justNow": "Baru saja",
+      "minutesAgo": "__COUNT__ mnt lalu",
+      "hoursAgo": "__COUNT__ jam lalu",
+      "yesterday": "Kemarin",
+      "daysAgo": "__COUNT__ hr lalu"
+    },
+    "syncTypes": {
+      "students": "Data Siswa",
+      "teachersStaff": "Data Guru & Staf",
+      "classesSchedules": "Data Kelas & Jadwal",
+      "gradesReports": "Nilai & Rapor",
+      "financeFees": "Keuangan & SPP",
+      "Data Siswa": "Data Siswa",
+      "Data Guru & Staf": "Data Guru & Staf",
+      "Data Kelas & Jadwal": "Data Kelas & Jadwal",
+      "Nilai & Rapor": "Nilai & Rapor",
+      "Keuangan & SPP": "Keuangan & SPP"
+    },
+    "integration": {
+      "title": "Status Integrasi PDDIKTI",
+      "connected": "Terhubung",
+      "tokenApi": "Token API",
+      "lastSync": "Terakhir Sinkron",
+      "appVersion": "Versi Aplikasi",
+      "serverStatus": "Status Server",
+      "uptime": "99.9% Uptime"
+    },
+    "quickActions": {
+      "title": "Aksi Cepat",
+      "schoolConfig": "Konfigurasi Sekolah",
+      "staffAccounts": "Manajemen Akun Staf",
+      "auditLogs": "Laporan Log Audit",
+      "backupToast": "Fitur Cadangan Basis Data dalam pengembangan.",
+      "databaseBackup": "Cadangan Basis Data"
+    },
+    "featureManagement": {
+      "title": "Manajemen Fitur"
+    },
+    "history": {
+      "title": "Riwayat Sinkronisasi",
+      "loading": "Memuat riwayat...",
+      "empty": "Tidak ada riwayat sinkronisasi.",
+      "columns": {
+        "dataType": "Jenis Data",
+        "status": "Status",
+        "lastSync": "Terakhir Sinkron",
+        "records": "Jumlah Record",
+        "action": "Aksi"
+      },
+      "status": {
+        "success": "Berhasil",
+        "warning": "Peringatan",
+        "failed": "Gagal"
+      }
+    }
   }
 }

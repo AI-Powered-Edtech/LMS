@@ -2479,5 +2479,83 @@
       "surveyDescription": "Create surveys for teachers, students, and parents",
       "activeSurveys": "__COUNT__ active surveys — click to view responses"
     }
+  },
+  "administrationDashboard": {
+    "pageTitle": "Administration Dashboard",
+    "header": {
+      "title": "Centralized Administration",
+      "subtitle": "Manage PDDIKTI/Dapodik data synchronization and school system configuration."
+    },
+    "status": {
+      "syncing": "Syncing",
+      "disruption": "Issue",
+      "online": "System Online"
+    },
+    "actions": {
+      "processing": "Processing...",
+      "sync": "Sync",
+      "syncShort": "Sync"
+    },
+    "sync": {
+      "success": "Synchronization successful! __COUNT__ records updated.",
+      "failed": "Synchronization failed. Please try again.",
+      "error": "An error occurred during synchronization. Please try again."
+    },
+    "time": {
+      "justNow": "Just now",
+      "minutesAgo": "__COUNT__ min ago",
+      "hoursAgo": "__COUNT__ hours ago",
+      "yesterday": "Yesterday",
+      "daysAgo": "__COUNT__ days ago"
+    },
+    "syncTypes": {
+      "students": "Student Data",
+      "teachersStaff": "Teacher & Staff Data",
+      "classesSchedules": "Class & Schedule Data",
+      "gradesReports": "Grades & Reports",
+      "financeFees": "Finance & Fees",
+      "Data Siswa": "Student Data",
+      "Data Guru & Staf": "Teacher & Staff Data",
+      "Data Kelas & Jadwal": "Class & Schedule Data",
+      "Nilai & Rapor": "Grades & Reports",
+      "Keuangan & SPP": "Finance & Fees"
+    },
+    "integration": {
+      "title": "PDDIKTI Integration Status",
+      "connected": "Connected",
+      "tokenApi": "API Token",
+      "lastSync": "Last Sync",
+      "appVersion": "App Version",
+      "serverStatus": "Server Status",
+      "uptime": "99.9% Uptime"
+    },
+    "quickActions": {
+      "title": "Quick Actions",
+      "schoolConfig": "School Configuration",
+      "staffAccounts": "Staff Account Management",
+      "auditLogs": "Audit Log Reports",
+      "backupToast": "Database Backup feature is under development.",
+      "databaseBackup": "Database Backup"
+    },
+    "featureManagement": {
+      "title": "Feature Management"
+    },
+    "history": {
+      "title": "Synchronization History",
+      "loading": "Loading history...",
+      "empty": "No synchronization history.",
+      "columns": {
+        "dataType": "Data Type",
+        "status": "Status",
+        "lastSync": "Last Sync",
+        "records": "Record Count",
+        "action": "Action"
+      },
+      "status": {
+        "success": "Success",
+        "warning": "Warning",
+        "failed": "Failed"
+      }
+    }
   }
 }
