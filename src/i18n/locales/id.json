@@ -2034,5 +2034,72 @@
     "errors": {
       "generic": "Terjadi kesalahan"
     }
+  },
+  "badgeManager": {
+    "header": {
+      "title": "Kelola Badge",
+      "newButton": "Badge Baru"
+    },
+    "toasts": {
+      "saveSuccess": "Lencana berhasil disimpan",
+      "saveError": "Gagal menyimpan lencana"
+    },
+    "errors": {
+      "loadTitle": "Gagal Memuat Badge",
+      "loadDescription": "Terjadi kesalahan saat memuat daftar badge. Silakan coba lagi nanti."
+    },
+    "types": {
+      "completion": "Penyelesaian",
+      "streak": "Streak",
+      "mastery": "Penguasaan",
+      "speed": "Kecepatan",
+      "social": "Sosial"
+    },
+    "rarities": {
+      "common": "Umum",
+      "rare": "Langka",
+      "epic": "Epik",
+      "legendary": "Legendaris"
+    },
+    "criteria": {
+      "lessons_completed": "Pelajaran selesai",
+      "streak_days": "Streak hari",
+      "quiz_perfect_score": "Nilai sempurna kuis",
+      "course_completed": "Kursus selesai",
+      "courses_completed": "Banyak kursus selesai",
+      "course_master": "Master kursus (≥90%)",
+      "speed_learner": "Pelajar cepat"
+    },
+    "form": {
+      "name": "Nama",
+      "emoji": "Emoji",
+      "description": "Deskripsi",
+      "type": "Tipe",
+      "rarity": "Raritas",
+      "xpReward": "XP Reward",
+      "active": "Aktif",
+      "criteria": "Kriteria",
+      "threshold": "Threshold",
+      "namePlaceholder": "Nama lencana...",
+      "descriptionPlaceholder": "Deskripsi lencana..."
+    },
+    "buttons": {
+      "save": "Simpan",
+      "cancel": "Batal"
+    },
+    "empty": {
+      "title": "Belum ada badge",
+      "description": "Klik \"Badge Baru\" untuk membuat badge kustom pertama Anda."
+    },
+    "sections": {
+      "custom": "Badge Kustom",
+      "system": "Badge Sistem"
+    },
+    "status": {
+      "inactive": "Nonaktif"
+    },
+    "ariaLabels": {
+      "edit": "Edit lencana"
+    }
   }
 }

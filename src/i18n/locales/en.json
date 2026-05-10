@@ -2034,5 +2034,72 @@
     "errors": {
       "generic": "An error occurred"
     }
+  },
+  "badgeManager": {
+    "header": {
+      "title": "Manage Badges",
+      "newButton": "New Badge"
+    },
+    "toasts": {
+      "saveSuccess": "Badge saved successfully",
+      "saveError": "Failed to save badge"
+    },
+    "errors": {
+      "loadTitle": "Failed to Load Badges",
+      "loadDescription": "An error occurred while loading the badge list. Please try again later."
+    },
+    "types": {
+      "completion": "Completion",
+      "streak": "Streak",
+      "mastery": "Mastery",
+      "speed": "Speed",
+      "social": "Social"
+    },
+    "rarities": {
+      "common": "Common",
+      "rare": "Rare",
+      "epic": "Epic",
+      "legendary": "Legendary"
+    },
+    "criteria": {
+      "lessons_completed": "Lessons completed",
+      "streak_days": "Streak days",
+      "quiz_perfect_score": "Perfect quiz score",
+      "course_completed": "Course completed",
+      "courses_completed": "Multiple courses completed",
+      "course_master": "Course master (≥90%)",
+      "speed_learner": "Speed learner"
+    },
+    "form": {
+      "name": "Name",
+      "emoji": "Emoji",
+      "description": "Description",
+      "type": "Type",
+      "rarity": "Rarity",
+      "xpReward": "XP Reward",
+      "active": "Active",
+      "criteria": "Criteria",
+      "threshold": "Threshold",
+      "namePlaceholder": "Badge name...",
+      "descriptionPlaceholder": "Badge description..."
+    },
+    "buttons": {
+      "save": "Save",
+      "cancel": "Cancel"
+    },
+    "empty": {
+      "title": "No badges yet",
+      "description": "Click \"New Badge\" to create your first custom badge."
+    },
+    "sections": {
+      "custom": "Custom Badges",
+      "system": "System Badges"
+    },
+    "status": {
+      "inactive": "Inactive"
+    },
+    "ariaLabels": {
+      "edit": "Edit badge"
+    }
   }
 }

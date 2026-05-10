@@ -1,6 +1,7 @@
 import { AlertTriangle, Award, Pencil, Plus, Save, X } from "lucide-react";
 import { AnimatePresence, motion } from "motion/react";
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 
 import { EmptyState, SkeletonCard } from "@/components/ui";
 import { useAuth } from "@/contexts/AuthContext";
@@ -27,45 +28,24 @@ interface BadgeDefinitionRow {
   tenant_id: string | null;
 }
 
-const BADGE_TYPES: { value: BadgeType; label: string }[] = [
-  { value: "completion", label: "Penyelesaian" },
-  { value: "streak", label: "Streak" },
-  { value: "mastery", label: "Penguasaan" },
-  { value: "speed", label: "Kecepatan" },
-  { value: "social", label: "Sosial" },
+const BADGE_TYPE_VALUES: BadgeType[] = [
+  "completion",
+  "streak",
+  "mastery",
+  "speed",
+  "social",
 ];
 
-const RARITIES: { value: BadgeRarity; label: string }[] = [
-  { value: "common", label: "Umum" },
-  { value: "rare", label: "Langka" },
-  { value: "epic", label: "Epik" },
-  { value: "legendary", label: "Legendaris" },
-];
+const RARITY_VALUES: BadgeRarity[] = ["common", "rare", "epic", "legendary"];
 
 const CRITERIA_TYPES = [
-  {
-    value: "lessons_completed",
-    label: "Pelajaran selesai",
-    hasThreshold: true,
-  },
-  { value: "streak_days", label: "Streak hari", hasThreshold: true },
-  {
-    value: "quiz_perfect_score",
-    label: "Nilai sempurna kuis",
-    hasThreshold: true,
-  },
-  { value: "course_completed", label: "Kursus selesai", hasThreshold: false },
-  {
-    value: "courses_completed",
-    label: "Banyak kursus selesai",
-    hasThreshold: true,
-  },
-  {
-    value: "course_master",
-    label: "Master kursus (≥90%)",
-    hasThreshold: false,
-  },
-  { value: "speed_learner", label: "Pelajar cepat", hasThreshold: false },
+  { value: "lessons_completed", hasThreshold: true },
+  { value: "streak_days", hasThreshold: true },
+  { value: "quiz_perfect_score", hasThreshold: true },
+  { value: "course_completed", hasThreshold: false },
+  { value: "courses_completed", hasThreshold: true },
+  { value: "course_master", hasThreshold: false },
+  { value: "speed_learner", hasThreshold: false },
 ];
 
 interface BadgeFormState {
@@ -96,6 +76,7 @@ const emptyForm: BadgeFormState = {
 export function BadgeManager() {
   const { tenantId } = useAuth();
   const { addToast } = useToast();
+  const { t } = useTranslation();
   const { data: badges, isLoading, isError } = useBadgeDefinitions();
   const saveMutation = useSaveBadgeDefinition();
   const [editing, setEditing] = useState<BadgeFormState | null>(null);
@@ -136,10 +117,13 @@ export function BadgeManager() {
         is_active: editing.is_active,
         tenant_id: tenantId,
       });
-      addToast({ message: "Lencana berhasil disimpan", type: "success" });
+      addToast({
+        message: t("badgeManager.toasts.saveSuccess"),
+        type: "success",
+      });
       setEditing(null);
     } catch {
-      addToast({ message: "Gagal menyimpan lencana", type: "error" });
+      addToast({ message: t("badgeManager.toasts.saveError"), type: "error" });
     }
   };
 
@@ -150,10 +134,10 @@ export function BadgeManager() {
       <div className="flex flex-col items-center justify-center py-12 text-center">
         <AlertTriangle className="w-10 h-10 text-red-400 mb-3" />
         <h3 className="text-base font-bold text-slate-800 dark:text-slate-200 mb-1">
-          Gagal Memuat Badge
+          {t("badgeManager.errors.loadTitle")}
         </h3>
         <p className="text-sm text-slate-500 dark:text-slate-400">
-          Terjadi kesalahan saat memuat daftar badge. Silakan coba lagi nanti.
+          {t("badgeManager.errors.loadDescription")}
         </p>
       </div>
     );
@@ -168,14 +152,14 @@ export function BadgeManager() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <h3 className="text-lg font-bold text-slate-900 dark:text-white">
-          Kelola Badge
+          {t("badgeManager.header.title")}
         </h3>
         <button
           onClick={() => setEditing(emptyForm)}
           className="flex items-center gap-1.5 rounded-lg bg-indigo-600 px-3 py-1.5 text-xs font-bold text-white hover:bg-indigo-700 transition-colors"
         >
           <Plus className="h-3.5 w-3.5" />
-          Badge Baru
+          {t("badgeManager.header.newButton")}
         </button>
       </div>
 
@@ -192,7 +176,7 @@ export function BadgeManager() {
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
                   <label className="text-xs font-bold text-slate-600 dark:text-slate-400">
-                    Nama
+                    {t("badgeManager.form.name")}
                   </label>
                   <input
                     value={editing.name}
@@ -200,12 +184,12 @@ export function BadgeManager() {
                       setEditing({ ...editing, name: e.target.value })
                     }
                     className="mt-1 w-full rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-2 text-sm"
-                    placeholder="Nama lencana..."
+                    placeholder={t("badgeManager.form.namePlaceholder")}
                   />
                 </div>
                 <div>
                   <label className="text-xs font-bold text-slate-600 dark:text-slate-400">
-                    Emoji
+                    {t("badgeManager.form.emoji")}
                   </label>
                   <input
                     value={editing.icon_emoji}
@@ -219,7 +203,7 @@ export function BadgeManager() {
               </div>
               <div>
                 <label className="text-xs font-bold text-slate-600 dark:text-slate-400">
-                  Deskripsi
+                  {t("badgeManager.form.description")}
                 </label>
                 <input
                   value={editing.description}
@@ -227,13 +211,13 @@ export function BadgeManager() {
                     setEditing({ ...editing, description: e.target.value })
                   }
                   className="mt-1 w-full rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-2 text-sm"
-                  placeholder="Deskripsi lencana..."
+                  placeholder={t("badgeManager.form.descriptionPlaceholder")}
                 />
               </div>
               <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
                 <div>
                   <label className="text-xs font-bold text-slate-600 dark:text-slate-400">
-                    Tipe
+                    {t("badgeManager.form.type")}
                   </label>
                   <select
                     value={editing.badge_type}
@@ -245,16 +229,16 @@ export function BadgeManager() {
                     }
                     className="mt-1 w-full rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-2 text-sm"
                   >
-                    {BADGE_TYPES.map((t) => (
-                      <option key={t.value} value={t.value}>
-                        {t.label}
+                    {BADGE_TYPE_VALUES.map((v) => (
+                      <option key={v} value={v}>
+                        {t(`badgeManager.types.${v}`)}
                       </option>
                     ))}
                   </select>
                 </div>
                 <div>
                   <label className="text-xs font-bold text-slate-600 dark:text-slate-400">
-                    Raritas
+                    {t("badgeManager.form.rarity")}
                   </label>
                   <select
                     value={editing.rarity}
@@ -266,16 +250,16 @@ export function BadgeManager() {
                     }
                     className="mt-1 w-full rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-2 text-sm"
                   >
-                    {RARITIES.map((r) => (
-                      <option key={r.value} value={r.value}>
-                        {r.label}
+                    {RARITY_VALUES.map((v) => (
+                      <option key={v} value={v}>
+                        {t(`badgeManager.rarities.${v}`)}
                       </option>
                     ))}
                   </select>
                 </div>
                 <div>
                   <label className="text-xs font-bold text-slate-600 dark:text-slate-400">
-                    XP Reward
+                    {t("badgeManager.form.xpReward")}
                   </label>
                   <input
                     type="number"
@@ -300,14 +284,14 @@ export function BadgeManager() {
                       }
                       className="rounded"
                     />
-                    Aktif
+                    {t("badgeManager.form.active")}
                   </label>
                 </div>
               </div>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
                   <label className="text-xs font-bold text-slate-600 dark:text-slate-400">
-                    Kriteria
+                    {t("badgeManager.form.criteria")}
                   </label>
                   <select
                     value={editing.criteria_type}
@@ -318,7 +302,7 @@ export function BadgeManager() {
                   >
                     {CRITERIA_TYPES.map((c) => (
                       <option key={c.value} value={c.value}>
-                        {c.label}
+                        {t(`badgeManager.criteria.${c.value}`)}
                       </option>
                     ))}
                   </select>
@@ -327,7 +311,7 @@ export function BadgeManager() {
                   ?.hasThreshold && (
                   <div>
                     <label className="text-xs font-bold text-slate-600 dark:text-slate-400">
-                      Threshold
+                      {t("badgeManager.form.threshold")}
                     </label>
                     <input
                       type="number"
@@ -351,14 +335,14 @@ export function BadgeManager() {
                   className="flex items-center gap-1.5 rounded-lg bg-emerald-600 px-4 py-2 text-xs font-bold text-white hover:bg-emerald-700 disabled:opacity-50 transition-colors"
                 >
                   <Save className="h-3.5 w-3.5" />
-                  Simpan
+                  {t("badgeManager.buttons.save")}
                 </button>
                 <button
                   onClick={() => setEditing(null)}
                   className="flex items-center gap-1.5 rounded-lg bg-slate-200 dark:bg-slate-700 px-4 py-2 text-xs font-bold text-slate-700 dark:text-slate-300 hover:bg-slate-300 dark:hover:bg-slate-600 transition-colors"
                 >
                   <X className="h-3.5 w-3.5" />
-                  Batal
+                  {t("badgeManager.buttons.cancel")}
                 </button>
               </div>
             </div>
@@ -370,15 +354,15 @@ export function BadgeManager() {
       {tenantBadges.length === 0 && systemBadges.length === 0 && (
         <EmptyState
           icon={<Award className="w-8 h-8" />}
-          title="Belum ada badge"
-          description='Klik "Badge Baru" untuk membuat badge kustom pertama Anda.'
+          title={t("badgeManager.empty.title")}
+          description={t("badgeManager.empty.description")}
         />
       )}
 
       {tenantBadges.length > 0 && (
         <div className="space-y-2">
           <h4 className="text-xs font-bold text-slate-500 uppercase tracking-wider">
-            Badge Kustom
+            {t("badgeManager.sections.custom")}
           </h4>
           <div className="space-y-2">
             {tenantBadges.map((b: BadgeDefinitionRow) => (
@@ -391,7 +375,7 @@ export function BadgeManager() {
       {systemBadges.length > 0 && (
         <div className="space-y-2">
           <h4 className="text-xs font-bold text-slate-500 uppercase tracking-wider">
-            Badge Sistem
+            {t("badgeManager.sections.system")}
           </h4>
           <div className="space-y-2">
             {systemBadges.map((b: BadgeDefinitionRow) => (
@@ -413,6 +397,7 @@ function BadgeRow({
   onEdit?: () => void;
   isSystem?: boolean;
 }) {
+  const { t } = useTranslation();
   const rarity =
     RARITY_CONFIG[badge.rarity as BadgeRarity] ?? RARITY_CONFIG.common;
 
@@ -441,7 +426,7 @@ function BadgeRow({
           </span>
           {!badge.is_active && (
             <span className="rounded-full bg-red-100 px-1.5 py-0.5 text-[9px] font-bold text-red-600">
-              Nonaktif
+              {t("badgeManager.status.inactive")}
             </span>
           )}
         </div>
@@ -455,7 +440,7 @@ function BadgeRow({
       {!isSystem && onEdit && (
         <button
           onClick={onEdit}
-          aria-label="Edit lencana"
+          aria-label={t("badgeManager.ariaLabels.edit")}
           className="p-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
         >
           <Pencil className="h-3.5 w-3.5 text-slate-400" />
