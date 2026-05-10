@@ -2209,5 +2209,101 @@
       "title": "Tidak ada notifikasi baru",
       "description": "Notifikasi sistem akan muncul di sini"
     }
+  },
+  "reportPreview": {
+    "header": {
+      "academicYear": "Tahun Ajaran __YEAR__",
+      "period": "Periode: __PERIOD__",
+      "generated": "Dibuat: __DATE__"
+    },
+    "reportTypes": {
+      "monthly": "Laporan Bulanan",
+      "academic": "Laporan Akademik",
+      "roi": "Laporan ROI & Adopsi Platform"
+    },
+    "summary": {
+      "title": "Ringkasan Eksekutif",
+      "metric": "Metrik",
+      "value": "Nilai",
+      "note": "Keterangan"
+    },
+    "activity": {
+      "title": "Tren Aktivitas Bulanan",
+      "month": "Bulan",
+      "activeStudents": "Siswa Aktif",
+      "lessonCompletions": "Penyelesaian Pelajaran",
+      "quizAttempts": "Percobaan Kuis",
+      "empty": "Belum ada data tren aktivitas"
+    },
+    "common": {
+      "indicator": "Indikator",
+      "status": "Status"
+    },
+    "academic": {
+      "title": "Kinerja Akademik",
+      "avgQuizScore": "Rata-rata Nilai Kuis",
+      "projectedPassRate": "Tingkat Kelulusan Proyeksi",
+      "totalStudents": "Total Siswa Terdaftar",
+      "activeStudents30": "Siswa Aktif (30 hari)",
+      "adoption": "adopsi",
+      "atRiskStudents": "Siswa Butuh Perhatian",
+      "totalCourses": "Total Kursus Aktif"
+    },
+    "adoption": {
+      "title": "Adopsi Platform",
+      "percentage": "Persentase",
+      "studentAdoption": "Tingkat Adopsi Siswa",
+      "studentNote": "Siswa aktif dalam 30 hari terakhir",
+      "teacherAdoption": "Tingkat Adopsi Guru",
+      "teacherNote": "Guru aktif dalam 30 hari terakhir",
+      "digitalScore": "Skor Adopsi Digital"
+    },
+    "roi": {
+      "title": "ROI & Estimasi Penghematan",
+      "category": "Kategori",
+      "estimate": "Estimasi",
+      "basis": "Dasar Perhitungan",
+      "paperSaved": "Lembar Kertas Dihemat",
+      "sheets": "lembar",
+      "paperBasis": "Kuis & pelajaran digital menggantikan cetak",
+      "paperCost": "Estimasi Penghematan Kertas",
+      "paperCostBasis": "Per bulan (Rp500/lembar)",
+      "teacherTime": "Efisiensi Waktu Guru",
+      "hoursPerWeek": "jam/minggu",
+      "teacherTimeBasis": "Dari penilaian tugas digital (10 menit/tugas)"
+    },
+    "status": {
+      "good": "Baik",
+      "fair": "Cukup",
+      "needsAttention": "Perlu Perhatian",
+      "targetReached": "Target Tercapai",
+      "needsImprovement": "Perlu Peningkatan",
+      "allActive": "Semua Aktif",
+      "inactive30": "Tidak Aktif 30+ Hari",
+      "digitalFirst": "Digital First",
+      "growing": "Berkembang",
+      "needsPush": "Perlu Dorongan"
+    },
+    "footer": {
+      "generatedBy": "Dibuat oleh EduSync LMS"
+    },
+    "loading": "Memuat laporan...",
+    "error": {
+      "title": "Gagal Memuat Laporan",
+      "back": "Kembali ke Dashboard"
+    },
+    "errors": {
+      "backendPlaceholder": "Backend laporan masih placeholder (Fase 3)",
+      "dataNotFound": "Data laporan tidak ditemukan",
+      "unknown": "Terjadi kesalahan tidak diketahui",
+      "unavailable": "Data laporan tidak tersedia"
+    },
+    "detectStub": "Pratinjau laporan eksekutif",
+    "actions": {
+      "back": "← Kembali",
+      "preview": "Preview Laporan",
+      "downloadCsv": "Unduh CSV",
+      "printPdf": "Cetak / PDF"
+    }
   }
 }
