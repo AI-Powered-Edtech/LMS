@@ -1,97 +1,99 @@
-import { Lightbulb, RefreshCw } from 'lucide-react'
-import { useState } from 'react'
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { Lightbulb, RefreshCw } from "lucide-react";
+import { useState } from "react";
 
-import { Button } from '@/components/ui/Button'
-import { Card } from '@/components/ui/Card'
-import { useAuth } from '@/contexts/AuthContext'
-import { generatePrincipalInsight } from '@/services/ai/aiProvider'
-import { db } from '@/services/db'
-import { useToast } from '@/hooks/useToast'
-import { usePageTitle } from '@/hooks/usePageTitle'
-import { useQuery, useQueryClient } from '@tanstack/react-query'
+import { Button } from "@/components/ui/Button";
+import { Card } from "@/components/ui/Card";
+import { useAuth } from "@/contexts/AuthContext";
+import { useLocaleFormatters } from "@/hooks/useLocaleFormatters";
+import { usePageTitle } from "@/hooks/usePageTitle";
+import { useToast } from "@/hooks/useToast";
+import { generatePrincipalInsight } from "@/services/ai/aiProvider";
+import { db } from "@/services/db";
 
 interface PrincipalInsight {
-  id: string
-  tenant_id: string
-  month: string
-  narrative: string
-  key_metrics: Record<string, unknown> | null
-  provider: string | null
-  model: string | null
-  generated_at: string
+  id: string;
+  tenant_id: string;
+  month: string;
+  narrative: string;
+  key_metrics: Record<string, unknown> | null;
+  provider: string | null;
+  model: string | null;
+  generated_at: string;
 }
 
 async function listInsights(tenantId: string): Promise<PrincipalInsight[]> {
   const { data, error } = await db
-    .from<Array<PrincipalInsight>>('principal_insights')
-    .select('*')
-    .eq('tenant_id', tenantId)
-    .order('month', { ascending: false })
-    .limit(12)
-  if (error) throw error
-  return (data ?? []) as PrincipalInsight[]
+    .from<Array<PrincipalInsight>>("principal_insights")
+    .select("*")
+    .eq("tenant_id", tenantId)
+    .order("month", { ascending: false })
+    .limit(12);
+  if (error) throw error;
+  return (data ?? []) as PrincipalInsight[];
 }
 
 export function PrincipalInsights() {
-  usePageTitle('Wawasan Bulanan')
-  const { tenantId } = useAuth()
-  const { addToast } = useToast()
-  const qc = useQueryClient()
+  usePageTitle("Wawasan Bulanan");
+  const { tenantId } = useAuth();
+  const { addToast } = useToast();
+  const { formatDate } = useLocaleFormatters();
+  const qc = useQueryClient();
 
   const { data: insights = [], isLoading } = useQuery({
-    queryKey: ['principal_insights', tenantId],
+    queryKey: ["principal_insights", tenantId],
     queryFn: () => (tenantId ? listInsights(tenantId) : Promise.resolve([])),
     enabled: !!tenantId,
-  })
+  });
 
-  const [isGenerating, setIsGenerating] = useState(false)
+  const [isGenerating, setIsGenerating] = useState(false);
 
   async function handleGenerate() {
-    if (!tenantId) return
-    setIsGenerating(true)
+    if (!tenantId) return;
+    setIsGenerating(true);
     try {
-      const monthIso = new Date().toISOString().slice(0, 7) + '-01'
-      const monthLabel = new Date().toLocaleDateString('id-ID', {
-        month: 'long',
-        year: 'numeric',
-      })
+      const monthIso = new Date().toISOString().slice(0, 7) + "-01";
+      const monthLabel = formatDate(new Date(), {
+        month: "long",
+        year: "numeric",
+      });
 
       // Stub metrics — Fase 6 will pull real numbers from analytics tables.
       const metrics = {
         siswa_aktif: 120,
-        kehadiran_rata2: '92%',
+        kehadiran_rata2: "92%",
         rapor_diterbitkan: 0,
         komentar_ortu_minggu_ini: 14,
-      }
+      };
 
       const narrative = await generatePrincipalInsight({
-        schoolName: 'SMA Nusantara Dev',
+        schoolName: "SMA Nusantara Dev",
         monthLabel,
         metricsJson: metrics,
-      })
+      });
 
       const { error } = await db
-        .from<Array<PrincipalInsight>>('principal_insights')
+        .from<Array<PrincipalInsight>>("principal_insights")
         .insert({
           tenant_id: tenantId,
           month: monthIso,
           narrative,
           key_metrics: metrics,
-          provider: 'anthropic',
-          model: 'claude-sonnet-4-6',
-        })
-      if (error) throw error
+          provider: "anthropic",
+          model: "claude-sonnet-4-6",
+        });
+      if (error) throw error;
 
-      addToast({ type: 'success', message: 'Wawasan bulanan dihasilkan' })
-      void qc.invalidateQueries({ queryKey: ['principal_insights', tenantId] })
+      addToast({ type: "success", message: "Wawasan bulanan dihasilkan" });
+      void qc.invalidateQueries({ queryKey: ["principal_insights", tenantId] });
     } catch (err) {
       addToast({
-        type: 'error',
-        message: 'Gagal menghasilkan wawasan',
-        description: err instanceof Error ? err.message : 'Terjadi kesalahan',
-      })
+        type: "error",
+        message: "Gagal menghasilkan wawasan",
+        description: err instanceof Error ? err.message : "Terjadi kesalahan",
+      });
     } finally {
-      setIsGenerating(false)
+      setIsGenerating(false);
     }
   }
 
@@ -109,22 +111,29 @@ export function PrincipalInsights() {
         </div>
         <Button
           variant="primary"
-          icon={<RefreshCw className={`w-4 h-4 ${isGenerating ? 'animate-spin' : ''}`} />}
+          icon={
+            <RefreshCw
+              className={`w-4 h-4 ${isGenerating ? "animate-spin" : ""}`}
+            />
+          }
           onClick={handleGenerate}
           disabled={isGenerating}
         >
-          {isGenerating ? 'Menghasilkan...' : 'Hasilkan Bulan Ini'}
+          {isGenerating ? "Menghasilkan..." : "Hasilkan Bulan Ini"}
         </Button>
       </div>
 
       {isLoading ? (
         <Card>
-          <div className="py-12 text-center text-sm text-slate-500">Memuat...</div>
+          <div className="py-12 text-center text-sm text-slate-500">
+            Memuat...
+          </div>
         </Card>
       ) : insights.length === 0 ? (
         <Card>
           <div className="py-12 text-center text-sm text-slate-500">
-            Belum ada wawasan tersimpan. Klik tombol di atas untuk menghasilkan yang pertama.
+            Belum ada wawasan tersimpan. Klik tombol di atas untuk menghasilkan
+            yang pertama.
           </div>
         </Card>
       ) : (
@@ -133,13 +142,14 @@ export function PrincipalInsights() {
             <Card key={ins.id}>
               <div className="flex items-center justify-between mb-3">
                 <h3 className="font-semibold text-slate-900 dark:text-white">
-                  {new Date(ins.month).toLocaleDateString('id-ID', {
-                    month: 'long',
-                    year: 'numeric',
+                  {formatDate(ins.month, {
+                    month: "long",
+                    year: "numeric",
                   })}
                 </h3>
                 <span className="text-xs text-slate-500">
-                  {ins.provider ? `via ${ins.provider}` : ''} · {new Date(ins.generated_at).toLocaleDateString('id-ID')}
+                  {ins.provider ? `via ${ins.provider}` : ""} ·{" "}
+                  {formatDate(ins.generated_at)}
                 </span>
               </div>
               <p className="text-sm text-slate-700 dark:text-slate-300 whitespace-pre-wrap leading-relaxed">
@@ -150,5 +160,5 @@ export function PrincipalInsights() {
         </div>
       )}
     </div>
-  )
+  );
 }

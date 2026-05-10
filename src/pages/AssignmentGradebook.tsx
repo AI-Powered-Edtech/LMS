@@ -1,111 +1,131 @@
-import { ArrowLeft, Award, Clock, FileText, Loader2, Search, Users } from 'lucide-react'
-import { useCallback, useEffect, useMemo, useState } from 'react'
+import {
+  ArrowLeft,
+  Award,
+  Clock,
+  FileText,
+  Loader2,
+  Search,
+  Users,
+} from "lucide-react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 
-import { EmptyState } from '@/components/ui'
-import { VirtualTable } from '@/components/ui/VirtualTable'
-import { useAuth } from '@/contexts/AuthContext'
+import { EmptyState } from "@/components/ui";
+import { VirtualTable } from "@/components/ui/VirtualTable";
+import { useAuth } from "@/contexts/AuthContext";
 import {
   type Assignment,
   assignmentService,
   type AssignmentSubmission,
-} from '@/features/assignments/api/assignmentService'
-import { AssignmentCard } from '@/features/assignments/components/AssignmentCard'
-import { GradingModal } from '@/features/assignments/components/GradingModal'
-import { usePageTitle } from '@/hooks/usePageTitle'
-import { cn } from '@/utils/cn'
-import { logger } from '@/utils/logger'
-import { captureError } from '@/utils/sentry'
-import { translateDbError } from '@/utils/statusTranslations'
+} from "@/features/assignments/api/assignmentService";
+import { AssignmentCard } from "@/features/assignments/components/AssignmentCard";
+import { GradingModal } from "@/features/assignments/components/GradingModal";
+import { useLocaleFormatters } from "@/hooks/useLocaleFormatters";
+import { usePageTitle } from "@/hooks/usePageTitle";
+import { cn } from "@/utils/cn";
+import { logger } from "@/utils/logger";
+import { captureError } from "@/utils/sentry";
+import { translateDbError } from "@/utils/statusTranslations";
 
 export function AssignmentGradebook() {
-  usePageTitle('Buku Nilai Tugas')
-  const { user, tenantId } = useAuth()
-  const [assignments, setAssignments] = useState<Assignment[]>([])
-  const [selectedAssignment, setSelectedAssignment] = useState<Assignment | null>(null)
-  const [submissions, setSubmissions] = useState<AssignmentSubmission[]>([])
+  usePageTitle("Buku Nilai Tugas");
+  const { user, tenantId } = useAuth();
+  const { formatDate } = useLocaleFormatters();
+  const [assignments, setAssignments] = useState<Assignment[]>([]);
+  const [selectedAssignment, setSelectedAssignment] =
+    useState<Assignment | null>(null);
+  const [submissions, setSubmissions] = useState<AssignmentSubmission[]>([]);
 
-  const [_loading, setLoading] = useState(true)
-  const [loadingSubmissions, setLoadingSubmissions] = useState(false)
-  const [_error, setError] = useState<string | null>(null)
+  const [_loading, setLoading] = useState(true);
+  const [loadingSubmissions, setLoadingSubmissions] = useState(false);
+  const [_error, setError] = useState<string | null>(null);
 
-  const [gradingSubmission, setGradingSubmission] = useState<AssignmentSubmission | null>(null)
+  const [gradingSubmission, setGradingSubmission] =
+    useState<AssignmentSubmission | null>(null);
 
   useEffect(() => {
-    if (!user?.id) return
+    if (!user?.id) return;
     async function loadAssignments() {
-      setLoading(true)
+      setLoading(true);
       try {
-        const data = await assignmentService.getAssignmentsByTenant(tenantId!)
-        setAssignments(data)
+        const data = await assignmentService.getAssignmentsByTenant(tenantId!);
+        setAssignments(data);
       } catch (err) {
-        setError(translateDbError(err instanceof Error ? err.message : String(err)))
+        setError(
+          translateDbError(err instanceof Error ? err.message : String(err)),
+        );
       } finally {
-        setLoading(false)
+        setLoading(false);
       }
     }
-    void loadAssignments()
-  }, [user?.id, tenantId])
+    void loadAssignments();
+  }, [user?.id, tenantId]);
 
   const handleSelectAssignment = useCallback(
     async (assignment: Assignment) => {
-      setSelectedAssignment(assignment)
-      setLoadingSubmissions(true)
+      setSelectedAssignment(assignment);
+      setLoadingSubmissions(true);
       try {
-        const data = await assignmentService.getAssignmentSubmissions(assignment.id, tenantId!)
-        setSubmissions(data || [])
+        const data = await assignmentService.getAssignmentSubmissions(
+          assignment.id,
+          tenantId!,
+        );
+        setSubmissions(data || []);
       } catch (err) {
-        if (import.meta.env.DEV) logger.error('Error fetching submissions:', err)
-        captureError(err, { context: 'AssignmentGradebook.handleSelectAssignment' })
+        if (import.meta.env.DEV)
+          logger.error("Error fetching submissions:", err);
+        captureError(err, {
+          context: "AssignmentGradebook.handleSelectAssignment",
+        });
       } finally {
-        setLoadingSubmissions(false)
+        setLoadingSubmissions(false);
       }
     },
-    [tenantId]
-  )
+    [tenantId],
+  );
 
   const submissionColumns = useMemo(
     () => [
       {
-        key: 'student',
-        header: 'Siswa',
+        key: "student",
+        header: "Siswa",
         render: (sub: AssignmentSubmission) => (
           <div className="flex items-center gap-3">
             <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center text-blue-600 text-xs font-bold">
               {Array.isArray(sub.user_profiles)
                 ? sub.user_profiles[0]?.full_name?.charAt(0)
-                : sub.user_profiles?.full_name?.charAt(0) || '?'}
+                : sub.user_profiles?.full_name?.charAt(0) || "?"}
             </div>
             <span className="font-bold text-slate-700 dark:text-slate-300">
               {Array.isArray(sub.user_profiles)
                 ? sub.user_profiles[0]?.full_name
-                : sub.user_profiles?.full_name || 'Siswa'}
+                : sub.user_profiles?.full_name || "Siswa"}
             </span>
           </div>
         ),
       },
       {
-        key: 'submitted_at',
-        header: 'Tanggal Pengiriman',
+        key: "submitted_at",
+        header: "Tanggal Pengiriman",
         render: (sub: AssignmentSubmission) => (
           <span className="text-sm text-slate-500 dark:text-slate-400">
             {sub.submitted_at
-              ? new Date(sub.submitted_at).toLocaleDateString('id-ID', {
-                  day: 'numeric',
-                  month: 'long',
-                  hour: '2-digit',
-                  minute: '2-digit',
+              ? formatDate(sub.submitted_at, {
+                  day: "numeric",
+                  month: "long",
+                  hour: "2-digit",
+                  minute: "2-digit",
                 })
-              : '-'}
+              : "-"}
           </span>
         ),
       },
       {
-        key: 'status',
-        header: 'Status',
+        key: "status",
+        header: "Status",
         render: (_sub: AssignmentSubmission) => (
           <span
             className={cn(
-              'inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-extrabold uppercase tracking-widest bg-blue-100 text-blue-700'
+              "inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-extrabold uppercase tracking-widest bg-blue-100 text-blue-700",
             )}
           >
             <Clock className="w-2.5 h-2.5" /> Sedang Diperiksa
@@ -113,25 +133,27 @@ export function AssignmentGradebook() {
         ),
       },
       {
-        key: 'score',
-        header: 'Nilai',
-        render: (_sub: AssignmentSubmission) => <span className="font-bold text-slate-300">-</span>,
+        key: "score",
+        header: "Nilai",
+        render: (_sub: AssignmentSubmission) => (
+          <span className="font-bold text-slate-300">-</span>
+        ),
       },
       {
-        key: 'actions',
-        header: 'Aksi',
+        key: "actions",
+        header: "Aksi",
         render: (sub: AssignmentSubmission) => (
           <button
             onClick={() => setGradingSubmission(sub)}
             className="px-4 py-1.5 bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold rounded-lg transition-all transform active:scale-95 shadow-md shadow-blue-500/20"
           >
-            {sub.status === 'graded' ? 'Edit Nilai' : 'Nilai Sekarang'}
+            {sub.status === "graded" ? "Edit Nilai" : "Nilai Sekarang"}
           </button>
         ),
       },
     ],
-    []
-  )
+    [formatDate],
+  );
 
   return (
     <div className="p-6 lg:p-10 max-w-7xl mx-auto space-y-8">
@@ -235,5 +257,5 @@ export function AssignmentGradebook() {
         onClose={() => setGradingSubmission(null)}
       />
     </div>
-  )
+  );
 }
