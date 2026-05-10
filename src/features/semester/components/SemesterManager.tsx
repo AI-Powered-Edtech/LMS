@@ -76,10 +76,8 @@ function SemesterForm({
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
       <div>
-        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-          Nama Semester
-        </label>
         <Input
+          label="Nama Semester"
           value={name}
           onChange={(e) => setName(e.target.value)}
           placeholder="Semester Ganjil 2025/2026"
@@ -87,10 +85,8 @@ function SemesterForm({
         />
       </div>
       <div>
-        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-          Tahun Ajaran
-        </label>
         <Input
+          label="Tahun Ajaran"
           value={academicYear}
           onChange={(e) => setAcademicYear(e.target.value)}
           placeholder="2025/2026"
@@ -98,10 +94,8 @@ function SemesterForm({
         />
       </div>
       <div>
-        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-          Semester
-        </label>
         <Select
+          label="Semester"
           options={termOptions}
           value={term}
           onChange={(e) => setTerm(e.target.value)}
@@ -110,10 +104,8 @@ function SemesterForm({
       </div>
       <div className="grid grid-cols-2 gap-4">
         <div>
-          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-            Tanggal Mulai
-          </label>
           <Input
+            label="Tanggal Mulai"
             type="date"
             value={startDate}
             onChange={(e) => setStartDate(e.target.value)}
@@ -121,10 +113,8 @@ function SemesterForm({
           />
         </div>
         <div>
-          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-            Tanggal Selesai
-          </label>
           <Input
+            label="Tanggal Selesai"
             type="date"
             value={endDate}
             onChange={(e) => setEndDate(e.target.value)}
