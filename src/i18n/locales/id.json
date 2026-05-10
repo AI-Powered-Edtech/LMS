@@ -2101,5 +2101,66 @@
     "ariaLabels": {
       "edit": "Edit lencana"
     }
+  },
+  "quizManager": {
+    "pageTitle": "Manajemen Kuis",
+    "confirmDelete": "Hapus kuis ini? Aksi ini tidak bisa dibatalkan.",
+    "errors": {
+      "notFound": "Kuis tidak ditemukan",
+      "publishNoQuestions": "Tidak bisa publish kuis tanpa soal. Tambahkan minimal 1 soal."
+    },
+    "noClass": {
+      "title": "Pilih kelas terlebih dahulu",
+      "description": "Gunakan sidebar untuk memilih kelas aktif."
+    }
+  },
+  "quizList": {
+    "header": {
+      "title": "Manajemen Kuis",
+      "subtitle": "Buat, kelola, dan publish kuis untuk kelas Anda",
+      "createButton": "Buat Kuis Baru"
+    },
+    "classCard": {
+      "classLabel": "Class",
+      "students": "Siswa",
+      "joinCode": "Kode Gabung",
+      "copyCode": "Salin Kode",
+      "copyLink": "Salin Link"
+    },
+    "toasts": {
+      "codeCopied": "Kode berhasil disalin!",
+      "linkCopied": "Link berhasil disalin!"
+    },
+    "tabs": {
+      "class": "Kuis Kelas Ini",
+      "library": "Semua Kuis (Bank Kuis)"
+    },
+    "empty": {
+      "title": "Belum ada kuis",
+      "description": "Klik \"Buat Kuis Baru\" untuk memulai."
+    },
+    "status": {
+      "published": "Diterbitkan",
+      "draft": "Draft"
+    },
+    "modes": {
+      "practice": "Latihan",
+      "graded": "Penilaian",
+      "exam": "Ujian"
+    },
+    "actions": {
+      "assignToClass": "Tugaskan ke Kelas",
+      "edit": "Ubah",
+      "delete": "Hapus"
+    },
+    "metrics": {
+      "questions": "__COUNT__ soal",
+      "minutes": "__COUNT__ menit",
+      "maxAttempts": "Maks. __COUNT__x",
+      "passingScore": "Lulus: __SCORE__%"
+    },
+    "assignmentStatus": {
+      "title": "Status Penugasan (__COUNT__ kelas)"
+    }
   }
 }

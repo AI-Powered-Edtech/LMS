@@ -1,28 +1,33 @@
-import { HelpCircle } from 'lucide-react'
-import { useCallback, useEffect, useState } from 'react'
+import { HelpCircle } from "lucide-react";
+import { useCallback, useEffect, useState } from "react";
+import { useTranslation } from "react-i18next";
 
-import { useAuth } from '@/contexts/AuthContext'
-import { classroomService } from '@/features/classroom/api/classroomService'
-import { useClassroom } from '@/features/classroom/hooks/useClassroomQueries'
-import { type QuizMode, quizService } from '@/features/quizzes'
-import { QuizEditorView } from '@/features/quizzes/components/QuizEditorView'
-import { QuizListView } from '@/features/quizzes/components/QuizListView'
-import { emptyForm, type QuizFormData, useQuizForm } from '@/features/quizzes/hooks/useQuizForm'
-import { QuizStatus } from '@/features/quizzes/types/quizzes.types'
-import { usePageTitle } from '@/hooks/usePageTitle'
+import { useAuth } from "@/contexts/AuthContext";
+import { classroomService } from "@/features/classroom/api/classroomService";
+import { useClassroom } from "@/features/classroom/hooks/useClassroomQueries";
+import { type QuizMode, quizService } from "@/features/quizzes";
+import { QuizEditorView } from "@/features/quizzes/components/QuizEditorView";
+import { QuizListView } from "@/features/quizzes/components/QuizListView";
+import {
+  emptyForm,
+  type QuizFormData,
+  useQuizForm,
+} from "@/features/quizzes/hooks/useQuizForm";
+import { QuizStatus } from "@/features/quizzes/types/quizzes.types";
+import { usePageTitle } from "@/hooks/usePageTitle";
 
 interface QuizListItem {
-  id: string
-  title: string
-  status: QuizStatus
-  mode: QuizMode
-  time_limit_minutes: number | null
-  max_attempts: number
-  passing_score: number
-  question_count: number
-  assignment_count?: number
-  created_at: string
-  updated_at: string
+  id: string;
+  title: string;
+  status: QuizStatus;
+  mode: QuizMode;
+  time_limit_minutes: number | null;
+  max_attempts: number;
+  passing_score: number;
+  question_count: number;
+  assignment_count?: number;
+  created_at: string;
+  updated_at: string;
 }
 
 // ─────────────────────────────────────────────────────────
@@ -30,97 +35,102 @@ interface QuizListItem {
 // ─────────────────────────────────────────────────────────
 
 export function QuizManager() {
-  usePageTitle('Manajemen Kuis')
-  const { activeClassroomId, classrooms } = useClassroom()
-  const { tenantId } = useAuth()
+  const { t } = useTranslation();
+  usePageTitle(t("quizManager.pageTitle"));
+  const { activeClassroomId, classrooms } = useClassroom();
+  const { tenantId } = useAuth();
 
-  const activeClass = classrooms.find((c) => c.id === activeClassroomId)
+  const activeClass = classrooms.find((c) => c.id === activeClassroomId);
 
-  const [studentCount, setStudentCount] = useState<number>(0)
+  const [studentCount, setStudentCount] = useState<number>(0);
 
   useEffect(() => {
     if (activeClassroomId && tenantId) {
-      void classroomService.getActiveEnrollmentCount(activeClassroomId, tenantId).then((count) => {
-        setStudentCount(count)
-      })
+      void classroomService
+        .getActiveEnrollmentCount(activeClassroomId, tenantId)
+        .then((count) => {
+          setStudentCount(count);
+        });
     }
-  }, [activeClassroomId, tenantId])
+  }, [activeClassroomId, tenantId]);
 
   // Views: 'list' | 'editor'
-  const [view, setView] = useState<'list' | 'editor'>('list')
-  const [activeTab, setActiveTab] = useState<'class' | 'library'>('class')
-  const [assignModalQuizId, setAssignModalQuizId] = useState<string | null>(null)
-  const [quizzes, setQuizzes] = useState<QuizListItem[]>([])
-  const [isLoading, setIsLoading] = useState(false)
-  const [error, setError] = useState<string | null>(null)
-  const [editingQuizId, setEditingQuizId] = useState<string | null>(null)
-  const [expandedQuizId, setExpandedQuizId] = useState<string | null>(null)
+  const [view, setView] = useState<"list" | "editor">("list");
+  const [activeTab, setActiveTab] = useState<"class" | "library">("class");
+  const [assignModalQuizId, setAssignModalQuizId] = useState<string | null>(
+    null,
+  );
+  const [quizzes, setQuizzes] = useState<QuizListItem[]>([]);
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [editingQuizId, setEditingQuizId] = useState<string | null>(null);
+  const [expandedQuizId, setExpandedQuizId] = useState<string | null>(null);
 
   // Editor state
-  const [isSaving, setIsSaving] = useState(false)
-  const [showQuestionModal, setShowQuestionModal] = useState(false)
+  const [isSaving, setIsSaving] = useState(false);
+  const [showQuestionModal, setShowQuestionModal] = useState(false);
 
-  const methods = useQuizForm(emptyForm)
-  const { reset, watch, setValue, handleSubmit } = methods
+  const methods = useQuizForm(emptyForm);
+  const { reset, watch, setValue, handleSubmit } = methods;
 
   // ─── List Loading ──────────────────────────────────────
 
   const loadQuizzes = useCallback(async () => {
-    if (!activeClassroomId || !tenantId) return
-    setIsLoading(true)
-    setError(null)
+    if (!activeClassroomId || !tenantId) return;
+    setIsLoading(true);
+    setError(null);
     try {
-      let data
-      if (activeTab === 'class') {
-        data = await quizService.getQuizzesByClass(activeClassroomId, tenantId)
+      let data;
+      if (activeTab === "class") {
+        data = await quizService.getQuizzesByClass(activeClassroomId, tenantId);
       } else {
-        data = await quizService.getTeacherQuizzes(tenantId)
+        data = await quizService.getTeacherQuizzes(tenantId);
       }
-      setQuizzes(data as QuizListItem[])
+      setQuizzes(data as QuizListItem[]);
     } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : String(err))
+      setError(err instanceof Error ? err.message : String(err));
     } finally {
-      setIsLoading(false)
+      setIsLoading(false);
     }
-  }, [activeClassroomId, tenantId, activeTab])
+  }, [activeClassroomId, tenantId, activeTab]);
 
   useEffect(() => {
-    void loadQuizzes()
-  }, [loadQuizzes])
+    void loadQuizzes();
+  }, [loadQuizzes]);
 
   // ─── Open Editor ────────────────────────────────────────
 
   const openNewQuiz = () => {
-    reset({ ...emptyForm, questions: [] })
-    setEditingQuizId(null)
-    setView('editor')
-  }
+    reset({ ...emptyForm, questions: [] });
+    setEditingQuizId(null);
+    setView("editor");
+  };
 
   const openEditQuiz = async (quizId: string) => {
-    setIsLoading(true)
+    setIsLoading(true);
     try {
-      const data = await quizService.getQuizWithQuestions(quizId, tenantId!)
-      if (!data) throw new Error('Quiz not found')
+      const data = await quizService.getQuizWithQuestions(quizId, tenantId!);
+      if (!data) throw new Error(t("quizManager.errors.notFound"));
 
       reset({
         id: data.id,
-        title: data.title || '',
-        instructions: data.instructions || '',
-        mode: (data.mode as any) || 'graded',
+        title: data.title || "",
+        instructions: data.instructions || "",
+        mode: (data.mode as any) || "graded",
         time_limit_minutes: data.time_limit_minutes,
         max_attempts: data.max_attempts || 3,
         passing_score: data.passing_score || 70,
         shuffle_questions: data.shuffle_questions || false,
         shuffle_options: data.shuffle_options || false,
         show_correct_answers: data.show_correct_answers || false,
-        available_from: data.available_from || '',
-        due_at: data.available_until || '',
-        status: (data.status as any) || 'draft',
+        available_from: data.available_from || "",
+        due_at: data.available_until || "",
+        status: (data.status as any) || "draft",
         questions: (data.quiz_questions || []).map((q: any) => ({
           id: q.id,
           text: q.text,
           order: q.order,
-          question_type: (q.question_type as any) || 'MCQ',
+          question_type: (q.question_type as any) || "MCQ",
           points: q.points ?? 1,
           explanation: q.explanation || null,
           tenant_id: q.tenant_id,
@@ -130,37 +140,37 @@ export function QuizManager() {
             is_correct: o.is_correct,
           })),
         })),
-      })
-      setEditingQuizId(quizId)
-      setView('editor')
+      });
+      setEditingQuizId(quizId);
+      setView("editor");
     } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : String(err))
+      setError(err instanceof Error ? err.message : String(err));
     } finally {
-      setIsLoading(false)
+      setIsLoading(false);
     }
-  }
+  };
 
   // ─── Save Quiz ──────────────────────────────────────────
 
   const handleSave = async (targetStatus?: QuizStatus) => {
     const onSubmit = async (data: QuizFormData) => {
-      if (!activeClassroomId || !tenantId) return
+      if (!activeClassroomId || !tenantId) return;
 
       // Additional semantic validation for publishing
-      if (targetStatus === 'published') {
+      if (targetStatus === "published") {
         if (data.questions.length === 0) {
-          setError('Tidak bisa publish kuis tanpa soal. Tambahkan minimal 1 soal.')
-          return
+          setError(t("quizManager.errors.publishNoQuestions"));
+          return;
         }
       }
 
-      setIsSaving(true)
-      setError(null)
+      setIsSaving(true);
+      setError(null);
 
-      const status = targetStatus || data.status
+      const status = targetStatus || data.status;
 
       try {
-        let quizId = editingQuizId
+        let quizId = editingQuizId;
 
         if (!quizId) {
           // Create new quiz
@@ -178,10 +188,10 @@ export function QuizManager() {
             show_correct_answers: data.show_correct_answers,
             available_from: data.available_from || null,
             due_at: data.due_at || null,
-          })
-          quizId = created.id
-          setEditingQuizId(quizId)
-          setValue('id', quizId ?? undefined)
+          });
+          quizId = created.id;
+          setEditingQuizId(quizId);
+          setValue("id", quizId ?? undefined);
         } else {
           // Update existing quiz settings
           await quizService.updateQuiz(
@@ -200,23 +210,32 @@ export function QuizManager() {
               available_until: data.due_at || null,
               status,
             },
-            tenantId
-          )
+            tenantId,
+          );
         }
 
         // Sync questions: delete removed, update existing, add new
-        const existingQs = data.questions.filter((q) => q.id)
-        const newQs = data.questions.filter((q) => !q.id)
+        const existingQs = data.questions.filter((q) => q.id);
+        const newQs = data.questions.filter((q) => !q.id);
 
-        const currentQuizData = await quizService.getQuizWithQuestions(quizId!, tenantId!)
-        const existingDbIds = (currentQuizData?.quiz_questions || []).map((q: any) => q.id)
-        const newDbIds = existingQs.map((q) => q.id!)
-        const deletedIds = existingDbIds.filter((id: string) => !newDbIds.includes(id))
+        const currentQuizData = await quizService.getQuizWithQuestions(
+          quizId!,
+          tenantId!,
+        );
+        const existingDbIds = (currentQuizData?.quiz_questions || []).map(
+          (q: any) => q.id,
+        );
+        const newDbIds = existingQs.map((q) => q.id!);
+        const deletedIds = existingDbIds.filter(
+          (id: string) => !newDbIds.includes(id),
+        );
 
         if (deletedIds.length > 0) {
           await Promise.all(
-            deletedIds.map((id: string) => quizService.deleteQuizQuestion(id, tenantId!))
-          )
+            deletedIds.map((id: string) =>
+              quizService.deleteQuizQuestion(id, tenantId!),
+            ),
+          );
         }
 
         for (const q of existingQs) {
@@ -229,13 +248,13 @@ export function QuizManager() {
               explanation: q.explanation,
               order: q.order,
             },
-            tenantId
-          )
+            tenantId,
+          );
           await quizService.replaceQuestionOptions(
             q.id!,
             tenantId,
-            q.options.map((o) => ({ text: o.text, is_correct: o.is_correct }))
-          )
+            q.options.map((o) => ({ text: o.text, is_correct: o.is_correct })),
+          );
         }
 
         if (newQs.length > 0) {
@@ -247,59 +266,71 @@ export function QuizManager() {
                 points: q.points,
                 explanation: q.explanation || undefined,
                 order: q.order,
-                options: q.options.map((o) => ({ text: o.text, is_correct: o.is_correct })),
-              })
-            )
-          )
+                options: q.options.map((o) => ({
+                  text: o.text,
+                  is_correct: o.is_correct,
+                })),
+              }),
+            ),
+          );
         }
 
-        if (targetStatus && (targetStatus === 'draft' || targetStatus === 'published')) {
-          await quizService.setQuizStatus(quizId!, targetStatus, tenantId!)
-          setValue('status', targetStatus)
+        if (
+          targetStatus &&
+          (targetStatus === "draft" || targetStatus === "published")
+        ) {
+          await quizService.setQuizStatus(quizId!, targetStatus, tenantId!);
+          setValue("status", targetStatus);
         }
 
-        await openEditQuiz(quizId!)
+        await openEditQuiz(quizId!);
       } catch (err: unknown) {
-        setError(err instanceof Error ? err.message : String(err))
+        setError(err instanceof Error ? err.message : String(err));
       } finally {
-        setIsSaving(false)
+        setIsSaving(false);
       }
-    }
+    };
 
     // Call handleSubmit
-    await handleSubmit(onSubmit)()
-  }
+    await handleSubmit(onSubmit)();
+  };
 
   // ─── Delete Quiz ────────────────────────────────────────
 
   const handleDelete = async (quizId: string) => {
-    if (!confirm('Hapus kuis ini? Aksi ini tidak bisa dibatalkan.')) return
+    if (!confirm(t("quizManager.confirmDelete"))) return;
     try {
-      await quizService.deleteQuiz(quizId, tenantId!)
-      setQuizzes((prev) => prev.filter((q) => q.id !== quizId))
+      await quizService.deleteQuiz(quizId, tenantId!);
+      setQuizzes((prev) => prev.filter((q) => q.id !== quizId));
     } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : String(err))
+      setError(err instanceof Error ? err.message : String(err));
     }
-  }
+  };
 
-  const isPublished = watch('status') === 'published'
+  const isPublished = watch("status") === "published";
 
   // ─── No class selected ──────────────────────────────────
 
   if (!activeClassroomId) {
     return (
       <div className="max-w-4xl mx-auto px-4 md:px-6 lg:px-8">
-        <h1 className="text-2xl font-bold text-slate-900 dark:text-white mb-4">Manajemen Kuis</h1>
+        <h1 className="text-2xl font-bold text-slate-900 dark:text-white mb-4">
+          {t("quizManager.pageTitle")}
+        </h1>
         <div className="flex flex-col items-center justify-center py-20 text-slate-400">
           <HelpCircle className="w-12 h-12 mb-3 opacity-30" />
-          <p className="font-medium text-slate-500">Pilih kelas terlebih dahulu</p>
-          <p className="text-sm mt-1 text-slate-400">Gunakan sidebar untuk memilih kelas aktif.</p>
+          <p className="font-medium text-slate-500">
+            {t("quizManager.noClass.title")}
+          </p>
+          <p className="text-sm mt-1 text-slate-400">
+            {t("quizManager.noClass.description")}
+          </p>
         </div>
       </div>
-    )
+    );
   }
 
-  if (view === 'list') {
+  if (view === "list") {
     return (
       <QuizListView
         quizzes={quizzes}
@@ -318,7 +349,7 @@ export function QuizManager() {
         handleDelete={handleDelete}
         loadQuizzes={loadQuizzes}
       />
-    )
+    );
   }
 
   return (
@@ -335,5 +366,5 @@ export function QuizManager() {
       setView={setView}
       loadQuizzes={loadQuizzes}
     />
-  )
+  );
 }

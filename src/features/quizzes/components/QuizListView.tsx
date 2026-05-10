@@ -12,65 +12,60 @@ import {
   Plus,
   Trash2,
   Users,
-} from 'lucide-react'
-import { Link } from 'react-router-dom'
+} from "lucide-react";
+import { useTranslation } from "react-i18next";
+import { Link } from "react-router-dom";
 
-import { EmptyState } from '@/components/ui'
-import { type QuizMode } from '@/features/quizzes'
-import { QuizAssignmentStatus } from '@/features/quizzes/components/QuizAssignmentStatus'
-import { QuizAssignModal } from '@/features/quizzes/components/QuizAssignModal'
-import { QuizStatus } from '@/features/quizzes/types/quizzes.types'
-import { useToast } from '@/hooks/useToast'
-import { cn } from '@/utils/cn'
+import { EmptyState } from "@/components/ui";
+import { type QuizMode } from "@/features/quizzes";
+import { QuizAssignmentStatus } from "@/features/quizzes/components/QuizAssignmentStatus";
+import { QuizAssignModal } from "@/features/quizzes/components/QuizAssignModal";
+import { QuizStatus } from "@/features/quizzes/types/quizzes.types";
+import { useToast } from "@/hooks/useToast";
+import { cn } from "@/utils/cn";
 
 // ─────────────────────────────────────────────────────────
 // Types
 // ─────────────────────────────────────────────────────────
 
 interface QuizListItem {
-  id: string
-  title: string
-  status: QuizStatus
-  mode: QuizMode
-  time_limit_minutes: number | null
-  max_attempts: number
-  passing_score: number
-  question_count: number
-  assignment_count?: number
-  created_at: string
-  updated_at: string
+  id: string;
+  title: string;
+  status: QuizStatus;
+  mode: QuizMode;
+  time_limit_minutes: number | null;
+  max_attempts: number;
+  passing_score: number;
+  question_count: number;
+  assignment_count?: number;
+  created_at: string;
+  updated_at: string;
 }
 
 // ─────────────────────────────────────────────────────────
 // Constants
 // ─────────────────────────────────────────────────────────
 
-const modeLabels: Record<string, string> = {
-  practice: 'Latihan',
-  graded: 'Penilaian',
-  exam: 'Ujian',
-}
-
 // ─────────────────────────────────────────────────────────
 // Props
 // ─────────────────────────────────────────────────────────
 
 export interface QuizListViewProps {
-  quizzes: QuizListItem[]
-  isLoading: boolean
-  error: string | null
-  activeTab: 'class' | 'library'
-  setActiveTab: (tab: 'class' | 'library') => void
-  expandedQuizId: string | null
-  setExpandedQuizId: (id: string | null) => void
-  activeClass: { id: string; name: string; join_code: string } | undefined
-  studentCount: number
-  assignModalQuizId: string | null
-  setAssignModalQuizId: (id: string | null) => void
-  openNewQuiz: () => void
-  openEditQuiz: (quizId: string) => void
-  handleDelete: (quizId: string) => void
-  loadQuizzes: () => void
+  quizzes: QuizListItem[];
+  isLoading: boolean;
+  error: string | null;
+  activeTab: "class" | "library";
+  setActiveTab: (tab: "class" | "library") => void;
+  expandedQuizId: string | null;
+  setExpandedQuizId: (id: string | null) => void;
+  activeClass: { id: string; name: string; join_code: string } | undefined;
+  studentCount: number;
+  assignModalQuizId: string | null;
+  setAssignModalQuizId: (id: string | null) => void;
+  openNewQuiz: () => void;
+  openEditQuiz: (quizId: string) => void;
+  handleDelete: (quizId: string) => void;
+  loadQuizzes: () => void;
 }
 
 // ─────────────────────────────────────────────────────────
@@ -94,7 +89,8 @@ export function QuizListView({
   handleDelete,
   loadQuizzes,
 }: QuizListViewProps) {
-  const { addToast } = useToast()
+  const { addToast } = useToast();
+  const { t } = useTranslation();
   return (
     <div className="max-w-5xl mx-auto space-y-6 px-4 md:px-6 lg:px-8">
       {/* Header */}
@@ -107,10 +103,10 @@ export function QuizListView({
             >
               <ArrowLeft className="w-5 h-5" />
             </Link>
-            Manajemen Kuis
+            {t("quizList.header.title")}
           </h1>
           <p className="text-slate-500 dark:text-slate-400 mt-1 ml-9 text-sm">
-            Buat, kelola, dan publish kuis untuk kelas Anda
+            {t("quizList.header.subtitle")}
           </p>
         </div>
         <button
@@ -118,7 +114,7 @@ export function QuizListView({
           className="flex items-center gap-2 px-4 py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl text-sm transition-colors shadow-sm"
         >
           <Plus className="w-4 h-4" />
-          Buat Kuis Baru
+          {t("quizList.header.createButton")}
         </button>
       </div>
 
@@ -127,7 +123,7 @@ export function QuizListView({
         <div className="bg-indigo-50 dark:bg-indigo-900/30 border border-indigo-100 dark:border-indigo-800/50 rounded-2xl p-5 shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div>
             <p className="text-xs font-bold text-indigo-500 dark:text-indigo-400 uppercase tracking-wider mb-1">
-              Class
+              {t("quizList.classCard.classLabel")}
             </p>
             <h2 className="text-lg font-bold text-indigo-950 dark:text-indigo-100">
               {activeClass.name}
@@ -136,17 +132,19 @@ export function QuizListView({
           <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 sm:gap-6 bg-white dark:bg-slate-800 py-3 px-4 rounded-xl border border-indigo-100/50 dark:border-slate-700">
             <div>
               <p className="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase mb-0.5">
-                Siswa
+                {t("quizList.classCard.students")}
               </p>
               <div className="flex items-center gap-1.5">
                 <Users className="w-4 h-4 text-indigo-500" />
-                <p className="text-xl font-black text-slate-800 dark:text-white">{studentCount}</p>
+                <p className="text-xl font-black text-slate-800 dark:text-white">
+                  {studentCount}
+                </p>
               </div>
             </div>
             <div className="h-full w-px bg-slate-100 dark:bg-slate-700 hidden sm:block"></div>
             <div>
               <p className="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase mb-0.5">
-                Kode Gabung
+                {t("quizList.classCard.joinCode")}
               </p>
               <p className="text-xl font-black text-slate-800 dark:text-white tracking-widest">
                 {activeClass.join_code}
@@ -156,24 +154,30 @@ export function QuizListView({
             <div className="flex gap-2 w-full sm:w-auto">
               <button
                 onClick={() => {
-                  void navigator.clipboard.writeText(activeClass.join_code)
-                  addToast({ type: 'info', message: 'Kode berhasil disalin!' })
+                  void navigator.clipboard.writeText(activeClass.join_code);
+                  addToast({
+                    type: "info",
+                    message: t("quizList.toasts.codeCopied"),
+                  });
                 }}
                 className="flex-1 sm:flex-none flex items-center justify-center gap-2 px-3 py-2 bg-slate-50 dark:bg-slate-700 hover:bg-slate-100 dark:hover:bg-slate-600 text-slate-700 dark:text-slate-300 font-medium text-xs rounded-lg border border-slate-200 dark:border-slate-600 transition-colors"
               >
                 <Copy className="w-3.5 h-3.5" />
-                Salin Kode
+                {t("quizList.classCard.copyCode")}
               </button>
               <button
                 onClick={() => {
-                  const url = `${window.location.origin}/dashboard?join=${activeClass.join_code}`
-                  void navigator.clipboard.writeText(url)
-                  addToast({ type: 'info', message: 'Link berhasil disalin!' })
+                  const url = `${window.location.origin}/dashboard?join=${activeClass.join_code}`;
+                  void navigator.clipboard.writeText(url);
+                  addToast({
+                    type: "info",
+                    message: t("quizList.toasts.linkCopied"),
+                  });
                 }}
                 className="flex-1 sm:flex-none flex items-center justify-center gap-2 px-3 py-2 bg-slate-50 dark:bg-slate-700 hover:bg-slate-100 dark:hover:bg-slate-600 text-slate-700 dark:text-slate-300 font-medium text-xs rounded-lg border border-slate-200 dark:border-slate-600 transition-colors"
               >
                 <LinkIcon className="w-3.5 h-3.5" />
-                Salin Link
+                {t("quizList.classCard.copyLink")}
               </button>
             </div>
           </div>
@@ -181,32 +185,35 @@ export function QuizListView({
       )}
 
       {/* Tabs */}
-      <div className="flex bg-slate-100 dark:bg-slate-800 p-1 rounded-xl" role="tablist">
+      <div
+        className="flex bg-slate-100 dark:bg-slate-800 p-1 rounded-xl"
+        role="tablist"
+      >
         <button
           role="tab"
-          aria-selected={activeTab === 'class'}
-          onClick={() => setActiveTab('class')}
+          aria-selected={activeTab === "class"}
+          onClick={() => setActiveTab("class")}
           className={cn(
-            'flex-1 py-2.5 px-4 rounded-lg text-sm font-bold transition-all',
-            activeTab === 'class'
-              ? 'bg-white dark:bg-slate-700 text-indigo-600 shadow-sm'
-              : 'text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-300 hover:bg-slate-200/50 dark:hover:bg-slate-700/50'
+            "flex-1 py-2.5 px-4 rounded-lg text-sm font-bold transition-all",
+            activeTab === "class"
+              ? "bg-white dark:bg-slate-700 text-indigo-600 shadow-sm"
+              : "text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-300 hover:bg-slate-200/50 dark:hover:bg-slate-700/50",
           )}
         >
-          Kuis Kelas Ini
+          {t("quizList.tabs.class")}
         </button>
         <button
           role="tab"
-          aria-selected={activeTab === 'library'}
-          onClick={() => setActiveTab('library')}
+          aria-selected={activeTab === "library"}
+          onClick={() => setActiveTab("library")}
           className={cn(
-            'flex-1 py-2.5 px-4 rounded-lg text-sm font-bold transition-all',
-            activeTab === 'library'
-              ? 'bg-white dark:bg-slate-700 text-indigo-600 shadow-sm'
-              : 'text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-300 hover:bg-slate-200/50 dark:hover:bg-slate-700/50'
+            "flex-1 py-2.5 px-4 rounded-lg text-sm font-bold transition-all",
+            activeTab === "library"
+              ? "bg-white dark:bg-slate-700 text-indigo-600 shadow-sm"
+              : "text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-300 hover:bg-slate-200/50 dark:hover:bg-slate-700/50",
           )}
         >
-          Semua Kuis (Bank Kuis)
+          {t("quizList.tabs.library")}
         </button>
       </div>
 
@@ -243,9 +250,9 @@ export function QuizListView({
       ) : quizzes.length === 0 ? (
         <EmptyState
           icon={<HelpCircle className="w-8 h-8" />}
-          title="Belum ada kuis"
-          description='Klik "Buat Kuis Baru" untuk memulai.'
-          action={{ label: 'Buat Kuis Baru', onClick: openNewQuiz }}
+          title={t("quizList.empty.title")}
+          description={t("quizList.empty.description")}
+          action={{ label: "Buat Kuis Baru", onClick: openNewQuiz }}
           className="bg-white dark:bg-slate-800 border-2 border-dashed border-slate-200 dark:border-slate-700 rounded-2xl"
         />
       ) : (
@@ -258,7 +265,7 @@ export function QuizListView({
               className="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl p-5 shadow-sm hover:shadow-md transition-all group cursor-pointer"
               onClick={() => openEditQuiz(quiz.id)}
               onKeyDown={(e) => {
-                if (e.key === 'Enter' || e.key === ' ') openEditQuiz(quiz.id)
+                if (e.key === "Enter" || e.key === " ") openEditQuiz(quiz.id);
               }}
             >
               <div className="flex items-start justify-between gap-3 mb-3">
@@ -269,55 +276,59 @@ export function QuizListView({
                   <div className="flex items-center gap-2 mt-1">
                     <span
                       className={cn(
-                        'inline-flex items-center gap-1 text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full',
-                        quiz.status === 'published'
-                          ? 'bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400'
-                          : 'bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-400'
+                        "inline-flex items-center gap-1 text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full",
+                        quiz.status === "published"
+                          ? "bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400"
+                          : "bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-400",
                       )}
                     >
-                      {quiz.status === 'published' ? (
+                      {quiz.status === "published" ? (
                         <Globe className="w-2.5 h-2.5" />
                       ) : (
                         <Lock className="w-2.5 h-2.5" />
                       )}
-                      {quiz.status === 'published' ? 'Diterbitkan' : 'Draft'}
+                      {quiz.status === "published"
+                        ? t("quizList.status.published")
+                        : t("quizList.status.draft")}
                     </span>
                     <span className="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase">
-                      {modeLabels[quiz.mode] || quiz.mode}
+                      {t(`quizList.modes.${quiz.mode}`, {
+                        defaultValue: quiz.mode,
+                      })}
                     </span>
                   </div>
                 </div>
                 <div className="flex items-center gap-1 shrink-0 opacity-0 group-hover:opacity-100 transition-opacity">
-                  {activeTab === 'library' && quiz.status === 'published' && (
+                  {activeTab === "library" && quiz.status === "published" && (
                     <button
                       onClick={(e) => {
-                        e.stopPropagation()
-                        setAssignModalQuizId(quiz.id)
+                        e.stopPropagation();
+                        setAssignModalQuizId(quiz.id);
                       }}
                       className="p-2 text-slate-400 dark:text-slate-500 hover:text-indigo-600 dark:hover:text-indigo-400 hover:bg-indigo-50 dark:hover:bg-indigo-900/20 rounded-lg transition-colors"
-                      title="Tugaskan ke Kelas"
+                      title={t("quizList.actions.assignToClass")}
                     >
                       <Calendar className="w-4 h-4" />
                     </button>
                   )}
                   <button
                     onClick={(e) => {
-                      e.stopPropagation()
-                      openEditQuiz(quiz.id)
+                      e.stopPropagation();
+                      openEditQuiz(quiz.id);
                     }}
                     className="p-2 text-slate-400 dark:text-slate-500 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-lg transition-colors"
-                    title="Ubah"
+                    title={t("quizList.actions.edit")}
                   >
                     <Pencil className="w-4 h-4" />
                   </button>
-                  {quiz.status === 'draft' && (
+                  {quiz.status === "draft" && (
                     <button
                       onClick={(e) => {
-                        e.stopPropagation()
-                        handleDelete(quiz.id)
+                        e.stopPropagation();
+                        handleDelete(quiz.id);
                       }}
                       className="p-2 text-slate-400 dark:text-slate-500 hover:text-red-600 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors"
-                      title="Hapus"
+                      title={t("quizList.actions.delete")}
                     >
                       <Trash2 className="w-4 h-4" />
                     </button>
@@ -327,38 +338,65 @@ export function QuizListView({
               <div className="flex items-center gap-4 text-xs text-slate-500 dark:text-slate-400">
                 <span className="flex items-center gap-1">
                   <HelpCircle className="w-3.5 h-3.5" />
-                  {quiz.question_count} soal
+                  {t("quizList.metrics.questions").replace(
+                    "__COUNT__",
+                    String(quiz.question_count),
+                  )}
                 </span>
                 {quiz.time_limit_minutes && (
                   <span className="flex items-center gap-1">
                     <Clock className="w-3.5 h-3.5" />
-                    {quiz.time_limit_minutes} menit
+                    {t("quizList.metrics.minutes").replace(
+                      "__COUNT__",
+                      String(quiz.time_limit_minutes),
+                    )}
                   </span>
                 )}
-                <span>Maks. {quiz.max_attempts}x</span>
-                <span>Lulus: {quiz.passing_score}%</span>
+                <span>
+                  {t("quizList.metrics.maxAttempts").replace(
+                    "__COUNT__",
+                    String(quiz.max_attempts),
+                  )}
+                </span>
+                <span>
+                  {t("quizList.metrics.passingScore").replace(
+                    "__SCORE__",
+                    String(quiz.passing_score),
+                  )}
+                </span>
               </div>
 
-              {activeTab === 'library' && (
+              {activeTab === "library" && (
                 <div className="mt-4 pt-4 border-t border-slate-100 dark:border-slate-700">
                   <button
                     onClick={(e) => {
-                      e.stopPropagation()
-                      setExpandedQuizId(expandedQuizId === quiz.id ? null : quiz.id)
+                      e.stopPropagation();
+                      setExpandedQuizId(
+                        expandedQuizId === quiz.id ? null : quiz.id,
+                      );
                     }}
                     className="text-xs font-bold text-slate-500 dark:text-slate-400 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors flex items-center justify-between w-full"
                   >
-                    <span>Status Penugasan ({quiz.assignment_count || 0} kelas)</span>
+                    <span>
+                      {t("quizList.assignmentStatus.title").replace(
+                        "__COUNT__",
+                        String(quiz.assignment_count || 0),
+                      )}
+                    </span>
                     <ArrowLeft
                       className={cn(
-                        'w-3 h-3 transition-transform',
-                        expandedQuizId === quiz.id ? 'rotate-90' : '-rotate-90'
+                        "w-3 h-3 transition-transform",
+                        expandedQuizId === quiz.id ? "rotate-90" : "-rotate-90",
                       )}
                     />
                   </button>
 
                   {expandedQuizId === quiz.id && (
-                    <div role="presentation" className="mt-4" onClick={(e) => e.stopPropagation()}>
+                    <div
+                      role="presentation"
+                      className="mt-4"
+                      onClick={(e) => e.stopPropagation()}
+                    >
                       <QuizAssignmentStatus
                         quizId={quiz.id}
                         onAssignClick={() => setAssignModalQuizId(quiz.id)}
@@ -378,11 +416,11 @@ export function QuizListView({
           isOpen={true}
           onClose={() => setAssignModalQuizId(null)}
           onSuccess={() => {
-            setAssignModalQuizId(null)
-            loadQuizzes()
+            setAssignModalQuizId(null);
+            loadQuizzes();
           }}
         />
       )}
     </div>
-  )
+  );
 }

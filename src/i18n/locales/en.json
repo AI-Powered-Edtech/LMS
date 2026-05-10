@@ -2101,5 +2101,66 @@
     "ariaLabels": {
       "edit": "Edit badge"
     }
+  },
+  "quizManager": {
+    "pageTitle": "Quiz Management",
+    "confirmDelete": "Delete this quiz? This action cannot be undone.",
+    "errors": {
+      "notFound": "Quiz not found",
+      "publishNoQuestions": "Cannot publish a quiz without questions. Add at least 1 question."
+    },
+    "noClass": {
+      "title": "Select a class first",
+      "description": "Use the sidebar to select an active class."
+    }
+  },
+  "quizList": {
+    "header": {
+      "title": "Quiz Management",
+      "subtitle": "Create, manage, and publish quizzes for your class",
+      "createButton": "Create New Quiz"
+    },
+    "classCard": {
+      "classLabel": "Class",
+      "students": "Students",
+      "joinCode": "Join Code",
+      "copyCode": "Copy Code",
+      "copyLink": "Copy Link"
+    },
+    "toasts": {
+      "codeCopied": "Code copied successfully!",
+      "linkCopied": "Link copied successfully!"
+    },
+    "tabs": {
+      "class": "This Class's Quizzes",
+      "library": "All Quizzes (Quiz Bank)"
+    },
+    "empty": {
+      "title": "No quizzes yet",
+      "description": "Click \"Create New Quiz\" to get started."
+    },
+    "status": {
+      "published": "Published",
+      "draft": "Draft"
+    },
+    "modes": {
+      "practice": "Practice",
+      "graded": "Graded",
+      "exam": "Exam"
+    },
+    "actions": {
+      "assignToClass": "Assign to Class",
+      "edit": "Edit",
+      "delete": "Delete"
+    },
+    "metrics": {
+      "questions": "__COUNT__ questions",
+      "minutes": "__COUNT__ minutes",
+      "maxAttempts": "Max __COUNT__x",
+      "passingScore": "Passing: __SCORE__%"
+    },
+    "assignmentStatus": {
+      "title": "Assignment Status (__COUNT__ classes)"
+    }
   }
 }
