@@ -27,6 +27,69 @@ Migration dijalankan secara berurutan sesuai nomor prefix (`NNN_`). Gunakan `scr
 | 015_backend_heavy_tables.sql | Schema | Tabel-tabel besar backend (audit log, event stream, dsb.) yang di-offload dari frontend. |
 | 016_add_performance_indexes.sql | Performance | Index tambahan untuk query panas (dashboard, leaderboard, gradebook). |
 | 017_add_google_id_to_profiles.sql | Auth | Kolom `google_id` di `profiles` untuk Google OAuth single sign-on. |
+| 017_add_google_id_to_profiles.sql | Schema | undocumented |
+| 018_fix_backend_schema_bugs.sql | Schema | undocumented |
+| 019_audit_fixes.sql | Schema | undocumented |
+| 020_fix_rpc_signatures.sql | Schema | undocumented |
+| 021_rpc_json.sql | Schema | undocumented |
+| 022_align_table_columns.sql | Schema | undocumented |
+| 023_rpc_stubs.sql | Schema | undocumented |
+| 024_course_review_workflow.sql | Schema | undocumented |
+| 025_personal_and_multi_tenant.sql | Schema | undocumented |
+| 026_join_code_and_slugify.sql | Schema | undocumented |
+| 027_p2_backlog.sql | Schema | undocumented |
+| 028_p3_tenant_settings_and_roles.sql | Schema | undocumented |
+| 029_add_admin_notification_types.sql | Schema | undocumented |
+| 030_admin_stub_tables_and_rpcs.sql | Schema | undocumented |
+| 031_qa_schema_gaps.sql | Schema | undocumented |
+| 032_qa_rpcs.sql | Schema | undocumented |
+| 033_fix_search_questions_return_json.sql | Schema | undocumented |
+| 034_lesson_progress_monitor_rpc.sql | Schema | undocumented |
+| 035_admin_backfill.sql | Schema | undocumented |
+| 036_confirm_demo_seed_users.sql | Schema | undocumented |
+| 037_qa_sweep_fixes.sql | Schema | undocumented |
+| 037_seed_modules_missing_rpcs_and_auth_uid.sql | Schema | undocumented |
+| 038_fix_get_tenant_users_user_id_alias.sql | Schema | undocumented |
+| 039_academic_years.sql | Schema | undocumented |
+| 040_semesters_link_academic_year.sql | Schema | undocumented |
+| 041_grade_levels.sql | Schema | undocumented |
+| 042_rombel.sql | Schema | undocumented |
+| 043_subjects_and_curriculum_items.sql | Schema | undocumented |
+| 044_timetable_slots.sql | Schema | undocumented |
+| 045_dossiers.sql | Schema | undocumented |
+| 046_rbac_10_role_matrix.sql | Schema | undocumented |
+| 047_cp_tagging.sql | Schema | undocumented |
+| 048_gradebook_dual_mode.sql | Schema | undocumented |
+| 049_nilai_per_cp.sql | Schema | undocumented |
+| 050_akm_question_type.sql | Schema | undocumented |
+| 051_p5_module.sql | Schema | undocumented |
+| 052_domain_events_outbox.sql | Schema | undocumented |
+| 053_rapor_kurmer.sql | Schema | undocumented |
+| 054_finance_midtrans.sql | Schema | undocumented |
+| 055_bos_expense_tracking.sql | Schema | undocumented |
+| 056_ppdb_flow.sql | Schema | undocumented |
+| 057_integrations.sql | Schema | undocumented |
+| 058_ai_polish.sql | Schema | undocumented |
+| 059_audit_rate_limit_perf.sql | Schema | undocumented |
+| 060_counseling_parent_links_sikap.sql | Schema | undocumented |
+| 061_app_audit_triggers.sql | Schema | undocumented |
+| 062_rapor_autogen_rpc.sql | Schema | undocumented |
+| 063_rombel_attendance.sql | Schema | undocumented |
+| 064_stub_tables.sql | Schema | undocumented |
+| 065_gradebook_baseline.sql | Schema | undocumented |
+| 066_role_enum_completeness.sql | Schema | undocumented |
+| 067_idempotent_auto_modules.sql | Schema | undocumented |
+| 068_sync_user_roles_to_granular.sql | Schema | undocumented |
+| 069_classes_rombel_id.sql | Schema | undocumented |
+| 070_event_handler_idempotency.sql | Schema | undocumented |
+| 071_ai_rate_limit.sql | Schema | undocumented |
+| 072_parent_invoices_rpc.sql | Schema | undocumented |
+| 073_refresh_tokens_session_metadata.sql | Schema | undocumented |
+| 074_tenant_invites_and_settings.sql | Schema | undocumented |
+| 075_tenant_invites_global_unique_code.sql | Schema | undocumented |
+| 076_invalidate_refresh_tokens_post_rotation.sql | Schema | undocumented |
+| 077_plagiarism_checks.sql | Schema | undocumented |
+| 078_scorm_runtime_data.sql | Schema | undocumented |
 
 > Gap pada nomor (misal 010, 011) adalah hasil revert/konsolidasi migration yang dibatalkan sebelum landing di `main`. Jangan reuse nomor tersebut untuk migration baru.
 
