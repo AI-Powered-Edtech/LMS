@@ -27,7 +27,6 @@ Migration dijalankan secara berurutan sesuai nomor prefix (`NNN_`). Gunakan `scr
 | 015_backend_heavy_tables.sql | Schema | Tabel-tabel besar backend (audit log, event stream, dsb.) yang di-offload dari frontend. |
 | 016_add_performance_indexes.sql | Performance | Index tambahan untuk query panas (dashboard, leaderboard, gradebook). |
 | 017_add_google_id_to_profiles.sql | Auth | Kolom `google_id` di `profiles` untuk Google OAuth single sign-on. |
-| 017_add_google_id_to_profiles.sql | Schema | undocumented |
 | 018_fix_backend_schema_bugs.sql | Schema | undocumented |
 | 019_audit_fixes.sql | Schema | undocumented |
 | 020_fix_rpc_signatures.sql | Schema | undocumented |
