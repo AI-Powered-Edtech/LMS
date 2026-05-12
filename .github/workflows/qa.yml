@@ -11,6 +11,11 @@ jobs:
     timeout-minutes: 25
     steps:
       - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+        with:
+          package_json_file: package.json
+
       # Biarkan action membaca versi dari packageManager di package.json untuk hindari mismatch.
       - uses: pnpm/action-setup@v4
       - uses: actions/setup-node@v4
