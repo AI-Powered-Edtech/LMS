@@ -22,6 +22,8 @@ jobs:
 
       - name: Setup pnpm
         uses: pnpm/action-setup@v4
+        with:
+          package_json_file: package.json
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
@@ -70,6 +72,11 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+        with:
+          package_json_file: package.json
+
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
@@ -187,6 +194,8 @@ jobs:
 
       - name: Setup pnpm
         uses: pnpm/action-setup@v4
+        with:
+          package_json_file: package.json
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
@@ -255,8 +264,13 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+
         with:
           fetch-depth: 0
+
+      - uses: pnpm/action-setup@v4
+        with:
+          package_json_file: package.json
 
       - name: TruffleHog OSS Secret Scan
         uses: trufflesecurity/trufflehog@v3.88.35
@@ -337,6 +351,11 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+        with:
+          package_json_file: package.json
+
 
       - name: Download all artifacts
         uses: actions/download-artifact@v4
