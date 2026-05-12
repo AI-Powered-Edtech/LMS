@@ -27,6 +27,68 @@ Migration dijalankan secara berurutan sesuai nomor prefix (`NNN_`). Gunakan `scr
 | 015_backend_heavy_tables.sql | Schema | Tabel-tabel besar backend (audit log, event stream, dsb.) yang di-offload dari frontend. |
 | 016_add_performance_indexes.sql | Performance | Index tambahan untuk query panas (dashboard, leaderboard, gradebook). |
 | 017_add_google_id_to_profiles.sql | Auth | Kolom `google_id` di `profiles` untuk Google OAuth single sign-on. |
+| 018_fix_backend_schema_bugs.sql | Fix | Backend schema bug fixes |
+| 019_audit_fixes.sql | Audit | Audit table and trigger fixes |
+| 020_fix_rpc_signatures.sql | RPC | Fix RPC function signatures |
+| 021_rpc_json.sql | RPC | Add JSON RPCs |
+| 022_align_table_columns.sql | Schema | Align table columns |
+| 023_rpc_stubs.sql | RPC | RPC stubs |
+| 024_course_review_workflow.sql | Feature | Course review workflow |
+| 025_personal_and_multi_tenant.sql | Feature | Personal and multi-tenant setup |
+| 026_join_code_and_slugify.sql | Feature | Join codes and slugify functions |
+| 027_p2_backlog.sql | Backlog | P2 backlog items |
+| 028_p3_tenant_settings_and_roles.sql | Roles | Tenant settings and roles |
+| 029_add_admin_notification_types.sql | Notifications | Admin notification types |
+| 030_admin_stub_tables_and_rpcs.sql | Admin | Admin tables and RPCs |
+| 031_qa_schema_gaps.sql | QA | Schema gaps from QA |
+| 032_qa_rpcs.sql | QA | RPC fixes from QA |
+| 033_fix_search_questions_return_json.sql | Fix | Return JSON from search questions RPC |
+| 034_lesson_progress_monitor_rpc.sql | RPC | Lesson progress monitor RPC |
+| 035_admin_backfill.sql | Admin | Admin data backfill |
+| 036_confirm_demo_seed_users.sql | Seed | Confirm demo seed users |
+| 037_qa_sweep_fixes.sql | QA | QA sweep fixes |
+| 037_seed_modules_missing_rpcs_and_auth_uid.sql | Seed | Seed modules and missing auth UID RPCs |
+| 038_fix_get_tenant_users_user_id_alias.sql | Fix | User ID alias fix in RPC |
+| 039_academic_years.sql | Feature | Academic years feature |
+| 040_semesters_link_academic_year.sql | Feature | Semester to academic year links |
+| 041_grade_levels.sql | Feature | Grade levels feature |
+| 042_rombel.sql | Feature | Rombel feature tables |
+| 043_subjects_and_curriculum_items.sql | Curriculum | Subjects and curriculum items |
+| 044_timetable_slots.sql | Schedule | Timetable slots feature |
+| 045_dossiers.sql | Feature | Dossiers schema |
+| 046_rbac_10_role_matrix.sql | RBAC | Role-based access control matrix |
+| 047_cp_tagging.sql | Feature | CP tagging implementation |
+| 048_gradebook_dual_mode.sql | Gradebook | Gradebook dual mode feature |
+| 049_nilai_per_cp.sql | Gradebook | Nilai per CP tables and RPCs |
+| 050_akm_question_type.sql | Questions | AKM question types |
+| 051_p5_module.sql | Feature | P5 modules feature |
+| 052_domain_events_outbox.sql | Events | Domain events outbox pattern |
+| 053_rapor_kurmer.sql | Feature | Rapor Kurmer schema |
+| 054_finance_midtrans.sql | Billing | Finance and Midtrans integration |
+| 055_bos_expense_tracking.sql | Billing | BOS expense tracking tables |
+| 056_ppdb_flow.sql | Registration | PPDB flow schema |
+| 057_integrations.sql | Integrations | Integrations config and logs |
+| 058_ai_polish.sql | Feature | AI polish integrations |
+| 059_audit_rate_limit_perf.sql | Performance | Rate limiting and audit perf fixes |
+| 060_counseling_parent_links_sikap.sql | Feature | Counseling and parent links |
+| 061_app_audit_triggers.sql | Audit | App audit triggers |
+| 062_rapor_autogen_rpc.sql | RPC | Rapor autogen RPC |
+| 063_rombel_attendance.sql | Feature | Rombel attendance tracker |
+| 064_stub_tables.sql | Schema | More stub tables |
+| 065_gradebook_baseline.sql | Gradebook | Gradebook baseline calculations |
+| 066_role_enum_completeness.sql | Enum | Complete role enums |
+| 067_idempotent_auto_modules.sql | Modules | Idempotent auto modules |
+| 068_sync_user_roles_to_granular.sql | RBAC | Sync roles to granular config |
+| 069_classes_rombel_id.sql | Feature | Add rombel ID to classes |
+| 070_event_handler_idempotency.sql | Events | Event handler idempotency |
+| 071_ai_rate_limit.sql | Feature | AI rate limit logic |
+| 072_parent_invoices_rpc.sql | RPC | Parent invoices RPC |
+| 073_refresh_tokens_session_metadata.sql | Auth | Refresh tokens and session metadata |
+| 074_tenant_invites_and_settings.sql | Tenants | Tenant invites and settings |
+| 075_tenant_invites_global_unique_code.sql | Tenants | Globally unique invite codes |
+| 076_invalidate_refresh_tokens_post_rotation.sql | Auth | Invalidate old refresh tokens |
+| 077_plagiarism_checks.sql | Feature | Plagiarism check runs |
+| 078_scorm_runtime_data.sql | Feature | SCORM runtime data tables |
 
 > Gap pada nomor (misal 010, 011) adalah hasil revert/konsolidasi migration yang dibatalkan sebelum landing di `main`. Jangan reuse nomor tersebut untuk migration baru.
 
