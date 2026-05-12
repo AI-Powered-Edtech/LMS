@@ -117,20 +117,16 @@ export function AdminQuizOverview() {
   };
 
   // ⚡ Perf: Memoize filteredQuizzes — was recomputed (filter + sort) on every render
+  // and hoisted invariant string lowercasing outside the O(n) filter loop
   const filteredQuizzes = useMemo(
-    () =>
-      quizzes
+    () => {
+      const query = debouncedSearch.toLowerCase();
+      return quizzes
         .filter(
           (q) =>
-            q.quiz_title
-              .toLowerCase()
-              .includes(debouncedSearch.toLowerCase()) ||
-            q.class_name
-              ?.toLowerCase()
-              .includes(debouncedSearch.toLowerCase()) ||
-            q.teacher_name
-              ?.toLowerCase()
-              .includes(debouncedSearch.toLowerCase()),
+            q.quiz_title.toLowerCase().includes(query) ||
+            q.class_name?.toLowerCase().includes(query) ||
+            q.teacher_name?.toLowerCase().includes(query),
         )
         .sort((a, b) => {
           const aVal = a[sortKey];
@@ -140,7 +136,8 @@ export function AdminQuizOverview() {
           if (bVal == null) return -1;
           const cmp = aVal < bVal ? -1 : aVal > bVal ? 1 : 0;
           return sortDir === "asc" ? cmp : -cmp;
-        }),
+        });
+    },
     [quizzes, debouncedSearch, sortKey, sortDir],
   );
 
