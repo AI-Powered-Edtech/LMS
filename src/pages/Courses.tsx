@@ -204,16 +204,18 @@ export const Courses: React.FC = () => {
   // Server-side search covers title. Client-side filter covers description
   // (the service only does ilike on title, so we locally filter description as well)
   const filteredCourses = useMemo(
-    () =>
-      debouncedSearch
-        ? courses.filter(
-            (c) =>
-              c.title.toLowerCase().includes(debouncedSearch.toLowerCase()) ||
-              (c.description ?? "")
-                .toLowerCase()
-                .includes(debouncedSearch.toLowerCase()),
-          )
-        : courses,
+    () => {
+      if (!debouncedSearch) return courses;
+
+      // ⚡ Bolt: Hoist static toLowerCase() conversion outside the loop
+      // to prevent redundant O(n) string allocations
+      const query = debouncedSearch.toLowerCase();
+      return courses.filter(
+        (c) =>
+          c.title.toLowerCase().includes(query) ||
+          (c.description ?? "").toLowerCase().includes(query),
+      );
+    },
     [courses, debouncedSearch],
   );
 
