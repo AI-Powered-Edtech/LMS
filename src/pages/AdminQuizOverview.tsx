@@ -118,19 +118,20 @@ export function AdminQuizOverview() {
 
   // ⚡ Perf: Memoize filteredQuizzes — was recomputed (filter + sort) on every render
   const filteredQuizzes = useMemo(
-    () =>
-      quizzes
+    () => {
+      const searchLower = debouncedSearch.toLowerCase();
+      return quizzes
         .filter(
           (q) =>
             q.quiz_title
               .toLowerCase()
-              .includes(debouncedSearch.toLowerCase()) ||
+              .includes(searchLower) ||
             q.class_name
               ?.toLowerCase()
-              .includes(debouncedSearch.toLowerCase()) ||
+              .includes(searchLower) ||
             q.teacher_name
               ?.toLowerCase()
-              .includes(debouncedSearch.toLowerCase()),
+              .includes(searchLower),
         )
         .sort((a, b) => {
           const aVal = a[sortKey];
@@ -140,7 +141,8 @@ export function AdminQuizOverview() {
           if (bVal == null) return -1;
           const cmp = aVal < bVal ? -1 : aVal > bVal ? 1 : 0;
           return sortDir === "asc" ? cmp : -cmp;
-        }),
+        });
+    },
     [quizzes, debouncedSearch, sortKey, sortDir],
   );
 
