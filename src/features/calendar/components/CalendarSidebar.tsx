@@ -105,6 +105,7 @@ export function CalendarSidebar({
                   {(event.type === "assignment" || event.type === "exam") && (
                     <button
                       onClick={() => onToggleCompletion(event.id)}
+                      aria-label={event.completed ? "Tandai belum selesai" : "Tandai selesai"}
                       className="shrink-0"
                     >
                       {event.completed ? (
