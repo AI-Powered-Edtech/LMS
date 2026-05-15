@@ -8,7 +8,7 @@
     "dev": "vite --host",
     "build": "pnpm run validate && vite build",
     "analyze": "ANALYZE=true vite build",
-    "preview": "vite preview",
+    "preview": "vite preview --port 5173",
     "deploy:puter": "pnpm run build && puter site deploy ./dist edusync-lms",
     "clean": "rm -rf dist",
     "typecheck": "tsc --noEmit",
