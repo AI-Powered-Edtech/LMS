@@ -57,16 +57,6 @@ export function useExportReport(options: UseExportReportOptions = {}) {
   /**
    * Check job status
    */
-  /**
-   * Stop polling
-   */
-  const stopPolling = useCallback(() => {
-    if (pollingRef.current) {
-      clearInterval(pollingRef.current);
-      pollingRef.current = null;
-    }
-  }, []);
-
   const checkJobStatus = useCallback(
     async (jobId: string) => {
       try {
@@ -114,7 +104,7 @@ export function useExportReport(options: UseExportReportOptions = {}) {
         setError(err.message || "Failed to check job status");
       }
     },
-    [onCompleted, onFailed, stopPolling],
+    [onCompleted, onFailed],
   );
 
   /**
@@ -133,6 +123,15 @@ export function useExportReport(options: UseExportReportOptions = {}) {
     [checkJobStatus, pollingInterval],
   );
 
+  /**
+   * Stop polling
+   */
+  const stopPolling = useCallback(() => {
+    if (pollingRef.current) {
+      clearInterval(pollingRef.current);
+      pollingRef.current = null;
+    }
+  }, []);
 
   /**
    * Export report

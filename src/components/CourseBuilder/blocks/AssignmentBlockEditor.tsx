@@ -201,53 +201,65 @@ export function AssignmentBlockEditor({
       {/* Assignment Settings */}
       <div className="grid grid-cols-1 gap-6 p-8 bg-slate-50/50 rounded-[32px] border border-slate-200/50">
         <div>
-          <label className="block mb-2 px-1">
-            <span className="block text-xs font-black text-slate-500 uppercase tracking-[0.2em] mb-2">Judul Tugas</span>
-            <input
-              type="text"
-              value={assignmentData.title}
-              onChange={(e) =>
-                setAssignmentData({ ...assignmentData, title: e.target.value })
-              }
-              className="w-full px-5 py-3 bg-white border border-slate-200 rounded-[18px] focus:ring-4 focus:ring-indigo-50 focus:border-indigo-300 outline-none transition-all font-bold text-slate-700 placeholder:text-slate-400 shadow-sm"
-              placeholder="Masukkan judul tugas..."
-            />
+          <label
+            htmlFor="assignment-title"
+            className="block text-xs font-black text-slate-500 uppercase tracking-[0.2em] mb-2 px-1"
+          >
+            Judul Tugas
           </label>
+          <input
+            id="assignment-title"
+            type="text"
+            value={assignmentData.title}
+            onChange={(e) =>
+              setAssignmentData({ ...assignmentData, title: e.target.value })
+            }
+            className="w-full px-5 py-3 bg-white border border-slate-200 rounded-[18px] focus:ring-4 focus:ring-indigo-50 focus:border-indigo-300 outline-none transition-all font-bold text-slate-700 placeholder:text-slate-400 shadow-sm"
+            placeholder="Masukkan judul tugas..."
+          />
         </div>
         <div>
-          <label className="block mb-2 px-1">
-            <span className="block text-xs font-black text-slate-500 uppercase tracking-[0.2em] mb-2">Instruksi Tugas</span>
-            <textarea
-              value={assignmentData.instructions || ""}
-              onChange={(e) =>
-                setAssignmentData({
-                  ...assignmentData,
-                  instructions: e.target.value,
-                })
-              }
-              rows={6}
-              className="w-full px-5 py-3 bg-white border border-slate-200 rounded-[24px] focus:ring-4 focus:ring-indigo-50 focus:border-indigo-300 outline-none transition-all resize-none font-medium text-slate-600 placeholder:text-slate-400 shadow-sm leading-relaxed"
-              placeholder="Masukkan instruksi lengkap untuk dikerjakan siswa..."
-            />
+          <label
+            htmlFor="assignment-instructions"
+            className="block text-xs font-black text-slate-500 uppercase tracking-[0.2em] mb-2 px-1"
+          >
+            Instruksi Tugas
           </label>
+          <textarea
+            id="assignment-instructions"
+            value={assignmentData.instructions || ""}
+            onChange={(e) =>
+              setAssignmentData({
+                ...assignmentData,
+                instructions: e.target.value,
+              })
+            }
+            rows={6}
+            className="w-full px-5 py-3 bg-white border border-slate-200 rounded-[24px] focus:ring-4 focus:ring-indigo-50 focus:border-indigo-300 outline-none transition-all resize-none font-medium text-slate-600 placeholder:text-slate-400 shadow-sm leading-relaxed"
+            placeholder="Masukkan instruksi lengkap untuk dikerjakan siswa..."
+          />
         </div>
         <div className="grid grid-cols-2 gap-6">
           <div>
-            <label className="block mb-2 px-1">
-              <span className="block text-xs font-black text-slate-500 uppercase tracking-[0.2em] mb-2">Maks. Poin</span>
-              <input
-                type="number"
-                min="1"
-                value={assignmentData.max_points}
-                onChange={(e) =>
-                  setAssignmentData({
-                    ...assignmentData,
-                    max_points: parseInt(e.target.value) || 100,
-                  })
-                }
-                className="w-full px-5 py-3 bg-white border border-slate-200 rounded-[18px] focus:ring-4 focus:ring-indigo-50 focus:border-indigo-300 outline-none transition-all font-medium text-slate-700 placeholder:text-slate-400 shadow-sm"
-              />
+            <label
+              htmlFor="assignment-max-points"
+              className="block text-xs font-black text-slate-500 uppercase tracking-[0.2em] mb-2 px-1"
+            >
+              Maks. Poin
             </label>
+            <input
+              id="assignment-max-points"
+              type="number"
+              min="1"
+              value={assignmentData.max_points}
+              onChange={(e) =>
+                setAssignmentData({
+                  ...assignmentData,
+                  max_points: parseInt(e.target.value) || 0,
+                })
+              }
+              className="w-full px-5 py-3 bg-white border border-slate-200 rounded-[18px] focus:ring-4 focus:ring-indigo-50 focus:border-indigo-300 outline-none transition-all font-black text-slate-700 shadow-sm"
+            />
           </div>
           <div>
             <label

@@ -198,7 +198,7 @@ export function ReviewQueue() {
   const isBusy = approveMutation.isPending || requestChangesMutation.isPending;
 
   const courses = pendingQuery.data?.courses ?? [];
-  const teachers = useMemo(() => pendingQuery.data?.teachers ?? {}, [pendingQuery.data?.teachers]);
+  const teachers = pendingQuery.data?.teachers ?? {};
 
   const teacherLabel = useMemo(
     () => (teacherId: string) => {
