@@ -260,6 +260,10 @@ export default defineConfig(({ mode }) => {
         ],
       },
     },
+    preview: {
+      port: 5173,
+      host: true,
+    },
     build: {
       target: "es2020",
       sourcemap: hasSentryToken ? true : false,
