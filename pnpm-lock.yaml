@@ -186,7 +186,7 @@ importers:
         specifier: ^8.58.2
         version: 8.58.2(@typescript-eslint/parser@8.58.2(eslint@10.2.1(jiti@2.6.1))(typescript@5.8.3))(eslint@10.2.1(jiti@2.6.1))(typescript@5.8.3)
       '@typescript-eslint/parser':
-        specifier: ^8.58.2
+        specifier: 8.58.2
         version: 8.58.2(eslint@10.2.1(jiti@2.6.1))(typescript@5.8.3)
       '@vitejs/plugin-react':
         specifier: ^5.0.4
