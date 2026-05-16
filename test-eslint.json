@@ -1,0 +1,9 @@
+{
+  "rules": {
+    "jsx-a11y/label-has-associated-control": ["warn", {
+      "assert": "either",
+      "depth": 3
+    }],
+    "jsx-a11y/label-has-for": "off"
+  }
+}
