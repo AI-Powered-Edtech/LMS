@@ -303,7 +303,7 @@ export function QuizEditorView({
         <div className="p-3 bg-red-50 dark:bg-red-900/30 border border-red-200 dark:border-red-800 text-red-700 dark:text-red-400 text-sm rounded-xl flex items-start gap-2">
           <AlertTriangle className="w-4 h-4 shrink-0 mt-0.5" />
           <span>{error}</span>
-          <button onClick={() => setError(null)} className="ml-auto">
+          <button aria-label="Tutup pesan error" onClick={() => setError(null)} className="ml-auto">
             <X className="w-4 h-4" />
           </button>
         </div>
@@ -559,6 +559,7 @@ export function QuizEditorView({
                   />
                   {!isPublished && (
                     <button
+                      aria-label="Hapus soal"
                       onClick={() => removeQuestion(qIdx)}
                       className="p-1.5 text-slate-300 dark:text-slate-600 hover:text-red-500 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-all"
                     >
@@ -586,6 +587,7 @@ export function QuizEditorView({
                         (opt: any, oIdx: number) => (
                           <div key={oIdx} className="flex items-center gap-2">
                             <button
+                              aria-label={opt.is_correct ? "Hapus tanda jawaban benar" : "Tandai sebagai jawaban benar"}
                               type="button"
                               onClick={() =>
                                 !isPublished && setCorrectOption(qIdx, oIdx)
@@ -639,6 +641,7 @@ export function QuizEditorView({
                               watch(`questions.${qIdx}.question_type`) !==
                                 "TRUE_FALSE" && (
                                 <button
+                                  aria-label="Hapus opsi"
                                   type="button"
                                   onClick={() => {
                                     const currentOptions = getValues(
