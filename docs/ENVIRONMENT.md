@@ -54,6 +54,7 @@ Secret di bawah ini di-set via environment server atau secret manager (bukan di 
 
 | Variable | Required | Description |
 | --- | --- | --- |
+| VITE_USE_ROMBEL_ADAPTER | ⬜ | true | B2 rombel adapter rollout flag (true to prefer rombel reads, false for legacy). |
 | GROQ_API_KEY | ✅ | API key Groq untuk AI Tutor & AI Grading. Dapatkan di <https://console.groq.com>. |
 | DATABASE_URL | ✅ | PostgreSQL connection string untuk VIL backend (format: `postgres://user:pass@host:5432/db`). |
 | JWT_SECRET | ✅ | Secret untuk sign JWT access token. Minimum 32 karakter acak. |
@@ -99,3 +100,4 @@ Konsistensi antara `.env.example` dan dokumen ini dijaga oleh `scripts/validate-
 - env | VITE_SENTRY_AUTH_TOKEN | documented above
 - env | VITE_VAPID_PUBLIC_KEY | documented above
 - env | VITE_DEV_PASSWORD | documented above
+- env | VITE_USE_ROMBEL_ADAPTER | documented above
