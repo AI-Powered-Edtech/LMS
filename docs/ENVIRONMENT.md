@@ -99,3 +99,6 @@ Konsistensi antara `.env.example` dan dokumen ini dijaga oleh `scripts/validate-
 - env | VITE_SENTRY_AUTH_TOKEN | documented above
 - env | VITE_VAPID_PUBLIC_KEY | documented above
 - env | VITE_DEV_PASSWORD | documented above
+- env | VITE_USE_ROMBEL_ADAPTER | B2 rombel adapter rollout flag
+| VITE_USE_ROMBEL_ADAPTER | B2 rombel adapter rollout flag
+- env | VITE_USE_ROMBEL_ADAPTER | B2 rombel adapter rollout flag
