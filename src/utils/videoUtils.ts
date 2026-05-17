@@ -80,12 +80,3 @@ export function parseVideoUrl(url: string): ParsedVideoUrl {
   }
 }
 
-/**
- * Check if a URL is a supported embedded video (YouTube or Vimeo)
- * @param url - The video URL to check
- * @returns true if URL is YouTube or Vimeo
- */
-export function isEmbeddedVideo(url: string): boolean {
-  const { type } = parseVideoUrl(url);
-  return type === "youtube" || type === "vimeo";
-}
