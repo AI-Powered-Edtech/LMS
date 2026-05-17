@@ -56,3 +56,65 @@ Konsistensi antara daftar di atas dengan file fisik di `edusync-api/migrations/`
 ```
 
 Lihat juga [`docs/DATABASE.md`](./DATABASE.md) untuk dokumentasi skema, RLS policy, dan indexing strategy.
+| 018_fix_backend_schema_bugs.sql | Fixes | Fix schema bugs |
+| 019_audit_fixes.sql | Audit | Audit fixes |
+| 020_fix_rpc_signatures.sql | RPC | Fix RPC signatures |
+| 021_rpc_json.sql | RPC | JSON returning RPCs |
+| 022_align_table_columns.sql | Fixes | Align table columns |
+| 023_rpc_stubs.sql | RPC | RPC stubs |
+| 024_course_review_workflow.sql | Course | Course review workflow |
+| 025_personal_and_multi_tenant.sql | Tenant | Personal and multi tenant |
+| 026_join_code_and_slugify.sql | Common | Join code and slugify |
+| 027_p2_backlog.sql | Backlog | Phase 2 backlog |
+| 028_p3_tenant_settings_and_roles.sql | Tenant | Tenant settings and roles |
+| 029_add_admin_notification_types.sql | Notifications | Admin notification types |
+| 030_admin_stub_tables_and_rpcs.sql | Admin | Admin stubs |
+| 031_qa_schema_gaps.sql | QA | QA schema gaps |
+| 032_qa_rpcs.sql | QA | QA RPCs |
+| 033_fix_search_questions_return_json.sql | Fixes | Fix search questions RPC |
+| 034_lesson_progress_monitor_rpc.sql | RPC | Lesson progress monitor RPC |
+| 035_admin_backfill.sql | Admin | Admin backfill |
+| 036_confirm_demo_seed_users.sql | Seed | Confirm demo seed users |
+| 037_qa_sweep_fixes.sql | QA | QA sweep fixes |
+| 037_seed_modules_missing_rpcs_and_auth_uid.sql | Seed | Seed modules RPCs |
+| 038_fix_get_tenant_users_user_id_alias.sql | Fixes | Fix get tenant users |
+| 039_academic_years.sql | Core | Academic years |
+| 040_semesters_link_academic_year.sql | Core | Semesters link academic year |
+| 041_grade_levels.sql | Core | Grade levels |
+| 042_rombel.sql | Rombel | Rombel core |
+| 043_subjects_and_curriculum_items.sql | Curriculum | Subjects and curriculum items |
+| 044_timetable_slots.sql | Scheduling | Timetable slots |
+| 045_dossiers.sql | Profile | Dossiers |
+| 046_rbac_10_role_matrix.sql | Auth | RBAC role matrix |
+| 047_cp_tagging.sql | Tagging | CP Tagging |
+| 048_gradebook_dual_mode.sql | Grading | Gradebook dual mode |
+| 049_nilai_per_cp.sql | Grading | Nilai per CP |
+| 050_akm_question_type.sql | Questions | AKM Question type |
+| 051_p5_module.sql | Core | P5 Module |
+| 052_domain_events_outbox.sql | Events | Domain events outbox |
+| 053_rapor_kurmer.sql | Reports | Rapor Kurmer |
+| 054_finance_midtrans.sql | Finance | Finance Midtrans |
+| 055_bos_expense_tracking.sql | Finance | BOS Expense tracking |
+| 056_ppdb_flow.sql | Admission | PPDB Flow |
+| 057_integrations.sql | Core | Integrations |
+| 058_ai_polish.sql | AI | AI Polish |
+| 059_audit_rate_limit_perf.sql | Performance | Audit Rate limit perf |
+| 060_counseling_parent_links_sikap.sql | Core | Counseling parent links |
+| 061_app_audit_triggers.sql | Audit | App audit triggers |
+| 062_rapor_autogen_rpc.sql | RPC | Rapor autogen RPC |
+| 063_rombel_attendance.sql | Rombel | Rombel attendance |
+| 064_stub_tables.sql | Core | Stub tables |
+| 065_gradebook_baseline.sql | Grading | Gradebook baseline |
+| 066_role_enum_completeness.sql | Auth | Role enum completeness |
+| 067_idempotent_auto_modules.sql | Modules | Idempotent auto modules |
+| 068_sync_user_roles_to_granular.sql | Auth | Sync user roles |
+| 069_classes_rombel_id.sql | Rombel | Classes rombel id |
+| 070_event_handler_idempotency.sql | Events | Event handler idempotency |
+| 071_ai_rate_limit.sql | AI | AI rate limit |
+| 072_parent_invoices_rpc.sql | Finance | Parent invoices RPC |
+| 073_refresh_tokens_session_metadata.sql | Auth | Refresh tokens session metadata |
+| 074_tenant_invites_and_settings.sql | Tenant | Tenant invites and settings |
+| 075_tenant_invites_global_unique_code.sql | Tenant | Tenant invites global unique code |
+| 076_invalidate_refresh_tokens_post_rotation.sql | Auth | Invalidate refresh tokens |
+| 077_plagiarism_checks.sql | Integrations | Plagiarism checks |
+| 078_scorm_runtime_data.sql | Core | SCORM runtime data |
