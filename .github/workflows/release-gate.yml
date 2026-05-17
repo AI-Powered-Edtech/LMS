@@ -56,7 +56,7 @@ jobs:
         with:
           name: coverage-summary
           path: coverage/coverage-summary.json
-          if-no-files-found: error
+          if-no-files-found: warn
           retention-days: 30
 
   e2e-role-coverage:
@@ -251,6 +251,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 15
     needs: build-quality
+    if: always()
 
     steps:
       - name: Checkout
@@ -321,10 +322,11 @@ jobs:
 
       - name: Upload security summary
         uses: actions/upload-artifact@v4
+        if: always()
         with:
           name: security-summary
           path: security-summary.md
-          if-no-files-found: error
+          if-no-files-found: warn
           retention-days: 30
 
   evidence-collector:
@@ -377,14 +379,19 @@ jobs:
           EVENT_NAME="${{ github.event_name }}"
 
           # coverage-summary dan security-summary selalu wajib (jalan di semua event)
-          for file in \
-            "${RELEASE_DIR}/coverage-summary.json" \
-            "${RELEASE_DIR}/security-summary.md"; do
-            if [ ! -f "$file" ]; then
-              echo "::error::Missing required artifact: $file"
-              MISSING=1
-            fi
-          done
+          if [ ! -f "${RELEASE_DIR}/coverage-summary.json" ]; then
+             # Ignore missing coverage summary on PRs if tests failed since coverage isn't fully generated
+             if [ "$BUILD_RESULT" == "success" ] || [ "$EVENT_NAME" != "pull_request" ]; then
+               echo "::error::Missing required artifact: coverage-summary.json"
+               MISSING=1
+             fi
+          fi
+          if [ ! -f "${RELEASE_DIR}/security-summary.md" ]; then
+             if [ "$SEC_RESULT" == "success" ] || [ "$EVENT_NAME" != "pull_request" ]; then
+               echo "::error::Missing required artifact: security-summary.md"
+               MISSING=1
+             fi
+          fi
 
           # E2E persona summary dan Lighthouse hanya diwajibkan saat push ke main (deploy)
           if [ "$EVENT_NAME" != "pull_request" ]; then
