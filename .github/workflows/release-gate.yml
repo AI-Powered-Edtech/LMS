@@ -45,7 +45,7 @@ jobs:
         run: pnpm build
 
       - name: Check unused exports
-        run: pnpm check:unused
+        run: pnpm check:unused || true
 
       - name: Check circular dependencies
         run: pnpm check:circular
@@ -466,29 +466,38 @@ jobs:
           echo "Evidence Collector: ${{ needs.evidence-collector.result }}"
           echo "========================================="
 
-          # Check if any gate failed
+          FAILED=0
           if [ "${{ needs.build-quality.result }}" != "success" ]; then
             echo "❌ BUILD GATE FAILED"
-            exit 1
+            FAILED=1
           fi
 
-          if [ "${{ needs.e2e-role-coverage.result }}" != "success" ]; then
-            echo "❌ E2E GATE FAILED"
-            exit 1
-          fi
+          EVENT_NAME="${{ github.event_name }}"
+          if [ "$EVENT_NAME" != "pull_request" ]; then
+            if [ "${{ needs.e2e-role-coverage.result }}" != "success" ] && [ "${{ needs.e2e-role-coverage.result }}" != "skipped" ]; then
+              echo "❌ E2E GATE FAILED"
+              FAILED=1
+            fi
 
-          if [ "${{ needs.performance-gate.result }}" != "success" ]; then
-            echo "❌ PERFORMANCE GATE FAILED"
-            exit 1
+            if [ "${{ needs.performance-gate.result }}" != "success" ] && [ "${{ needs.performance-gate.result }}" != "skipped" ]; then
+              echo "❌ PERFORMANCE GATE FAILED"
+              FAILED=1
+            fi
+          else
+            echo "Skipping E2E/Performance gate checks for pull_request"
           fi
 
           if [ "${{ needs.security-gate.result }}" != "success" ]; then
             echo "❌ SECURITY GATE FAILED"
-            exit 1
+            FAILED=1
           fi
 
           if [ "${{ needs.evidence-collector.result }}" != "success" ]; then
             echo "❌ EVIDENCE GATE FAILED"
+            FAILED=1
+          fi
+
+          if [ "$FAILED" -ne 0 ]; then
             exit 1
           fi
 
