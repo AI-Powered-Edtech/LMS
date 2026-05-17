@@ -45,6 +45,7 @@ Variabel dengan prefix `VITE_` di-embed ke bundle frontend saat build. **Jangan 
 | Variable | Required | Default | Description |
 | --- | --- | --- | --- |
 | VITE_DEV_PASSWORD | ⬜ | *(empty)* | Pre-fill password untuk Quick Login buttons di halaman login. **Hanya aktif di dev.** |
+| VITE_USE_ROMBEL_ADAPTER | ⬜ | `true` | B2 rombel adapter rollout flag (true to prefer rombel reads, false for legacy). |
 
 ---
 
@@ -99,3 +100,5 @@ Konsistensi antara `.env.example` dan dokumen ini dijaga oleh `scripts/validate-
 - env | VITE_SENTRY_AUTH_TOKEN | documented above
 - env | VITE_VAPID_PUBLIC_KEY | documented above
 - env | VITE_DEV_PASSWORD | documented above
+| VITE_USE_ROMBEL_ADAPTER | ⬜ | `true` | B2 rombel adapter rollout flag (true to prefer rombel reads, false for legacy). |
+- env | VITE_USE_ROMBEL_ADAPTER | B2 rombel adapter rollout flag
