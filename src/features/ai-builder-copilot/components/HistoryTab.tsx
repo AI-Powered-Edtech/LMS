@@ -1,3 +1,4 @@
+import { useMemo } from "react";
 import {
   BookOpen,
   FileText,
@@ -56,10 +57,14 @@ export function HistoryTab() {
     useArtifactHistory(state.courseId);
   const dismissMutation = useDismissArtifact();
 
-  const artifacts =
-    (data?.pages as unknown as Array<{ items: AIBuilderArtifact[] }>)?.flatMap(
-      (page) => page.items,
-    ) ?? [];
+  // ⚡ Perf: Memoize flattened artifact array to prevent redundant O(N) array recreation on every render
+  const artifacts = useMemo(() => {
+    return (
+      (data?.pages as unknown as Array<{ items: AIBuilderArtifact[] }>)?.flatMap(
+        (page) => page.items,
+      ) ?? []
+    );
+  }, [data?.pages]);
 
   const handleDismiss = async (artifact: AIBuilderArtifact) => {
     if (!state.courseId) return;
