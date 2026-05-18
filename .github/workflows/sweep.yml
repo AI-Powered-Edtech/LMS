@@ -26,13 +26,15 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - uses: pnpm/action-setup@v4
+
       - uses: actions/setup-node@v4
         with:
-          node-version: 20
-          cache: npm
+          node-version: 24
+          cache: pnpm
 
-      - name: Install npm dependencies
-        run: npm ci
+      - name: Install pnpm dependencies
+        run: pnpm install --frozen-lockfile
 
       - uses: actions-rs/toolchain@v1
         with:
@@ -65,18 +67,18 @@ jobs:
           npx --yes wait-on http://localhost:8080/api/v1/health -t 60000
 
       - name: Install Playwright browsers
-        run: npx playwright install chromium --with-deps
+        run: pnpm exec playwright install chromium --with-deps
 
       - name: Start frontend dev server
         run: |
-          npm run dev &
+          pnpm run dev &
           npx --yes wait-on http://localhost:5173 -t 60000
 
       - name: Run sweep
-        run: npx playwright test tests/e2e/sweep.spec.ts --reporter=line
+        run: pnpm exec playwright test tests/e2e/sweep.spec.ts --reporter=line
 
       - name: Run a11y gate
-        run: npx playwright test tests/e2e/a11y.spec.ts --workers=1 --reporter=line
+        run: pnpm exec playwright test tests/e2e/a11y.spec.ts --workers=1 --reporter=line
 
       - name: Restore baseline from main
         run: |
