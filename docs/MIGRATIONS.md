@@ -27,6 +27,68 @@ Migration dijalankan secara berurutan sesuai nomor prefix (`NNN_`). Gunakan `scr
 | 015_backend_heavy_tables.sql | Schema | Tabel-tabel besar backend (audit log, event stream, dsb.) yang di-offload dari frontend. |
 | 016_add_performance_indexes.sql | Performance | Index tambahan untuk query panas (dashboard, leaderboard, gradebook). |
 | 017_add_google_id_to_profiles.sql | Auth | Kolom `google_id` di `profiles` untuk Google OAuth single sign-on. |
+| 018_fix_backend_schema_bugs.sql | Update | - |
+| 019_audit_fixes.sql | Update | - |
+| 020_fix_rpc_signatures.sql | Update | - |
+| 021_rpc_json.sql | Update | - |
+| 022_align_table_columns.sql | Update | - |
+| 023_rpc_stubs.sql | Update | - |
+| 024_course_review_workflow.sql | Update | - |
+| 025_personal_and_multi_tenant.sql | Update | - |
+| 026_join_code_and_slugify.sql | Update | - |
+| 027_p2_backlog.sql | Update | - |
+| 028_p3_tenant_settings_and_roles.sql | Update | - |
+| 029_add_admin_notification_types.sql | Update | - |
+| 030_admin_stub_tables_and_rpcs.sql | Update | - |
+| 031_qa_schema_gaps.sql | Update | - |
+| 032_qa_rpcs.sql | Update | - |
+| 033_fix_search_questions_return_json.sql | Update | - |
+| 034_lesson_progress_monitor_rpc.sql | Update | - |
+| 035_admin_backfill.sql | Update | - |
+| 036_confirm_demo_seed_users.sql | Update | - |
+| 037_qa_sweep_fixes.sql | Update | - |
+| 037_seed_modules_missing_rpcs_and_auth_uid.sql | Update | - |
+| 038_fix_get_tenant_users_user_id_alias.sql | Update | - |
+| 039_academic_years.sql | Update | - |
+| 040_semesters_link_academic_year.sql | Update | - |
+| 041_grade_levels.sql | Update | - |
+| 042_rombel.sql | Update | - |
+| 043_subjects_and_curriculum_items.sql | Update | - |
+| 044_timetable_slots.sql | Update | - |
+| 045_dossiers.sql | Update | - |
+| 046_rbac_10_role_matrix.sql | Update | - |
+| 047_cp_tagging.sql | Update | - |
+| 048_gradebook_dual_mode.sql | Update | - |
+| 049_nilai_per_cp.sql | Update | - |
+| 050_akm_question_type.sql | Update | - |
+| 051_p5_module.sql | Update | - |
+| 052_domain_events_outbox.sql | Update | - |
+| 053_rapor_kurmer.sql | Update | - |
+| 054_finance_midtrans.sql | Update | - |
+| 055_bos_expense_tracking.sql | Update | - |
+| 056_ppdb_flow.sql | Update | - |
+| 057_integrations.sql | Update | - |
+| 058_ai_polish.sql | Update | - |
+| 059_audit_rate_limit_perf.sql | Update | - |
+| 060_counseling_parent_links_sikap.sql | Update | - |
+| 061_app_audit_triggers.sql | Update | - |
+| 062_rapor_autogen_rpc.sql | Update | - |
+| 063_rombel_attendance.sql | Update | - |
+| 064_stub_tables.sql | Update | - |
+| 065_gradebook_baseline.sql | Update | - |
+| 066_role_enum_completeness.sql | Update | - |
+| 067_idempotent_auto_modules.sql | Update | - |
+| 068_sync_user_roles_to_granular.sql | Update | - |
+| 069_classes_rombel_id.sql | Update | - |
+| 070_event_handler_idempotency.sql | Update | - |
+| 071_ai_rate_limit.sql | Update | - |
+| 072_parent_invoices_rpc.sql | Update | - |
+| 073_refresh_tokens_session_metadata.sql | Update | - |
+| 074_tenant_invites_and_settings.sql | Update | - |
+| 075_tenant_invites_global_unique_code.sql | Update | - |
+| 076_invalidate_refresh_tokens_post_rotation.sql | Update | - |
+| 077_plagiarism_checks.sql | Update | - |
+| 078_scorm_runtime_data.sql | Update | - |
 
 > Gap pada nomor (misal 010, 011) adalah hasil revert/konsolidasi migration yang dibatalkan sebelum landing di `main`. Jangan reuse nomor tersebut untuk migration baru.
 
