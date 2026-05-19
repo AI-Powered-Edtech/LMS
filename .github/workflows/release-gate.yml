@@ -251,6 +251,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 15
     needs: build-quality
+    if: always()
 
     steps:
       - name: Checkout
