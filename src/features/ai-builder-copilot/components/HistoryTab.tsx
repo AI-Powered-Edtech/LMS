@@ -7,6 +7,7 @@ import {
   Sparkles,
   XCircle,
 } from "lucide-react";
+import { useMemo } from "react";
 
 import { useBuilder } from "@/contexts/BuilderContext";
 import { useToast } from "@/hooks/useToast";
@@ -56,10 +57,15 @@ export function HistoryTab() {
     useArtifactHistory(state.courseId);
   const dismissMutation = useDismissArtifact();
 
-  const artifacts =
-    (data?.pages as unknown as Array<{ items: AIBuilderArtifact[] }>)?.flatMap(
-      (page) => page.items,
-    ) ?? [];
+  // ⚡ Bolt: Memoize the derived array to prevent O(N) re-creation on every render,
+  // especially important for large data sets loaded from infinite queries.
+  const artifacts = useMemo(
+    () =>
+      (data?.pages as unknown as Array<{ items: AIBuilderArtifact[] }>)?.flatMap(
+        (page) => page.items,
+      ) ?? [],
+    [data?.pages],
+  );
 
   const handleDismiss = async (artifact: AIBuilderArtifact) => {
     if (!state.courseId) return;
