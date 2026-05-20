@@ -143,10 +143,14 @@ export function AssignmentBlockEditor({
         </div>
         <div className="flex items-center gap-3 shrink-0">
           <div className="flex items-center gap-3 mr-4 border-r border-slate-100 pr-4">
-            <span className="text-xs font-black text-slate-500 uppercase tracking-widest">
+            <label
+              htmlFor="assignment-publish-switch"
+              className="text-xs font-black text-slate-500 uppercase tracking-widest"
+            >
               STATUS:
-            </span>
+            </label>
             <button
+              id="assignment-publish-switch"
               role="switch"
               aria-checked={assignmentData.is_published}
               aria-label="Publikasi tugas"

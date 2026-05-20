@@ -420,6 +420,7 @@ export function AttemptDetailModal({
                             max={answer.max_points}
                             step="0.5"
                             value={gradingScores[answer.question_id] ?? ""}
+                            aria-label={`Nilai untuk soal ${answer.question_id}`}
                             onChange={(e) =>
                               setGradingScores((prev) => ({
                                 ...prev,
@@ -447,6 +448,7 @@ export function AttemptDetailModal({
                         <textarea
                           id={`feedback-${answer.question_id}`}
                           value={gradingComments[answer.question_id] ?? ""}
+                          aria-label={`Komentar untuk soal ${answer.question_id}`}
                           onChange={(e) =>
                             setGradingComments((prev) => ({
                               ...prev,
