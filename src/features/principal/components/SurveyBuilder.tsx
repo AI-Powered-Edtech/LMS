@@ -123,6 +123,7 @@ function QuestionRow({
           disabled={!canMoveUp}
           className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 disabled:opacity-30 text-xs leading-none"
           title="Pindah ke atas"
+          aria-label="Pindah ke atas"
         >
           ▲
         </button>
@@ -132,6 +133,7 @@ function QuestionRow({
           disabled={!canMoveDown}
           className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 disabled:opacity-30 text-xs leading-none"
           title="Pindah ke bawah"
+          aria-label="Pindah ke bawah"
         >
           ▼
         </button>
@@ -176,6 +178,7 @@ function QuestionRow({
         onClick={onRemove}
         className="text-red-400 hover:text-red-600 dark:hover:text-red-300 text-sm mt-1 flex-shrink-0"
         title="Hapus pertanyaan"
+        aria-label="Hapus pertanyaan"
       >
         ✕
       </button>
