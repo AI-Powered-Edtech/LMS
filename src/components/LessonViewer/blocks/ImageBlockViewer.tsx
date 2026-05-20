@@ -100,21 +100,9 @@ export function ImageBlockViewer({ url, alt }: ImageBlockViewerProps) {
       {isZoomed && (
         <div
           className="fixed inset-0 bg-black/80 z-50 flex items-center justify-center p-4"
-          role="dialog"
-          aria-modal="true"
+          role="presentation"
           aria-label="Tampilan gambar penuh"
           onClick={() => setIsZoomed(false)}
-          onKeyDown={(e) => {
-            if (e.key === "Escape") {
-              setIsZoomed(false);
-            }
-            // Focus trap: only one focusable element (close button), so always
-            // redirect Tab/Shift+Tab back to it.
-            if (e.key === "Tab") {
-              e.preventDefault();
-              closeButtonRef.current?.focus();
-            }
-          }}
         >
           <button
             ref={closeButtonRef}
