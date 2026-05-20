@@ -407,7 +407,7 @@ export function AttemptDetailModal({
                       {/* Score input */}
                       <div className="flex items-center gap-3">
                         <label
-                          htmlFor={`score-input-${answer.question_id}`}
+                          id={`score-input-label-${answer.question_id}`} htmlFor={`score-input-${answer.question_id}`}
                           className="text-xs font-medium text-slate-500 uppercase tracking-wide shrink-0"
                         >
                           Nilai
@@ -415,6 +415,7 @@ export function AttemptDetailModal({
                         <div className="flex items-center gap-2">
                           <input
                             id={`score-input-${answer.question_id}`}
+                            aria-labelledby={`score-input-label-${answer.question_id}`}
                             type="number"
                             min={0}
                             max={answer.max_points}
@@ -438,7 +439,7 @@ export function AttemptDetailModal({
                       {/* Feedback textarea */}
                       <div>
                         <label
-                          htmlFor={`feedback-${answer.question_id}`}
+                          id={`feedback-label-${answer.question_id}`} htmlFor={`feedback-${answer.question_id}`}
                           className="flex items-center gap-1.5 text-xs font-medium text-slate-500 uppercase tracking-wide mb-1.5"
                         >
                           <MessageSquare className="w-3 h-3" />
@@ -446,6 +447,7 @@ export function AttemptDetailModal({
                         </label>
                         <textarea
                           id={`feedback-${answer.question_id}`}
+                          aria-labelledby={`feedback-label-${answer.question_id}`}
                           value={gradingComments[answer.question_id] ?? ""}
                           onChange={(e) =>
                             setGradingComments((prev) => ({

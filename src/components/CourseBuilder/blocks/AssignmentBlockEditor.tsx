@@ -202,13 +202,14 @@ export function AssignmentBlockEditor({
       <div className="grid grid-cols-1 gap-6 p-8 bg-slate-50/50 rounded-[32px] border border-slate-200/50">
         <div>
           <label
-            htmlFor="assignment-title"
+            id="assignment-title-label" htmlFor="assignment-title"
             className="block text-xs font-black text-slate-500 uppercase tracking-[0.2em] mb-2 px-1"
           >
             Judul Tugas
           </label>
           <input
             id="assignment-title"
+            aria-labelledby="assignment-title-label"
             type="text"
             value={assignmentData.title}
             onChange={(e) =>
@@ -220,13 +221,14 @@ export function AssignmentBlockEditor({
         </div>
         <div>
           <label
-            htmlFor="assignment-instructions"
+            id="assignment-instructions-label" htmlFor="assignment-instructions"
             className="block text-xs font-black text-slate-500 uppercase tracking-[0.2em] mb-2 px-1"
           >
             Instruksi Tugas
           </label>
           <textarea
             id="assignment-instructions"
+            aria-labelledby="assignment-instructions-label"
             value={assignmentData.instructions || ""}
             onChange={(e) =>
               setAssignmentData({
@@ -242,13 +244,14 @@ export function AssignmentBlockEditor({
         <div className="grid grid-cols-2 gap-6">
           <div>
             <label
-              htmlFor="assignment-max-points"
+              id="assignment-max-points-label" htmlFor="assignment-max-points"
               className="block text-xs font-black text-slate-500 uppercase tracking-[0.2em] mb-2 px-1"
             >
               Maks. Poin
             </label>
             <input
               id="assignment-max-points"
+              aria-labelledby="assignment-max-points-label"
               type="number"
               min="1"
               value={assignmentData.max_points}
@@ -263,13 +266,14 @@ export function AssignmentBlockEditor({
           </div>
           <div>
             <label
-              htmlFor="assignment-max-attempts"
+              id="assignment-max-attempts-label" htmlFor="assignment-max-attempts"
               className="block text-xs font-black text-slate-500 uppercase tracking-[0.2em] mb-2 px-1"
             >
               Maks. Percobaan
             </label>
             <input
               id="assignment-max-attempts"
+              aria-labelledby="assignment-max-attempts-label"
               type="number"
               min="1"
               value={assignmentData.max_attempts}
@@ -285,7 +289,7 @@ export function AssignmentBlockEditor({
         </div>
         <div>
           <label
-            htmlFor="assignment-due-date"
+            id="assignment-due-date-label" htmlFor="assignment-due-date"
             className="block text-xs font-black text-slate-500 uppercase tracking-[0.2em] mb-2 px-1"
           >
             Tenggat Waktu (Opsional)
@@ -293,6 +297,7 @@ export function AssignmentBlockEditor({
           <div className="relative group">
             <input
               id="assignment-due-date"
+              aria-labelledby="assignment-due-date-label"
               type="date"
               value={assignmentData.due_date || ""}
               onChange={(e) =>
