@@ -54,7 +54,7 @@ export function Sidebar() {
       <nav
         ref={containerRef as React.RefObject<HTMLElement>}
         aria-label={t("navigation.sidebar.menuLabel")}
-        role="navigation"
+        role="presentation"
         onKeyDown={handleKeyDown}
         className="flex-1 space-y-2 overflow-y-auto hide-scrollbar"
       >

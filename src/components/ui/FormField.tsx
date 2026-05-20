@@ -42,23 +42,32 @@ export function FormField<
 
   return (
     <div className={cn("w-full", className)}>
-      {label && (
+      {label ? (
         <label
           htmlFor={id}
           className={cn(
-            "block text-sm font-medium mb-1.5",
+            "block text-sm font-medium",
             labelClassName || "text-slate-700 dark:text-slate-200",
           )}
         >
           {label}
+          <div className="mt-1.5 font-normal">
+            {cloneElement(children, {
+              ...field,
+              id,
+              "aria-invalid": !!error,
+              "aria-describedby": error ? `${id}-error` : undefined,
+            })}
+          </div>
         </label>
+      ) : (
+        cloneElement(children, {
+          ...field,
+          id,
+          "aria-invalid": !!error,
+          "aria-describedby": error ? `${id}-error` : undefined,
+        })
       )}
-      {cloneElement(children, {
-        ...field,
-        id,
-        "aria-invalid": !!error,
-        "aria-describedby": error ? `${id}-error` : undefined,
-      })}
       {error && (
         <p
           id={`${id}-error`}
