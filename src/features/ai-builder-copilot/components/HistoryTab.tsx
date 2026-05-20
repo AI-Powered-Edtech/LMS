@@ -7,7 +7,6 @@ import {
   Sparkles,
   XCircle,
 } from "lucide-react";
-
 import { useMemo } from "react";
 
 import { useBuilder } from "@/contexts/BuilderContext";
