@@ -228,13 +228,18 @@ export function AssignmentViewer({
           </h4>
 
           <div className="bg-white rounded-3xl border border-slate-200 shadow-sm overflow-hidden focus-within:ring-2 focus-within:ring-blue-500 transition-all">
-            <textarea
-              value={submissionText}
-              onChange={(e) => setSubmissionText(e.target.value)}
-              disabled={!canEdit}
-              placeholder="Tuliskan jawaban atau laporan tugas Anda di sini..."
-              className="w-full h-64 p-8 resize-none outline-none text-slate-700 leading-relaxed disabled:bg-slate-50/50 disabled:text-slate-500"
-            />
+            <label htmlFor="assignment-submission" className="sr-only">
+              Pekerjaan Anda
+              <textarea
+                id="assignment-submission"
+                aria-label="Pekerjaan Anda"
+                value={submissionText}
+                onChange={(e) => setSubmissionText(e.target.value)}
+                disabled={!canEdit}
+                placeholder="Tuliskan jawaban atau laporan tugas Anda di sini..."
+                className="w-full h-64 p-8 resize-none outline-none text-slate-700 leading-relaxed disabled:bg-slate-50/50 disabled:text-slate-500"
+              />
+            </label>
 
             {!isGraded && (
               <div className="px-6 py-4 bg-slate-50 border-t border-slate-100 flex items-center justify-between">

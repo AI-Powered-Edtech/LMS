@@ -39,44 +39,75 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
 
     return (
       <div className="w-full">
-        {label && (
+        {label ? (
           <label
             htmlFor={id}
             className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5"
           >
             {label}
-          </label>
-        )}
-        <div className="relative">
-          {icon && (
-            <div
-              aria-hidden="true"
-              className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400 dark:text-slate-500"
-            >
-              {icon}
+            <div className="relative mt-1.5 font-normal">
+              {icon && (
+                <div
+                  aria-hidden="true"
+                  className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400 dark:text-slate-500"
+                >
+                  {icon}
+                </div>
+              )}
+              <input
+                ref={ref}
+                id={id}
+                aria-invalid={!!error}
+                aria-describedby={error ? `${id}-error` : undefined}
+                className={cn(
+                  "w-full border bg-white text-slate-900 placeholder:text-slate-400 transition-colors duration-200 outline-none",
+                  "focus:ring-2 focus:ring-blue-500 focus:border-blue-500",
+                  "dark:bg-slate-900 dark:text-white dark:placeholder:text-slate-500",
+                  error
+                    ? "border-red-400 focus:ring-red-500 focus:border-red-500 dark:border-red-500"
+                    : "border-slate-300 dark:border-slate-600",
+                  inputSizes[inputSize],
+                  icon && iconPadding[inputSize],
+                  props.disabled &&
+                    "opacity-50 cursor-not-allowed bg-slate-50 dark:bg-slate-800",
+                  className,
+                )}
+                {...props}
+              />
             </div>
-          )}
-          <input
-            ref={ref}
-            id={id}
-            aria-invalid={!!error}
-            aria-describedby={error ? `${id}-error` : undefined}
-            className={cn(
-              "w-full border bg-white text-slate-900 placeholder:text-slate-400 transition-colors duration-200 outline-none",
-              "focus:ring-2 focus:ring-blue-500 focus:border-blue-500",
-              "dark:bg-slate-900 dark:text-white dark:placeholder:text-slate-500",
-              error
-                ? "border-red-400 focus:ring-red-500 focus:border-red-500 dark:border-red-500"
-                : "border-slate-300 dark:border-slate-600",
-              inputSizes[inputSize],
-              icon && iconPadding[inputSize],
-              props.disabled &&
-                "opacity-50 cursor-not-allowed bg-slate-50 dark:bg-slate-800",
-              className,
+          </label>
+        ) : (
+          <div className="relative">
+            {icon && (
+              <div
+                aria-hidden="true"
+                className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400 dark:text-slate-500"
+              >
+                {icon}
+              </div>
             )}
-            {...props}
-          />
-        </div>
+            <input
+              ref={ref}
+              id={id}
+              aria-invalid={!!error}
+              aria-describedby={error ? `${id}-error` : undefined}
+              className={cn(
+                "w-full border bg-white text-slate-900 placeholder:text-slate-400 transition-colors duration-200 outline-none",
+                "focus:ring-2 focus:ring-blue-500 focus:border-blue-500",
+                "dark:bg-slate-900 dark:text-white dark:placeholder:text-slate-500",
+                error
+                  ? "border-red-400 focus:ring-red-500 focus:border-red-500 dark:border-red-500"
+                  : "border-slate-300 dark:border-slate-600",
+                inputSizes[inputSize],
+                icon && iconPadding[inputSize],
+                props.disabled &&
+                  "opacity-50 cursor-not-allowed bg-slate-50 dark:bg-slate-800",
+                className,
+              )}
+              {...props}
+            />
+          </div>
+        )}
         {error && (
           <p
             id={`${id}-error`}

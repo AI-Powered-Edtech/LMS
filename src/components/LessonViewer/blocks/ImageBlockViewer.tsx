@@ -100,8 +100,7 @@ export function ImageBlockViewer({ url, alt }: ImageBlockViewerProps) {
       {isZoomed && (
         <div
           className="fixed inset-0 bg-black/80 z-50 flex items-center justify-center p-4"
-          role="dialog"
-          aria-modal="true"
+          role="presentation"
           aria-label="Tampilan gambar penuh"
           onClick={() => setIsZoomed(false)}
           onKeyDown={(e) => {

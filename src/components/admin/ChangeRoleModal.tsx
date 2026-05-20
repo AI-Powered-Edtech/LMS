@@ -71,6 +71,7 @@ export function ChangeRoleModal({
         aria-label="Ubah Peran"
         className="bg-white rounded-2xl p-6 w-full max-w-md shadow-2xl"
         onClick={(e) => e.stopPropagation()}
+        onKeyDown={(e) => e.stopPropagation()}
       >
         <div className="flex items-center justify-between mb-6">
           <h2 className="text-lg font-bold text-slate-900">Ubah Peran</h2>
