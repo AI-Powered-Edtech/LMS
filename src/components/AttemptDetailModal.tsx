@@ -411,6 +411,7 @@ export function AttemptDetailModal({
                           className="text-xs font-medium text-slate-500 uppercase tracking-wide shrink-0"
                         >
                           Nilai
+                          <span className="sr-only">, batas maksimum {answer.max_points} poin</span>
                         </label>
                         <div className="flex items-center gap-2">
                           <input
