@@ -206,17 +206,17 @@ export function AssignmentBlockEditor({
             className="block text-xs font-black text-slate-500 uppercase tracking-[0.2em] mb-2 px-1"
           >
             Judul Tugas
+            <input
+              id="assignment-title"
+              type="text"
+              value={assignmentData.title}
+              onChange={(e) =>
+                setAssignmentData({ ...assignmentData, title: e.target.value })
+              }
+              className="w-full mt-2 px-5 py-3 bg-white border border-slate-200 rounded-[18px] focus:ring-4 focus:ring-indigo-50 focus:border-indigo-300 outline-none transition-all font-bold text-slate-700 placeholder:text-slate-400 shadow-sm normal-case tracking-normal"
+              placeholder="Masukkan judul tugas..."
+            />
           </label>
-          <input
-            id="assignment-title"
-            type="text"
-            value={assignmentData.title}
-            onChange={(e) =>
-              setAssignmentData({ ...assignmentData, title: e.target.value })
-            }
-            className="w-full px-5 py-3 bg-white border border-slate-200 rounded-[18px] focus:ring-4 focus:ring-indigo-50 focus:border-indigo-300 outline-none transition-all font-bold text-slate-700 placeholder:text-slate-400 shadow-sm"
-            placeholder="Masukkan judul tugas..."
-          />
         </div>
         <div>
           <label
@@ -224,20 +224,20 @@ export function AssignmentBlockEditor({
             className="block text-xs font-black text-slate-500 uppercase tracking-[0.2em] mb-2 px-1"
           >
             Instruksi Tugas
+            <textarea
+              id="assignment-instructions"
+              value={assignmentData.instructions || ""}
+              onChange={(e) =>
+                setAssignmentData({
+                  ...assignmentData,
+                  instructions: e.target.value,
+                })
+              }
+              rows={6}
+              className="w-full mt-2 px-5 py-3 bg-white border border-slate-200 rounded-[24px] focus:ring-4 focus:ring-indigo-50 focus:border-indigo-300 outline-none transition-all resize-none font-medium text-slate-600 placeholder:text-slate-400 shadow-sm leading-relaxed normal-case tracking-normal"
+              placeholder="Masukkan instruksi lengkap untuk dikerjakan siswa..."
+            />
           </label>
-          <textarea
-            id="assignment-instructions"
-            value={assignmentData.instructions || ""}
-            onChange={(e) =>
-              setAssignmentData({
-                ...assignmentData,
-                instructions: e.target.value,
-              })
-            }
-            rows={6}
-            className="w-full px-5 py-3 bg-white border border-slate-200 rounded-[24px] focus:ring-4 focus:ring-indigo-50 focus:border-indigo-300 outline-none transition-all resize-none font-medium text-slate-600 placeholder:text-slate-400 shadow-sm leading-relaxed"
-            placeholder="Masukkan instruksi lengkap untuk dikerjakan siswa..."
-          />
         </div>
         <div className="grid grid-cols-2 gap-6">
           <div>
@@ -246,20 +246,20 @@ export function AssignmentBlockEditor({
               className="block text-xs font-black text-slate-500 uppercase tracking-[0.2em] mb-2 px-1"
             >
               Maks. Poin
+              <input
+                id="assignment-max-points"
+                type="number"
+                min="1"
+                value={assignmentData.max_points}
+                onChange={(e) =>
+                  setAssignmentData({
+                    ...assignmentData,
+                    max_points: parseInt(e.target.value) || 0,
+                  })
+                }
+                className="w-full mt-2 px-5 py-3 bg-white border border-slate-200 rounded-[18px] focus:ring-4 focus:ring-indigo-50 focus:border-indigo-300 outline-none transition-all font-black text-slate-700 shadow-sm normal-case tracking-normal"
+              />
             </label>
-            <input
-              id="assignment-max-points"
-              type="number"
-              min="1"
-              value={assignmentData.max_points}
-              onChange={(e) =>
-                setAssignmentData({
-                  ...assignmentData,
-                  max_points: parseInt(e.target.value) || 0,
-                })
-              }
-              className="w-full px-5 py-3 bg-white border border-slate-200 rounded-[18px] focus:ring-4 focus:ring-indigo-50 focus:border-indigo-300 outline-none transition-all font-black text-slate-700 shadow-sm"
-            />
           </div>
           <div>
             <label
@@ -267,20 +267,20 @@ export function AssignmentBlockEditor({
               className="block text-xs font-black text-slate-500 uppercase tracking-[0.2em] mb-2 px-1"
             >
               Maks. Percobaan
+              <input
+                id="assignment-max-attempts"
+                type="number"
+                min="1"
+                value={assignmentData.max_attempts}
+                onChange={(e) =>
+                  setAssignmentData({
+                    ...assignmentData,
+                    max_attempts: parseInt(e.target.value) || 1,
+                  })
+                }
+                className="w-full mt-2 px-5 py-3 bg-white border border-slate-200 rounded-[18px] focus:ring-4 focus:ring-indigo-50 focus:border-indigo-300 outline-none transition-all font-black text-slate-700 shadow-sm normal-case tracking-normal"
+              />
             </label>
-            <input
-              id="assignment-max-attempts"
-              type="number"
-              min="1"
-              value={assignmentData.max_attempts}
-              onChange={(e) =>
-                setAssignmentData({
-                  ...assignmentData,
-                  max_attempts: parseInt(e.target.value) || 1,
-                })
-              }
-              className="w-full px-5 py-3 bg-white border border-slate-200 rounded-[18px] focus:ring-4 focus:ring-indigo-50 focus:border-indigo-300 outline-none transition-all font-black text-slate-700 shadow-sm"
-            />
           </div>
         </div>
         <div>
@@ -289,22 +289,22 @@ export function AssignmentBlockEditor({
             className="block text-xs font-black text-slate-500 uppercase tracking-[0.2em] mb-2 px-1"
           >
             Tenggat Waktu (Opsional)
+            <div className="relative group mt-2 normal-case tracking-normal">
+              <input
+                id="assignment-due-date"
+                type="date"
+                value={assignmentData.due_date || ""}
+                onChange={(e) =>
+                  setAssignmentData({
+                    ...assignmentData,
+                    due_date: e.target.value || null,
+                  })
+                }
+                className="w-full px-5 py-3 pl-11 bg-white border border-slate-200 rounded-[18px] focus:ring-4 focus:ring-indigo-50 focus:border-indigo-300 outline-none transition-all font-bold text-slate-700 shadow-sm"
+              />
+              <Calendar className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500 group-focus-within:text-indigo-500 transition-colors pointer-events-none" />
+            </div>
           </label>
-          <div className="relative group">
-            <input
-              id="assignment-due-date"
-              type="date"
-              value={assignmentData.due_date || ""}
-              onChange={(e) =>
-                setAssignmentData({
-                  ...assignmentData,
-                  due_date: e.target.value || null,
-                })
-              }
-              className="w-full px-5 py-3 pl-11 bg-white border border-slate-200 rounded-[18px] focus:ring-4 focus:ring-indigo-50 focus:border-indigo-300 outline-none transition-all font-bold text-slate-700 shadow-sm"
-            />
-            <Calendar className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500 group-focus-within:text-indigo-500 transition-colors pointer-events-none" />
-          </div>
         </div>
       </div>
     </div>
