@@ -1,0 +1,10 @@
+## 2024-05-09 - Scope Containment for CI Fixes
+**Learning:** Fixing global CI issues (like `validate-docs` failing on `ENVIRONMENT.md`, missing `MIGRATIONS.md` rows, or global `eslint` import-sort issues across the whole codebase) violates Scout's strict constraint of touching "Max 1 test file per run". Running `pnpm lint --fix` without a file argument altered dozens of unrelated files.
+**Action:** When CI fails due to issues outside the current scope (e.g. documentation or global linting problems), DO NOT attempt to fix them unless instructed. Always pass specific file paths to tools like `eslint --fix src/utils/__tests__/clientCompute.test.ts`. If global workflows fail due to pre-existing conditions not caused by the new test file, leave them alone.
+## 2025-05-09 - CI Failure Analysis
+**Learning:** GitHub Actions CI (`release-gate.yml` and `ci.yml`) runs a project-wide `pnpm lint`, which currently fails due to hundreds of pre-existing `simple-import-sort/imports` and `jsx-a11y` errors across the `main` branch. This failure prevents the `build-quality` job from reaching the `Upload coverage summary` step, causing the subsequent `Evidence Collector` job to fail because it cannot find the `coverage-summary.json` artifact.
+**Action:** As the "Scout" test coverage agent, my scope is strictly limited to 1 test file per run. I must not fix the global lint errors or modify the GitHub Actions workflows. The CI failures are pre-existing and out of my scope. My test file (`src/utils/__tests__/clientCompute.test.ts`) and the `vitest.config.ts` modification to generate the `json-summary` are correct.
+
+## 2026-05-09 - Circular Dependency Pre-existing
+**Learning:** `npx madge --circular --extensions ts,tsx src/` reports a pre-existing circular dependency between `features/lessons/utils/scormApiBridge.ts` and `features/lessons/utils/scormDataModel.ts`.
+**Action:** Since my mandate is strictly limited to adding the missing tests for `clientCompute.ts`, and not to fix global repo issues, I will ignore this pre-existing circular dependency just as I ignored the pre-existing linting failures.
