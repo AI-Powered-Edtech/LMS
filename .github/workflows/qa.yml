@@ -20,10 +20,6 @@ jobs:
       - run: pnpm install --frozen-lockfile
       - name: Install Playwright browsers
         run: pnpm exec playwright install chromium --with-deps
-      - name: Start dev server
-        run: pnpm dev &
-      - name: Wait for dev server
-        run: npx --yes wait-on http://localhost:5173 -t 60000
       - name: Run QA harness
         run: pnpm exec playwright test --config=playwright.config.ts
       - name: Upload reports

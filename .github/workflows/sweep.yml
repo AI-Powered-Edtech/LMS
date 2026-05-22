@@ -71,7 +71,7 @@ jobs:
 
       - name: Start frontend dev server
         run: |
-          pnpm run dev &
+          npm run dev &
           npx --yes wait-on http://localhost:5173 -t 60000
 
       - name: Run sweep
