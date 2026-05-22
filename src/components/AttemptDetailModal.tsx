@@ -406,7 +406,6 @@ export function AttemptDetailModal({
 
                       {/* Score input */}
                       <div className="flex items-center gap-3">
-                        <div>
                         <label
                           htmlFor={`score-input-${answer.question_id}`}
                           className="text-xs font-medium text-slate-500 uppercase tracking-wide shrink-0"
@@ -428,7 +427,7 @@ export function AttemptDetailModal({
                               }))
                             }
                             placeholder="0"
-                            className="normal-case tracking-normal w-20 px-3 py-1.5 bg-slate-50 border border-slate-200 rounded-lg text-sm text-center focus:ring-2 focus:ring-blue-500 outline-none"
+                            className="w-20 px-3 py-1.5 bg-slate-50 border border-slate-200 rounded-lg text-sm text-center focus:ring-2 focus:ring-blue-500 outline-none"
                           />
                           <span className="text-sm text-slate-400">
                             / {answer.max_points}
@@ -438,7 +437,6 @@ export function AttemptDetailModal({
 
                       {/* Feedback textarea */}
                       <div>
-                        <div>
                         <label
                           htmlFor={`feedback-${answer.question_id}`}
                           className="flex items-center gap-1.5 text-xs font-medium text-slate-500 uppercase tracking-wide mb-1.5"
@@ -457,7 +455,7 @@ export function AttemptDetailModal({
                           }
                           placeholder="Berikan komentar untuk siswa (opsional)..."
                           rows={2}
-                          className="normal-case tracking-normal w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 outline-none resize-none"
+                          className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 outline-none resize-none"
                         />
                       </div>
 

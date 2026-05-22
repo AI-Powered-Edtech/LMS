@@ -201,7 +201,6 @@ export function AssignmentBlockEditor({
       {/* Assignment Settings */}
       <div className="grid grid-cols-1 gap-6 p-8 bg-slate-50/50 rounded-[32px] border border-slate-200/50">
         <div>
-          <div>
           <label
             htmlFor="assignment-title"
             className="block text-xs font-black text-slate-500 uppercase tracking-[0.2em] mb-2 px-1"
@@ -215,12 +214,11 @@ export function AssignmentBlockEditor({
             onChange={(e) =>
               setAssignmentData({ ...assignmentData, title: e.target.value })
             }
-            className="normal-case tracking-normal w-full px-5 py-3 bg-white border border-slate-200 rounded-[18px] focus:ring-4 focus:ring-indigo-50 focus:border-indigo-300 outline-none transition-all font-bold text-slate-700 placeholder:text-slate-400 shadow-sm"
+            className="w-full px-5 py-3 bg-white border border-slate-200 rounded-[18px] focus:ring-4 focus:ring-indigo-50 focus:border-indigo-300 outline-none transition-all font-bold text-slate-700 placeholder:text-slate-400 shadow-sm"
             placeholder="Masukkan judul tugas..."
           />
         </div>
         <div>
-          <div>
           <label
             htmlFor="assignment-instructions"
             className="block text-xs font-black text-slate-500 uppercase tracking-[0.2em] mb-2 px-1"
@@ -237,14 +235,13 @@ export function AssignmentBlockEditor({
               })
             }
             rows={6}
-            className="normal-case tracking-normal w-full px-5 py-3 bg-white border border-slate-200 rounded-[24px] focus:ring-4 focus:ring-indigo-50 focus:border-indigo-300 outline-none transition-all resize-none font-medium text-slate-600 placeholder:text-slate-400 shadow-sm leading-relaxed"
+            className="w-full px-5 py-3 bg-white border border-slate-200 rounded-[24px] focus:ring-4 focus:ring-indigo-50 focus:border-indigo-300 outline-none transition-all resize-none font-medium text-slate-600 placeholder:text-slate-400 shadow-sm leading-relaxed"
             placeholder="Masukkan instruksi lengkap untuk dikerjakan siswa..."
           />
         </div>
         <div className="grid grid-cols-2 gap-6">
           <div>
-            <div>
-          <label
+            <label
               htmlFor="assignment-max-points"
               className="block text-xs font-black text-slate-500 uppercase tracking-[0.2em] mb-2 px-1"
             >
@@ -261,12 +258,11 @@ export function AssignmentBlockEditor({
                   max_points: parseInt(e.target.value) || 0,
                 })
               }
-              className="normal-case tracking-normal w-full px-5 py-3 bg-white border border-slate-200 rounded-[18px] focus:ring-4 focus:ring-indigo-50 focus:border-indigo-300 outline-none transition-all font-black text-slate-700 shadow-sm"
+              className="w-full px-5 py-3 bg-white border border-slate-200 rounded-[18px] focus:ring-4 focus:ring-indigo-50 focus:border-indigo-300 outline-none transition-all font-black text-slate-700 shadow-sm"
             />
           </div>
           <div>
-            <div>
-          <label
+            <label
               htmlFor="assignment-max-attempts"
               className="block text-xs font-black text-slate-500 uppercase tracking-[0.2em] mb-2 px-1"
             >
@@ -283,12 +279,11 @@ export function AssignmentBlockEditor({
                   max_attempts: parseInt(e.target.value) || 1,
                 })
               }
-              className="normal-case tracking-normal w-full px-5 py-3 bg-white border border-slate-200 rounded-[18px] focus:ring-4 focus:ring-indigo-50 focus:border-indigo-300 outline-none transition-all font-black text-slate-700 shadow-sm"
+              className="w-full px-5 py-3 bg-white border border-slate-200 rounded-[18px] focus:ring-4 focus:ring-indigo-50 focus:border-indigo-300 outline-none transition-all font-black text-slate-700 shadow-sm"
             />
           </div>
         </div>
         <div>
-          <div>
           <label
             htmlFor="assignment-due-date"
             className="block text-xs font-black text-slate-500 uppercase tracking-[0.2em] mb-2 px-1"
