@@ -99,23 +99,28 @@ export function ImageBlockViewer({ url, alt }: ImageBlockViewerProps) {
       {/* Full-screen lightbox overlay */}
       {isZoomed && (
         <div
-          className="fixed inset-0 bg-black/80 z-50 flex items-center justify-center p-4"
+          className="fixed inset-0 z-50 flex items-center justify-center p-4"
           role="dialog"
           aria-modal="true"
           aria-label="Tampilan gambar penuh"
-          onClick={() => setIsZoomed(false)}
-          onKeyDown={(e) => {
-            if (e.key === "Escape") {
-              setIsZoomed(false);
-            }
-            // Focus trap: only one focusable element (close button), so always
-            // redirect Tab/Shift+Tab back to it.
-            if (e.key === "Tab") {
-              e.preventDefault();
-              closeButtonRef.current?.focus();
-            }
-          }}
         >
+          {/* Interactive Backdrop */}
+          <div
+            className="absolute inset-0 bg-black/80 cursor-pointer"
+            role="presentation"
+            onClick={() => setIsZoomed(false)}
+            onKeyDown={(e) => {
+              if (e.key === "Escape") {
+                setIsZoomed(false);
+              }
+              // Focus trap: only one focusable element (close button), so always
+              // redirect Tab/Shift+Tab back to it.
+              if (e.key === "Tab") {
+                e.preventDefault();
+                closeButtonRef.current?.focus();
+              }
+            }}
+          />
           <button
             ref={closeButtonRef}
             aria-label="Tutup tampilan gambar penuh"
