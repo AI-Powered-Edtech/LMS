@@ -23,6 +23,10 @@ jobs:
 
       - name: Build
         run: pnpm build
+      - name: Start preview server
+        run: |
+          pnpm dlx serve dist -p 5173 &
+          npx --yes wait-on http://localhost:5173 -t 60000
 
       - name: Install Lighthouse CI
         run: npm install -g @lhci/cli@0.14.x
