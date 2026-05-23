@@ -307,7 +307,11 @@ export function useLoginState(postAuthRedirect?: string | null) {
 
   const fillAccount = demoMode
     ? async (role: DemoAccountOption["key"]) => {
-        const devPassword = import.meta.env.VITE_DEV_PASSWORD ?? "password123";
+        const devPassword = import.meta.env.VITE_DEV_PASSWORD;
+        if (!devPassword) {
+          setError("VITE_DEV_PASSWORD belum dikonfigurasi");
+          return;
+        }
         const accountEmail = import.meta.env.DEV
           ? `${role}@edusync.dev`
           : DEMO_ACCOUNTS[role].email;
