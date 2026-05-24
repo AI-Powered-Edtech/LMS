@@ -1,5 +1,5 @@
 import { Check } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 
 import { useBuilder } from "@/contexts/BuilderContext";
 import { useToast } from "@/hooks/useToast";
@@ -40,10 +40,15 @@ export function ImproveTab() {
   );
   const blockContent = activeBlock?.content ?? "";
 
-  const lessonTitle =
-    state.modules
-      .flatMap((m) => m.lessons)
-      .find((l) => l.id === state.activeLesson?.id)?.title ?? "";
+  // ⚡ Bolt: Memoize the lessonTitle lookup to prevent redundant O(N) array recreation
+  // on every component render.
+  const lessonTitle = useMemo(
+    () =>
+      state.modules
+        .flatMap((m) => m.lessons)
+        .find((l) => l.id === state.activeLesson?.id)?.title ?? "",
+    [state.modules, state.activeLesson?.id],
+  );
 
   useEffect(() => {
     if (!hydratedArtifact || hydratedArtifact.artifact_kind !== "transform")
