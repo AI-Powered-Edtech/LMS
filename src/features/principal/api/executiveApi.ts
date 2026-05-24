@@ -157,14 +157,16 @@ export async function updatePrincipalSettings(
   tenantId: string,
   settings: Partial<PrincipalSettings>,
 ): Promise<void> {
-  const { error } = await db.from("principal_settings").upsert(
-    {
-      ...settings,
-      tenant_id: tenantId,
-      updated_at: new Date().toISOString(),
-    },
-    { onConflict: "tenant_id" },
-  );
+  const { error } = await db
+    .from("principal_settings")
+    .upsert(
+      {
+        ...settings,
+        tenant_id: tenantId,
+        updated_at: new Date().toISOString(),
+      },
+      { onConflict: "tenant_id" },
+    );
 
   if (error) {
     if (import.meta.env.DEV)
