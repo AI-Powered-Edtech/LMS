@@ -329,6 +329,7 @@ export function QuizListView({
                       }}
                       className="p-2 text-slate-400 dark:text-slate-500 hover:text-red-600 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors"
                       title={t("quizList.actions.delete")}
+                      aria-label={t("quizList.actions.delete")}
                     >
                       <Trash2 className="w-4 h-4" />
                     </button>

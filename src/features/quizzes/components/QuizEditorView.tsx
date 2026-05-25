@@ -561,6 +561,7 @@ export function QuizEditorView({
                     <button
                       onClick={() => removeQuestion(qIdx)}
                       className="p-1.5 text-slate-300 dark:text-slate-600 hover:text-red-500 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-all"
+                      aria-label="Hapus pertanyaan"
                     >
                       <Trash2 className="w-3.5 h-3.5" />
                     </button>
@@ -591,6 +592,7 @@ export function QuizEditorView({
                                 !isPublished && setCorrectOption(qIdx, oIdx)
                               }
                               disabled={isPublished}
+                              aria-label={opt.is_correct ? "Hapus jawaban benar" : "Jadikan jawaban benar"}
                               className={cn(
                                 "w-5 h-5 border-2 flex items-center justify-center shrink-0 transition-colors",
                                 watch(`questions.${qIdx}.question_type`) ===
@@ -652,6 +654,7 @@ export function QuizEditorView({
                                     );
                                   }}
                                   className="p-1 text-slate-300 hover:text-red-500 transition-colors"
+                                  aria-label="Hapus opsi"
                                 >
                                   <Trash2 className="w-3 h-3" />
                                 </button>
