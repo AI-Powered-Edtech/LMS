@@ -56,3 +56,66 @@ Konsistensi antara daftar di atas dengan file fisik di `edusync-api/migrations/`
 ```
 
 Lihat juga [`docs/DATABASE.md`](./DATABASE.md) untuk dokumentasi skema, RLS policy, dan indexing strategy.
+
+| 018_fix_backend_schema_bugs.sql | Phase 1 schema fixes |
+| 019_audit_fixes.sql | Phase 1 audit triggers |
+| 020_fix_rpc_signatures.sql | Phase 1 RPC signature fixes |
+| 021_rpc_json.sql | Phase 1 JSON formatting |
+| 022_align_table_columns.sql | Phase 1 column alignment |
+| 023_rpc_stubs.sql | Phase 1 RPC stubs |
+| 024_course_review_workflow.sql | Phase 2 Workflow |
+| 025_personal_and_multi_tenant.sql | Phase 2 Multi-tenant |
+| 026_join_code_and_slugify.sql | Phase 2 Codes and Slugs |
+| 027_p2_backlog.sql | Phase 2 Backlog |
+| 028_p3_tenant_settings_and_roles.sql | Phase 3 Settings and Roles |
+| 029_add_admin_notification_types.sql | Phase 3 Notifications |
+| 030_admin_stub_tables_and_rpcs.sql | Phase 3 Stubs |
+| 031_qa_schema_gaps.sql | Phase 3 QA |
+| 032_qa_rpcs.sql | Phase 3 QA RPCs |
+| 033_fix_search_questions_return_json.sql | Search JSON Fix |
+| 034_lesson_progress_monitor_rpc.sql | Lesson progress RPC |
+| 035_admin_backfill.sql | Admin backfill |
+| 036_confirm_demo_seed_users.sql | Demo seed users |
+| 037_qa_sweep_fixes.sql | QA Sweep Fixes |
+| 037_seed_modules_missing_rpcs_and_auth_uid.sql | Missing RPCs |
+| 038_fix_get_tenant_users_user_id_alias.sql | Tenant Users Alias Fix |
+| 039_academic_years.sql | Phase 4 Academic Years |
+| 040_semesters_link_academic_year.sql | Phase 4 Semesters |
+| 041_grade_levels.sql | Phase 4 Grade Levels |
+| 042_rombel.sql | Phase 4 Rombel |
+| 043_subjects_and_curriculum_items.sql | Phase 4 Curriculum |
+| 044_timetable_slots.sql | Phase 4 Timetables |
+| 045_dossiers.sql | Phase 4 Dossiers |
+| 046_rbac_10_role_matrix.sql | Phase 4 RBAC |
+| 047_cp_tagging.sql | Phase 4 CP Tagging |
+| 048_gradebook_dual_mode.sql | Phase 4 Gradebook |
+| 049_nilai_per_cp.sql | Phase 4 Nilai CP |
+| 050_akm_question_type.sql | Phase 4 AKM |
+| 051_p5_module.sql | Phase 4 P5 |
+| 052_domain_events_outbox.sql | Phase 4 Events |
+| 053_rapor_kurmer.sql | Phase 4 Rapor |
+| 054_finance_midtrans.sql | Phase 5 Finance |
+| 055_bos_expense_tracking.sql | Phase 5 BOS |
+| 056_ppdb_flow.sql | Phase 5 PPDB |
+| 057_integrations.sql | Phase 5 Integrations |
+| 058_ai_polish.sql | Phase 6 AI |
+| 059_audit_rate_limit_perf.sql | Phase 6 Rate limit |
+| 060_counseling_parent_links_sikap.sql | Phase 4 Counseling |
+| 061_app_audit_triggers.sql | App Audit Triggers |
+| 062_rapor_autogen_rpc.sql | Rapor RPC |
+| 063_rombel_attendance.sql | Rombel Attendance |
+| 064_stub_tables.sql | Stub Tables |
+| 065_gradebook_baseline.sql | Gradebook Baseline |
+| 066_role_enum_completeness.sql | Role Enum |
+| 067_idempotent_auto_modules.sql | Auto Modules |
+| 068_sync_user_roles_to_granular.sql | Sync User Roles |
+| 069_classes_rombel_id.sql | Classes Rombel |
+| 070_event_handler_idempotency.sql | Event Handlers |
+| 071_ai_rate_limit.sql | AI Rate Limit |
+| 072_parent_invoices_rpc.sql | Parent Invoices RPC |
+| 073_refresh_tokens_session_metadata.sql | Refresh Tokens |
+| 074_tenant_invites_and_settings.sql | Tenant Invites |
+| 075_tenant_invites_global_unique_code.sql | Global Unique Code |
+| 076_invalidate_refresh_tokens_post_rotation.sql | Invalidate Refresh Tokens |
+| 077_plagiarism_checks.sql | Plagiarism Checks |
+| 078_scorm_runtime_data.sql | SCORM Runtime Data |
