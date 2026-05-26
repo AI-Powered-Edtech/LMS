@@ -152,7 +152,7 @@ export function FileBlockEditor({ blockId }: FileBlockEditorProps) {
         setIsUploading(false);
       }
     },
-    [user?.id, actions],
+    [user?.id, actions, blockId, state.courseId, state.activeLesson, tenantId],
   );
 
   const handleDelete = async () => {
