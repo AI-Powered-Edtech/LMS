@@ -14,6 +14,27 @@ export function ImageBlockViewer({ url, alt }: ImageBlockViewerProps) {
   const [isZoomed, setIsZoomed] = useState(false);
   const [retryKey, setRetryKey] = useState(0);
 
+  // Handle Escape key to close modal
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape" && isZoomed) {
+        setIsZoomed(false);
+      }
+      // Focus trap: only one focusable element (close button), so always
+      // redirect Tab/Shift+Tab back to it.
+      if (e.key === "Tab" && isZoomed) {
+        e.preventDefault();
+        closeButtonRef.current?.focus();
+      }
+    };
+    if (isZoomed) {
+      document.addEventListener("keydown", handleKeyDown);
+    }
+    return () => {
+      document.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [isZoomed]);
+
   // Ref for close button — used to focus-trap inside the lightbox (L-26)
   const closeButtonRef = useRef<HTMLButtonElement>(null);
 
@@ -99,23 +120,18 @@ export function ImageBlockViewer({ url, alt }: ImageBlockViewerProps) {
       {/* Full-screen lightbox overlay */}
       {isZoomed && (
         <div
-          className="fixed inset-0 bg-black/80 z-50 flex items-center justify-center p-4"
+          className="fixed inset-0 z-50 flex items-center justify-center p-4"
           role="dialog"
           aria-modal="true"
           aria-label="Tampilan gambar penuh"
-          onClick={() => setIsZoomed(false)}
-          onKeyDown={(e) => {
-            if (e.key === "Escape") {
-              setIsZoomed(false);
-            }
-            // Focus trap: only one focusable element (close button), so always
-            // redirect Tab/Shift+Tab back to it.
-            if (e.key === "Tab") {
-              e.preventDefault();
-              closeButtonRef.current?.focus();
-            }
-          }}
         >
+          {/* Clickable backdrop */}
+          <div
+            role="presentation"
+            className="absolute inset-0 bg-black/80 -z-10"
+            onClick={() => setIsZoomed(false)}
+          />
+
           <button
             ref={closeButtonRef}
             aria-label="Tutup tampilan gambar penuh"
