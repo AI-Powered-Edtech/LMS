@@ -103,7 +103,6 @@ export function ImageBlockViewer({ url, alt }: ImageBlockViewerProps) {
           role="dialog"
           aria-modal="true"
           aria-label="Tampilan gambar penuh"
-          onClick={() => setIsZoomed(false)}
           onKeyDown={(e) => {
             if (e.key === "Escape") {
               setIsZoomed(false);
@@ -116,11 +115,16 @@ export function ImageBlockViewer({ url, alt }: ImageBlockViewerProps) {
             }
           }}
         >
+          <div
+             role="presentation"
+             className="absolute inset-0 bg-transparent"
+             onClick={() => setIsZoomed(false)}
+          />
           <button
             ref={closeButtonRef}
             aria-label="Tutup tampilan gambar penuh"
             onClick={() => setIsZoomed(false)}
-            className="absolute top-4 right-4 p-2 text-white hover:bg-white/20 rounded-full transition-colors"
+            className="absolute top-4 right-4 p-2 text-white hover:bg-white/20 rounded-full transition-colors z-10"
           >
             <X className="w-6 h-6" />
           </button>
