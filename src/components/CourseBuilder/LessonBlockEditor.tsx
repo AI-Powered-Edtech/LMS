@@ -24,7 +24,7 @@ import {
   X,
 } from "lucide-react";
 import { AnimatePresence, motion } from "motion/react";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo,useRef, useState } from "react";
 
 import { useBuilder } from "@/contexts/BuilderContext";
 import { useAICopilotFeatureGate } from "@/features/ai-builder-copilot/hooks/useAICopilotFeatureGate";
@@ -49,10 +49,16 @@ export function LessonBlockEditor() {
 
   // FIX 1: Local title state with debounced API call
   // Derive the current lesson title from state.modules (activeLesson in state only holds id+blocks)
-  const activeLessonTitle =
-    state.modules
-      .flatMap((m) => m.lessons)
-      .find((l) => l.id === state.activeLesson?.id)?.title ?? "";
+  const activeLesson = useMemo(() => {
+    if (!state.activeLesson?.id) return undefined;
+    for (const m of state.modules) {
+      const lesson = m.lessons.find((l) => l.id === state.activeLesson?.id);
+      if (lesson) return lesson;
+    }
+    return undefined;
+  }, [state.modules, state.activeLesson?.id]);
+
+  const activeLessonTitle = activeLesson?.title ?? "";
 
   const [localTitle, setLocalTitle] = useState(activeLessonTitle);
 
@@ -60,13 +66,9 @@ export function LessonBlockEditor() {
   useEffect(() => {
     if (state.activeLesson?.id !== activeLessonIdRef.current) {
       activeLessonIdRef.current = state.activeLesson?.id;
-      const title =
-        state.modules
-          .flatMap((m) => m.lessons)
-          .find((l) => l.id === state.activeLesson?.id)?.title ?? "";
-      setLocalTitle(title);
+      setLocalTitle(activeLesson?.title ?? "");
     }
-  }, [state.activeLesson?.id, state.modules]);
+  }, [state.activeLesson?.id, activeLesson]);
 
   const titleDebounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -207,10 +209,6 @@ export function LessonBlockEditor() {
       </main>
     );
   }
-
-  const activeLesson = state.modules
-    .flatMap((m) => m.lessons)
-    .find((l) => l.id === state.activeLesson?.id);
 
   const getBlockIcon = (type: string) => {
     switch (type?.toUpperCase()) {
