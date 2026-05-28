@@ -61,6 +61,7 @@ export function CalendarSidebar({
             onClick={onAddEvent}
             className="p-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-xl transition-colors text-slate-600 dark:text-slate-400"
             title="Tambah acara di tanggal ini"
+            aria-label="Tambah acara"
           >
             <Plus className="w-4 h-4" />
           </button>
@@ -106,6 +107,7 @@ export function CalendarSidebar({
                     <button
                       onClick={() => onToggleCompletion(event.id)}
                       className="shrink-0"
+                      aria-label={event.completed ? "Hapus tanda selesai" : "Tandai selesai"}
                     >
                       {event.completed ? (
                         <CheckCircle2 className="w-5 h-5 text-emerald-500" />

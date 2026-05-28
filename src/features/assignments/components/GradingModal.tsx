@@ -104,6 +104,7 @@ export function GradingModal({
               <button
                 onClick={onClose}
                 className="p-2 hover:bg-slate-200 dark:hover:bg-slate-600 rounded-lg transition-colors"
+                aria-label="Kembali"
               >
                 <ArrowLeft className="w-5 h-5 text-slate-400 rotate-180" />
               </button>
