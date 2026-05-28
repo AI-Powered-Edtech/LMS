@@ -58,7 +58,6 @@ Secret di bawah ini di-set via environment server atau secret manager (bukan di 
 | DATABASE_URL | ✅ | PostgreSQL connection string untuk VIL backend (format: `postgres://user:pass@host:5432/db`). |
 | JWT_SECRET | ✅ | Secret untuk sign JWT access token. Minimum 32 karakter acak. |
 | JWT_REFRESH_SECRET | ✅ | Secret untuk sign JWT refresh token. Minimum 32 karakter acak, **berbeda** dari `JWT_SECRET`. |
-| VITE_USE_ROMBEL_ADAPTER | ⬜ | B2 rombel adapter rollout flag (true to prefer rombel reads, false for legacy). |
 
 Lihat juga [`docs/SECRETS.md`](./SECRETS.md) untuk rotation policy dan tata kelola secret, dan [`docs/DEPLOYMENT.md`](./DEPLOYMENT.md) untuk cara men-set env di staging/production.
 
@@ -100,4 +99,3 @@ Konsistensi antara `.env.example` dan dokumen ini dijaga oleh `scripts/validate-
 - env | VITE_SENTRY_AUTH_TOKEN | documented above
 - env | VITE_VAPID_PUBLIC_KEY | documented above
 - env | VITE_DEV_PASSWORD | documented above
-- env | VITE_USE_ROMBEL_ADAPTER | documented above
