@@ -148,9 +148,15 @@ export function Onboarding() {
     <div
       className="fixed inset-0 z-[1000] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm"
       onClick={handleComplete}
+      onKeyDown={(e) => {
+        if (e.key === "Escape" || e.key === "Enter" || e.key === " ") {
+          handleComplete();
+        }
+      }}
       role="dialog"
       aria-modal="true"
       aria-label="Onboarding"
+      tabIndex={0}
     >
       <AnimatePresence mode="wait">
         <motion.div
