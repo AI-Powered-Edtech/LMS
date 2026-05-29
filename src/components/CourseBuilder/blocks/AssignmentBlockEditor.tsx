@@ -289,22 +289,22 @@ export function AssignmentBlockEditor({
             className="block text-xs font-black text-slate-500 uppercase tracking-[0.2em] mb-2 px-1"
           >
             Tenggat Waktu (Opsional)
+            <div className="relative group mt-2">
+              <input
+                id="assignment-due-date"
+                type="date"
+                value={assignmentData.due_date || ""}
+                onChange={(e) =>
+                  setAssignmentData({
+                    ...assignmentData,
+                    due_date: e.target.value || null,
+                  })
+                }
+                className="normal-case tracking-normal w-full px-5 py-3 pl-11 bg-white border border-slate-200 rounded-[18px] focus:ring-4 focus:ring-indigo-50 focus:border-indigo-300 outline-none transition-all font-bold text-slate-700 shadow-sm"
+              />
+              <Calendar className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500 group-focus-within:text-indigo-500 transition-colors pointer-events-none" />
+            </div>
           </label>
-          <div className="relative group">
-            <input
-              id="assignment-due-date"
-              type="date"
-              value={assignmentData.due_date || ""}
-              onChange={(e) =>
-                setAssignmentData({
-                  ...assignmentData,
-                  due_date: e.target.value || null,
-                })
-              }
-              className="w-full px-5 py-3 pl-11 bg-white border border-slate-200 rounded-[18px] focus:ring-4 focus:ring-indigo-50 focus:border-indigo-300 outline-none transition-all font-bold text-slate-700 shadow-sm"
-            />
-            <Calendar className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500 group-focus-within:text-indigo-500 transition-colors pointer-events-none" />
-          </div>
         </div>
       </div>
     </div>
