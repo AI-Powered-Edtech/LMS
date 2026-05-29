@@ -196,4 +196,3 @@ export function useTranscodingStatus(
   };
 }
 
-export default useTranscodingStatus;

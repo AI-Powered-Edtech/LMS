@@ -340,4 +340,3 @@ export function useAiStream(options: UseAiStreamOptions = {}) {
   };
 }
 
-export default useAiStream;

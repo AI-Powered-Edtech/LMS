@@ -42,4 +42,3 @@ export function SurveyRespondPage() {
   );
 }
 
-export default SurveyRespondPage;
