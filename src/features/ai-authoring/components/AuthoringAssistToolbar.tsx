@@ -121,4 +121,3 @@ export function AuthoringAssistToolbar({
   );
 }
 
-export default AuthoringAssistToolbar;

@@ -155,4 +155,3 @@ export function VideoTranscodingStatus({
   );
 }
 
-export default VideoTranscodingStatus;

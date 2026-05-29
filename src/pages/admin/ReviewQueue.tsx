@@ -411,4 +411,3 @@ export function ReviewQueue() {
   );
 }
 
-export default ReviewQueue;

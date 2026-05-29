@@ -208,4 +208,3 @@ export function useOfflineQuiz(options: UseOfflineQuizOptions) {
   };
 }
 
-export default useOfflineQuiz;
