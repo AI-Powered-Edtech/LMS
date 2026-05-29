@@ -24,7 +24,7 @@ import {
   X,
 } from "lucide-react";
 import { AnimatePresence, motion } from "motion/react";
-import { useCallback, useEffect, useMemo,useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 import { useBuilder } from "@/contexts/BuilderContext";
 import { useAICopilotFeatureGate } from "@/features/ai-builder-copilot/hooks/useAICopilotFeatureGate";
@@ -49,6 +49,7 @@ export function LessonBlockEditor() {
 
   // FIX 1: Local title state with debounced API call
   // Derive the current lesson title from state.modules (activeLesson in state only holds id+blocks)
+  // Bolt Performance: Replaced slow `.flatMap().find()` with `useMemo` & early return `for...of` loop
   const activeLessonData = useMemo(() => {
     const activeLessonId = state.activeLesson?.id;
     if (!activeLessonId) return undefined;
