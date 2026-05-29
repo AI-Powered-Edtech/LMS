@@ -1,5 +1,5 @@
 import { Check, Sparkles } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 
 import { useBuilder } from "@/contexts/BuilderContext";
 import { useToast } from "@/hooks/useToast";
@@ -35,10 +35,19 @@ export function LessonDraftTab() {
   const [selectedBlocks, setSelectedBlocks] = useState<Set<number>>(new Set());
   const [includeAssignment, setIncludeAssignment] = useState(false);
 
-  const lessonTitle =
-    state.modules
-      .flatMap((m) => m.lessons)
-      .find((l) => l.id === state.activeLesson?.id)?.title ?? "";
+  // Bolt Performance: Replaced slow `.flatMap().find()` with `useMemo` & early return `for...of` loop
+  const lessonTitle = useMemo(() => {
+    const activeId = state.activeLesson?.id;
+    if (!activeId) return "";
+    for (const module of state.modules) {
+      for (const lesson of module.lessons) {
+        if (lesson.id === activeId) {
+          return lesson.title;
+        }
+      }
+    }
+    return "";
+  }, [state.modules, state.activeLesson?.id]);
 
   useEffect(() => {
     if (

@@ -45,9 +45,17 @@ export function useLessonActions(
     async (lessonId: string, data: Partial<DomainLesson>) => {
       if (!tenantId) return;
       // Find previous lesson data for rollback
-      const prevLesson = state.modules
-        .flatMap((m) => m.lessons)
-        .find((l) => l.id === lessonId);
+      // Bolt Performance: Replaced slow `.flatMap().find()` with early return `for...of` loop
+      let prevLesson;
+      for (const module of state.modules) {
+        for (const lesson of module.lessons) {
+          if (lesson.id === lessonId) {
+            prevLesson = lesson;
+            break;
+          }
+        }
+        if (prevLesson) break;
+      }
 
       dispatch({ type: "UPDATE_LESSON", lessonId, data });
       setSavingStatus("saving");
