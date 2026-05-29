@@ -408,9 +408,9 @@ export function AttemptDetailModal({
                       <div className="flex items-center gap-3">
                         <label
                           htmlFor={`score-input-${answer.question_id}`}
-                          className="text-xs font-medium text-slate-500 uppercase tracking-wide shrink-0"
+                          className="text-xs font-medium text-slate-500 uppercase tracking-wide shrink-0 flex flex-col"
                         >
-                          Nilai
+                          <span>Nilai</span>
                           <div className="flex items-center gap-2 mt-1">
                             <input
                               id={`score-input-${answer.question_id}`}
@@ -439,11 +439,11 @@ export function AttemptDetailModal({
                       <div>
                         <label
                           htmlFor={`feedback-${answer.question_id}`}
-                          className="flex items-center gap-1.5 text-xs font-medium text-slate-500 uppercase tracking-wide mb-1.5 flex-wrap"
+                          className="flex items-center gap-1.5 text-xs font-medium text-slate-500 uppercase tracking-wide mb-1.5 flex-wrap flex-col items-start"
                         >
                           <div className="flex items-center gap-1.5 w-full">
                             <MessageSquare className="w-3 h-3" />
-                            Komentar
+                            <span>Komentar</span>
                           </div>
                           <textarea
                             id={`feedback-${answer.question_id}`}
