@@ -223,12 +223,13 @@ export function AssignmentViewer({
 
         {/* Submission Area */}
         <div className="space-y-4">
-          <h4 className="text-sm font-bold text-slate-900 uppercase tracking-widest px-1">
+          <label htmlFor="submission-text" className="block text-sm font-bold text-slate-900 uppercase tracking-widest px-1">
             Pekerjaan Anda
-          </h4>
+          </label>
 
           <div className="bg-white rounded-3xl border border-slate-200 shadow-sm overflow-hidden focus-within:ring-2 focus-within:ring-blue-500 transition-all">
             <textarea
+              id="submission-text"
               value={submissionText}
               onChange={(e) => setSubmissionText(e.target.value)}
               disabled={!canEdit}
