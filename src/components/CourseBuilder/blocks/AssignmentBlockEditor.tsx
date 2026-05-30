@@ -201,12 +201,11 @@ export function AssignmentBlockEditor({
       {/* Assignment Settings */}
       <div className="grid grid-cols-1 gap-6 p-8 bg-slate-50/50 rounded-[32px] border border-slate-200/50">
         <div>
-          <label
-            htmlFor="assignment-title"
-            className="block text-xs font-black text-slate-500 uppercase tracking-[0.2em] mb-2 px-1"
-          >
-            Judul Tugas
-          </label>
+        <label
+          htmlFor="assignment-title"
+          className="block text-xs font-black text-slate-500 uppercase tracking-[0.2em] mb-2 px-1"
+        >
+          Judul Tugas
           <input
             id="assignment-title"
             type="text"
@@ -217,14 +216,14 @@ export function AssignmentBlockEditor({
             className="w-full px-5 py-3 bg-white border border-slate-200 rounded-[18px] focus:ring-4 focus:ring-indigo-50 focus:border-indigo-300 outline-none transition-all font-bold text-slate-700 placeholder:text-slate-400 shadow-sm"
             placeholder="Masukkan judul tugas..."
           />
-        </div>
+        </label>
+      </div>
         <div>
-          <label
-            htmlFor="assignment-instructions"
-            className="block text-xs font-black text-slate-500 uppercase tracking-[0.2em] mb-2 px-1"
-          >
-            Instruksi Tugas
-          </label>
+        <label
+          htmlFor="assignment-instructions"
+          className="block text-xs font-black text-slate-500 uppercase tracking-[0.2em] mb-2 px-1"
+        >
+          Instruksi Tugas
           <textarea
             id="assignment-instructions"
             value={assignmentData.instructions || ""}
@@ -238,15 +237,15 @@ export function AssignmentBlockEditor({
             className="w-full px-5 py-3 bg-white border border-slate-200 rounded-[24px] focus:ring-4 focus:ring-indigo-50 focus:border-indigo-300 outline-none transition-all resize-none font-medium text-slate-600 placeholder:text-slate-400 shadow-sm leading-relaxed"
             placeholder="Masukkan instruksi lengkap untuk dikerjakan siswa..."
           />
-        </div>
+        </label>
+      </div>
         <div className="grid grid-cols-2 gap-6">
           <div>
-            <label
-              htmlFor="assignment-max-points"
-              className="block text-xs font-black text-slate-500 uppercase tracking-[0.2em] mb-2 px-1"
-            >
-              Maks. Poin
-            </label>
+          <label
+            htmlFor="assignment-max-points"
+            className="block text-xs font-black text-slate-500 uppercase tracking-[0.2em] mb-2 px-1"
+          >
+            Maks. Poin
             <input
               id="assignment-max-points"
               type="number"
@@ -260,7 +259,8 @@ export function AssignmentBlockEditor({
               }
               className="w-full px-5 py-3 bg-white border border-slate-200 rounded-[18px] focus:ring-4 focus:ring-indigo-50 focus:border-indigo-300 outline-none transition-all font-black text-slate-700 shadow-sm"
             />
-          </div>
+          </label>
+        </div>
           <div>
             <label
               htmlFor="assignment-max-attempts"
