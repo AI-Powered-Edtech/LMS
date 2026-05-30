@@ -40,7 +40,10 @@ pub async fn reset_password_handler(
         .await;
 
         // In dev: log the reset URL
-        let reset_url = format!("http://localhost:5173/#/reset-password?token={}", token);
+        let app_url = std::env::var("VITE_APP_URL")
+            .or_else(|_| std::env::var("APP_URL"))
+            .unwrap_or_else(|_| "http://localhost:5173".to_string());
+        let reset_url = format!("{}/#/reset-password?token={}", app_url, token);
         tracing::info!(email = %body.email, reset_url = %reset_url, "Password reset requested");
     }
 

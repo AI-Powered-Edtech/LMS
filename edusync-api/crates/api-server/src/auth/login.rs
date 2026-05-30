@@ -13,7 +13,6 @@ struct UserRow {
     email: String,
     encrypted_password: Option<String>,
     banned_until: Option<chrono::DateTime<chrono::Utc>>,
-    email_confirmed_at: Option<chrono::DateTime<chrono::Utc>>,
 }
 
 #[derive(sqlx::FromRow)]
@@ -44,8 +43,7 @@ pub async fn login_handler(
 
     let user: UserRow = sqlx::query_as::<_, UserRow>(
         r#"SELECT id, email, encrypted_password,
-                  banned_until,
-                  email_confirmed_at
+                  banned_until
            FROM public.users WHERE email = $1"#,
     )
     .bind(&body.email)

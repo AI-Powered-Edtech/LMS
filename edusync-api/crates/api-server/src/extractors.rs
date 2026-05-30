@@ -88,6 +88,7 @@ impl IntoVilError for AuthError {
     }
 }
 
+
 /// Axum extractor: validates Bearer token, returns authenticated user context.
 ///
 /// Returns 401 when the Authorization header is missing, malformed, or the token
