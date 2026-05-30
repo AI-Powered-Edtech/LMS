@@ -129,6 +129,7 @@ export function AgendaView({
                   {(event.type === "assignment" || event.type === "exam") && (
                     <button
                       onClick={() => onToggleCompletion(event.id)}
+                      aria-label={event.completed ? 'Tandai belum selesai' : 'Tandai selesai'}
                       className="shrink-0 p-2 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-full transition-colors"
                     >
                       {event.completed ? (

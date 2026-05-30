@@ -59,6 +59,7 @@ export function CalendarSidebar({
         {selectedDate && (
           <button
             onClick={onAddEvent}
+            aria-label="Tambah acara di tanggal ini"
             className="p-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-xl transition-colors text-slate-600 dark:text-slate-400"
             title="Tambah acara di tanggal ini"
           >
@@ -105,6 +106,7 @@ export function CalendarSidebar({
                   {(event.type === "assignment" || event.type === "exam") && (
                     <button
                       onClick={() => onToggleCompletion(event.id)}
+                      aria-label={event.completed ? 'Tandai belum selesai' : 'Tandai selesai'}
                       className="shrink-0"
                     >
                       {event.completed ? (
