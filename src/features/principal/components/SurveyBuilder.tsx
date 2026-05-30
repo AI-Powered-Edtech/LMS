@@ -121,6 +121,7 @@ function QuestionRow({
         <button
           onClick={onMoveUp}
           disabled={!canMoveUp}
+          aria-label="Pindah ke atas"
           className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 disabled:opacity-30 text-xs leading-none"
           title="Pindah ke atas"
         >
@@ -130,6 +131,7 @@ function QuestionRow({
         <button
           onClick={onMoveDown}
           disabled={!canMoveDown}
+          aria-label="Pindah ke bawah"
           className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 disabled:opacity-30 text-xs leading-none"
           title="Pindah ke bawah"
         >
@@ -174,6 +176,7 @@ function QuestionRow({
       {/* Remove */}
       <button
         onClick={onRemove}
+        aria-label="Hapus pertanyaan"
         className="text-red-400 hover:text-red-600 dark:hover:text-red-300 text-sm mt-1 flex-shrink-0"
         title="Hapus pertanyaan"
       >
