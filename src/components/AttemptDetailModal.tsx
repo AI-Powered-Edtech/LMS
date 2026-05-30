@@ -408,12 +408,9 @@ export function AttemptDetailModal({
                       <div className="flex items-center gap-3">
                         <label
                         htmlFor={`score-input-${answer.question_id}`}
-                        className="text-xs font-medium text-slate-500 uppercase tracking-wide shrink-0"
+                        className="flex items-center gap-2 text-xs font-medium text-slate-500 uppercase tracking-wide shrink-0"
                       >
                         Nilai
-                      </label>
-                      <label htmlFor={`score-input-${answer.question_id}`} className="sr-only">Nilai</label>
-                      <div className="flex items-center gap-2">
                         <input
                           id={`score-input-${answer.question_id}`}
                             type="number"
@@ -430,10 +427,10 @@ export function AttemptDetailModal({
                             placeholder="0"
                             className="w-20 px-3 py-1.5 bg-slate-50 border border-slate-200 rounded-lg text-sm text-center focus:ring-2 focus:ring-blue-500 outline-none"
                           />
-                          <span className="text-sm text-slate-400">
-                            / {answer.max_points}
-                          </span>
-                        </div>
+                        <span className="text-sm text-slate-400">
+                          / {answer.max_points}
+                        </span>
+                      </label>
                       </div>
 
                       {/* Feedback textarea */}
@@ -444,10 +441,8 @@ export function AttemptDetailModal({
                       >
                         <MessageSquare className="w-3 h-3" />
                         Komentar
-                      </label>
-                      <label htmlFor={`feedback-${answer.question_id}`} className="sr-only">Komentar</label>
-                      <textarea
-                        id={`feedback-${answer.question_id}`}
+                        <textarea
+                          id={`feedback-${answer.question_id}`}
                           value={gradingComments[answer.question_id] ?? ""}
                           onChange={(e) =>
                             setGradingComments((prev) => ({
@@ -459,6 +454,7 @@ export function AttemptDetailModal({
                           rows={2}
                           className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 outline-none resize-none"
                         />
+                      </label>
                       </div>
 
                       {/* Toast message */}
