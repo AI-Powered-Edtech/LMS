@@ -88,11 +88,6 @@ impl IntoVilError for AuthError {
     }
 }
 
-impl From<AuthError> for VilError {
-    fn from(error: AuthError) -> Self {
-        error.into_vil_error()
-    }
-}
 
 /// Axum extractor: validates Bearer token, returns authenticated user context.
 ///
