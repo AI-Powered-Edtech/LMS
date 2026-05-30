@@ -5,9 +5,7 @@ import { translateAuthError } from "@/utils/translateAuthError";
 describe("translateAuthError", () => {
   it("returns a generic message for empty input", () => {
     expect(translateAuthError("")).toBe("Terjadi kesalahan yang tidak diketahui.");
-    // @ts-expect-error - testing invalid input
     expect(translateAuthError(null as unknown as string)).toBe("Terjadi kesalahan yang tidak diketahui.");
-    // @ts-expect-error - testing invalid input
     expect(translateAuthError(undefined as unknown as string)).toBe("Terjadi kesalahan yang tidak diketahui.");
   });
 
