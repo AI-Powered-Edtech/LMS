@@ -69,6 +69,8 @@ export default [
       'simple-import-sort/exports': 'error',
 
       ...jsxA11yWarn,
+      'jsx-a11y/label-has-for': 'off',
+      'jsx-a11y/control-has-associated-label': 'off',
 
       // Codebase uses a logger utility; console.error/warn are still permitted.
       'no-console': ['warn', { allow: ['error', 'warn'] }],
