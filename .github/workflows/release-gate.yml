@@ -39,7 +39,7 @@ jobs:
         run: pnpm lint
 
       - name: Unit Tests (CI mode)
-        run: pnpm test:ci
+        run: pnpm test:ci && mkdir -p coverage && mv coverage-summary.json coverage/coverage-summary.json
 
       - name: Build
         run: pnpm build
