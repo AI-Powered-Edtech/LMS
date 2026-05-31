@@ -85,7 +85,7 @@ export const aiBuilderCopilotService = {
   async generateOutline(
     req: GenerateOutlineRequest,
   ): Promise<GenerateOutlineResponse> {
-    // TODO: Phase 6 — generate-course-outline belum punya VIL endpoint resmi.
+    // TODO(#issue): Phase 6 — generate-course-outline belum punya VIL endpoint resmi.
     // Menggunakan /api/v1/ai/generate-content sebagai proxy terdekat.
     const token = readVilSession()?.access_token;
 
@@ -130,7 +130,7 @@ export const aiBuilderCopilotService = {
   async generateLessonDraft(
     req: GenerateLessonDraftRequest,
   ): Promise<GenerateLessonDraftResponse> {
-    // TODO: Phase 6 — generate-lesson-draft belum punya VIL endpoint resmi.
+    // TODO(#issue): Phase 6 — generate-lesson-draft belum punya VIL endpoint resmi.
     // Menggunakan /api/v1/ai/generate-content sebagai proxy terdekat.
     const token = readVilSession()?.access_token;
 
@@ -196,7 +196,7 @@ export const aiBuilderCopilotService = {
   async transformContent(
     req: TransformContentRequest,
   ): Promise<TransformContentResponse> {
-    // TODO: Phase 6 — transform-course-content belum punya VIL endpoint resmi.
+    // TODO(#issue): Phase 6 — transform-course-content belum punya VIL endpoint resmi.
     // Menggunakan /api/v1/ai/generate-content sebagai proxy terdekat.
     const token = readVilSession()?.access_token;
 
