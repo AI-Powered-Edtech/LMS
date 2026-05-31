@@ -201,31 +201,34 @@ export function AssignmentBlockEditor({
       {/* Assignment Settings */}
       <div className="grid grid-cols-1 gap-6 p-8 bg-slate-50/50 rounded-[32px] border border-slate-200/50">
         <div>
-          <label
-            htmlFor="assignment-title"
+          <label htmlFor="assignment-title"
+
             className="block text-xs font-black text-slate-500 uppercase tracking-[0.2em] mb-2 px-1"
           >
             Judul Tugas
-          </label>
-          <input
+
+<input
             id="assignment-title"
             type="text"
             value={assignmentData.title}
             onChange={(e) =>
               setAssignmentData({ ...assignmentData, title: e.target.value })
             }
-            className="w-full px-5 py-3 bg-white border border-slate-200 rounded-[18px] focus:ring-4 focus:ring-indigo-50 focus:border-indigo-300 outline-none transition-all font-bold text-slate-700 placeholder:text-slate-400 shadow-sm"
+            aria-label="Judul Tugas"
+            aria-label="Judul Tugas"
+            className="normal-case tracking-normal w-full px-5 py-3 bg-white border border-slate-200 rounded-[18px] focus:ring-4 focus:ring-indigo-50 focus:border-indigo-300 outline-none transition-all font-bold text-slate-700 placeholder:text-slate-400 shadow-sm"
             placeholder="Masukkan judul tugas..."
           />
+</label>
         </div>
         <div>
-          <label
-            htmlFor="assignment-instructions"
+          <label htmlFor="assignment-instructions"
+
             className="block text-xs font-black text-slate-500 uppercase tracking-[0.2em] mb-2 px-1"
           >
             Instruksi Tugas
-          </label>
-          <textarea
+
+<textarea
             id="assignment-instructions"
             value={assignmentData.instructions || ""}
             onChange={(e) =>
@@ -235,19 +238,22 @@ export function AssignmentBlockEditor({
               })
             }
             rows={6}
-            className="w-full px-5 py-3 bg-white border border-slate-200 rounded-[24px] focus:ring-4 focus:ring-indigo-50 focus:border-indigo-300 outline-none transition-all resize-none font-medium text-slate-600 placeholder:text-slate-400 shadow-sm leading-relaxed"
+            aria-label="Instruksi Tugas"
+            aria-label="Instruksi Tugas"
+            className="normal-case tracking-normal w-full px-5 py-3 bg-white border border-slate-200 rounded-[24px] focus:ring-4 focus:ring-indigo-50 focus:border-indigo-300 outline-none transition-all resize-none font-medium text-slate-600 placeholder:text-slate-400 shadow-sm leading-relaxed"
             placeholder="Masukkan instruksi lengkap untuk dikerjakan siswa..."
           />
+</label>
         </div>
         <div className="grid grid-cols-2 gap-6">
           <div>
-            <label
-              htmlFor="assignment-max-points"
+            <label htmlFor="assignment-max-points"
+
               className="block text-xs font-black text-slate-500 uppercase tracking-[0.2em] mb-2 px-1"
             >
               Maks. Poin
-            </label>
-            <input
+
+<input
               id="assignment-max-points"
               type="number"
               min="1"
@@ -258,17 +264,20 @@ export function AssignmentBlockEditor({
                   max_points: parseInt(e.target.value) || 0,
                 })
               }
-              className="w-full px-5 py-3 bg-white border border-slate-200 rounded-[18px] focus:ring-4 focus:ring-indigo-50 focus:border-indigo-300 outline-none transition-all font-black text-slate-700 shadow-sm"
+              aria-label="Skor Maksimal"
+              aria-label="Skor Maksimal"
+              className="normal-case tracking-normal w-full px-5 py-3 bg-white border border-slate-200 rounded-[18px] focus:ring-4 focus:ring-indigo-50 focus:border-indigo-300 outline-none transition-all font-black text-slate-700 shadow-sm"
             />
+</label>
           </div>
           <div>
-            <label
-              htmlFor="assignment-max-attempts"
+            <label htmlFor="assignment-max-attempts"
+
               className="block text-xs font-black text-slate-500 uppercase tracking-[0.2em] mb-2 px-1"
             >
               Maks. Percobaan
-            </label>
-            <input
+
+<input
               id="assignment-max-attempts"
               type="number"
               min="1"
@@ -279,8 +288,9 @@ export function AssignmentBlockEditor({
                   max_attempts: parseInt(e.target.value) || 1,
                 })
               }
-              className="w-full px-5 py-3 bg-white border border-slate-200 rounded-[18px] focus:ring-4 focus:ring-indigo-50 focus:border-indigo-300 outline-none transition-all font-black text-slate-700 shadow-sm"
+              className="normal-case tracking-normal w-full px-5 py-3 bg-white border border-slate-200 rounded-[18px] focus:ring-4 focus:ring-indigo-50 focus:border-indigo-300 outline-none transition-all font-black text-slate-700 shadow-sm"
             />
+</label>
           </div>
         </div>
         <div>
@@ -301,6 +311,8 @@ export function AssignmentBlockEditor({
                   due_date: e.target.value || null,
                 })
               }
+              aria-label="Tenggat Waktu"
+              aria-label="Tenggat Waktu"
               className="w-full px-5 py-3 pl-11 bg-white border border-slate-200 rounded-[18px] focus:ring-4 focus:ring-indigo-50 focus:border-indigo-300 outline-none transition-all font-bold text-slate-700 shadow-sm"
             />
             <Calendar className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500 group-focus-within:text-indigo-500 transition-colors pointer-events-none" />
