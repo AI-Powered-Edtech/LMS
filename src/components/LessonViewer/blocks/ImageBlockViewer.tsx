@@ -98,12 +98,13 @@ export function ImageBlockViewer({ url, alt }: ImageBlockViewerProps) {
 
       {/* Full-screen lightbox overlay */}
       {isZoomed && (
+        <>
+        <div role="presentation" className="fixed inset-0 bg-black/80 z-50 flex items-center justify-center p-4" onClick={() => setIsZoomed(false)} />
         <div
-          className="fixed inset-0 bg-black/80 z-50 flex items-center justify-center p-4"
+          className="fixed inset-0 z-50 flex items-center justify-center p-4 pointer-events-none"
           role="dialog"
           aria-modal="true"
           aria-label="Tampilan gambar penuh"
-          onClick={() => setIsZoomed(false)}
           onKeyDown={(e) => {
             if (e.key === "Escape") {
               setIsZoomed(false);
@@ -128,16 +129,16 @@ export function ImageBlockViewer({ url, alt }: ImageBlockViewerProps) {
           <OptimizedImage
             src={url}
             alt={alt}
-            className="max-w-[90vw] max-h-[90vh] object-contain"
-            onClick={(e) => e.stopPropagation()}
+            className="max-w-[90vw] max-h-[90vh] object-contain pointer-events-auto"
           />
 
           {alt && (
-            <p className="absolute bottom-4 left-1/2 -translate-x-1/2 text-sm text-white/80 text-center">
+            <p className="absolute bottom-4 left-1/2 -translate-x-1/2 text-sm text-white/80 text-center pointer-events-auto">
               {alt}
             </p>
           )}
         </div>
+        </>
       )}
     </>
   );
