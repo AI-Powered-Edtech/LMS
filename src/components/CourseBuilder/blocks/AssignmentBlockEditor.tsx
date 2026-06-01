@@ -201,14 +201,8 @@ export function AssignmentBlockEditor({
       {/* Assignment Settings */}
       <div className="grid grid-cols-1 gap-6 p-8 bg-slate-50/50 rounded-[32px] border border-slate-200/50">
         <div>
-          <label
-            htmlFor="assignment-title"
-            className="block text-xs font-black text-slate-500 uppercase tracking-[0.2em] mb-2 px-1"
-          >
-            Judul Tugas
-          </label>
-          <input
-            id="assignment-title"
+          <label htmlFor="assignment-title" className="block text-xs font-black text-slate-500 uppercase tracking-[0.2em] mb-2 px-1">Judul Tugas
+            <input id="assignment-title" aria-label="Judul Tugas"
             type="text"
             value={assignmentData.title}
             onChange={(e) =>
@@ -216,17 +210,12 @@ export function AssignmentBlockEditor({
             }
             className="w-full px-5 py-3 bg-white border border-slate-200 rounded-[18px] focus:ring-4 focus:ring-indigo-50 focus:border-indigo-300 outline-none transition-all font-bold text-slate-700 placeholder:text-slate-400 shadow-sm"
             placeholder="Masukkan judul tugas..."
-          />
+            />
+          </label>
         </div>
         <div>
-          <label
-            htmlFor="assignment-instructions"
-            className="block text-xs font-black text-slate-500 uppercase tracking-[0.2em] mb-2 px-1"
-          >
-            Instruksi Tugas
-          </label>
-          <textarea
-            id="assignment-instructions"
+          <label htmlFor="assignment-instructions" className="block text-xs font-black text-slate-500 uppercase tracking-[0.2em] mb-2 px-1">Instruksi Tugas
+            <textarea id="assignment-instructions" aria-label="Instruksi Tugas"
             value={assignmentData.instructions || ""}
             onChange={(e) =>
               setAssignmentData({
@@ -237,18 +226,13 @@ export function AssignmentBlockEditor({
             rows={6}
             className="w-full px-5 py-3 bg-white border border-slate-200 rounded-[24px] focus:ring-4 focus:ring-indigo-50 focus:border-indigo-300 outline-none transition-all resize-none font-medium text-slate-600 placeholder:text-slate-400 shadow-sm leading-relaxed"
             placeholder="Masukkan instruksi lengkap untuk dikerjakan siswa..."
-          />
+            />
+          </label>
         </div>
         <div className="grid grid-cols-2 gap-6">
           <div>
-            <label
-              htmlFor="assignment-max-points"
-              className="block text-xs font-black text-slate-500 uppercase tracking-[0.2em] mb-2 px-1"
-            >
-              Maks. Poin
-            </label>
-            <input
-              id="assignment-max-points"
+            <label htmlFor="assignment-max-points" className="block text-xs font-black text-slate-500 uppercase tracking-[0.2em] mb-2 px-1">Maks. Poin
+              <input id="assignment-max-points" aria-label="Maks. Poin"
               type="number"
               min="1"
               value={assignmentData.max_points}
@@ -258,18 +242,12 @@ export function AssignmentBlockEditor({
                   max_points: parseInt(e.target.value) || 0,
                 })
               }
-              className="w-full px-5 py-3 bg-white border border-slate-200 rounded-[18px] focus:ring-4 focus:ring-indigo-50 focus:border-indigo-300 outline-none transition-all font-black text-slate-700 shadow-sm"
-            />
-          </div>
-          <div>
-            <label
-              htmlFor="assignment-max-attempts"
-              className="block text-xs font-black text-slate-500 uppercase tracking-[0.2em] mb-2 px-1"
-            >
-              Maks. Percobaan
-            </label>
-            <input
-              id="assignment-max-attempts"
+              className="w-full px-5 py-3 bg-white border border-slate-200 rounded-[18px] focus:ring-4 focus:ring-indigo-50 focus:border-indigo-300 outline-none transition-all font-black text-slate-700 shadow-sm" />
+              </label>
+            </div>
+            <div>
+              <label htmlFor="assignment-max-attempts" className="block text-xs font-black text-slate-500 uppercase tracking-[0.2em] mb-2 px-1">Maks. Percobaan
+              <input id="assignment-max-attempts" aria-label="Maks. Percobaan"
               type="number"
               min="1"
               value={assignmentData.max_attempts}
@@ -279,20 +257,14 @@ export function AssignmentBlockEditor({
                   max_attempts: parseInt(e.target.value) || 1,
                 })
               }
-              className="w-full px-5 py-3 bg-white border border-slate-200 rounded-[18px] focus:ring-4 focus:ring-indigo-50 focus:border-indigo-300 outline-none transition-all font-black text-slate-700 shadow-sm"
-            />
+              className="w-full px-5 py-3 bg-white border border-slate-200 rounded-[18px] focus:ring-4 focus:ring-indigo-50 focus:border-indigo-300 outline-none transition-all font-black text-slate-700 shadow-sm" />
+              </label>
+            </div>
           </div>
-        </div>
         <div>
-          <label
-            htmlFor="assignment-due-date"
-            className="block text-xs font-black text-slate-500 uppercase tracking-[0.2em] mb-2 px-1"
-          >
-            Tenggat Waktu (Opsional)
-          </label>
-          <div className="relative group">
-            <input
-              id="assignment-due-date"
+          <label htmlFor="assignment-due-date" className="block text-xs font-black text-slate-500 uppercase tracking-[0.2em] mb-2 px-1">Tenggat Waktu (Opsional)
+            <div className="relative group">
+              <input id="assignment-due-date" aria-label="Tenggat Waktu (Opsional)"
               type="date"
               value={assignmentData.due_date || ""}
               onChange={(e) =>
@@ -304,7 +276,8 @@ export function AssignmentBlockEditor({
               className="w-full px-5 py-3 pl-11 bg-white border border-slate-200 rounded-[18px] focus:ring-4 focus:ring-indigo-50 focus:border-indigo-300 outline-none transition-all font-bold text-slate-700 shadow-sm"
             />
             <Calendar className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500 group-focus-within:text-indigo-500 transition-colors pointer-events-none" />
-          </div>
+            </div>
+          </label>
         </div>
       </div>
     </div>

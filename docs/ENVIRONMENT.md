@@ -24,6 +24,7 @@ Variabel dengan prefix `VITE_` di-embed ke bundle frontend saat build. **Jangan 
 | VITE_API_BACKEND | ✅ | `vil` | Identitas backend provider. Saat ini hanya `vil` yang didukung (sejak Phase 6). |
 | VITE_API_URL | ✅ | `http://localhost:8080` | Base URL REST API backend VIL. Ganti ke URL staging/production saat deploy. |
 | VITE_WS_URL | ✅ | `ws://localhost:8080/ws` | WebSocket endpoint untuk realtime (gradebook, notifications, dsb). |
+| VITE_USE_ROMBEL_ADAPTER | ⬜ | `true` | Gunakan Rombel adapter |
 
 ### Error monitoring (opsional — Sentry)
 
@@ -99,3 +100,4 @@ Konsistensi antara `.env.example` dan dokumen ini dijaga oleh `scripts/validate-
 - env | VITE_SENTRY_AUTH_TOKEN | documented above
 - env | VITE_VAPID_PUBLIC_KEY | documented above
 - env | VITE_DEV_PASSWORD | documented above
+- env | VITE_USE_ROMBEL_ADAPTER | documented above
