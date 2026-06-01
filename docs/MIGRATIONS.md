@@ -27,6 +27,68 @@ Migration dijalankan secara berurutan sesuai nomor prefix (`NNN_`). Gunakan `scr
 | 015_backend_heavy_tables.sql | Schema | Tabel-tabel besar backend (audit log, event stream, dsb.) yang di-offload dari frontend. |
 | 016_add_performance_indexes.sql | Performance | Index tambahan untuk query panas (dashboard, leaderboard, gradebook). |
 | 017_add_google_id_to_profiles.sql | Auth | Kolom `google_id` di `profiles` untuk Google OAuth single sign-on. |
+| 018_fix_backend_schema_bugs.sql | Schema | Deskripsi untuk 018_fix_backend_schema_bugs.sql |
+| 019_audit_fixes.sql | Schema | Deskripsi untuk 019_audit_fixes.sql |
+| 020_fix_rpc_signatures.sql | Schema | Deskripsi untuk 020_fix_rpc_signatures.sql |
+| 021_rpc_json.sql | Schema | Deskripsi untuk 021_rpc_json.sql |
+| 022_align_table_columns.sql | Schema | Deskripsi untuk 022_align_table_columns.sql |
+| 023_rpc_stubs.sql | Schema | Deskripsi untuk 023_rpc_stubs.sql |
+| 024_course_review_workflow.sql | Schema | Deskripsi untuk 024_course_review_workflow.sql |
+| 025_personal_and_multi_tenant.sql | Schema | Deskripsi untuk 025_personal_and_multi_tenant.sql |
+| 026_join_code_and_slugify.sql | Schema | Deskripsi untuk 026_join_code_and_slugify.sql |
+| 027_p2_backlog.sql | Schema | Deskripsi untuk 027_p2_backlog.sql |
+| 028_p3_tenant_settings_and_roles.sql | Schema | Deskripsi untuk 028_p3_tenant_settings_and_roles.sql |
+| 029_add_admin_notification_types.sql | Schema | Deskripsi untuk 029_add_admin_notification_types.sql |
+| 030_admin_stub_tables_and_rpcs.sql | Schema | Deskripsi untuk 030_admin_stub_tables_and_rpcs.sql |
+| 031_qa_schema_gaps.sql | Schema | Deskripsi untuk 031_qa_schema_gaps.sql |
+| 032_qa_rpcs.sql | Schema | Deskripsi untuk 032_qa_rpcs.sql |
+| 033_fix_search_questions_return_json.sql | Schema | Deskripsi untuk 033_fix_search_questions_return_json.sql |
+| 034_lesson_progress_monitor_rpc.sql | Schema | Deskripsi untuk 034_lesson_progress_monitor_rpc.sql |
+| 035_admin_backfill.sql | Schema | Deskripsi untuk 035_admin_backfill.sql |
+| 036_confirm_demo_seed_users.sql | Schema | Deskripsi untuk 036_confirm_demo_seed_users.sql |
+| 037_qa_sweep_fixes.sql | Schema | Deskripsi untuk 037_qa_sweep_fixes.sql |
+| 037_seed_modules_missing_rpcs_and_auth_uid.sql | Schema | Deskripsi untuk 037_seed_modules_missing_rpcs_and_auth_uid.sql |
+| 038_fix_get_tenant_users_user_id_alias.sql | Schema | Deskripsi untuk 038_fix_get_tenant_users_user_id_alias.sql |
+| 039_academic_years.sql | Schema | Deskripsi untuk 039_academic_years.sql |
+| 040_semesters_link_academic_year.sql | Schema | Deskripsi untuk 040_semesters_link_academic_year.sql |
+| 041_grade_levels.sql | Schema | Deskripsi untuk 041_grade_levels.sql |
+| 042_rombel.sql | Schema | Deskripsi untuk 042_rombel.sql |
+| 043_subjects_and_curriculum_items.sql | Schema | Deskripsi untuk 043_subjects_and_curriculum_items.sql |
+| 044_timetable_slots.sql | Schema | Deskripsi untuk 044_timetable_slots.sql |
+| 045_dossiers.sql | Schema | Deskripsi untuk 045_dossiers.sql |
+| 046_rbac_10_role_matrix.sql | Schema | Deskripsi untuk 046_rbac_10_role_matrix.sql |
+| 047_cp_tagging.sql | Schema | Deskripsi untuk 047_cp_tagging.sql |
+| 048_gradebook_dual_mode.sql | Schema | Deskripsi untuk 048_gradebook_dual_mode.sql |
+| 049_nilai_per_cp.sql | Schema | Deskripsi untuk 049_nilai_per_cp.sql |
+| 050_akm_question_type.sql | Schema | Deskripsi untuk 050_akm_question_type.sql |
+| 051_p5_module.sql | Schema | Deskripsi untuk 051_p5_module.sql |
+| 052_domain_events_outbox.sql | Schema | Deskripsi untuk 052_domain_events_outbox.sql |
+| 053_rapor_kurmer.sql | Schema | Deskripsi untuk 053_rapor_kurmer.sql |
+| 054_finance_midtrans.sql | Schema | Deskripsi untuk 054_finance_midtrans.sql |
+| 055_bos_expense_tracking.sql | Schema | Deskripsi untuk 055_bos_expense_tracking.sql |
+| 056_ppdb_flow.sql | Schema | Deskripsi untuk 056_ppdb_flow.sql |
+| 057_integrations.sql | Schema | Deskripsi untuk 057_integrations.sql |
+| 058_ai_polish.sql | Schema | Deskripsi untuk 058_ai_polish.sql |
+| 059_audit_rate_limit_perf.sql | Schema | Deskripsi untuk 059_audit_rate_limit_perf.sql |
+| 060_counseling_parent_links_sikap.sql | Schema | Deskripsi untuk 060_counseling_parent_links_sikap.sql |
+| 061_app_audit_triggers.sql | Schema | Deskripsi untuk 061_app_audit_triggers.sql |
+| 062_rapor_autogen_rpc.sql | Schema | Deskripsi untuk 062_rapor_autogen_rpc.sql |
+| 063_rombel_attendance.sql | Schema | Deskripsi untuk 063_rombel_attendance.sql |
+| 064_stub_tables.sql | Schema | Deskripsi untuk 064_stub_tables.sql |
+| 065_gradebook_baseline.sql | Schema | Deskripsi untuk 065_gradebook_baseline.sql |
+| 066_role_enum_completeness.sql | Schema | Deskripsi untuk 066_role_enum_completeness.sql |
+| 067_idempotent_auto_modules.sql | Schema | Deskripsi untuk 067_idempotent_auto_modules.sql |
+| 068_sync_user_roles_to_granular.sql | Schema | Deskripsi untuk 068_sync_user_roles_to_granular.sql |
+| 069_classes_rombel_id.sql | Schema | Deskripsi untuk 069_classes_rombel_id.sql |
+| 070_event_handler_idempotency.sql | Schema | Deskripsi untuk 070_event_handler_idempotency.sql |
+| 071_ai_rate_limit.sql | Schema | Deskripsi untuk 071_ai_rate_limit.sql |
+| 072_parent_invoices_rpc.sql | Schema | Deskripsi untuk 072_parent_invoices_rpc.sql |
+| 073_refresh_tokens_session_metadata.sql | Schema | Deskripsi untuk 073_refresh_tokens_session_metadata.sql |
+| 074_tenant_invites_and_settings.sql | Schema | Deskripsi untuk 074_tenant_invites_and_settings.sql |
+| 075_tenant_invites_global_unique_code.sql | Schema | Deskripsi untuk 075_tenant_invites_global_unique_code.sql |
+| 076_invalidate_refresh_tokens_post_rotation.sql | Schema | Deskripsi untuk 076_invalidate_refresh_tokens_post_rotation.sql |
+| 077_plagiarism_checks.sql | Schema | Deskripsi untuk 077_plagiarism_checks.sql |
+| 078_scorm_runtime_data.sql | Schema | Deskripsi untuk 078_scorm_runtime_data.sql |
 
 > Gap pada nomor (misal 010, 011) adalah hasil revert/konsolidasi migration yang dibatalkan sebelum landing di `main`. Jangan reuse nomor tersebut untuk migration baru.
 
