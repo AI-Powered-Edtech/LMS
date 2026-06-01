@@ -228,7 +228,7 @@ export function AssignmentViewer({
           </h4>
 
           <div className="bg-white rounded-3xl border border-slate-200 shadow-sm overflow-hidden focus-within:ring-2 focus-within:ring-blue-500 transition-all">
-            <textarea
+            <textarea aria-label="Area jawaban tugas"
               value={submissionText}
               onChange={(e) => setSubmissionText(e.target.value)}
               disabled={!canEdit}

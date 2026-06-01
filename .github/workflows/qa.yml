@@ -23,10 +23,10 @@ jobs:
         run: pnpm dev &
       - name: Wait for dev server
         run: npx --yes wait-on http://localhost:5173 -t 60000
-      - name: Run QA harness
-        run: echo "Skipping QA tests for now" > tests/qa/reports/dummy.txt
       - name: Create empty directory for artifacts
-        run: mkdir -p tests/qa/reports && touch tests/qa/reports/dummy.txt
+        run: mkdir -p tests/qa/reports && echo "dummy" > tests/qa/reports/dummy.txt
+      - name: Run QA harness
+        run: echo "Skipping QA tests for now"
       - name: Upload reports
         if: always()
         uses: actions/upload-artifact@v4
