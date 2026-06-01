@@ -1,6 +1,8 @@
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { logDevError, logDevWarn } from '../logDevError';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+
 import { logger } from '@/utils/logger';
+
+import { logDevError, logDevWarn } from '../logDevError';
 
 describe('logDevError utilities', () => {
   const originalEnvDev = import.meta.env.DEV;
