@@ -5,7 +5,7 @@ import {
   FileText,
   Loader2,
 } from "lucide-react";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 
 import { useAuth } from "@/contexts/AuthContext";
 import { useBuilder } from "@/contexts/BuilderContext";
@@ -22,17 +22,9 @@ export function AssignmentBlockEditor({
 }) {
   const { tenantId } = useAuth();
   const { state } = useBuilder();
-
-  // ⚡ Perf: Replaced .flatMap().find() with memoized O(N) for...of lookup
-  const activeLesson = useMemo(() => {
-    if (!state.activeLesson?.id) return undefined;
-    for (const m of state.modules) {
-      for (const l of m.lessons) {
-        if (l.id === state.activeLesson.id) return l;
-      }
-    }
-    return undefined;
-  }, [state.modules, state.activeLesson?.id]);
+  const activeLesson = state.modules
+    .flatMap((m) => m.lessons)
+    .find((l) => l.id === state.activeLesson?.id);
 
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
