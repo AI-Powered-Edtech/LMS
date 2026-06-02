@@ -94,6 +94,17 @@ export function LessonBlockEditor() {
     };
   }, []);
 
+  // ⚡ Perf: Replaced .flatMap().find() with memoized O(N) for...of lookup
+  const activeLesson = useMemo(() => {
+    if (!state.activeLesson?.id) return undefined;
+    for (const m of state.modules) {
+      for (const l of m.lessons) {
+        if (l.id === state.activeLesson.id) return l;
+      }
+    }
+    return undefined;
+  }, [state.modules, state.activeLesson?.id]);
+
   if (!state.activeLesson) {
     const hasNoModules = state.modules.length === 0;
 
@@ -209,17 +220,6 @@ export function LessonBlockEditor() {
       </main>
     );
   }
-
-  // ⚡ Perf: Replaced .flatMap().find() with memoized O(N) for...of lookup
-  const activeLesson = useMemo(() => {
-    if (!state.activeLesson?.id) return undefined;
-    for (const m of state.modules) {
-      for (const l of m.lessons) {
-        if (l.id === state.activeLesson.id) return l;
-      }
-    }
-    return undefined;
-  }, [state.modules, state.activeLesson?.id]);
 
   const getBlockIcon = (type: string) => {
     switch (type?.toUpperCase()) {
