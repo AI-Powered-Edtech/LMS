@@ -66,8 +66,10 @@ function generateSecurePassword(): string {
   const chars =
     "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%";
   let pwd = "";
+  const randomValues = new Uint32Array(32);
+  window.crypto.getRandomValues(randomValues);
   for (let i = 0; i < 32; i++) {
-    pwd += chars[Math.floor(Math.random() * chars.length)];
+    pwd += chars[randomValues[i] % chars.length];
   }
   return pwd;
 }
