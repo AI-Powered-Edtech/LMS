@@ -60,7 +60,7 @@ export function Sidebar() {
           role="presentation"
           onKeyDown={handleKeyDown}
         >
-        {filteredNavItems.map((item) => {
+          {filteredNavItems.map((item) => {
           const isActive = location.pathname === item.path;
           return (
             <Link
@@ -86,6 +86,7 @@ export function Sidebar() {
             </Link>
           );
         })}
+        </div>
       </nav>
 
       <div className="p-4 border-t border-slate-200 dark:border-slate-800">
