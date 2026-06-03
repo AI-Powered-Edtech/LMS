@@ -54,10 +54,12 @@ export function Sidebar() {
       <nav
         ref={containerRef as React.RefObject<HTMLElement>}
         aria-label={t("navigation.sidebar.menuLabel")}
-        role="navigation"
-        onKeyDown={handleKeyDown}
         className="flex-1 space-y-2 overflow-y-auto hide-scrollbar"
       >
+        <div
+          role="presentation"
+          onKeyDown={handleKeyDown}
+        >
         {filteredNavItems.map((item) => {
           const isActive = location.pathname === item.path;
           return (

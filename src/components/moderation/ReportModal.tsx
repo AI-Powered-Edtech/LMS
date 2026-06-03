@@ -141,6 +141,7 @@ export function ReportModal({
                       {reasons.map((r) => (
                         <label
                           key={r.value}
+                          htmlFor={`reason-${r.value}`}
                           className={`flex items-start gap-3 p-3 rounded-xl border cursor-pointer transition-all ${
                             reason === r.value
                               ? "bg-blue-50 border-blue-200 ring-1 ring-blue-500"
@@ -148,6 +149,8 @@ export function ReportModal({
                           }`}
                         >
                           <input
+                            id={`reason-${r.value}`}
+                            aria-label={r.label}
                             type="radio"
                             name="reason"
                             value={r.value}
@@ -176,14 +179,15 @@ export function ReportModal({
                       className="block text-sm font-bold text-slate-700 mb-1"
                     >
                       Deskripsi Tambahan (Opsional)
+                      <textarea
+                        id="report-description"
+                        aria-label="Deskripsi Tambahan"
+                        value={description}
+                        onChange={(e) => setDescription(e.target.value)}
+                        placeholder="Jelaskan lebih lanjut mengapa konten ini bermasalah..."
+                        className="w-full mt-1 p-3 bg-white border border-slate-200 rounded-xl text-sm normal-case tracking-normal focus:outline-none focus:ring-2 focus:ring-blue-500 min-h-[80px]"
+                      />
                     </label>
-                    <textarea
-                      id="report-description"
-                      value={description}
-                      onChange={(e) => setDescription(e.target.value)}
-                      placeholder="Jelaskan lebih lanjut mengapa konten ini bermasalah..."
-                      className="w-full p-3 bg-white border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 min-h-[80px]"
-                    />
                   </div>
 
                   <div className="pt-2 flex gap-3">
