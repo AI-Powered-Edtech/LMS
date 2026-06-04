@@ -203,10 +203,9 @@ export function AssignmentBlockEditor({
         <div>
           <label
             htmlFor="assignment-title"
-            className="block text-xs font-black text-slate-500 uppercase tracking-[0.2em] mb-2 px-1"
+            className="flex flex-col text-xs font-black text-slate-500 uppercase tracking-[0.2em] mb-2 px-1"
           >
             Judul Tugas
-          </label>
           <input
             id="assignment-title"
             type="text"
@@ -214,17 +213,17 @@ export function AssignmentBlockEditor({
             onChange={(e) =>
               setAssignmentData({ ...assignmentData, title: e.target.value })
             }
-            className="w-full px-5 py-3 bg-white border border-slate-200 rounded-[18px] focus:ring-4 focus:ring-indigo-50 focus:border-indigo-300 outline-none transition-all font-bold text-slate-700 placeholder:text-slate-400 shadow-sm"
+            className="mt-2 w-full px-5 py-3 bg-white border border-slate-200 rounded-[18px] focus:ring-4 focus:ring-indigo-50 focus:border-indigo-300 outline-none transition-all font-bold text-slate-700 placeholder:text-slate-400 shadow-sm normal-case tracking-normal"
             placeholder="Masukkan judul tugas..."
           />
+          </label>
         </div>
         <div>
           <label
             htmlFor="assignment-instructions"
-            className="block text-xs font-black text-slate-500 uppercase tracking-[0.2em] mb-2 px-1"
+            className="flex flex-col text-xs font-black text-slate-500 uppercase tracking-[0.2em] mb-2 px-1"
           >
             Instruksi Tugas
-          </label>
           <textarea
             id="assignment-instructions"
             value={assignmentData.instructions || ""}
@@ -235,18 +234,18 @@ export function AssignmentBlockEditor({
               })
             }
             rows={6}
-            className="w-full px-5 py-3 bg-white border border-slate-200 rounded-[24px] focus:ring-4 focus:ring-indigo-50 focus:border-indigo-300 outline-none transition-all resize-none font-medium text-slate-600 placeholder:text-slate-400 shadow-sm leading-relaxed"
+            className="mt-2 w-full px-5 py-3 bg-white border border-slate-200 rounded-[24px] focus:ring-4 focus:ring-indigo-50 focus:border-indigo-300 outline-none transition-all resize-none font-medium text-slate-600 placeholder:text-slate-400 shadow-sm leading-relaxed normal-case tracking-normal"
             placeholder="Masukkan instruksi lengkap untuk dikerjakan siswa..."
           />
+          </label>
         </div>
         <div className="grid grid-cols-2 gap-6">
           <div>
             <label
               htmlFor="assignment-max-points"
-              className="block text-xs font-black text-slate-500 uppercase tracking-[0.2em] mb-2 px-1"
+              className="flex flex-col text-xs font-black text-slate-500 uppercase tracking-[0.2em] mb-2 px-1"
             >
               Maks. Poin
-            </label>
             <input
               id="assignment-max-points"
               type="number"
@@ -258,16 +257,16 @@ export function AssignmentBlockEditor({
                   max_points: parseInt(e.target.value) || 0,
                 })
               }
-              className="w-full px-5 py-3 bg-white border border-slate-200 rounded-[18px] focus:ring-4 focus:ring-indigo-50 focus:border-indigo-300 outline-none transition-all font-black text-slate-700 shadow-sm"
+              className="mt-2 w-full px-5 py-3 bg-white border border-slate-200 rounded-[18px] focus:ring-4 focus:ring-indigo-50 focus:border-indigo-300 outline-none transition-all font-bold text-slate-700 shadow-sm normal-case tracking-normal"
             />
+            </label>
           </div>
           <div>
             <label
               htmlFor="assignment-max-attempts"
-              className="block text-xs font-black text-slate-500 uppercase tracking-[0.2em] mb-2 px-1"
+              className="flex flex-col text-xs font-black text-slate-500 uppercase tracking-[0.2em] mb-2 px-1"
             >
               Maks. Percobaan
-            </label>
             <input
               id="assignment-max-attempts"
               type="number"
@@ -279,18 +278,18 @@ export function AssignmentBlockEditor({
                   max_attempts: parseInt(e.target.value) || 1,
                 })
               }
-              className="w-full px-5 py-3 bg-white border border-slate-200 rounded-[18px] focus:ring-4 focus:ring-indigo-50 focus:border-indigo-300 outline-none transition-all font-black text-slate-700 shadow-sm"
+              className="mt-2 w-full px-5 py-3 bg-white border border-slate-200 rounded-[18px] focus:ring-4 focus:ring-indigo-50 focus:border-indigo-300 outline-none transition-all font-black text-slate-700 shadow-sm normal-case tracking-normal"
             />
+            </label>
           </div>
         </div>
         <div>
           <label
             htmlFor="assignment-due-date"
-            className="block text-xs font-black text-slate-500 uppercase tracking-[0.2em] mb-2 px-1"
+            className="flex flex-col text-xs font-black text-slate-500 uppercase tracking-[0.2em] mb-2 px-1"
           >
             Tenggat Waktu (Opsional)
-          </label>
-          <div className="relative group">
+          <div className="relative group mt-2">
             <input
               id="assignment-due-date"
               type="date"
@@ -301,10 +300,11 @@ export function AssignmentBlockEditor({
                   due_date: e.target.value || null,
                 })
               }
-              className="w-full px-5 py-3 pl-11 bg-white border border-slate-200 rounded-[18px] focus:ring-4 focus:ring-indigo-50 focus:border-indigo-300 outline-none transition-all font-bold text-slate-700 shadow-sm"
+              className="w-full px-5 py-3 pl-11 bg-white border border-slate-200 rounded-[18px] focus:ring-4 focus:ring-indigo-50 focus:border-indigo-300 outline-none transition-all font-bold text-slate-700 shadow-sm normal-case tracking-normal"
             />
             <Calendar className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500 group-focus-within:text-indigo-500 transition-colors pointer-events-none" />
           </div>
+          </label>
         </div>
       </div>
     </div>

@@ -408,10 +408,9 @@ export function AttemptDetailModal({
                       <div className="flex items-center gap-3">
                         <label
                           htmlFor={`score-input-${answer.question_id}`}
-                          className="text-xs font-medium text-slate-500 uppercase tracking-wide shrink-0"
+                          className="text-xs font-medium text-slate-500 uppercase tracking-wide shrink-0 flex items-center gap-3"
                         >
                           Nilai
-                        </label>
                         <div className="flex items-center gap-2">
                           <input
                             id={`score-input-${answer.question_id}`}
@@ -427,23 +426,25 @@ export function AttemptDetailModal({
                               }))
                             }
                             placeholder="0"
-                            className="w-20 px-3 py-1.5 bg-slate-50 border border-slate-200 rounded-lg text-sm text-center focus:ring-2 focus:ring-blue-500 outline-none"
+                            className="w-20 px-3 py-1.5 bg-slate-50 border border-slate-200 rounded-lg text-sm normal-case tracking-normal text-center focus:ring-2 focus:ring-blue-500 outline-none text-slate-800"
                           />
-                          <span className="text-sm text-slate-400">
+                          <span className="text-sm text-slate-400 normal-case tracking-normal">
                             / {answer.max_points}
                           </span>
                         </div>
+                        </label>
                       </div>
 
                       {/* Feedback textarea */}
                       <div>
                         <label
                           htmlFor={`feedback-${answer.question_id}`}
-                          className="flex items-center gap-1.5 text-xs font-medium text-slate-500 uppercase tracking-wide mb-1.5"
+                          className="flex flex-col gap-1.5 text-xs font-medium text-slate-500 uppercase tracking-wide mb-1.5"
                         >
-                          <MessageSquare className="w-3 h-3" />
-                          Komentar
-                        </label>
+                          <div className="flex items-center gap-1.5">
+                            <MessageSquare className="w-3 h-3" />
+                            Komentar
+                          </div>
                         <textarea
                           id={`feedback-${answer.question_id}`}
                           value={gradingComments[answer.question_id] ?? ""}
@@ -457,6 +458,7 @@ export function AttemptDetailModal({
                           rows={2}
                           className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 outline-none resize-none"
                         />
+                        </label>
                       </div>
 
                       {/* Toast message */}
