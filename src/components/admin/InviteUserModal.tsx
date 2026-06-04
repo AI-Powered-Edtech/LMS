@@ -172,10 +172,11 @@ export function InviteUserModal({
                 labelClassName="text-slate-300"
               >
                 <input
+                  id="email"
                   type="email"
                   style={styles.input}
                   placeholder="user@example.com"
-                  autoFocus
+                  aria-label="Email"
                 />
               </FormField>
             </div>
