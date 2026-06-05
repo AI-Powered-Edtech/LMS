@@ -106,6 +106,7 @@ export function CalendarSidebar({
                     <button
                       onClick={() => onToggleCompletion(event.id)}
                       className="shrink-0"
+                      aria-label="Tandai selesai"
                     >
                       {event.completed ? (
                         <CheckCircle2 className="w-5 h-5 text-emerald-500" />
