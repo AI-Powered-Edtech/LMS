@@ -255,6 +255,7 @@ export function VideoUploader({
                 <button
                   onClick={reset}
                   title="Hapus dan unggah ulang"
+                  aria-label="Hapus dan unggah ulang"
                   className="absolute top-2 right-2 w-7 h-7 bg-black/60 hover:bg-black/80 text-white rounded-full flex items-center justify-center transition-colors"
                 >
                   <X className="w-4 h-4" />
