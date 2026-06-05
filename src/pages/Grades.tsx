@@ -49,9 +49,7 @@ export function Grades() {
   });
 
   // Ensure submissionsData is always an array
-  const submissionsData = Array.isArray(submissionsDataRaw)
-    ? submissionsDataRaw
-    : [];
+  const submissionsData = useMemo(() => Array.isArray(submissionsDataRaw) ? submissionsDataRaw : [], [submissionsDataRaw]);
 
   const assignments: Assignment[] = useMemo(() => {
     if (submissionsData.length === 0)
@@ -242,6 +240,7 @@ export function Grades() {
             <div className="flex items-center gap-2">
               <input
                 type="number"
+                aria-label="Target Grade"
                 value={targetGrade}
                 onChange={(e) => setTargetGrade(Number(e.target.value))}
                 className="text-4xl font-black text-slate-800 dark:text-white w-24 bg-transparent outline-none border-b-2 border-dashed border-slate-300 dark:border-slate-600 focus:border-orange-500 transition-colors"
@@ -322,6 +321,7 @@ export function Grades() {
                         </span>
                         <input
                           type="number"
+                          aria-label="What If Score"
                           placeholder="-"
                           value={
                             whatIfScores[a.id] === undefined ||
