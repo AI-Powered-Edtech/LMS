@@ -146,20 +146,27 @@ export function Onboarding() {
 
   return (
     <div
-      className="fixed inset-0 z-[1000] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm"
-      onClick={handleComplete}
-      role="dialog"
-      aria-modal="true"
-      aria-label="Onboarding"
+      className="fixed inset-0 z-[1000] flex items-center justify-center p-4"
     >
+      <div
+        role="presentation"
+        className="absolute inset-0 bg-slate-900/60 backdrop-blur-sm"
+        onClick={handleComplete}
+        onKeyDown={(e) => e.key === "Escape" && handleComplete()}
+      />
+      <div
+        role="dialog"
+        aria-modal="true"
+        aria-label="Onboarding"
+        className="relative z-10 w-full max-w-md"
+      >
       <AnimatePresence mode="wait">
         <motion.div
           key={step}
           initial={{ opacity: 0, x: 20 }}
           animate={{ opacity: 1, x: 0 }}
           exit={{ opacity: 0, x: -20 }}
-          className="bg-white dark:bg-slate-800 rounded-3xl shadow-2xl w-full max-w-md overflow-hidden relative"
-          onClick={(e) => e.stopPropagation()}
+          className="bg-white dark:bg-slate-800 rounded-3xl shadow-2xl w-full overflow-hidden relative"
         >
           {/* Close button */}
           <button
@@ -231,6 +238,7 @@ export function Onboarding() {
           </div>
         </motion.div>
       </AnimatePresence>
+      </div>
     </div>
   );
 }
