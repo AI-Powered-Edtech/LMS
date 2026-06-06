@@ -55,6 +55,16 @@ export function useTranscodingStatus(
   const videoIdRef = useRef(videoId);
 
   /**
+   * Stop polling
+   */
+  const stopPolling = useCallback(() => {
+    if (pollingRef.current) {
+      clearInterval(pollingRef.current);
+      pollingRef.current = null;
+    }
+  }, []);
+
+  /**
    * Fetch transcoding status
    */
   const fetchStatus = useCallback(
@@ -118,7 +128,7 @@ export function useTranscodingStatus(
         setIsLoading(false);
       }
     },
-    [onCompleted, onFailed],
+    [onCompleted, onFailed, stopPolling],
   );
 
   /**
@@ -142,16 +152,6 @@ export function useTranscodingStatus(
     },
     [fetchStatus, pollingInterval],
   );
-
-  /**
-   * Stop polling
-   */
-  const stopPolling = useCallback(() => {
-    if (pollingRef.current) {
-      clearInterval(pollingRef.current);
-      pollingRef.current = null;
-    }
-  }, []);
 
   /**
    * Reset state

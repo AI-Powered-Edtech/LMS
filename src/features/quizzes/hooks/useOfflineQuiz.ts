@@ -207,5 +207,3 @@ export function useOfflineQuiz(options: UseOfflineQuizOptions) {
     reloadCachedAnswers: loadCachedAnswers,
   };
 }
-
-export default useOfflineQuiz;
