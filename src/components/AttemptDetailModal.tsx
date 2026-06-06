@@ -427,7 +427,7 @@ export function AttemptDetailModal({
                               }
                               placeholder="0"
                               className="w-20 px-3 py-1.5 bg-slate-50 border border-slate-200 rounded-lg text-sm text-center focus:ring-2 focus:ring-blue-500 outline-none font-sans"
-                              aria-label={`Nilai untuk pertanyaan ${i + 1}`}
+                              aria-label={`Nilai untuk pertanyaan ${idx + 1}`}
                             />
                             <span className="text-sm text-slate-400">
                               / {answer.max_points}
@@ -456,7 +456,7 @@ export function AttemptDetailModal({
                             placeholder="Berikan komentar untuk siswa (opsional)..."
                             rows={2}
                             className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 outline-none resize-none normal-case tracking-normal mt-1"
-                            aria-label={`Komentar untuk pertanyaan ${i + 1}`}
+                            aria-label={`Komentar untuk pertanyaan ${idx + 1}`}
                           />
                         </label>
                       </div>
