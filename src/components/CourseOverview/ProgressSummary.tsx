@@ -39,7 +39,14 @@ export function ProgressSummary({
             {percentage}%
           </span>
         </div>
-        <div className="w-full h-3 bg-slate-100 rounded-full overflow-hidden">
+        <div
+          role="progressbar"
+          aria-valuenow={percentage}
+          aria-valuemin={0}
+          aria-valuemax={100}
+          aria-label={`Progres belajar: ${percentage}%`}
+          className="w-full h-3 bg-slate-100 rounded-full overflow-hidden"
+        >
           <motion.div
             initial={{ width: 0 }}
             animate={{ width: `${percentage}%` }}
