@@ -40,6 +40,20 @@ export function ImageBlockViewer({ url, alt }: ImageBlockViewerProps) {
     if (isZoomed && closeButtonRef.current) {
       closeButtonRef.current.focus();
     }
+
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (!isZoomed) return;
+      if (e.key === "Escape") {
+        setIsZoomed(false);
+      }
+      if (e.key === "Tab") {
+        e.preventDefault();
+        closeButtonRef.current?.focus();
+      }
+    };
+
+    document.addEventListener("keydown", handleKeyDown);
+    return () => document.removeEventListener("keydown", handleKeyDown);
   }, [isZoomed]);
 
   // Handle escape key for lightbox (existing — kept inside the overlay onKeyDown
@@ -99,23 +113,12 @@ export function ImageBlockViewer({ url, alt }: ImageBlockViewerProps) {
       {/* Full-screen lightbox overlay */}
       {isZoomed && (
         <div
-          className="fixed inset-0 bg-black/80 z-50 flex items-center justify-center p-4"
+          className="fixed inset-0 z-50 flex items-center justify-center p-4"
           role="dialog"
           aria-modal="true"
           aria-label="Tampilan gambar penuh"
-          onClick={() => setIsZoomed(false)}
-          onKeyDown={(e) => {
-            if (e.key === "Escape") {
-              setIsZoomed(false);
-            }
-            // Focus trap: only one focusable element (close button), so always
-            // redirect Tab/Shift+Tab back to it.
-            if (e.key === "Tab") {
-              e.preventDefault();
-              closeButtonRef.current?.focus();
-            }
-          }}
         >
+          <div role="presentation" className="absolute inset-0 bg-black/80" onClick={() => setIsZoomed(false)} />
           <button
             ref={closeButtonRef}
             aria-label="Tutup tampilan gambar penuh"

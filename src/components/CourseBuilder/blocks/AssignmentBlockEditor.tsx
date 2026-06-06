@@ -208,7 +208,7 @@ export function AssignmentBlockEditor({
             Judul Tugas
           </label>
           <input
-            id="assignment-title"
+            id="assignment-title" aria-label="Judul Tugas"
             type="text"
             value={assignmentData.title}
             onChange={(e) =>
@@ -226,7 +226,7 @@ export function AssignmentBlockEditor({
             Instruksi Tugas
           </label>
           <textarea
-            id="assignment-instructions"
+            id="assignment-instructions" aria-label="Instruksi Tugas"
             value={assignmentData.instructions || ""}
             onChange={(e) =>
               setAssignmentData({
@@ -248,7 +248,7 @@ export function AssignmentBlockEditor({
               Maks. Poin
             </label>
             <input
-              id="assignment-max-points"
+              id="assignment-max-points" aria-label="Maksimal Poin"
               type="number"
               min="1"
               value={assignmentData.max_points}
@@ -269,7 +269,7 @@ export function AssignmentBlockEditor({
               Maks. Percobaan
             </label>
             <input
-              id="assignment-max-attempts"
+              id="assignment-max-attempts" aria-label="Maksimal Percobaan"
               type="number"
               min="1"
               value={assignmentData.max_attempts}
@@ -292,7 +292,7 @@ export function AssignmentBlockEditor({
           </label>
           <div className="relative group">
             <input
-              id="assignment-due-date"
+              id="assignment-due-date" aria-label="Tenggat Waktu"
               type="date"
               value={assignmentData.due_date || ""}
               onChange={(e) =>
