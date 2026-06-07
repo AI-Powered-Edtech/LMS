@@ -56,3 +56,65 @@ Konsistensi antara daftar di atas dengan file fisik di `edusync-api/migrations/`
 ```
 
 Lihat juga [`docs/DATABASE.md`](./DATABASE.md) untuk dokumentasi skema, RLS policy, dan indexing strategy.
+| 018_fix_backend_schema_bugs.sql | Fixes | Fix schema bugs |
+| 019_audit_fixes.sql | Fixes | Audit fixes |
+| 020_fix_rpc_signatures.sql | Fixes | Fix RPC signatures |
+| 021_rpc_json.sql | Feature | RPC JSON support |
+| 022_align_table_columns.sql | Schema | Align table columns |
+| 023_rpc_stubs.sql | Schema | RPC stubs |
+| 024_course_review_workflow.sql | Feature | Course review workflow |
+| 025_personal_and_multi_tenant.sql | Auth | Personal and multi tenant auth |
+| 026_join_code_and_slugify.sql | Feature | Join code and slugify |
+| 027_p2_backlog.sql | Schema | P2 Backlog |
+| 028_p3_tenant_settings_and_roles.sql | Auth | Tenant settings and roles |
+| 029_add_admin_notification_types.sql | Feature | Admin notification types |
+| 030_admin_stub_tables_and_rpcs.sql | Schema | Admin stub tables |
+| 031_qa_schema_gaps.sql | Fixes | QA schema gaps |
+| 032_qa_rpcs.sql | Fixes | QA RPCs |
+| 033_fix_search_questions_return_json.sql | Fixes | Fix search questions json |
+| 034_lesson_progress_monitor_rpc.sql | Feature | Lesson progress monitor |
+| 035_admin_backfill.sql | Schema | Admin backfill |
+| 036_confirm_demo_seed_users.sql | Seed | Confirm demo seed users |
+| 037_qa_sweep_fixes.sql | Fixes | QA Sweep fixes |
+| 037_seed_modules_missing_rpcs_and_auth_uid.sql | Seed | Seed modules missing RPCs |
+| 038_fix_get_tenant_users_user_id_alias.sql | Fixes | Fix tenant users user id alias |
+| 039_academic_years.sql | Feature | Academic years |
+| 040_semesters_link_academic_year.sql | Feature | Semesters link to academic year |
+| 041_grade_levels.sql | Feature | Grade levels |
+| 042_rombel.sql | Feature | Rombel support |
+| 043_subjects_and_curriculum_items.sql | Feature | Subjects and curriculum |
+| 044_timetable_slots.sql | Feature | Timetable slots |
+| 045_dossiers.sql | Schema | Dossiers |
+| 046_rbac_10_role_matrix.sql | Auth | RBAC Role matrix |
+| 047_cp_tagging.sql | Feature | CP Tagging |
+| 048_gradebook_dual_mode.sql | Feature | Gradebook dual mode |
+| 049_nilai_per_cp.sql | Feature | Nilai per CP |
+| 050_akm_question_type.sql | Feature | AKM Question type |
+| 051_p5_module.sql | Feature | P5 Module |
+| 052_domain_events_outbox.sql | System | Domain events outbox |
+| 053_rapor_kurmer.sql | Feature | Rapor kurmer |
+| 054_finance_midtrans.sql | Feature | Finance midtrans |
+| 055_bos_expense_tracking.sql | Feature | BOS Expense tracking |
+| 056_ppdb_flow.sql | Feature | PPDB Flow |
+| 057_integrations.sql | Feature | External Integrations |
+| 058_ai_polish.sql | Feature | AI Polish feature |
+| 059_audit_rate_limit_perf.sql | System | Audit rate limit perf |
+| 060_counseling_parent_links_sikap.sql | Feature | Counseling parent links |
+| 061_app_audit_triggers.sql | System | App audit triggers |
+| 062_rapor_autogen_rpc.sql | Feature | Rapor autogen RPC |
+| 063_rombel_attendance.sql | Feature | Rombel attendance |
+| 064_stub_tables.sql | Schema | Stub tables |
+| 065_gradebook_baseline.sql | Feature | Gradebook baseline |
+| 066_role_enum_completeness.sql | Auth | Role enum completeness |
+| 067_idempotent_auto_modules.sql | System | Idempotent auto modules |
+| 068_sync_user_roles_to_granular.sql | Auth | Sync user roles |
+| 069_classes_rombel_id.sql | Feature | Classes rombel id |
+| 070_event_handler_idempotency.sql | System | Event handler idempotency |
+| 071_ai_rate_limit.sql | Feature | AI Rate Limit |
+| 072_parent_invoices_rpc.sql | Feature | Parent Invoices RPC |
+| 073_refresh_tokens_session_metadata.sql | Auth | Refresh tokens session metadata |
+| 074_tenant_invites_and_settings.sql | Feature | Tenant invites and settings |
+| 075_tenant_invites_global_unique_code.sql | Feature | Tenant invites global code |
+| 076_invalidate_refresh_tokens_post_rotation.sql | Auth | Invalidate refresh tokens |
+| 077_plagiarism_checks.sql | Feature | Plagiarism checks |
+| 078_scorm_runtime_data.sql | Feature | Scorm runtime data |
