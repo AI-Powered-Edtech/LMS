@@ -415,6 +415,7 @@ export function AttemptDetailModal({
                         <div className="flex items-center gap-2">
                           <input
                             id={`score-input-${answer.question_id}`}
+                            aria-label="Nilai"
                             type="number"
                             min={0}
                             max={answer.max_points}
@@ -427,7 +428,7 @@ export function AttemptDetailModal({
                               }))
                             }
                             placeholder="0"
-                            className="w-20 px-3 py-1.5 bg-slate-50 border border-slate-200 rounded-lg text-sm text-center focus:ring-2 focus:ring-blue-500 outline-none"
+                            className="w-20 px-3 py-1.5 bg-slate-50 border border-slate-200 rounded-lg text-sm text-center focus:ring-2 focus:ring-blue-500 outline-none normal-case tracking-normal"
                           />
                           <span className="text-sm text-slate-400">
                             / {answer.max_points}
@@ -446,6 +447,7 @@ export function AttemptDetailModal({
                         </label>
                         <textarea
                           id={`feedback-${answer.question_id}`}
+                          aria-label="Komentar"
                           value={gradingComments[answer.question_id] ?? ""}
                           onChange={(e) =>
                             setGradingComments((prev) => ({
@@ -455,7 +457,7 @@ export function AttemptDetailModal({
                           }
                           placeholder="Berikan komentar untuk siswa (opsional)..."
                           rows={2}
-                          className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 outline-none resize-none"
+                          className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 outline-none resize-none normal-case tracking-normal"
                         />
                       </div>
 
