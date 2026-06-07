@@ -1,6 +1,9 @@
 {
   "ci": {
     "collect": {
+      "startServerCommand": "pnpm preview --port 5173",
+      "startServerReadyPattern": "ready in",
+      "startServerReadyTimeout": 60000,
       "url": [
         "http://localhost:5173/#/login",
         "http://localhost:5173/#/privacy",
