@@ -37,6 +37,20 @@ export function ChangeRoleModal({
     }
   }, [isOpen, currentRoles]);
 
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") {
+        onClose();
+      }
+    };
+    if (isOpen) {
+      document.addEventListener("keydown", handleKeyDown);
+    }
+    return () => {
+      document.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [isOpen, onClose]);
+
   if (!isOpen) return null;
 
   const primaryRole = currentRoles[0] ?? "STUDENT";
@@ -59,18 +73,17 @@ export function ChangeRoleModal({
   };
 
   return (
-    <div
-      role="presentation"
-      className="fixed inset-0 bg-black/60 flex items-center justify-center z-[9999] p-4"
-      onKeyDown={(e) => e.key === "Escape" && onClose()}
-      onClick={onClose}
-    >
+    <div className="fixed inset-0 flex items-center justify-center z-[9999] p-4">
+      <div
+        role="presentation"
+        className="absolute inset-0 bg-black/60"
+        onClick={onClose}
+      />
       <div
         role="dialog"
         aria-modal="true"
         aria-label="Ubah Peran"
-        className="bg-white rounded-2xl p-6 w-full max-w-md shadow-2xl"
-        onClick={(e) => e.stopPropagation()}
+        className="relative bg-white rounded-2xl p-6 w-full max-w-md shadow-2xl"
       >
         <div className="flex items-center justify-between mb-6">
           <h2 className="text-lg font-bold text-slate-900">Ubah Peran</h2>

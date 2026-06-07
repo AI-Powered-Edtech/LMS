@@ -9,7 +9,7 @@
       "numberOfRuns": 1,
       "settings": {
         "preset": "desktop",
-        "chromeFlags": "--headless --no-sandbox"
+        "chromeFlags": "--headless --no-sandbox --ignore-certificate-errors"
       }
     },
     "assert": {
