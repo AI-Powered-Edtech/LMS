@@ -293,6 +293,7 @@ function UploadModal({ open, onClose, onSuccess, tenantId }: UploadModalProps) {
               accept={ACCEPTED_TYPES}
               onChange={handleInputChange}
               className="hidden"
+              aria-label={t("documents.upload.dropzoneTitle")}
             />
             {file ? (
               <div className="flex items-center justify-center gap-3">
@@ -339,10 +340,12 @@ function UploadModal({ open, onClose, onSuccess, tenantId }: UploadModalProps) {
 
           {/* Deskripsi */}
           <div className="w-full">
-            <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">
+            <label htmlFor="document-description" className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">
               {t("documents.upload.descriptionLabel")}
             </label>
             <textarea
+              id="document-description"
+              aria-label={t("documents.upload.descriptionLabel")}
               rows={2}
               className={cn(
                 "w-full text-sm px-4 py-2.5 rounded-xl border transition-colors",

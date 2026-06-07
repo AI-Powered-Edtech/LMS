@@ -33,6 +33,7 @@ Variabel dengan prefix `VITE_` di-embed ke bundle frontend saat build. **Jangan 
 | VITE_SENTRY_ORG | ⬜ | `edusync` | Organization slug untuk upload sourcemap saat build. |
 | VITE_SENTRY_PROJECT | ⬜ | `edusync-lms` | Project slug untuk upload sourcemap saat build. |
 | VITE_SENTRY_AUTH_TOKEN | ⬜ | *(empty)* | Auth token untuk upload sourcemap. **Set di CI env, bukan di `.env` client.** Ambil dari *Sentry → Settings → Auth Tokens*. |
+| VITE_USE_ROMBEL_ADAPTER | ⬜ | `true` | Gunakan Rombel Adapter untuk integrasi Dapodik/Sinkronisasi sekolah. |
 
 ### Push notifications (opsional — Web Push API)
 
@@ -99,3 +100,4 @@ Konsistensi antara `.env.example` dan dokumen ini dijaga oleh `scripts/validate-
 - env | VITE_SENTRY_AUTH_TOKEN | documented above
 - env | VITE_VAPID_PUBLIC_KEY | documented above
 - env | VITE_DEV_PASSWORD | documented above
+- env | VITE_USE_ROMBEL_ADAPTER | documented above

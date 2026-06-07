@@ -103,24 +103,24 @@ export function ImageBlockViewer({ url, alt }: ImageBlockViewerProps) {
           role="dialog"
           aria-modal="true"
           aria-label="Tampilan gambar penuh"
-          onClick={() => setIsZoomed(false)}
-          onKeyDown={(e) => {
-            if (e.key === "Escape") {
-              setIsZoomed(false);
-            }
-            // Focus trap: only one focusable element (close button), so always
-            // redirect Tab/Shift+Tab back to it.
-            if (e.key === "Tab") {
-              e.preventDefault();
-              closeButtonRef.current?.focus();
-            }
-          }}
         >
+          <div role="presentation" className="absolute inset-0" onClick={() => setIsZoomed(false)} />
           <button
             ref={closeButtonRef}
             aria-label="Tutup tampilan gambar penuh"
             onClick={() => setIsZoomed(false)}
-            className="absolute top-4 right-4 p-2 text-white hover:bg-white/20 rounded-full transition-colors"
+            onKeyDown={(e) => {
+              if (e.key === "Escape") {
+                setIsZoomed(false);
+              }
+              // Focus trap: only one focusable element (close button), so always
+              // redirect Tab/Shift+Tab back to it.
+              if (e.key === "Tab") {
+                e.preventDefault();
+                closeButtonRef.current?.focus();
+              }
+            }}
+            className="absolute top-4 right-4 p-2 text-white hover:bg-white/20 rounded-full transition-colors z-10"
           >
             <X className="w-6 h-6" />
           </button>
@@ -128,12 +128,11 @@ export function ImageBlockViewer({ url, alt }: ImageBlockViewerProps) {
           <OptimizedImage
             src={url}
             alt={alt}
-            className="max-w-[90vw] max-h-[90vh] object-contain"
-            onClick={(e) => e.stopPropagation()}
+            className="max-w-[90vw] max-h-[90vh] object-contain relative z-10"
           />
 
           {alt && (
-            <p className="absolute bottom-4 left-1/2 -translate-x-1/2 text-sm text-white/80 text-center">
+            <p className="absolute bottom-4 left-1/2 -translate-x-1/2 text-sm text-white/80 text-center z-10">
               {alt}
             </p>
           )}
