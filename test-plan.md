@@ -1,0 +1,1 @@
+1. Modify `src/pages/DocumentManager.tsx` to add `aria-label` to the hidden file input (line 290) and the textarea (line 345). Also add an `id` to the textarea and `htmlFor` to its label to fix `jsx-a11y/label-has-for`.
