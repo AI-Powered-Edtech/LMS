@@ -24,7 +24,7 @@ import {
   X,
 } from "lucide-react";
 import { AnimatePresence, motion } from "motion/react";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 import { useBuilder } from "@/contexts/BuilderContext";
 import { useAICopilotFeatureGate } from "@/features/ai-builder-copilot/hooks/useAICopilotFeatureGate";
@@ -47,12 +47,24 @@ export function LessonBlockEditor() {
   const [deletingBlockId, setDeletingBlockId] = useState<string | null>(null);
   const [templateModalOpen, setTemplateModalOpen] = useState(false);
 
+  // ⚡ Bolt Optimization: Use for...of loop to avoid O(N) intermediate array allocation and iteration
+  // Moved up here before any early returns to avoid rules-of-hooks violation
+  const activeLesson = useMemo(() => {
+    if (!state.activeLesson?.id) return undefined;
+    for (const mod of state.modules) {
+      for (const lesson of mod.lessons) {
+        if (lesson.id === state.activeLesson.id) {
+          return lesson;
+        }
+      }
+    }
+    return undefined;
+  }, [state.activeLesson?.id, state.modules]);
+
   // FIX 1: Local title state with debounced API call
   // Derive the current lesson title from state.modules (activeLesson in state only holds id+blocks)
-  const activeLessonTitle =
-    state.modules
-      .flatMap((m) => m.lessons)
-      .find((l) => l.id === state.activeLesson?.id)?.title ?? "";
+  // ⚡ Bolt Optimization: Derive activeLessonTitle from the memoized activeLesson instead of looping twice
+  const activeLessonTitle = activeLesson?.title ?? "";
 
   const [localTitle, setLocalTitle] = useState(activeLessonTitle);
 
@@ -60,13 +72,9 @@ export function LessonBlockEditor() {
   useEffect(() => {
     if (state.activeLesson?.id !== activeLessonIdRef.current) {
       activeLessonIdRef.current = state.activeLesson?.id;
-      const title =
-        state.modules
-          .flatMap((m) => m.lessons)
-          .find((l) => l.id === state.activeLesson?.id)?.title ?? "";
-      setLocalTitle(title);
+      setLocalTitle(activeLessonTitle);
     }
-  }, [state.activeLesson?.id, state.modules]);
+  }, [state.activeLesson?.id, activeLessonTitle]);
 
   const titleDebounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -207,10 +215,6 @@ export function LessonBlockEditor() {
       </main>
     );
   }
-
-  const activeLesson = state.modules
-    .flatMap((m) => m.lessons)
-    .find((l) => l.id === state.activeLesson?.id);
 
   const getBlockIcon = (type: string) => {
     switch (type?.toUpperCase()) {
