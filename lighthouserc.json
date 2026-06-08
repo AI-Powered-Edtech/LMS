@@ -2,15 +2,15 @@
   "ci": {
     "collect": {
       "url": [
-        "http://localhost:5173/#/login",
-        "http://localhost:5173/#/privacy",
-        "http://localhost:5173/#/terms"
+        "http://localhost:5173"
       ],
       "numberOfRuns": 1,
       "settings": {
         "preset": "desktop",
         "chromeFlags": "--headless --no-sandbox"
-      }
+      },
+      "startServerCommand": "pnpm preview",
+      "startServerReadyPattern": "Local:"
     },
     "assert": {
       "assertions": {
