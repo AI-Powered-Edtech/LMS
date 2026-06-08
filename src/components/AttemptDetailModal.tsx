@@ -413,7 +413,7 @@ export function AttemptDetailModal({
                           Nilai
                         </label>
                         <div className="flex items-center gap-2">
-                          <input
+                          <input aria-label="Input field"
                             id={`score-input-${answer.question_id}`}
                             type="number"
                             min={0}
@@ -444,7 +444,7 @@ export function AttemptDetailModal({
                           <MessageSquare className="w-3 h-3" />
                           Komentar
                         </label>
-                        <textarea
+                        <textarea aria-label="Textarea field"
                           id={`feedback-${answer.question_id}`}
                           value={gradingComments[answer.question_id] ?? ""}
                           onChange={(e) =>
