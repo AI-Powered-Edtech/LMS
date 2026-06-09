@@ -232,6 +232,7 @@ export function AssignmentViewer({
               value={submissionText}
               onChange={(e) => setSubmissionText(e.target.value)}
               disabled={!canEdit}
+              aria-label="Pekerjaan Anda"
               placeholder="Tuliskan jawaban atau laporan tugas Anda di sini..."
               className="w-full h-64 p-8 resize-none outline-none text-slate-700 leading-relaxed disabled:bg-slate-50/50 disabled:text-slate-500"
             />

@@ -407,47 +407,51 @@ export function AttemptDetailModal({
                       {/* Score input */}
                       <div className="flex items-center gap-3">
                         <label
-                          htmlFor={`score-input-${answer.question_id}`}
                           className="text-xs font-medium text-slate-500 uppercase tracking-wide shrink-0"
                         >
                           Nilai
+                          <span className="sr-only">Penilaian Manual</span>
+                          <div className="flex items-center gap-2 mt-1.5 normal-case tracking-normal">
+                            <input
+                              id={`score-input-${answer.question_id}`}
+                              type="number"
+                              min={0}
+                              max={answer.max_points}
+                              step="0.5"
+                              value={gradingScores[answer.question_id] ?? ""}
+                              onChange={(e) =>
+                                setGradingScores((prev) => ({
+                                  ...prev,
+                                  [answer.question_id]: e.target.value,
+                                }))
+                              }
+                              aria-label="Nilai Penilaian Manual"
+                              placeholder="0"
+                              className="w-20 px-3 py-1.5 bg-slate-50 border border-slate-200 rounded-lg text-sm text-center focus:ring-2 focus:ring-blue-500 outline-none"
+                            />
+                            <span className="text-sm text-slate-400">
+                              / {answer.max_points}
+                            </span>
+                          </div>
                         </label>
-                        <div className="flex items-center gap-2">
-                          <input
-                            id={`score-input-${answer.question_id}`}
-                            type="number"
-                            min={0}
-                            max={answer.max_points}
-                            step="0.5"
-                            value={gradingScores[answer.question_id] ?? ""}
-                            onChange={(e) =>
-                              setGradingScores((prev) => ({
-                                ...prev,
-                                [answer.question_id]: e.target.value,
-                              }))
-                            }
-                            placeholder="0"
-                            className="w-20 px-3 py-1.5 bg-slate-50 border border-slate-200 rounded-lg text-sm text-center focus:ring-2 focus:ring-blue-500 outline-none"
-                          />
-                          <span className="text-sm text-slate-400">
-                            / {answer.max_points}
-                          </span>
-                        </div>
                       </div>
 
                       {/* Feedback textarea */}
                       <div>
                         <label
-                          htmlFor={`feedback-${answer.question_id}`}
-                          className="flex items-center gap-1.5 text-xs font-medium text-slate-500 uppercase tracking-wide mb-1.5"
+                          className="flex flex-col text-xs font-medium text-slate-500 uppercase tracking-wide mb-1.5"
                         >
-                          <MessageSquare className="w-3 h-3" />
-                          Komentar
-                        </label>
-                        <textarea
-                          id={`feedback-${answer.question_id}`}
-                          value={gradingComments[answer.question_id] ?? ""}
-                          onChange={(e) =>
+                          <div className="flex items-center gap-1.5 mb-1.5">
+                            <MessageSquare className="w-3 h-3" />
+                            Komentar
+                            <span className="sr-only">Penilaian Manual</span>
+                          </div>
+                          <textarea
+                            id={`feedback-${answer.question_id}`}
+                            value={gradingComments[answer.question_id] ?? ""}
+                            aria-label="Komentar Penilaian Manual"
+                            className="normal-case tracking-normal mt-1 w-full px-4 py-3 bg-white border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-blue-500 outline-none resize-none"
+                            onChange={(e) =>
                             setGradingComments((prev) => ({
                               ...prev,
                               [answer.question_id]: e.target.value,
@@ -455,8 +459,8 @@ export function AttemptDetailModal({
                           }
                           placeholder="Berikan komentar untuk siswa (opsional)..."
                           rows={2}
-                          className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 outline-none resize-none"
                         />
+                        </label>
                       </div>
 
                       {/* Toast message */}
