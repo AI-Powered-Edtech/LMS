@@ -83,13 +83,19 @@ export function ImageBlockViewer({ url, alt }: ImageBlockViewerProps) {
           loading="lazy"
           onLoad={handleLoad}
           onError={handleError}
-          onClick={() => !isLoading && !hasError && setIsZoomed(true)}
           className={`
-            w-full rounded-xl object-contain max-h-[600px] cursor-pointer transition-opacity
+            w-full rounded-xl object-contain max-h-[600px] transition-opacity
             ${isLoading ? "opacity-0" : "opacity-100"}
-            hover:opacity-90
           `}
         />
+        {!isLoading && !hasError && (
+          <button
+            onClick={() => setIsZoomed(true)}
+            aria-label={`Perbesar gambar: ${alt || 'Gambar tanpa deskripsi'}`}
+            className="absolute inset-0 w-full h-full cursor-pointer focus:outline-none focus:ring-2 focus:ring-blue-500 rounded-xl"
+            title="Klik untuk memperbesar"
+          />
+        )}
 
         {alt && !isLoading && !hasError && (
           <p className="mt-2 text-sm text-slate-500 text-center">{alt}</p>
