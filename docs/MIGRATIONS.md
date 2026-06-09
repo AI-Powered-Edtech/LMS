@@ -6,6 +6,69 @@ Migration dijalankan secara berurutan sesuai nomor prefix (`NNN_`). Gunakan `scr
 
 > Setiap migration baru **wajib** didaftarkan di tabel di bawah — kalau tidak, workflow `Validate Documentation` akan fail di CI.
 
+| 018_fix_backend_schema_bugs.sql | Fix schema bugs (QA) |
+| 019_audit_fixes.sql | Audit fixes |
+| 020_fix_rpc_signatures.sql | Fix RPC signatures |
+| 021_rpc_json.sql | Fix RPC JSON return types |
+| 022_align_table_columns.sql | Align table columns |
+| 023_rpc_stubs.sql | Tambah stub RPC functions |
+| 024_course_review_workflow.sql | Tambah course review workflow |
+| 025_personal_and_multi_tenant.sql | Tambah multi-tenant support |
+| 026_join_code_and_slugify.sql | Tambah join code |
+| 027_p2_backlog.sql | Backlog Phase 2 |
+| 028_p3_tenant_settings_and_roles.sql | Roles dan tenant settings (P3) |
+| 029_add_admin_notification_types.sql | Admin notification types |
+| 030_admin_stub_tables_and_rpcs.sql | Admin stubs |
+| 031_qa_schema_gaps.sql | QA schema gaps |
+| 032_qa_rpcs.sql | QA RPCs |
+| 033_fix_search_questions_return_json.sql | Fix search questions RPC |
+| 034_lesson_progress_monitor_rpc.sql | Lesson progress monitor RPC |
+| 035_admin_backfill.sql | Admin backfill |
+| 036_confirm_demo_seed_users.sql | Confirm demo seed users |
+| 037_qa_sweep_fixes.sql | QA sweep fixes |
+| 037_seed_modules_missing_rpcs_and_auth_uid.sql | Missing RPCs |
+| 038_fix_get_tenant_users_user_id_alias.sql | Fix get tenant users |
+| 039_academic_years.sql | Tambah Academic Years |
+| 040_semesters_link_academic_year.sql | Link semesters ke academic year |
+| 041_grade_levels.sql | Grade levels |
+| 042_rombel.sql | Rombongan belajar |
+| 043_subjects_and_curriculum_items.sql | Subjects dan curriculum items |
+| 044_timetable_slots.sql | Timetable slots |
+| 045_dossiers.sql | Dossiers |
+| 046_rbac_10_role_matrix.sql | RBAC Matrix |
+| 047_cp_tagging.sql | CP Tagging |
+| 048_gradebook_dual_mode.sql | Gradebook dual mode |
+| 049_nilai_per_cp.sql | Nilai per CP |
+| 050_akm_question_type.sql | AKM question type |
+| 051_p5_module.sql | P5 Module |
+| 052_domain_events_outbox.sql | Domain events outbox |
+| 053_rapor_kurmer.sql | Rapor Kurmer |
+| 054_finance_midtrans.sql | Midtrans finance integration |
+| 055_bos_expense_tracking.sql | BOS Expense Tracking |
+| 056_ppdb_flow.sql | PPDB flow |
+| 057_integrations.sql | Integrations table |
+| 058_ai_polish.sql | AI polish module |
+| 059_audit_rate_limit_perf.sql | Rate limit performance |
+| 060_counseling_parent_links_sikap.sql | Counseling dan Sikap |
+| 061_app_audit_triggers.sql | App audit triggers |
+| 062_rapor_autogen_rpc.sql | Rapor autogen RPC |
+| 063_rombel_attendance.sql | Rombel attendance |
+| 064_stub_tables.sql | Stub tables tambahan |
+| 065_gradebook_baseline.sql | Gradebook baseline |
+| 066_role_enum_completeness.sql | Role enum completeness |
+| 067_idempotent_auto_modules.sql | Auto modules |
+| 068_sync_user_roles_to_granular.sql | Sync user roles |
+| 069_classes_rombel_id.sql | Kelas rombel ID |
+| 070_event_handler_idempotency.sql | Event handler idempotency |
+| 071_ai_rate_limit.sql | AI rate limits |
+| 072_parent_invoices_rpc.sql | Parent invoices RPC |
+| 073_refresh_tokens_session_metadata.sql | Refresh tokens dan metadata session |
+| 074_tenant_invites_and_settings.sql | Tenant invites and settings |
+| 075_tenant_invites_global_unique_code.sql | Global unique invite codes |
+| 076_invalidate_refresh_tokens_post_rotation.sql | Invalidate refresh tokens |
+| 077_plagiarism_checks.sql | Plagiarism checks table |
+| 078_scorm_runtime_data.sql | SCORM runtime data |
+
 ---
 
 ## Daftar migration
