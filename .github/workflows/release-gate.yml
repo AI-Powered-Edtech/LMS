@@ -301,6 +301,7 @@ jobs:
           echo "SECURITY DEFINER audit passed for changed migrations"
 
       - name: Generate security summary
+        if: always()
         run: |
           cat > security-summary.md <<EOF
           # Security Summary - Release ${{ github.run_id }}
@@ -321,6 +322,7 @@ jobs:
 
       - name: Upload security summary
         uses: actions/upload-artifact@v4
+        if: always()
         with:
           name: security-summary
           path: security-summary.md
