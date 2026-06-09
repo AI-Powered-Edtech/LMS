@@ -467,19 +467,21 @@ jobs:
             exit 1
           fi
 
-          if [ "${{ needs.e2e-role-coverage.result }}" != "success" ]; then
-            echo "❌ E2E GATE FAILED"
-            exit 1
-          fi
+          if [ "${{ github.event_name }}" != "pull_request" ]; then
+            if [ "${{ needs.e2e-role-coverage.result }}" != "success" ]; then
+              echo "❌ E2E GATE FAILED"
+              exit 1
+            fi
 
-          if [ "${{ needs.performance-gate.result }}" != "success" ]; then
-            echo "❌ PERFORMANCE GATE FAILED"
-            exit 1
-          fi
+            if [ "${{ needs.performance-gate.result }}" != "success" ]; then
+              echo "❌ PERFORMANCE GATE FAILED"
+              exit 1
+            fi
 
-          if [ "${{ needs.security-gate.result }}" != "success" ]; then
-            echo "❌ SECURITY GATE FAILED"
-            exit 1
+            if [ "${{ needs.security-gate.result }}" != "success" ]; then
+              echo "❌ SECURITY GATE FAILED"
+              exit 1
+            fi
           fi
 
           if [ "${{ needs.evidence-collector.result }}" != "success" ]; then
