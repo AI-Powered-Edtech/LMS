@@ -10,6 +10,7 @@ import {
   ModalFooter,
   ModalHeader,
 } from "@/components/ui/Modal";
+import { Select } from "@/components/ui/Select";
 import {
   useCreateSubject,
   useCurriculumItems,
@@ -101,6 +102,7 @@ export function Subjects() {
                 <li key={s.id}>
                   <button
                     type="button"
+                    aria-label={`Pilih mapel ${s.name}`}
                     onClick={() => setSelectedId(s.id)}
                     className={`w-full text-left p-3 rounded-lg ${selectedId === s.id ? "bg-violet-50 dark:bg-violet-900/20" : "hover:bg-slate-50 dark:hover:bg-slate-800/40"}`}
                   >
@@ -175,28 +177,32 @@ export function Subjects() {
                 onChange={(e) => setName(e.target.value)}
                 required
               />
-              <select
+              <Select
+                label="Tingkat"
                 value={schoolBand}
                 onChange={(e) =>
                   setSchoolBand(e.target.value as "SD" | "SMP" | "SMA")
                 }
-              >
-                <option value="SD">SD</option>
-                <option value="SMP">SMP</option>
-                <option value="SMA">SMA</option>
-              </select>
-              <select
+                options={[
+                  { value: "SD", label: "SD" },
+                  { value: "SMP", label: "SMP" },
+                  { value: "SMA", label: "SMA" },
+                ]}
+              />
+              <Select
+                label="Fase"
                 value={phase}
                 onChange={(e) => setPhase(e.target.value as typeof phase)}
-              >
-                <option value="">— tidak ada —</option>
-                <option value="A">Fase A (kelas 1-2 SD)</option>
-                <option value="B">Fase B (kelas 3-4 SD)</option>
-                <option value="C">Fase C (kelas 5-6 SD)</option>
-                <option value="D">Fase D (kelas 7-9 SMP)</option>
-                <option value="E">Fase E (kelas X SMA)</option>
-                <option value="F">Fase F (kelas XI-XII SMA)</option>
-              </select>
+                options={[
+                  { value: "", label: "— tidak ada —" },
+                  { value: "A", label: "Fase A (kelas 1-2 SD)" },
+                  { value: "B", label: "Fase B (kelas 3-4 SD)" },
+                  { value: "C", label: "Fase C (kelas 5-6 SD)" },
+                  { value: "D", label: "Fase D (kelas 7-9 SMP)" },
+                  { value: "E", label: "Fase E (kelas X SMA)" },
+                  { value: "F", label: "Fase F (kelas XI-XII SMA)" },
+                ]}
+              />
             </div>
           </ModalBody>
           <ModalFooter>
