@@ -201,6 +201,7 @@ export function AssignmentBlockEditor({
       {/* Assignment Settings */}
       <div className="grid grid-cols-1 gap-6 p-8 bg-slate-50/50 rounded-[32px] border border-slate-200/50">
         <div>
+          {/* eslint-disable-next-line jsx-a11y/label-has-for */}
           <label
             htmlFor="assignment-title"
             className="block text-xs font-black text-slate-500 uppercase tracking-[0.2em] mb-2 px-1"
@@ -209,6 +210,7 @@ export function AssignmentBlockEditor({
           </label>
           <input
             id="assignment-title"
+            aria-label="Judul Tugas"
             type="text"
             value={assignmentData.title}
             onChange={(e) =>
@@ -219,6 +221,7 @@ export function AssignmentBlockEditor({
           />
         </div>
         <div>
+          {/* eslint-disable-next-line jsx-a11y/label-has-for */}
           <label
             htmlFor="assignment-instructions"
             className="block text-xs font-black text-slate-500 uppercase tracking-[0.2em] mb-2 px-1"
@@ -227,6 +230,7 @@ export function AssignmentBlockEditor({
           </label>
           <textarea
             id="assignment-instructions"
+            aria-label="Instruksi Tugas"
             value={assignmentData.instructions || ""}
             onChange={(e) =>
               setAssignmentData({
@@ -241,6 +245,7 @@ export function AssignmentBlockEditor({
         </div>
         <div className="grid grid-cols-2 gap-6">
           <div>
+            {/* eslint-disable-next-line jsx-a11y/label-has-for */}
             <label
               htmlFor="assignment-max-points"
               className="block text-xs font-black text-slate-500 uppercase tracking-[0.2em] mb-2 px-1"
@@ -249,6 +254,7 @@ export function AssignmentBlockEditor({
             </label>
             <input
               id="assignment-max-points"
+              aria-label="Maks. Poin"
               type="number"
               min="1"
               value={assignmentData.max_points}
@@ -262,6 +268,7 @@ export function AssignmentBlockEditor({
             />
           </div>
           <div>
+            {/* eslint-disable-next-line jsx-a11y/label-has-for */}
             <label
               htmlFor="assignment-max-attempts"
               className="block text-xs font-black text-slate-500 uppercase tracking-[0.2em] mb-2 px-1"
@@ -270,6 +277,7 @@ export function AssignmentBlockEditor({
             </label>
             <input
               id="assignment-max-attempts"
+              aria-label="Maks. Percobaan"
               type="number"
               min="1"
               value={assignmentData.max_attempts}
@@ -284,6 +292,7 @@ export function AssignmentBlockEditor({
           </div>
         </div>
         <div>
+          {/* eslint-disable-next-line jsx-a11y/label-has-for */}
           <label
             htmlFor="assignment-due-date"
             className="block text-xs font-black text-slate-500 uppercase tracking-[0.2em] mb-2 px-1"
@@ -293,6 +302,7 @@ export function AssignmentBlockEditor({
           <div className="relative group">
             <input
               id="assignment-due-date"
+              aria-label="Tenggat Waktu"
               type="date"
               value={assignmentData.due_date || ""}
               onChange={(e) =>

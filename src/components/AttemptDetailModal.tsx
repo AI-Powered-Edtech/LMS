@@ -406,6 +406,7 @@ export function AttemptDetailModal({
 
                       {/* Score input */}
                       <div className="flex items-center gap-3">
+                        {/* eslint-disable-next-line jsx-a11y/label-has-for */}
                         <label
                           htmlFor={`score-input-${answer.question_id}`}
                           className="text-xs font-medium text-slate-500 uppercase tracking-wide shrink-0"
@@ -414,6 +415,7 @@ export function AttemptDetailModal({
                         </label>
                         <div className="flex items-center gap-2">
                           <input
+                            aria-label="Nilai"
                             id={`score-input-${answer.question_id}`}
                             type="number"
                             min={0}
@@ -437,6 +439,7 @@ export function AttemptDetailModal({
 
                       {/* Feedback textarea */}
                       <div>
+                        {/* eslint-disable-next-line jsx-a11y/label-has-for */}
                         <label
                           htmlFor={`feedback-${answer.question_id}`}
                           className="flex items-center gap-1.5 text-xs font-medium text-slate-500 uppercase tracking-wide mb-1.5"
@@ -445,6 +448,7 @@ export function AttemptDetailModal({
                           Komentar
                         </label>
                         <textarea
+                          aria-label="Komentar"
                           id={`feedback-${answer.question_id}`}
                           value={gradingComments[answer.question_id] ?? ""}
                           onChange={(e) =>
