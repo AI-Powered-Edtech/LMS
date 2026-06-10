@@ -27,6 +27,68 @@ Migration dijalankan secara berurutan sesuai nomor prefix (`NNN_`). Gunakan `scr
 | 015_backend_heavy_tables.sql | Schema | Tabel-tabel besar backend (audit log, event stream, dsb.) yang di-offload dari frontend. |
 | 016_add_performance_indexes.sql | Performance | Index tambahan untuk query panas (dashboard, leaderboard, gradebook). |
 | 017_add_google_id_to_profiles.sql | Auth | Kolom `google_id` di `profiles` untuk Google OAuth single sign-on. |
+| 018_fix_backend_schema_bugs.sql | TBD | TBD |
+| 019_audit_fixes.sql | TBD | TBD |
+| 020_fix_rpc_signatures.sql | TBD | TBD |
+| 021_rpc_json.sql | TBD | TBD |
+| 022_align_table_columns.sql | TBD | TBD |
+| 023_rpc_stubs.sql | TBD | TBD |
+| 024_course_review_workflow.sql | TBD | TBD |
+| 025_personal_and_multi_tenant.sql | TBD | TBD |
+| 026_join_code_and_slugify.sql | TBD | TBD |
+| 027_p2_backlog.sql | TBD | TBD |
+| 028_p3_tenant_settings_and_roles.sql | TBD | TBD |
+| 029_add_admin_notification_types.sql | TBD | TBD |
+| 030_admin_stub_tables_and_rpcs.sql | TBD | TBD |
+| 031_qa_schema_gaps.sql | TBD | TBD |
+| 032_qa_rpcs.sql | TBD | TBD |
+| 033_fix_search_questions_return_json.sql | TBD | TBD |
+| 034_lesson_progress_monitor_rpc.sql | TBD | TBD |
+| 035_admin_backfill.sql | TBD | TBD |
+| 036_confirm_demo_seed_users.sql | TBD | TBD |
+| 037_qa_sweep_fixes.sql | TBD | TBD |
+| 037_seed_modules_missing_rpcs_and_auth_uid.sql | TBD | TBD |
+| 038_fix_get_tenant_users_user_id_alias.sql | TBD | TBD |
+| 039_academic_years.sql | TBD | TBD |
+| 040_semesters_link_academic_year.sql | TBD | TBD |
+| 041_grade_levels.sql | TBD | TBD |
+| 042_rombel.sql | TBD | TBD |
+| 043_subjects_and_curriculum_items.sql | TBD | TBD |
+| 044_timetable_slots.sql | TBD | TBD |
+| 045_dossiers.sql | TBD | TBD |
+| 046_rbac_10_role_matrix.sql | TBD | TBD |
+| 047_cp_tagging.sql | TBD | TBD |
+| 048_gradebook_dual_mode.sql | TBD | TBD |
+| 049_nilai_per_cp.sql | TBD | TBD |
+| 050_akm_question_type.sql | TBD | TBD |
+| 051_p5_module.sql | TBD | TBD |
+| 052_domain_events_outbox.sql | TBD | TBD |
+| 053_rapor_kurmer.sql | TBD | TBD |
+| 054_finance_midtrans.sql | TBD | TBD |
+| 055_bos_expense_tracking.sql | TBD | TBD |
+| 056_ppdb_flow.sql | TBD | TBD |
+| 057_integrations.sql | TBD | TBD |
+| 058_ai_polish.sql | TBD | TBD |
+| 059_audit_rate_limit_perf.sql | TBD | TBD |
+| 060_counseling_parent_links_sikap.sql | TBD | TBD |
+| 061_app_audit_triggers.sql | TBD | TBD |
+| 062_rapor_autogen_rpc.sql | TBD | TBD |
+| 063_rombel_attendance.sql | TBD | TBD |
+| 064_stub_tables.sql | TBD | TBD |
+| 065_gradebook_baseline.sql | TBD | TBD |
+| 066_role_enum_completeness.sql | TBD | TBD |
+| 067_idempotent_auto_modules.sql | TBD | TBD |
+| 068_sync_user_roles_to_granular.sql | TBD | TBD |
+| 069_classes_rombel_id.sql | TBD | TBD |
+| 070_event_handler_idempotency.sql | TBD | TBD |
+| 071_ai_rate_limit.sql | TBD | TBD |
+| 072_parent_invoices_rpc.sql | TBD | TBD |
+| 073_refresh_tokens_session_metadata.sql | TBD | TBD |
+| 074_tenant_invites_and_settings.sql | TBD | TBD |
+| 075_tenant_invites_global_unique_code.sql | TBD | TBD |
+| 076_invalidate_refresh_tokens_post_rotation.sql | TBD | TBD |
+| 077_plagiarism_checks.sql | TBD | TBD |
+| 078_scorm_runtime_data.sql | TBD | TBD |
 
 > Gap pada nomor (misal 010, 011) adalah hasil revert/konsolidasi migration yang dibatalkan sebelum landing di `main`. Jangan reuse nomor tersebut untuk migration baru.
 
