@@ -24,7 +24,7 @@ import {
   X,
 } from "lucide-react";
 import { AnimatePresence, motion } from "motion/react";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 import { useBuilder } from "@/contexts/BuilderContext";
 import { useAICopilotFeatureGate } from "@/features/ai-builder-copilot/hooks/useAICopilotFeatureGate";
@@ -47,12 +47,27 @@ export function LessonBlockEditor() {
   const [deletingBlockId, setDeletingBlockId] = useState<string | null>(null);
   const [templateModalOpen, setTemplateModalOpen] = useState(false);
 
+  // PERFORMANCE OPTIMIZATION (Bolt):
+  // Replaced O(N) array allocation and full traversal (.flatMap().find())
+  // with an early-return for...of loop wrapped in useMemo.
+  // Expected impact: Eliminates unneeded temporary array allocations and reduces
+  // loop iterations during render, significantly speeding up interactions in large courses.
+  const activeLessonDerived = useMemo(() => {
+    const targetId = state.activeLesson?.id;
+    if (!targetId) return undefined;
+    for (const m of state.modules) {
+      for (const l of m.lessons || []) {
+        if (l.id === targetId) {
+          return l;
+        }
+      }
+    }
+    return undefined;
+  }, [state.activeLesson?.id, state.modules]);
+
   // FIX 1: Local title state with debounced API call
   // Derive the current lesson title from state.modules (activeLesson in state only holds id+blocks)
-  const activeLessonTitle =
-    state.modules
-      .flatMap((m) => m.lessons)
-      .find((l) => l.id === state.activeLesson?.id)?.title ?? "";
+  const activeLessonTitle = activeLessonDerived?.title ?? "";
 
   const [localTitle, setLocalTitle] = useState(activeLessonTitle);
 
@@ -60,13 +75,9 @@ export function LessonBlockEditor() {
   useEffect(() => {
     if (state.activeLesson?.id !== activeLessonIdRef.current) {
       activeLessonIdRef.current = state.activeLesson?.id;
-      const title =
-        state.modules
-          .flatMap((m) => m.lessons)
-          .find((l) => l.id === state.activeLesson?.id)?.title ?? "";
-      setLocalTitle(title);
+      setLocalTitle(activeLessonDerived?.title ?? "");
     }
-  }, [state.activeLesson?.id, state.modules]);
+  }, [state.activeLesson?.id, activeLessonDerived?.title]);
 
   const titleDebounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -208,9 +219,7 @@ export function LessonBlockEditor() {
     );
   }
 
-  const activeLesson = state.modules
-    .flatMap((m) => m.lessons)
-    .find((l) => l.id === state.activeLesson?.id);
+  const activeLesson = activeLessonDerived;
 
   const getBlockIcon = (type: string) => {
     switch (type?.toUpperCase()) {
