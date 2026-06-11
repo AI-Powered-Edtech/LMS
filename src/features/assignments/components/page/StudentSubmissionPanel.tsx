@@ -379,7 +379,7 @@ export function StudentSubmissionPanel({
                     <a
                       href={sanitizeUrl(attempt.fileUrl)}
                       target="_blank"
-                      rel="noreferrer"
+                      rel="noopener noreferrer"
                       className="inline-flex items-center gap-2 text-blue-600 dark:text-blue-400 font-medium hover:underline"
                     >
                       <Paperclip className="w-4 h-4" />
@@ -391,7 +391,7 @@ export function StudentSubmissionPanel({
                     <a
                       href={sanitizeUrl(attempt.linkUrl)}
                       target="_blank"
-                      rel="noreferrer"
+                      rel="noopener noreferrer"
                       className="inline-flex items-center gap-2 text-blue-600 dark:text-blue-400 font-medium hover:underline"
                     >
                       <ExternalLink className="w-4 h-4" />
