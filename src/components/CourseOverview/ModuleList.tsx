@@ -151,7 +151,7 @@ export function ModuleList({
                       ? "text-emerald-400"
                       : isNext
                         ? "text-blue-400"
-                        : "text-slate-300 group-hover:text-blue-500",
+                        : "text-slate-500 group-hover:text-blue-500",
                   )}
                 />
               </motion.button>
