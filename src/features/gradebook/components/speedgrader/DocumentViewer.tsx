@@ -231,7 +231,7 @@ export function DocumentViewer({
                   <a
                     href={sanitizeUrl(fileUrl)}
                     target="_blank"
-                    rel="noreferrer"
+                    rel="noopener noreferrer"
                     className="inline-flex items-center gap-2 rounded-full border border-slate-200 dark:border-slate-700 px-4 py-2 text-sm font-medium text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-slate-700/60"
                   >
                     <Paperclip className="w-4 h-4" />
@@ -243,7 +243,7 @@ export function DocumentViewer({
                   <a
                     href={sanitizeUrl(linkUrl)}
                     target="_blank"
-                    rel="noreferrer"
+                    rel="noopener noreferrer"
                     className="inline-flex items-center gap-2 rounded-full border border-slate-200 dark:border-slate-700 px-4 py-2 text-sm font-medium text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-slate-700/60"
                   >
                     <ExternalLink className="w-4 h-4" />
