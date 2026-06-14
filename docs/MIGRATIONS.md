@@ -56,3 +56,65 @@ Konsistensi antara daftar di atas dengan file fisik di `edusync-api/migrations/`
 ```
 
 Lihat juga [`docs/DATABASE.md`](./DATABASE.md) untuk dokumentasi skema, RLS policy, dan indexing strategy.
+| 018_fix_backend_schema_bugs.sql | Phase 4 fix | Fix backend schema bugs |
+| 019_audit_fixes.sql | Phase 4 fix | Audit fixes |
+| 020_fix_rpc_signatures.sql | Phase 4 fix | Fix RPC signatures |
+| 021_rpc_json.sql | Phase 4 fix | RPC json support |
+| 022_align_table_columns.sql | Phase 4 fix | Align table columns |
+| 023_rpc_stubs.sql | Phase 4 fix | Add RPC stubs |
+| 024_course_review_workflow.sql | Phase 4 fix | Add course review workflow |
+| 025_personal_and_multi_tenant.sql | Phase 4 fix | Personal and multi tenant support |
+| 026_join_code_and_slugify.sql | Phase 4 fix | Add join code and slugify |
+| 027_p2_backlog.sql | Phase 4 fix | Phase 2 backlog |
+| 028_p3_tenant_settings_and_roles.sql | Phase 4 fix | Phase 3 tenant settings and roles |
+| 029_add_admin_notification_types.sql | Phase 4 fix | Add admin notification types |
+| 030_admin_stub_tables_and_rpcs.sql | Phase 4 fix | Admin stub tables and RPCs |
+| 031_qa_schema_gaps.sql | QA Fix | Address schema gaps for QA |
+| 032_qa_rpcs.sql | QA Fix | Add missing RPCs for QA |
+| 033_fix_search_questions_return_json.sql | QA Fix | Return JSON from search_questions |
+| 034_lesson_progress_monitor_rpc.sql | Lesson Monitor | RPC for lesson progress monitoring |
+| 035_admin_backfill.sql | Admin | Admin table backfills |
+| 036_confirm_demo_seed_users.sql | Seed | Confirm seed demo users |
+| 037_qa_sweep_fixes.sql | QA Fix | QA sweep fixes |
+| 037_seed_modules_missing_rpcs_and_auth_uid.sql | Seed Fix | Add missing RPCs and auth UUID for seed |
+| 038_fix_get_tenant_users_user_id_alias.sql | Admin Fix | Fix alias in get_tenant_users |
+| 039_academic_years.sql | Kurmer | Setup academic_years table |
+| 040_semesters_link_academic_year.sql | Kurmer | Link semesters to academic_years |
+| 041_grade_levels.sql | Kurmer | Setup grade_levels table |
+| 042_rombel.sql | Kurmer | Setup rombel table |
+| 043_subjects_and_curriculum_items.sql | Kurmer | Setup subjects and curriculum |
+| 044_timetable_slots.sql | Kurmer | Setup timetable_slots |
+| 045_dossiers.sql | Dossier | Setup dossiers table |
+| 046_rbac_10_role_matrix.sql | RBAC | Role matrix updates |
+| 047_cp_tagging.sql | Kurmer | Capaian Pembelajaran tagging |
+| 048_gradebook_dual_mode.sql | Gradebook | Support dual mode in gradebook |
+| 049_nilai_per_cp.sql | Gradebook | Nilai per CP support |
+| 050_akm_question_type.sql | Quizzes | Add AKM question type |
+| 051_p5_module.sql | P5 | Setup P5 module |
+| 052_domain_events_outbox.sql | System | Domain events outbox pattern |
+| 053_rapor_kurmer.sql | Rapor | Rapor Kurmer support |
+| 054_finance_midtrans.sql | Finance | Midtrans integration |
+| 055_bos_expense_tracking.sql | BOS | BOS expense tracking |
+| 056_ppdb_flow.sql | PPDB | PPDB flow |
+| 057_integrations.sql | Integrations | Platform integrations |
+| 058_ai_polish.sql | AI | AI feature polish |
+| 059_audit_rate_limit_perf.sql | System | Audit rate limit & performance |
+| 060_counseling_parent_links_sikap.sql | Features | Counseling, parent links, sikap |
+| 061_app_audit_triggers.sql | Audit | Application audit triggers |
+| 062_rapor_autogen_rpc.sql | Rapor | Autogenerate Rapor RPC |
+| 063_rombel_attendance.sql | Rombel | Rombel attendance |
+| 064_stub_tables.sql | System | System stub tables |
+| 065_gradebook_baseline.sql | Gradebook | Gradebook baseline updates |
+| 066_role_enum_completeness.sql | RBAC | Role enum completeness |
+| 067_idempotent_auto_modules.sql | System | Idempotent auto-modules |
+| 068_sync_user_roles_to_granular.sql | RBAC | Sync user roles to granular roles |
+| 069_classes_rombel_id.sql | Core | Classes rombel ID support |
+| 070_event_handler_idempotency.sql | System | Event handler idempotency |
+| 071_ai_rate_limit.sql | AI | AI rate limiting |
+| 072_parent_invoices_rpc.sql | Parent | Invoices RPC |
+| 073_refresh_tokens_session_metadata.sql | Auth | Refresh tokens and session metadata |
+| 074_tenant_invites_and_settings.sql | Multi-tenant | Tenant invites and settings |
+| 075_tenant_invites_global_unique_code.sql | Multi-tenant | Tenant invites global unique code |
+| 076_invalidate_refresh_tokens_post_rotation.sql | Auth | Invalidate refresh tokens post rotation |
+| 077_plagiarism_checks.sql | Plagiarism | Plagiarism checks |
+| 078_scorm_runtime_data.sql | SCORM | SCORM runtime data |
