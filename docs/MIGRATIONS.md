@@ -28,6 +28,68 @@ Migration dijalankan secara berurutan sesuai nomor prefix (`NNN_`). Gunakan `scr
 | 016_add_performance_indexes.sql | Performance | Index tambahan untuk query panas (dashboard, leaderboard, gradebook). |
 | 017_add_google_id_to_profiles.sql | Auth | Kolom `google_id` di `profiles` untuk Google OAuth single sign-on. |
 
+| 018_fix_backend_schema_bugs.sql | Fix | Auto-documented by sweep |
+| 019_audit_fixes.sql | Fix | Auto-documented by sweep |
+| 020_fix_rpc_signatures.sql | Fix | Auto-documented by sweep |
+| 021_rpc_json.sql | Fix | Auto-documented by sweep |
+| 022_align_table_columns.sql | Fix | Auto-documented by sweep |
+| 023_rpc_stubs.sql | Fix | Auto-documented by sweep |
+| 024_course_review_workflow.sql | Fix | Auto-documented by sweep |
+| 025_personal_and_multi_tenant.sql | Fix | Auto-documented by sweep |
+| 026_join_code_and_slugify.sql | Fix | Auto-documented by sweep |
+| 027_p2_backlog.sql | Fix | Auto-documented by sweep |
+| 028_p3_tenant_settings_and_roles.sql | Fix | Auto-documented by sweep |
+| 029_add_admin_notification_types.sql | Fix | Auto-documented by sweep |
+| 030_admin_stub_tables_and_rpcs.sql | Fix | Auto-documented by sweep |
+| 031_qa_schema_gaps.sql | Fix | Auto-documented by sweep |
+| 032_qa_rpcs.sql | Fix | Auto-documented by sweep |
+| 033_fix_search_questions_return_json.sql | Fix | Auto-documented by sweep |
+| 034_lesson_progress_monitor_rpc.sql | Fix | Auto-documented by sweep |
+| 035_admin_backfill.sql | Fix | Auto-documented by sweep |
+| 036_confirm_demo_seed_users.sql | Fix | Auto-documented by sweep |
+| 037_qa_sweep_fixes.sql | Fix | Auto-documented by sweep |
+| 037_seed_modules_missing_rpcs_and_auth_uid.sql | Fix | Auto-documented by sweep |
+| 038_fix_get_tenant_users_user_id_alias.sql | Fix | Auto-documented by sweep |
+| 039_academic_years.sql | Fix | Auto-documented by sweep |
+| 040_semesters_link_academic_year.sql | Fix | Auto-documented by sweep |
+| 041_grade_levels.sql | Fix | Auto-documented by sweep |
+| 042_rombel.sql | Fix | Auto-documented by sweep |
+| 043_subjects_and_curriculum_items.sql | Fix | Auto-documented by sweep |
+| 044_timetable_slots.sql | Fix | Auto-documented by sweep |
+| 045_dossiers.sql | Fix | Auto-documented by sweep |
+| 046_rbac_10_role_matrix.sql | Fix | Auto-documented by sweep |
+| 047_cp_tagging.sql | Fix | Auto-documented by sweep |
+| 048_gradebook_dual_mode.sql | Fix | Auto-documented by sweep |
+| 049_nilai_per_cp.sql | Fix | Auto-documented by sweep |
+| 050_akm_question_type.sql | Fix | Auto-documented by sweep |
+| 051_p5_module.sql | Fix | Auto-documented by sweep |
+| 052_domain_events_outbox.sql | Fix | Auto-documented by sweep |
+| 053_rapor_kurmer.sql | Fix | Auto-documented by sweep |
+| 054_finance_midtrans.sql | Fix | Auto-documented by sweep |
+| 055_bos_expense_tracking.sql | Fix | Auto-documented by sweep |
+| 056_ppdb_flow.sql | Fix | Auto-documented by sweep |
+| 057_integrations.sql | Fix | Auto-documented by sweep |
+| 058_ai_polish.sql | Fix | Auto-documented by sweep |
+| 059_audit_rate_limit_perf.sql | Fix | Auto-documented by sweep |
+| 060_counseling_parent_links_sikap.sql | Fix | Auto-documented by sweep |
+| 061_app_audit_triggers.sql | Fix | Auto-documented by sweep |
+| 062_rapor_autogen_rpc.sql | Fix | Auto-documented by sweep |
+| 063_rombel_attendance.sql | Fix | Auto-documented by sweep |
+| 064_stub_tables.sql | Fix | Auto-documented by sweep |
+| 065_gradebook_baseline.sql | Fix | Auto-documented by sweep |
+| 066_role_enum_completeness.sql | Fix | Auto-documented by sweep |
+| 067_idempotent_auto_modules.sql | Fix | Auto-documented by sweep |
+| 068_sync_user_roles_to_granular.sql | Fix | Auto-documented by sweep |
+| 069_classes_rombel_id.sql | Fix | Auto-documented by sweep |
+| 070_event_handler_idempotency.sql | Fix | Auto-documented by sweep |
+| 071_ai_rate_limit.sql | Fix | Auto-documented by sweep |
+| 072_parent_invoices_rpc.sql | Fix | Auto-documented by sweep |
+| 073_refresh_tokens_session_metadata.sql | Fix | Auto-documented by sweep |
+| 074_tenant_invites_and_settings.sql | Fix | Auto-documented by sweep |
+| 075_tenant_invites_global_unique_code.sql | Fix | Auto-documented by sweep |
+| 076_invalidate_refresh_tokens_post_rotation.sql | Fix | Auto-documented by sweep |
+| 077_plagiarism_checks.sql | Fix | Auto-documented by sweep |
+| 078_scorm_runtime_data.sql | Fix | Auto-documented by sweep |
 > Gap pada nomor (misal 010, 011) adalah hasil revert/konsolidasi migration yang dibatalkan sebelum landing di `main`. Jangan reuse nomor tersebut untuk migration baru.
 
 ---
