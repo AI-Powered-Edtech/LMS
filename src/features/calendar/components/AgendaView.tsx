@@ -130,6 +130,11 @@ export function AgendaView({
                     <button
                       onClick={() => onToggleCompletion(event.id)}
                       className="shrink-0 p-2 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-full transition-colors"
+                      aria-label={
+                        event.completed
+                          ? "Tandai sebagai belum selesai"
+                          : "Tandai sebagai selesai"
+                      }
                     >
                       {event.completed ? (
                         <CheckCircle2 className="w-6 h-6 text-emerald-500" />
