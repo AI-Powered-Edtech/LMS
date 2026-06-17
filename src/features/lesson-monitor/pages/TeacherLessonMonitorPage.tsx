@@ -245,6 +245,7 @@ export function TeacherLessonMonitorPage() {
                       </div>
                     </div>
                     <button
+                      aria-label="Tutup"
                       onClick={() => dismissAlert(alert.id)}
                       className="text-red-400 hover:text-red-600 dark:hover:text-red-300"
                     >
@@ -301,6 +302,7 @@ export function TeacherLessonMonitorPage() {
                       </div>
                     </div>
                     <button
+                      aria-label="Tutup"
                       onClick={() => dismissAlert(alert.id)}
                       className="text-yellow-400 hover:text-yellow-600 dark:hover:text-yellow-300"
                     >
