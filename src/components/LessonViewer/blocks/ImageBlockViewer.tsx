@@ -104,7 +104,7 @@ export function ImageBlockViewer({ url, alt }: ImageBlockViewerProps) {
           aria-modal="true"
           aria-label="Tampilan gambar penuh"
           onClick={() => setIsZoomed(false)}
-          onKeyDown={(e) => {
+          tabIndex={-1} onKeyDown={(e) => {
             if (e.key === "Escape") {
               setIsZoomed(false);
             }
