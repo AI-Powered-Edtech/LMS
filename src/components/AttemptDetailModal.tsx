@@ -406,6 +406,7 @@ export function AttemptDetailModal({
 
                       {/* Score input */}
                       <div className="flex items-center gap-3">
+                        {/* eslint-disable-next-line jsx-a11y/label-has-for */}
                         <label
                           htmlFor={`score-input-${answer.question_id}`}
                           className="text-xs font-medium text-slate-500 uppercase tracking-wide shrink-0"
@@ -437,6 +438,7 @@ export function AttemptDetailModal({
 
                       {/* Feedback textarea */}
                       <div>
+                        {/* eslint-disable-next-line jsx-a11y/label-has-for */}
                         <label
                           htmlFor={`feedback-${answer.question_id}`}
                           className="flex items-center gap-1.5 text-xs font-medium text-slate-500 uppercase tracking-wide mb-1.5"
