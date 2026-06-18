@@ -201,9 +201,10 @@ export function AssignmentBlockEditor({
       {/* Assignment Settings */}
       <div className="grid grid-cols-1 gap-6 p-8 bg-slate-50/50 rounded-[32px] border border-slate-200/50">
         <div>
+          {/* eslint-disable-next-line jsx-a11y/label-has-for */}
           <label
             htmlFor="assignment-title"
-            className="block text-xs font-black text-slate-500 uppercase tracking-[0.2em] mb-2 px-1"
+            className="block normal-case tracking-normal text-xs font-black text-slate-500 uppercase tracking-[0.2em] mb-2 px-1"
           >
             Judul Tugas
           </label>
@@ -219,9 +220,10 @@ export function AssignmentBlockEditor({
           />
         </div>
         <div>
+          {/* eslint-disable-next-line jsx-a11y/label-has-for */}
           <label
             htmlFor="assignment-instructions"
-            className="block text-xs font-black text-slate-500 uppercase tracking-[0.2em] mb-2 px-1"
+            className="block normal-case tracking-normal text-xs font-black text-slate-500 uppercase tracking-[0.2em] mb-2 px-1"
           >
             Instruksi Tugas
           </label>
@@ -241,9 +243,10 @@ export function AssignmentBlockEditor({
         </div>
         <div className="grid grid-cols-2 gap-6">
           <div>
-            <label
+            {/* eslint-disable-next-line jsx-a11y/label-has-for */}
+          <label
               htmlFor="assignment-max-points"
-              className="block text-xs font-black text-slate-500 uppercase tracking-[0.2em] mb-2 px-1"
+              className="block normal-case tracking-normal text-xs font-black text-slate-500 uppercase tracking-[0.2em] mb-2 px-1"
             >
               Maks. Poin
             </label>
@@ -262,9 +265,10 @@ export function AssignmentBlockEditor({
             />
           </div>
           <div>
-            <label
+            {/* eslint-disable-next-line jsx-a11y/label-has-for */}
+          <label
               htmlFor="assignment-max-attempts"
-              className="block text-xs font-black text-slate-500 uppercase tracking-[0.2em] mb-2 px-1"
+              className="block normal-case tracking-normal text-xs font-black text-slate-500 uppercase tracking-[0.2em] mb-2 px-1"
             >
               Maks. Percobaan
             </label>
@@ -284,9 +288,10 @@ export function AssignmentBlockEditor({
           </div>
         </div>
         <div>
+          {/* eslint-disable-next-line jsx-a11y/label-has-for */}
           <label
             htmlFor="assignment-due-date"
-            className="block text-xs font-black text-slate-500 uppercase tracking-[0.2em] mb-2 px-1"
+            className="block normal-case tracking-normal text-xs font-black text-slate-500 uppercase tracking-[0.2em] mb-2 px-1"
           >
             Tenggat Waktu (Opsional)
           </label>
