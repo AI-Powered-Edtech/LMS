@@ -147,7 +147,7 @@ export function Onboarding() {
   return (
     <div
       className="fixed inset-0 z-[1000] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm"
-      onClick={handleComplete}
+      onClick={handleComplete} onKeyDown={(e) => e.key === "Enter" && handleComplete()} tabIndex={0}
       role="dialog"
       aria-modal="true"
       aria-label="Onboarding"
@@ -164,7 +164,7 @@ export function Onboarding() {
           {/* Close button */}
           <button
             type="button"
-            onClick={handleComplete}
+            onClick={handleComplete} onKeyDown={(e) => e.key === "Enter" && handleComplete()} tabIndex={0}
             className="absolute top-4 right-4 p-1.5 rounded-lg text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors z-10"
             aria-label="Tutup"
           >
@@ -202,7 +202,7 @@ export function Onboarding() {
               {step < steps.length - 1 && (
                 <button
                   type="button"
-                  onClick={handleComplete}
+                  onClick={handleComplete} onKeyDown={(e) => e.key === "Enter" && handleComplete()} tabIndex={0}
                   className="text-sm text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 transition-colors"
                 >
                   Lewati
