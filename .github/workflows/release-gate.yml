@@ -39,7 +39,7 @@ jobs:
         run: pnpm lint
 
       - name: Unit Tests (CI mode)
-        run: pnpm test:ci
+        run: pnpm test:ci -- --coverage
 
       - name: Build
         run: pnpm build
