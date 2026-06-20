@@ -5,6 +5,9 @@ import path from 'path'
 export default defineConfig({
   plugins: [react()],
   test: {
+    coverage: {
+      reporter: ["json-summary", "html"],
+    },
     environment: 'jsdom',
     globals: true,
     setupFiles: ['./src/testSetup.ts'],
