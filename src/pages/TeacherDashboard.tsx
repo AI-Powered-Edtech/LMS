@@ -46,18 +46,19 @@ export function TeacherDashboard() {
   }, [queryClient, tenantId]);
 
   // Real pending grading count from assignments
-  const pendingGradingCount = useMemo(
-    () =>
-      assignments.reduce((acc, a) => {
-        return (
-          acc +
-          (a.studentSubmissions || []).filter(
-            (sub) => sub.status === "submitted",
-          ).length
-        );
-      }, 0),
-    [assignments],
-  );
+  const pendingGradingCount = useMemo(() => {
+    // ⚡ Perf: consolidate multiple chained passes (.reduce then .filter) into a single, standard for loop to minimize CPU overhead and O(N) intermediate allocations.
+    let count = 0;
+    for (let i = 0; i < assignments.length; i++) {
+      const subs = assignments[i].studentSubmissions || [];
+      for (let j = 0; j < subs.length; j++) {
+        if (subs[j].status === "submitted") {
+          count++;
+        }
+      }
+    }
+    return count;
+  }, [assignments]);
 
   const alerts = useMemo(
     () =>
