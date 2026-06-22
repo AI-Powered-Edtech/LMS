@@ -175,21 +175,32 @@ export function useCourseReadiness({
 
     // ── Checks ──────────────────────────────────────────────
     const hasModules = modules.length > 0;
-    const hasLessons = modules.some((m) => m.lessons && m.lessons.length > 0);
-    const hasPublishedLessons = modules.some(
-      (m) => m.lessons && m.lessons.some((l) => l.isPublished),
-    );
     const hasDescription =
       !!courseDescription && courseDescription.trim().length > 0;
-    const emptyModules = modules.filter(
-      (m) => !m.lessons || m.lessons.length === 0,
-    );
-    const hasNoEmptyModules = emptyModules.length === 0;
 
-    const publishedLessonsCount = modules.reduce(
-      (acc, m) => acc + (m.lessons?.filter((l) => l.isPublished).length ?? 0),
-      0,
-    );
+    // ⚡ Bolt: Consolidated multiple array iterations (some, filter, reduce) into a single
+    // pass using nested for-loops to eliminate intermediate array allocations and O(N) overhead.
+    let hasLessons = false;
+    let hasPublishedLessons = false;
+    let publishedLessonsCount = 0;
+    const emptyModules: DomainModule[] = [];
+
+    for (let i = 0; i < modules.length; i++) {
+      const m = modules[i];
+      if (!m.lessons || m.lessons.length === 0) {
+        emptyModules.push(m);
+      } else {
+        hasLessons = true;
+        for (let j = 0; j < m.lessons.length; j++) {
+          if (m.lessons[j].isPublished) {
+            hasPublishedLessons = true;
+            publishedLessonsCount++;
+          }
+        }
+      }
+    }
+
+    const hasNoEmptyModules = emptyModules.length === 0;
 
     // ── BLOCKERS ────────────────────────────────────────────
     if (!hasModules) {
