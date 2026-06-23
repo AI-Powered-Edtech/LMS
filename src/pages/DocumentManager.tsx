@@ -524,6 +524,7 @@ function DocumentRow({
             title={downloadTitle}
           >
             <Download className="w-4 h-4" />
+            <span className="sr-only">Unduh (buka di tab baru)</span>
           </a>
         )}
         <button
@@ -531,6 +532,7 @@ function DocumentRow({
           onClick={() => onDelete(doc.id)}
           className="p-1.5 rounded-lg text-slate-500 hover:bg-red-50 dark:hover:bg-red-900/20 hover:text-red-600 dark:hover:text-red-400 transition-colors"
           title={deleteTitle}
+          aria-label="Hapus dokumen"
         >
           <Trash2 className="w-4 h-4" />
         </button>
