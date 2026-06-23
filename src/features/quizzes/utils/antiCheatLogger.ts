@@ -113,26 +113,25 @@ export function createAntiCheatLogger(
     Object.freeze([...events]);
 
   const getSummary: AntiCheatLogger["getSummary"] = () => {
-    const eventsByType = {} as Record<AntiCheatEventType, number>;
-    const allTypes: AntiCheatEventType[] = [
-      "TAB_SWITCH",
-      "WINDOW_BLUR",
-      "TIME_ANOMALY",
-      "COPY_PASTE",
-      "RIGHT_CLICK",
-      "DEVTOOLS_OPEN",
-      "KEYBOARD_SHORTCUT_BLOCKED",
-      "PRINT_ATTEMPT",
-    ];
+    const eventsByType = {
+      TAB_SWITCH: 0,
+      WINDOW_BLUR: 0,
+      TIME_ANOMALY: 0,
+      COPY_PASTE: 0,
+      RIGHT_CLICK: 0,
+      DEVTOOLS_OPEN: 0,
+      KEYBOARD_SHORTCUT_BLOCKED: 0,
+      PRINT_ATTEMPT: 0,
+    } as Record<AntiCheatEventType, number>;
 
-    for (const t of allTypes) {
-      eventsByType[t] = events.filter((e) => e.type === t).length;
+    let weightedScore = 0;
+
+    // ⚡ Perf: Consolidate multiple filter passes into a single O(N) loop
+    for (let i = 0; i < events.length; i++) {
+      const type = events[i].type;
+      eventsByType[type]++;
+      weightedScore += SEVERITY_WEIGHTS[type] ?? 1;
     }
-
-    // Weighted score untuk severity yang lebih akurat
-    const weightedScore = allTypes.reduce((acc, t) => {
-      return acc + eventsByType[t] * (SEVERITY_WEIGHTS[t] ?? 1);
-    }, 0);
 
     let severityLevel: AntiCheatSummary["severityLevel"] = "none";
 
