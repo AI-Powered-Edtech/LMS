@@ -46,18 +46,19 @@ export function TeacherDashboard() {
   }, [queryClient, tenantId]);
 
   // Real pending grading count from assignments
-  const pendingGradingCount = useMemo(
-    () =>
-      assignments.reduce((acc, a) => {
-        return (
-          acc +
-          (a.studentSubmissions || []).filter(
-            (sub) => sub.status === "submitted",
-          ).length
-        );
-      }, 0),
-    [assignments],
-  );
+  const pendingGradingCount = useMemo(() => {
+    let count = 0;
+    for (const a of assignments) {
+      if (a.studentSubmissions) {
+        for (const sub of a.studentSubmissions) {
+          if (sub.status === "submitted") {
+            count++;
+          }
+        }
+      }
+    }
+    return count;
+  }, [assignments]);
 
   const alerts = useMemo(
     () =>
