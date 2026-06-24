@@ -30,6 +30,323 @@ Migration dijalankan secara berurutan sesuai nomor prefix (`NNN_`). Gunakan `scr
 
 > Gap pada nomor (misal 010, 011) adalah hasil revert/konsolidasi migration yang dibatalkan sebelum landing di `main`. Jangan reuse nomor tersebut untuk migration baru.
 
+| 018_fix_backend_schema_bugs.sql | Schema | Bug fixes for backend schema. |
+| 019_audit_fixes.sql | Schema | Bug fixes for audit logs. |
+| 020_fix_rpc_signatures.sql | Schema | Fixes for RPC signatures. |
+| 021_rpc_json.sql | Schema | RPC JSON improvements. |
+| 022_align_table_columns.sql | Schema | Table column alignment. |
+| 023_rpc_stubs.sql | Schema | Stubs for RPCs. |
+| 024_course_review_workflow.sql | Schema | Course review workflow schema. |
+| 025_personal_and_multi_tenant.sql | Schema | Multi tenant related schema. |
+| 026_join_code_and_slugify.sql | Schema | Join code and slugify logic. |
+| 027_p2_backlog.sql | Schema | P2 backlog schema additions. |
+| 028_p3_tenant_settings_and_roles.sql | Schema | Tenant settings and roles schema. |
+| 029_add_admin_notification_types.sql | Schema | Admin notification types schema. |
+| 030_admin_stub_tables_and_rpcs.sql | Schema | Admin stub tables and RPCs. |
+| 031_qa_schema_gaps.sql | Schema | Fixes for QA schema gaps. |
+| 032_qa_rpcs.sql | Schema | QA RPCs. |
+| 033_fix_search_questions_return_json.sql | Schema | Fix search questions return JSON. |
+| 034_lesson_progress_monitor_rpc.sql | Schema | Lesson progress monitor RPC. |
+| 035_admin_backfill.sql | Schema | Admin backfill logic. |
+| 036_confirm_demo_seed_users.sql | Schema | Confirm demo seed users. |
+| 037_qa_sweep_fixes.sql | Schema | Fixes for QA sweep. |
+| 037_seed_modules_missing_rpcs_and_auth_uid.sql | Schema | Seed missing RPCs and Auth UID. |
+| 038_fix_get_tenant_users_user_id_alias.sql | Schema | Fix get tenant users alias. |
+| 039_academic_years.sql | Schema | Academic years schema. |
+| 040_semesters_link_academic_year.sql | Schema | Semesters link academic year schema. |
+| 041_grade_levels.sql | Schema | Grade levels schema. |
+| 042_rombel.sql | Schema | Rombel schema. |
+| 043_subjects_and_curriculum_items.sql | Schema | Subjects and curriculum items. |
+| 044_timetable_slots.sql | Schema | Timetable slots schema. |
+| 045_dossiers.sql | Schema | Dossiers schema. |
+| 046_rbac_10_role_matrix.sql | Schema | Role matrix schema. |
+| 047_cp_tagging.sql | Schema | CP tagging schema. |
+| 048_gradebook_dual_mode.sql | Schema | Gradebook dual mode schema. |
+| 049_nilai_per_cp.sql | Schema | Nilai per CP schema. |
+| 050_akm_question_type.sql | Schema | AKM question type schema. |
+| 051_p5_module.sql | Schema | P5 module schema. |
+| 052_domain_events_outbox.sql | Schema | Domain events outbox schema. |
+| 053_rapor_kurmer.sql | Schema | Rapor kurmer schema. |
+| 054_finance_midtrans.sql | Schema | Finance midtrans schema. |
+| 055_bos_expense_tracking.sql | Schema | Bos expense tracking schema. |
+| 056_ppdb_flow.sql | Schema | PPDB flow schema. |
+| 057_integrations.sql | Schema | Integrations schema. |
+| 058_ai_polish.sql | Schema | AI polish schema. |
+| 059_audit_rate_limit_perf.sql | Schema | Audit rate limit performance schema. |
+| 060_counseling_parent_links_sikap.sql | Schema | Counseling parent links sikap schema. |
+| 061_app_audit_triggers.sql | Schema | App audit triggers schema. |
+| 062_rapor_autogen_rpc.sql | Schema | Rapor autogen RPC. |
+| 063_rombel_attendance.sql | Schema | Rombel attendance schema. |
+| 064_stub_tables.sql | Schema | Stub tables schema. |
+| 065_gradebook_baseline.sql | Schema | Gradebook baseline schema. |
+| 066_role_enum_completeness.sql | Schema | Role enum completeness schema. |
+| 067_idempotent_auto_modules.sql | Schema | Idempotent auto modules schema. |
+| 068_sync_user_roles_to_granular.sql | Schema | Sync user roles schema. |
+| 069_classes_rombel_id.sql | Schema | Classes rombel id schema. |
+| 070_event_handler_idempotency.sql | Schema | Event handler idempotency schema. |
+| 071_ai_rate_limit.sql | Schema | AI rate limit schema. |
+| 072_parent_invoices_rpc.sql | Schema | Parent invoices RPC. |
+| 073_refresh_tokens_session_metadata.sql | Schema | Refresh tokens session metadata schema. |
+| 074_tenant_invites_and_settings.sql | Schema | Tenant invites and settings schema. |
+| 075_tenant_invites_global_unique_code.sql | Schema | Tenant invites global unique code. |
+| 076_invalidate_refresh_tokens_post_rotation.sql | Schema | Invalidate refresh tokens post rotation. |
+| 077_plagiarism_checks.sql | Schema | Plagiarism checks schema. |
+| 078_scorm_runtime_data.sql | Schema | SCORM runtime data schema. |
+
+
+
+| 018_fix_backend_schema_bugs.sql | Schema | Bug fixes for backend schema. |
+| 019_audit_fixes.sql | Schema | Bug fixes for audit logs. |
+| 020_fix_rpc_signatures.sql | Schema | Fixes for RPC signatures. |
+| 021_rpc_json.sql | Schema | RPC JSON improvements. |
+| 022_align_table_columns.sql | Schema | Table column alignment. |
+| 023_rpc_stubs.sql | Schema | Stubs for RPCs. |
+| 024_course_review_workflow.sql | Schema | Course review workflow schema. |
+| 025_personal_and_multi_tenant.sql | Schema | Multi tenant related schema. |
+| 026_join_code_and_slugify.sql | Schema | Join code and slugify logic. |
+| 027_p2_backlog.sql | Schema | P2 backlog schema additions. |
+| 028_p3_tenant_settings_and_roles.sql | Schema | Tenant settings and roles schema. |
+| 029_add_admin_notification_types.sql | Schema | Admin notification types schema. |
+| 030_admin_stub_tables_and_rpcs.sql | Schema | Admin stub tables and RPCs. |
+| 031_qa_schema_gaps.sql | Schema | Fixes for QA schema gaps. |
+| 032_qa_rpcs.sql | Schema | QA RPCs. |
+| 033_fix_search_questions_return_json.sql | Schema | Fix search questions return JSON. |
+| 034_lesson_progress_monitor_rpc.sql | Schema | Lesson progress monitor RPC. |
+| 035_admin_backfill.sql | Schema | Admin backfill logic. |
+| 036_confirm_demo_seed_users.sql | Schema | Confirm demo seed users. |
+| 037_qa_sweep_fixes.sql | Schema | Fixes for QA sweep. |
+| 037_seed_modules_missing_rpcs_and_auth_uid.sql | Schema | Seed missing RPCs and Auth UID. |
+| 038_fix_get_tenant_users_user_id_alias.sql | Schema | Fix get tenant users alias. |
+| 039_academic_years.sql | Schema | Academic years schema. |
+| 040_semesters_link_academic_year.sql | Schema | Semesters link academic year schema. |
+| 041_grade_levels.sql | Schema | Grade levels schema. |
+| 042_rombel.sql | Schema | Rombel schema. |
+| 043_subjects_and_curriculum_items.sql | Schema | Subjects and curriculum items. |
+| 044_timetable_slots.sql | Schema | Timetable slots schema. |
+| 045_dossiers.sql | Schema | Dossiers schema. |
+| 046_rbac_10_role_matrix.sql | Schema | Role matrix schema. |
+| 047_cp_tagging.sql | Schema | CP tagging schema. |
+| 048_gradebook_dual_mode.sql | Schema | Gradebook dual mode schema. |
+| 049_nilai_per_cp.sql | Schema | Nilai per CP schema. |
+| 050_akm_question_type.sql | Schema | AKM question type schema. |
+| 051_p5_module.sql | Schema | P5 module schema. |
+| 052_domain_events_outbox.sql | Schema | Domain events outbox schema. |
+| 053_rapor_kurmer.sql | Schema | Rapor kurmer schema. |
+| 054_finance_midtrans.sql | Schema | Finance midtrans schema. |
+| 055_bos_expense_tracking.sql | Schema | Bos expense tracking schema. |
+| 056_ppdb_flow.sql | Schema | PPDB flow schema. |
+| 057_integrations.sql | Schema | Integrations schema. |
+| 058_ai_polish.sql | Schema | AI polish schema. |
+| 059_audit_rate_limit_perf.sql | Schema | Audit rate limit performance schema. |
+| 060_counseling_parent_links_sikap.sql | Schema | Counseling parent links sikap schema. |
+| 061_app_audit_triggers.sql | Schema | App audit triggers schema. |
+| 062_rapor_autogen_rpc.sql | Schema | Rapor autogen RPC. |
+| 063_rombel_attendance.sql | Schema | Rombel attendance schema. |
+| 064_stub_tables.sql | Schema | Stub tables schema. |
+| 065_gradebook_baseline.sql | Schema | Gradebook baseline schema. |
+| 066_role_enum_completeness.sql | Schema | Role enum completeness schema. |
+| 067_idempotent_auto_modules.sql | Schema | Idempotent auto modules schema. |
+| 068_sync_user_roles_to_granular.sql | Schema | Sync user roles schema. |
+| 069_classes_rombel_id.sql | Schema | Classes rombel id schema. |
+| 070_event_handler_idempotency.sql | Schema | Event handler idempotency schema. |
+| 071_ai_rate_limit.sql | Schema | AI rate limit schema. |
+| 072_parent_invoices_rpc.sql | Schema | Parent invoices RPC. |
+| 073_refresh_tokens_session_metadata.sql | Schema | Refresh tokens session metadata schema. |
+| 074_tenant_invites_and_settings.sql | Schema | Tenant invites and settings schema. |
+| 075_tenant_invites_global_unique_code.sql | Schema | Tenant invites global unique code. |
+| 076_invalidate_refresh_tokens_post_rotation.sql | Schema | Invalidate refresh tokens post rotation. |
+| 077_plagiarism_checks.sql | Schema | Plagiarism checks schema. |
+| 078_scorm_runtime_data.sql | Schema | SCORM runtime data schema. |
+
+
+| 018_fix_backend_schema_bugs.sql | Schema | Bug fixes for backend schema. |
+| 019_audit_fixes.sql | Schema | Bug fixes for audit logs. |
+| 020_fix_rpc_signatures.sql | Schema | Fixes for RPC signatures. |
+| 021_rpc_json.sql | Schema | RPC JSON improvements. |
+| 022_align_table_columns.sql | Schema | Table column alignment. |
+| 023_rpc_stubs.sql | Schema | Stubs for RPCs. |
+| 024_course_review_workflow.sql | Schema | Course review workflow schema. |
+| 025_personal_and_multi_tenant.sql | Schema | Multi tenant related schema. |
+| 026_join_code_and_slugify.sql | Schema | Join code and slugify logic. |
+| 027_p2_backlog.sql | Schema | P2 backlog schema additions. |
+| 028_p3_tenant_settings_and_roles.sql | Schema | Tenant settings and roles schema. |
+| 029_add_admin_notification_types.sql | Schema | Admin notification types schema. |
+| 030_admin_stub_tables_and_rpcs.sql | Schema | Admin stub tables and RPCs. |
+| 031_qa_schema_gaps.sql | Schema | Fixes for QA schema gaps. |
+| 032_qa_rpcs.sql | Schema | QA RPCs. |
+| 033_fix_search_questions_return_json.sql | Schema | Fix search questions return JSON. |
+| 034_lesson_progress_monitor_rpc.sql | Schema | Lesson progress monitor RPC. |
+| 035_admin_backfill.sql | Schema | Admin backfill logic. |
+| 036_confirm_demo_seed_users.sql | Schema | Confirm demo seed users. |
+| 037_qa_sweep_fixes.sql | Schema | Fixes for QA sweep. |
+| 037_seed_modules_missing_rpcs_and_auth_uid.sql | Schema | Seed missing RPCs and Auth UID. |
+| 038_fix_get_tenant_users_user_id_alias.sql | Schema | Fix get tenant users alias. |
+| 039_academic_years.sql | Schema | Academic years schema. |
+| 040_semesters_link_academic_year.sql | Schema | Semesters link academic year schema. |
+| 041_grade_levels.sql | Schema | Grade levels schema. |
+| 042_rombel.sql | Schema | Rombel schema. |
+| 043_subjects_and_curriculum_items.sql | Schema | Subjects and curriculum items. |
+| 044_timetable_slots.sql | Schema | Timetable slots schema. |
+| 045_dossiers.sql | Schema | Dossiers schema. |
+| 046_rbac_10_role_matrix.sql | Schema | Role matrix schema. |
+| 047_cp_tagging.sql | Schema | CP tagging schema. |
+| 048_gradebook_dual_mode.sql | Schema | Gradebook dual mode schema. |
+| 049_nilai_per_cp.sql | Schema | Nilai per CP schema. |
+| 050_akm_question_type.sql | Schema | AKM question type schema. |
+| 051_p5_module.sql | Schema | P5 module schema. |
+| 052_domain_events_outbox.sql | Schema | Domain events outbox schema. |
+| 053_rapor_kurmer.sql | Schema | Rapor kurmer schema. |
+| 054_finance_midtrans.sql | Schema | Finance midtrans schema. |
+| 055_bos_expense_tracking.sql | Schema | Bos expense tracking schema. |
+| 056_ppdb_flow.sql | Schema | PPDB flow schema. |
+| 057_integrations.sql | Schema | Integrations schema. |
+| 058_ai_polish.sql | Schema | AI polish schema. |
+| 059_audit_rate_limit_perf.sql | Schema | Audit rate limit performance schema. |
+| 060_counseling_parent_links_sikap.sql | Schema | Counseling parent links sikap schema. |
+| 061_app_audit_triggers.sql | Schema | App audit triggers schema. |
+| 062_rapor_autogen_rpc.sql | Schema | Rapor autogen RPC. |
+| 063_rombel_attendance.sql | Schema | Rombel attendance schema. |
+| 064_stub_tables.sql | Schema | Stub tables schema. |
+| 065_gradebook_baseline.sql | Schema | Gradebook baseline schema. |
+| 066_role_enum_completeness.sql | Schema | Role enum completeness schema. |
+| 067_idempotent_auto_modules.sql | Schema | Idempotent auto modules schema. |
+| 068_sync_user_roles_to_granular.sql | Schema | Sync user roles schema. |
+| 069_classes_rombel_id.sql | Schema | Classes rombel id schema. |
+| 070_event_handler_idempotency.sql | Schema | Event handler idempotency schema. |
+| 071_ai_rate_limit.sql | Schema | AI rate limit schema. |
+| 072_parent_invoices_rpc.sql | Schema | Parent invoices RPC. |
+| 073_refresh_tokens_session_metadata.sql | Schema | Refresh tokens session metadata schema. |
+| 074_tenant_invites_and_settings.sql | Schema | Tenant invites and settings schema. |
+| 075_tenant_invites_global_unique_code.sql | Schema | Tenant invites global unique code. |
+| 076_invalidate_refresh_tokens_post_rotation.sql | Schema | Invalidate refresh tokens post rotation. |
+| 077_plagiarism_checks.sql | Schema | Plagiarism checks schema. |
+| 078_scorm_runtime_data.sql | Schema | SCORM runtime data schema.
+
+| 018_fix_backend_schema_bugs.sql | Schema | Bug fixes for backend schema. |
+| 019_audit_fixes.sql | Schema | Bug fixes for audit logs. |
+| 020_fix_rpc_signatures.sql | Schema | Fixes for RPC signatures. |
+| 021_rpc_json.sql | Schema | RPC JSON improvements. |
+| 022_align_table_columns.sql | Schema | Table column alignment. |
+| 023_rpc_stubs.sql | Schema | Stubs for RPCs. |
+| 024_course_review_workflow.sql | Schema | Course review workflow schema. |
+| 025_personal_and_multi_tenant.sql | Schema | Multi tenant related schema. |
+| 026_join_code_and_slugify.sql | Schema | Join code and slugify logic. |
+| 027_p2_backlog.sql | Schema | P2 backlog schema additions. |
+| 028_p3_tenant_settings_and_roles.sql | Schema | Tenant settings and roles schema. |
+| 029_add_admin_notification_types.sql | Schema | Admin notification types schema. |
+| 030_admin_stub_tables_and_rpcs.sql | Schema | Admin stub tables and RPCs. |
+| 031_qa_schema_gaps.sql | Schema | Fixes for QA schema gaps. |
+| 032_qa_rpcs.sql | Schema | QA RPCs. |
+| 033_fix_search_questions_return_json.sql | Schema | Fix search questions return JSON. |
+| 034_lesson_progress_monitor_rpc.sql | Schema | Lesson progress monitor RPC. |
+| 035_admin_backfill.sql | Schema | Admin backfill logic. |
+| 036_confirm_demo_seed_users.sql | Schema | Confirm demo seed users. |
+| 037_qa_sweep_fixes.sql | Schema | Fixes for QA sweep. |
+| 037_seed_modules_missing_rpcs_and_auth_uid.sql | Schema | Seed missing RPCs and Auth UID. |
+| 038_fix_get_tenant_users_user_id_alias.sql | Schema | Fix get tenant users alias. |
+| 039_academic_years.sql | Schema | Academic years schema. |
+| 040_semesters_link_academic_year.sql | Schema | Semesters link academic year schema. |
+| 041_grade_levels.sql | Schema | Grade levels schema. |
+| 042_rombel.sql | Schema | Rombel schema. |
+| 043_subjects_and_curriculum_items.sql | Schema | Subjects and curriculum items. |
+| 044_timetable_slots.sql | Schema | Timetable slots schema. |
+| 045_dossiers.sql | Schema | Dossiers schema. |
+| 046_rbac_10_role_matrix.sql | Schema | Role matrix schema. |
+| 047_cp_tagging.sql | Schema | CP tagging schema. |
+| 048_gradebook_dual_mode.sql | Schema | Gradebook dual mode schema. |
+| 049_nilai_per_cp.sql | Schema | Nilai per CP schema. |
+| 050_akm_question_type.sql | Schema | AKM question type schema. |
+| 051_p5_module.sql | Schema | P5 module schema. |
+| 052_domain_events_outbox.sql | Schema | Domain events outbox schema. |
+| 053_rapor_kurmer.sql | Schema | Rapor kurmer schema. |
+| 054_finance_midtrans.sql | Schema | Finance midtrans schema. |
+| 055_bos_expense_tracking.sql | Schema | Bos expense tracking schema. |
+| 056_ppdb_flow.sql | Schema | PPDB flow schema. |
+| 057_integrations.sql | Schema | Integrations schema. |
+| 058_ai_polish.sql | Schema | AI polish schema. |
+| 059_audit_rate_limit_perf.sql | Schema | Audit rate limit performance schema. |
+| 060_counseling_parent_links_sikap.sql | Schema | Counseling parent links sikap schema. |
+| 061_app_audit_triggers.sql | Schema | App audit triggers schema. |
+| 062_rapor_autogen_rpc.sql | Schema | Rapor autogen RPC. |
+| 063_rombel_attendance.sql | Schema | Rombel attendance schema. |
+| 064_stub_tables.sql | Schema | Stub tables schema. |
+| 065_gradebook_baseline.sql | Schema | Gradebook baseline schema. |
+| 066_role_enum_completeness.sql | Schema | Role enum completeness schema. |
+| 067_idempotent_auto_modules.sql | Schema | Idempotent auto modules schema. |
+| 068_sync_user_roles_to_granular.sql | Schema | Sync user roles schema. |
+| 069_classes_rombel_id.sql | Schema | Classes rombel id schema. |
+| 070_event_handler_idempotency.sql | Schema | Event handler idempotency schema. |
+| 071_ai_rate_limit.sql | Schema | AI rate limit schema. |
+| 072_parent_invoices_rpc.sql | Schema | Parent invoices RPC. |
+| 073_refresh_tokens_session_metadata.sql | Schema | Refresh tokens session metadata schema. |
+| 074_tenant_invites_and_settings.sql | Schema | Tenant invites and settings schema. |
+| 075_tenant_invites_global_unique_code.sql | Schema | Tenant invites global unique code. |
+| 076_invalidate_refresh_tokens_post_rotation.sql | Schema | Invalidate refresh tokens post rotation. |
+| 077_plagiarism_checks.sql | Schema | Plagiarism checks schema. |
+| 078_scorm_runtime_data.sql | Schema | SCORM runtime data schema. |
+| 018_fix_backend_schema_bugs.sql | Schema | Bug fixes for backend schema. |
+| 019_audit_fixes.sql | Schema | Bug fixes for audit logs. |
+| 020_fix_rpc_signatures.sql | Schema | Fixes for RPC signatures. |
+| 021_rpc_json.sql | Schema | RPC JSON improvements. |
+| 022_align_table_columns.sql | Schema | Table column alignment. |
+| 023_rpc_stubs.sql | Schema | Stubs for RPCs. |
+| 024_course_review_workflow.sql | Schema | Course review workflow schema. |
+| 025_personal_and_multi_tenant.sql | Schema | Multi tenant related schema. |
+| 026_join_code_and_slugify.sql | Schema | Join code and slugify logic. |
+| 027_p2_backlog.sql | Schema | P2 backlog schema additions. |
+| 028_p3_tenant_settings_and_roles.sql | Schema | Tenant settings and roles schema. |
+| 029_add_admin_notification_types.sql | Schema | Admin notification types schema. |
+| 030_admin_stub_tables_and_rpcs.sql | Schema | Admin stub tables and RPCs. |
+| 031_qa_schema_gaps.sql | Schema | Fixes for QA schema gaps. |
+| 032_qa_rpcs.sql | Schema | QA RPCs. |
+| 033_fix_search_questions_return_json.sql | Schema | Fix search questions return JSON. |
+| 034_lesson_progress_monitor_rpc.sql | Schema | Lesson progress monitor RPC. |
+| 035_admin_backfill.sql | Schema | Admin backfill logic. |
+| 036_confirm_demo_seed_users.sql | Schema | Confirm demo seed users. |
+| 037_qa_sweep_fixes.sql | Schema | Fixes for QA sweep. |
+| 037_seed_modules_missing_rpcs_and_auth_uid.sql | Schema | Seed missing RPCs and Auth UID. |
+| 038_fix_get_tenant_users_user_id_alias.sql | Schema | Fix get tenant users alias. |
+| 039_academic_years.sql | Schema | Academic years schema. |
+| 040_semesters_link_academic_year.sql | Schema | Semesters link academic year schema. |
+| 041_grade_levels.sql | Schema | Grade levels schema. |
+| 042_rombel.sql | Schema | Rombel schema. |
+| 043_subjects_and_curriculum_items.sql | Schema | Subjects and curriculum items. |
+| 044_timetable_slots.sql | Schema | Timetable slots schema. |
+| 045_dossiers.sql | Schema | Dossiers schema. |
+| 046_rbac_10_role_matrix.sql | Schema | Role matrix schema. |
+| 047_cp_tagging.sql | Schema | CP tagging schema. |
+| 048_gradebook_dual_mode.sql | Schema | Gradebook dual mode schema. |
+| 049_nilai_per_cp.sql | Schema | Nilai per CP schema. |
+| 050_akm_question_type.sql | Schema | AKM question type schema. |
+| 051_p5_module.sql | Schema | P5 module schema. |
+| 052_domain_events_outbox.sql | Schema | Domain events outbox schema. |
+| 053_rapor_kurmer.sql | Schema | Rapor kurmer schema. |
+| 054_finance_midtrans.sql | Schema | Finance midtrans schema. |
+| 055_bos_expense_tracking.sql | Schema | Bos expense tracking schema. |
+| 056_ppdb_flow.sql | Schema | PPDB flow schema. |
+| 057_integrations.sql | Schema | Integrations schema. |
+| 058_ai_polish.sql | Schema | AI polish schema. |
+| 059_audit_rate_limit_perf.sql | Schema | Audit rate limit performance schema. |
+| 060_counseling_parent_links_sikap.sql | Schema | Counseling parent links sikap schema. |
+| 061_app_audit_triggers.sql | Schema | App audit triggers schema. |
+| 062_rapor_autogen_rpc.sql | Schema | Rapor autogen RPC. |
+| 063_rombel_attendance.sql | Schema | Rombel attendance schema. |
+| 064_stub_tables.sql | Schema | Stub tables schema. |
+| 065_gradebook_baseline.sql | Schema | Gradebook baseline schema. |
+| 066_role_enum_completeness.sql | Schema | Role enum completeness schema. |
+| 067_idempotent_auto_modules.sql | Schema | Idempotent auto modules schema. |
+| 068_sync_user_roles_to_granular.sql | Schema | Sync user roles schema. |
+| 069_classes_rombel_id.sql | Schema | Classes rombel id schema. |
+| 070_event_handler_idempotency.sql | Schema | Event handler idempotency schema. |
+| 071_ai_rate_limit.sql | Schema | AI rate limit schema. |
+| 072_parent_invoices_rpc.sql | Schema | Parent invoices RPC. |
+| 073_refresh_tokens_session_metadata.sql | Schema | Refresh tokens session metadata schema. |
+| 074_tenant_invites_and_settings.sql | Schema | Tenant invites and settings schema. |
+| 075_tenant_invites_global_unique_code.sql | Schema | Tenant invites global unique code. |
+| 076_invalidate_refresh_tokens_post_rotation.sql | Schema | Invalidate refresh tokens post rotation. |
+| 077_plagiarism_checks.sql | Schema | Plagiarism checks schema. |
+| 078_scorm_runtime_data.sql | Schema | SCORM runtime data schema. |
+
 ---
 
 ## Menambah migration baru
@@ -56,3 +373,65 @@ Konsistensi antara daftar di atas dengan file fisik di `edusync-api/migrations/`
 ```
 
 Lihat juga [`docs/DATABASE.md`](./DATABASE.md) untuk dokumentasi skema, RLS policy, dan indexing strategy.
+| 018_fix_backend_schema_bugs.sql | Schema | Bug fixes for backend schema. |
+| 019_audit_fixes.sql | Schema | Bug fixes for audit logs. |
+| 020_fix_rpc_signatures.sql | Schema | Fixes for RPC signatures. |
+| 021_rpc_json.sql | Schema | RPC JSON improvements. |
+| 022_align_table_columns.sql | Schema | Table column alignment. |
+| 023_rpc_stubs.sql | Schema | Stubs for RPCs. |
+| 024_course_review_workflow.sql | Schema | Course review workflow schema. |
+| 025_personal_and_multi_tenant.sql | Schema | Multi tenant related schema. |
+| 026_join_code_and_slugify.sql | Schema | Join code and slugify logic. |
+| 027_p2_backlog.sql | Schema | P2 backlog schema additions. |
+| 028_p3_tenant_settings_and_roles.sql | Schema | Tenant settings and roles schema. |
+| 029_add_admin_notification_types.sql | Schema | Admin notification types schema. |
+| 030_admin_stub_tables_and_rpcs.sql | Schema | Admin stub tables and RPCs. |
+| 031_qa_schema_gaps.sql | Schema | Fixes for QA schema gaps. |
+| 032_qa_rpcs.sql | Schema | QA RPCs. |
+| 033_fix_search_questions_return_json.sql | Schema | Fix search questions return JSON. |
+| 034_lesson_progress_monitor_rpc.sql | Schema | Lesson progress monitor RPC. |
+| 035_admin_backfill.sql | Schema | Admin backfill logic. |
+| 036_confirm_demo_seed_users.sql | Schema | Confirm demo seed users. |
+| 037_qa_sweep_fixes.sql | Schema | Fixes for QA sweep. |
+| 037_seed_modules_missing_rpcs_and_auth_uid.sql | Schema | Seed missing RPCs and Auth UID. |
+| 038_fix_get_tenant_users_user_id_alias.sql | Schema | Fix get tenant users alias. |
+| 039_academic_years.sql | Schema | Academic years schema. |
+| 040_semesters_link_academic_year.sql | Schema | Semesters link academic year schema. |
+| 041_grade_levels.sql | Schema | Grade levels schema. |
+| 042_rombel.sql | Schema | Rombel schema. |
+| 043_subjects_and_curriculum_items.sql | Schema | Subjects and curriculum items. |
+| 044_timetable_slots.sql | Schema | Timetable slots schema. |
+| 045_dossiers.sql | Schema | Dossiers schema. |
+| 046_rbac_10_role_matrix.sql | Schema | Role matrix schema. |
+| 047_cp_tagging.sql | Schema | CP tagging schema. |
+| 048_gradebook_dual_mode.sql | Schema | Gradebook dual mode schema. |
+| 049_nilai_per_cp.sql | Schema | Nilai per CP schema. |
+| 050_akm_question_type.sql | Schema | AKM question type schema. |
+| 051_p5_module.sql | Schema | P5 module schema. |
+| 052_domain_events_outbox.sql | Schema | Domain events outbox schema. |
+| 053_rapor_kurmer.sql | Schema | Rapor kurmer schema. |
+| 054_finance_midtrans.sql | Schema | Finance midtrans schema. |
+| 055_bos_expense_tracking.sql | Schema | Bos expense tracking schema. |
+| 056_ppdb_flow.sql | Schema | PPDB flow schema. |
+| 057_integrations.sql | Schema | Integrations schema. |
+| 058_ai_polish.sql | Schema | AI polish schema. |
+| 059_audit_rate_limit_perf.sql | Schema | Audit rate limit performance schema. |
+| 060_counseling_parent_links_sikap.sql | Schema | Counseling parent links sikap schema. |
+| 061_app_audit_triggers.sql | Schema | App audit triggers schema. |
+| 062_rapor_autogen_rpc.sql | Schema | Rapor autogen RPC. |
+| 063_rombel_attendance.sql | Schema | Rombel attendance schema. |
+| 064_stub_tables.sql | Schema | Stub tables schema. |
+| 065_gradebook_baseline.sql | Schema | Gradebook baseline schema. |
+| 066_role_enum_completeness.sql | Schema | Role enum completeness schema. |
+| 067_idempotent_auto_modules.sql | Schema | Idempotent auto modules schema. |
+| 068_sync_user_roles_to_granular.sql | Schema | Sync user roles schema. |
+| 069_classes_rombel_id.sql | Schema | Classes rombel id schema. |
+| 070_event_handler_idempotency.sql | Schema | Event handler idempotency schema. |
+| 071_ai_rate_limit.sql | Schema | AI rate limit schema. |
+| 072_parent_invoices_rpc.sql | Schema | Parent invoices RPC. |
+| 073_refresh_tokens_session_metadata.sql | Schema | Refresh tokens session metadata schema. |
+| 074_tenant_invites_and_settings.sql | Schema | Tenant invites and settings schema. |
+| 075_tenant_invites_global_unique_code.sql | Schema | Tenant invites global unique code. |
+| 076_invalidate_refresh_tokens_post_rotation.sql | Schema | Invalidate refresh tokens post rotation. |
+| 077_plagiarism_checks.sql | Schema | Plagiarism checks schema. |
+| 078_scorm_runtime_data.sql | Schema | SCORM runtime data schema. |
