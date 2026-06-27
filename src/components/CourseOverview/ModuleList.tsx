@@ -67,7 +67,7 @@ export function ModuleList({
                 whileTap={{ scale: 0.99 }}
                 onClick={() => onSelectModule(mod.id)}
                 className={cn(
-                  "w-full flex items-center gap-4 p-4 md:p-5 rounded-2xl border text-left transition-all duration-200 group",
+                  "w-full flex items-center gap-4 p-4 md:p-5 rounded-2xl border text-left transition-all duration-200 group focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500",
                   isComplete
                     ? "bg-emerald-50/60 border-emerald-200/70 hover:bg-emerald-50"
                     : isNext
