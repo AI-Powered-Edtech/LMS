@@ -307,6 +307,7 @@ export function QuizListView({
                       }}
                       className="p-2 text-slate-400 dark:text-slate-500 hover:text-indigo-600 dark:hover:text-indigo-400 hover:bg-indigo-50 dark:hover:bg-indigo-900/20 rounded-lg transition-colors"
                       title={t("quizList.actions.assignToClass")}
+                      aria-label="Tugaskan kuis ke kelas"
                     >
                       <Calendar className="w-4 h-4" />
                     </button>
@@ -318,6 +319,7 @@ export function QuizListView({
                     }}
                     className="p-2 text-slate-400 dark:text-slate-500 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-lg transition-colors"
                     title={t("quizList.actions.edit")}
+                    aria-label="Edit kuis"
                   >
                     <Pencil className="w-4 h-4" />
                   </button>
@@ -329,6 +331,7 @@ export function QuizListView({
                       }}
                       className="p-2 text-slate-400 dark:text-slate-500 hover:text-red-600 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors"
                       title={t("quizList.actions.delete")}
+                      aria-label="Hapus kuis"
                     >
                       <Trash2 className="w-4 h-4" />
                     </button>
