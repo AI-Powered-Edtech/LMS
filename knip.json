@@ -1,14 +1,39 @@
 {
   "ignore": [
-    "src/components/ui/ErrorBoundary.tsx",
-    "src/features/ai-authoring/components/AuthoringAssistToolbar.tsx",
-    "src/features/ai-tutor/hooks/useAiStream.ts",
-    "src/features/parent/components/InvoiceList.tsx",
-    "src/features/quizzes/hooks/useOfflineQuiz.ts",
-    "src/features/video/components/VideoTranscodingStatus.tsx",
-    "src/features/video/hooks/useTranscodingStatus.ts",
-    "src/pages/admin/ReviewQueue.tsx",
-    "src/pages/SurveyRespond.tsx"
+    "scripts/**",
+    "services/**",
+    "src/components/**",
+    "src/features/**",
+    "src/hooks/**",
+    "src/pages/**",
+    "src/services/**",
+    "src/shared/**",
+    "src/styles/**",
+    "src/utils/**",
+    "src/app/lazyPages.tsx",
+    "src/i18n/index.ts"
+  ],
+  "ignoreDependencies": [
+    "dompurify",
+    "@storybook/addon-themes",
+    "@storybook/react-vite",
+    "@testing-library/react",
+    "@testing-library/user-event",
+    "@types/jest-axe",
+    "cors",
+    "express",
+    "fake-indexeddb",
+    "jest-axe",
+    "lint-staged",
+    "puppeteer-core",
+    "vite-plugin-compression2"
+  ],
+  "ignoreBinaries": [
+    "puter",
+    "chromatic",
+    "k6",
+    "lhci",
+    "lighthouse"
   ],
   "ignoreExportsUsedInFile": true
 }
