@@ -1,0 +1,14 @@
+{
+  "ignore": [
+    "src/components/ui/ErrorBoundary.tsx",
+    "src/features/ai-authoring/components/AuthoringAssistToolbar.tsx",
+    "src/features/ai-tutor/hooks/useAiStream.ts",
+    "src/features/parent/components/InvoiceList.tsx",
+    "src/features/quizzes/hooks/useOfflineQuiz.ts",
+    "src/features/video/components/VideoTranscodingStatus.tsx",
+    "src/features/video/hooks/useTranscodingStatus.ts",
+    "src/pages/admin/ReviewQueue.tsx",
+    "src/pages/SurveyRespond.tsx"
+  ],
+  "ignoreExportsUsedInFile": true
+}
