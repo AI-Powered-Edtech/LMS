@@ -49,6 +49,10 @@ function main() {
   const baseline = loadJson(baselinePath)
 
   const currentReports = []
+  if (!fs.existsSync(currentGlob)) {
+    process.stdout.write(`sweep-diff: no reports found at ${currentGlob}\n`)
+    process.exit(0)
+  }
   if (fs.statSync(currentGlob).isDirectory()) {
     for (const persona of fs.readdirSync(currentGlob)) {
       const reportPath = path.join(currentGlob, persona, 'report.json')
