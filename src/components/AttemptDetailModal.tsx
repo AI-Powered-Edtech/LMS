@@ -415,7 +415,6 @@ export function AttemptDetailModal({
                         <div className="flex items-center gap-2">
                           <input
                             id={`score-input-${answer.question_id}`}
-                            aria-label="Nilai"
                             type="number"
                             min={0}
                             max={answer.max_points}
@@ -447,7 +446,6 @@ export function AttemptDetailModal({
                         </label>
                         <textarea
                           id={`feedback-${answer.question_id}`}
-                          aria-label="Komentar"
                           value={gradingComments[answer.question_id] ?? ""}
                           onChange={(e) =>
                             setGradingComments((prev) => ({
