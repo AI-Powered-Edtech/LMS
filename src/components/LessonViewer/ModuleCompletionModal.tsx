@@ -95,9 +95,10 @@ export function ModuleCompletionModal({
         {/* Close button */}
         <button
           onClick={onClose}
+          aria-label="Tutup"
           className={cn(
             "absolute top-4 right-4 p-2.5 min-w-[44px] min-h-[44px] flex items-center justify-center rounded-xl transition-colors z-10",
-            "hover:bg-slate-100 dark:hover:bg-slate-800",
+            "hover:bg-slate-100 dark:hover:bg-slate-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500",
             "text-slate-400 dark:text-slate-500 hover:text-slate-600 dark:hover:text-slate-300",
           )}
         >
