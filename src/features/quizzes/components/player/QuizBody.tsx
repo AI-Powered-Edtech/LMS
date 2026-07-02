@@ -204,6 +204,7 @@ export function QuizBody({
         <div>
           <input
             type="text"
+            aria-label="Jawaban singkat"
             value={currentAnswer?.text_answer || ""}
             onChange={(e) =>
               onAnswer(question.question_id, {
@@ -223,6 +224,7 @@ export function QuizBody({
       {questionType === "ESSAY" && (
         <div>
           <textarea
+            aria-label="Jawaban esai"
             value={currentAnswer?.text_answer || ""}
             onChange={(e) =>
               onAnswer(question.question_id, {
