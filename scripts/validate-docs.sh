@@ -69,7 +69,7 @@ else
         # Extract nama file dari path
         filename=$(basename "$migration_file")
         if ! echo "$documented_migrations" | grep -qxF "$filename"; then
-            missing_docs+="$migration_file "
+            missing_docs+="$filename "
         fi
     done <<< "$migration_files"
     
