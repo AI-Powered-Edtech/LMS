@@ -75,7 +75,7 @@ Lihat juga [`docs/DATABASE.md`](./DATABASE.md) untuk dokumentasi skema, RLS poli
 | 034_lesson_progress_monitor_rpc.sql | Schema | Undocumented migration |
 | 035_admin_backfill.sql | Schema | Undocumented migration |
 | 036_confirm_demo_seed_users.sql | Schema | Undocumented migration |
-| 037_qa_sweep_fixes.sql | Schema | Undocumented migration |
+
 | 037_seed_modules_missing_rpcs_and_auth_uid.sql | Schema | Undocumented migration |
 | 038_fix_get_tenant_users_user_id_alias.sql | Schema | Undocumented migration |
 | 039_academic_years.sql | Schema | Undocumented migration |
@@ -118,3 +118,4 @@ Lihat juga [`docs/DATABASE.md`](./DATABASE.md) untuk dokumentasi skema, RLS poli
 | 076_invalidate_refresh_tokens_post_rotation.sql | Schema | Undocumented migration |
 | 077_plagiarism_checks.sql | Schema | Undocumented migration |
 | 078_scorm_runtime_data.sql | Schema | Undocumented migration |
+| 037_qa_sweep_fixes.sql | Schema | Undocumented migration |
