@@ -160,7 +160,7 @@ export function AssignCourseModal({
               </div>
               <button
                 onClick={onClose}
-                className="p-2 hover:bg-slate-200 dark:hover:bg-slate-700 rounded-full transition-colors"
+                className="p-2 hover:bg-slate-200 dark:hover:bg-slate-700 rounded-full transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500"
                 aria-label="Tutup"
               >
                 <X className="w-5 h-5 text-slate-400" />
@@ -205,7 +205,7 @@ export function AssignCourseModal({
                         onClick={() => handleToggleClass(cls.id)}
                         disabled={saving}
                         className={cn(
-                          "w-full flex items-center justify-between p-4 rounded-2xl border transition-all duration-200 group text-left",
+                          "w-full flex items-center justify-between p-4 rounded-2xl border transition-all duration-200 group text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500",
                           isAssigned
                             ? "bg-indigo-50 dark:bg-indigo-900/20 border-indigo-200 dark:border-indigo-800"
                             : "bg-white dark:bg-slate-900 border-slate-100 dark:border-slate-800 hover:border-indigo-200 dark:hover:border-indigo-800 hover:shadow-md",
@@ -259,7 +259,7 @@ export function AssignCourseModal({
             <div className="px-8 py-6 bg-slate-50 dark:bg-slate-800/30 flex justify-end gap-3 border-t border-slate-100 dark:border-slate-800">
               <button
                 onClick={onClose}
-                className="px-6 py-2 text-sm font-bold text-slate-600 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-700 rounded-xl transition-colors"
+                className="px-6 py-2 text-sm font-bold text-slate-600 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-700 rounded-xl transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500"
               >
                 Selesai
               </button>
