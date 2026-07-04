@@ -106,8 +106,13 @@ export function createAntiCheatLogger(
 
   const getEventCount: AntiCheatLogger["getEventCount"] = () => events.length;
 
-  const getEventCountByType: AntiCheatLogger["getEventCountByType"] = (type) =>
-    events.filter((e) => e.type === type).length;
+  const getEventCountByType: AntiCheatLogger["getEventCountByType"] = (type) => {
+    let count = 0;
+    for (let i = 0; i < events.length; i++) {
+      if (events[i].type === type) count++;
+    }
+    return count;
+  };
 
   const getEvents: AntiCheatLogger["getEvents"] = () =>
     Object.freeze([...events]);
@@ -125,8 +130,15 @@ export function createAntiCheatLogger(
       "PRINT_ATTEMPT",
     ];
 
-    for (const t of allTypes) {
-      eventsByType[t] = events.filter((e) => e.type === t).length;
+    for (let i = 0; i < allTypes.length; i++) {
+      eventsByType[allTypes[i]] = 0;
+    }
+
+    for (let i = 0; i < events.length; i++) {
+      const type = events[i].type;
+      if (eventsByType[type] !== undefined) {
+        eventsByType[type]++;
+      }
     }
 
     // Weighted score untuk severity yang lebih akurat
