@@ -7,6 +7,7 @@
         "http://localhost:5173/#/terms"
       ],
       "numberOfRuns": 1,
+      "startServerCommand": "pnpm dev",
       "settings": {
         "preset": "desktop",
         "chromeFlags": "--headless --no-sandbox"

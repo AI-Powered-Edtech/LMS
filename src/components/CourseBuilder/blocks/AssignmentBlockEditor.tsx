@@ -210,6 +210,7 @@ export function AssignmentBlockEditor({
           <input
             id="assignment-title"
             type="text"
+            aria-label="Judul Tugas"
             value={assignmentData.title}
             onChange={(e) =>
               setAssignmentData({ ...assignmentData, title: e.target.value })
@@ -227,6 +228,7 @@ export function AssignmentBlockEditor({
           </label>
           <textarea
             id="assignment-instructions"
+            aria-label="Instruksi Tugas"
             value={assignmentData.instructions || ""}
             onChange={(e) =>
               setAssignmentData({
@@ -250,6 +252,7 @@ export function AssignmentBlockEditor({
             <input
               id="assignment-max-points"
               type="number"
+              aria-label="Maks. Poin"
               min="1"
               value={assignmentData.max_points}
               onChange={(e) =>
