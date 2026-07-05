@@ -172,14 +172,32 @@ export async function fetchPPDBSummary(periodId: string): Promise<PPDBSummary> {
   }
 
   const regs = data ?? [];
+
+  // ⚡ Bolt: Consolidate multiple .filter().length calls into a single loop
+  // This reduces O(N) array allocations and multiple iterations into a single O(N) pass.
+  let accepted = 0;
+  let rejected = 0;
+  let pending = 0;
+  let reviewed = 0;
+  let waitlisted = 0;
+
+  for (let i = 0; i < regs.length; i++) {
+    const s = regs[i].status;
+    if (s === "accepted") accepted++;
+    else if (s === "rejected") rejected++;
+    else if (s === "pending") pending++;
+    else if (s === "reviewed") reviewed++;
+    else if (s === "waitlisted") waitlisted++;
+  }
+
   return {
     total: regs.length,
     quota: period?.quota ?? 0,
-    accepted: regs.filter((r) => r.status === "accepted").length,
-    rejected: regs.filter((r) => r.status === "rejected").length,
-    pending: regs.filter((r) => r.status === "pending").length,
-    reviewed: regs.filter((r) => r.status === "reviewed").length,
-    waitlisted: regs.filter((r) => r.status === "waitlisted").length,
+    accepted,
+    rejected,
+    pending,
+    reviewed,
+    waitlisted,
   };
 }
 
