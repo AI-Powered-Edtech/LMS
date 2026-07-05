@@ -416,6 +416,7 @@ export function AttemptDetailModal({
                           <input
                             id={`score-input-${answer.question_id}`}
                             type="number"
+                            aria-label="Nilai"
                             min={0}
                             max={answer.max_points}
                             step="0.5"
@@ -446,6 +447,7 @@ export function AttemptDetailModal({
                         </label>
                         <textarea
                           id={`feedback-${answer.question_id}`}
+                          aria-label="Komentar"
                           value={gradingComments[answer.question_id] ?? ""}
                           onChange={(e) =>
                             setGradingComments((prev) => ({
