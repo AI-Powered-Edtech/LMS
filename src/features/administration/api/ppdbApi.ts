@@ -172,14 +172,32 @@ export async function fetchPPDBSummary(periodId: string): Promise<PPDBSummary> {
   }
 
   const regs = data ?? [];
+  let accepted = 0;
+  let rejected = 0;
+  let pending = 0;
+  let reviewed = 0;
+  let waitlisted = 0;
+
+  // ⚡ Bolt: Optimize array iterations
+  // Replaced multiple `.filter().length` calls with a single O(N) loop to eliminate
+  // intermediate array allocations and reduce iterations from 5 passes to 1 pass.
+  // Expected impact: Faster processing and lower memory usage for large registration lists.
+  for (const r of regs) {
+    if (r.status === "accepted") accepted++;
+    else if (r.status === "rejected") rejected++;
+    else if (r.status === "pending") pending++;
+    else if (r.status === "reviewed") reviewed++;
+    else if (r.status === "waitlisted") waitlisted++;
+  }
+
   return {
     total: regs.length,
     quota: period?.quota ?? 0,
-    accepted: regs.filter((r) => r.status === "accepted").length,
-    rejected: regs.filter((r) => r.status === "rejected").length,
-    pending: regs.filter((r) => r.status === "pending").length,
-    reviewed: regs.filter((r) => r.status === "reviewed").length,
-    waitlisted: regs.filter((r) => r.status === "waitlisted").length,
+    accepted,
+    rejected,
+    pending,
+    reviewed,
+    waitlisted,
   };
 }
 
