@@ -9,6 +9,7 @@ import { dapodikCsvExport } from "@/features/exports/api/dapodikCsvExport";
 import { integrationService } from "@/features/integrations/api/integrationService";
 import { usePageTitle } from "@/hooks/usePageTitle";
 import { useToast } from "@/hooks/useToast";
+import { sanitizeUrl } from "@/utils/sanitize";
 
 interface IntegrationDef {
   key: string;
@@ -269,12 +270,13 @@ export function Integrations() {
                     <td className="px-4 py-2">
                       {j.file_url ? (
                         <a
-                          href={j.file_url}
+                          href={sanitizeUrl(j.file_url)}
                           target="_blank"
                           rel="noopener noreferrer"
                           className="text-blue-600 hover:underline"
                         >
                           Unduh
+                          <span className="sr-only">(buka di tab baru)</span>
                         </a>
                       ) : (
                         "—"
