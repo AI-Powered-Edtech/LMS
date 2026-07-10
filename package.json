@@ -18,7 +18,7 @@
     "format": "prettier --write 'src/**/*.{ts,tsx,json,md}'",
     "format:check": "prettier --check 'src/**/*.{ts,tsx,json,md}'",
     "test": "vitest",
-    "test:ci": "vitest run --coverage --coverage --reporter=default",
+    "test:ci": "vitest run --coverage --reporter=default",
     "test:gate3": "pnpm exec vitest run --coverage src/features/gradebook/__tests__/gradebookApi.comprehensive.test.ts && cd edusync-api && DATABASE_URL='postgresql://postgres:postgres@127.0.0.1:54322/postgres' cargo check -p edusync-api-server && DATABASE_URL='postgresql://postgres:postgres@127.0.0.1:54322/postgres' cargo test -p edusync-integration-tests --test gate3_api",
     "test:changed": "vitest related --run",
     "check:no-mocks": "node scripts/check-no-mocks.mjs",
