@@ -411,7 +411,7 @@ function CategoryCard({ count, active, label, onClick }: CategoryCardProps) {
       type="button"
       onClick={onClick}
       className={cn(
-        "flex items-center gap-3 px-4 py-3 rounded-xl border transition-all text-left w-full",
+        "flex items-center gap-3 px-4 py-3 rounded-xl border transition-all text-left w-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500",
         active
           ? "border-blue-500 bg-blue-50 dark:bg-blue-900/20 ring-1 ring-blue-500"
           : "border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 hover:border-blue-300 dark:hover:border-blue-600",
@@ -520,8 +520,9 @@ function DocumentRow({
             href={sanitizeUrl(doc.file_url)}
             target="_blank"
             rel="noopener noreferrer"
-            className="p-1.5 rounded-lg text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-700 hover:text-blue-600 dark:hover:text-blue-400 transition-colors"
+            className="p-1.5 rounded-lg text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-700 hover:text-blue-600 dark:hover:text-blue-400 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500"
             title={downloadTitle}
+            aria-label={`${downloadTitle} (buka di tab baru)`}
           >
             <Download className="w-4 h-4" />
           </a>
@@ -529,8 +530,9 @@ function DocumentRow({
         <button
           type="button"
           onClick={() => onDelete(doc.id)}
-          className="p-1.5 rounded-lg text-slate-500 hover:bg-red-50 dark:hover:bg-red-900/20 hover:text-red-600 dark:hover:text-red-400 transition-colors"
+          className="p-1.5 rounded-lg text-slate-500 hover:bg-red-50 dark:hover:bg-red-900/20 hover:text-red-600 dark:hover:text-red-400 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500"
           title={deleteTitle}
+          aria-label={deleteTitle}
         >
           <Trash2 className="w-4 h-4" />
         </button>
