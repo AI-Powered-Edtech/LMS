@@ -5,6 +5,11 @@ import path from 'path'
 export default defineConfig({
   plugins: [react()],
   test: {
+    coverage: {
+      provider: 'v8',
+      reporter: ['text', 'json', 'json-summary', 'html'],
+      reportsDirectory: './coverage'
+    },
     environment: 'jsdom',
     globals: true,
     setupFiles: ['./src/testSetup.ts'],
