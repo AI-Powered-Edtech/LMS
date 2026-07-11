@@ -3,6 +3,7 @@
 // Header + Sidebar minimal + Main content area
 // ==========================================================================
 
+import { LogOut } from "lucide-react";
 import { useState } from "react";
 import { NavLink, Outlet, useNavigate } from "react-router-dom";
 
@@ -110,10 +111,11 @@ export function PrincipalLayout() {
             </div>
           </div>
           <button
+            type="button"
             onClick={handleSignOut}
-            className="w-full flex items-center gap-2 px-3 py-2 rounded-xl text-sm text-slate-600 dark:text-slate-400 hover:bg-red-50 dark:hover:bg-red-900/20 hover:text-red-600 dark:hover:text-red-400 transition-all duration-200"
+            className="w-full flex items-center gap-2 px-3 py-2 rounded-xl text-sm text-slate-600 dark:text-slate-400 hover:bg-red-50 dark:hover:bg-red-900/20 hover:text-red-600 dark:hover:text-red-400 transition-all duration-200 outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
           >
-            <span>🚪</span>
+            <LogOut className="w-4 h-4" />
             Keluar
           </button>
         </div>
