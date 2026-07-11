@@ -11,7 +11,9 @@ cp .env.example .env
 # Edit .env sesuai environment Anda
 ```
 
----
+| Variable | Description | Default | Required |
+|---|---|---|---|
+| `VITE_USE_ROMBEL_ADAPTER` | Feature flag to use Rombel Adapter | `false` | No |
 
 ## Frontend (Vite) — `.env`
 
