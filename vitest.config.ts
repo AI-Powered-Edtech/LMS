@@ -8,6 +8,15 @@ export default defineConfig({
     environment: 'jsdom',
     globals: true,
     setupFiles: ['./src/testSetup.ts'],
+    coverage: {
+      provider: 'v8',
+      reporter: ['text', 'json-summary', 'json', 'html'],
+      reportsDirectory: './coverage',
+      exclude: [
+        'node_modules/',
+        'src/testSetup.ts',
+      ]
+    },
     include: [
       'src/**/*.{test,spec}.{js,mjs,cjs,ts,mts,cts,jsx,tsx}',
       'scripts/**/*.{test,spec}.{js,mjs,cjs,ts,mts,cts}',

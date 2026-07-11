@@ -172,14 +172,23 @@ export async function fetchPPDBSummary(periodId: string): Promise<PPDBSummary> {
   }
 
   const regs = data ?? [];
+  const statusCounts = {
+    accepted: 0,
+    rejected: 0,
+    pending: 0,
+    reviewed: 0,
+    waitlisted: 0,
+  };
+  for (const r of regs) {
+    if (r.status in statusCounts) {
+      statusCounts[r.status as keyof typeof statusCounts]++;
+    }
+  }
+
   return {
     total: regs.length,
     quota: period?.quota ?? 0,
-    accepted: regs.filter((r) => r.status === "accepted").length,
-    rejected: regs.filter((r) => r.status === "rejected").length,
-    pending: regs.filter((r) => r.status === "pending").length,
-    reviewed: regs.filter((r) => r.status === "reviewed").length,
-    waitlisted: regs.filter((r) => r.status === "waitlisted").length,
+    ...statusCounts,
   };
 }
 
