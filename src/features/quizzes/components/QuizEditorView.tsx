@@ -560,6 +560,7 @@ export function QuizEditorView({
                   {!isPublished && (
                     <button
                       onClick={() => removeQuestion(qIdx)}
+                      aria-label="Hapus pertanyaan"
                       className="p-1.5 text-slate-300 dark:text-slate-600 hover:text-red-500 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-all"
                     >
                       <Trash2 className="w-3.5 h-3.5" />
@@ -640,6 +641,7 @@ export function QuizEditorView({
                                 "TRUE_FALSE" && (
                                 <button
                                   type="button"
+                                  aria-label="Hapus opsi"
                                   onClick={() => {
                                     const currentOptions = getValues(
                                       `questions.${qIdx}.options`,
