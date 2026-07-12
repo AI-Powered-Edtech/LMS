@@ -95,7 +95,7 @@ export function PostItem({
             onClick={handleUpvote}
             aria-label="Suka postingan"
             className={cn(
-              "w-8 h-8 rounded-full flex items-center justify-center transition-colors",
+              "w-8 h-8 rounded-full flex items-center justify-center transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500",
               upvoted
                 ? "bg-blue-100 text-blue-600 dark:bg-blue-900/30"
                 : "hover:bg-blue-50 text-slate-400 hover:text-blue-600 dark:hover:bg-blue-900/20",
@@ -119,7 +119,7 @@ export function PostItem({
             onClick={handleDownvote}
             aria-label="Tidak suka postingan"
             className={cn(
-              "w-8 h-8 rounded-full flex items-center justify-center transition-colors",
+              "w-8 h-8 rounded-full flex items-center justify-center transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500",
               downvoted
                 ? "bg-red-100 text-red-600 dark:bg-red-900/30"
                 : "hover:bg-red-50 text-slate-400 hover:text-red-600 dark:hover:bg-red-900/20",
@@ -173,7 +173,7 @@ export function PostItem({
               <button
                 onClick={() => setShowMenu(!showMenu)}
                 aria-label="Menu postingan"
-                className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-300"
+                className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 rounded"
               >
                 <MoreHorizontal className="w-5 h-5" />
               </button>
@@ -248,11 +248,11 @@ export function PostItem({
           </div>
 
           <div className="flex items-center gap-6 border-t border-slate-100 dark:border-slate-700 pt-4">
-            <button className="flex items-center gap-2 text-slate-500 hover:text-blue-600 dark:hover:text-blue-400 font-medium transition-colors">
+            <button className="flex items-center gap-2 text-slate-500 hover:text-blue-600 dark:hover:text-blue-400 font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 rounded">
               <MessageSquare className="w-5 h-5" />
               {post.comments.length} Diskusi
             </button>
-            <button className="flex items-center gap-2 text-slate-500 hover:text-blue-600 dark:hover:text-blue-400 font-medium transition-colors">
+            <button className="flex items-center gap-2 text-slate-500 hover:text-blue-600 dark:hover:text-blue-400 font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 rounded">
               <Share2 className="w-5 h-5" />
               Bagikan
             </button>
