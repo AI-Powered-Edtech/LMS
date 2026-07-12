@@ -122,9 +122,15 @@ export function SuspiciousAttemptsPanel({
     );
   }
 
-  const highCount = attempts.filter((a) => a.severity === "high").length;
-  const mediumCount = attempts.filter((a) => a.severity === "medium").length;
-  const lowCount = attempts.filter((a) => a.severity === "low").length;
+  // ⚡ Bolt: Single pass aggregation to avoid redundant intermediate arrays and O(N) iterations
+  let highCount = 0;
+  let mediumCount = 0;
+  let lowCount = 0;
+  for (const a of attempts) {
+    if (a.severity === "high") highCount++;
+    else if (a.severity === "medium") mediumCount++;
+    else if (a.severity === "low") lowCount++;
+  }
 
   return (
     <div className={className}>
