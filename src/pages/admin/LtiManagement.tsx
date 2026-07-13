@@ -28,6 +28,7 @@ import type {
   LtiPlatformRegistration,
 } from "@/features/lti/types";
 import { usePageTitle } from "@/hooks/usePageTitle";
+import { sanitizeUrl } from "@/utils/sanitize";
 
 export function LtiManagement() {
   usePageTitle("Pengaturan LTI");
@@ -379,7 +380,7 @@ export function LtiManagement() {
                               )}
                             </button>
                             <a
-                              href={p.issuer}
+                              href={sanitizeUrl(p.issuer)}
                               target="_blank"
                               rel="noopener noreferrer"
                               onClick={() => setActionMenuId(null)}
