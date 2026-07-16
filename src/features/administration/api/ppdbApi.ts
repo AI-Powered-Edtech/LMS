@@ -172,14 +172,26 @@ export async function fetchPPDBSummary(periodId: string): Promise<PPDBSummary> {
   }
 
   const regs = data ?? [];
+
+  // ⚡ Bolt Optimization: Single iteration over the array to compute subset counts
+  // This avoids 5 multiple O(N) array filter iterations and intermediate array allocations
+  let accepted = 0, rejected = 0, pending = 0, reviewed = 0, waitlisted = 0;
+  for (const r of regs) {
+    if (r.status === "accepted") accepted++;
+    else if (r.status === "rejected") rejected++;
+    else if (r.status === "pending") pending++;
+    else if (r.status === "reviewed") reviewed++;
+    else if (r.status === "waitlisted") waitlisted++;
+  }
+
   return {
     total: regs.length,
     quota: period?.quota ?? 0,
-    accepted: regs.filter((r) => r.status === "accepted").length,
-    rejected: regs.filter((r) => r.status === "rejected").length,
-    pending: regs.filter((r) => r.status === "pending").length,
-    reviewed: regs.filter((r) => r.status === "reviewed").length,
-    waitlisted: regs.filter((r) => r.status === "waitlisted").length,
+    accepted,
+    rejected,
+    pending,
+    reviewed,
+    waitlisted,
   };
 }
 
