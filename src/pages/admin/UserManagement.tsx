@@ -9,7 +9,7 @@ import {
   UserPlus,
   Users,
 } from "lucide-react";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 
 import { ChangeRoleModal } from "@/components/admin/ChangeRoleModal";
 import { InviteUserModal } from "@/components/admin/InviteUserModal";
@@ -79,6 +79,24 @@ export function UserManagement() {
     }
   };
 
+  const { activeUsersCount, adminUsersCount } = useMemo(() => {
+    let active = 0;
+    let admin = 0;
+    for (let i = 0; i < users.length; i++) {
+      if (users[i].is_active) active++;
+      if (users[i].roles?.includes("ADMIN")) admin++;
+    }
+    return { activeUsersCount: active, adminUsersCount: admin };
+  }, [users]);
+
+  const pendingInvitationsCount = useMemo(() => {
+    let pending = 0;
+    for (let i = 0; i < invitations.length; i++) {
+      if (invitations[i].status === "pending") pending++;
+    }
+    return pending;
+  }, [invitations]);
+
   if (loading && users.length === 0 && invitations.length === 0) {
     return <AdministrationSkeleton />;
   }
@@ -140,7 +158,7 @@ export function UserManagement() {
             Undangan Pending
           </p>
           <p className="text-2xl font-bold text-amber-600">
-            {invitations.filter((i) => i.status === "pending").length}
+            {pendingInvitationsCount}
           </p>
         </div>
         <div className="bg-white dark:bg-slate-800 p-4 rounded-xl border border-slate-200 dark:border-slate-700">
@@ -148,7 +166,7 @@ export function UserManagement() {
             Aktif (halaman ini)
           </p>
           <p className="text-2xl font-bold text-green-600">
-            {users.filter((u) => u.is_active).length}
+            {activeUsersCount}
           </p>
         </div>
         <div className="bg-white dark:bg-slate-800 p-4 rounded-xl border border-slate-200 dark:border-slate-700">
@@ -156,7 +174,7 @@ export function UserManagement() {
             Admin (halaman ini)
           </p>
           <p className="text-2xl font-bold text-purple-600">
-            {users.filter((u) => u.roles.includes("ADMIN")).length}
+            {adminUsersCount}
           </p>
         </div>
       </div>
