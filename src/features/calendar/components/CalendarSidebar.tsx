@@ -105,7 +105,8 @@ export function CalendarSidebar({
                   {(event.type === "assignment" || event.type === "exam") && (
                     <button
                       onClick={() => onToggleCompletion(event.id)}
-                      className="shrink-0"
+                      aria-label={event.completed ? `Tandai belum selesai: ${event.title}` : `Tandai selesai: ${event.title}`}
+                      className="shrink-0 rounded-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
                     >
                       {event.completed ? (
                         <CheckCircle2 className="w-5 h-5 text-emerald-500" />
