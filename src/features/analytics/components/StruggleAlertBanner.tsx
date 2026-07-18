@@ -11,20 +11,26 @@ interface StruggleAlertBannerProps {
 export function StruggleAlertBanner({
   lessonAnalytics,
 }: StruggleAlertBannerProps) {
-  // ⚡ Perf: memoize filter/reduce chain — prevents recalculation on every parent re-render
+  // ⚡ Perf: consolidate multiple chained passes (.filter then .reduce) into a single, standard for loop to minimize CPU overhead and O(N) intermediate allocations.
   const { lessonsWithStruggle, totalStruggling, totalHighRisk } =
     useMemo(() => {
-      const filtered = lessonAnalytics.filter((l) => l.struggling_students > 0);
+      const lessonsWithStruggle: LessonAnalytics[] = [];
+      let totalStruggling = 0;
+      let totalHighRisk = 0;
+
+      for (let i = 0; i < lessonAnalytics.length; i++) {
+        const l = lessonAnalytics[i];
+        if (l.struggling_students > 0) {
+          lessonsWithStruggle.push(l);
+          totalStruggling += l.struggling_students;
+          totalHighRisk += l.high_risk_students;
+        }
+      }
+
       return {
-        lessonsWithStruggle: filtered,
-        totalStruggling: filtered.reduce(
-          (sum, l) => sum + l.struggling_students,
-          0,
-        ),
-        totalHighRisk: filtered.reduce(
-          (sum, l) => sum + l.high_risk_students,
-          0,
-        ),
+        lessonsWithStruggle,
+        totalStruggling,
+        totalHighRisk,
       };
     }, [lessonAnalytics]);
 
