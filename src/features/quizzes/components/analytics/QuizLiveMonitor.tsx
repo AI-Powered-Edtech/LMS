@@ -169,22 +169,28 @@ export function QuizLiveMonitor({
 
   // --- Computed summaries ---
   const total = liveStatus.length;
-  const inProgress = liveStatus.filter(
-    (s) =>
-      s.status.toLowerCase() === "in_progress" &&
-      !isInactive(s.last_heartbeat_at) &&
-      !s.is_suspicious,
-  ).length;
-  const done = liveStatus.filter(
-    (s) =>
-      s.status.toLowerCase() === "submitted" ||
-      s.status.toLowerCase() === "graded",
-  ).length;
-  const suspicious = liveStatus.filter(
-    (s) =>
-      s.is_suspicious ||
-      (isInactive(s.last_heartbeat_at) && s.status === "in_progress"),
-  ).length;
+  let inProgress = 0;
+  let done = 0;
+  let suspicious = 0;
+
+  // ⚡ Perf: Single pass iteration instead of multiple .filter().length
+  for (let i = 0; i < total; i++) {
+    const s = liveStatus[i];
+    const statusLower = s.status.toLowerCase();
+    const inactive = isInactive(s.last_heartbeat_at);
+
+    if (statusLower === "in_progress" && !inactive && !s.is_suspicious) {
+      inProgress++;
+    }
+
+    if (statusLower === "submitted" || statusLower === "graded") {
+      done++;
+    }
+
+    if (s.is_suspicious || (inactive && s.status === "in_progress")) {
+      suspicious++;
+    }
+  }
 
   // ---------------------------------------------------------------------------
   // Render
