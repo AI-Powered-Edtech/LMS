@@ -312,6 +312,7 @@ function UploadModal({ open, onClose, onSuccess, tenantId }: UploadModalProps) {
                     setFile(null);
                   }}
                   className="ml-2 p-1 rounded-lg hover:bg-slate-200 dark:hover:bg-slate-700"
+                  aria-label="Hapus file yang dipilih"
                 >
                   <X className="w-4 h-4 text-slate-500" />
                 </button>
@@ -522,6 +523,7 @@ function DocumentRow({
             rel="noopener noreferrer"
             className="p-1.5 rounded-lg text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-700 hover:text-blue-600 dark:hover:text-blue-400 transition-colors"
             title={downloadTitle}
+            aria-label={`${downloadTitle} (buka di tab baru)`}
           >
             <Download className="w-4 h-4" />
           </a>
@@ -531,6 +533,7 @@ function DocumentRow({
           onClick={() => onDelete(doc.id)}
           className="p-1.5 rounded-lg text-slate-500 hover:bg-red-50 dark:hover:bg-red-900/20 hover:text-red-600 dark:hover:text-red-400 transition-colors"
           title={deleteTitle}
+          aria-label={deleteTitle}
         >
           <Trash2 className="w-4 h-4" />
         </button>
