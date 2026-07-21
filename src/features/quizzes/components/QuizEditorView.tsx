@@ -252,7 +252,8 @@ export function QuizEditorView({
               setView("list");
               loadQuizzes();
             }}
-            className="p-2 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-xl transition-colors text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white"
+            aria-label="Kembali ke daftar kuis"
+            className="p-2 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-xl transition-colors text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-500"
           >
             <ArrowLeft className="w-5 h-5" />
           </button>
@@ -303,7 +304,11 @@ export function QuizEditorView({
         <div className="p-3 bg-red-50 dark:bg-red-900/30 border border-red-200 dark:border-red-800 text-red-700 dark:text-red-400 text-sm rounded-xl flex items-start gap-2">
           <AlertTriangle className="w-4 h-4 shrink-0 mt-0.5" />
           <span>{error}</span>
-          <button onClick={() => setError(null)} className="ml-auto">
+          <button
+            onClick={() => setError(null)}
+            aria-label="Tutup pesan error"
+            className="ml-auto focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-500 rounded-md"
+          >
             <X className="w-4 h-4" />
           </button>
         </div>
