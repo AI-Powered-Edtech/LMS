@@ -1,6 +1,6 @@
 import { AlertTriangle, Award, Pencil, Plus, Save, X } from "lucide-react";
 import { AnimatePresence, motion } from "motion/react";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 
 import { EmptyState, SkeletonCard } from "@/components/ui";
@@ -143,9 +143,13 @@ export function BadgeManager() {
     );
   }
 
-  const typedBadges = (badges ?? []) as unknown as BadgeDefinitionRow[];
-  const tenantBadges = typedBadges.filter((b) => b.tenant_id === tenantId);
-  const systemBadges = typedBadges.filter((b) => b.tenant_id === null);
+  const { tenantBadges, systemBadges } = useMemo(() => {
+    const typedBadges = (badges ?? []) as unknown as BadgeDefinitionRow[];
+    return {
+      tenantBadges: typedBadges.filter((b) => b.tenant_id === tenantId),
+      systemBadges: typedBadges.filter((b) => b.tenant_id === null),
+    };
+  }, [badges, tenantId]);
 
   return (
     <div className="space-y-6">
