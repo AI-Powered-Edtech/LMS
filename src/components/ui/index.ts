@@ -27,6 +27,7 @@ export {
 export { Spinner } from "./Spinner";
 export type { Toast } from "./Toast";
 export { ToastContainer, useToast } from "./Toast";
+export { Tooltip } from "./Tooltip";
 
 // ============ NAVIGATION COMPONENTS ============
 export { Breadcrumb } from "./Breadcrumb";
