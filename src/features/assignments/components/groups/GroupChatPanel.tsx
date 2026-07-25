@@ -90,6 +90,7 @@ export function GroupChatPanel({
             className="w-full pl-4 pr-10 py-2.5 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-600 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 text-sm text-slate-900 dark:text-slate-100"
           />
           <button
+            aria-label="Kirim pesan"
             onClick={onSend}
             disabled={!newMessage.trim()}
             className="absolute right-1.5 top-1/2 -translate-y-1/2 p-1.5 text-indigo-600 hover:bg-indigo-50 dark:hover:bg-indigo-900/20 rounded-lg disabled:opacity-50 transition-colors"
