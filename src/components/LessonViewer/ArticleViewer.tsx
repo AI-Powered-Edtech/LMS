@@ -8,6 +8,7 @@ import remarkGfm from "remark-gfm";
 import remarkMath from "remark-math";
 
 import { cn } from "@/utils/cn";
+import { sanitizeUrl } from "@/utils/sanitize";
 import { katexSanitizeSchema } from "@/utils/sanitizeMarkdown";
 
 interface ArticleViewerProps {
@@ -227,7 +228,11 @@ export function ArticleViewer({
             rehypePlugins={[rehypeKatex, [rehypeSanitize, katexSanitizeSchema]]}
             components={{
               a: ({ href, children }) => (
-                <a href={href} target="_blank" rel="noopener noreferrer">
+                <a
+                  href={sanitizeUrl(href)}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
                   {children}
                   <span className="sr-only">(buka di tab baru)</span>
                 </a>
