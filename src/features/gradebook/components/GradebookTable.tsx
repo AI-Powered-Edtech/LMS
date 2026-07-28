@@ -192,14 +192,16 @@ export function GradebookTable({ courseId }: Props) {
   // Class-average per column
   const colAverages = useMemo(() => {
     return columns.map((col) => {
-      const graded = students.filter((s) => s.grades[col.id]?.score != null);
-      if (graded.length === 0) return null;
-      return (
-        graded.reduce(
-          (sum, s) => sum + (s.grades[col.id]?.percentage ?? 0),
-          0,
-        ) / graded.length
-      );
+      let sum = 0;
+      let count = 0;
+      for (let i = 0; i < students.length; i++) {
+        const grade = students[i].grades[col.id];
+        if (grade?.score != null) {
+          sum += grade.percentage ?? 0;
+          count++;
+        }
+      }
+      return count > 0 ? sum / count : null;
     });
   }, [columns, students]);
 
