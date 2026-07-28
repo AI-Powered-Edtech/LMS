@@ -149,7 +149,8 @@ export function HotspotBlock({ data, blockId, lessonId }: HotspotBlockProps) {
                 {data.revealMode === "click" && (
                   <button
                     onClick={() => setActiveRegion(null)}
-                    className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 flex-shrink-0"
+                    className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 flex-shrink-0 rounded-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500"
+                    aria-label="Tutup"
                   >
                     <X className="w-3 h-3" />
                   </button>
