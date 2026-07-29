@@ -248,7 +248,8 @@ export function StudentSubmissionPanel({
                   <button
                     type="button"
                     onClick={() => onClearFile(assignment.id)}
-                    className="p-2 rounded-full hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-500"
+                    className="p-2 rounded-full hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-500"
+                    aria-label="Hapus file"
                   >
                     <Trash2 className="w-4 h-4" />
                   </button>
