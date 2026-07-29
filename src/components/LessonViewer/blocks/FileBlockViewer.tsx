@@ -113,8 +113,7 @@ export function FileBlockViewer({ url, title }: FileBlockViewerProps) {
             className="flex-1 sm:flex-none flex items-center justify-center gap-2 px-4 py-2 text-sm font-medium text-blue-600 bg-blue-50 hover:bg-blue-100 rounded-lg transition-colors"
           >
             <ExternalLink className="w-4 h-4" />
-            Buka
-            <span className="sr-only">(buka di tab baru)</span>
+            Buka <span className="sr-only">(buka di tab baru)</span>
           </a>
         )}
         <a
@@ -125,7 +124,7 @@ export function FileBlockViewer({ url, title }: FileBlockViewerProps) {
           className="flex-1 sm:flex-none flex items-center justify-center gap-2 px-4 py-2 text-sm font-medium text-emerald-600 bg-emerald-50 hover:bg-emerald-100 rounded-lg transition-colors"
         >
           <Download className="w-4 h-4" />
-          Unduh
+          Unduh <span className="sr-only">(buka di tab baru)</span>
         </a>
       </div>
     </div>

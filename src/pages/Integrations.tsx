@@ -274,7 +274,8 @@ export function Integrations() {
                           rel="noopener noreferrer"
                           className="text-blue-600 hover:underline"
                         >
-                          Unduh
+                          Unduh{" "}
+                          <span className="sr-only">(buka di tab baru)</span>
                         </a>
                       ) : (
                         "—"
