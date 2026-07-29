@@ -6,6 +6,7 @@ import {
   QuestionDifficulty,
   quizAnalyticsService,
 } from "@/features/quizzes/api/quizAnalyticsService";
+import { useDebounce } from "@/hooks/useDebounce";
 import { usePageTitle } from "@/hooks/usePageTitle";
 import { logger } from "@/utils/logger";
 import { captureError } from "@/utils/sentry";
@@ -162,12 +163,18 @@ export function useQuizGradebookState() {
     [],
   );
 
+  // ⚡ Perf: Debounce search query to reduce filtering and re-renders while typing.
+  // Especially beneficial for gradebooks with many attempts.
+  const debouncedSearch = useDebounce(searchQuery, 300);
+
   const filteredAttempts = useMemo(
     () =>
       attempts.filter((attempt) =>
-        attempt.student_name.toLowerCase().includes(searchQuery.toLowerCase()),
+        attempt.student_name
+          .toLowerCase()
+          .includes(debouncedSearch.toLowerCase()),
       ),
-    [attempts, searchQuery],
+    [attempts, debouncedSearch],
   );
 
   const { avgScore, passCount, failCount } = useMemo(() => {

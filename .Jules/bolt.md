@@ -1,0 +1,3 @@
+## 2024-03-24 - Search filter re-evaluation bottleneck in large datasets
+**Learning:** React state hooks driving list filters (like `searchQuery`) inside `useMemo` hooks can cause the entire derived list and child components (e.g., `VirtualTable`) to recalculate on every single keystroke. In contexts like Gradebook where attempts can number in the hundreds, this blocks the main thread.
+**Action:** When filtering potentially large frontend collections based on text input, explicitly extract a `debouncedSearch` value via the `useDebounce` hook, and use that derived variable in the `useMemo` dependency array instead of the raw `searchQuery`. This keeps typing fluid while offloading the heavy filter execution to idle time.
