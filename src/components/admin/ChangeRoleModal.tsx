@@ -1,3 +1,4 @@
+import { X } from "lucide-react";
 import { useEffect, useState } from "react";
 
 export type UserRole = "STUDENT" | "TEACHER" | "ADMIN";
@@ -76,10 +77,10 @@ export function ChangeRoleModal({
           <h2 className="text-lg font-bold text-slate-900">Ubah Peran</h2>
           <button
             onClick={onClose}
-            className="text-slate-400 hover:text-slate-600 text-xl"
+            className="text-slate-400 hover:text-slate-600 hover:bg-slate-100 p-1 rounded-full transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-500"
             aria-label="Tutup modal"
           >
-            ✕
+            <X className="w-5 h-5" />
           </button>
         </div>
 
@@ -99,7 +100,8 @@ export function ChangeRoleModal({
             <button
               key={r.value}
               onClick={() => setSelectedRole(r.value as UserRole)}
-              className={`w-full p-3 rounded-xl border text-left transition-all flex items-center justify-between ${
+              aria-pressed={selectedRole === r.value}
+              className={`w-full p-3 rounded-xl border text-left transition-all flex items-center justify-between focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 ${
                 selectedRole === r.value
                   ? "border-blue-500 bg-blue-50 ring-1 ring-blue-200"
                   : "border-slate-200 hover:bg-slate-50"
@@ -149,14 +151,14 @@ export function ChangeRoleModal({
         <div className="flex gap-3">
           <button
             onClick={onClose}
-            className="flex-1 px-4 py-2.5 border border-slate-200 text-slate-700 rounded-xl font-medium text-sm hover:bg-slate-50"
+            className="flex-1 px-4 py-2.5 border border-slate-200 text-slate-700 rounded-xl font-medium text-sm hover:bg-slate-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-500"
           >
             Batal
           </button>
           <button
             onClick={handleConfirm}
             disabled={loading || selectedRole === primaryRole}
-            className="flex-1 px-4 py-2.5 bg-blue-600 text-white rounded-xl font-bold text-sm hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
+            className="flex-1 px-4 py-2.5 bg-blue-600 text-white rounded-xl font-bold text-sm hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-1"
           >
             {loading ? "Menyimpan..." : "Konfirmasi"}
           </button>
