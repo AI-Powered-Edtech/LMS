@@ -11,7 +11,7 @@ import { memo, useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 
 import { TenantSwitcher } from "@/components/layout/TenantSwitcher";
-import { OptimizedImage } from "@/components/ui";
+import { OptimizedImage, Tooltip } from "@/components/ui";
 import { Role, useAuth } from "@/contexts/AuthContext";
 import { useTheme } from "@/contexts/ThemeContext";
 import { LevelBadge } from "@/features/gamification/components/LevelBadge";
@@ -148,34 +148,46 @@ export const Header = memo(function Header({ onMenuClick }: HeaderProps) {
         {isStudent ? (
           <>
             {/* Streak Indicator — student only */}
-            <div className="flex items-center gap-2">
-              <Flame
-                className={cn(
-                  "w-6 h-6 transition-all duration-300",
-                  hasLoggedInToday
-                    ? "text-orange-500 fill-orange-500 drop-shadow-[0_0_8px_rgba(249,115,22,0.5)]"
-                    : "text-slate-300 dark:text-slate-600 fill-slate-300 dark:fill-slate-600",
-                )}
-              />
-              <span
-                className={cn(
-                  "font-bold",
-                  hasLoggedInToday
-                    ? "text-orange-600"
-                    : "text-slate-400 dark:text-slate-500",
-                )}
+            <Tooltip content={`Streak belajar: ${streak} hari`}>
+              <div
+                className="flex items-center gap-2 rounded-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500"
+                aria-label={`Streak belajar: ${streak} hari`}
+                tabIndex={0}
               >
-                {streak}
-              </span>
-            </div>
+                <Flame
+                  className={cn(
+                    "w-6 h-6 transition-all duration-300",
+                    hasLoggedInToday
+                      ? "text-orange-500 fill-orange-500 drop-shadow-[0_0_8px_rgba(249,115,22,0.5)]"
+                      : "text-slate-300 dark:text-slate-600 fill-slate-300 dark:fill-slate-600",
+                  )}
+                />
+                <span
+                  className={cn(
+                    "font-bold",
+                    hasLoggedInToday
+                      ? "text-orange-600"
+                      : "text-slate-400 dark:text-slate-500",
+                  )}
+                >
+                  {streak}
+                </span>
+              </div>
+            </Tooltip>
 
             {/* XP Stats — student only */}
             <div className="flex items-center gap-3">
               <LevelBadge level={level} size="sm" />
-              <div className="flex items-center gap-1.5 bg-gradient-to-r from-yellow-100 to-orange-100 dark:from-yellow-900/30 dark:to-orange-900/30 text-yellow-700 dark:text-yellow-500 px-2.5 py-1 rounded-lg font-bold text-sm border border-yellow-200/50 dark:border-yellow-700/30">
-                <Star className="w-4 h-4 fill-yellow-500 text-yellow-500" />
-                {totalXp} XP
-              </div>
+              <Tooltip content={`Total XP: ${totalXp}`}>
+                <div
+                  className="flex items-center gap-1.5 bg-gradient-to-r from-yellow-100 to-orange-100 dark:from-yellow-900/30 dark:to-orange-900/30 text-yellow-700 dark:text-yellow-500 px-2.5 py-1 rounded-lg font-bold text-sm border border-yellow-200/50 dark:border-yellow-700/30 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500"
+                  aria-label={`Total XP: ${totalXp}`}
+                  tabIndex={0}
+                >
+                  <Star className="w-4 h-4 fill-yellow-500 text-yellow-500" />
+                  {totalXp} XP
+                </div>
+              </Tooltip>
               <div
                 role="progressbar"
                 aria-valuenow={progress}
