@@ -43,3 +43,4 @@ export { Badge } from "./Badge";
 export { Card } from "./Card";
 export { OfflineBanner } from "./OfflineBanner";
 export { OptimizedImage } from "./OptimizedImage";
+export { Tooltip } from "./Tooltip";
