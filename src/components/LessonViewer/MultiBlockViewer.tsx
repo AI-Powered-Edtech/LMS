@@ -274,6 +274,19 @@ export function MultiBlockViewer({
     return () => mountObserver.disconnect();
   }, [blocks, mountedBlocks]);
 
+  // Bolt: Pre-calculate maps for O(1) lookups during block render to avoid O(N*M) performance penalty
+  const quizzesMap = useMemo(() => {
+    const map = new Map();
+    lesson.quizzes?.forEach((q) => map.set(q.id, q));
+    return map;
+  }, [lesson.quizzes]);
+
+  const assignmentsMap = useMemo(() => {
+    const map = new Map();
+    lesson.assignments?.forEach((a) => map.set(a.id, a));
+    return map;
+  }, [lesson.assignments]);
+
   if (blocks.length === 0) return null;
 
   const total = blocks.length;
@@ -329,14 +342,14 @@ export function MultiBlockViewer({
           const quiz =
             block.type === "quiz"
               ? block.quiz_id
-                ? lesson.quizzes?.find((q) => q.id === block.quiz_id)
+                ? quizzesMap.get(block.quiz_id)
                 : lesson.quizzes?.[0]
               : undefined;
 
           const assignment =
             block.type === "assignment"
               ? block.assignment_id
-                ? lesson.assignments?.find((a) => a.id === block.assignment_id)
+                ? assignmentsMap.get(block.assignment_id)
                 : lesson.assignments?.[0]
               : undefined;
 
