@@ -4,6 +4,7 @@ import { useTranslation } from "react-i18next";
 
 import { useAuth } from "@/contexts/AuthContext";
 import { cn } from "@/utils/cn";
+import { sanitizeUrl } from "@/utils/sanitize";
 
 import {
   useOnboardingProgress,
@@ -166,7 +167,7 @@ function OnboardingChecklistInner({ tenantId, userId }: InnerProps) {
                 </button>
                 <div className="min-w-0">
                   <a
-                    href={step.href}
+                    href={sanitizeUrl(step.href)}
                     className={cn(
                       "block text-sm font-semibold leading-snug",
                       done
