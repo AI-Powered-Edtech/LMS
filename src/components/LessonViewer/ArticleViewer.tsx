@@ -40,6 +40,7 @@ export function ArticleViewer({
   const [scrollPercent, setScrollPercent] = useState(0);
   const hasCalledCompletion = useRef(false);
   const hasStarted = useRef(false);
+  const scrollTicking = useRef(false);
 
   // Lazy-load KaTeX CSS for math rendering
   useEffect(() => {
@@ -101,17 +102,26 @@ export function ArticleViewer({
       hasStarted.current = true;
       onStartViewing();
     }
-    if (scrollRef.current && !isCompleted) {
-      const { scrollTop, scrollHeight, clientHeight } = scrollRef.current;
-      const maxScroll = scrollHeight - clientHeight;
-      if (maxScroll > 0) {
-        setScrollPercent(
-          Math.min(Math.round((scrollTop / maxScroll) * 100), 100),
-        );
-      }
-      if (scrollTop + clientHeight >= scrollHeight - 50) {
-        setHasScrolledToBottom(true);
-      }
+
+    // Throttles scroll events to the display refresh rate (e.g. 60fps) using requestAnimationFrame.
+    // This prevents excessive state updates and main thread blocking while scrolling.
+    if (!scrollTicking.current && scrollRef.current && !isCompleted) {
+      window.requestAnimationFrame(() => {
+        if (scrollRef.current) {
+          const { scrollTop, scrollHeight, clientHeight } = scrollRef.current;
+          const maxScroll = scrollHeight - clientHeight;
+          if (maxScroll > 0) {
+            setScrollPercent(
+              Math.min(Math.round((scrollTop / maxScroll) * 100), 100),
+            );
+          }
+          if (scrollTop + clientHeight >= scrollHeight - 50) {
+            setHasScrolledToBottom(true);
+          }
+        }
+        scrollTicking.current = false;
+      });
+      scrollTicking.current = true;
     }
   }, [isCompleted, onStartViewing]);
 
