@@ -1,0 +1,3 @@
+## 2025-05-18 - Throttling Scroll Events with requestAnimationFrame
+**Learning:** The ArticleViewer component was executing state updates (setScrollPercent, setHasScrolledToBottom) on every single scroll event without any throttling, which can cause significant main thread blocking and layout thrashing, especially when parsing heavy Markdown content.
+**Action:** When handling frequent scroll events that trigger state updates, always wrap the state changes in window.requestAnimationFrame (or use a debouncer/throttler) to limit execution to the browser's display refresh rate (usually 60fps), preventing unnecessary re-renders.
