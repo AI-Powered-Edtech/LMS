@@ -85,6 +85,7 @@ export function RubricCriterionRow({
             type="button"
             onClick={() => setIsExpanded((v) => !v)}
             className="p-1.5 text-slate-400 dark:text-slate-500 hover:text-slate-600 dark:hover:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-lg text-xs font-bold transition-colors"
+            aria-label="Toggle kriteria"
           >
             {isExpanded ? "▲" : "▼"}
           </button>
@@ -92,6 +93,7 @@ export function RubricCriterionRow({
             type="button"
             onClick={onDelete}
             className="p-1.5 text-red-400 dark:text-red-500 hover:text-red-600 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors"
+            aria-label="Hapus kriteria"
           >
             <Trash2 className="w-4 h-4" />
           </button>
@@ -152,6 +154,7 @@ export function RubricCriterionRow({
                   onClick={() => onDeleteLevel(level.id)}
                   disabled={criterion.levels.length <= 1}
                   className="p-1.5 text-red-400 dark:text-red-500 hover:text-red-600 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors disabled:opacity-30 disabled:cursor-not-allowed mt-0.5"
+                  aria-label="Hapus tingkat"
                 >
                   <Trash2 className="w-3.5 h-3.5" />
                 </button>

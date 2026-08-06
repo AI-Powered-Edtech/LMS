@@ -104,6 +104,7 @@ export function GradingModal({
               <button
                 onClick={onClose}
                 className="p-2 hover:bg-slate-200 dark:hover:bg-slate-600 rounded-lg transition-colors"
+                aria-label="Kembali"
               >
                 <ArrowLeft className="w-5 h-5 text-slate-400 rotate-180" />
               </button>
@@ -128,7 +129,7 @@ export function GradingModal({
                     <FileText className="w-4 h-4 text-blue-500" />
                     <span className="text-sm text-slate-700 dark:text-slate-300 font-medium">
                       Lihat File Lampiran
-                    </span>
+                    </span>{" "}
                     <span className="sr-only">(buka di tab baru)</span>
                   </a>
                 )}
