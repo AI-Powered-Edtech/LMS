@@ -47,6 +47,7 @@ export function QuizAnswerReview({
         <button
           onClick={onBack}
           className="p-2 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-400 transition-colors"
+          aria-label="Kembali"
         >
           <ArrowLeft className="w-5 h-5" />
         </button>

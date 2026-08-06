@@ -93,6 +93,7 @@ export function GroupChatPanel({
             onClick={onSend}
             disabled={!newMessage.trim()}
             className="absolute right-1.5 top-1/2 -translate-y-1/2 p-1.5 text-indigo-600 hover:bg-indigo-50 dark:hover:bg-indigo-900/20 rounded-lg disabled:opacity-50 transition-colors"
+            aria-label="Kirim pesan"
           >
             <Send className="w-4 h-4" />
           </button>
