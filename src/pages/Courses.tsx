@@ -42,9 +42,10 @@ const CARD_GRADIENTS = [
 
 // M-10: Deterministic gradient based on course.id to prevent flicker on search filter
 function getCourseGradient(courseId: string, gradients: string[]): string {
-  const hash = courseId
-    .split("")
-    .reduce((acc, char) => acc + char.charCodeAt(0), 0);
+  let hash = 0;
+  for (let i = 0; i < courseId.length; i++) {
+    hash += courseId.charCodeAt(i);
+  }
   return gradients[hash % gradients.length];
 }
 
@@ -203,19 +204,15 @@ export const Courses: React.FC = () => {
 
   // Server-side search covers title. Client-side filter covers description
   // (the service only does ilike on title, so we locally filter description as well)
-  const filteredCourses = useMemo(
-    () =>
-      debouncedSearch
-        ? courses.filter(
-            (c) =>
-              c.title.toLowerCase().includes(debouncedSearch.toLowerCase()) ||
-              (c.description ?? "")
-                .toLowerCase()
-                .includes(debouncedSearch.toLowerCase()),
-          )
-        : courses,
-    [courses, debouncedSearch],
-  );
+  const filteredCourses = useMemo(() => {
+    if (!debouncedSearch) return courses;
+    const lowerSearch = debouncedSearch.toLowerCase();
+    return courses.filter(
+      (c) =>
+        c.title.toLowerCase().includes(lowerSearch) ||
+        (c.description ?? "").toLowerCase().includes(lowerSearch),
+    );
+  }, [courses, debouncedSearch]);
 
   const handleCreateCourse = async (e: React.FormEvent) => {
     e.preventDefault();
