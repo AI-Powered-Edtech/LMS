@@ -11,7 +11,7 @@ import { memo, useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 
 import { TenantSwitcher } from "@/components/layout/TenantSwitcher";
-import { OptimizedImage } from "@/components/ui";
+import { OptimizedImage, Tooltip } from "@/components/ui";
 import { Role, useAuth } from "@/contexts/AuthContext";
 import { useTheme } from "@/contexts/ThemeContext";
 import { LevelBadge } from "@/features/gamification/components/LevelBadge";
@@ -148,47 +148,65 @@ export const Header = memo(function Header({ onMenuClick }: HeaderProps) {
         {isStudent ? (
           <>
             {/* Streak Indicator — student only */}
-            <div className="flex items-center gap-2">
-              <Flame
-                className={cn(
-                  "w-6 h-6 transition-all duration-300",
-                  hasLoggedInToday
-                    ? "text-orange-500 fill-orange-500 drop-shadow-[0_0_8px_rgba(249,115,22,0.5)]"
-                    : "text-slate-300 dark:text-slate-600 fill-slate-300 dark:fill-slate-600",
-                )}
-              />
-              <span
-                className={cn(
-                  "font-bold",
-                  hasLoggedInToday
-                    ? "text-orange-600"
-                    : "text-slate-400 dark:text-slate-500",
-                )}
+            <Tooltip
+              content={`Streak belajar: ${streak} hari`}
+              position="bottom"
+            >
+              <div
+                className="flex items-center gap-2 outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 rounded-lg"
+                tabIndex={0}
+                aria-label={`Streak belajar: ${streak} hari`}
               >
-                {streak}
-              </span>
-            </div>
+                <Flame
+                  className={cn(
+                    "w-6 h-6 transition-all duration-300",
+                    hasLoggedInToday
+                      ? "text-orange-500 fill-orange-500 drop-shadow-[0_0_8px_rgba(249,115,22,0.5)]"
+                      : "text-slate-300 dark:text-slate-600 fill-slate-300 dark:fill-slate-600",
+                  )}
+                />
+                <span
+                  className={cn(
+                    "font-bold",
+                    hasLoggedInToday
+                      ? "text-orange-600"
+                      : "text-slate-400 dark:text-slate-500",
+                  )}
+                >
+                  {streak}
+                </span>
+              </div>
+            </Tooltip>
 
             {/* XP Stats — student only */}
             <div className="flex items-center gap-3">
               <LevelBadge level={level} size="sm" />
-              <div className="flex items-center gap-1.5 bg-gradient-to-r from-yellow-100 to-orange-100 dark:from-yellow-900/30 dark:to-orange-900/30 text-yellow-700 dark:text-yellow-500 px-2.5 py-1 rounded-lg font-bold text-sm border border-yellow-200/50 dark:border-yellow-700/30">
-                <Star className="w-4 h-4 fill-yellow-500 text-yellow-500" />
-                {totalXp} XP
-              </div>
-              <div
-                role="progressbar"
-                aria-valuenow={progress}
-                aria-valuemin={0}
-                aria-valuemax={100}
-                aria-label={`XP progres: ${progress}%`}
-                className="hidden sm:block w-32 h-3 bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden"
-              >
+              <Tooltip content={`Total XP: ${totalXp}`} position="bottom">
                 <div
-                  className="h-full bg-gradient-to-r from-yellow-400 to-orange-400 rounded-full transition-all duration-500 ease-out"
-                  style={{ width: `${progress}%` }}
-                />
-              </div>
+                  className="flex items-center gap-1.5 bg-gradient-to-r from-yellow-100 to-orange-100 dark:from-yellow-900/30 dark:to-orange-900/30 text-yellow-700 dark:text-yellow-500 px-2.5 py-1 rounded-lg font-bold text-sm border border-yellow-200/50 dark:border-yellow-700/30 outline-none focus-visible:ring-2 focus-visible:ring-indigo-500"
+                  tabIndex={0}
+                  aria-label={`Total XP: ${totalXp}`}
+                >
+                  <Star className="w-4 h-4 fill-yellow-500 text-yellow-500" />
+                  {totalXp} XP
+                </div>
+              </Tooltip>
+              <Tooltip content={`XP progres: ${progress}%`} position="bottom">
+                <div
+                  role="progressbar"
+                  aria-valuenow={progress}
+                  aria-valuemin={0}
+                  aria-valuemax={100}
+                  aria-label={`XP progres: ${progress}%`}
+                  className="hidden sm:block w-32 h-3 bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden outline-none focus-visible:ring-2 focus-visible:ring-indigo-500"
+                  tabIndex={0}
+                >
+                  <div
+                    className="h-full bg-gradient-to-r from-yellow-400 to-orange-400 rounded-full transition-all duration-500 ease-out"
+                    style={{ width: `${progress}%` }}
+                  />
+                </div>
+              </Tooltip>
             </div>
           </>
         ) : (
