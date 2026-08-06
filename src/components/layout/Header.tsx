@@ -152,6 +152,7 @@ export const Header = memo(function Header({ onMenuClick }: HeaderProps) {
               content={`Streak belajar: ${streak} hari`}
               position="bottom"
             >
+              { }
               <div
                 className="flex items-center gap-2 outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 rounded-lg"
                 tabIndex={0}
@@ -182,6 +183,7 @@ export const Header = memo(function Header({ onMenuClick }: HeaderProps) {
             <div className="flex items-center gap-3">
               <LevelBadge level={level} size="sm" />
               <Tooltip content={`Total XP: ${totalXp}`} position="bottom">
+                { }
                 <div
                   className="flex items-center gap-1.5 bg-gradient-to-r from-yellow-100 to-orange-100 dark:from-yellow-900/30 dark:to-orange-900/30 text-yellow-700 dark:text-yellow-500 px-2.5 py-1 rounded-lg font-bold text-sm border border-yellow-200/50 dark:border-yellow-700/30 outline-none focus-visible:ring-2 focus-visible:ring-indigo-500"
                   tabIndex={0}
