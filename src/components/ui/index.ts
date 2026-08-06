@@ -37,6 +37,8 @@ export { Tabs } from "./Tabs";
 export type { ConfirmDialogProps } from "./ConfirmDialog";
 export { ConfirmDialog } from "./ConfirmDialog";
 export { Modal, ModalBody, ModalFooter, ModalHeader } from "./Modal";
+export type { TooltipProps } from "./Tooltip";
+export { Tooltip } from "./Tooltip";
 
 // ============ CONTENT COMPONENTS ============
 export { Badge } from "./Badge";
