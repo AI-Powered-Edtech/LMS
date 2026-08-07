@@ -51,8 +51,10 @@ export function SortingBlock({ data, blockId, lessonId }: SortingBlockProps) {
   useEffect(() => {
     if (progress?.interaction_data?.order) {
       const savedOrder = progress.interaction_data.order as string[];
+      // ⚡ Bolt: Use Map for O(1) lookup instead of O(n) find()
+      const itemsMap = new Map(data.items.map((item) => [item.id, item]));
       const restored = savedOrder
-        .map((id) => data.items.find((item) => item.id === id))
+        .map((id) => itemsMap.get(id))
         .filter(Boolean) as SortingItem[];
       if (restored.length === data.items.length) {
         setOrderedItems(restored);
