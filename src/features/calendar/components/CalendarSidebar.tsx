@@ -10,6 +10,7 @@ import {
   Video,
 } from "lucide-react";
 import { motion } from "motion/react";
+import { useMemo } from "react";
 
 import type { CalendarEvent } from "@/features/calendar/hooks/useCalendarQueries";
 import {
@@ -34,14 +35,17 @@ export function CalendarSidebar({
   onAddEvent,
   onToggleCompletion,
 }: CalendarSidebarProps) {
-  const selectedEvents = selectedDate
-    ? events.filter(
-        (e) =>
-          e.date.getDate() === selectedDate.getDate() &&
-          e.date.getMonth() === selectedDate.getMonth() &&
-          e.date.getFullYear() === selectedDate.getFullYear(),
-      )
-    : [];
+  // ⚡ Perf: Memoize selectedEvents to prevent O(N) filtering on every render
+  const selectedEvents = useMemo(() => {
+    return selectedDate
+      ? events.filter(
+          (e) =>
+            e.date.getDate() === selectedDate.getDate() &&
+            e.date.getMonth() === selectedDate.getMonth() &&
+            e.date.getFullYear() === selectedDate.getFullYear(),
+        )
+      : [];
+  }, [events, selectedDate]);
 
   return (
     <div className="bg-slate-50 dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-700 p-6 flex flex-col h-[600px] sticky top-8">
