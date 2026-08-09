@@ -20,7 +20,13 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 
 import { AssignCourseModal } from "@/components/Classroom/AssignCourseModal";
-import { Modal, ModalBody, ModalFooter, ModalHeader } from "@/components/ui";
+import {
+  Modal,
+  ModalBody,
+  ModalFooter,
+  ModalHeader,
+  Tooltip,
+} from "@/components/ui";
 import { useAuth } from "@/contexts/AuthContext";
 import { useBuilder } from "@/contexts/BuilderContext";
 import { CourseSettingsModal } from "@/features/courses/components/CourseSettingsModal";
@@ -110,21 +116,22 @@ export function BuilderTopBar({
     <div className="h-20 bg-white/70 border-b border-slate-200/60 flex items-center justify-between px-8 shrink-0 sticky top-0 z-40 backdrop-blur-xl dark:bg-slate-900/70 dark:border-slate-800/60">
       {/* Left: Back + Title */}
       <div className="flex items-center gap-6 min-w-0">
-        <button
-          onClick={() => {
-            if (state.savingStatus === "saving" || offline.isDirty) {
-              setPendingNavAction(() => () => navigate(-1));
-              setIsConfirmOpen(true);
-              return;
-            }
-            void navigate(-1);
-          }}
-          className="p-2.5 hover:bg-white dark:hover:bg-slate-800 hover:shadow-sm border border-transparent hover:border-slate-100 dark:hover:border-slate-700 rounded-xl transition-all text-slate-500 group focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-500"
-          title="Kembali"
-          aria-label="Kembali"
-        >
-          <ArrowLeft className="w-5 h-5 group-hover:-translate-x-0.5 transition-transform" />
-        </button>
+        <Tooltip content="Kembali" position="bottom">
+          <button
+            onClick={() => {
+              if (state.savingStatus === "saving" || offline.isDirty) {
+                setPendingNavAction(() => () => navigate(-1));
+                setIsConfirmOpen(true);
+                return;
+              }
+              void navigate(-1);
+            }}
+            className="p-2.5 hover:bg-white dark:hover:bg-slate-800 hover:shadow-sm border border-transparent hover:border-slate-100 dark:hover:border-slate-700 rounded-xl transition-all text-slate-500 group focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-500"
+            aria-label="Kembali"
+          >
+            <ArrowLeft className="w-5 h-5 group-hover:-translate-x-0.5 transition-transform" />
+          </button>
+        </Tooltip>
 
         <div className="h-10 w-[1px] bg-slate-200/50 dark:bg-slate-700/50" />
 
@@ -291,28 +298,30 @@ export function BuilderTopBar({
         ) : (
           <>
             {/* Version History Button */}
-            <button
-              onClick={() => setIsVersionHistoryOpen(true)}
-              disabled={!state.courseId}
-              className="px-4 py-2 text-sm font-semibold text-slate-600 dark:text-slate-300 bg-white dark:bg-slate-800 border border-slate-200/60 dark:border-slate-700 hover:text-indigo-600 dark:hover:text-indigo-400 hover:bg-white dark:hover:bg-slate-750 hover:shadow-md hover:-translate-y-0.5 rounded-xl transition-all flex items-center gap-2 shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
-              title="Riwayat Versi"
-              aria-label="Riwayat versi"
-            >
-              <History className="w-4 h-4" />
-              <span className="hidden lg:inline">Riwayat Versi</span>
-            </button>
+            <Tooltip content="Riwayat Versi" position="bottom">
+              <button
+                onClick={() => setIsVersionHistoryOpen(true)}
+                disabled={!state.courseId}
+                className="px-4 py-2 text-sm font-semibold text-slate-600 dark:text-slate-300 bg-white dark:bg-slate-800 border border-slate-200/60 dark:border-slate-700 hover:text-indigo-600 dark:hover:text-indigo-400 hover:bg-white dark:hover:bg-slate-750 hover:shadow-md hover:-translate-y-0.5 rounded-xl transition-all flex items-center gap-2 shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
+                aria-label="Riwayat versi"
+              >
+                <History className="w-4 h-4" />
+                <span className="hidden lg:inline">Riwayat Versi</span>
+              </button>
+            </Tooltip>
 
             {/* Save as Template Button */}
-            <button
-              onClick={() => setIsSaveTemplateOpen(true)}
-              disabled={!state.courseId}
-              className="px-4 py-2 text-sm font-semibold text-slate-600 dark:text-slate-300 bg-white dark:bg-slate-800 border border-slate-200/60 dark:border-slate-700 hover:text-emerald-600 dark:hover:text-emerald-400 hover:bg-white dark:hover:bg-slate-750 hover:shadow-md hover:-translate-y-0.5 rounded-xl transition-all flex items-center gap-2 shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
-              title="Simpan sebagai Template Kursus"
-              aria-label="Simpan sebagai template"
-            >
-              <BookCopy className="w-4 h-4" />
-              <span className="hidden lg:inline">Jadikan Template</span>
-            </button>
+            <Tooltip content="Simpan sebagai Template Kursus" position="bottom">
+              <button
+                onClick={() => setIsSaveTemplateOpen(true)}
+                disabled={!state.courseId}
+                className="px-4 py-2 text-sm font-semibold text-slate-600 dark:text-slate-300 bg-white dark:bg-slate-800 border border-slate-200/60 dark:border-slate-700 hover:text-emerald-600 dark:hover:text-emerald-400 hover:bg-white dark:hover:bg-slate-750 hover:shadow-md hover:-translate-y-0.5 rounded-xl transition-all flex items-center gap-2 shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
+                aria-label="Simpan sebagai template"
+              >
+                <BookCopy className="w-4 h-4" />
+                <span className="hidden lg:inline">Jadikan Template</span>
+              </button>
+            </Tooltip>
 
             {/* Preview Button */}
             <button
@@ -331,35 +340,37 @@ export function BuilderTopBar({
             </button>
 
             {/* Course Settings Button */}
-            <button
-              onClick={() => setIsSettingsOpen(true)}
-              disabled={!state.courseId}
-              className="px-4 py-2 text-sm font-semibold text-slate-600 dark:text-slate-300 bg-white dark:bg-slate-800 border border-slate-200/60 dark:border-slate-700 hover:text-indigo-600 dark:hover:text-indigo-400 hover:bg-white dark:hover:bg-slate-750 hover:shadow-md hover:-translate-y-0.5 rounded-xl transition-all flex items-center gap-2 shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
-              title="Pengaturan Kursus"
-              aria-label="Pengaturan kursus"
-            >
-              <Settings className="w-4 h-4" />
-              <span className="hidden lg:inline">Pengaturan</span>
-            </button>
+            <Tooltip content="Pengaturan Kursus" position="bottom">
+              <button
+                onClick={() => setIsSettingsOpen(true)}
+                disabled={!state.courseId}
+                className="px-4 py-2 text-sm font-semibold text-slate-600 dark:text-slate-300 bg-white dark:bg-slate-800 border border-slate-200/60 dark:border-slate-700 hover:text-indigo-600 dark:hover:text-indigo-400 hover:bg-white dark:hover:bg-slate-750 hover:shadow-md hover:-translate-y-0.5 rounded-xl transition-all flex items-center gap-2 shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
+                aria-label="Pengaturan kursus"
+              >
+                <Settings className="w-4 h-4" />
+                <span className="hidden lg:inline">Pengaturan</span>
+              </button>
+            </Tooltip>
 
             {/* AI Copilot Button */}
             {onToggleCopilot && (
-              <button
-                onClick={onToggleCopilot}
-                disabled={!state.courseId}
-                className={cn(
-                  "px-4 py-2 text-sm font-semibold rounded-xl transition-all flex items-center gap-2 shadow-sm disabled:opacity-50 disabled:cursor-not-allowed",
-                  copilotOpen
-                    ? "bg-violet-600 text-white shadow-violet-100 dark:shadow-violet-900/30"
-                    : "text-slate-600 dark:text-slate-300 bg-white dark:bg-slate-800 border border-slate-200/60 dark:border-slate-700 hover:text-violet-600 dark:hover:text-violet-400 hover:bg-white dark:hover:bg-slate-750 hover:shadow-md hover:-translate-y-0.5",
-                )}
-                title="Asisten AI"
-                aria-label="Asisten AI"
-                aria-pressed={copilotOpen}
-              >
-                <Sparkles className="w-4 h-4" />
-                <span className="hidden lg:inline">AI</span>
-              </button>
+              <Tooltip content="Asisten AI" position="bottom">
+                <button
+                  onClick={onToggleCopilot}
+                  disabled={!state.courseId}
+                  className={cn(
+                    "px-4 py-2 text-sm font-semibold rounded-xl transition-all flex items-center gap-2 shadow-sm disabled:opacity-50 disabled:cursor-not-allowed",
+                    copilotOpen
+                      ? "bg-violet-600 text-white shadow-violet-100 dark:shadow-violet-900/30"
+                      : "text-slate-600 dark:text-slate-300 bg-white dark:bg-slate-800 border border-slate-200/60 dark:border-slate-700 hover:text-violet-600 dark:hover:text-violet-400 hover:bg-white dark:hover:bg-slate-750 hover:shadow-md hover:-translate-y-0.5",
+                  )}
+                  aria-label="Asisten AI"
+                  aria-pressed={copilotOpen}
+                >
+                  <Sparkles className="w-4 h-4" />
+                  <span className="hidden lg:inline">AI</span>
+                </button>
+              </Tooltip>
             )}
           </>
         )}
