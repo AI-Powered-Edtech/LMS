@@ -129,7 +129,7 @@ export function GradingModal({
                     <span className="text-sm text-slate-700 dark:text-slate-300 font-medium">
                       Lihat File Lampiran
                     </span>
-                    <span className="sr-only">(buka di tab baru)</span>
+                    <span className="sr-only"> (buka di tab baru)</span>
                   </a>
                 )}
               </div>

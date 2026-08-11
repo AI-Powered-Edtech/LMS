@@ -388,6 +388,7 @@ export function LtiManagement() {
                               <ExternalLink className="w-3.5 h-3.5" /> Buka
                               Issuer
                               <span className="sr-only">
+                                {" "}
                                 (buka di tab baru)
                               </span>
                             </a>
