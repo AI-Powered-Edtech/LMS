@@ -177,7 +177,7 @@ export function PPDBDetailModal({
                   >
                     <FileText className="w-4 h-4" />
                     {key}
-                    <span className="sr-only">(buka di tab baru)</span>
+                    <span className="sr-only"> (buka di tab baru)</span>
                   </a>
                 ))}
               </div>
