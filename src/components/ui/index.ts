@@ -34,10 +34,10 @@ export type { Tab } from "./Tabs";
 export { Tabs } from "./Tabs";
 
 // ============ OVERLAY COMPONENTS ============
-export { Tooltip } from "./Tooltip";
 export type { ConfirmDialogProps } from "./ConfirmDialog";
 export { ConfirmDialog } from "./ConfirmDialog";
 export { Modal, ModalBody, ModalFooter, ModalHeader } from "./Modal";
+export { Tooltip } from "./Tooltip";
 
 // ============ CONTENT COMPONENTS ============
 export { Badge } from "./Badge";
