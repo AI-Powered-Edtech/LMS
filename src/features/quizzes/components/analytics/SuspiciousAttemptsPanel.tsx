@@ -6,7 +6,7 @@
  */
 
 import { AlertTriangle, Eye, Loader2, Shield, ShieldAlert } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 
 import { EmptyState } from "@/components/ui";
 import { cn } from "@/utils/cn";
@@ -81,10 +81,14 @@ export function SuspiciousAttemptsPanel({
     }
   }, [quizId, tenantId]);
 
-  const filteredAttempts =
-    filterSeverity === "all"
-      ? attempts
-      : attempts.filter((a) => a.severity === filterSeverity);
+  // ⚡ Perf: Memoize filtered list to prevent O(N) filtering on every render
+  const filteredAttempts = useMemo(
+    () =>
+      filterSeverity === "all"
+        ? attempts
+        : attempts.filter((a) => a.severity === filterSeverity),
+    [attempts, filterSeverity],
+  );
 
   if (isLoading) {
     return (
@@ -122,9 +126,19 @@ export function SuspiciousAttemptsPanel({
     );
   }
 
-  const highCount = attempts.filter((a) => a.severity === "high").length;
-  const mediumCount = attempts.filter((a) => a.severity === "medium").length;
-  const lowCount = attempts.filter((a) => a.severity === "low").length;
+  // ⚡ Perf: Compute severity counts in a single pass and memoize to avoid 3x O(N) filtering loops
+  const { highCount, mediumCount, lowCount } = useMemo(() => {
+    let high = 0;
+    let medium = 0;
+    let low = 0;
+    for (let i = 0; i < attempts.length; i++) {
+      const severity = attempts[i].severity;
+      if (severity === "high") high++;
+      else if (severity === "medium") medium++;
+      else if (severity === "low") low++;
+    }
+    return { highCount: high, mediumCount: medium, lowCount: low };
+  }, [attempts]);
 
   return (
     <div className={className}>
