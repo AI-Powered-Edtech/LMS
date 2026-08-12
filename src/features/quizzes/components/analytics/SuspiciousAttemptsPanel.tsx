@@ -90,6 +90,20 @@ export function SuspiciousAttemptsPanel({
     [attempts, filterSeverity],
   );
 
+  // ⚡ Perf: Compute severity counts in a single pass and memoize to avoid 3x O(N) filtering loops
+  const { highCount, mediumCount, lowCount } = useMemo(() => {
+    let high = 0;
+    let medium = 0;
+    let low = 0;
+    for (let i = 0; i < attempts.length; i++) {
+      const severity = attempts[i].severity;
+      if (severity === "high") high++;
+      else if (severity === "medium") medium++;
+      else if (severity === "low") low++;
+    }
+    return { highCount: high, mediumCount: medium, lowCount: low };
+  }, [attempts]);
+
   if (isLoading) {
     return (
       <div className={className}>
@@ -125,20 +139,6 @@ export function SuspiciousAttemptsPanel({
       </div>
     );
   }
-
-  // ⚡ Perf: Compute severity counts in a single pass and memoize to avoid 3x O(N) filtering loops
-  const { highCount, mediumCount, lowCount } = useMemo(() => {
-    let high = 0;
-    let medium = 0;
-    let low = 0;
-    for (let i = 0; i < attempts.length; i++) {
-      const severity = attempts[i].severity;
-      if (severity === "high") high++;
-      else if (severity === "medium") medium++;
-      else if (severity === "low") low++;
-    }
-    return { highCount: high, mediumCount: medium, lowCount: low };
-  }, [attempts]);
 
   return (
     <div className={className}>
