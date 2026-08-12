@@ -11,6 +11,7 @@
 import { Bell, X } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
 
+import { Tooltip } from "@/components/ui";
 import { cn } from "@/utils/cn";
 import { logger } from "@/utils/logger";
 
@@ -167,18 +168,20 @@ export function PushPermissionPrompt() {
         </div>
 
         {/* Close icon button */}
-        <button
-          type="button"
-          onClick={handleDismiss}
-          aria-label="Tutup"
-          className={cn(
-            "shrink-0 rounded-lg p-1 transition-colors",
-            "text-slate-400 hover:text-slate-600 dark:text-slate-500 dark:hover:text-slate-300",
-            "focus:outline-none focus:ring-2 focus:ring-slate-400",
-          )}
-        >
-          <X className="h-4 w-4" />
-        </button>
+        <Tooltip content="Tutup notifikasi">
+          <button
+            type="button"
+            onClick={handleDismiss}
+            aria-label="Tutup"
+            className={cn(
+              "shrink-0 rounded-lg p-1 transition-colors",
+              "text-slate-400 hover:text-slate-600 dark:text-slate-500 dark:hover:text-slate-300",
+              "focus:outline-none focus:ring-2 focus:ring-slate-400",
+            )}
+          >
+            <X className="h-4 w-4" />
+          </button>
+        </Tooltip>
       </div>
     </div>
   );
