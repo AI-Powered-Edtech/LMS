@@ -11,7 +11,7 @@ import {
   MessageSquare,
   Zap,
 } from "lucide-react";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 
 import { useAuth } from "@/contexts/AuthContext";
@@ -218,13 +218,18 @@ export function Notifications() {
   });
 
   // Apply filter
-  const filtered = allNotifications.filter((n) => {
-    if (activeTab === "semua") return true;
-    if (activeTab === "belum-dibaca") return !n.is_read;
-    return n.type === activeTab;
-  });
+  // ⚡ Perf: Memoize filtered notifications and unread count to prevent O(N) operations on every render
+  const filtered = useMemo(() => {
+    return allNotifications.filter((n) => {
+      if (activeTab === "semua") return true;
+      if (activeTab === "belum-dibaca") return !n.is_read;
+      return n.type === activeTab;
+    });
+  }, [allNotifications, activeTab]);
 
-  const unreadCount = allNotifications.filter((n) => !n.is_read).length;
+  const unreadCount = useMemo(() => {
+    return allNotifications.filter((n) => !n.is_read).length;
+  }, [allNotifications]);
 
   return (
     <div className="max-w-3xl mx-auto px-4 py-8 space-y-6">
