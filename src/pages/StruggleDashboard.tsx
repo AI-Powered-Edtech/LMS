@@ -1,5 +1,5 @@
 import { AlertCircle, Bell, BookOpen, Settings2, Users } from "lucide-react";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 
 import { Card, EmptyState, Skeleton } from "@/components/ui";
@@ -77,12 +77,26 @@ export function StruggleDashboard() {
   });
   const markRead = useMarkAlertsRead();
 
-  const unreadCount = alerts.filter((a) => !a.read_at).length;
-  const highCount = alerts.filter((a) => a.severity === "high").length;
+  // ⚡ Perf: Memoize array iterations to prevent multiple O(N) filtering on render
+  const { unreadCount, highCount, unreadIds } = useMemo(() => {
+    let unreadCount = 0;
+    let highCount = 0;
+    const unreadIds: string[] = [];
+
+    for (const a of alerts) {
+      if (!a.read_at) {
+        unreadCount++;
+        unreadIds.push(a.alert_id);
+      }
+      if (a.severity === "high") {
+        highCount++;
+      }
+    }
+    return { unreadCount, highCount, unreadIds };
+  }, [alerts]);
 
   function handleMarkAllRead() {
-    const ids = alerts.filter((a) => !a.read_at).map((a) => a.alert_id);
-    if (ids.length > 0) markRead.mutate(ids);
+    if (unreadIds.length > 0) markRead.mutate(unreadIds);
   }
 
   function handleAlertClick(
