@@ -1,0 +1,4 @@
+## 2024-08-14 - DOM-Based XSS via window.location.assign
+**Vulnerability:** Found `window.location.assign(url)` being called with user-controllable data (`url` from search results returned by the backend) in `src/features/search/components/GlobalSearchModal.tsx` without sanitization. If the backend search results can be influenced by users to include `javascript:` or `data:` URLs, it can lead to Cross-Site Scripting (XSS).
+**Learning:** Even if data comes from the backend (like search results), if it is ultimately used in a sink like `window.location.assign()`, it must be sanitized on the client side using `sanitizeUrl` (from `src/utils/sanitize.ts`) to prevent XSS.
+**Prevention:** Always wrap dynamic or user-provided URLs in `sanitizeUrl` before passing them to sinks like `window.location.assign()` or `window.location.href`, even if the data appears to come from a trusted backend API.
