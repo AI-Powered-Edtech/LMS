@@ -47,19 +47,28 @@ export function SortingBlock({ data, blockId, lessonId }: SortingBlockProps) {
   const [checked, setChecked] = useState(false);
   const [correctPositions, setCorrectPositions] = useState<number[]>([]);
 
+  // ⚡ Perf: Pre-compute item map to replace O(N^2) find inside map with O(N) lookup
+  const itemsMap = useMemo(() => {
+    const map = new Map<string, SortingItem>();
+    if (data?.items) {
+      data.items.forEach((item) => map.set(item.id, item));
+    }
+    return map;
+  }, [data?.items]);
+
   // Restore from DB
   useEffect(() => {
     if (progress?.interaction_data?.order) {
       const savedOrder = progress.interaction_data.order as string[];
       const restored = savedOrder
-        .map((id) => data.items.find((item) => item.id === id))
+        .map((id) => itemsMap.get(id))
         .filter(Boolean) as SortingItem[];
       if (restored.length === data.items.length) {
         setOrderedItems(restored);
         if (progress.is_completed) setChecked(true);
       }
     }
-  }, [progress, data.items]);
+  }, [progress, data.items, itemsMap]);
 
   const onDragEnd = (result: DropResult) => {
     if (!result.destination || isCompleted) return;
