@@ -39,9 +39,15 @@ pub async fn reset_password_handler(
         .execute(&state.db)
         .await;
 
-        // In dev: log the reset URL
-        let reset_url = format!("http://localhost:5173/#/reset-password?token={}", token);
-        tracing::info!(email = %body.email, reset_url = %reset_url, "Password reset requested");
+        // 🛡️ Sentinel: [CRITICAL] Fix exposed password reset token in logs
+        // Ensure sensitive tokens are not logged in production environments
+        let app_env = std::env::var("APP_ENV").unwrap_or_else(|_| "development".to_string());
+        if app_env == "development" {
+            let reset_url = format!("http://localhost:5173/#/reset-password?token={}", token);
+            tracing::info!(email = %body.email, reset_url = %reset_url, "Password reset requested");
+        } else {
+            tracing::info!(email = %body.email, "Password reset requested");
+        }
     }
 
     Ok(VilResponse::ok(serde_json::json!({ "ok": true })))
