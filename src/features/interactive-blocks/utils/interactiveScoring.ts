@@ -45,9 +45,12 @@ export function scoreSorting(
   if (totalCount === 0)
     return { score: 0, correctPositions: [], totalCount: 0 };
 
+  // ⚡ Perf: Replace O(N^2) nested loop with O(N) hash map lookup
+  const itemMap = new Map(data.items.map((i) => [i.id, i]));
+
   const correctPositions: number[] = [];
   currentOrder.forEach((itemId, idx) => {
-    const item = data.items.find((i) => i.id === itemId);
+    const item = itemMap.get(itemId);
     if (item && item.correctIndex === idx) {
       correctPositions.push(idx);
     }
