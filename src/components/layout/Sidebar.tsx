@@ -1,4 +1,5 @@
 import { LogOut } from "lucide-react";
+import { useMemo } from "react";
 import { useTranslation } from "react-i18next";
 import { Link, useLocation } from "react-router-dom";
 
@@ -18,20 +19,22 @@ export function Sidebar() {
   const { isModuleEnabled } = useModuleConfig();
   const { containerRef, handleKeyDown } = useArrowNavigation();
 
-  const filteredNavItems = navigationItems.filter((item) => {
-    // Only show sidebar items
-    if (item.location !== "sidebar") return false;
+  const filteredNavItems = useMemo(() => {
+    return navigationItems.filter((item) => {
+      // Only show sidebar items
+      if (item.location !== "sidebar") return false;
 
-    // Check role
-    if (!activeRole) return false;
-    if (!item.roles.includes(activeRole)) return false;
+      // Check role
+      if (!activeRole) return false;
+      if (!item.roles.includes(activeRole)) return false;
 
-    // Check module config if applicable
-    if (item.moduleId && !isModuleEnabled(item.moduleId as ModuleId))
-      return false;
+      // Check module config if applicable
+      if (item.moduleId && !isModuleEnabled(item.moduleId as ModuleId))
+        return false;
 
-    return true;
-  });
+      return true;
+    });
+  }, [activeRole, isModuleEnabled]); // ⚡ Perf: Memoize to prevent O(N) filtering on every route change
 
   return (
     <aside className="hidden md:flex flex-col w-64 h-screen bg-white dark:bg-slate-900 border-r border-slate-200 dark:border-slate-800 p-4 shrink-0 transition-colors duration-300">
