@@ -343,6 +343,11 @@ export function SecurityTab() {
                 type="button"
                 onClick={() => setShowPasswords(!showPasswords)}
                 className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-300"
+                aria-label={
+                  showPasswords
+                    ? t("auth.registerForm.hidePassword")
+                    : t("auth.registerForm.showPassword")
+                }
               >
                 {showPasswords ? (
                   <EyeOff className="w-4 h-4" />
