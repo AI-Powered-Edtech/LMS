@@ -16,7 +16,7 @@ import {
   ToggleLeft,
   ToggleRight,
 } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo,useState } from "react";
 
 import { EmptyState } from "@/components/ui";
 import { useAuth } from "@/contexts/AuthContext";
@@ -157,12 +157,21 @@ export function FeatureManagement({
     );
   };
 
-  const handleSaveFlags = () => {
+  // ⚡ Perf: Memoize to prevent O(N) filtering
+  const { hasDirtyFlags, dirtyCount, dirtyFlags } = useMemo(() => {
     const dirty = flags.filter((f) => f.dirty);
-    if (dirty.length === 0 || !tenantId) return;
+    return {
+      dirtyFlags: dirty,
+      hasDirtyFlags: dirty.length > 0,
+      dirtyCount: dirty.length,
+    };
+  }, [flags]);
+
+  const handleSaveFlags = () => {
+    if (dirtyFlags.length === 0 || !tenantId) return;
 
     saveFlags(
-      dirty.map((f) => ({
+      dirtyFlags.map((f) => ({
         flag_name: f.flag_name,
         enabled: f.enabled,
         rollout_percentage: f.rollout_percentage,
@@ -186,8 +195,6 @@ export function FeatureManagement({
       },
     );
   };
-
-  const hasDirtyFlags = flags.some((f) => f.dirty);
 
   // ---------------------------------------------------------------------------
   // Render
@@ -526,7 +533,7 @@ export function FeatureManagement({
           {hasDirtyFlags && (
             <div className="sticky bottom-4 flex items-center justify-between gap-4 px-5 py-3 bg-neutral-900 dark:bg-neutral-100 text-neutral-100 dark:text-neutral-900 rounded-2xl shadow-xl border border-neutral-700 dark:border-neutral-300">
               <span className="text-sm font-medium">
-                {flags.filter((f) => f.dirty).length} perubahan belum disimpan
+                {dirtyCount} perubahan belum disimpan
               </span>
               <button
                 type="button"
