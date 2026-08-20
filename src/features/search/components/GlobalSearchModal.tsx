@@ -3,7 +3,6 @@ import { useCallback, useEffect, useRef } from "react";
 
 import { EmptyState } from "@/components/ui/EmptyState";
 import { Modal, ModalBody, ModalHeader } from "@/components/ui/Modal";
-
 import { sanitizeUrl } from "@/utils/sanitize";
 
 import { useGlobalSearch } from "../hooks/useGlobalSearch";
