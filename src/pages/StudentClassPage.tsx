@@ -75,7 +75,6 @@ export function StudentClassPage() {
           <button
             onClick={() => navigate(-1)}
             className="p-2 -ml-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-700 rounded-xl transition-colors text-slate-600 dark:text-slate-400"
-            aria-label="Kembali"
           >
             <ArrowLeft className="w-5 h-5" />
           </button>
