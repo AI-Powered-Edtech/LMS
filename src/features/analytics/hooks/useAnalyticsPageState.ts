@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 
 import { useToast } from "@/components/ui";
 import { useAuth } from "@/contexts/AuthContext";
@@ -160,18 +160,26 @@ export function useAnalyticsPageState() {
     });
   }, [data?.students?.top, data?.students?.at_risk]);
 
-  const getStatus = (progress: number, _lastActive: string | null) => {
-    if (progress < 40) return "Kritis";
-    if (progress < 70) return "Pemantauan";
-    return "Aman";
-  };
+  // ⚡ Perf: Memoize getStatus to prevent function recreation on every render
+  const getStatus = useCallback(
+    (progress: number, _lastActive: string | null) => {
+      if (progress < 40) return "Kritis";
+      if (progress < 70) return "Pemantauan";
+      return "Aman";
+    },
+    [],
+  );
 
-  const filteredStudents = studentsToShow.filter((s) => {
-    if (filter === "Semua") return true;
-    return getStatus(s.progress, s.last_active) === filter;
-  });
+  // ⚡ Perf: Memoize filteredStudents to prevent O(N) filtering on every render (e.g. when expanding rows)
+  const filteredStudents = useMemo(() => {
+    return studentsToShow.filter((s) => {
+      if (filter === "Semua") return true;
+      return getStatus(s.progress, s.last_active) === filter;
+    });
+  }, [studentsToShow, filter, getStatus]);
 
-  const formatLastUpdated = (timestamp: string | null) => {
+  // ⚡ Perf: Memoize formatLastUpdated to prevent function recreation on every render
+  const formatLastUpdated = useCallback((timestamp: string | null) => {
     if (!timestamp) return "Belum pernah dihitung";
 
     const date = new Date(timestamp);
@@ -188,7 +196,7 @@ export function useAnalyticsPageState() {
       month: "short",
       year: "numeric",
     });
-  };
+  }, []);
 
   return {
     activeTenant,
