@@ -312,8 +312,11 @@ export async function getQuestionStats(
   }
 
   // Merge stats with question info
+  // ⚡ Perf: Use Map for O(1) lookups instead of O(N) array .find() inside .map() loop to prevent O(N^2) complexity
+  const questionMap = new Map(safeQuestions?.map((q) => [q.id, q]));
+
   return safeStats.map((stat) => {
-    const question = safeQuestions?.find((q) => q.id === stat.question_id);
+    const question = questionMap.get(stat.question_id);
     return {
       ...stat,
       question_text: question?.text?.substring(0, 80) || "Question",
