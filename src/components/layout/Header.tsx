@@ -273,6 +273,8 @@ export const Header = memo(function Header({ onMenuClick }: HeaderProps) {
                   onClick={() => {
                     void handleLogout();
                   }}
+                  aria-label="Keluar"
+                  title="Keluar"
                   className="w-full flex items-center gap-2 px-3 py-2 text-sm font-bold text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors text-left outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
                 >
                   <LogOut className="w-4 h-4" />
