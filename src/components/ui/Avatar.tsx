@@ -59,7 +59,8 @@ function getColorFromName(name: string): string {
 
 /* ─── Avatar Component ────────────────────────────────────────── */
 
-export function Avatar({
+// ⚡ Perf: Memoize to prevent unnecessary re-renders in lists
+export const Avatar = React.memo(function Avatar({
   src,
   name,
   size = "md",
@@ -103,4 +104,4 @@ export function Avatar({
       )}
     </div>
   );
-}
+});
