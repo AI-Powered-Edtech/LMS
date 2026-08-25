@@ -3,6 +3,7 @@ import { useCallback, useEffect, useRef } from "react";
 
 import { EmptyState } from "@/components/ui/EmptyState";
 import { Modal, ModalBody, ModalHeader } from "@/components/ui/Modal";
+import { sanitizeUrl } from "@/utils/sanitize";
 
 import { useGlobalSearch } from "../hooks/useGlobalSearch";
 import { SearchResultItem } from "./SearchResultItem";
@@ -37,7 +38,8 @@ export function GlobalSearchModal({ isOpen, onClose }: GlobalSearchModalProps) {
   const handleSelect = useCallback(
     (url: string) => {
       onClose();
-      window.location.assign(url);
+      // 🛡️ Sentinel: Sanitize URL to prevent DOM-based XSS and Open Redirect
+      window.location.assign(sanitizeUrl(url));
     },
     [onClose],
   );
