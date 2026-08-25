@@ -79,16 +79,21 @@ export function useGradebookState() {
         map.set(student.id, { average: 0, total: 0 });
         continue;
       }
-      const scores = Object.values(studentGrades)
-        .map((entry) => entry.score)
-        .filter((score): score is number => score !== null);
-      if (scores.length === 0) {
+      // ⚡ Perf: Consolidate chained map/filter/reduce into a single loop to avoid intermediate array allocations
+      let total = 0;
+      let count = 0;
+      for (const entry of Object.values(studentGrades)) {
+        if (entry.score !== null) {
+          total += entry.score;
+          count++;
+        }
+      }
+      if (count === 0) {
         map.set(student.id, { average: 0, total: 0 });
         continue;
       }
-      const total = scores.reduce((a, b) => a + b, 0);
       map.set(student.id, {
-        average: Math.round(total / scores.length),
+        average: Math.round(total / count),
         total,
       });
     }
