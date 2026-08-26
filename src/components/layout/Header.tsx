@@ -11,7 +11,7 @@ import { memo, useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 
 import { TenantSwitcher } from "@/components/layout/TenantSwitcher";
-import { OptimizedImage } from "@/components/ui";
+import { OptimizedImage, Tooltip } from "@/components/ui";
 import { Role, useAuth } from "@/contexts/AuthContext";
 import { useTheme } from "@/contexts/ThemeContext";
 import { LevelBadge } from "@/features/gamification/components/LevelBadge";
@@ -197,18 +197,23 @@ export const Header = memo(function Header({ onMenuClick }: HeaderProps) {
         )}
 
         {/* Dark Mode Toggle */}
-        <button
-          onClick={toggleTheme}
-          type="button"
-          aria-label="Ubah mode gelap"
-          className="p-2.5 min-w-[44px] min-h-[44px] flex items-center justify-center rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
+        <Tooltip
+          content={resolvedTheme === "dark" ? "Mode terang" : "Mode gelap"}
+          position="bottom"
         >
-          {resolvedTheme === "dark" ? (
-            <Sun className="w-5 h-5 text-amber-400" />
-          ) : (
-            <Moon className="w-5 h-5 text-slate-500" />
-          )}
-        </button>
+          <button
+            onClick={toggleTheme}
+            type="button"
+            aria-label="Ubah mode gelap"
+            className="p-2.5 min-w-[44px] min-h-[44px] flex items-center justify-center rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
+          >
+            {resolvedTheme === "dark" ? (
+              <Sun className="w-5 h-5 text-amber-400" />
+            ) : (
+              <Moon className="w-5 h-5 text-slate-500" />
+            )}
+          </button>
+        </Tooltip>
 
         {/* Struggle Detection Bell — teacher/admin only */}
         <StruggleBell />
