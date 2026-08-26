@@ -204,7 +204,11 @@ export const Header = memo(function Header({ onMenuClick }: HeaderProps) {
           <button
             onClick={toggleTheme}
             type="button"
-            aria-label="Ubah mode gelap"
+            aria-label={
+              resolvedTheme === "dark"
+                ? "Ubah ke mode terang"
+                : "Ubah ke mode gelap"
+            }
             className="p-2.5 min-w-[44px] min-h-[44px] flex items-center justify-center rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
           >
             {resolvedTheme === "dark" ? (
