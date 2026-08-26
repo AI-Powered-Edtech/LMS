@@ -303,7 +303,11 @@ export function QuizEditorView({
         <div className="p-3 bg-red-50 dark:bg-red-900/30 border border-red-200 dark:border-red-800 text-red-700 dark:text-red-400 text-sm rounded-xl flex items-start gap-2">
           <AlertTriangle className="w-4 h-4 shrink-0 mt-0.5" />
           <span>{error}</span>
-          <button onClick={() => setError(null)} className="ml-auto">
+          <button
+            onClick={() => setError(null)}
+            className="ml-auto"
+            aria-label="Tutup pesan error"
+          >
             <X className="w-4 h-4" />
           </button>
         </div>
