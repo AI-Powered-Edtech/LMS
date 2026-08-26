@@ -8,7 +8,7 @@ import {
   X,
   XCircle,
 } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 
 import { useAuth } from "@/contexts/AuthContext";
 import {
@@ -96,8 +96,15 @@ export function AttemptDetailModal({
     void loadDetail();
   }, [attemptId]);
 
-  const correctCount = answers.filter((a) => a.is_correct).length;
-  const ungradedCount = answers.filter(needsGrading).length;
+  // ⚡ Perf: Memoize array filtering to prevent O(N) recalculations on every render
+  const correctCount = useMemo(
+    () => answers.filter((a) => a.is_correct).length,
+    [answers],
+  );
+  const ungradedCount = useMemo(
+    () => answers.filter(needsGrading).length,
+    [answers],
+  );
 
   const handleGrade = async (answer: AttemptDetailAnswer) => {
     const scoreStr = gradingScores[answer.question_id] ?? "";
