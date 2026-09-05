@@ -1,4 +1,4 @@
-import { describe, expect,it } from "vitest";
+import { describe, expect, it } from "vitest";
 
 import { translateAuthError } from "../translateAuthError";
 
@@ -7,11 +7,9 @@ describe("translateAuthError", () => {
     expect(translateAuthError("")).toBe(
       "Terjadi kesalahan yang tidak diketahui.",
     );
-    // @ts-expect-error Testing undefined behavior
     expect(translateAuthError(undefined as unknown as string)).toBe(
       "Terjadi kesalahan yang tidak diketahui.",
     );
-    // @ts-expect-error Testing null behavior
     expect(translateAuthError(null as unknown as string)).toBe(
       "Terjadi kesalahan yang tidak diketahui.",
     );
