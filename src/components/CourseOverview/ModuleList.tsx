@@ -66,6 +66,7 @@ export function ModuleList({
                 whileHover={{ scale: 1.01 }}
                 whileTap={{ scale: 0.99 }}
                 onClick={() => onSelectModule(mod.id)}
+                aria-label={`Pilih modul ${mod.title}`}
                 className={cn(
                   "w-full flex items-center gap-4 p-4 md:p-5 rounded-2xl border text-left transition-all duration-200 group",
                   isComplete
