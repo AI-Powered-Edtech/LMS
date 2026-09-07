@@ -27,45 +27,54 @@ function isValidNumber(n: unknown): n is number {
 /**
  * Format date as "15 April 2026" by default.
  */
+const dateFormatterDefault = new Intl.DateTimeFormat(LOCALE, {
+  day: "2-digit",
+  month: "long",
+  year: "numeric",
+});
+
 export function formatDate(
   d: DateInput,
-  opts: Intl.DateTimeFormatOptions = {
-    day: "2-digit",
-    month: "long",
-    year: "numeric",
-  },
+  opts?: Intl.DateTimeFormatOptions,
 ): string {
   const date = toValidDate(d);
   if (!date) return DATE_FALLBACK;
-  return new Intl.DateTimeFormat(LOCALE, opts).format(date);
+  if (opts) {
+    return new Intl.DateTimeFormat(LOCALE, opts).format(date);
+  }
+  return dateFormatterDefault.format(date);
 }
 
 /**
  * Format date as "15/04/2026".
  */
+const dateFormatterShort = new Intl.DateTimeFormat(LOCALE, {
+  day: "2-digit",
+  month: "2-digit",
+  year: "numeric",
+});
+
 export function formatDateShort(d: DateInput): string {
   const date = toValidDate(d);
   if (!date) return DATE_FALLBACK;
-  return new Intl.DateTimeFormat(LOCALE, {
-    day: "2-digit",
-    month: "2-digit",
-    year: "numeric",
-  }).format(date);
+  return dateFormatterShort.format(date);
 }
 
 /**
  * Format date-time as "15 Apr 2026, 14.05" (id-ID uses dot separator for time).
  */
+const dateTimeFormatter = new Intl.DateTimeFormat(LOCALE, {
+  day: "2-digit",
+  month: "short",
+  year: "numeric",
+  hour: "2-digit",
+  minute: "2-digit",
+});
+
 export function formatDateTime(d: DateInput): string {
   const date = toValidDate(d);
   if (!date) return DATE_FALLBACK;
-  return new Intl.DateTimeFormat(LOCALE, {
-    day: "2-digit",
-    month: "short",
-    year: "numeric",
-    hour: "2-digit",
-    minute: "2-digit",
-  }).format(date);
+  return dateTimeFormatter.format(date);
 }
 
 const RTF = new Intl.RelativeTimeFormat(LOCALE, { numeric: "auto" });
@@ -102,43 +111,63 @@ export function formatRelative(d: DateInput, now: Date = new Date()): string {
 /**
  * Format number in id-ID locale (e.g. "1.234,56").
  */
+const numberFormatterDefault = new Intl.NumberFormat(LOCALE);
+
 export function formatNumber(
   n: number | null | undefined,
   opts?: Intl.NumberFormatOptions,
 ): string {
   if (!isValidNumber(n)) return NUMBER_FALLBACK;
-  return new Intl.NumberFormat(LOCALE, opts).format(n);
+  if (opts) {
+    return new Intl.NumberFormat(LOCALE, opts).format(n);
+  }
+  return numberFormatterDefault.format(n);
 }
 
 /**
  * Format currency, default IDR without decimals. e.g. "Rp 1.234.567".
  */
+const currencyFormatterIDR = new Intl.NumberFormat(LOCALE, {
+  style: "currency",
+  currency: "IDR",
+  minimumFractionDigits: 0,
+  maximumFractionDigits: 0,
+});
+
 export function formatCurrency(
   n: number | null | undefined,
   currency: string = "IDR",
 ): string {
   if (!isValidNumber(n)) return NUMBER_FALLBACK;
-  const opts: Intl.NumberFormatOptions = {
-    style: "currency",
-    currency,
-  };
+  let out;
   if (currency === "IDR") {
-    opts.minimumFractionDigits = 0;
-    opts.maximumFractionDigits = 0;
+    out = currencyFormatterIDR.format(n);
+  } else {
+    out = new Intl.NumberFormat(LOCALE, {
+      style: "currency",
+      currency,
+    }).format(n);
   }
   // Intl output for IDR is "Rp1.234.567"; we normalize to "Rp 1.234.567".
-  const out = new Intl.NumberFormat(LOCALE, opts).format(n);
   return out.replace(/^(Rp)(\S)/, "$1\u00a0$2");
 }
 
 /**
  * Format percent from already-percent number (82.5 -> "82,5%").
  */
+const percentFormatter1Digit = new Intl.NumberFormat(LOCALE, {
+  minimumFractionDigits: 1,
+  maximumFractionDigits: 1,
+});
+
 export function formatPercent(
   n: number | null | undefined,
   digits: number = 1,
 ): string {
   if (!isValidNumber(n)) return NUMBER_FALLBACK;
+  if (digits === 1) {
+    return percentFormatter1Digit.format(n) + "%";
+  }
   return (
     new Intl.NumberFormat(LOCALE, {
       minimumFractionDigits: digits,
