@@ -384,6 +384,7 @@ export function InteractiveVideoEditor({
                       onClick={() => handleDeleteEvent(idx)}
                       className="p-2 text-danger-400 hover:text-danger-600 dark:hover:text-danger-400 hover:bg-danger-50 dark:hover:bg-danger-900/30 rounded-lg transition-colors mt-6 md:mt-0"
                       title={t("interactiveVideoEditor.events.deleteTitle")}
+                      aria-label="Hapus acara"
                     >
                       <Trash2 className="w-5 h-5" />
                     </button>
