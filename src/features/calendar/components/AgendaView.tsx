@@ -9,6 +9,7 @@ import {
   Video,
 } from "lucide-react";
 import { motion } from "motion/react";
+import { useMemo } from "react";
 
 import type { CalendarEvent } from "@/features/calendar/hooks/useCalendarQueries";
 import {
@@ -32,9 +33,15 @@ export function AgendaView({
   today,
   onToggleCompletion,
 }: AgendaViewProps) {
-  const upcomingEvents = [...events]
-    .filter((e) => e.date.getTime() >= today.getTime())
-    .sort((a, b) => a.date.getTime() - b.date.getTime());
+  // ⚡ Perf: Memoize the upcomingEvents computation.
+  // The filter and sort operations are moderately expensive and would otherwise
+  // run on every component render (e.g. when toggling completion status).
+  // This reduces unnecessary array operations and improves rendering performance.
+  const upcomingEvents = useMemo(() => {
+    return [...events]
+      .filter((e) => e.date.getTime() >= today.getTime())
+      .sort((a, b) => a.date.getTime() - b.date.getTime());
+  }, [events, today]);
 
   return (
     <div className="bg-white dark:bg-slate-800 rounded-3xl border border-slate-200 dark:border-slate-700 p-6 shadow-sm">
