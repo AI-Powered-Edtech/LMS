@@ -398,6 +398,7 @@ export function BuilderTopBar({
           onClick={() => setIsAssignModalOpen(true)}
           disabled={!state.courseId}
           className="px-5 py-2.5 text-sm font-black text-white bg-slate-900 dark:bg-slate-700 hover:bg-black dark:hover:bg-slate-600 shadow-xl shadow-slate-200 dark:shadow-slate-900/30 hover:shadow-slate-300 hover:-translate-y-0.5 rounded-xl transition-all flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+          aria-label="Bagikan kursus"
         >
           <Users className="w-4 h-4" />
           Bagikan
