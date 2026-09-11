@@ -7,6 +7,7 @@ import {
   Trophy,
 } from "lucide-react";
 import { motion } from "motion/react";
+import { useMemo } from "react";
 import { Link, useNavigate } from "react-router-dom";
 
 import { Button, Card } from "@/components/ui";
@@ -63,9 +64,14 @@ export function StudentProgressHero({
 }: StudentProgressHeroProps) {
   const navigate = useNavigate();
 
-  const pendingAssignments = assignments
-    .filter((a) => a.status === "assigned" || a.status === "late")
-    .slice(0, 3);
+  // ⚡ Perf: Memoize filtered array to prevent O(N) reallocation on every render
+  const pendingAssignments = useMemo(
+    () =>
+      assignments
+        .filter((a) => a.status === "assigned" || a.status === "late")
+        .slice(0, 3),
+    [assignments],
+  );
 
   const progressPercentage = Math.min((xp / dailyGoal) * 100, 100);
 
