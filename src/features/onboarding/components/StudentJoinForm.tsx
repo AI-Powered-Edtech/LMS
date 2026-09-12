@@ -39,10 +39,14 @@ export function StudentJoinForm({
       </div>
       <form onSubmit={onSubmit} className="space-y-4">
         <div>
-          <label className="block text-sm font-medium text-slate-300 mb-1">
+          <label
+            htmlFor="studentJoinFullName"
+            className="block text-sm font-medium text-slate-300 mb-1"
+          >
             {t("studentJoinForm.labels.fullName")}
           </label>
           <input
+            id="studentJoinFullName"
             type="text"
             required
             value={fullName}
@@ -52,10 +56,14 @@ export function StudentJoinForm({
           />
         </div>
         <div>
-          <label className="block text-sm font-medium text-slate-300 mb-1">
+          <label
+            htmlFor="studentJoinCode"
+            className="block text-sm font-medium text-slate-300 mb-1"
+          >
             {t("studentJoinForm.labels.joinCode")}
           </label>
           <input
+            id="studentJoinCode"
             type="text"
             required
             value={joinCode}
