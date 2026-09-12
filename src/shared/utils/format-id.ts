@@ -24,6 +24,28 @@ function isValidNumber(n: unknown): n is number {
   return typeof n === "number" && Number.isFinite(n);
 }
 
+const numberFormatCache = new Map<string, Intl.NumberFormat>();
+function getNumberFormatter(
+  opts?: Intl.NumberFormatOptions,
+): Intl.NumberFormat {
+  const key = opts ? JSON.stringify(opts) : "default";
+  if (!numberFormatCache.has(key)) {
+    numberFormatCache.set(key, new Intl.NumberFormat(LOCALE, opts));
+  }
+  return numberFormatCache.get(key)!;
+}
+
+const dateTimeFormatCache = new Map<string, Intl.DateTimeFormat>();
+function getDateTimeFormatter(
+  opts?: Intl.DateTimeFormatOptions,
+): Intl.DateTimeFormat {
+  const key = opts ? JSON.stringify(opts) : "default";
+  if (!dateTimeFormatCache.has(key)) {
+    dateTimeFormatCache.set(key, new Intl.DateTimeFormat(LOCALE, opts));
+  }
+  return dateTimeFormatCache.get(key)!;
+}
+
 /**
  * Format date as "15 April 2026" by default.
  */
@@ -37,7 +59,7 @@ export function formatDate(
 ): string {
   const date = toValidDate(d);
   if (!date) return DATE_FALLBACK;
-  return new Intl.DateTimeFormat(LOCALE, opts).format(date);
+  return getDateTimeFormatter(opts).format(date);
 }
 
 /**
@@ -46,7 +68,7 @@ export function formatDate(
 export function formatDateShort(d: DateInput): string {
   const date = toValidDate(d);
   if (!date) return DATE_FALLBACK;
-  return new Intl.DateTimeFormat(LOCALE, {
+  return getDateTimeFormatter({
     day: "2-digit",
     month: "2-digit",
     year: "numeric",
@@ -59,7 +81,7 @@ export function formatDateShort(d: DateInput): string {
 export function formatDateTime(d: DateInput): string {
   const date = toValidDate(d);
   if (!date) return DATE_FALLBACK;
-  return new Intl.DateTimeFormat(LOCALE, {
+  return getDateTimeFormatter({
     day: "2-digit",
     month: "short",
     year: "numeric",
@@ -107,7 +129,7 @@ export function formatNumber(
   opts?: Intl.NumberFormatOptions,
 ): string {
   if (!isValidNumber(n)) return NUMBER_FALLBACK;
-  return new Intl.NumberFormat(LOCALE, opts).format(n);
+  return getNumberFormatter(opts).format(n);
 }
 
 /**
@@ -127,7 +149,7 @@ export function formatCurrency(
     opts.maximumFractionDigits = 0;
   }
   // Intl output for IDR is "Rp1.234.567"; we normalize to "Rp 1.234.567".
-  const out = new Intl.NumberFormat(LOCALE, opts).format(n);
+  const out = getNumberFormatter(opts).format(n);
   return out.replace(/^(Rp)(\S)/, "$1\u00a0$2");
 }
 
@@ -140,7 +162,7 @@ export function formatPercent(
 ): string {
   if (!isValidNumber(n)) return NUMBER_FALLBACK;
   return (
-    new Intl.NumberFormat(LOCALE, {
+    getNumberFormatter({
       minimumFractionDigits: digits,
       maximumFractionDigits: digits,
     }).format(n) + "%"
