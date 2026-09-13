@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { memo, useEffect } from "react";
 import ReactMarkdown from "react-markdown";
 import rehypeKatex from "rehype-katex";
 import rehypeSanitize from "rehype-sanitize";
@@ -13,7 +13,27 @@ interface MarkdownBlockProps {
   className?: string;
 }
 
-export function MarkdownBlock({ content, className }: MarkdownBlockProps) {
+// ⚡ Perf: Extract static arrays and objects to module scope to prevent ReactMarkdown
+// from unnecessarily re-rendering or re-evaluating on every MarkdownBlock render.
+const staticRemarkPlugins = [remarkGfm, remarkMath];
+const staticRehypePlugins = [
+  rehypeKatex,
+  [rehypeSanitize, katexSanitizeSchema],
+] as any;
+const staticComponents = {
+  a: ({ href, children }: any) => (
+    <a href={href} target="_blank" rel="noopener noreferrer">
+      {children}
+      <span className="sr-only">(buka di tab baru)</span>
+    </a>
+  ),
+};
+
+// ⚡ Perf: Memoize MarkdownBlock to prevent expensive re-renders when parent renders but content is identical.
+export const MarkdownBlock = memo(function MarkdownBlock({
+  content,
+  className,
+}: MarkdownBlockProps) {
   // Lazy-load KaTeX CSS for math rendering
   useEffect(() => {
     void import("katex/dist/katex.min.css");
@@ -37,19 +57,12 @@ export function MarkdownBlock({ content, className }: MarkdownBlockProps) {
       )}
     >
       <ReactMarkdown
-        remarkPlugins={[remarkGfm, remarkMath]}
-        rehypePlugins={[rehypeKatex, [rehypeSanitize, katexSanitizeSchema]]}
-        components={{
-          a: ({ href, children }) => (
-            <a href={href} target="_blank" rel="noopener noreferrer">
-              {children}
-              <span className="sr-only">(buka di tab baru)</span>
-            </a>
-          ),
-        }}
+        remarkPlugins={staticRemarkPlugins as any}
+        rehypePlugins={staticRehypePlugins}
+        components={staticComponents}
       >
         {content}
       </ReactMarkdown>
     </div>
   );
-}
+});
