@@ -66,8 +66,11 @@ function generateSecurePassword(): string {
   const chars =
     "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%";
   let pwd = "";
+  // Security: Use cryptographically secure random number generator instead of Math.random()
   for (let i = 0; i < 32; i++) {
-    pwd += chars[Math.floor(Math.random() * chars.length)];
+    const randomArray = new Uint32Array(1);
+    window.crypto.getRandomValues(randomArray);
+    pwd += chars[randomArray[0] % chars.length];
   }
   return pwd;
 }
