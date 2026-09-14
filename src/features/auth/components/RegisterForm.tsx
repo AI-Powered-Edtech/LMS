@@ -150,8 +150,11 @@ export function RegisterStep1({
       <button
         type="submit"
         disabled={submitting}
-        className="w-full bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-white rounded-xl py-3 font-semibold transition-colors mt-2"
+        className="w-full bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-white rounded-xl py-3 font-semibold transition-colors mt-2 flex items-center justify-center gap-2"
       >
+        {submitting && (
+          <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+        )}
         {inviteToken
           ? submitting
             ? t("auth.registerForm.submittingCreateAccount")
@@ -312,8 +315,11 @@ function StudentStep2({
           type="button"
           onClick={onSubmit}
           disabled={submitting}
-          className="flex-1 bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-white rounded-xl py-3 font-semibold transition-colors text-sm"
+          className="flex-1 bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-white rounded-xl py-3 font-semibold transition-colors text-sm flex items-center justify-center gap-2"
         >
+          {submitting && (
+            <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+          )}
           {submitting
             ? t("auth.registerForm.submitting")
             : classInfo
@@ -420,8 +426,11 @@ function TeacherStep2({
           type="button"
           onClick={onSubmit}
           disabled={submitting}
-          className="flex-1 bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-white rounded-xl py-3 font-semibold transition-colors text-sm"
+          className="flex-1 bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-white rounded-xl py-3 font-semibold transition-colors text-sm flex items-center justify-center gap-2"
         >
+          {submitting && (
+            <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+          )}
           {submitting
             ? t("auth.registerForm.submitting")
             : teacherMode === "invite"
