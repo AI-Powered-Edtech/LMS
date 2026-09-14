@@ -55,51 +55,31 @@ export function calculateStreak(completions: { completed_at: string }[]): {
   // Get unique dates (YYYY-MM-DD) sorted descending
   const dates = [
     ...new Set(completions.map((c) => c.completed_at.slice(0, 10))),
-  ]
-    .sort()
-    .reverse();
-
-  let current = 1;
-  let longest = 1;
-  let streak = 1;
+  ].sort((a, b) => (a < b ? 1 : -1));
 
   const today = new Date().toISOString().slice(0, 10);
   const yesterday = new Date(Date.now() - 86400000).toISOString().slice(0, 10);
 
-  // If most recent completion is not today or yesterday, current streak is 0
-  if (dates[0] !== today && dates[0] !== yesterday) {
-    current = 0;
-  } else {
-    // Count consecutive days from most recent
-    for (let i = 1; i < dates.length; i++) {
-      const prev = new Date(dates[i - 1]);
-      const curr = new Date(dates[i]);
-      const diffDays = Math.round((prev.getTime() - curr.getTime()) / 86400000);
-      if (diffDays === 1) {
-        streak++;
-        if (i === dates.length - 1 || streak > current) current = streak;
-      } else {
-        break;
-      }
-    }
-    current = streak;
-  }
+  let isCurrentStreak = dates[0] === today || dates[0] === yesterday;
+  let current = isCurrentStreak ? 1 : 0;
+  let longest = 1;
+  let currentRun = 1;
 
-  // Compute longest streak across all dates
-  let longestRun = 1;
-  let run = 1;
+  let prevTime = Date.parse(dates[0]);
+  // Compute current and longest streak across all dates in a single pass
   for (let i = 1; i < dates.length; i++) {
-    const prev = new Date(dates[i - 1]);
-    const curr = new Date(dates[i]);
-    const diffDays = Math.round((prev.getTime() - curr.getTime()) / 86400000);
+    const currTime = Date.parse(dates[i]);
+    const diffDays = Math.round((prevTime - currTime) / 86400000);
     if (diffDays === 1) {
-      run++;
-      longestRun = Math.max(longestRun, run);
+      currentRun++;
+      if (isCurrentStreak) current = currentRun;
     } else {
-      run = 1;
+      currentRun = 1;
+      isCurrentStreak = false;
     }
+    if (currentRun > longest) longest = currentRun;
+    prevTime = currTime;
   }
-  longest = longestRun;
 
   return { current, longest };
 }
