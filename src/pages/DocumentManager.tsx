@@ -312,6 +312,7 @@ function UploadModal({ open, onClose, onSuccess, tenantId }: UploadModalProps) {
                     setFile(null);
                   }}
                   className="ml-2 p-1 rounded-lg hover:bg-slate-200 dark:hover:bg-slate-700"
+                  aria-label="Hapus file"
                 >
                   <X className="w-4 h-4 text-slate-500" />
                 </button>
