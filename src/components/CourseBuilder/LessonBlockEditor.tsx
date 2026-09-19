@@ -24,7 +24,7 @@ import {
   X,
 } from "lucide-react";
 import { AnimatePresence, motion } from "motion/react";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 import { useBuilder } from "@/contexts/BuilderContext";
 import { useAICopilotFeatureGate } from "@/features/ai-builder-copilot/hooks/useAICopilotFeatureGate";
@@ -47,12 +47,19 @@ export function LessonBlockEditor() {
   const [deletingBlockId, setDeletingBlockId] = useState<string | null>(null);
   const [templateModalOpen, setTemplateModalOpen] = useState(false);
 
+  // ⚡ Perf: Memoize activeLesson lookup to prevent repeated O(n) array allocations (flatMap) on every render (e.g. typing)
+  const activeLessonFromModules = useMemo(() => {
+    if (!state.activeLesson?.id) return null;
+    for (const m of state.modules) {
+      const lesson = m.lessons.find((l) => l.id === state.activeLesson?.id);
+      if (lesson) return lesson;
+    }
+    return null;
+  }, [state.modules, state.activeLesson?.id]);
+
   // FIX 1: Local title state with debounced API call
   // Derive the current lesson title from state.modules (activeLesson in state only holds id+blocks)
-  const activeLessonTitle =
-    state.modules
-      .flatMap((m) => m.lessons)
-      .find((l) => l.id === state.activeLesson?.id)?.title ?? "";
+  const activeLessonTitle = activeLessonFromModules?.title ?? "";
 
   const [localTitle, setLocalTitle] = useState(activeLessonTitle);
 
@@ -60,13 +67,9 @@ export function LessonBlockEditor() {
   useEffect(() => {
     if (state.activeLesson?.id !== activeLessonIdRef.current) {
       activeLessonIdRef.current = state.activeLesson?.id;
-      const title =
-        state.modules
-          .flatMap((m) => m.lessons)
-          .find((l) => l.id === state.activeLesson?.id)?.title ?? "";
-      setLocalTitle(title);
+      setLocalTitle(activeLessonTitle);
     }
-  }, [state.activeLesson?.id, state.modules]);
+  }, [state.activeLesson?.id, activeLessonTitle]);
 
   const titleDebounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -208,9 +211,7 @@ export function LessonBlockEditor() {
     );
   }
 
-  const activeLesson = state.modules
-    .flatMap((m) => m.lessons)
-    .find((l) => l.id === state.activeLesson?.id);
+  const activeLesson = activeLessonFromModules;
 
   const getBlockIcon = (type: string) => {
     switch (type?.toUpperCase()) {
