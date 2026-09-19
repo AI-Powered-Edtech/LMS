@@ -1,0 +1,3 @@
+## 2026-09-19 - Array find/flatMap in React Render Cycle
+**Learning:** Performing `O(n)` array operations like `flatMap` and `find` inside the main render function, especially when deriving state that triggers frequent re-renders (like typing in a text input), causes significant performance degradation. In `LessonBlockEditor`, finding the active lesson by mapping over all modules on every render path caused noticeable lag when typing in the title input.
+**Action:** Memoize expensive array lookups using `useMemo`, placing them outside the render flow, and depend strictly on their stable derived values rather than repeatedly recreating derived variables on every render.
