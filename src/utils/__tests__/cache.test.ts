@@ -1,5 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
+import { logger } from "@/utils/logger";
+
 import {
   cachedQuery,
   CacheKeys,
@@ -9,8 +11,6 @@ import {
   invalidateUserCache,
   setCache,
 } from "../cache";
-
-import { logger } from "@/utils/logger";
 
 describe("cache", () => {
   const mockNow = 1600000000000;
