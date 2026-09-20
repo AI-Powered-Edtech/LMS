@@ -10,6 +10,8 @@ import {
   setCache,
 } from "../cache";
 
+import { logger } from "@/utils/logger";
+
 describe("cache", () => {
   const mockNow = 1600000000000;
 
@@ -17,6 +19,7 @@ describe("cache", () => {
     vi.useFakeTimers();
     vi.setSystemTime(mockNow);
     localStorage.clear();
+    vi.spyOn(logger, "warn").mockImplementation(() => {});
   });
 
   afterEach(() => {
