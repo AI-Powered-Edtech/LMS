@@ -1,0 +1,3 @@
+test(coverage): add tests for src/utils/cache.ts
+
+This commit adds a comprehensive unit test suite for the `src/utils/cache.ts` utility module, removing the previous global mock of the logger module to adhere strictly to the "no local module mocks" requirement. The tests use Vitest to cover happy paths, edge cases (such as handling `localStorage` quota exceeded errors and parsing failures), and error cases for all exported functions (`getCached`, `setCache`, `clearCache`, `cachedQuery`, `CacheKeys`, and invalidation helpers). This improves the overall statement, branch, and function test coverage for the `src/utils/` directory in alignment with the specified thresholds.
