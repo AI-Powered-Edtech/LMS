@@ -1,4 +1,4 @@
-import { afterEach,beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import {
   cachedQuery,
@@ -9,11 +9,6 @@ import {
   invalidateUserCache,
   setCache,
 } from "../cache";
-
-// Mock logger globally
-vi.mock("@/utils/logger", () => ({
-  logger: { warn: vi.fn() },
-}));
 
 describe("cache", () => {
   const mockNow = 1600000000000;
